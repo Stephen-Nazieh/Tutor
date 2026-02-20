@@ -1,0 +1,233 @@
+/**
+ * Kimi K2.5 AI Provider
+ * Moonshot AI's latest model for complex reasoning and long-context tasks
+ * Docs: https://platform.moonshot.cn/docs
+ */
+
+interface KimiMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+interface KimiResponse {
+  id: string
+  object: string
+  created: number
+  model: string
+  choices: Array<{
+    index: number
+    message: {
+      role: string
+      content: string
+    }
+    finish_reason: string
+  }>
+  usage: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
+const DEFAULT_MODEL = 'kimi-k2.5'
+
+/**
+ * Generate text using Kimi K2.5
+ */
+export async function generateWithKimi(
+  prompt: string,
+  options: {
+    model?: string
+    temperature?: number
+    maxTokens?: number
+    systemPrompt?: string
+  } = {}
+): Promise<string> {
+  const apiKey = process.env.KIMI_API_KEY
+  
+  if (!apiKey) {
+    throw new Error('KIMI_API_KEY not configured in environment variables')
+  }
+
+  const messages: KimiMessage[] = []
+  
+  if (options.systemPrompt) {
+    messages.push({ role: 'system', content: options.systemPrompt })
+  }
+  
+  messages.push({ role: 'user', content: prompt })
+
+  try {
+    const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: options.model || DEFAULT_MODEL,
+        messages,
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 2048,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Kimi API error: ${response.status} - ${error}`)
+    }
+
+    const data: KimiResponse = await response.json()
+    return data.choices[0]?.message?.content || ''
+  } catch (error) {
+    console.error('Kimi generation error:', error)
+    throw error
+  }
+}
+
+/**
+ * Chat with Kimi K2.5 (multi-turn conversation)
+ */
+export async function chatWithKimi(
+  messages: Array<{ role: string; content: string }>,
+  options: {
+    model?: string
+    temperature?: number
+    maxTokens?: number
+  } = {}
+): Promise<string> {
+  const apiKey = process.env.KIMI_API_KEY
+  
+  if (!apiKey) {
+    throw new Error('KIMI_API_KEY not configured in environment variables')
+  }
+
+  try {
+    const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: options.model || DEFAULT_MODEL,
+        messages: messages.map(m => ({
+          role: m.role as 'user' | 'assistant' | 'system',
+          content: m.content,
+        })),
+        temperature: options.temperature ?? 0.7,
+        max_tokens: options.maxTokens ?? 2048,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Kimi API error: ${response.status} - ${error}`)
+    }
+
+    const data: KimiResponse = await response.json()
+    return data.choices[0]?.message?.content || ''
+  } catch (error) {
+    console.error('Kimi chat error:', error)
+    throw error
+  }
+}
+
+/**
+ * Stream responses from Kimi K2.5
+ * Useful for real-time chat responses
+ */
+export async function* streamKimi(
+  messages: Array<{ role: string; content: string }>,
+  options: {
+    model?: string
+    temperature?: number
+    maxTokens?: number
+  } = {}
+): AsyncGenerator<string, void, unknown> {
+  const apiKey = process.env.KIMI_API_KEY
+  
+  if (!apiKey) {
+    throw new Error('KIMI_API_KEY not configured in environment variables')
+  }
+
+  const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: options.model || DEFAULT_MODEL,
+      messages: messages.map(m => ({
+        role: m.role as 'user' | 'assistant' | 'system',
+        content: m.content,
+      })),
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.maxTokens ?? 2048,
+      stream: true,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Kimi API error: ${response.status} - ${error}`)
+  }
+
+  const reader = response.body?.getReader()
+  if (!reader) {
+    throw new Error('No response body')
+  }
+
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') return
+
+          try {
+            const parsed = JSON.parse(data)
+            const content = parsed.choices?.[0]?.delta?.content
+            if (content) {
+              yield content
+            }
+          } catch {
+            // Ignore parse errors for incomplete chunks
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
+
+/**
+ * Get available Kimi models
+ */
+export function getKimiModels(): Array<{ id: string; name: string; description: string }> {
+  return [
+    {
+      id: 'kimi-k2.5',
+      name: 'Kimi K2.5',
+      description: 'Latest model with 256K context, best for complex reasoning and long documents',
+    },
+    {
+      id: 'kimi-latest',
+      name: 'Kimi Latest',
+      description: 'Always points to the latest Kimi model',
+    },
+  ]
+}

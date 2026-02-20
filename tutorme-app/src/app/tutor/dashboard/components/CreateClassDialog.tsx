@@ -1,0 +1,227 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
+
+const SUBJECTS = [
+  { value: 'math', label: 'Mathematics' },
+  { value: 'physics', label: 'Physics' },
+  { value: 'chemistry', label: 'Chemistry' },
+  { value: 'biology', label: 'Biology' },
+  { value: 'english', label: 'English' },
+  { value: 'history', label: 'History' },
+  { value: 'cs', label: 'Computer Science' },
+  { value: 'ielts', label: 'IELTS' },
+  { value: 'toefl', label: 'TOEFL' },
+]
+
+const GRADE_LEVELS = [
+  { value: '6', label: 'Grade 6' },
+  { value: '7', label: 'Grade 7' },
+  { value: '8', label: 'Grade 8' },
+  { value: '9', label: 'Grade 9' },
+  { value: '10', label: 'Grade 10' },
+  { value: '11', label: 'Grade 11' },
+  { value: '12', label: 'Grade 12' },
+  { value: 'college', label: 'College' },
+]
+
+interface CreateClassDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onClassCreated?: (classData?: { id: string; [key: string]: unknown }) => void
+  redirectToClass?: boolean
+}
+
+export function CreateClassDialog({ open, onOpenChange, onClassCreated, redirectToClass = true }: CreateClassDialogProps) {
+  const router = useRouter()
+  const [creating, setCreating] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [form, setForm] = useState({
+    title: '',
+    subject: '',
+    description: '',
+    gradeLevel: '',
+    maxStudents: 50,
+    durationMinutes: 60,
+    scheduledAt: '',
+  })
+
+  const handleSubmit = async () => {
+    if (!form.title.trim()) { toast.error('Please enter a class title'); return }
+    if (!form.subject) { toast.error('Please select a subject'); return }
+    if (!form.gradeLevel) { toast.error('Please select a grade level'); return }
+    if (!form.scheduledAt) { toast.error('Please select date and time'); return }
+
+    setCreating(true)
+    setApiError(null)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/class/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: form.title,
+          subject: form.subject,
+          description: form.description,
+          maxStudents: form.maxStudents,
+          durationMinutes: form.durationMinutes,
+          scheduledAt: new Date(form.scheduledAt).toISOString(),
+        }),
+      })
+
+      const data = await res.json()
+      if (res.ok) {
+        toast.success('Class created successfully!')
+        onOpenChange(false)
+        onClassCreated?.(data.session)
+        if (redirectToClass) {
+          router.push(`/class/${data.session.id}`)
+        }
+      } else {
+        const message = data.error || 'Room creation failed. Please try again.'
+        setApiError(message)
+        toast.error(message)
+      }
+    } catch {
+      const message = 'An error occurred. Please check your connection and try again.'
+      setApiError(message)
+      toast.error(message)
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleOpenChange = (next: boolean) => {
+    if (creating) return
+    if (!next) setApiError(null)
+    onOpenChange(next)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[500px]" aria-busy={creating} aria-describedby={apiError ? 'create-class-api-error' : undefined}>
+        <DialogHeader>
+          <DialogTitle>Create New Class</DialogTitle>
+          <DialogDescription>Schedule a new live class session for your students.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          {apiError && (
+            <p id="create-class-api-error" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2" role="alert">
+              {apiError}
+            </p>
+          )}
+          <div>
+            <Label>Class Title *</Label>
+            <Input
+              value={form.title}
+              onChange={e => setForm({ ...form, title: e.target.value })}
+              placeholder="e.g., AP Calculus - Limits"
+              disabled={creating}
+              aria-invalid={!!apiError}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Subject *</Label>
+              <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
+                <SelectTrigger disabled={creating}><SelectValue placeholder="Select subject" /></SelectTrigger>
+                <SelectContent>
+                  {SUBJECTS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Grade Level *</Label>
+              <Select value={form.gradeLevel} onValueChange={v => setForm({ ...form, gradeLevel: v })}>
+                <SelectTrigger disabled={creating}><SelectValue placeholder="Select grade" /></SelectTrigger>
+                <SelectContent>
+                  {GRADE_LEVELS.map(g => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={form.description}
+              onChange={e => setForm({ ...form, description: e.target.value })}
+              placeholder="What will you cover in this class?"
+              disabled={creating}
+            />
+          </div>
+          <div>
+            <Label>Date & Time *</Label>
+            <Input
+              type="datetime-local"
+              value={form.scheduledAt}
+              onChange={e => setForm({ ...form, scheduledAt: e.target.value })}
+              disabled={creating}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Duration (minutes)</Label>
+              <Select value={form.durationMinutes.toString()} onValueChange={v => setForm({ ...form, durationMinutes: parseInt(v) })}>
+                <SelectTrigger disabled={creating}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="90">1.5 hours</SelectItem>
+                  <SelectItem value="120">2 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Max Students</Label>
+              <Select value={form.maxStudents.toString()} onValueChange={v => setForm({ ...form, maxStudents: parseInt(v) })}>
+                <SelectTrigger disabled={creating}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 students</SelectItem>
+                  <SelectItem value="25">25 students</SelectItem>
+                  <SelectItem value="50">50 students</SelectItem>
+                  <SelectItem value="100">100 students</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={creating}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={creating} aria-busy={creating}>
+            {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Create Class
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
