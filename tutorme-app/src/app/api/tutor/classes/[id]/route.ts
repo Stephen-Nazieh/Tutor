@@ -20,7 +20,7 @@ function normalizeCourseText(value: string): string {
  * GET /api/tutor/classes/:id
  * Returns a tutor-owned class with participants/messages for live hub bootstrapping.
  */
-export const GET = withAuth(async (req, session, { params }: { params: Promise<{ id: string }> }) => {
+export const GET = withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
   const { id: classId } = await params
 
@@ -166,7 +166,7 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
  * POST /api/tutor/classes/:id
  * Starts the class (sets status ACTIVE and startedAt if needed).
  */
-export const POST = withCsrf(withAuth(async (req, session, { params }: { params: Promise<{ id: string }> }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
   const { id: classId } = await params
 
@@ -207,7 +207,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }: { params:
   })
 }, { role: 'TUTOR' }))
 
-export const DELETE = withAuth(async (req, session, { params }: { params: Promise<{ id: string }> }) => {
+export const DELETE = withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
   const { id: classId } = await params
 

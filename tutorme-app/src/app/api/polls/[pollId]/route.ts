@@ -12,7 +12,7 @@ import { z } from 'zod'
 // GET /api/polls/[pollId] - Get a specific poll
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,7 +20,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+  const { pollId } = params || {};
 
     const poll = await db.poll.findUnique({
       where: { id: pollId },
@@ -70,7 +71,7 @@ const UpdatePollSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -78,7 +79,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+  const { pollId } = params || {};
     const body = await request.json()
     const validated = UpdatePollSchema.parse(body)
 
@@ -131,7 +133,7 @@ export async function PATCH(
 // DELETE /api/polls/[pollId] - Delete a poll
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -139,7 +141,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+  const { pollId } = params || {};
 
     await db.poll.delete({
       where: { id: pollId }

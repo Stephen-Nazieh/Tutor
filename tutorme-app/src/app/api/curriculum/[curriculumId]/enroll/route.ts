@@ -7,7 +7,8 @@ import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError, withRateLimitPreset } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
-export const POST = withCsrf(withAuth(async (req, session, { params }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
   if (rateLimitResponse) return rateLimitResponse
 

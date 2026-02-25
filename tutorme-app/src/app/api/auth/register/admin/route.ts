@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
-    const user = await db.$transaction(async (tx) => {
+    const user = await db.$transaction(async (tx: any) => {
       const newUser = await tx.user.create({
         data: {
           email,

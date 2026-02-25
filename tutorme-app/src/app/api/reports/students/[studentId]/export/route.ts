@@ -9,7 +9,8 @@ import { db } from '@/lib/db'
 import { generateStudentReportPDF, generateCSV } from '@/lib/reports/export-service'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
 
-export const GET = withAuth(async (req: NextRequest, session, { params }) => {
+export const GET = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
   const { studentId } = await params
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'

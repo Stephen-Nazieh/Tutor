@@ -9,7 +9,7 @@ import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 // PATCH - Update insight
-export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }, session) => {
+export const PATCH = withAuth(async (req: NextRequest, context: any, session) => {
   const tutorId = session.user.id
   const { id: insightId } = await params
   
@@ -52,7 +52,7 @@ export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Pro
 }, { role: 'TUTOR' })
 
 // DELETE - Delete insight
-export const DELETE = withAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }, session) => {
+export const DELETE = withAuth(async (req: NextRequest, context: any, session) => {
   const tutorId = session.user.id
   const { id: insightId } = await params
   

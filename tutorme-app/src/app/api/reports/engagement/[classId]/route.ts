@@ -9,7 +9,8 @@ import { db } from '@/lib/db'
 import { calculateClassEngagement } from '@/lib/reports/engagement-analytics'
 import { generateEngagementReportExcel } from '@/lib/reports/export-service'
 
-export const GET = withAuth(async (req: NextRequest, session, { params }) => {
+export const GET = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
   const { classId } = await params
   const { searchParams } = new URL(req.url)
   const days = parseInt(searchParams.get('days') || '30')

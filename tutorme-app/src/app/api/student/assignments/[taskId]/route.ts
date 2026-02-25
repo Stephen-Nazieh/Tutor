@@ -11,7 +11,7 @@ import { db } from '@/lib/db'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: Promise<{ taskId: string }> }
+    context: any
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -19,7 +19,8 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { taskId } = await params
+        const params = await context?.params;
+  const { taskId } = params || {};
 
         const task = await db.generatedTask.findUnique({
             where: { id: taskId },

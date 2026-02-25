@@ -25,5 +25,5 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify(studentPayload),
     headers: request.headers,
   })
-  return mainRegister(modifiedRequest)
+  return mainRegister(modifiedRequest as unknown as NextRequest)
 }

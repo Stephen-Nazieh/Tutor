@@ -9,7 +9,8 @@ import { withAuth, withCsrf, NotFoundError, ValidationError } from '@/lib/api/mi
 import { startLesson, getLessonContent, getNextLesson } from '@/lib/curriculum/lesson-controller'
 import { db } from '@/lib/db'
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { lessonId } = await params
   const { searchParams } = new URL(req.url)
   const action = searchParams.get('action')
@@ -35,7 +36,8 @@ export const GET = withAuth(async (req, session, { params }) => {
   return NextResponse.json({ lesson })
 }, { role: 'STUDENT' })
 
-export const POST = withCsrf(withAuth(async (req, session, { params }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { lessonId } = await params
   const body = await req.json()
   const { action = 'start' } = body

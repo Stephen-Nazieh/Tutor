@@ -5,13 +5,13 @@ import { Permissions } from '@/lib/admin/permissions'
 
 export async function GET(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.ANALYTICS_READ)
-  
+
   if (!session) return response!
 
   try {
     const { searchParams } = new URL(req.url)
     const days = parseInt(searchParams.get('days') || '7')
-    
+
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -40,28 +40,28 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
       // Total users
       prisma.user.count(),
-      
+
       // New users in period
       prisma.user.count({
         where: { createdAt: { gte: startDate } },
       }),
-      
+
       // Active users (had activity in period)
       prisma.userActivityLog.groupBy({
         by: ['userId'],
         where: { createdAt: { gte: startDate } },
         _count: { userId: true },
       }).then((r: Array<Record<string, unknown>>) => r.length),
-      
+
       // Total live sessions
       prisma.liveSession.count(),
-      
+
       // Total content items
       prisma.contentItem.count(),
-      
+
       // Total enrollments
       prisma.curriculumEnrollment.count(),
-      
+
       // Recent login activity
       prisma.userActivityLog.count({
         where: {
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
           createdAt: { gte: startDate },
         },
       }),
-      
+
       // Users by role
       prisma.user.groupBy({
         by: ['role'],
@@ -180,18 +180,18 @@ export async function GET(req: NextRequest) {
       .slice(0, 10)
       .map(([action, count]) => ({ action, count }))
 
-    const paidPayments = recentPayments.filter((p) => p.status === 'COMPLETED')
-    const pendingPayments = recentPayments.filter((p) => p.status === 'PENDING' || p.status === 'PROCESSING')
-    const refundedPayments = recentPayments.filter((p) => p.status === 'REFUNDED')
-    const paymentVolume = recentPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
+    const paidPayments = recentPayments.filter((p: any) => p.status === 'COMPLETED')
+    const pendingPayments = recentPayments.filter((p: any) => p.status === 'PENDING' || p.status === 'PROCESSING')
+    const refundedPayments = recentPayments.filter((p: any) => p.status === 'REFUNDED')
+    const paymentVolume = recentPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
     const paymentSuccessRate = recentPayments.length > 0 ? (paidPayments.length / recentPayments.length) * 100 : 0
     const refundRate = recentPayments.length > 0 ? (refundedPayments.length / recentPayments.length) * 100 : 0
 
-    const failedLoginEvents = recentSecurityEvents.filter((e) =>
+    const failedLoginEvents = recentSecurityEvents.filter((e: any) =>
       e.eventType?.toLowerCase().includes('auth_failed') || e.action?.toLowerCase().includes('login_failed')
     )
-    const criticalSecurityEvents = recentSecurityEvents.filter((e) => (e.severity || '').toLowerCase() === 'critical')
-    const suspiciousIps = new Set(failedLoginEvents.map((e) => e.ip).filter(Boolean as unknown as (v: string | null) => v is string))
+    const criticalSecurityEvents = recentSecurityEvents.filter((e: any) => (e.severity || '').toLowerCase() === 'critical')
+    const suspiciousIps = new Set(failedLoginEvents.map((e: any) => e.ip).filter(Boolean as unknown as (v: string | null) => v is string))
 
     const sessionParticipantCount = new Map<string, Set<string>>()
     for (const p of recentSessionParticipants) {
@@ -199,7 +199,7 @@ export async function GET(req: NextRequest) {
       sessionParticipantCount.get(p.sessionId)?.add(p.studentId)
     }
     const avgParticipantsPerLive = recentLiveSessions.length > 0
-      ? recentLiveSessions.reduce((sum, s) => sum + (sessionParticipantCount.get(s.id)?.size || 0), 0) / recentLiveSessions.length
+      ? recentLiveSessions.reduce((sum: number, s: any) => sum + (sessionParticipantCount.get(s.id)?.size || 0), 0) / recentLiveSessions.length
       : 0
 
     const activeFeatureUsers = new Set<string>()
@@ -226,8 +226,8 @@ export async function GET(req: NextRequest) {
       learningActiveUsers: activeFeatureUsers.size,
       payingUsers: new Set(
         paidPayments
-          .map((p) => {
-            const maybe = recentUserActivities.find((a) => a.createdAt <= p.createdAt)
+          .map((p: any) => {
+            const maybe = recentUserActivities.find((a: any) => a.createdAt <= p.createdAt)
             return maybe?.userId
           })
           .filter(Boolean as unknown as (v: string | undefined) => v is string)
@@ -252,7 +252,7 @@ export async function GET(req: NextRequest) {
       liveClassAnalytics: {
         sessionsCreated: recentLiveSessions.length,
         avgParticipantsPerSession: Math.round(avgParticipantsPerLive * 100) / 100,
-        pollResponses: recentPolls.reduce((sum, p) => sum + (p.totalResponses || 0), 0),
+        pollResponses: recentPolls.reduce((sum: number, p: any) => sum + (p.totalResponses || 0), 0),
         whiteboardSessions: recentWhiteboardSessions.length,
       },
       securityAnalytics: {

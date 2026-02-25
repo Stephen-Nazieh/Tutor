@@ -183,15 +183,15 @@ export default function QuestionBankPage() {
             const payload = {
                 ...formData,
                 subject: subjectValue || '',
-                options: formData.type === 'multiple_choice' || formData.type === 'multi_select' 
-                    ? formData.options.filter(o => o.trim()) 
+                options: formData.type === 'multiple_choice' || formData.type === 'multi_select'
+                    ? formData.options.filter(o => o.trim())
                     : undefined
             }
 
-            const url = editingQuestion 
+            const url = editingQuestion
                 ? `/api/tutor/question-bank/${editingQuestion.id}`
                 : '/api/tutor/question-bank'
-            
+
             const res = await fetch(url, {
                 method: editingQuestion ? 'PATCH' : 'POST',
                 headers: {
@@ -341,7 +341,7 @@ export default function QuestionBankPage() {
                                 {editingQuestion ? 'Edit Question' : 'Create New Question'}
                             </DialogTitle>
                         </DialogHeader>
-                        
+
                         <div className="space-y-4 py-4">
                             {/* Subject */}
                             <div>
@@ -374,8 +374,8 @@ export default function QuestionBankPage() {
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <Label>Type</Label>
-                                    <Select 
-                                        value={formData.type} 
+                                    <Select
+                                        value={formData.type}
                                         onValueChange={(v) => setFormData(prev => ({ ...prev, type: v as QuestionType }))}
                                     >
                                         <SelectTrigger>
@@ -390,8 +390,8 @@ export default function QuestionBankPage() {
                                 </div>
                                 <div>
                                     <Label>Difficulty</Label>
-                                    <Select 
-                                        value={formData.difficulty} 
+                                    <Select
+                                        value={formData.difficulty}
                                         onValueChange={(v) => setFormData(prev => ({ ...prev, difficulty: v as QuestionDifficulty }))}
                                     >
                                         <SelectTrigger>
@@ -406,8 +406,8 @@ export default function QuestionBankPage() {
                                 </div>
                                 <div>
                                     <Label>Points</Label>
-                                    <Input 
-                                        type="number" 
+                                    <Input
+                                        type="number"
                                         min={1}
                                         value={formData.points}
                                         onChange={(e) => setFormData(prev => ({ ...prev, points: parseInt(e.target.value) || 1 }))}
@@ -436,18 +436,18 @@ export default function QuestionBankPage() {
                                                 <input
                                                     type={formData.type === 'multi_select' ? 'checkbox' : 'radio'}
                                                     name="correctAnswer"
-                                                    checked={formData.type === 'multi_select' 
-                                                        ? (formData.correctAnswer as string[] || []).includes(option)
+                                                    checked={formData.type === 'multi_select'
+                                                        ? ((formData.correctAnswer as unknown as string[]) || []).includes(option)
                                                         : formData.correctAnswer === option
                                                     }
                                                     onChange={() => {
                                                         if (formData.type === 'multi_select') {
-                                                            const current = (formData.correctAnswer as string[] || [])
+                                                            const current = ((formData.correctAnswer as unknown as string[]) || [])
                                                             setFormData(prev => ({
                                                                 ...prev,
-                                                                correctAnswer: current.includes(option)
+                                                                correctAnswer: (current.includes(option)
                                                                     ? current.filter(a => a !== option)
-                                                                    : [...current, option]
+                                                                    : [...current, option]) as unknown as string
                                                             }))
                                                         } else {
                                                             setFormData(prev => ({ ...prev, correctAnswer: option }))
@@ -553,7 +553,7 @@ export default function QuestionBankPage() {
                                                 const value = (e.target as HTMLInputElement).value.trim()
                                                 if (value && !formData.tags.includes(value)) {
                                                     setFormData(prev => ({ ...prev, tags: [...prev.tags, value] }))
-                                                    ;(e.target as HTMLInputElement).value = ''
+                                                        ; (e.target as HTMLInputElement).value = ''
                                                 }
                                             }
                                         }}

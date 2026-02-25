@@ -9,7 +9,7 @@ import { revokeApiKey } from '@/lib/security/api-key'
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: any
 ) {
   // We need to run auth and permission checks inside the handler for dynamic route
   const { getServerSession } = await import('next-auth')
@@ -26,7 +26,8 @@ export async function DELETE(
   const permErr = requirePermission(session, PERMISSIONS.ADMIN_MANAGE_API_KEYS)
   if (permErr) return permErr
 
-  const { id } = await params
+  const params = await context?.params;
+  const { id } = params || {};
   const ok = await revokeApiKey(id)
   if (!ok) {
     return NextResponse.json({ error: 'Key not found' }, { status: 404 })

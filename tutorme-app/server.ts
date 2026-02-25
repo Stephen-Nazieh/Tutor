@@ -8,7 +8,7 @@ import { parse } from 'url'
 import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import next from 'next'
-import { initSocketServer } from './src/lib/socket-server'
+import { initEnhancedSocketServer } from './src/lib/socket-server-enhanced'
 import { validateEnv } from './src/lib/env'
 
 // Load environment variables from .env.local before validation
@@ -49,7 +49,7 @@ const port = parseInt(process.env.PORT || '3003', 10)
 const app = next({ dev, hostname, port })
 const handle = app.getRequestHandler()
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
   const server = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url!, true)
@@ -62,7 +62,7 @@ app.prepare().then(() => {
   })
 
   // Initialize Socket.io server
-  const io = initSocketServer(server)
+  const io = await initEnhancedSocketServer(server)
   console.log('✅ Socket.io server initialized')
 
   server

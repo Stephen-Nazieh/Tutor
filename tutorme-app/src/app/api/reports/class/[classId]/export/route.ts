@@ -129,7 +129,8 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   }
 }
 
-export const GET = withAuth(async (req: NextRequest, session, { params }) => {
+export const GET = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
   const { classId } = await params
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'

@@ -8,8 +8,9 @@ import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 // GET /api/student/subjects/[subjectCode] - Get subject details
-export const GET = withAuth(async (req: NextRequest, session, { params }: { params: Promise<{ subjectCode: string }> }) => {
-  const { subjectCode } = await params
+export const GET = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
+  const { subjectCode } = params || {};
 
   // Get curriculum enrollment
   const enrollment = await db.curriculumEnrollment.findFirst({

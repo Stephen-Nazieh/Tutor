@@ -23,7 +23,7 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: Promise<{ taskId: string }> }
+    context: any
 ) {
     const session = await getServerSession(authOptions)
     if (!session?.user) {
@@ -31,7 +31,8 @@ export async function POST(
     }
 
     const studentId = session.user.id
-    const { taskId } = await params
+    const params = await context?.params;
+  const { taskId } = params || {};
 
     try {
         const formData = await request.formData()

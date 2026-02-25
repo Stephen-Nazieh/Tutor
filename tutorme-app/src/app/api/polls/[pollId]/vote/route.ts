@@ -18,7 +18,7 @@ const VoteSchema = z.object({
 // POST /api/polls/[pollId]/vote - Submit a vote
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -26,7 +26,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+  const { pollId } = params || {};
     const body = await request.json()
     const validated = VoteSchema.parse(body)
 
