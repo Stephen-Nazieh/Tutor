@@ -17,7 +17,7 @@ function buildPublicUrl(key: string): string {
   return `https://${bucket}.s3.${region}.amazonaws.com/${key}`
 }
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, context: { params?: Promise<{ contentId: string }> }) => {
+export const POST = withCsrf(withAuth(async (req: NextRequest, session, context: any) => {
   const params = context?.params ? await context.params : null
   const contentId = params?.contentId
   if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })

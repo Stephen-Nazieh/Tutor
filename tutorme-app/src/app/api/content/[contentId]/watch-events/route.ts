@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 const VALID = new Set(['play', 'pause', 'seek', 'complete', 'quality_change'])
 const MAX = 100
 
-export const POST = withCsrf(withAuth(async (req, session, context: { params?: Promise<{ contentId: string }> }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const p = context?.params ? await context.params : null
   const contentId = p?.contentId
   if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })

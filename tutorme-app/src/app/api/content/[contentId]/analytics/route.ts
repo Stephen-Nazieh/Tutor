@@ -9,7 +9,7 @@ import { db } from '@/lib/db'
 
 const SEGMENT_SECONDS = 10
 
-export const GET = withAuth(async (req, session, context: { params?: Promise<{ contentId: string }> }) => {
+export const GET = withAuth(async (req, session, context: any) => {
   const params = context?.params ? await context.params : null
   const contentId = params?.contentId
   if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
