@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    const enrichedCurriculums = curriculums.map((c: CurriculumWithCounts) => {
+    const enrichedCurriculums = curriculums.map((c: any) => {
       const totalLessons = c.modules.reduce((sum: number, m: { _count: { lessons: number } }) => sum + m._count.lessons, 0)
       return {
         id: c.id,

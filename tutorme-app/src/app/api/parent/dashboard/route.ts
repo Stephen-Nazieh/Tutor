@@ -51,65 +51,65 @@ export const GET = withAuth(
         ] = await Promise.all([
           studentIds.length > 0
             ? db.curriculumEnrollment.findMany({
-                where: { studentId: { in: studentIds } },
-                select: {
-                  studentId: true,
-                  curriculum: { select: { id: true, name: true } },
-                },
-              })
+              where: { studentId: { in: studentIds } },
+              select: {
+                studentId: true,
+                curriculum: { select: { id: true, name: true } },
+              },
+            })
             : [],
           studentIds.length > 0
             ? db.curriculumLessonProgress.findMany({
-                where: { studentId: { in: studentIds } },
-                select: { studentId: true, status: true, completedAt: true },
-              })
+              where: { studentId: { in: studentIds } },
+              select: { studentId: true, status: true, completedAt: true },
+            })
             : [],
           studentIds.length > 0
             ? db.userGamification.findMany({
-                where: { userId: { in: studentIds } },
-                select: { userId: true, lastLogin: true },
-              })
+              where: { userId: { in: studentIds } },
+              select: { userId: true, lastLogin: true },
+            })
             : [],
           studentIds.length > 0
             ? db.achievement.findMany({
-                where: { userId: { in: studentIds } },
-                orderBy: { unlockedAt: 'desc' },
-                take: 10,
-                select: { id: true, userId: true, title: true, description: true, unlockedAt: true },
-              })
+              where: { userId: { in: studentIds } },
+              orderBy: { unlockedAt: 'desc' },
+              take: 10,
+              select: { id: true, userId: true, title: true, description: true, unlockedAt: true },
+            })
             : [],
           studentIds.length > 0
             ? db.taskSubmission.findMany({
-                where: { studentId: { in: studentIds } },
-                select: { id: true, taskId: true, studentId: true, submittedAt: true },
-              })
+              where: { studentId: { in: studentIds } },
+              select: { id: true, taskId: true, studentId: true, submittedAt: true },
+            })
             : [],
           studentIds.length > 0
             ? db.generatedTask.findMany({
-                where: {
-                  status: { in: ['assigned', 'completed'] },
-                },
-                orderBy: { createdAt: 'desc' },
-                take: 200,
-                select: {
-                  id: true,
-                  dueDate: true,
-                  assignments: true,
-                },
-              })
+              where: {
+                status: { in: ['assigned', 'completed'] },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 200,
+              select: {
+                id: true,
+                dueDate: true,
+                assignments: true,
+              },
+            })
             : [],
           studentIds.length > 0
             ? db.clinicBooking.findMany({
-                where: {
-                  studentId: { in: studentIds },
-                  clinic: { startTime: { gte: now } },
-                },
-                select: {
-                  id: true,
-                  studentId: true,
-                  clinic: { select: { title: true, startTime: true } },
-                },
-              })
+              where: {
+                studentId: { in: studentIds },
+                clinic: { startTime: { gte: now } },
+              },
+              select: {
+                id: true,
+                studentId: true,
+                clinic: { select: { title: true, startTime: true } },
+              },
+            })
             : [],
           db.familyPayment.findMany({
             where: { parentId: family.id, createdAt: { gte: startOfMonth } },
@@ -119,33 +119,33 @@ export const GET = withAuth(
           }),
           studentIds.length > 0
             ? db.payment.findMany({
-                where: {
-                  status: 'COMPLETED',
-                  createdAt: { gte: startOfMonth },
-                  OR: [
-                    { booking: { studentId: { in: studentIds } } },
-                    { enrollment: { studentId: { in: studentIds } } },
-                  ],
-                },
-                select: { id: true, amount: true },
-              })
+              where: {
+                status: 'COMPLETED',
+                createdAt: { gte: startOfMonth },
+                OR: [
+                  { booking: { studentId: { in: studentIds } } },
+                  { enrollment: { studentId: { in: studentIds } } },
+                ],
+              },
+              select: { id: true, amount: true },
+            })
             : [],
           studentIds.length > 0
             ? db.payment.findMany({
-                where: {
-                  status: { in: ['PENDING', 'PROCESSING'] },
-                  OR: [
-                    { booking: { studentId: { in: studentIds } } },
-                    { enrollment: { studentId: { in: studentIds } } },
-                  ],
-                },
-                include: {
-                  booking: { include: { clinic: { select: { title: true, startTime: true } } } },
-                  enrollment: { include: { curriculum: { select: { name: true } } } },
-                },
-                orderBy: { createdAt: 'desc' },
-                take: 20,
-              })
+              where: {
+                status: { in: ['PENDING', 'PROCESSING'] },
+                OR: [
+                  { booking: { studentId: { in: studentIds } } },
+                  { enrollment: { studentId: { in: studentIds } } },
+                ],
+              },
+              include: {
+                booking: { include: { clinic: { select: { title: true, startTime: true } } } },
+                enrollment: { include: { curriculum: { select: { name: true } } } },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 20,
+            })
             : [],
           db.familyNotification.findMany({
             where: { parentId: family.id },
@@ -161,7 +161,7 @@ export const GET = withAuth(
           }),
         ])
 
-        const submissionSet = new Set(taskSubmissions.map((s) => `${s.studentId}:${s.taskId}`))
+        const submissionSet = new Set(taskSubmissions.map((s: any) => `${s.studentId}:${s.taskId}`))
         const assignmentsDueByStudent = new Map<string, number>()
         for (const sid of studentIds) assignmentsDueByStudent.set(sid, 0)
         for (const task of generatedTasks) {
@@ -176,16 +176,16 @@ export const GET = withAuth(
         }
 
         const children = family.members
-          .filter((m) => ['child', 'children'].includes(m.relation.toLowerCase()))
-          .map((m) => {
+          .filter((m: any) => ['child', 'children'].includes(m.relation.toLowerCase()))
+          .map((m: any) => {
             const uid = m.userId
-            const enrolls = enrollments.filter((e) => e.studentId === uid)
-            const progress = lessonProgress.filter((p) => p.studentId === uid)
-            const completed = progress.filter((p) => p.status === 'COMPLETED').length
+            const enrolls = enrollments.filter((e: any) => e.studentId === uid)
+            const progress = lessonProgress.filter((p: any) => p.studentId === uid)
+            const completed = progress.filter((p: any) => p.status === 'COMPLETED').length
             const total = progress.length
-            const gam = gamification.find((g) => g.userId === uid)
-            const recentAchievement = achievements.find((a) => a.userId === uid)
-            const upcomingClasses = clinicBookings.filter((b) => b.studentId === uid).length
+            const gam = gamification.find((g: any) => g.userId === uid)
+            const recentAchievement = achievements.find((a: any) => a.userId === uid)
+            const upcomingClasses = clinicBookings.filter((b: any) => b.studentId === uid).length
             const assignmentsDue = uid ? (assignmentsDueByStudent.get(uid) ?? 0) : 0
 
             return {
@@ -199,26 +199,26 @@ export const GET = withAuth(
               lastActive: gam?.lastLogin
                 ? formatRelativeTime(gam.lastLogin)
                 : '—',
-              subjects: [...new Set(enrolls.map((e) => e.curriculum.name))],
+              subjects: [...new Set(enrolls.map((e: any) => e.curriculum.name))],
               recentAchievement: recentAchievement?.title || null,
             }
           })
 
         const familySpentThisMonth = familyPayments
-          .filter((p) => p.status === 'completed' || p.status === 'paid')
-          .reduce((s, p) => s + p.amount, 0)
-        const studentSpentThisMonth = studentPaymentsThisMonth.reduce((s, p) => s + (p.amount || 0), 0)
+          .filter((p: any) => p.status === 'completed' || p.status === 'paid')
+          .reduce((s: any, p: any) => s + p.amount, 0)
+        const studentSpentThisMonth = studentPaymentsThisMonth.reduce((s: any, p: any) => s + (p.amount || 0), 0)
         const spentThisMonth = familySpentThisMonth + studentSpentThisMonth
 
         const recentActivity = [
-          ...parentActivities.slice(0, 5).map((a) => ({
+          ...parentActivities.slice(0, 5).map((a: any) => ({
             id: a.id,
             type: 'activity' as const,
             description: a.action + (a.details ? `: ${a.details}` : ''),
             time: formatRelativeTime(a.createdAt),
             _ts: a.createdAt.getTime(),
           })),
-          ...achievements.slice(0, 3).map((a) => ({
+          ...achievements.slice(0, 3).map((a: any) => ({
             id: a.id,
             type: 'achievement_earned' as const,
             description: `${a.title} - ${a.description}`,
@@ -236,7 +236,7 @@ export const GET = withAuth(
           financialSummary: {
             monthlyBudget: family.monthlyBudget,
             spentThisMonth,
-            upcomingPayments: pendingStudentPayments.slice(0, 5).map((p) => ({
+            upcomingPayments: pendingStudentPayments.slice(0, 5).map((p: any) => ({
               id: p.id,
               description: p.booking?.clinic?.title || p.enrollment?.curriculum?.name || 'Pending payment',
               amount: p.amount,
@@ -244,7 +244,7 @@ export const GET = withAuth(
             })),
           },
           recentActivity,
-          notifications: familyNotifications.map((n) => ({
+          notifications: familyNotifications.map((n: any) => ({
             id: n.id,
             type: 'info' as const,
             message: n.message,
@@ -252,9 +252,9 @@ export const GET = withAuth(
           })),
           stats: {
             totalChildren: children.length,
-            upcomingClasses: children.reduce((s, c) => s + c.upcomingClasses, 0),
-            assignmentsDue: children.reduce((s, c) => s + c.assignmentsDue, 0),
-            unreadNotifications: familyNotifications.filter((n) => !n.isRead).length,
+            upcomingClasses: children.reduce((s: any, c: any) => s + c.upcomingClasses, 0),
+            assignmentsDue: children.reduce((s: any, c: any) => s + c.assignmentsDue, 0),
+            unreadNotifications: familyNotifications.filter((n: any) => !n.isRead).length,
           },
         }
       },

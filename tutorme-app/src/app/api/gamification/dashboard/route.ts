@@ -13,26 +13,26 @@ import { db } from '@/lib/db'
 export const GET = withAuth(async (req, session) => {
   try {
     const userId = session.user.id
-    
+
     // Get or create gamification profile
     const gamification = await getOrCreateGamification(userId)
-    
+
     // Get summary
     const summary = await getGamificationSummary(userId)
-    
+
     // Get badges with progress
     const badges = await getAllBadgesWithProgress(userId)
-    
+
     // Get badge stats
     const badgeStats = await getBadgeStats(userId)
-    
+
     // Get leaderboard stats
     const leaderboardStats = await getUserLeaderboardStats(userId)
-    
+
     // Get daily quests
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    
+
     const dailyQuests = await db.userDailyQuest.findMany({
       where: {
         userId,
@@ -42,7 +42,7 @@ export const GET = withAuth(async (req, session) => {
         mission: true,
       },
     })
-    
+
     // Get recent achievements (badges earned)
     const userBadges = await db.userBadge.findMany({
       where: { userId },
@@ -50,14 +50,14 @@ export const GET = withAuth(async (req, session) => {
       orderBy: { earnedAt: 'desc' },
       take: 5,
     })
-    
+
     // Get recent activity
     const recentActivity = await db.userActivityLog.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 10,
     })
-    
+
     return NextResponse.json({
       success: true,
       data: {
@@ -75,7 +75,7 @@ export const GET = withAuth(async (req, session) => {
           stats: badgeStats,
         },
         leaderboard: leaderboardStats,
-        dailyQuests: dailyQuests.map(dq => ({
+        dailyQuests: dailyQuests.map((dq: any) => ({
           id: dq.id,
           title: dq.mission.title,
           description: dq.mission.description,
@@ -83,14 +83,14 @@ export const GET = withAuth(async (req, session) => {
           completed: dq.completed,
           requirement: dq.mission.requirement,
         })),
-        recentAchievements: userBadges.map(ub => ({
+        recentAchievements: userBadges.map((ub: any) => ({
           id: ub.id,
           title: ub.badge.name,
           description: ub.badge.description,
           xpAwarded: ub.badge.xpBonus,
           unlockedAt: ub.earnedAt,
         })),
-        recentActivity: recentActivity.map(a => ({
+        recentActivity: recentActivity.map((a: any) => ({
           id: a.id,
           type: a.action,
           metadata: a.metadata,
