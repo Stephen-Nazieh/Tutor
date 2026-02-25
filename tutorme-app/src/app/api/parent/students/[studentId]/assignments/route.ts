@@ -46,13 +46,13 @@ export const GET = withAuth(
       },
     })
 
-    const studentTasks = generatedTasks.filter((task) => {
+    const studentTasks = generatedTasks.filter((task: any) => {
       const assignments = task.assignments as Record<string, unknown> | null
       if (!assignments) return false
       return Object.keys(assignments).includes(studentId)
     })
 
-    const taskIds = studentTasks.map((t) => t.id)
+    const taskIds = studentTasks.map((t: any) => t.id)
 
     // 2. Get submissions with feedback workflow
     const [submissions, feedbackWorkflows] = await Promise.all([
@@ -75,13 +75,13 @@ export const GET = withAuth(
       }),
     ])
 
-    const submissionMap = new Map(submissions.map((s) => [s.taskId, s]))
+    const submissionMap = new Map(submissions.map((s: any) => [s.taskId, s]))
     const feedbackBySubmissionId = new Map(
-      feedbackWorkflows.map((fw) => [fw.submissionId, fw])
+      feedbackWorkflows.map((fw: any) => [fw.submissionId, fw])
     )
 
-    const assignments = studentTasks.map((task) => {
-      const submission = submissionMap.get(task.id)
+    const assignments = studentTasks.map((task: any) => {
+      const submission = submissionMap.get(task.id) as any
       const isOverdue =
         task.dueDate && new Date(task.dueDate) < new Date() && !submission
       const status = submission
@@ -91,7 +91,7 @@ export const GET = withAuth(
           : 'pending'
 
       const feedback = submission
-        ? feedbackBySubmissionId.get(submission.id)
+        ? feedbackBySubmissionId.get(submission.id) as any
         : null
 
       return {
@@ -129,9 +129,9 @@ export const GET = withAuth(
       }
     })
 
-    const pending = assignments.filter((a) => a.status === 'pending').length
-    const submitted = assignments.filter((a) => a.status === 'submitted').length
-    const overdue = assignments.filter((a) => a.status === 'overdue').length
+    const pending = assignments.filter((a: any) => a.status === 'pending').length
+    const submitted = assignments.filter((a: any) => a.status === 'submitted').length
+    const overdue = assignments.filter((a: any) => a.status === 'overdue').length
 
     return NextResponse.json({
       success: true,

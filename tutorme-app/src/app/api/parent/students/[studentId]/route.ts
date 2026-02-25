@@ -77,7 +77,7 @@ export const GET = withAuth(
       name: user.profile?.name ?? member.name,
       email: user.email,
       relation: member.relation,
-      enrollments: enrollments.map((e) => ({
+      enrollments: enrollments.map((e: any) => ({
         curriculumId: e.curriculum.id,
         curriculumName: e.curriculum.name,
         enrolledAt: e.enrolledAt,

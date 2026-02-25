@@ -27,7 +27,7 @@ export async function POST(
     }
 
     const params = await context?.params;
-  const { pollId } = params || {};
+    const { pollId } = params || {};
     const body = await request.json()
     const validated = VoteSchema.parse(body)
 
@@ -47,14 +47,14 @@ export async function POST(
 
     // Check for duplicate votes
     if (!poll.isAnonymous) {
-      const existingVote = poll.responses.find(r => r.studentId === session.user.id)
+      const existingVote = poll.responses.find((r: any) => r.studentId === session.user.id)
       if (existingVote) {
         return NextResponse.json({ error: 'Already voted' }, { status: 409 })
       }
     } else {
       // For anonymous polls, use hash of userId + pollId
       const respondentHash = await hashString(`${session.user.id}:${pollId}`)
-      const existingVote = poll.responses.find(r => r.respondentHash === respondentHash)
+      const existingVote = poll.responses.find((r: any) => r.respondentHash === respondentHash)
       if (existingVote) {
         return NextResponse.json({ error: 'Already voted' }, { status: 409 })
       }
@@ -79,7 +79,7 @@ export async function POST(
     }
 
     // Create response
-    const respondentHash = poll.isAnonymous 
+    const respondentHash = poll.isAnonymous
       ? await hashString(`${session.user.id}:${pollId}`)
       : null
 
@@ -105,7 +105,7 @@ export async function POST(
     return NextResponse.json({ response }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid input', details: (error as any).errors }, { status: 400 })
     }
     console.error('Failed to submit vote:', error)
     return NextResponse.json({ error: 'Failed to submit vote' }, { status: 500 })

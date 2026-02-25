@@ -60,27 +60,27 @@ export const GET = withAuth(
 
     const data = children.map((m) => {
       const uid = m.userId
-      const enrolls = uid ? enrollments.filter((e) => e.studentId === uid) : []
-      const prog = uid ? progress.find((p) => p.studentId === uid) : null
-      const gam = uid ? gamification.find((g) => g.userId === uid) : null
+      const enrolls = uid ? enrollments.filter((e: any) => e.studentId === uid) : []
+      const prog = uid ? progress.find((p: any) => p.studentId === uid) : null
+      const gam = uid ? gamification.find((g: any) => g.userId === uid) : null
       return {
         id: uid || m.id,
         name: m.user?.profile?.name || m.name,
         email: m.email || m.user?.email,
         relation: m.relation,
         userId: uid,
-        enrollments: enrolls.map((e) => ({
+        enrollments: enrolls.map((e: any) => ({
           curriculumId: e.curriculum.id,
           curriculumName: e.curriculum.name,
           enrolledAt: e.enrolledAt,
         })),
         progress: prog
           ? {
-              lessonsCompleted: prog.lessonsCompleted,
-              totalLessons: prog.totalLessons,
-              averageScore: prog.averageScore,
-              isCompleted: prog.isCompleted,
-            }
+            lessonsCompleted: prog.lessonsCompleted,
+            totalLessons: prog.totalLessons,
+            averageScore: prog.averageScore,
+            isCompleted: prog.isCompleted,
+          }
           : null,
         level: gam?.level ?? null,
         xp: gam?.xp ?? null,

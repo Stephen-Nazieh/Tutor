@@ -74,11 +74,11 @@ export async function GET(request: NextRequest) {
   })
 
   const mapped: PublicTutorSummary[] = tutors
-    .map((tutor) => {
+    .map((tutor: any) => {
       const username = tutor.profile?.username || ''
       if (!username) return null
 
-      const courses: PublicCourseSummary[] = tutor.createdCurricula.map((course) => ({
+      const courses: PublicCourseSummary[] = tutor.createdCurricula.map((course: any) => ({
         id: course.id,
         name: course.name,
         subject: course.subject,
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
         difficulty: course.difficulty,
         enrollmentCount: course._count.enrollments,
         moduleCount: course._count.modules,
-        lessonCount: course.modules.reduce((sum, mod) => sum + mod._count.lessons, 0),
+        lessonCount: course.modules.reduce((sum: number, mod: any) => sum + mod._count.lessons, 0),
         updatedAt: course.updatedAt,
       }))
 
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
         })),
       }
     })
-    .filter((item): item is PublicTutorSummary => Boolean(item))
+    .filter((item: any): item is PublicTutorSummary => Boolean(item))
 
   const filtered = mapped.filter((tutor) => {
     const searchMatch =
