@@ -33,7 +33,7 @@ interface UseSocketOptions {
   }) => void
 }
 
-export function useSocket(options: UseSocketOptions) {
+export function useSocket(options?: UseSocketOptions) {
   const socketRef = useRef<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -52,14 +52,16 @@ export function useSocket(options: UseSocketOptions) {
       setIsConnected(true)
       setError(null)
 
-      // Join class room
-      socket.emit('join_class', {
-        roomId: options.roomId,
-        userId: options.userId,
-        name: options.name,
-        role: options.role,
-        tutorId: options.tutorId
-      })
+      // Join class room only when identity context is provided.
+      if (options?.roomId && options.userId && options.name && options.role) {
+        socket.emit('join_class', {
+          roomId: options.roomId,
+          userId: options.userId,
+          name: options.name,
+          role: options.role,
+          tutorId: options.tutorId
+        })
+      }
     })
 
     socket.on('disconnect', () => {
@@ -75,72 +77,72 @@ export function useSocket(options: UseSocketOptions) {
 
     // Room state (initial load)
     socket.on('room_state', (state) => {
-      options.onRoomState?.(state)
+      options?.onRoomState?.(state)
     })
 
     // Student events
     socket.on('student_joined', (data) => {
-      options.onStudentJoined?.(data.state)
+      options?.onStudentJoined?.(data.state)
     })
 
     socket.on('student_left', (data) => {
-      options.onStudentLeft?.(data.userId)
+      options?.onStudentLeft?.(data.userId)
     })
 
     socket.on('student_state_update', (data) => {
-      options.onStudentStateUpdate?.(data)
+      options?.onStudentStateUpdate?.(data)
     })
 
     socket.on('student_distress', (data) => {
-      options.onStudentDistress?.(data)
+      options?.onStudentDistress?.(data)
     })
 
     // Chat events
     socket.on('chat_message', (message) => {
-      options.onChatMessage?.(message)
+      options?.onChatMessage?.(message)
     })
 
     socket.on('tutor_broadcast', (message) => {
-      options.onTutorBroadcast?.(message)
+      options?.onTutorBroadcast?.(message)
     })
 
     // AI hints
     socket.on('ai_hint', (hint) => {
-      options.onAIHint?.(hint)
+      options?.onAIHint?.(hint)
     })
 
     // Whiteboard
     socket.on('whiteboard_update', (data) => {
-      options.onWhiteboardUpdate?.(data)
+      options?.onWhiteboardUpdate?.(data)
     })
 
     // Code editor
     socket.on('code_update', (data) => {
-      options.onCodeUpdate?.(data)
+      options?.onCodeUpdate?.(data)
     })
 
     // Breakout
     socket.on('breakout_invite', (data) => {
-      options.onBreakoutInvite?.(data)
+      options?.onBreakoutInvite?.(data)
     })
 
     socket.on('breakout_room_update', (data) => {
-      options.onBreakoutRoomUpdate?.(data.rooms)
+      options?.onBreakoutRoomUpdate?.(data.rooms)
     })
 
     socket.on('breakout_message', (data) => {
-      options.onBreakoutMessage?.(data)
+      options?.onBreakoutMessage?.(data)
     })
 
     socket.on('notification', (data) => {
-      options.onNotification?.(data)
+      options?.onNotification?.(data)
     })
 
     return () => {
       socket.disconnect()
       socketRef.current = null
     }
-  }, [options.roomId, options.userId])
+  }, [options?.roomId, options?.userId, options?.name, options?.role, options?.tutorId])
 
   // Send chat message
   const sendChatMessage = useCallback((text: string) => {

@@ -16,6 +16,7 @@
  *     points?: number
  *     timeLimit?: number
  *     dueDate?: string
+ *     documentSource?: string
  *   }>
  *   assignTo?: 'all' | 'batch' | string[]
  *   batchId?: string
@@ -127,6 +128,7 @@ export async function POST(req: NextRequest) {
                 batchId: batchId || null,
                 dueDate: item.dueDate ? new Date(item.dueDate) : null,
                 maxScore,
+                documentSource: typeof item.documentSource === 'string' ? item.documentSource : null,
                 // Enforcement settings
                 timeLimitMinutes: item.timeLimit || null,
                 enforceTimeLimit: item.enforceTimeLimit ?? false,

@@ -120,6 +120,15 @@ export interface CourseWithAssignments {
   isPublished: boolean
   createdAt: string
   updatedAt: string
+
+  /** Adaptive variant batches (if any) */
+  variants?: {
+    batchId: string
+    name: string
+    difficulty: DifficultyLevel
+    enrollmentCount: number
+    joinLink: string
+  }[]
   
   /** Assignment summary */
   assignments: {

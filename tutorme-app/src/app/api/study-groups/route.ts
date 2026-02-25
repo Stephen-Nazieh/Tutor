@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
+import type { Prisma } from '@prisma/client'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
@@ -50,7 +51,7 @@ async function getHandler(req: NextRequest, session: Session) {
         take: limit
       })
 
-      groups = memberships.map((membership: any) => ({
+      groups = memberships.map((membership) => ({
         ...membership.group,
         isMember: true,
         memberRole: membership.role,
@@ -58,7 +59,7 @@ async function getHandler(req: NextRequest, session: Session) {
       }))
     } else {
       // Get available groups
-      const where: any = {
+      const where: Prisma.StudyGroupWhereInput = {
         isActive: true
       }
 
@@ -91,10 +92,10 @@ async function getHandler(req: NextRequest, session: Session) {
         take: limit
       })
 
-      groups = groups.map((group: any) => ({
+      groups = groups.map((group) => ({
         ...group,
         isMember: group.members.length > 0,
-        memberRole: group.members[0]?.role || null,
+        memberRole: group.members[0]?.role ?? null,
         currentMembers: group._count.members,
         isFull: group._count.members >= group.maxMembers
       }))

@@ -18,7 +18,6 @@ declare module 'next-auth' {
 
   interface User extends DefaultUser {
     role: string
-    role: string
     onboardingComplete: boolean
     tosAccepted?: boolean
   }
@@ -27,7 +26,6 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     role?: string
-    id?: string
     id?: string
     onboardingComplete?: boolean
     tosAccepted?: boolean

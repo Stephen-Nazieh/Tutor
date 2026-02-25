@@ -6,10 +6,20 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
-import { checkDailyLogin } from '@/lib/gamification/service'
+import { onUserLogin, checkTimeBasedBadges } from '@/lib/gamification/triggers'
 
 export const POST = withCsrf(withAuth(async (req, session) => {
-  const result = await checkDailyLogin(session.user.id)
+  // Check daily login, streak, and award XP
+  const result = await onUserLogin(session.user.id)
   
-  return NextResponse.json({ success: true, data: result })
+  // Check for time-based badges (night owl, early bird)
+  const timeBadges = await checkTimeBasedBadges(session.user.id)
+  
+  return NextResponse.json({ 
+    success: true, 
+    data: {
+      ...result,
+      timeBasedBadges: timeBadges.badgesEarned,
+    } 
+  })
 }, { role: 'STUDENT' }))

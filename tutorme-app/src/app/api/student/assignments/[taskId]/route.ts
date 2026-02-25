@@ -11,7 +11,7 @@ import { db } from '@/lib/db'
 
 export async function GET(
     _request: NextRequest,
-    { params }: { params: { taskId: string } }
+    { params }: { params: Promise<{ taskId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -19,8 +19,10 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        const { taskId } = await params
+
         const task = await db.generatedTask.findUnique({
-            where: { id: params.taskId },
+            where: { id: taskId },
         })
 
         if (!task) {
@@ -50,7 +52,7 @@ export async function GET(
         const existingSubmission = await db.taskSubmission.findUnique({
             where: {
                 taskId_studentId: {
-                    taskId: params.taskId,
+                    taskId,
                     studentId: session.user.id,
                 },
             },
@@ -66,6 +68,7 @@ export async function GET(
                 dueDate: task.dueDate?.toISOString() ?? null,
                 maxScore: task.maxScore,
                 questions: studentQuestions,
+                documentSource: task.documentSource,
             },
             alreadySubmitted: !!existingSubmission,
             existingScore: existingSubmission?.score ?? null,

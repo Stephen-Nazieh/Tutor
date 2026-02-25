@@ -40,121 +40,7 @@ function calculateReviewDueDate(
   return dueDate
 }
 
-// Generate mock data for demo mode
-function generateMockData(now: Date) {
-  const subjects = [
-    { id: 'math', name: 'Mathematics', color: '#3B82F6' },
-    { id: 'english', name: 'English', color: '#10B981' },
-    { id: 'science', name: 'Science', color: '#8B5CF6' },
-    { id: 'history', name: 'History', color: '#F59E0B' }
-  ]
-
-  // Generate subject curves with forgetting curves
-  const subjectCurves = subjects.map(subject => {
-    const dataPoints = []
-    for (let day = 0; day <= 30; day++) {
-      // Simulate exponential decay with occasional review spikes
-      let retention = 100 * Math.exp(-day / 8)
-      
-      // Add review points that reset retention
-      if (day === 0 || day === 7 || day === 14) {
-        retention = 95
-      }
-      
-      dataPoints.push({
-        day,
-        date: new Date(now.getTime() + day * 24 * 60 * 60 * 1000).toISOString(),
-        retention: Math.round(retention),
-        isReviewPoint: day === 0 || day === 7 || day === 14,
-        reviewId: day === 0 || day === 7 || day === 14 ? `review-${subject.id}-${day}` : undefined,
-        contentTitle: day === 0 ? `${subject.name} - Chapter 1` : 
-                      day === 7 ? `${subject.name} - Chapter 2` : 
-                      day === 14 ? `${subject.name} - Chapter 3` : undefined,
-        contentId: day === 0 || day === 7 || day === 14 ? `content-${subject.id}-${day}` : undefined
-      })
-    }
-    
-    return {
-      subjectId: subject.id,
-      subjectName: subject.name,
-      color: subject.color,
-      dataPoints
-    }
-  })
-
-  // Generate upcoming reviews
-  const upcomingReviews = [
-    {
-      id: 'review-1',
-      contentId: 'content-math-1',
-      contentTitle: 'Quadratic Equations',
-      subjectId: 'math',
-      subjectName: 'Mathematics',
-      subjectColor: '#3B82F6',
-      scheduledFor: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-      isOverdue: false,
-      daysUntilDue: 1,
-      currentRetention: 35,
-      repetitionCount: 2,
-      priority: 'high'
-    },
-    {
-      id: 'review-2',
-      contentId: 'content-english-1',
-      contentTitle: 'Shakespeare Sonnets',
-      subjectId: 'english',
-      subjectName: 'English',
-      subjectColor: '#10B981',
-      scheduledFor: now.toISOString(),
-      isOverdue: true,
-      daysUntilDue: 0,
-      daysOverdue: 1,
-      currentRetention: 28,
-      repetitionCount: 1,
-      priority: 'critical'
-    },
-    {
-      id: 'review-3',
-      contentId: 'content-science-1',
-      contentTitle: 'Cell Biology',
-      subjectId: 'science',
-      subjectName: 'Science',
-      subjectColor: '#8B5CF6',
-      scheduledFor: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-      isOverdue: false,
-      daysUntilDue: 2,
-      currentRetention: 62,
-      repetitionCount: 3,
-      priority: 'medium'
-    },
-    {
-      id: 'review-4',
-      contentId: 'content-history-1',
-      contentTitle: 'World War II',
-      subjectId: 'history',
-      subjectName: 'History',
-      subjectColor: '#F59E0B',
-      scheduledFor: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      isOverdue: false,
-      daysUntilDue: 3,
-      currentRetention: 78,
-      repetitionCount: 4,
-      priority: 'low'
-    }
-  ]
-
-  // Generate overdue reviews
-  const overdueReviews = upcomingReviews.filter(r => r.isOverdue)
-
-  return {
-    subjectCurves,
-    upcomingReviews,
-    overdueReviews,
-    totalDue: overdueReviews.length + upcomingReviews.filter(r => r.daysUntilDue === 0).length
-  }
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     
@@ -168,19 +54,6 @@ export async function GET(request: NextRequest) {
     const studentId = session.user.id
     const now = new Date()
     
-    // DEMO MODE: If ?demo=true, return mock data
-    const { searchParams } = new URL(request.url)
-    const isDemo = searchParams.get('demo') === 'true'
-    
-    // Return mock data for demo mode
-    if (isDemo) {
-      const mockData = generateMockData(now)
-      return NextResponse.json({
-        success: true,
-        data: mockData
-      })
-    }
-
     // Get all student content progress with review data
     const contentProgress = await prisma.contentProgress.findMany({
       where: { studentId },
@@ -203,13 +76,16 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // If no content progress, return mock data for demo
+    // No synthetic demo fallback: return empty review dataset.
     if (contentProgress.length === 0) {
-      const mockData = generateMockData(now)
       return NextResponse.json({
         success: true,
-        data: mockData,
-        isDemo: true
+        data: {
+          subjectCurves: [],
+          upcomingReviews: [],
+          overdueReviews: [],
+          totalDue: 0,
+        }
       })
     }
 
@@ -298,9 +174,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Generate retention curve data points for each subject
-    const subjectsMap = new Map()
+    const subjectsMap = new Map<string, {
+      id: string
+      name: string
+      color: string
+      schedules: typeof reviewSchedules
+    }>()
     const daysToProject = 30
-    const hoursPerDay = 24
     
     // Group schedules by subject
     for (const schedule of reviewSchedules) {
@@ -347,7 +227,7 @@ export async function GET(request: NextRequest) {
         // Calculate average retention for this subject on this day
         let totalRetention = 0
         let hasReviewOnThisDay = false
-        let reviewData: any = null
+        let reviewData: { reviewId: string; contentTitle?: string; contentId?: string } | null = null
         
         for (const schedule of subjectData.schedules) {
           const lastReview = new Date(schedule.lastReviewed)

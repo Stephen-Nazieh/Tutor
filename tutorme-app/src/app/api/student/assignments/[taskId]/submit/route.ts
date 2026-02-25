@@ -32,7 +32,7 @@ interface QuestionResult {
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { taskId: string } }
+    { params }: { params: Promise<{ taskId: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -41,7 +41,7 @@ export async function POST(
         }
 
         const studentId = session.user.id
-        const { taskId } = params
+        const { taskId } = await params
         const body = await request.json()
         const {
             answers,

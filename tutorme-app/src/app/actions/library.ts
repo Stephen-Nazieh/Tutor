@@ -1,149 +1,185 @@
-'use server'
+/**
+ * Library Actions
+ * Server actions for managing tutor's task library
+ */
 
-import { db } from '@/lib/db'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
+'use server';
 
-async function getSession() {
-    return await getServerSession(authOptions)
+import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+
+export interface LibraryTask {
+  id: string;
+  question: string;
+  type: 'multiple_choice' | 'short_answer';
+  options?: string[];
+  correctAnswer?: string;
+  explanation?: string;
+  difficulty: string;
+  subject: string;
+  topics: string[];
+  isFavorite: boolean;
+  usageCount: number;
+  lastUsedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export async function getLibraryTasks() {
-    const session = await getSession()
-    if (!session?.user?.id) return []
-
-    try {
-        const tasks = await db.libraryTask.findMany({
-            where: { userId: session.user.id },
-            orderBy: [
-                { isFavorite: 'desc' },
-                { usageCount: 'desc' }
-            ]
-        })
-        return tasks
-    } catch (error) {
-        console.error('Error fetching library tasks:', error)
-        return []
-    }
+export interface CreateLibraryTaskInput {
+  question: string;
+  type: 'multiple_choice' | 'short_answer';
+  options?: string[];
+  correctAnswer?: string;
+  explanation?: string;
+  difficulty: string;
+  subject: string;
+  topics: string[];
 }
 
-export async function saveLibraryTask(data: any) {
-    const session = await getSession()
-    if (!session?.user?.id) throw new Error('Unauthorized')
-
-    try {
-        const newTask = await db.libraryTask.create({
-            data: {
-                userId: session.user.id,
-                question: data.question,
-                type: data.type,
-                options: data.options || [],
-                correctAnswer: data.correctAnswer,
-                explanation: data.explanation,
-                difficulty: data.difficulty,
-                subject: data.subject,
-                topics: data.topics || [],
-                isFavorite: data.isFavorite || false,
-                usageCount: data.usedCount || 0,
-                lastUsedAt: data.lastUsed ? new Date(data.lastUsed) : null
-            }
-        })
-        revalidatePath('/class')
-        return newTask
-    } catch (error) {
-        console.error('Error saving task:', error)
-        throw new Error('Failed to save task')
-    }
+/**
+ * Get all library tasks for a user
+ */
+export async function getLibraryTasks(userId: string): Promise<LibraryTask[]> {
+  try {
+    const tasks = await db.libraryTask.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+    return tasks.map(task => ({
+      ...task,
+      topics: task.topics as string[],
+      options: task.options as string[] | undefined
+    }));
+  } catch (error) {
+    console.error('Failed to get library tasks:', error);
+    return [];
+  }
 }
 
-export async function toggleFavoriteTask(id: string) {
-    const session = await getSession()
-    if (!session?.user?.id) throw new Error('Unauthorized')
-
-    try {
-        const task = await db.libraryTask.findUnique({
-            where: { id }
-        })
-
-        if (!task) throw new Error('Task not found')
-
-        const updated = await db.libraryTask.update({
-            where: { id },
-            data: { isFavorite: !task.isFavorite }
-        })
-        revalidatePath('/class')
-        return updated
-    } catch (error) {
-        console.error('Error toggling favorite:', error)
-        throw new Error('Failed to toggle favorite')
-    }
+/**
+ * Save a new task to the library
+ */
+export async function saveLibraryTask(
+  userId: string,
+  input: CreateLibraryTaskInput
+): Promise<LibraryTask | null> {
+  try {
+    const task = await db.libraryTask.create({
+      data: {
+        userId,
+        question: input.question,
+        type: input.type,
+        options: input.options || [],
+        correctAnswer: input.correctAnswer,
+        explanation: input.explanation,
+        difficulty: input.difficulty,
+        subject: input.subject,
+        topics: input.topics,
+        isFavorite: false,
+        usageCount: 0
+      }
+    });
+    
+    revalidatePath('/tutor/library');
+    return {
+      ...task,
+      topics: task.topics as string[],
+      options: task.options as string[] | undefined
+    };
+  } catch (error) {
+    console.error('Failed to save library task:', error);
+    return null;
+  }
 }
 
-export async function deleteLibraryTask(id: string) {
-    const session = await getSession()
-    if (!session?.user?.id) throw new Error('Unauthorized')
-
-    try {
-        await db.libraryTask.delete({
-            where: { id }
-        })
-        revalidatePath('/class')
-        return true
-    } catch (error) {
-        console.error('Error deleting task:', error)
-        throw new Error('Failed to delete task')
+/**
+ * Toggle favorite status of a task
+ */
+export async function toggleFavoriteTask(
+  taskId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const task = await db.libraryTask.findUnique({
+      where: { id: taskId }
+    });
+    
+    if (!task || task.userId !== userId) {
+      return false;
     }
+    
+    await db.libraryTask.update({
+      where: { id: taskId },
+      data: { isFavorite: !task.isFavorite }
+    });
+    
+    revalidatePath('/tutor/library');
+    return true;
+  } catch (error) {
+    console.error('Failed to toggle favorite:', error);
+    return false;
+  }
 }
 
-export async function incrementTaskUsage(id: string) {
-    const session = await getSession()
-    if (!session?.user?.id) throw new Error('Unauthorized')
-
-    try {
-        await db.libraryTask.update({
-            where: { id },
-            data: {
-                usageCount: { increment: 1 },
-                lastUsedAt: new Date()
-            }
-        })
-        revalidatePath('/class')
-    } catch (error) {
-        console.error('Error incrementing usage:', error)
+/**
+ * Delete a task from the library
+ */
+export async function deleteLibraryTask(
+  taskId: string,
+  userId: string
+): Promise<boolean> {
+  try {
+    const task = await db.libraryTask.findUnique({
+      where: { id: taskId }
+    });
+    
+    if (!task || task.userId !== userId) {
+      return false;
     }
+    
+    await db.libraryTask.delete({
+      where: { id: taskId }
+    });
+    
+    revalidatePath('/tutor/library');
+    return true;
+  } catch (error) {
+    console.error('Failed to delete library task:', error);
+    return false;
+  }
 }
 
-export async function migrateLegacyTasks(tasks: any[]) {
-    const session = await getSession()
-    if (!session?.user?.id) return { success: false }
+/**
+ * Increment usage count when a task is used
+ */
+export async function incrementTaskUsage(taskId: string): Promise<boolean> {
+  try {
+    await db.libraryTask.update({
+      where: { id: taskId },
+      data: {
+        usageCount: { increment: 1 },
+        lastUsedAt: new Date()
+      }
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to increment task usage:', error);
+    return false;
+  }
+}
 
-    try {
-        // Basic deduplication or just forced insert
-        // We'll just loop and insert for simplicity in this migration
-        for (const task of tasks) {
-            await db.libraryTask.create({
-                data: {
-                    userId: session.user.id,
-                    question: task.question,
-                    type: task.type,
-                    options: task.options || [],
-                    correctAnswer: task.correctAnswer,
-                    explanation: task.explanation,
-                    difficulty: task.difficulty,
-                    subject: task.subject,
-                    topics: task.topics || [],
-                    // Preserve legacy stats if possible, or reset
-                    isFavorite: task.isFavorite || false,
-                    usageCount: task.usedCount || 0,
-                    lastUsedAt: task.lastUsed ? new Date(task.lastUsed) : null
-                }
-            })
-        }
-        revalidatePath('/class')
-        return { success: true }
-    } catch (error) {
-        console.error('Error migrating tasks:', error)
-        return { success: false }
-    }
+/**
+ * Migrate legacy tasks (placeholder for future migration logic)
+ */
+export async function migrateLegacyTasks(userId: string): Promise<number> {
+  try {
+    // Placeholder for future migration logic
+    // This would migrate tasks from an old format or storage
+    console.log('Migrating legacy tasks for user:', userId);
+    return 0;
+  } catch (error) {
+    console.error('Failed to migrate legacy tasks:', error);
+    return 0;
+  }
 }

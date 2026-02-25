@@ -332,7 +332,7 @@ export function createClassroomActions(options: {
   onMuteAll: () => void
   onCallAttention: () => void
   onOpenWhiteboard: () => void
-  onOpenPolls: () => void
+  onOpenPolls?: () => void
   onOpenBreakouts: () => void
   onOpenEngagement: () => void
   onSendBroadcast: () => void
@@ -381,17 +381,17 @@ export function createClassroomActions(options: {
       category: 'classroom',
       action: options.onOpenWhiteboard
     },
-    {
-      id: 'open-polls',
+    ...(options.onOpenPolls ? [{
+      id: 'open-polls' as const,
       title: 'Create Quick Poll',
       description: 'Launch an interactive poll for students',
       icon: <BarChart3 className="h-4 w-4" />,
-      shortcut: '⌘P',
+      shortcut: '⌘P' as const,
       keywords: ['poll', 'quiz', 'vote', 'question'],
-      category: 'classroom',
-      action: options.onOpenPolls,
-      badge: 'New'
-    },
+      category: 'classroom' as const,
+      action: options.onOpenPolls!,
+      badge: 'New' as const
+    }] : []),
     {
       id: 'open-breakouts',
       title: 'Manage Breakout Rooms',

@@ -8,10 +8,25 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/ai/task-generator'
 import { db } from '@/lib/db'
+import { withRateLimitPreset } from '@/lib/api/middleware'
+import { z } from 'zod'
+
+const GenerateTasksSchema = z.object({
+  mode: z.string().min(1).max(32),
+  config: z.record(z.string(), z.unknown()),
+  targetStudentIds: z.array(z.string().min(1).max(128)).max(100).optional(),
+  roomId: z.string().min(1).max(128),
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  type: z.string().max(50).default('assignment'),
+})
 
 
 export async function POST(request: NextRequest) {
   try {
+    const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
+    if (rateLimitResponse) return rateLimitResponse
+
     const session = await getServerSession(authOptions)
     if (!session?.user) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
@@ -22,7 +37,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '无权生成任务' }, { status: 403 })
     }
 
-    const body = await request.json()
+    const body = await request.json().catch(() => null)
+    const parsed = GenerateTasksSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: '请求参数无效' }, { status: 400 })
+    }
     const {
       mode,
       config,
@@ -30,16 +49,8 @@ export async function POST(request: NextRequest) {
       roomId,
       title,
       description,
-      type = 'assignment'
-    }: {
-      mode: DistributionMode
-      config: TaskConfiguration
-      targetStudentIds?: string[]
-      roomId: string
-      title: string
-      description?: string
-      type?: string
-    } = body
+      type
+    } = parsed.data
 
     if (!mode || !config || !roomId) {
       return NextResponse.json(
@@ -61,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate tasks
-    const result = await generateAndDistributeTasks(mode, config, {
+    const result = await generateAndDistributeTasks(mode as DistributionMode, config as unknown as TaskConfiguration, {
       studentIds: targetStudentIds,
       targetStudentId: targetStudentIds?.[0]
     })
@@ -77,7 +88,7 @@ export async function POST(request: NextRequest) {
     const saveResult = await saveGeneratedTasks(result.tasks, {
       roomId,
       tutorId: session.user.id,
-      distributionMode: mode,
+      distributionMode: mode as DistributionMode,
       title,
       description,
       type

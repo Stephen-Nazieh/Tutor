@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, withRateLimitPreset } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { z } from 'zod'
@@ -188,6 +188,9 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
   
   try {
+    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
+    if (rateLimitResponse) return rateLimitResponse
+
     const body = await req.json()
     const validation = GenerateRequestSchema.safeParse(body)
     

@@ -1,0 +1,2 @@
+#!/bin/sh
+. \"$(dirname \"$0\")/_/husky.sh\"\n\nnpm run type-check\nnpm run test

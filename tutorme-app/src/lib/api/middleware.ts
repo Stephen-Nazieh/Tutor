@@ -63,13 +63,18 @@ export function handleApiError(
 type Handler = (
     req: NextRequest,
     session: Session,
-    context?: { params?: Record<string, string | string[]> }
+    context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) => Promise<Response> | Response
 
 // Middleware options
 interface WithAuthOptions {
-    role?: 'TUTOR' | 'STUDENT' | 'ADMIN'
+    role?: 'TUTOR' | 'STUDENT' | 'ADMIN' | 'PARENT'
     optional?: boolean
+}
+
+function normalizeRole(role: unknown): string {
+    if (typeof role !== 'string') return ''
+    return role.trim().toUpperCase()
 }
 
 /**
@@ -92,7 +97,7 @@ export function withAuth(
     handler: Handler,
     options?: WithAuthOptions
 ) {
-    return async (req: NextRequest, context?: { params?: Record<string, string | string[]> }) => {
+    return async (req: NextRequest, context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }) => {
         try {
             const session = await getServerSession(authOptions)
 
@@ -106,8 +111,16 @@ export function withAuth(
             }
 
             // Check role requirements
-            if (options?.role && session.user.role !== options.role) {
-                throw new ForbiddenError(`This endpoint requires ${options.role} role`)
+            if (options?.role && normalizeRole(session.user.role) !== normalizeRole(options.role)) {
+                // Fallback: session role can be stale after account updates or seed resets.
+                const { db } = await import('@/lib/db')
+                const freshUser = await db.user.findUnique({
+                    where: { id: session.user.id },
+                    select: { role: true },
+                })
+                if (normalizeRole(freshUser?.role) !== normalizeRole(options.role)) {
+                    throw new ForbiddenError(`This endpoint requires ${options.role} role`)
+                }
             }
 
             // Call the actual handler
@@ -190,7 +203,7 @@ export async function requireAuth(): Promise<Session> {
  */
 export async function requireRole(role: 'TUTOR' | 'STUDENT' | 'ADMIN'): Promise<Session> {
     const session = await requireAuth()
-    if (session.user.role !== role) {
+    if (normalizeRole(session.user.role) !== normalizeRole(role)) {
         throw new ForbiddenError(`This action requires ${role} role`)
     }
     return session
@@ -251,7 +264,7 @@ export async function withRateLimit(
     return { response: null, remaining }
 }
 
-type RateLimitPreset = 'login' | 'register' | 'paymentCreate' | 'enroll' | 'booking'
+type RateLimitPreset = 'login' | 'register' | 'paymentCreate' | 'enroll' | 'booking' | 'aiGenerate'
 
 /**
  * Apply rate limit using a named preset (stricter limits for sensitive routes).
@@ -318,4 +331,20 @@ export async function getSessionOrApiKey(req: NextRequest): Promise<
     const session = await getServerSession(authOptions)
     if (session?.user?.id) return { type: 'session', session }
     return null
+}
+
+/**
+ * Parse and clamp numeric query/body values to safe bounds.
+ */
+export function parseBoundedInt(
+    raw: string | null | undefined,
+    defaultValue: number,
+    options: { min?: number; max: number }
+): number {
+    const min = options.min ?? 0
+    const parsed = Number.parseInt(raw ?? '', 10)
+    if (!Number.isFinite(parsed)) return defaultValue
+    if (parsed < min) return min
+    if (parsed > options.max) return options.max
+    return parsed
 }

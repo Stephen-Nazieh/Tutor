@@ -11,9 +11,9 @@ import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { quizGeneratorPrompt } from '@/lib/ai/prompts'
 
-export const POST = withCsrf(withAuth(async (req, session) => {
+export const POST = withCsrf(withAuth(async (req) => {
   const body = await req.json()
-  const { contentId, transcript, grade = 8, weakAreas = [] } = body
+  const { transcript, grade = 8, weakAreas = [] } = body
 
   if (!transcript) {
     throw new ValidationError('Transcript is required')
@@ -45,8 +45,13 @@ export const POST = withCsrf(withAuth(async (req, session) => {
     }
   } catch (parseError) {
     console.error('Failed to parse quiz JSON:', parseError)
-    // Return fallback questions
-    questions = getFallbackQuestions()
+    return NextResponse.json(
+      {
+        error: 'AI response format invalid. Please retry.',
+        provider: result.provider,
+      },
+      { status: 502 }
+    )
   }
 
   return NextResponse.json({
@@ -54,24 +59,3 @@ export const POST = withCsrf(withAuth(async (req, session) => {
     provider: result.provider
   })
 }, { role: 'STUDENT' }))
-
-function getFallbackQuestions() {
-  return [
-    {
-      type: 'multiple_choice',
-      question: 'What is the main concept discussed in this video?',
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      answer: 'A'
-    },
-    {
-      type: 'short_answer',
-      question: 'Explain the key concept in your own words.',
-      rubric: 'Clear explanation with key terms (100%)'
-    },
-    {
-      type: 'short_answer',
-      question: 'How would you apply this concept to solve a real-world problem?',
-      rubric: 'Practical application with reasoning (100%)'
-    }
-  ]
-}

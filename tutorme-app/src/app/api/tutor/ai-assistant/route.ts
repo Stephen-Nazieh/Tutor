@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 import { chatWithFallback } from '@/lib/ai/orchestrator'
+import { AISecurityManager } from '@/lib/security/ai-sanitization'
 
 // GET - Get or create active session
 export const GET = withAuth(async (req: NextRequest, session) => {
@@ -79,6 +80,14 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         { status: 400 }
       )
     }
+
+    const safeMessage = AISecurityManager.sanitizeAiInput(String(message))
+    if (!safeMessage) {
+      return NextResponse.json(
+        { error: 'Invalid or empty message after sanitization' },
+        { status: 400 }
+      )
+    }
     
     // Get or create session
     let aiSession
@@ -99,12 +108,12 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       })
     }
     
-    // Save user message
+    // Save user message (sanitized)
     await db.aIAssistantMessage.create({
       data: {
         sessionId: aiSession.id,
         role: 'user',
-        content: message,
+        content: safeMessage,
       },
     })
     
@@ -115,10 +124,10 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       take: 10,
     })
     
-    // Build conversation for AI
+    // Build conversation for AI (sanitize user messages to prevent prompt injection)
     const conversation = recentMessages.reverse().map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant' | 'system',
-      content: m.content,
+      content: m.role === 'user' ? AISecurityManager.sanitizeAiInput(m.content || '') : (m.content || ''),
     }))
     
     // Add system prompt
@@ -149,8 +158,17 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
       data: { updatedAt: new Date() },
     })
     
+    // Validate AI response before returning
+    const validation = await AISecurityManager.validateAiResponse(aiResponseContent)
+    if (!validation.isValid && validation.severity === 'CRITICAL') {
+      return NextResponse.json(
+        { error: 'AI response failed security validation' },
+        { status: 500 }
+      )
+    }
+
     // Generate insights based on conversation
-    await generateInsights(aiSession.id, tutorId, message, aiResponseContent)
+    await generateInsights(aiSession.id, tutorId, safeMessage, aiResponseContent)
 
     return NextResponse.json({
       message: assistantMessage,

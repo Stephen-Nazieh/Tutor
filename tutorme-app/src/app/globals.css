@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  /* Chinese typography - system fonts for zh-CN (PingFang, Microsoft YaHei) */
+  --font-chinese: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", "WenQuanYi Micro Hei",
+    "Noto Sans SC", sans-serif;
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
   --card: 0 0% 100%;

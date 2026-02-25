@@ -9,6 +9,7 @@
  */
 
 import { db, cache } from './index'
+import cacheManager from '@/lib/cache-manager'
 
 // ==================== USER QUERIES ====================
 
@@ -515,14 +516,15 @@ export async function getContentLibrary(options: {
 // ==================== CACHE INVALIDATION ====================
 
 /**
- * Invalidate user-related caches
+ * Invalidate user-related caches (db cache + cacheManager for API routes)
  */
 export async function invalidateUserCache(userId: string) {
   await Promise.all([
     cache.delete(`user:${userId}`),
     cache.delete(`student:dashboard:${userId}`),
     cache.delete(`tutor:stats:${userId}`),
-    cache.invalidatePattern(`*:${userId}:*`)
+    cache.invalidatePattern(`*:${userId}:*`),
+    cacheManager.invalidateTag(`student:${userId}`),
   ])
 }
 

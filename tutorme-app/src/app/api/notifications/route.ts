@@ -6,7 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import type { Prisma } from '@prisma/client'
+import { withAuth, parseBoundedInt } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 // GET - Get notifications
@@ -15,10 +16,10 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   const { searchParams } = new URL(req.url)
   
   const unreadOnly = searchParams.get('unread') === 'true'
-  const limit = parseInt(searchParams.get('limit') || '50', 10)
+  const limit = parseBoundedInt(searchParams.get('limit'), 50, { min: 1, max: 100 })
   const cursor = searchParams.get('cursor')
   
-  const where: any = { userId }
+  const where: Prisma.NotificationWhereInput = { userId }
   if (unreadOnly) where.read = false
   
   const notifications = await db.notification.findMany({
@@ -42,7 +43,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 }) // Any authenticated user (STUDENT or TUTOR) can read their own notifications
 
 // POST - Create notification (internal use)
-export const POST = withAuth(async (req: NextRequest, session) => {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     const body = await req.json()
     const { userId, type, title, message, data, actionUrl } = body

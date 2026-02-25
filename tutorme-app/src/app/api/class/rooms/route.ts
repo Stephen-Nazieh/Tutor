@@ -3,16 +3,35 @@
  * Creates and manages video rooms for live class sessions
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { db } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 
 // POST /api/class/rooms - Create a new class room
 export const POST = withCsrf(withAuth(async (req, session) => {
   // Validate request body
   const data = await validateRequest(req, CreateRoomSchema)
+  const scheduledAt = data.scheduledAt ? new Date(data.scheduledAt) : new Date()
+  const isScheduledForFuture = scheduledAt.getTime() > Date.now()
+
+  if (data.curriculumId) {
+    const ownedCurriculum = await db.curriculum.findFirst({
+      where: {
+        id: data.curriculumId,
+        creatorId: session.user.id,
+      },
+      select: { id: true, subject: true },
+    })
+    if (!ownedCurriculum) {
+      return NextResponse.json(
+        { error: 'Invalid curriculum selection for this tutor' },
+        { status: 400 }
+      )
+    }
+  }
 
   // Create video room via Daily.co
   const room = await dailyProvider.createRoom(session.user.id, {
@@ -32,15 +51,17 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   const classSession = await db.liveSession.create({
     data: {
       tutorId: session.user.id,
+      curriculumId: data.curriculumId || null,
       title: data.title || `${data.subject} Class`,
       subject: data.subject,
+      description: data.description || null,
       gradeLevel: data.gradeLevel || null,
       type: 'GROUP',
       roomUrl: room.url,
       roomId: room.id,
       maxStudents: data.maxStudents,
-      scheduledAt: new Date(),
-      status: 'ACTIVE'
+      scheduledAt,
+      status: isScheduledForFuture ? 'SCHEDULED' : 'ACTIVE'
     }
   })
 
@@ -62,7 +83,7 @@ export const GET = withAuth(async (req, session) => {
   const gradeLevel = searchParams.get('gradeLevel')
 
   // Build filter
-  const where: any = {
+  const where: Prisma.LiveSessionWhereInput = {
     status: 'ACTIVE',
     scheduledAt: {
       gte: new Date(Date.now() - 4 * 60 * 60 * 1000) // Started within last 4 hours
@@ -109,10 +130,15 @@ export const GET = withAuth(async (req, session) => {
   })
 
   // Filter out expired rooms
-  const activeSessions = sessions.filter((s: any) => {
-    return s.roomId && dailyProvider.isRoomActive(s.roomId)
-  })
+  const activeSessions = (
+    await Promise.all(
+      sessions.map(async (s) => {
+        if (!s.roomId) return null
+        const isActive = await dailyProvider.isRoomActive(s.roomId)
+        return isActive ? s : null
+      })
+    )
+  ).filter((s): s is (typeof sessions)[number] => s !== null)
 
   return NextResponse.json({ sessions: activeSessions })
 })
-

@@ -1,0 +1,41 @@
+# Dependencies
+node_modules
+package-lock.json
+yarn.lock
+.pnpm-store
+
+# Build outputs
+.next
+dist
+build
+out
+
+# Generated files
+@Generated
+.prisma/client
+next-env.d.ts
+
+# Configuration files
+.env*
+.next.config.js
+.eslintrc.js
+.prettierrc
+
+# Assets
+public
+*.ico
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Temporary files
+.tmp
+.temp
+.cache

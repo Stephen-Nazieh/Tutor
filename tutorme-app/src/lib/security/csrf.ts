@@ -35,15 +35,25 @@ export async function getCsrfToken(): Promise<string> {
  * Verify CSRF token from request header against cookie. Returns true if valid.
  */
 export async function verifyCsrfToken(req: Request): Promise<boolean> {
-  const headerToken = req.headers.get(CSRF_HEADER_NAME)
-  const cookieStore = await cookies()
-  const cookieToken = cookieStore.get(CSRF_COOKIE_NAME)?.value
-  if (!headerToken || !cookieToken) return false
-  if (headerToken !== cookieToken) return false
-  const [value] = headerToken.split('.')
-  if (!value) return false
-  const expected = `${value}.${hash(value)}`
-  return crypto.timingSafeEqual(Buffer.from(headerToken), Buffer.from(expected))
+  try {
+    const headerToken = req.headers.get(CSRF_HEADER_NAME)
+    const cookieStore = await cookies()
+    const cookieToken = cookieStore.get(CSRF_COOKIE_NAME)?.value
+    if (!headerToken || !cookieToken) return false
+    if (headerToken !== cookieToken) return false
+
+    const [value] = headerToken.split('.')
+    if (!value) return false
+
+    const expected = `${value}.${hash(value)}`
+    const headerBuffer = Buffer.from(headerToken)
+    const expectedBuffer = Buffer.from(expected)
+    if (headerBuffer.length !== expectedBuffer.length) return false
+
+    return crypto.timingSafeEqual(headerBuffer, expectedBuffer)
+  } catch {
+    return false
+  }
 }
 
 export { CSRF_HEADER_NAME }

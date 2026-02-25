@@ -84,7 +84,7 @@ services:
       ADMIN_USERS: postgres
       STATS_USERS: postgres
     ports:
-      - "5433:5432"
+      - "5433:6432"
     depends_on:
       db:
         condition: service_healthy

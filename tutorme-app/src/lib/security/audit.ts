@@ -12,6 +12,8 @@ export const AUDIT_ACTIONS = {
   DATA_DELETE: 'audit_data_delete',
   PAYMENT_CREATE: 'audit_payment_create',
   PAYMENT_REFUND: 'audit_payment_refund',
+  PAYMENT_ALERT: 'audit_payment_alert',
+  COURSE_SHARE: 'audit_course_share',
   ADMIN_ACCESS: 'audit_admin_access',
   SENSITIVE_ACCESS: 'audit_sensitive_access'
 } as const

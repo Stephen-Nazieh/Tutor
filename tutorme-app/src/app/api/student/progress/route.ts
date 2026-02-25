@@ -8,12 +8,18 @@
  *  - UserGamification (XP, level, streak)
  *  - Achievement (earned badges)
  *  - TaskSubmission (submission counts)
+ *
+ * Performance: <100ms target with cache hit
+ * Cache: L1 memory + L2 Redis, 180s TTL via cache.getOrSet
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import cacheManager from '@/lib/cache-manager'
+
+const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_PROGRESS || '180', 10)
 
 export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
@@ -22,10 +28,14 @@ export async function GET(req: NextRequest) {
     }
 
     const studentId = session.user.id
+    const startTime = Date.now()
 
     try {
-        // 1. Enrollments with curriculum info
-        const enrollments = await db.curriculumEnrollment.findMany({
+        const data = await cacheManager.getOrSet(
+            `student:progress:${studentId}`,
+            async () => {
+                // 1. Enrollments with curriculum info
+                const enrollments = await db.curriculumEnrollment.findMany({
             where: { studentId },
             include: {
                 curriculum: {
@@ -143,35 +153,42 @@ export async function GET(req: NextRequest) {
             )
             : null
 
-        return NextResponse.json({
-            success: true,
-            data: {
-                overview: {
-                    lessonsCompleted: totalCompleted,
-                    totalLessons,
-                    studyHours: Math.round((totalStudyMinutes / 60) * 10) / 10,
-                    averageScore: overallAvg,
-                    achievementCount: achievements.length,
-                    submissionCount,
-                    level: gamification?.level ?? 1,
-                    xp: gamification?.xp ?? 0,
-                    streakDays: gamification?.streakDays ?? 0,
-                },
-                courses,
-                strengths: strengthCounts.slice(0, 5),
-                weaknesses: weaknessCounts.slice(0, 5),
-                scoreTrend,
-                achievements: achievements.map((a) => ({
-                    id: a.id,
-                    type: a.type,
-                    title: a.title,
-                    description: a.description,
-                    unlockedAt: a.unlockedAt,
-                    xpAwarded: a.xpAwarded,
-                })),
-                skillBreakdown: performances[0]?.skillBreakdown ?? {},
+        return {
+            overview: {
+                lessonsCompleted: totalCompleted,
+                totalLessons,
+                studyHours: Math.round((totalStudyMinutes / 60) * 10) / 10,
+                averageScore: overallAvg,
+                achievementCount: achievements.length,
+                submissionCount,
+                level: gamification?.level ?? 1,
+                xp: gamification?.xp ?? 0,
+                streakDays: gamification?.streakDays ?? 0,
             },
-        })
+            courses,
+            strengths: strengthCounts.slice(0, 5),
+            weaknesses: weaknessCounts.slice(0, 5),
+            scoreTrend,
+            achievements: achievements.map((a) => ({
+                id: a.id,
+                type: a.type,
+                title: a.title,
+                description: a.description,
+                unlockedAt: a.unlockedAt,
+                xpAwarded: a.xpAwarded,
+            })),
+            skillBreakdown: performances[0]?.skillBreakdown ?? {},
+        }
+            },
+            {
+                ttl: CACHE_TTL,
+                tags: [`student:${studentId}`, 'progress', 'dashboard'],
+            }
+        )
+
+        const res = NextResponse.json({ success: true, data })
+        res.headers.set('X-Response-Time', `${Date.now() - startTime}ms`)
+        return res
     } catch (error) {
         console.error('Failed to fetch student progress:', error)
         return NextResponse.json({ error: 'Failed to fetch progress' }, { status: 500 })

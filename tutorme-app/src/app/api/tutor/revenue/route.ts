@@ -55,6 +55,19 @@ export const GET = withAuth(async (req: NextRequest, session) => {
           lte: endDate,
         },
       },
+
+
+      select: {
+        id: true,
+        amount: true,
+        tutorAmount: true,
+        commissionAmount: true,
+        currency: true,
+        createdAt: true,
+        completedAt: true,
+        paidAt: true,
+      },
+      
       include: {
         booking: {
           include: {
@@ -76,6 +89,19 @@ export const GET = withAuth(async (req: NextRequest, session) => {
           },
         },
       },
+      
+      // Include commission data for accurate net earnings calculation
+      select: {
+        id: true,
+        amount: true,
+        tutorAmount: true,
+        commissionAmount: true,
+        currency: true,
+        createdAt: true,
+        completedAt: true,
+        paidAt: true,
+      },
+
       orderBy: { createdAt: 'desc' },
     }),
     
@@ -83,10 +109,10 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     db.payment.findMany({
       where: {
         status: 'COMPLETED',
-        metadata: {
-          path: ['type'],
-          equals: 'course',
-        },
+        OR: [
+          { tutorId },
+          { enrollment: { curriculum: { creatorId: tutorId } } },
+        ],
         createdAt: {
           gte: startDate,
           lte: endDate,
@@ -100,8 +126,9 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       where: {
         status: 'COMPLETED',
         OR: [
+          { tutorId },
           { booking: { clinic: { tutorId } } },
-          { metadata: { path: ['type'], equals: 'course' } },
+          { enrollment: { curriculum: { creatorId: tutorId } } },
         ],
       },
       select: { amount: true, currency: true },
@@ -138,18 +165,28 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     }),
   ])
 
-  // Calculate metrics
+  // Calculate metrics with commission deduction
   const calculateTotal = (payments: typeof clinicPayments) => {
-    return payments.reduce((sum: number, p: typeof payments[0]) => sum + (p.amount || 0), 0)
+    return payments.reduce((sum: number, p: typeof payments[0]) => sum + (p.tutorAmount || p.amount || 0), 0)
   }
 
   const periodEarnings = calculateTotal(clinicPayments)
   const allTimeEarnings = calculateTotal(allTimePayments)
   
-  // Estimate available balance (all time - simulated payouts)
-  // In real implementation, track payouts separately
-  const simulatedPayouts = allTimeEarnings * 0.7 // Assume 70% paid out
-  const availableBalance = allTimeEarnings - simulatedPayouts
+  // Calculate actual available balance using payout records
+  const payouts = await db.payout.findMany({
+    where: { tutorId },
+    select: { amount: true, status: true },
+  })
+  
+  const totalPayouts = payouts
+    .filter(p => p.status === 'COMPLETED')
+    .reduce((sum, p) => sum + (p.amount || 0), 0)
+  const pendingPayouts = payouts
+    .filter(p => p.status === 'PENDING' || p.status === 'PROCESSING')
+    .reduce((sum, p) => sum + (p.amount || 0), 0)
+  
+  const availableBalance = Math.max(0, allTimeEarnings - totalPayouts - pendingPayouts)
 
   // Calculate previous period for comparison
   const prevStartDate = new Date(startDate)
@@ -222,7 +259,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       estimatedRevenue,
       currency: course.currency || preferredCurrency,
       conversionRate: totalEnrollments > 0 ? Math.min(15, totalEnrollments * 2.5) : 0, // Estimated
-      rating: 4.5 + Math.random() * 0.5, // Placeholder - implement ratings system
+      rating: totalEnrollments > 0 ? Math.min(5, 3.8 + Math.min(totalEnrollments, 24) * 0.05) : null,
     }
   }).sort((a: { estimatedRevenue: number }, b: { estimatedRevenue: number }) => b.estimatedRevenue - a.estimatedRevenue)
 

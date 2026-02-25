@@ -14,9 +14,18 @@ import { hasPermission, Permission, getRolePermissions } from './permissions'
 // Admin session configuration (exported for setting cookie on response in route handlers)
 export const ADMIN_TOKEN_NAME = 'admin_session'
 export const ADMIN_TOKEN_EXPIRY = 60 * 60 * 8 // 8 hours in seconds
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.ADMIN_JWT_SECRET || process.env.NEXTAUTH_SECRET || 'default-secret'
-)
+
+function getJwtSecret(): Uint8Array {
+  const configuredSecret = process.env.ADMIN_JWT_SECRET || process.env.NEXTAUTH_SECRET || ''
+  if (process.env.NODE_ENV === 'production' && (!configuredSecret || configuredSecret === 'default-secret')) {
+    throw new Error('Missing secure ADMIN_JWT_SECRET or NEXTAUTH_SECRET in production')
+  }
+  // Dev/test fallback only; production must provide env secret above.
+  const secret = configuredSecret || 'dev-admin-secret'
+  return new TextEncoder().encode(secret)
+}
+
+const JWT_SECRET = getJwtSecret()
 
 // Types
 export interface AdminSession {
@@ -186,7 +195,7 @@ export async function setAdminCookie(token: string): Promise<void> {
   cookieStore.set(ADMIN_TOKEN_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: ADMIN_TOKEN_EXPIRY,
     path: '/',
   })

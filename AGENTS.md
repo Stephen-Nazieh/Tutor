@@ -1,19 +1,20 @@
-# TutorMe - AI Coding Agent Guide
+# TutorMe (CogniClass) - AI Coding Agent Guide
 
 ## Project Overview
 
-TutorMe (also known as CogniClass) is an AI-human hybrid tutoring platform designed for the Chinese market. It combines 24/7 AI-powered Socratic tutoring with live group "clinics" led by human tutors supported by AI monitoring.
+TutorMe is an AI-human hybrid tutoring platform combining 24/7 AI-powered Socratic tutoring with live group clinics led by human tutors. The platform supports multiple user roles (Student, Tutor, Parent, Admin) and is designed for global markets with particular focus on Chinese market adaptation.
 
 **Core Value Proposition:**
 - AI tutors use Socratic method (never give direct answers, guide students to discover)
-- Live clinics with 1 tutor managing up to 50 students
-- Real-time AI monitoring during live sessions flags students needing help
+- Live clinics with 1 tutor managing up to 50 students with real-time AI monitoring
 - Video learning with inline quizzes and AI-generated assessments
-- Gamification system with missions, achievements, and worlds
+- Gamification system with missions, achievements, badges, and leaderboards
+- Multi-role dashboards: Student, Tutor, Parent, and Admin
 
-**Target Ratio:** 1 tutor : 50 students
-**Primary Language:** Chinese (zh-CN) with English as secondary
-**Default Port:** 3003
+**Target Ratio:** 1 tutor : 50 students  
+**Primary Language:** English (en) with Chinese (zh-CN) and 8 other languages supported  
+**Default Port:** 3003  
+**Database Ports:** 5432 (PostgreSQL direct), 5433 (PgBouncer pool), 6379 (Redis)
 
 ---
 
@@ -21,19 +22,21 @@ TutorMe (also known as CogniClass) is an AI-human hybrid tutoring platform desig
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Frontend** | Next.js 16 (App Router) + TypeScript | Web application framework |
-| **Styling** | Tailwind CSS + shadcn/ui | UI components and styling |
-| **Backend** | Next.js API Routes + Node.js | Server-side logic |
-| **Real-time** | Socket.io | WebSocket connections for live sessions |
-| **Database** | PostgreSQL 16 + PgBouncer | Primary data store with connection pooling |
-| **Cache** | Redis 7 | Sessions, caching, real-time state |
-| **ORM** | Prisma 5 | Database access and migrations |
-| **AI/LLM** | Ollama (Llama 3.1) + Kimi K2.5 + Zhipu GLM | AI tutoring and generation |
-| **Video** | Daily.co | Video conferencing |
-| **Whiteboard** | tldraw + Yjs | Collaborative whiteboard |
-| **Auth** | NextAuth.js v4 | Authentication with JWT strategy |
-| **Validation** | Zod | Schema validation |
-| **Testing** | Vitest + Playwright | Unit, integration, and E2E tests |
+| **Frontend** | Next.js 16.1.6 (App Router) + React 18 + TypeScript 5.9 | Web application framework |
+| **Styling** | Tailwind CSS 3.4 + shadcn/ui | UI components and styling |
+| **Backend** | Next.js API Routes + Node.js + Socket.io 4.8.3 | Server-side logic and real-time |
+| **Database** | PostgreSQL 16 + PgBouncer + Prisma 5.22 | Primary data store with ORM |
+| **Cache** | Redis 7 + ioredis | Sessions, caching, real-time state |
+| **Auth** | NextAuth.js v4.24.13 | Authentication with JWT strategy |
+| **i18n** | next-intl 4.8.3 | Internationalization (10 languages) |
+| **AI/LLM** | Ollama (local Llama 3.1) → Kimi K2.5 → Zhipu GLM | AI tutoring with fallback chain |
+| **Video** | Daily.co (@daily-co/daily-js) | Video conferencing |
+| **Whiteboard** | Custom Canvas + Yjs + Fabric.js | Collaborative whiteboard |
+| **Validation** | Zod 4.3.6 | Schema validation |
+| **Testing** | Vitest 2.1.8 + Playwright 1.49 + k6 | Unit, integration, E2E, load tests |
+| **Monitoring** | Sentry 10.39.0 | Error tracking and performance |
+| **State** | Zustand 5.0.11 | Client-side state management |
+| **Drag & Drop** | @dnd-kit | Sortable UI components |
 
 ---
 
@@ -43,37 +46,53 @@ TutorMe (also known as CogniClass) is an AI-human hybrid tutoring platform desig
 tutorme-app/
 ├── src/
 │   ├── app/                      # Next.js App Router
-│   │   ├── (student)/            # Student route group
-│   │   │   └── curriculum/       # Curriculum pages
-│   │   ├── api/                  # API routes (100+ endpoints)
+│   │   ├── [locale]/             # i18n route segments (en, zh-CN, es, fr, de, ja, ko, pt, ru, ar)
+│   │   │   ├── (student)/        # Student route group (curriculum)
+│   │   │   ├── student/          # Student dashboard & features
+│   │   │   ├── tutor/            # Tutor dashboard & features
+│   │   │   ├── parent/           # Parent dashboard & features
+│   │   │   ├── admin/            # Admin dashboard & features
+│   │   │   ├── actions/          # Server actions
+│   │   │   ├── api-docs/         # API documentation
+│   │   │   ├── legal/            # Legal pages (terms, privacy, code-of-conduct)
+│   │   │   ├── login/            # Login page
+│   │   │   ├── onboarding/       # User onboarding flows
+│   │   │   ├── payment/          # Payment processing pages
+│   │   │   └── register/         # Registration pages (student, tutor, parent, admin)
+│   │   ├── actions/              # Global server actions
+│   │   ├── api/                  # API routes (100+ endpoint groups)
 │   │   │   ├── ai/               # AI generation endpoints
 │   │   │   ├── ai-tutor/         # AI tutor enrollment & chat
 │   │   │   ├── auth/             # NextAuth.js handlers
 │   │   │   ├── class/            # Live class & breakout rooms
 │   │   │   ├── curriculum/       # Curriculum management
+│   │   │   ├── gamification/     # XP, achievements, missions
+│   │   │   ├── parent/           # Parent-specific APIs
 │   │   │   ├── payments/         # Payment processing
+│   │   │   ├── polls/            # Live polling
+│   │   │   ├── tutor/            # Tutor-specific APIs
 │   │   │   └── ...               # Many more API routes
-│   │   ├── student/              # Student dashboard & features
-│   │   ├── tutor/                # Tutor dashboard & features
-│   │   ├── class/[roomId]/       # Live classroom
-│   │   ├── layout.tsx            # Root layout (zh-CN lang)
+│   │   ├── layout.tsx            # Root layout with i18n
 │   │   ├── globals.css           # Global styles + CSS variables
 │   │   └── page.tsx              # Landing page
 │   │
 │   ├── components/               # React components
-│   │   ├── ui/                   # shadcn/ui components
-│   │   │   ├── button.tsx
-│   │   │   ├── card.tsx
-│   │   │   └── ...               # 15+ shadcn components
+│   │   ├── ui/                   # shadcn/ui components (26+ components)
+│   │   ├── admin/                # Admin dashboard components
+│   │   ├── ai-chat/              # AI chat interface
 │   │   ├── ai-tutor/             # AI tutor components
+│   │   ├── analytics/            # Analytics and reporting
+│   │   ├── assignments/          # Assignment components
 │   │   ├── class/                # Classroom components
-│   │   │   ├── assets-panel.tsx
-│   │   │   ├── whiteboard.tsx
-│   │   │   ├── video-grid.tsx
-│   │   │   └── breakout-*.tsx    # Breakout room components
-│   │   ├── gamification/         # XP, missions, worlds UI
+│   │   │   ├── whiteboard/       # Whiteboard components
+│   │   │   ├── breakout/         # Breakout room components
+│   │   │   └── polls/            # Polling components
+│   │   ├── course-builder/       # Course creation UI
+│   │   ├── feedback/             # Feedback components
+│   │   ├── gamification/         # XP, missions, badges UI
+│   │   ├── parent/               # Parent dashboard components
 │   │   ├── quiz/                 # Quiz components
-│   │   └── providers/            # Context providers
+│   │   └── video-player/         # Video components
 │   │
 │   ├── lib/                      # Utility code & business logic
 │   │   ├── ai/                   # AI provider implementations
@@ -81,36 +100,49 @@ tutorme-app/
 │   │   │   ├── kimi.ts           # Moonshot AI fallback
 │   │   │   ├── zhipu.ts          # Zhipu AI fallback
 │   │   │   ├── orchestrator.ts   # Provider fallback chain
-│   │   │   ├── prompts.ts        # AI prompts (bilingual)
+│   │   │   ├── prompts.ts        # AI prompts
 │   │   │   ├── tutor-service.ts  # AI tutor logic
-│   │   │   ├── subjects/         # Subject-specific AI configs
 │   │   │   └── teaching-prompts/ # Modular prompt system
+│   │   ├── api/                  # API utilities
 │   │   ├── auth.ts               # NextAuth configuration
+│   │   ├── cache-manager.ts      # Redis caching layer
 │   │   ├── curriculum/           # Curriculum lesson controller
 │   │   ├── db/                   # Database client with caching
 │   │   │   ├── index.ts          # Prisma client + Redis cache
 │   │   │   └── queries.ts        # Optimized queries
 │   │   ├── gamification/         # XP, missions, quests logic
-│   │   ├── payments/             # Airwallex & Hitpay integration
+│   │   ├── i18n/                 # Internationalization config
+│   │   ├── monitoring/           # Sentry & performance
+│   │   ├── payments/             # Airwallex, Hitpay, WeChat, Alipay
 │   │   ├── security/             # Rate limiting, RBAC, sanitization
 │   │   ├── socket-server.ts      # Socket.io server initialization
 │   │   └── video/                # Daily.co video provider
 │   │
 │   ├── hooks/                    # Custom React hooks
 │   │   ├── use-socket.ts         # Socket.io client hook
-│   │   ├── use-breakout-rooms.ts # Breakout room management
-│   │   └── use-daily-call.ts     # Video call hook
+│   │   └── useParent.ts          # Parent data hooks
+│   │
+│   ├── stores/                   # Zustand stores
+│   │   ├── live-class.store.ts   # Live class state
+│   │   └── communication.store.ts # Messaging state
 │   │
 │   ├── __tests__/                # Unit & integration tests
 │   │   ├── setup.ts              # Vitest setup
-│   │   └── integration/          # API integration tests
+│   │   ├── integration/          # API integration tests
+│   │   ├── security/             # Security tests
+│   │   └── accessibility/        # a11y tests
 │   │
-│   ├── middleware.ts             # Next.js middleware (auth + rate limit)
-│   └── types/next-auth.d.ts      # NextAuth type extensions
+│   ├── middleware.ts             # Next.js middleware (auth + i18n + rate limit)
+│   ├── types/                    # TypeScript type definitions
+│   └── i18n/                     # i18n configuration
+│       ├── request.ts            # next-intl request config
+│       └── routing.ts            # Locale routing re-export
 │
 ├── prisma/
-│   ├── schema.prisma             # Database schema (1000+ lines)
-│   └── seed.ts                   # Database seed script
+│   ├── schema.prisma             # Database schema (100+ models)
+│   ├── migrations/               # Prisma migrations
+│   ├── seed.ts                   # Database seed script
+│   └── seed-curriculum-catalog.ts
 │
 ├── e2e/                          # Playwright E2E tests
 │   ├── ai-tutor.spec.ts
@@ -123,18 +155,22 @@ tutorme-app/
 │   ├── initialize.sh             # Full initialization (DB + app)
 │   ├── setup-db.sh               # Setup database only
 │   ├── reset.sh                  # Full reset (destructive)
-│   ├── seed-curriculum.ts        # Seed curriculum data
+│   ├── check-db.sh               # Database health check
+│   ├── build-sw.js               # Build service worker
 │   └── load/                     # k6 load testing scripts
+│
+├── messages/                     # i18n translation files
+│   ├── en.json                   # English (default)
+│   └── zh-CN.json                # Chinese (Simplified)
 │
 ├── server.ts                     # Custom Next.js server with Socket.io
 ├── docker-compose.yml            # Postgres + Redis + Ollama + PgBouncer
-├── next.config.mjs               # Next.js configuration
+├── next.config.mjs               # Next.js configuration with CSP
 ├── tailwind.config.ts            # Tailwind + design tokens
 ├── tsconfig.json                 # TypeScript configuration
 ├── vitest.config.ts              # Vitest unit test config
 ├── vitest.integration.config.ts  # Vitest integration test config
-├── playwright.config.ts          # Playwright E2E config
-└── package.json                  # Dependencies and scripts
+└── playwright.config.ts          # Playwright E2E config
 ```
 
 ---
@@ -148,8 +184,8 @@ All commands run from `tutorme-app/` directory:
 npm run initialize          # One-command setup: DB + migrations + seed + dev server
 npm run dev:all             # Start Docker + migrations + dev server
 
-# Development Server Only (requires Docker running)
-npm run dev                 # Start Next.js + Socket.io server on port 3003
+# Development Server (requires Docker running)
+npm run dev                 # Start Next.js + Socket.io server on port 3003 (via server.ts)
 npm run dev:next            # Start only Next.js dev server
 
 # Database Operations
@@ -157,9 +193,11 @@ npm run db:setup            # Setup database containers
 npm run db:migrate          # Run Prisma migrations
 npm run db:generate         # Generate Prisma client
 npm run db:seed             # Seed database with sample data
+npm run db:seed:admin       # Seed admin user
 npm run db:studio           # Open Prisma Studio at http://localhost:5555
 npm run db:reset            # Full database reset (DESTRUCTIVE!)
 npm run studio              # Open Prisma Studio (via script)
+npm run db:check            # Check database health
 
 # Docker Operations
 npm run docker:up           # Start all Docker containers
@@ -174,16 +212,27 @@ npm run test:watch          # Run Vitest in watch mode
 npm run test:integration    # Run integration tests
 npm run test:e2e            # Run Playwright E2E tests
 npm run test:e2e:ui         # Run E2E tests with UI
+npm run test:e2e:a11y       # Run accessibility tests
 npm run test:load           # k6 load test (concurrent users)
 npm run test:load:ai        # k6 load test (AI stress)
 npm run test:load:ws        # k6 load test (WebSocket)
 
 # Code Quality
 npm run lint                # Run ESLint
+npm run lint:fix            # Fix ESLint issues
+npm run format              # Format code with Prettier
+npm run format:check        # Check code formatting
+npm run typecheck           # TypeScript type checking
 
 # Production Build
-npm run build               # Build for production
+npm run build               # Build for production (includes service worker)
+npm run build:sw            # Build service worker only
 npm run start               # Start production server
+
+# Utilities
+npm run data-retention      # Run data retention cleanup
+npm run test:register       # Test registration flow
+npm run security:check      # Run npm audit
 ```
 
 ---
@@ -193,105 +242,185 @@ npm run start               # Start production server
 Copy `.env.example` to `.env.local` and configure:
 
 ```bash
-# Database (Required)
-# Primary connection (for migrations)
-DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
-# PgBouncer connection pool (for app queries, supports 100+ concurrent users)
-DATABASE_POOL_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
+# =============================================================================
+# Database Configuration
+# =============================================================================
 
-# Redis Cache (Required)
+# Primary database connection (direct to PostgreSQL) - for migrations
+DATABASE_URL="postgresql://postgres:postgres_password@localhost:5432/tutorme"
+
+# Connection pool URL (PgBouncer) - for application queries
+DATABASE_POOL_URL="postgresql://postgres:postgres_password@localhost:5433/tutorme"
+
+# Redis Cache
 REDIS_URL="redis://localhost:6379"
 
+# =============================================================================
 # AI Providers (Priority: Ollama -> Kimi -> Zhipu)
+# =============================================================================
+
+# Ollama (Local LLM)
 OLLAMA_URL="http://localhost:11434"
-KIMI_API_KEY="your_kimi_api_key_here"      # From https://platform.moonshot.cn/
-ZHIPU_API_KEY="your_zhipu_api_key_here"    # From https://open.bigmodel.cn/
 
+# Kimi K2.5 (Moonshot AI) - Primary API fallback
+KIMI_API_KEY="your_kimi_api_key_here"
+
+# Zhipu AI (GLM models) - Secondary API fallback
+ZHIPU_API_KEY="your_zhipu_api_key_here"
+
+# =============================================================================
 # Video Conferencing (Daily.co)
-DAILY_API_KEY="your_daily_api_key_here"    # From https://dashboard.daily.co/
+# =============================================================================
 
+DAILY_API_KEY="your_daily_api_key_here"
+
+# =============================================================================
 # Authentication (NextAuth.js)
+# =============================================================================
+
 NEXTAUTH_SECRET="your_random_secret_here_min_32_chars"
 NEXTAUTH_URL="http://localhost:3003"
 
-# WeChat OAuth (Optional)
+# WeChat OAuth
 WECHAT_APP_ID="your_wechat_app_id"
 WECHAT_APP_SECRET="your_wechat_app_secret"
 
+# =============================================================================
+# Global Security Configuration
+# =============================================================================
+
+SECURITY_COMPRESS=true
+SECURITY_ENCRYPT=true
+SECURITY_AUDIT=true
+SECURITY_PIPL_COMPLIANCE=true
+SECURITY_GLOBAL_STANDARDS=true
+SECURITY_RATE_LIMIT=300
+SECURITY_MAX_REQUESTS_PER_MINUTE=1000
+
+# =============================================================================
+# Sentry (Error monitoring, performance, compliance)
+# =============================================================================
+
+SENTRY_DSN=your_sentry_dsn
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
+
+# =============================================================================
+# Application Settings
+# =============================================================================
+
+NEXT_PUBLIC_APP_URL="http://localhost:3003"
+NODE_ENV="development"
+
+# Cache TTL settings (in seconds)
+CACHE_TTL_DEFAULT=60
+CACHE_TTL_USER=300
+CACHE_TTL_LEADERBOARD=300
+CACHE_TTL_CONTENT=600
+CACHE_TTL_PARENT_DASHBOARD=180
+CACHE_TTL_STUDENT_ANALYTICS=45
+CACHE_TTL_PARENT_FINANCIAL=120
+CACHE_TTL_PARENT_FAMILY=300
+
+# =============================================================================
 # Payment Gateways
-# Airwallex
+# =============================================================================
+
+# Airwallex Configuration
 AIRWALLEX_CLIENT_ID=your_client_id
 AIRWALLEX_API_KEY=your_api_key
 AIRWALLEX_ENV=sandbox  # or 'production'
 AIRWALLEX_WEBHOOK_SECRET=your_webhook_secret
 
-# Hitpay
+# Hitpay Configuration
 HITPAY_API_KEY=your_api_key
 HITPAY_SALT=your_salt_key
 HITPAY_ENV=sandbox  # or 'production'
 HITPAY_WEBHOOK_SECRET=your_webhook_secret
+
+# Payment Settings
 PAYMENT_DEFAULT_GATEWAY=HITPAY  # or 'AIRWALLEX'
+PAYMENT_SUCCESS_URL=http://localhost:3000/payment/success
+PAYMENT_CANCEL_URL=http://localhost:3000/payment/cancel
 
-# Application Settings
-NEXT_PUBLIC_APP_URL="http://localhost:3003"
-NODE_ENV="development"
+# Chinese Payment Gateways (WeChat Pay & Alipay)
+WECHAT_MCH_ID=your_merchant_id
+WECHAT_PAY_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+WECHAT_PAY_API_V3_KEY=your_32_char_api_v3_key
+WECHAT_PAY_PLATFORM_PUBLIC_KEY="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+WECHAT_PAY_ENV=sandbox  # or 'production'
 
-# Cache TTL Settings (seconds)
-CACHE_TTL_DEFAULT=60
-CACHE_TTL_USER=300
-CACHE_TTL_LEADERBOARD=300
-CACHE_TTL_CONTENT=600
+ALIPAY_APP_ID=your_alipay_app_id
+ALIPAY_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+ALIPAY_PUBLIC_KEY="-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+ALIPAY_ENV=sandbox  # or 'production'
+
+# =============================================================================
+# Video Learning (S3-compatible upload)
+# =============================================================================
+# S3_BUCKET=your-bucket
+# S3_REGION=us-east-1
+# S3_ACCESS_KEY_ID=your-key
+# S3_SECRET_ACCESS_KEY=your-secret
+# S3_ENDPOINT=https://minio.example.com
 ```
 
 ---
 
 ## Database Architecture
 
-### Key Models (Prisma Schema)
+### Key Models (Prisma Schema - 100+ models)
 
 | Model | Purpose |
 |-------|---------|
-| **User** | Core user with role (STUDENT/TUTOR/ADMIN) |
-| **Profile** | Extended profile with student/tutor specific fields |
+| **User** | Core user with role (STUDENT/TUTOR/PARENT/ADMIN) |
+| **Profile** | Extended profile with role-specific fields |
+| **Account** | OAuth provider accounts (NextAuth) |
 | **Curriculum** | Course structure with modules and lessons |
 | **CurriculumModule** | Course modules containing lessons |
 | **CurriculumLesson** | Individual lessons with learning objectives |
+| **CurriculumCatalog** | Catalog of curriculum types (IELTS, AP, etc.) |
+| **CourseBatch** | Group-level course instances with schedule/difficulty overrides |
 | **LessonSession** | Active AI tutoring session state |
 | **ContentItem** | Video learning content with transcripts |
 | **VideoWatchEvent** | Video engagement analytics |
 | **ContentQuizCheckpoint** | Inline video quizzes |
 | **QuizAttempt** | Student quiz responses with AI grading |
+| **GeneratedTask** | AI-generated assignments/tasks |
+| **TaskSubmission** | Student task submissions |
+| **FeedbackWorkflow** | AI-tutor collaborative grading workflow |
 | **LiveSession** | Scheduled clinic sessions |
-| **SessionParticipant** | Student participation tracking |
-| **Clinic** | Tutor-led group sessions (max 50 students) |
-| **ClinicBooking** | Student bookings for clinics |
-| **Payment** | Payment transactions |
-| **Refund** | Refund records |
-| **Message** | AI/student chat history |
-| **Note** | Timestamped video notes |
-| **Bookmark** | Saved content items |
-| **UserGamification** | XP, level, streak data |
-| **Achievement** | Unlocked achievements |
-| **Mission** | Daily/weekly quests |
-| **AITutorEnrollment** | AI tutor subject enrollments |
-| **AITutorSubscription** | Subscription tiers (FREE/PRO/ELITE) |
+| **SessionParticipant** | Live session participants |
 | **BreakoutSession** | Group breakout room sessions |
 | **BreakoutRoom** | Individual breakout rooms |
-| **GeneratedTask** | AI-generated assignments |
-| **TaskSubmission** | Student task submissions |
-| **FeedbackWorkflow** | AI+tutor feedback system |
-| **StudentPerformance** | Analytics and clustering data |
-| **StudyGroup** | Student study groups |
+| **AITutorEnrollment** | AI tutor subject enrollments |
+| **AITutorSubscription** | Subscription tiers (FREE/PRO/ELITE) |
+| **AIInteractionSession** | AI tutoring conversation history |
+| **Payment** | Payment transactions |
+| **UserGamification** | XP, level, streak data |
+| **Achievement** | Unlocked achievements |
+| **Badge** | Collectible badges |
+| **Mission** | Daily/weekly quests |
+| **LeaderboardEntry** | Leaderboard rankings |
+| **FamilyMember** | Parent-student relationships |
+| **Poll** | Live class polls |
+| **Whiteboard** | Collaborative whiteboard data |
+| **CalendarEvent** | Scheduled calendar events |
+| **Notification** | User notifications |
+| **SecurityEvent** | Security audit log |
+| **AdminAuditLog** | Admin action audit trail |
 
 ### Connection Architecture
 
-- **PostgreSQL**: Direct connection for migrations (port 5432)
-- **PgBouncer**: Connection pooler for app queries (port 5433)
+- **PostgreSQL** (port 5432): Direct connection for migrations
+- **PgBouncer** (port 5433): Connection pooler for app queries
   - Pool mode: transaction
   - Max client connections: 1000
   - Default pool size: 50
-- **Redis**: Caching and real-time state (port 6379)
-- **Read Replicas**: Configurable via DATABASE_READ_REPLICA_URL
+  - Reserve pool: 10 connections
+- **Redis** (port 6379): Caching and real-time state
+  - Max memory: 512MB
+  - Eviction policy: allkeys-lru
+- **Ollama** (port 11434): Local LLM inference
 
 ---
 
@@ -370,42 +499,47 @@ const result = await generateWithFallback(prompt, { temperature: 0.7 })
 const response = await chatWithFallback(messages, { maxTokens: 2048 })
 
 // Response format: { content: string, provider: 'ollama'|'kimi'|'zhipu', latencyMs: number }
+
+// MOCK MODE for testing without AI providers
+if (process.env.MOCK_AI === 'true') {
+  // Returns mock responses
+}
 ```
 
 ### Database Access Patterns
 
 ```typescript
 // Use the singleton db instance
-import { db, cache, queryOptimizer } from '@/lib/db'
+import { db, cache } from '@/lib/db'
 
 // Basic query
 const user = await db.user.findUnique({ where: { id } })
 
 // With caching
-const cached = await cache.get<User>(`user:${id}`)
-if (cached) return cached
-
-// Cached query
-const result = await queryOptimizer.cachedQuery(
+const result = await cache.getOrSet(
   `content:list`,
   () => db.contentItem.findMany({ where: { isPublished: true } }),
   300 // TTL seconds
 )
-
-// Batch load to prevent N+1
-const items = await queryOptimizer.batchLoad(
-  ids,
-  (ids) => db.item.findMany({ where: { id: { in: ids } } }),
-  (item) => item.id
-)
 ```
 
-### Bilingual Support
+### Internationalization (i18n)
 
-- All user-facing strings use Chinese (zh-CN) as primary language
-- AI prompts defined in `lib/ai/prompts.ts` and `lib/ai/teaching-prompts/` with language parameter
-- UI text in components currently hardcoded in Chinese
-- HTML lang attribute set to "zh-CN" in layout.tsx
+- 10 languages supported: en, zh-CN, es, fr, de, ja, ko, pt, ru, ar
+- Default locale: "en" (English)
+- Translations in `/messages/{locale}.json`
+- Use next-intl's `useTranslations` hook in components
+- Locale detection via Accept-Language header
+- RTL support for Arabic (ar)
+
+```typescript
+import { useTranslations } from 'next-intl';
+
+export function Component() {
+  const t = useTranslations('namespace');
+  return <h1>{t('key')}</h1>;
+}
+```
 
 ---
 
@@ -420,7 +554,7 @@ npm run test
 # Run in watch mode
 npm run test:watch
 
-# Run with coverage (if configured)
+# Run with coverage
 npm run test:coverage
 ```
 
@@ -436,7 +570,7 @@ Test files location:
 npm run test:integration
 ```
 
-Located in `src/__tests__/integration/`. **Requires a running database:** set `DATABASE_URL` (e.g. to a dedicated test DB like `tutorme_test` in CI). Unit tests (`npm run test` / `npm run test:unit`) exclude integration and do not require a DB.
+Located in `src/__tests__/integration/`. **Requires a running database.**
 
 ### E2E Tests (Playwright)
 
@@ -491,13 +625,16 @@ Load test scripts located in `scripts/load/`.
 
 ### Authentication & Authorization
 
-- NextAuth.js with JWT session strategy (30-day expiry)
-- Role-based access control (STUDENT/TUTOR/ADMIN)
+- NextAuth.js with JWT session strategy
+- Role-based access control (STUDENT/TUTOR/PARENT/ADMIN)
 - Middleware (`src/middleware.ts`) handles:
+  - i18n locale routing
   - Route protection based on role
-  - Rate limiting (100 requests/minute per IP)
+  - Rate limiting (100 requests/minute per IP for API)
+  - Stricter rate limiting for login (5 attempts per 15 minutes)
   - Security headers (CSP, X-Frame-Options, etc.)
 - Onboarding flow redirects new users to complete profile
+- TOS acceptance enforced for all users
 
 ### Rate Limiting
 
@@ -505,14 +642,18 @@ Load test scripts located in `scripts/load/`.
 // Configured in middleware.ts
 const API_RATE_LIMIT_MAX = 100 // per minute per IP
 const RATE_LIMIT_SKIP = ['/api/auth', '/api/health', '/api/payments/webhooks']
+
+// Stricter limits for login attempts
+const LOGIN_RATE_LIMIT = 5 // attempts per 15 minutes
 ```
 
-### Security Headers (next.config.mjs)
+### Security Headers (next.config.mjs & middleware.ts)
 
 - X-Content-Type-Options: nosniff
 - X-Frame-Options: SAMEORIGIN
 - Referrer-Policy: strict-origin-when-cross-origin
 - Content-Security-Policy: Strict CSP with script/style/connect restrictions
+- upgrade-insecure-requests (production only)
 
 ### Database Security
 
@@ -520,20 +661,6 @@ const RATE_LIMIT_SKIP = ['/api/auth', '/api/health', '/api/payments/webhooks']
 - Connection strings in environment only
 - Row-level security via application logic
 - Security event logging in `SecurityEvent` model
-
-### CSRF Protection
-
-CSRF tokens required for state-changing operations:
-
-```typescript
-// Get token
-const { token } = await fetch('/api/csrf').then(r => r.json())
-
-// Include in requests
-fetch('/api/some-action', {
-  headers: { 'X-CSRF-Token': token }
-})
-```
 
 ---
 
@@ -557,10 +684,10 @@ AI tutors must NEVER give direct answers. Use prompts in `lib/ai/prompts.ts`:
 
 ### Mobile-First Design
 
-- All UI must be responsive (minimum 320px width)
+- All UI must be responsive (minimum 320px width via `xs` breakpoint)
 - Touch-friendly controls (min 44px touch targets via `min-h-touch`)
 - Test on mobile devices/screensizes
-- PWA support with manifest.json
+- PWA support with service worker
 
 ### Docker-First Development
 
@@ -635,7 +762,7 @@ npm run db:studio
 
 ### Production Infrastructure
 
-- **VPS**: 8-core, 32GB RAM, 1x GPU (¥3,000/mo)
+- **VPS**: 8-core, 32GB RAM, 1x GPU (recommended)
 - **Container Orchestration**: Docker Compose or Kubernetes
 - **Reverse Proxy**: Nginx with SSL (Let's Encrypt)
 - **Monitoring**: Prometheus/Grafana (postgres-exporter included)
@@ -645,7 +772,7 @@ npm run db:studio
 
 - Update `NEXTAUTH_URL` to production domain
 - Use production API keys for AI/video services
-- Configure WeChat Pay credentials
+- Configure WeChat Pay/Alipay credentials for Chinese market
 - Set `NODE_ENV=production`
 - Configure `DATABASE_POOL_URL` for PgBouncer
 
@@ -675,8 +802,9 @@ npx prisma generate     # Regenerate client
 
 ### Port conflicts
 
-- PostgreSQL: 5432 (direct), 5433 (PgBouncer)
+- PostgreSQL: 5432 (direct), 5433 (PgBouncer/host mapping)
 - Redis: 6379
+- Redis Commander: 8081
 - Ollama: 11434
 - Next.js: 3003
 
@@ -699,13 +827,26 @@ curl http://localhost:11434/api/tags
 
 ```bash
 # Check database status
-docker exec tutorme-db pg_isready -U postgres
+docker exec tutorme-db pg_isready -U postgres -d tutorme
 
 # View connection pool status
 docker logs tutorme-pgbouncer
 
 # Reset connection pool
 docker restart tutorme-pgbouncer
+
+# Check with script
+npm run db:check
+```
+
+### Socket.io connection issues
+
+```bash
+# Check if server.ts is being used (not next dev)
+npm run dev  # Uses server.ts with Socket.io
+
+# Verify Socket.io is initialized in logs
+# Look for: "✅ Socket.io server initialized"
 ```
 
 ---
@@ -713,9 +854,9 @@ docker restart tutorme-pgbouncer
 ## Resources
 
 - **Project Docs**: See `docs/` directory in project root
-- **Roadmap**: See `Roadmap.md` for development timeline
-- **Quick Start**: See `QUICKSTART.md` for setup instructions
-- **Features**: See `APP_FEATURES.md` for feature specifications
+- **Features**: See `docs/APP_FEATURES.md` for feature specifications
+- **Testing Guide**: See `tutorme-app/TESTING.md`
+- **Implementation Plans**: See various `*_IMPLEMENTATION_PLAN.md` files in docs/
 
 ### External Documentation
 
@@ -724,6 +865,7 @@ docker restart tutorme-pgbouncer
 - **Next.js**: https://nextjs.org/docs
 - **NextAuth.js**: https://next-auth.js.org
 - **Socket.io**: https://socket.io/docs/
+- **next-intl**: https://next-intl-docs.vercel.app/
 - **Ollama**: https://github.com/ollama/ollama
 - **Daily.co**: https://docs.daily.co/
 - **Kimi API**: https://platform.moonshot.cn/docs

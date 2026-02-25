@@ -109,7 +109,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       { status: 500 }
     )
   }
-}, { role: 'TUTOR' })
+})
 
 // Get upload configuration
 export const GET = withAuth(async () => {
@@ -117,4 +117,4 @@ export const GET = withAuth(async () => {
     maxFileSize: MAX_FILE_SIZE,
     allowedTypes: Object.keys(ALLOWED_TYPES),
   })
-}, { role: 'TUTOR' })
+})

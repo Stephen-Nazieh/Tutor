@@ -4,25 +4,85 @@
  */
 
 import { z } from 'zod'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { ValidationError } from '@/lib/api/middleware'
+import {
+  parentAdditionalDataSchema,
+  tutorAdditionalDataSchema,
+} from '@/lib/validation/user-registration'
 
 // ============================================
 // User & Authentication Schemas
 // ============================================
 
-export const RegisterUserSchema = z.object({
-    email: z.string().email('Invalid email address'),
-    password: z.string()
-        .min(8, 'Password must be at least 8 characters')
-        .max(128, 'Password too long')
-        .regex(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-            'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-        ),
-    name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-    role: z.enum(['STUDENT', 'TUTOR', 'ADMIN']),
-    tosAccepted: z.boolean().refine(val => val === true, { message: "You must accept the Terms of Service" })
+const baseRegisterSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password too long')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+    ),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  role: z.enum(['STUDENT', 'TUTOR', 'ADMIN', 'PARENT']),
+  tosAccepted: z.boolean().optional().default(true),
+  profileData: z.record(z.string(), z.unknown()).optional(),
+  additionalData: z.record(z.string(), z.unknown()).optional(),
+})
+
+export const RegisterUserSchema = baseRegisterSchema.superRefine((data, ctx) => {
+  // Validate tutor-specific fields for TUTOR role
+  if (data.role === 'TUTOR') {
+    if (!data.additionalData) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'additionalData is required for tutor registration',
+        path: ['additionalData'],
+      })
+    } else {
+      const result = tutorAdditionalDataSchema.safeParse(data.additionalData)
+      if (!result.success) {
+        result.error.issues.forEach((issue) => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: issue.message,
+            path: issue.path,
+          })
+        })
+      }
+    }
+  }
+
+  // Only validate parent-specific fields for PARENT role
+  if (data.role === 'PARENT') {
+    if (!data.profileData) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'profileData is required for parent registration',
+        path: ['profileData'],
+      })
+    }
+    if (!data.additionalData) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'additionalData is required for parent registration',
+        path: ['additionalData'],
+      })
+    } else if (data.additionalData) {
+      const result = parentAdditionalDataSchema.safeParse(data.additionalData)
+      if (!result.success) {
+        result.error.issues.forEach((issue) => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: issue.message,
+            path: issue.path,
+          })
+        })
+      }
+    }
+  }
 })
 
 export const LoginSchema = z.object({
@@ -46,7 +106,10 @@ export const UpdateProfileSchema = z.object({
 export const CreateRoomSchema = z.object({
     title: z.string().min(3, 'Title must be at least 3 characters').max(100).optional(),
     subject: z.string().min(2, 'Subject must be at least 2 characters').max(50),
+    description: z.string().max(1000).optional(),
     gradeLevel: z.string().optional(),
+    curriculumId: z.string().cuid('Invalid curriculum ID').optional(),
+    scheduledAt: z.string().datetime('Invalid scheduled date/time').optional(),
     maxStudents: z.number().int().min(1).max(500).default(50),
     durationMinutes: z.number().int().min(15).max(480).default(120),
     enableRecording: z.boolean().default(true)
@@ -132,7 +195,8 @@ export const UpdateCourseSettingsSchema = z.object({
     curriculumSource: z.enum(['PLATFORM', 'UPLOADED']).optional().nullable(),
     outlineSource: z.enum(['SELF', 'AI']).optional().nullable(),
     schedule: z.array(ScheduleItemSchema).optional().nullable(),
-    isLiveOnline: z.boolean().optional().nullable()
+    isLiveOnline: z.boolean().optional().nullable(),
+    isPublished: z.boolean().optional().nullable()
 })
 
 export const UpdateProgressSchema = z.object({
@@ -158,7 +222,7 @@ export const AITutorQuerySchema = z.object({
     context: z.object({
         lessonId: z.string().cuid().optional(),
         currentTopic: z.string().optional(),
-        previousMessages: z.array(z.any()).optional()
+        previousMessages: z.array(z.unknown()).optional()
     }).optional()
 })
 
@@ -240,8 +304,9 @@ export async function validateRequest<T extends z.ZodType>(
         return schema.parse(body)
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const zodError = error as z.ZodError
-            const messages = zodError.issues.map((e: { path: (string | number)[]; message: string }) => `${e.path.join('.')}: ${e.message}`).join(', ')
+            const messages = error.issues
+                .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+                .join(', ')
             throw new ValidationError(messages)
         }
         throw error
@@ -260,8 +325,9 @@ export function validateQuery<T extends z.ZodType>(
         return schema.parse(params)
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const zodError = error as z.ZodError
-            const messages = zodError.issues.map((e: { path: (string | number)[]; message: string }) => `${e.path.join('.')}: ${e.message}`).join(', ')
+            const messages = error.issues
+                .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+                .join(', ')
             throw new ValidationError(messages)
         }
         throw error

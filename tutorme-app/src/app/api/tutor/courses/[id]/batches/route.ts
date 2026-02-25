@@ -28,6 +28,7 @@ export const GET = withAuth(async (req, session, context) => {
       difficulty: b.difficulty ?? null,
       schedule: Array.isArray(b.schedule) ? (b.schedule as typeof scheduleType) : [],
       enrollmentCount: b._count.enrollments,
+      joinLink: b.meetingUrl ?? `${req.nextUrl.origin}/curriculum/${id}?batch=${b.id}`,
     })),
   })
 }, { role: 'TUTOR' })

@@ -16,8 +16,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { generateUniformTasks, TaskConfiguration } from '@/lib/ai/task-generator'
+import { withRateLimitPreset } from '@/lib/api/middleware'
+import { z } from 'zod'
+
+const QuestionGenerateSchema = z.object({
+    topic: z.string().min(1).max(200),
+    count: z.number().int().min(1).max(20).default(5),
+    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('intermediate'),
+    types: z.array(z.enum(['multiple_choice', 'short_answer'])).min(1).max(2).default(['multiple_choice', 'short_answer']),
+})
 
 export async function POST(req: NextRequest) {
+    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
+    if (rateLimitResponse) return rateLimitResponse
+
     const session = await getServerSession(authOptions)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -27,17 +39,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const body = await req.json()
-    const {
-        topic,
-        count = 5,
-        difficulty = 'intermediate',
-        types = ['multiple_choice', 'short_answer'],
-    } = body
-
-    if (!topic) {
-        return NextResponse.json({ error: 'topic is required' }, { status: 400 })
+    const body = await req.json().catch(() => null)
+    const parsed = QuestionGenerateSchema.safeParse(body)
+    if (!parsed.success) {
+        return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
+    const { topic, count, difficulty, types } = parsed.data
 
     try {
         const config: TaskConfiguration = {

@@ -3,6 +3,7 @@
  * Manages AI-generated feedback pending tutor approval
  */
 
+import type { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { generateWithFallback } from '../ai/orchestrator'
 
@@ -329,7 +330,7 @@ export async function getPendingFeedback(
   }[]
   total: number
 }> {
-  const where: any = {
+  const where: Prisma.FeedbackWorkflowWhereInput = {
     status: { in: ['ai_generated', 'tutor_modified'] }
   }
 
@@ -405,7 +406,7 @@ export async function reviewFeedback(
       return { success: false, error: '该反馈已被处理' }
     }
 
-    let updateData: any = {
+    let updateData: Prisma.FeedbackWorkflowUpdateInput = {
       status: decision === 'approve' || decision === 'modify' ? 'approved' : 'rejected',
       approvedAt: new Date(),
       approvedBy: reviewerId
@@ -459,7 +460,7 @@ export async function getFeedbackStats(
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const where: any = {}
+  const where: Prisma.FeedbackWorkflowWhereInput = {}
 
   const [
     pendingCount,

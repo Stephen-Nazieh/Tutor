@@ -4,106 +4,104 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
-import type { 
-  CourseGroupAssignment, 
-  CreateAssignmentRequest, 
+import type {
+  CourseGroupAssignment,
+  CreateAssignmentRequest,
   AssignmentPreview,
-  CourseWithAssignments 
+  CourseWithAssignments,
+  DifficultyLevel,
 } from '@/types/course-assignment'
 
-// Mock API functions - replace with actual API calls
-const mockApi = {
+interface TutorCoursesApiCourse {
+  id: string
+  name: string
+  description?: string | null
+  subject: string
+  isPublished: boolean
+  createdAt?: string
+  updatedAt?: string
+  _count?: {
+    modules?: number
+    lessons?: number
+    enrollments?: number
+  }
+  variants?: Array<{
+    batchId: string
+    name: string
+    difficulty: DifficultyLevel
+    enrollmentCount: number
+    joinLink: string
+  }>
+}
+
+interface TutorCoursesApiResponse {
+  courses?: TutorCoursesApiCourse[]
+}
+
+function normalizeTutorCourse(course: TutorCoursesApiCourse): CourseWithAssignments {
+  return {
+    id: course.id,
+    name: course.name,
+    description: course.description ?? undefined,
+    subject: course.subject,
+    isPublished: course.isPublished,
+    createdAt: course.createdAt ?? '',
+    updatedAt: course.updatedAt ?? '',
+    assignments: {
+      total: course.variants?.length ?? 0,
+      active: course.variants?.length ?? 0,
+      paused: 0,
+      completed: 0,
+    },
+    totalStudents: course._count?.enrollments ?? 0,
+    stats: {
+      moduleCount: course._count?.modules ?? 0,
+      lessonCount: course._count?.lessons ?? 0,
+      quizCount: 0,
+    },
+    variants: course.variants ?? [],
+  }
+}
+
+const assignmentApi = {
   async getTutorCourses(): Promise<CourseWithAssignments[]> {
-    // Simulate API delay
-    await new Promise(r => setTimeout(r, 500))
-    return [
-      {
-        id: 'course-1',
-        name: 'Python Fundamentals',
-        description: 'Learn Python from scratch',
-        subject: 'Programming',
-        isPublished: true,
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-20T14:30:00Z',
-        assignments: { total: 3, active: 2, paused: 0, completed: 1 },
-        totalStudents: 45,
-        stats: { moduleCount: 4, lessonCount: 12, quizCount: 3 }
-      },
-      {
-        id: 'course-2',
-        name: 'Data Science Basics',
-        description: 'Introduction to data analysis',
-        subject: 'Data Science',
-        isPublished: true,
-        createdAt: '2024-02-01T09:00:00Z',
-        updatedAt: '2024-02-05T16:00:00Z',
-        assignments: { total: 0, active: 0, paused: 0, completed: 0 },
-        totalStudents: 0,
-        stats: { moduleCount: 6, lessonCount: 18, quizCount: 5 }
-      }
-    ]
+    const res = await fetch('/api/tutor/courses', { credentials: 'include' })
+    if (!res.ok) throw new Error('Failed to load courses')
+
+    const data = (await res.json().catch(() => ({}))) as TutorCoursesApiResponse
+    const courses = Array.isArray(data.courses) ? data.courses : []
+    return courses.map(normalizeTutorCourse)
   },
 
-  async getCourseAssignments(courseId: string): Promise<CourseGroupAssignment[]> {
-    await new Promise(r => setTimeout(r, 300))
+  async getCourseAssignments(_courseId: string): Promise<CourseGroupAssignment[]> {
+    void _courseId
     return []
   },
 
-  async createAssignment(data: CreateAssignmentRequest): Promise<CourseGroupAssignment> {
-    await new Promise(r => setTimeout(r, 800))
-    return {
-      id: `assignment-${Date.now()}`,
-      courseId: data.courseId,
-      batchId: data.batchId,
-      assignedAt: new Date().toISOString(),
-      assignedBy: 'current-user',
-      groupDifficulty: 'beginner',
-      resolutionStrategy: 'adaptive',
-      status: 'active',
-      enrollmentCount: 0,
-      completionCount: 0,
-      courseSnapshot: {
-        title: 'Course Title',
-        description: 'Course description',
-        moduleCount: 4,
-        lessonCount: 12
-      }
-    }
+  async createAssignment(_data: CreateAssignmentRequest): Promise<CourseGroupAssignment> {
+    void _data
+    throw new Error('Assignment API not implemented')
   },
 
-  async deleteAssignment(assignmentId: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 400))
+  async deleteAssignment(_assignmentId: string): Promise<void> {
+    void _assignmentId
+    throw new Error('Assignment API not implemented')
   },
 
   async updateAssignmentStatus(
-    assignmentId: string, 
-    status: CourseGroupAssignment['status']
+    _assignmentId: string,
+    _status: CourseGroupAssignment['status']
   ): Promise<void> {
-    await new Promise(r => setTimeout(r, 400))
+    void _assignmentId
+    void _status
+    throw new Error('Assignment API not implemented')
   },
 
-  async previewAssignment(courseId: string, batchId: string): Promise<AssignmentPreview> {
-    await new Promise(r => setTimeout(r, 600))
-    return {
-      resolution: {
-        totalModules: 4,
-        visibleModules: 4,
-        hiddenModules: 0,
-        adaptedContent: 2
-      },
-      hiddenItems: [],
-      adaptedItems: [
-        {
-          type: 'lesson',
-          id: 'lesson-1',
-          title: 'Introduction',
-          originalValue: 'Introduction to Python',
-          adaptedValue: 'Python Basics for Beginners',
-          field: 'title'
-        }
-      ]
-    }
-  }
+  async previewAssignment(_courseId: string, _batchId: string): Promise<AssignmentPreview> {
+    void _courseId
+    void _batchId
+    throw new Error('Preview API not implemented')
+  },
 }
 
 export function useTutorCourses() {
@@ -115,9 +113,9 @@ export function useTutorCourses() {
     setLoading(true)
     setError(null)
     try {
-      const data = await mockApi.getTutorCourses()
+      const data = await assignmentApi.getTutorCourses()
       setCourses(data)
-    } catch (err) {
+    } catch {
       setError('Failed to load courses')
       toast.error('Failed to load courses')
     } finally {
@@ -140,7 +138,7 @@ export function useCourseAssignments(courseId: string) {
     if (!courseId) return
     setLoading(true)
     try {
-      const data = await mockApi.getCourseAssignments(courseId)
+      const data = await assignmentApi.getCourseAssignments(courseId)
       setAssignments(data)
     } catch {
       toast.error('Failed to load assignments')
@@ -155,8 +153,8 @@ export function useCourseAssignments(courseId: string) {
 
   const createAssignment = useCallback(async (data: CreateAssignmentRequest) => {
     try {
-      const assignment = await mockApi.createAssignment(data)
-      setAssignments(prev => [...prev, assignment])
+      const assignment = await assignmentApi.createAssignment(data)
+      setAssignments((prev) => [...prev, assignment])
       toast.success('Course assigned to group successfully')
       return assignment
     } catch {
@@ -167,8 +165,8 @@ export function useCourseAssignments(courseId: string) {
 
   const deleteAssignment = useCallback(async (assignmentId: string) => {
     try {
-      await mockApi.deleteAssignment(assignmentId)
-      setAssignments(prev => prev.filter(a => a.id !== assignmentId))
+      await assignmentApi.deleteAssignment(assignmentId)
+      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
       toast.success('Assignment removed')
     } catch {
       toast.error('Failed to remove assignment')
@@ -176,14 +174,12 @@ export function useCourseAssignments(courseId: string) {
   }, [])
 
   const updateStatus = useCallback(async (
-    assignmentId: string, 
+    assignmentId: string,
     status: CourseGroupAssignment['status']
   ) => {
     try {
-      await mockApi.updateAssignmentStatus(assignmentId, status)
-      setAssignments(prev => prev.map(a => 
-        a.id === assignmentId ? { ...a, status } : a
-      ))
+      await assignmentApi.updateAssignmentStatus(assignmentId, status)
+      setAssignments((prev) => prev.map((a) => (a.id === assignmentId ? { ...a, status } : a)))
       toast.success(`Assignment ${status}`)
     } catch {
       toast.error('Failed to update status')
@@ -196,7 +192,7 @@ export function useCourseAssignments(courseId: string) {
     createAssignment,
     deleteAssignment,
     updateStatus,
-    refetch: fetchAssignments
+    refetch: fetchAssignments,
   }
 }
 
@@ -207,7 +203,7 @@ export function useAssignmentPreview() {
   const generatePreview = useCallback(async (courseId: string, batchId: string) => {
     setLoading(true)
     try {
-      const data = await mockApi.previewAssignment(courseId, batchId)
+      const data = await assignmentApi.previewAssignment(courseId, batchId)
       setPreview(data)
       return data
     } catch {

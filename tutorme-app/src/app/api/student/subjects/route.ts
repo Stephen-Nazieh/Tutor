@@ -3,9 +3,36 @@
  * Get enrolled subjects with progress
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
+
+interface QuizAttemptScore {
+  score: number
+  maxScore: number
+}
+
+interface LessonProgressRecord {
+  status: string
+}
+
+interface LessonWithProgress {
+  progressRecords: LessonProgressRecord[]
+}
+
+interface EnrollmentWithCurriculum {
+  curriculum: {
+    id: string
+    name: string
+    subject: string
+    description: string | null
+    modules: Array<{
+      lessons: LessonWithProgress[]
+    }>
+  }
+  lastActivity: Date | null
+  enrollmentSource: string | null
+}
 
 // GET /api/student/subjects - Get student's enrolled subjects
 export const GET = withAuth(async (req, session) => {
@@ -45,16 +72,18 @@ export const GET = withAuth(async (req, session) => {
   })
 
   // Calculate average score
-  const avgScore = quizAttempts.length > 0
-    ? quizAttempts.reduce((sum: number, a: any) => sum + (a.score / a.maxScore) * 100, 0) / quizAttempts.length
+  const attempts = quizAttempts as QuizAttemptScore[]
+  const avgScore = attempts.length > 0
+    ? attempts.reduce((sum, a) => sum + (a.score / a.maxScore) * 100, 0) / attempts.length
     : 0
 
   // Process each enrollment
-  const subjects = enrollments.map((enrollment: any) => {
-    const allLessons = enrollment.curriculum.modules.flatMap((m: any) => m.lessons)
+  const typedEnrollments = enrollments as EnrollmentWithCurriculum[]
+  const subjects = typedEnrollments.map((enrollment) => {
+    const allLessons = enrollment.curriculum.modules.flatMap((m) => m.lessons)
     const totalLessons = allLessons.length
-    const completedLessons = allLessons.filter((l: any) => 
-      l.progressRecords.some((r: any) => r.status === 'COMPLETED')
+    const completedLessons = allLessons.filter((l) => 
+      l.progressRecords.some((r) => r.status === 'COMPLETED')
     ).length
     
     const progress = totalLessons > 0 
@@ -97,8 +126,8 @@ function generateSubjectSkills(subjectCode: string, baseScore: number) {
 
   const skillNames = skillsMap[subjectCode.toLowerCase()] || ['Skill 1', 'Skill 2', 'Skill 3', 'Skill 4']
   
-  return skillNames.map(name => ({
+  return skillNames.map((name, index) => ({
     name,
-    score: Math.min(100, Math.max(20, Math.round(baseScore + (Math.random() - 0.5) * 30)))
+    score: Math.min(100, Math.max(20, Math.round(baseScore - 8 + index * 4)))
   }))
 }

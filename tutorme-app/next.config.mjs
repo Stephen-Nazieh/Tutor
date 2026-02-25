@@ -1,9 +1,10 @@
+import { withSentryConfig } from '@sentry/nextjs'
+import createNextIntlPlugin from 'next-intl/plugin'
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // TypeScript: run `npm run typecheck` to enforce types; fix errors incrementally (see REPORTS.md P1)
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   // 7.1 Frontend performance: bundle size and code splitting
   images: {
     remotePatterns: [
@@ -16,6 +17,13 @@ const nextConfig = {
   },
   async headers() {
     return [
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Content-Type', value: 'application/javascript; charset=utf-8' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }
+        ]
+      },
       {
         source: '/:path*',
         headers: [
@@ -43,4 +51,8 @@ const nextConfig = {
   }
 };
 
-export default nextConfig;
+export default withSentryConfig(withNextIntl(nextConfig), {
+  org: process.env.SENTRY_ORG ?? '',
+  project: process.env.SENTRY_PROJECT ?? '',
+  silent: !process.env.CI,
+});

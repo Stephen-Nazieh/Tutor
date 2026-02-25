@@ -88,7 +88,28 @@ export async function POST(req: NextRequest) {
       const meta = payment.metadata as Record<string, unknown> | null
       if (!payment.bookingId && meta?.type === 'course' && typeof meta.curriculumId === 'string' && typeof meta.studentId === 'string') {
         const { enrollStudentInCurriculum } = await import('@/lib/enrollment')
-        enrollStudentInCurriculum(meta.studentId as string, meta.curriculumId).catch(() => {})
+        enrollStudentInCurriculum(meta.studentId as string, meta.curriculumId)
+          .then(async () => {
+            const enrollment = await db.curriculumEnrollment.findUnique({
+              where: {
+                studentId_curriculumId: {
+                  studentId: meta.studentId as string,
+                  curriculumId: meta.curriculumId as string,
+                },
+              },
+              select: { id: true, curriculum: { select: { creatorId: true } } },
+            })
+            if (enrollment) {
+              await db.payment.update({
+                where: { id: payment.id },
+                data: {
+                  enrollmentId: enrollment.id,
+                  tutorId: enrollment.curriculum.creatorId || payment.tutorId,
+                },
+              })
+            }
+          })
+          .catch(() => {})
         const user = await db.user.findUnique({
           where: { id: meta.studentId as string },
           select: { email: true, profile: { select: { name: true } } }

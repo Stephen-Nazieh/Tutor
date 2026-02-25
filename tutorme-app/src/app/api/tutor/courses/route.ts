@@ -9,7 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { CreateCurriculumSchema, validateRequest } from '@/lib/validation/schemas'
+import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { db } from '@/lib/db'
 
 /**
@@ -37,6 +37,17 @@ export const GET = withAuth(async (req, session) => {
               select: { lessons: true }
             }
           }
+        },
+        batches: {
+          where: {
+            difficulty: { in: ['beginner', 'intermediate', 'advanced'] }
+          },
+          orderBy: { order: 'asc' },
+          include: {
+            _count: {
+              select: { enrollments: true }
+            }
+          }
         }
       },
       orderBy: { createdAt: 'desc' }
@@ -60,7 +71,14 @@ export const GET = withAuth(async (req, session) => {
           modules: curriculum._count.modules,
           lessons: totalLessons,
           enrollments: curriculum._count.enrollments
-        }
+        },
+        variants: curriculum.batches.map((batch) => ({
+          batchId: batch.id,
+          name: batch.name,
+          difficulty: batch.difficulty,
+          enrollmentCount: batch._count.enrollments,
+          joinLink: batch.meetingUrl ?? `${req.nextUrl.origin}/curriculum/${curriculum.id}?batch=${batch.id}`
+        }))
       }
     })
 
@@ -124,7 +142,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
     },
   })
 
-  const module = await db.curriculumModule.create({
+  const defaultModule = await db.curriculumModule.create({
     data: {
       curriculumId: curriculum.id,
       title: 'Module 1',
@@ -135,7 +153,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
 
   await db.curriculumLesson.create({
     data: {
-      moduleId: module.id,
+      moduleId: defaultModule.id,
       title: 'Introduction',
       description: 'Introduction to this course.',
       order: 0,

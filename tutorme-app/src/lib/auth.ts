@@ -25,9 +25,11 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
+        const normalizedEmail = credentials.email.trim().toLowerCase()
+
         // Find user by email
-        const user = await db.user.findUnique({
-          where: { email: credentials.email },
+        const user = await db.user.findFirst({
+          where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
           include: { profile: true }
         })
 
@@ -40,13 +42,13 @@ export const authOptions: NextAuthOptions = {
 
         if (!isValid) {
           const { logFailedLogin } = await import('@/lib/security/suspicious-activity')
-          await logFailedLogin(null, credentials.email)
+          await logFailedLogin(null, normalizedEmail)
           return null
         }
 
 
         // Check if onboarding is complete
-        const onboardingComplete = checkOnboardingComplete(user.role, user.profile)
+        const onboardingComplete = checkOnboardingComplete(user)
         const tosAccepted = user.profile?.tosAccepted || false
 
         return {
@@ -111,9 +113,19 @@ export const authOptions: NextAuthOptions = {
 }
 
 // Helper function to check if onboarding is complete
-function checkOnboardingComplete(role: string, profile: any): boolean {
-  // Bypass onboarding check - always return true
-  return true
+function checkOnboardingComplete(user: { profile?: { isOnboarded?: boolean | null } | null }): boolean {
+  // Check if user profile exists and has completed onboarding
+  if (!user?.profile) {
+    return false
+  }
+  
+  // Profile exists but isOnboarded field is not set (null/undefined) - consider not onboarded
+  if (user.profile.isOnboarded === null || user.profile.isOnboarded === undefined) {
+    return false
+  }
+  
+  // Return the actual onboarding status
+  return user.profile.isOnboarded
 }
 
 // Helper function to hash passwords

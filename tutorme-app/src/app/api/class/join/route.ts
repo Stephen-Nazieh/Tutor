@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { withAuth, withCsrf, ValidationError, NotFoundError, withRateLimit } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 import { dailyProvider } from '@/lib/video/daily-provider'
+import { z } from 'zod'
+
+const JoinClassSchema = z.object({
+  sessionId: z.string().min(1, 'Session ID required').max(128, 'Session ID too long'),
+})
 
 // POST /api/class/join - Join a class session
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
-  const { sessionId } = await req.json()
-  
-  if (!sessionId) {
-    throw new ValidationError('Session ID required')
-  }
+  const { response: rateLimitResponse } = await withRateLimit(req, 40)
+  if (rateLimitResponse) return rateLimitResponse
 
-  // Fetch the live session
-  const liveSession = await db.liveSession.findUnique({
+  const body = await req.json().catch(() => null)
+  const parsed = JoinClassSchema.safeParse(body)
+  if (!parsed.success) {
+    throw new ValidationError(parsed.error.issues[0]?.message || 'Invalid request body')
+  }
+  const { sessionId } = parsed.data
+
+  // Fetch the live session by roomId
+  const liveSession = await db.liveSession.findFirst({
     where: { roomId: sessionId }
   })
 
@@ -31,6 +40,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   )
 
   return NextResponse.json({
+    sessionId: liveSession.id,
     room: {
       url: liveSession.roomUrl,
       id: liveSession.roomId

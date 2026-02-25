@@ -470,6 +470,14 @@ export async function completeLesson(sessionId: string): Promise<void> {
       }
     })
   ])
+  
+  // Award XP and check for badges (outside transaction to not block)
+  try {
+    const { onLessonComplete } = await import('@/lib/gamification/triggers')
+    await onLessonComplete(session.studentId, session.lessonId)
+  } catch (error) {
+    console.error('Failed to award lesson completion XP:', error)
+  }
 }
 
 /**

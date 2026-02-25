@@ -387,3 +387,56 @@ export function useAnalytics(days: number = 7) {
     },
   })
 }
+
+export interface TopologyNode {
+  id: string
+  role: 'TUTOR' | 'STUDENT'
+  name: string
+  email: string
+  avatarUrl: string | null
+  timezone: string
+  lat: number
+  lon: number
+  activeSessions: number
+  totalConnections: number
+}
+
+export interface TopologyEdge {
+  id: string
+  sessionId: string
+  tutorId: string
+  studentId: string
+  subject: string
+  status: 'ACTIVE' | 'RECENT'
+  isActive: boolean
+  startedAt: string | null
+}
+
+export interface AdminTopologyResponse {
+  topology: {
+    nodes: TopologyNode[]
+    edges: TopologyEdge[]
+    stats: {
+      tutors: number
+      students: number
+      liveConnections: number
+      totalConnections: number
+    }
+  }
+  meta: {
+    days: number
+    generatedAt: string
+  }
+}
+
+export function useAdminTopology(days: number = 7) {
+  return useQuery<AdminTopologyResponse>({
+    queryKey: ['admin-topology', days],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/analytics/topology?days=${days}`)
+      if (!res.ok) throw new Error('Failed to fetch topology analytics')
+      return res.json() as Promise<AdminTopologyResponse>
+    },
+    refetchInterval: 15000,
+  })
+}

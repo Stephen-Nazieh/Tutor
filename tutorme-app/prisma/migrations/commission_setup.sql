@@ -1,0 +1,10 @@
+ALTER TABLE "Payment" ADD COLUMN "commissionAmount" FLOAT NOT NULL DEFAULT 0;
+ALTER TABLE "Payment" ADD COLUMN "platformFee" FLOAT NOT NULL DEFAULT 0;
+ALTER TABLE "Payment" ADD COLUMN "tutorAmount" FLOAT NOT NULL DEFAULT 0;
+CREATE TABLE "PlatformRevenue" (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  paymentId TEXT NOT NULL REFERENCES "Payment"(id),
+  amount FLOAT NOT NULL,
+  month CHAR(6) NOT NULL,
+  createdAt TIMESTAMP NOT NULL DEFAULT NOW()
+);

@@ -1,35 +1,23 @@
-const CACHE_NAME = 'tutorme-v1';
-const STATIC_URLS = ['/', '/manifest.json'];
-
-self.addEventListener('install', function (event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(STATIC_URLS);
-    }).then(function () {
-      return self.skipWaiting();
-    })
-  );
-});
-
-self.addEventListener('activate', function (event) {
-  event.waitUntil(
-    caches.keys().then(function (keys) {
-      return Promise.all(
-        keys.filter(function (k) { return k !== CACHE_NAME; }).map(function (k) { return caches.delete(k); })
-      );
-    }).then(function () {
-      return self.clients.claim();
-    })
-  );
-});
-
-self.addEventListener('fetch', function (event) {
-  if (event.request.mode !== 'navigate') return;
-  event.respondWith(
-    fetch(event.request).catch(function () {
-      return caches.match(event.request).then(function (r) {
-        return r || caches.match('/');
-      });
-    })
-  );
-});
+"use strict";(()=>{var c="tutorme-app",o="v2.0.1",r={PRECACHE:`${c}-precache-${o}`,RUNTIME:`${c}-runtime-${o}`,OFFLINE:`${c}-offline-${o}`,IMAGES:`${c}-images-${o}`,API:`${c}-api-${o}`,STATIC:`${c}-static-${o}`},u=100,p=300,m=3600*24*365,g=1e4,w=["/api/auth/","/api/csrf"],E=["/offline.html","/manifest.json"];self.addEventListener("install",e=>{console.warn("[Service Worker] Installing...",o),e.waitUntil(caches.open(r.PRECACHE).then(t=>t.addAll(E)).then(()=>self.skipWaiting()).catch(t=>console.warn("[Service Worker] Precache failed:",t)))});self.addEventListener("activate",e=>{console.warn("[Service Worker] Activating...",o),e.waitUntil(caches.keys().then(t=>Promise.all(t.filter(s=>s.startsWith(`${c}-`)&&!Object.values(r).includes(s)).map(s=>caches.delete(s))).then(()=>self.clients.claim())))});async function y(e){try{let t=await caches.open(r.OFFLINE),s=await t.match("offline-queue"),n={requests:[],lastSync:Date.now()};if(s)try{n=await s.json()}catch(a){}n.requests.push(e),n.lastSync=Date.now(),n.requests.length>u&&(n.requests=n.requests.slice(-u)),await t.put("offline-queue",new Response(JSON.stringify(n),{headers:{"Content-Type":"application/json"}}))}catch(t){console.error("[Service Worker] Failed to store offline request:",t)}}async function i(){try{let t=await(await caches.open(r.OFFLINE)).match("offline-queue");if(t)return(await t.json()).requests}catch(e){console.error("[Service Worker] Failed to get offline requests:",e)}return[]}async function q(){try{await(await caches.open(r.OFFLINE)).delete("offline-queue")}catch(e){console.error("[Service Worker] Failed to clear offline requests:",e)}}function f(e,t){let s=e.headers.get("date");return s?(Date.now()-new Date(s).getTime())/1e3<t:!1}self.addEventListener("fetch",e=>{var n;let{request:t}=e,s=new URL(t.url);if(t.mode==="navigate"||t.method==="GET"&&((n=t.headers.get("accept"))!=null&&n.includes("text/html"))){e.respondWith(fetch(t).catch(()=>caches.open(r.PRECACHE).then(a=>a.match("/offline.html")).then(a=>a||new Response(C(),{headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-cache","X-Offline":"true"}}))));return}if(s.pathname.startsWith("/api/")){if(w.some(a=>s.pathname.startsWith(a))){e.respondWith(fetch(t));return}e.respondWith(A(e));return}if(/\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i.test(s.pathname)){e.respondWith(R(e));return}if(/\.(?:js|css|woff2|ttf|json)$/i.test(s.pathname)){e.respondWith(h(e));return}if(s.hostname.includes("fonts.googleapis.com")||s.hostname.includes("fonts.gstatic.com")){e.respondWith(h(e));return}});async function A(e){try{let t=new AbortController,s=setTimeout(()=>t.abort(),g),n=await fetch(e.request.clone(),{signal:t.signal});if(clearTimeout(s),n.ok){let a=await caches.open(r.API),l=n.clone();a.put(e.request,l)}return n}catch(t){let s=await caches.match(e.request);if(s&&f(s,p))return s;let n={id:Date.now().toString(),method:e.request.method,url:e.request.url,headers:Object.fromEntries(e.request.headers.entries()),body:e.request.method!=="GET"&&e.request.method!=="HEAD"?await e.request.text():void 0,timestamp:Date.now()};return await y(n),new Response(JSON.stringify({error:"offline",message:"You are offline. Request will sync when connected.",requestId:n.id}),{status:503,headers:{"Content-Type":"application/json","X-Offline":"true"}})}}async function R(e){let t=await caches.match(e.request);if(t)return t;try{let s=await fetch(e.request);return s.ok&&(await caches.open(r.IMAGES)).put(e.request,s.clone()),s}catch(s){return t||new Response("",{status:503})}}async function h(e){let t=await caches.match(e.request);if(t&&f(t,m))return fetch(e.request).then(s=>{s.ok&&caches.open(r.STATIC).then(n=>n.put(e.request,s))}).catch(()=>{}),t;try{let s=await fetch(e.request);return s.ok&&(await caches.open(r.STATIC)).put(e.request,s.clone()),s}catch(s){return t||new Response("",{status:503})}}function C(){return`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Offline - TutorMe</title>
+  <style>
+    body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:2rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f9fafb;text-align:center}
+    h1{color:#4B5563;margin-bottom:1rem}
+    p{color:#6B7280;margin-bottom:2rem}
+    .icon{width:100px;height:100px;margin-bottom:2rem;fill:#9CA3AF}
+    button{padding:0.5rem 1rem;background:#3B82F6;color:white;border:none;border-radius:0.375rem;cursor:pointer;font-size:1rem}
+    button:hover{background:#2563EB}
+  </style>
+</head>
+<body>
+  <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 1.5V21a1 1 0 001 1h3v-2H5v-9h14v9h-3v2h3a1 1 0 001-1v-10.5l2-1.5V9a1 1 0 00-1-1H2A1 1 0 001 9z"/></svg>
+  <h1>You're offline</h1>
+  <p>Please check your internet connection and try again.</p>
+  <p>Your progress will be saved and synced automatically when you reconnect.</p>
+  <button onclick="history.back()">Go Back</button>
+</body>
+</html>`}self.addEventListener("message",e=>{var t;if((t=e.data)!=null&&t.type)switch(e.data.type){case"SKIP-WAITING":self.skipWaiting();break;case"CLIENTS-CLAIM":self.clients.claim();break;case"OFFLINE_SYNC_REQUEST":i().then(s=>{e.source.postMessage({type:"OFFLINE_SYNC_DATA",requests:s})});break;case"CLEAR_OFFLINE_REQUESTS":q();break}});self.addEventListener("sync",e=>{e.tag==="background-sync"&&e.waitUntil(b())});async function b(){let e=await i();for(let t of e)try{let s={method:t.method,headers:new Headers(t.headers)};t.body&&(s.body=t.body),await fetch(t.url,s);let a=(await i()).filter(d=>d.id!==t.id);await(await caches.open(r.OFFLINE)).put("offline-queue",new Response(JSON.stringify({requests:a,lastSync:Date.now()}),{headers:{"Content-Type":"application/json"}}))}catch(s){console.error("[Service Worker] Background sync failed:",t.id,s)}self.clients.matchAll({type:"window"}).then(t=>{t.forEach(s=>s.postMessage({type:"OFFLINE_SYNC_COMPLETE",success:!0}))})}})();

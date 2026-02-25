@@ -16,6 +16,138 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
+const ADAPTIVE_DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
+type AdaptiveDifficulty = (typeof ADAPTIVE_DIFFICULTIES)[number]
+
+interface VariantJoinLink {
+    difficulty: AdaptiveDifficulty
+    batchId: string
+    batchName: string
+    joinLink: string
+}
+
+type BuilderQuestion = {
+    question?: string
+    type?: string
+    options?: unknown
+    correctAnswer?: unknown
+    points?: number
+    explanation?: string
+}
+
+type QuestionBankCreateInput = {
+    tutorId: string
+    curriculumId: string
+    lessonId: string | null
+    type: string
+    question: string
+    options: unknown
+    correctAnswer: unknown
+    points: number
+    difficulty: string
+    explanation: string | null
+    tags: string[]
+    subject: string | null
+    isPublic: boolean
+}
+
+function normalizeQuestionType(type?: string): string {
+    if (type === 'mcq') return 'multiple_choice'
+    if (type === 'multiselect') return 'multi_select'
+    if (type === 'truefalse') return 'true_false'
+    if (type === 'shortanswer') return 'short_answer'
+    if (type === 'matching') return 'matching'
+    if (type === 'fillblank') return 'fill_in_blank'
+    if (type === 'essay') return 'essay'
+    return 'short_answer'
+}
+
+function normalizeCorrectAnswer(question: BuilderQuestion): unknown {
+    if (question.type === 'truefalse') {
+        const value = typeof question.correctAnswer === 'string' ? question.correctAnswer.toLowerCase() : ''
+        return value === 'true' || value === 'false' ? value : null
+    }
+    return question.correctAnswer ?? null
+}
+
+function toQuestionSignature(type: string, question: string, lessonId: string | null): string {
+    return `${lessonId ?? 'none'}::${type}::${question.trim().toLowerCase()}`
+}
+
+function extractQuestionBankCandidates(
+    modules: any[],
+    userId: string,
+    curriculumId: string,
+    curriculumName: string
+): QuestionBankCreateInput[] {
+    const items: QuestionBankCreateInput[] = []
+
+    for (const mod of modules) {
+        const moduleQuizzes = Array.isArray(mod?.moduleQuizzes) ? mod.moduleQuizzes : []
+        for (const quiz of moduleQuizzes) {
+            const questions = Array.isArray(quiz?.questions) ? quiz.questions : []
+            for (const q of questions as BuilderQuestion[]) {
+                if (!q?.question || !q.question.trim()) continue
+                const type = normalizeQuestionType(q.type)
+                items.push({
+                    tutorId: userId,
+                    curriculumId,
+                    lessonId: null,
+                    type,
+                    question: q.question.trim(),
+                    options: Array.isArray(q.options) ? q.options : null,
+                    correctAnswer: normalizeCorrectAnswer(q),
+                    points: Math.max(1, q.points ?? 1),
+                    difficulty: 'medium',
+                    explanation: q.explanation?.trim() || null,
+                    tags: ['course-builder', 'module-quiz'],
+                    subject: curriculumName,
+                    isPublic: false,
+                })
+            }
+        }
+
+        const lessons = Array.isArray(mod?.lessons) ? mod.lessons : []
+        for (const lesson of lessons) {
+            const lessonId = typeof lesson?.id === 'string' ? lesson.id : null
+            const groups = [
+                { source: lesson?.tasks, tag: 'task' },
+                { source: lesson?.homework, tag: 'homework' },
+                { source: lesson?.worksheets, tag: 'worksheet' },
+                { source: lesson?.quizzes, tag: 'lesson-quiz' },
+            ]
+
+            for (const group of groups) {
+                const itemsInGroup = Array.isArray(group.source) ? group.source : []
+                for (const item of itemsInGroup) {
+                    const questions = Array.isArray(item?.questions) ? item.questions : []
+                    for (const q of questions as BuilderQuestion[]) {
+                        if (!q?.question || !q.question.trim()) continue
+                        const type = normalizeQuestionType(q.type)
+                        items.push({
+                            tutorId: userId,
+                            curriculumId,
+                            lessonId,
+                            type,
+                            question: q.question.trim(),
+                            options: Array.isArray(q.options) ? q.options : null,
+                            correctAnswer: normalizeCorrectAnswer(q),
+                            points: Math.max(1, q.points ?? 1),
+                            difficulty: 'medium',
+                            explanation: q.explanation?.trim() || null,
+                            tags: ['course-builder', group.tag],
+                            subject: curriculumName,
+                            isPublic: false,
+                        })
+                    }
+                }
+            }
+        }
+    }
+
+    return items
+}
+
 /** Extract the course (curriculum) ID from the URL path. */
 function getCourseId(req: NextRequest): string {
     // URL: …/api/tutor/courses/<id>/curriculum
@@ -107,7 +239,7 @@ export async function PUT(req: NextRequest) {
     // Verify ownership
     const curriculum = await db.curriculum.findFirst({
         where: { id: curriculumId, creatorId: userId },
-        select: { id: true },
+        select: { id: true, name: true },
     })
     if (!curriculum) {
         return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
@@ -115,6 +247,15 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json()
     const modules: any[] = body.modules
+    const developmentMode = body.developmentMode === 'multi' ? 'multi' : 'single'
+    const previewDifficulty =
+        body.previewDifficulty === 'beginner' ||
+        body.previewDifficulty === 'intermediate' ||
+        body.previewDifficulty === 'advanced'
+            ? body.previewDifficulty
+            : 'all'
+    const shouldAutoCreateAdaptiveVariants = developmentMode === 'multi' && previewDifficulty === 'all'
+    const variantJoinLinks: VariantJoinLink[] = []
     if (!Array.isArray(modules)) {
         return NextResponse.json({ error: '`modules` array required' }, { status: 400 })
     }
@@ -223,11 +364,112 @@ export async function PUT(req: NextRequest) {
                 })
             }
         }
+
+        const questionCandidates = extractQuestionBankCandidates(modules, userId, curriculumId, curriculum.name)
+        if (questionCandidates.length > 0) {
+            const existingItems = await tx.questionBankItem.findMany({
+                where: { tutorId: userId, curriculumId },
+                select: { lessonId: true, type: true, question: true },
+            })
+            const signatures = new Set(
+                existingItems.map((item) => toQuestionSignature(item.type, item.question, item.lessonId ?? null))
+            )
+
+            const toCreate = questionCandidates.filter((item) => {
+                const signature = toQuestionSignature(item.type, item.question, item.lessonId)
+                if (signatures.has(signature)) return false
+                signatures.add(signature)
+                return true
+            })
+
+            if (toCreate.length > 0) {
+                await tx.questionBankItem.createMany({
+                    data: toCreate.map((item) => ({
+                        tutorId: item.tutorId,
+                        curriculumId: item.curriculumId,
+                        lessonId: item.lessonId,
+                        type: item.type,
+                        question: item.question,
+                        options: item.options,
+                        correctAnswer: item.correctAnswer,
+                        points: item.points,
+                        difficulty: item.difficulty,
+                        explanation: item.explanation,
+                        tags: item.tags,
+                        subject: item.subject,
+                        isPublic: item.isPublic,
+                    })),
+                })
+            }
+        }
+
+        if (shouldAutoCreateAdaptiveVariants) {
+            const existingVariantBatches = await tx.courseBatch.findMany({
+                where: {
+                    curriculumId,
+                    difficulty: { in: [...ADAPTIVE_DIFFICULTIES] },
+                },
+                orderBy: [{ order: 'asc' }],
+                select: {
+                    id: true,
+                    name: true,
+                    difficulty: true,
+                    order: true,
+                },
+            })
+
+            const selectedByDifficulty = new Map<AdaptiveDifficulty, { id: string; name: string; order: number }>()
+            for (const batch of existingVariantBatches) {
+                const difficulty = batch.difficulty as AdaptiveDifficulty | null
+                if (!difficulty || selectedByDifficulty.has(difficulty)) continue
+                selectedByDifficulty.set(difficulty, { id: batch.id, name: batch.name, order: batch.order })
+            }
+
+            let nextOrder = await tx.courseBatch
+                .aggregate({
+                    where: { curriculumId },
+                    _max: { order: true },
+                })
+                .then((r: { _max: { order: number | null } }) => (r._max.order ?? -1) + 1)
+
+            for (const difficulty of ADAPTIVE_DIFFICULTIES) {
+                let batch = selectedByDifficulty.get(difficulty)
+
+                if (!batch) {
+                    const created = await tx.courseBatch.create({
+                        data: {
+                            curriculumId,
+                            name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
+                            difficulty,
+                            order: nextOrder,
+                        },
+                        select: { id: true, name: true, order: true },
+                    })
+                    batch = created
+                    selectedByDifficulty.set(difficulty, batch)
+                    nextOrder += 1
+                }
+
+                const joinLink = `${req.nextUrl.origin}/curriculum/${curriculumId}?batch=${batch.id}`
+                await tx.courseBatch.update({
+                    where: { id: batch.id },
+                    data: { meetingUrl: joinLink },
+                })
+
+                variantJoinLinks.push({
+                    difficulty,
+                    batchId: batch.id,
+                    batchName: batch.name,
+                    joinLink,
+                })
+            }
+        }
     })
 
     return NextResponse.json({
         message: 'Curriculum saved',
         moduleCount: modules.length,
         lessonCount: modules.reduce((sum: number, m: any) => sum + (m.lessons?.length ?? 0), 0),
+        variants: variantJoinLinks,
     })
 }

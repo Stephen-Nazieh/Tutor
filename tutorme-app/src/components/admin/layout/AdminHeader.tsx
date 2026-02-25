@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useAdminContext } from '@/app/admin/layout'
+import { useAdminContext } from '@/app/[locale]/admin/layout'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,

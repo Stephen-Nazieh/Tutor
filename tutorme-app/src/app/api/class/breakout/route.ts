@@ -4,13 +4,28 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { withAuth, withCsrf, ValidationError, NotFoundError, withRateLimit } from '@/lib/api/middleware'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { db } from '@/lib/db'
+import { z } from 'zod'
+
+const BreakoutSchema = z.object({
+  parentSessionId: z.string().min(1, 'Parent session ID is required').max(128),
+  studentId: z.string().min(1, 'Student ID is required').max(128),
+  durationMinutes: z.number().int().min(5).max(120).default(30),
+})
 
 // POST /api/class/breakout - Create a breakout room
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
-  const { parentSessionId, studentId, durationMinutes = 30 } = await req.json()
+  const { response: rateLimitResponse } = await withRateLimit(req, 20)
+  if (rateLimitResponse) return rateLimitResponse
+
+  const body = await req.json().catch(() => null)
+  const parsed = BreakoutSchema.safeParse(body)
+  if (!parsed.success) {
+    throw new ValidationError(parsed.error.issues[0]?.message || 'Invalid request body')
+  }
+  const { parentSessionId, studentId, durationMinutes } = parsed.data
 
   if (!parentSessionId || !studentId) {
     throw new ValidationError('Parent session ID and student ID are required')

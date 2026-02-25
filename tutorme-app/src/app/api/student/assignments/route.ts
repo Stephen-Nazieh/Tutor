@@ -68,6 +68,7 @@ export async function GET(_request: NextRequest) {
                 questionCount: Array.isArray(task.questions) ? (task.questions as unknown[]).length : 0,
                 lessonId: task.lessonId,
                 batchId: task.batchId,
+                documentSource: task.documentSource,
             }
         })
 

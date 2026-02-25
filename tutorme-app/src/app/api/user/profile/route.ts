@@ -15,7 +15,12 @@ async function getHandler(_req: NextRequest, session: Session) {
     const profile = await db.profile.findUnique({
       where: { userId: session.user.id }
     })
-    return NextResponse.json({ profile })
+    return NextResponse.json({
+      profile,
+      userId: session.user.id,
+      email: session.user.email ?? null,
+      role: session.user.role ?? null,
+    })
   } catch (error) {
     console.error('Profile fetch error:', error)
     return NextResponse.json(
@@ -34,7 +39,7 @@ async function putHandler(req: NextRequest, session: Session) {
     const { name, bio, credentials, subjects, availability, hourlyRate, gradeLevel, subjectsOfInterest, preferredLanguages, paidClassesEnabled, paymentGatewayPreference, currency } = body
 
     // Prepare update data
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
 
     // Common fields (sanitize to prevent XSS)
     if (name !== undefined) updateData.name = sanitizeHtml(String(name)).trim().slice(0, 100) || null

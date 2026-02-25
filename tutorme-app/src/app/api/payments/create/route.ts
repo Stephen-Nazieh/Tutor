@@ -6,16 +6,38 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, withCsrf, ValidationError, NotFoundError, ForbiddenError, withRateLimitPreset } from '@/lib/api/middleware'
+import { withAuth, ValidationError, NotFoundError, ForbiddenError, withRateLimitPreset } from '@/lib/api/middleware'
+import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { db } from '@/lib/db'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
+import { calculateCommission } from '@/lib/commission/platform-revenue'
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
+export const POST = withAuth(async (req: NextRequest, session) => {
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'paymentCreate')
   if (rateLimitResponse) return rateLimitResponse
 
   const body = await req.json()
-  const { bookingId, curriculumId } = body
+  const { bookingId, curriculumId, studentId, gateway: requestedGateway } = body
+
+  let payerStudentId = session.user.id
+  const userRole = (session.user.role || '').toUpperCase()
+  
+  if (userRole === 'PARENT') {
+    if (!studentId || typeof studentId !== 'string') {
+      throw new ValidationError('studentId is required when parent creates payment')
+    }
+    const family = await getFamilyAccountForParent(session)
+    if (!family || !family.studentIds.includes(studentId)) {
+      throw new ForbiddenError('You can only create payments for your linked children')
+    }
+    payerStudentId = studentId
+  } else if (userRole === 'ADMIN') {
+    if (studentId && typeof studentId === 'string') {
+      payerStudentId = studentId
+    }
+  } else if (userRole !== 'STUDENT') {
+    throw new ForbiddenError('Only students, parents, or admins can create payments')
+  }
 
   // --- Course payment ---
   if (curriculumId) {
@@ -28,7 +50,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
 
     const existingEnrollment = await db.curriculumProgress.findUnique({
       where: {
-        studentId_curriculumId: { studentId: session.user.id, curriculumId }
+        studentId_curriculumId: { studentId: payerStudentId, curriculumId }
       }
     })
     if (existingEnrollment) {
@@ -36,12 +58,22 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     }
 
     const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: { email: true }
+      where: { id: payerStudentId },
+      select: { email: true, profile: { select: { paymentGatewayPreference: true } } }
     })
     const studentEmail = user?.email ?? ''
     const currency = (curriculum.currency as string) || 'SGD'
-    const gatewayName = (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY') as GatewayName
+    
+    // Determine gateway: frontend preference > user profile > environment default
+    let gatewayName: GatewayName
+    if (requestedGateway && (requestedGateway === 'HITPAY' || requestedGateway === 'AIRWALLEX')) {
+      gatewayName = requestedGateway
+    } else if (user?.profile?.paymentGatewayPreference) {
+      gatewayName = user.profile.paymentGatewayPreference as GatewayName
+    } else {
+      gatewayName = (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY') as GatewayName
+    }
+    
     const gateway = getPaymentGateway(gatewayName)
 
     const pendingCoursePayments = await db.payment.findMany({
@@ -50,7 +82,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     })
     const existingPayment = pendingCoursePayments.find((p: { metadata: unknown; gatewayCheckoutUrl: string | null; id: string }) => {
       const m = p.metadata as Record<string, unknown> | null
-      return m?.type === 'course' && m?.curriculumId === curriculumId && m?.studentId === session.user.id
+      return m?.type === 'course' && m?.curriculumId === curriculumId && m?.studentId === payerStudentId
     })
     if (existingPayment?.gatewayCheckoutUrl) {
       return NextResponse.json({
@@ -66,7 +98,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
       curriculumId,
       studentEmail,
       description: `${curriculum.name} (${curriculum.subject})`,
-      metadata: { type: 'course', curriculumId, studentId: session.user.id },
+      metadata: { type: 'course', curriculumId, studentId: payerStudentId, payerId: session.user.id, payerRole: session.user.role },
       successUrl: `${baseUrl}/payment/success?type=course&curriculumId=${encodeURIComponent(curriculumId)}`,
       cancelUrl: `${baseUrl}/payment/cancel?type=course&curriculumId=${encodeURIComponent(curriculumId)}`
     })
@@ -78,9 +110,10 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
         currency,
         status: 'PENDING',
         gateway: gatewayName,
+        tutorId: curriculum.creatorId || null,
         gatewayPaymentId: paymentResponse.paymentId,
         gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-        metadata: { type: 'course', curriculumId, studentId: session.user.id }
+        metadata: { type: 'course', curriculumId, studentId: payerStudentId, payerId: session.user.id, payerRole: session.user.role }
       }
     })
 
@@ -118,8 +151,8 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     throw new NotFoundError('Booking not found')
   }
 
-  if (booking.studentId !== session.user.id) {
-    throw new ForbiddenError('You can only create payment for your own booking')
+  if (booking.studentId !== payerStudentId) {
+    throw new ForbiddenError('You can only create payment for your own booking or your linked child booking')
   }
 
   if (booking.payment) {
@@ -170,10 +203,12 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
       currency,
       status: 'PENDING',
       gateway: gatewayName,
+      tutorId: clinic.tutorId,
       gatewayPaymentId: paymentResponse.paymentId,
       gatewayCheckoutUrl: paymentResponse.checkoutUrl
     },
     update: {
+      tutorId: clinic.tutorId,
       gatewayPaymentId: paymentResponse.paymentId,
       gatewayCheckoutUrl: paymentResponse.checkoutUrl,
       status: 'PENDING'
@@ -184,4 +219,4 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     checkoutUrl: paymentResponse.checkoutUrl,
     paymentId: payment.id
   })
-}))
+})

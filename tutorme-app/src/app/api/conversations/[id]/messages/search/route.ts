@@ -6,8 +6,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, parseBoundedInt } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
+import { isConversationAllowedByRoles } from '@/lib/messaging/permissions'
+
+type AppRole = 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
   const params = await context?.params
@@ -15,8 +18,8 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const userId = session.user.id
   const { searchParams } = new URL(req.url)
   const query = searchParams.get('q')
-  const limit = parseInt(searchParams.get('limit') || '20', 10)
-  const offset = parseInt(searchParams.get('offset') || '0', 10)
+  const limit = parseBoundedInt(searchParams.get('limit'), 20, { min: 1, max: 100 })
+  const offset = parseBoundedInt(searchParams.get('offset'), 0, { min: 0, max: 5000 })
 
   if (!query) {
     return NextResponse.json(
@@ -34,9 +37,13 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
         { participant2Id: userId },
       ],
     },
+    include: {
+      participant1: { select: { role: true } },
+      participant2: { select: { role: true } },
+    },
   })
 
-  if (!conversation) {
+  if (!conversation || !isConversationAllowedByRoles(conversation.participant1.role as AppRole, conversation.participant2.role as AppRole)) {
     return NextResponse.json(
       { error: 'Conversation not found' },
       { status: 404 }
@@ -81,4 +88,4 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     total,
     hasMore: offset + messages.length < total,
   })
-}, { role: 'TUTOR' })
+})

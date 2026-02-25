@@ -26,6 +26,18 @@ describe('rate-limit', () => {
       const result = await checkRateLimit(key, 10)
       expect(result.resetAt).toBeGreaterThan(Date.now())
     })
+
+    it('handles concurrent requests atomically - no rate limit bypass', async () => {
+      const key = 'test-concurrent-' + Date.now()
+      const max = 20
+      const concurrency = 50
+      const results = await Promise.all(
+        Array.from({ length: concurrency }, () => checkRateLimit(key, max))
+      )
+      const allowedCount = results.filter((r) => r.allowed).length
+      expect(allowedCount).toBe(max)
+      expect(results.filter((r) => !r.allowed).length).toBe(concurrency - max)
+    })
   })
 
   describe('getClientIdentifier', () => {

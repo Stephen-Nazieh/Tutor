@@ -1,53 +1,69 @@
-import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import { AuthProvider } from "@/components/providers/auth-provider";
-import { Toaster } from "sonner";
-import { PWAInstallPrompt } from "@/components/pwa-install-prompt";
+import { Inter } from 'next/font/google'
+import { ReactNode } from 'react'
+import { getLocale, getMessages } from 'next-intl/server'
+import { Providers } from './components/Providers'
+import { PerformanceProviders } from './components/PerformanceProviders'
+import './globals.css'
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+const inter = Inter({ 
+  subsets: ['latin', 'latin-ext'], 
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+  fallback: ['sans-serif', 'system-ui']
+})
 
-export const metadata: Metadata = {
-  title: "TutorMe - AI-Human Hybrid Tutoring",
-  description: "Learn with AI assistance and human tutor support",
-  manifest: "/manifest.json",
-  appleWebApp: { capable: true, title: "TutorMe" },
-};
+export const metadata = {
+  title: {
+    default: 'TutorMe - AI-Powered Educational Platform',
+    template: '%s | TutorMe'
+  },
+  description: 'AI-human hybrid tutoring platform with 24/7 Socratic AI tutoring and live group clinics',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'TutorMe'
+  },
+  other: {
+    'theme-color': '#ffffff',
+    'msapplication-TileColor': '#ffffff',
+    'msapplication-TileImage': '/ms-icon-144x144.png',
+  }
+}
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  themeColor: "#0f172a",
-  viewportFit: "cover",
-};
+export const dynamic = 'force-static'
 
-export default function RootLayout({
+async function getOptimizedLocaleData() {
+  const [locale, messages] = await Promise.all([
+    getLocale(),
+    getMessages()
+  ])
+  return { locale, messages }
+}
+
+export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: ReactNode
+}) {
+  const { locale, messages } = await getOptimizedLocaleData()
+  
   return (
-    <html lang="zh-CN">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-w-[320px]`}
-      >
-        <AuthProvider>
-          {children}
-          <PWAInstallPrompt />
-          <Toaster position="top-right" />
-        </AuthProvider>
+    <html lang={locale} className={`${inter.variable} font-sans`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://daily.co" />
+        <link rel="dns-prefetch" href="https://localhost:3003" />
+      </head>
+      <body className={inter.className}>
+        <Providers locale={locale} messages={messages}>
+          <PerformanceProviders>
+            {children}
+          </PerformanceProviders>
+        </Providers>
       </body>
     </html>
-  );
+  )
 }

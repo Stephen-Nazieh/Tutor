@@ -9,6 +9,7 @@ import {
   ToggleLeft,
   Brain,
   BarChart3,
+  Globe2,
   Settings,
   Shield,
   FileText,
@@ -51,6 +52,12 @@ const navItems = [
     title: 'Analytics',
     href: '/admin/analytics',
     icon: BarChart3,
+    permission: 'analytics:read',
+  },
+  {
+    title: 'Topology',
+    href: '/admin/topology',
+    icon: Globe2,
     permission: 'analytics:read',
   },
   {
@@ -114,7 +121,10 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
       <nav className="space-y-1 p-2">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+          const isDashboard = item.href === '/admin'
+          const isActive = isDashboard
+            ? pathname === '/admin'
+            : pathname === item.href || pathname.startsWith(`${item.href}/`)
 
           return (
             <Link

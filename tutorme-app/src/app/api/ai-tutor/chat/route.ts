@@ -14,7 +14,7 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
-import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
+import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { buildCompletePrompt, type PromptConfig } from '@/lib/ai/teaching-prompts/prompt-builder'
 import { getGamificationSummary } from '@/lib/gamification/service'
@@ -35,7 +35,21 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   if (!message) {
     throw new ValidationError('Message is required')
   }
-  const safeMessage = sanitizeHtmlWithMax(String(message), 5000)
+  const safeMessage = AISecurityManager.sanitizeAiInput(String(message))
+  if (!safeMessage) {
+    throw new ValidationError('Message is required or invalid after sanitization')
+  }
+
+  // Sanitize chat history user messages to prevent prompt injection
+  const safeChatHistory = (Array.isArray(chatHistory) ? chatHistory : []).map(
+    (msg: { role?: string; content?: string }) => ({
+      role: msg?.role || 'user',
+      content:
+        msg?.role === 'user'
+          ? AISecurityManager.sanitizeAiInput(String(msg?.content ?? ''))
+          : String(msg?.content ?? ''),
+    })
+  )
 
     // Get user's gamification data
     const gamification = await getGamificationSummary(session.user.id)
@@ -84,7 +98,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
       gamification: gamification as any,
       mission: missionContext,
       tier: tier as any,
-      chatHistory,
+      chatHistory: safeChatHistory,
       userMessage: safeMessage,
     }
 
@@ -96,11 +110,22 @@ export const POST = withCsrf(withAuth(async (req, session) => {
       maxTokens: 2048,
     })
 
-    // Log the interaction
+    // Validate AI response before returning
+    const validation = await AISecurityManager.validateAiResponse(aiResponse.content)
+    if (!validation.isValid && validation.severity === 'CRITICAL') {
+      return NextResponse.json(
+        { success: false, error: 'AI response failed security validation' },
+        { status: 500 }
+      )
+    }
+
+    // Log the interaction (with anonymized student hash for AI context compliance)
+    const studentHash = AISecurityManager.createStudentHash(session.user.id)
     await logActivity(session.user.id, 'AI_CONVERSATION', {
       missionId,
       personality: selectedPersonality,
       teachingMode,
+      studentHash, // Anonymized identifier for AI/PII compliance
     })
 
     // Update daily quest progress for AI conversation

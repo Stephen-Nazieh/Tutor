@@ -9,9 +9,9 @@ import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 // PATCH - Update insight
-export const PATCH = withAuth(async (req: NextRequest, { params }: { params: { id: string } }, session) => {
+export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }, session) => {
   const tutorId = session.user.id
-  const insightId = params.id
+  const { id: insightId } = await params
   
   try {
     const body = await req.json()
@@ -52,9 +52,9 @@ export const PATCH = withAuth(async (req: NextRequest, { params }: { params: { i
 }, { role: 'TUTOR' })
 
 // DELETE - Delete insight
-export const DELETE = withAuth(async (req: NextRequest, { params }: { params: { id: string } }, session) => {
+export const DELETE = withAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }, session) => {
   const tutorId = session.user.id
-  const insightId = params.id
+  const { id: insightId } = await params
   
   try {
     // Verify insight belongs to tutor

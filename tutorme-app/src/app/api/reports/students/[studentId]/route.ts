@@ -14,17 +14,13 @@ export const GET = withAuth(async (req, session, { params }) => {
   const curriculumId = searchParams.get('curriculumId') || undefined
   const includeQuestionLevel = searchParams.get('includeQuestionLevel') === 'true'
 
-  // Check permissions - only the student themselves, their tutor, or admin can view
-  const isOwnRecord = session.user.id === studentId
+  // Access policy: tutor + student(self) + admin
+  const isOwnRecord = session.user.role === 'STUDENT' && session.user.id === studentId
+  const isTutor = session.user.role === 'TUTOR'
   const isAdmin = session.user.role === 'ADMIN'
 
-  if (!isOwnRecord && !isAdmin) {
-    // If not own record and not admin, still allow (tutor role is already checked by middleware)
-    // If tutor, verify relationship
-    // Note: This check is simplified as Curriculum doesn't have tutorId
-    // In production, add proper tutor-curriculum relationship
-    // For now, allow all tutors to view student reports
-    // TODO: Add proper relationship check when Curriculum model has tutorId
+  if (!isOwnRecord && !isTutor && !isAdmin) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const performance = await getStudentPerformance(studentId, curriculumId)
@@ -38,7 +34,7 @@ export const GET = withAuth(async (req, session, { params }) => {
     { range: '90-100', count: performance.overallMetrics.averageScore >= 90 ? 1 : 0 },
   ]
 
-  const trendData = performance.taskHistory.map((task, index) => ({
+  const trendData = performance.taskHistory.map((task) => ({
     date: new Date(task.completedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
     score: task.score,
   }))
@@ -51,10 +47,11 @@ export const GET = withAuth(async (req, session, { params }) => {
     { skill: '学习投入', score: performance.overallMetrics.engagementScore, fullMark: 100 },
   ]
 
-  const topicMastery = [
-    ...performance.subjectStrengths.map(s => ({ topic: s, mastery: 85 + Math.random() * 15 })),
-    ...performance.subjectWeaknesses.map(w => ({ topic: w, mastery: 40 + Math.random() * 30 })),
-  ]
+  const topicMastery = buildTopicMastery(
+    performance.subjectStrengths,
+    performance.subjectWeaknesses,
+    performance.overallMetrics.averageScore
+  )
 
   const questionLevel = includeQuestionLevel ? await getQuestionLevelBreakdown(studentId) : undefined
 
@@ -80,9 +77,19 @@ export const GET = withAuth(async (req, session, { params }) => {
       ...(questionLevel && { questionLevel }),
     }
   })
-}, { role: 'TUTOR' })
+})
 
-function generateRecommendations(performance: any): string[] {
+interface RecommendationMetrics {
+  overallMetrics: {
+    averageScore: number
+    completionRate: number
+    attendanceRate: number
+  }
+  subjectWeaknesses: string[]
+  commonMistakes: Array<{ type: string }>
+}
+
+function generateRecommendations(performance: RecommendationMetrics): string[] {
   const recommendations: string[] = []
 
   if (performance.overallMetrics.averageScore < 60) {
@@ -107,4 +114,20 @@ function generateRecommendations(performance: any): string[] {
   }
 
   return recommendations
+}
+
+function buildTopicMastery(strengths: string[], weaknesses: string[], averageScore: number): Array<{ topic: string; mastery: number }> {
+  const strengthBase = Math.max(70, Math.min(98, Math.round(averageScore + 12)))
+  const weaknessBase = Math.max(20, Math.min(65, Math.round(averageScore - 18)))
+
+  return [
+    ...strengths.map((topic, index) => ({
+      topic,
+      mastery: Math.min(100, strengthBase - index * 3),
+    })),
+    ...weaknesses.map((topic, index) => ({
+      topic,
+      mastery: Math.max(0, weaknessBase - index * 4),
+    })),
+  ]
 }

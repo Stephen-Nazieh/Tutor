@@ -849,3 +849,12 @@ DAILY_API_KEY=xxx
 - [Docker Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
 - [Kubernetes Basics](https://kubernetes.io/docs/tutorials/kubernetes-basics/)
 - [Vercel Deployment](https://vercel.com/docs/concepts/deployments/overview)
+
+
+
+
+5. Infrastructure Scaling (Production Critical)
+	•	Multi-region Deployment: Aliyun infrastructure with multi-region support
+	•	Auto-scaling: Kubernetes with automatic resource allocation
+	•	Data Sovereignty: China-specific data handling with PIPL compliance
+	•	CDN Integration: Chinese CDN for <2 second load times
