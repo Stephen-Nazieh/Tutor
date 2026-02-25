@@ -38,14 +38,14 @@ export const GET = withAuth(
     })
 
     const data = {
-      notifications: notifications.map((n) => ({
+      notifications: notifications.map((n: any) => ({
         id: n.id,
         title: n.title,
         message: n.message,
         isRead: n.isRead,
         createdAt: n.createdAt,
       })),
-      unreadCount: notifications.filter((n) => !n.isRead).length,
+      unreadCount: notifications.filter((n: any) => !n.isRead).length,
     }
 
     await cacheManager.set(cacheKey, data, { ttl: CACHE_TTL, tags: [`family:${family.id}`] })

@@ -45,7 +45,7 @@ export const GET = withAuth(
       take: 30,
     })
 
-    const sessionSummaries = lessonSessions.map((ls) => {
+    const sessionSummaries = lessonSessions.map((ls: any) => {
       const context = (ls.sessionContext as Record<string, unknown>) || {}
       const messages = (context.messages as Array<{ role: string; content: string }>) || []
       const lastMessage = context.lastMessage as string | undefined
@@ -119,7 +119,7 @@ export const GET = withAuth(
         orderBy: { startedAt: 'desc' },
         take: 20,
       })
-      interactionSessions = sessions.map((s) => ({
+      interactionSessions = sessions.map((s: any) => ({
         id: s.id,
         subjectCode: s.subjectCode,
         startedAt: s.startedAt.toISOString(),
@@ -134,11 +134,11 @@ export const GET = withAuth(
 
     // 6. Performance metrics
     const totalSessions =
-      sessionSummaries.filter((s) => s.status === 'completed').length +
+      sessionSummaries.filter((s: any) => s.status === 'completed').length +
       interactionSessions.length
-    const totalMessages = sessionSummaries.reduce((s, x) => s + x.messageCount, 0) +
-      interactionSessions.reduce((s, x) => s + x.messageCount, 0)
-    const totalMinutes = dailyUsage.reduce((s, u) => s + u.minutesUsed, 0)
+    const totalMessages = sessionSummaries.reduce((s: any, x: any) => s + x.messageCount, 0) +
+      interactionSessions.reduce((s: any, x: any) => s + x.messageCount, 0)
+    const totalMinutes = dailyUsage.reduce((s: any, u: any) => s + u.minutesUsed, 0)
     const avgMessagesPerSession =
       totalSessions > 0 ? Math.round(totalMessages / totalSessions) : 0
 
@@ -146,7 +146,7 @@ export const GET = withAuth(
       success: true,
       data: {
         sessionSummaries,
-        enrollments: enrollments.map((e) => ({
+        enrollments: enrollments.map((e: any) => ({
           subjectCode: e.subjectCode,
           enrolledAt: e.enrolledAt.toISOString(),
           lastSessionAt: e.lastSessionAt?.toISOString() ?? null,
@@ -154,13 +154,13 @@ export const GET = withAuth(
           totalMinutes: e.totalMinutes,
           status: e.status,
         })),
-        dailyUsage: dailyUsage.map((u) => ({
+        dailyUsage: dailyUsage.map((u: any) => ({
           date: u.date.toISOString().slice(0, 10),
           sessionCount: u.sessionCount,
           messageCount: u.messageCount,
           minutesUsed: u.minutesUsed,
         })),
-        recentActivities: aiActivities.map((a) => ({
+        recentActivities: aiActivities.map((a: any) => ({
           id: a.id,
           action: a.action,
           metadata: a.metadata,
@@ -199,7 +199,7 @@ function generateRecommendations(
   if (totalMessages > 0 && totalMessages < 20) {
     recs.push('可以尝试与AI导师进行更深入的对话，探索更多学习主题')
   }
-  const completedCount = sessions.filter((s) => s.status === 'completed').length
+  const completedCount = sessions.filter((s: any) => s.status === 'completed').length
   if (completedCount > 0) {
     recs.push(`已完成 ${completedCount} 个课程单元的AI辅导，继续保持！`)
   }

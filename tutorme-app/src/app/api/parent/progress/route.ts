@@ -60,22 +60,22 @@ export const GET = withAuth(
       }),
     ])
 
-    const progressMap = new Map(lessonProgress.map((lp) => [`${lp.studentId}:${lp.lessonId}`, lp]))
+    const progressMap = new Map(lessonProgress.map((lp: any) => [`${lp.studentId}:${lp.lessonId}`, lp]))
 
     const children = family.members
-      .filter((m) => ['child', 'children'].includes(m.relation.toLowerCase()) && m.userId)
-      .map((m) => {
+      .filter((m: any) => ['child', 'children'].includes(m.relation.toLowerCase()) && m.userId)
+      .map((m: any) => {
         const uid = m.userId!
-        const enrolls = enrollments.filter((e) => e.studentId === uid)
-        const prog = curriculumProgress.find((p) => p.studentId === uid)
-        const perf = performances.find((p) => p.studentId === uid)
-        const gam = gamification.find((g) => g.userId === uid)
-        const studentAchievements = achievements.filter((a) => a.userId === uid)
+        const enrolls = enrollments.filter((e: any) => e.studentId === uid)
+        const prog = curriculumProgress.find((p: any) => p.studentId === uid)
+        const perf = performances.find((p: any) => p.studentId === uid)
+        const gam = gamification.find((g: any) => g.userId === uid)
+        const studentAchievements = achievements.filter((a: any) => a.userId === uid)
 
-        const courses = enrolls.map((e) => {
-          const allLessons = e.curriculum.modules.flatMap((mod) => mod.lessons)
+        const courses = enrolls.map((e: any) => {
+          const allLessons = e.curriculum.modules.flatMap((mod: any) => mod.lessons)
           const completed = allLessons.filter(
-            (l) => progressMap.get(`${uid}:${l.id}`)?.status === 'COMPLETED'
+            (l: any) => (progressMap.get(`${uid}:${l.id}`) as any)?.status === 'COMPLETED'
           ).length
           return {
             curriculumId: e.curriculum.id,
@@ -92,17 +92,17 @@ export const GET = withAuth(
           courses,
           overallProgress: prog
             ? {
-                lessonsCompleted: prog.lessonsCompleted,
-                totalLessons: prog.totalLessons,
-                averageScore: prog.averageScore,
-                isCompleted: prog.isCompleted,
-              }
+              lessonsCompleted: prog.lessonsCompleted,
+              totalLessons: prog.totalLessons,
+              averageScore: prog.averageScore,
+              isCompleted: prog.isCompleted,
+            }
             : null,
           strengths: (perf?.strengths as string[]) || [],
           weaknesses: (perf?.weaknesses as string[]) || [],
           level: gam?.level ?? 1,
           xp: gam?.xp ?? 0,
-          achievements: studentAchievements.map((a) => ({
+          achievements: studentAchievements.map((a: any) => ({
             id: a.id,
             title: a.title,
             type: a.type,
@@ -111,10 +111,10 @@ export const GET = withAuth(
         }
       })
 
-    const totalLessons = children.flatMap((c) => c.courses).reduce((s, co) => s + co.totalLessons, 0)
-    const completedLessons = children.flatMap((c) => c.courses).reduce((s, co) => s + co.completedLessons, 0)
+    const totalLessons = children.flatMap((c: any) => c.courses).reduce((s: any, co: any) => s + co.totalLessons, 0)
+    const completedLessons = children.flatMap((c: any) => c.courses).reduce((s: any, co: any) => s + co.completedLessons, 0)
     const scores = children
-      .map((c) => c.overallProgress?.averageScore)
+      .map((c: any) => c.overallProgress?.averageScore)
       .filter((s): s is number => s != null)
     const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null
 
