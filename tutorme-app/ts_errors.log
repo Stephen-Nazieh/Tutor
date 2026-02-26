@@ -1,0 +1,622 @@
+src/app/api/tutor/courses/route.ts(56,38): error TS7006: Parameter 'curriculum' implicitly has an 'any' type.
+src/app/api/tutor/courses/route.ts(58,10): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/courses/route.ts(58,15): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/app/api/tutor/courses/route.ts(75,43): error TS7006: Parameter 'batch' implicitly has an 'any' type.
+src/app/api/tutor/dashboard/student-progress/route.ts(39,24): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/app/api/tutor/dashboard/student-progress/route.ts(40,27): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/app/api/tutor/dashboard/student-progress/route.ts(41,32): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(58,40): error TS7006: Parameter 'payout' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(69,35): error TS7006: Parameter 'pp' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(132,51): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(132,56): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(133,48): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(133,53): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(150,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(153,67): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(153,72): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/payouts/route.ts(165,39): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/question-bank/[id]/route.ts(15,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/question-bank/[id]/route.ts(16,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/question-bank/[id]/route.ts(34,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/question-bank/[id]/route.ts(35,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/question-bank/[id]/route.ts(101,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/question-bank/[id]/route.ts(102,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/question-bank/tags/route.ts(29,39): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/app/api/tutor/question-bank/tags/route.ts(35,33): error TS7006: Parameter 'q' implicitly has an 'any' type.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(13,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(14,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(57,47): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(95,31): error TS7006: Parameter 'attempt' implicitly has an 'any' type.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(139,31): error TS7006: Parameter 'attempt' implicitly has an 'any' type.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(165,11): error TS2322: Type '{ questionId: string; questionText: string; type: string; points: number; correctCount: number; incorrectCount: number; partialCount: number; averageScore: number; averageTimeSpent: number; difficultyIndex: number; discriminationIndex: number; commonWrongAnswers: { ...; }[] | undefined; }[]' is not assignable to type 'QuestionAnalytics[]'.
+  Type '{ questionId: string; questionText: string; type: string; points: number; correctCount: number; incorrectCount: number; partialCount: number; averageScore: number; averageTimeSpent: number; difficultyIndex: number; discriminationIndex: number; commonWrongAnswers: { ...; }[] | undefined; }' is not assignable to type 'QuestionAnalytics'.
+    Types of property 'type' are incompatible.
+      Type 'string' is not assignable to type 'QuestionType'.
+src/app/api/tutor/quizzes/[id]/analytics/route.ts(202,31): error TS7006: Parameter 'attempt' implicitly has an 'any' type.
+src/app/api/tutor/quizzes/[id]/assign/route.ts(14,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/assign/route.ts(15,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/[id]/assign/route.ts(39,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/assign/route.ts(40,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/[id]/assign/route.ts(128,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/assign/route.ts(129,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/[id]/route.ts(17,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/route.ts(18,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/[id]/route.ts(69,44): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/app/api/tutor/quizzes/[id]/route.ts(82,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/route.ts(83,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/[id]/route.ts(173,26): error TS18048: 'context' is possibly 'undefined'.
+src/app/api/tutor/quizzes/[id]/route.ts(174,13): error TS2339: Property 'id' does not exist on type 'Record<string, string | string[]> | undefined'.
+src/app/api/tutor/quizzes/route.ts(65,42): error TS7006: Parameter 'quiz' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(61,51): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(61,56): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(62,49): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(62,54): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(64,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(65,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(65,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(67,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(68,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(68,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(76,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(77,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(77,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(83,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(87,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(87,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(95,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(95,15): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/app/api/tutor/revenue/balance/route.ts(97,10): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/route.ts(94,7): error TS1117: An object literal cannot have multiple properties with the same name.
+src/app/api/tutor/revenue/route.ts(183,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/route.ts(184,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/route.ts(184,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/route.ts(186,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/revenue/route.ts(187,14): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/revenue/route.ts(187,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/stats/route.ts(54,51): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/app/api/tutor/stats/route.ts(57,49): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/stats/route.ts(60,54): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/stats/route.ts(60,59): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/app/api/tutor/stats/route.ts(61,49): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/app/api/tutor/stats/route.ts(61,54): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/admin/AccountManagement.tsx(2,17): error TS2304: Cannot find name 'UserAccount'.
+src/components/admin/AccountManagement.tsx(3,21): error TS2304: Cannot find name 'PendingApproval'.
+src/components/admin/AccountManagement.tsx(4,19): error TS2304: Cannot find name 'ActiveSession'.
+src/components/admin/AccountManagement.tsx(5,21): error TS2304: Cannot find name 'PermissionGroup'.
+src/components/admin/AccountManagement.tsx(6,14): error TS2304: Cannot find name 'AuditLog'.
+src/components/admin/AccountManagement.tsx(7,16): error TS2304: Cannot find name 'BulkOperation'.
+src/components/admin/AccountManagement.tsx(11,26): error TS2304: Cannot find name 'useAccountManagement'.
+src/components/admin/AccountManagement.tsx(16,8): error TS2304: Cannot find name 'AccountSummaryGrid'.
+src/components/admin/AccountManagement.tsx(19,8): error TS2304: Cannot find name 'BulkOperationsCenter'.
+src/components/admin/AccountManagement.tsx(20,27): error TS2304: Cannot find name 'getBulkAccountActions'.
+src/components/admin/AccountManagement.tsx(21,27): error TS2304: Cannot find name 'selectedAccounts'.
+src/components/admin/AccountManagement.tsx(22,19): error TS2304: Cannot find name 'handleBulkAction'.
+src/components/admin/AccountManagement.tsx(23,28): error TS2304: Cannot find name 'handleAccountSelection'.
+src/components/admin/AccountManagement.tsx(27,8): error TS2304: Cannot find name 'EnhancedAccountCreationForm'.
+src/components/admin/AccountManagement.tsx(27,42): error TS2304: Cannot find name 'creationTabs'.
+src/components/admin/AccountManagement.tsx(30,8): error TS2304: Cannot find name 'EnhancedAccountGrid'.
+src/components/admin/AccountManagement.tsx(32,17): error TS2304: Cannot find name 'handleEditAccount'.
+src/components/admin/AccountManagement.tsx(33,20): error TS2304: Cannot find name 'handleSuspendAccount'.
+src/components/admin/AccountManagement.tsx(34,29): error TS2304: Cannot find name 'handleAssignPermission'.
+src/components/admin/AccountManagement.tsx(35,26): error TS2304: Cannot find name 'handleResetPassword'.
+src/components/admin/AccountManagement.tsx(36,25): error TS2304: Cannot find name 'handleViewSessions'.
+src/components/admin/AccountManagement.tsx(40,8): error TS2304: Cannot find name 'PendingApprovalsSection'.
+src/components/admin/AccountManagement.tsx(42,20): error TS2304: Cannot find name 'handleApproveAccount'.
+src/components/admin/AccountManagement.tsx(43,19): error TS2304: Cannot find name 'handleRejectAccount'.
+src/components/admin/AccountManagement.tsx(44,28): error TS2304: Cannot find name 'handleRequireMoreInfo'.
+src/components/class/breakout-control-panel.tsx(200,9): error TS2367: This comparison appears to be unintentional because the types '"random"' and '"skill_based"' have no overlap.
+src/components/class/breakout-control-panel.tsx(224,9): error TS2367: This comparison appears to be unintentional because the types '"random"' and '"social"' have no overlap.
+src/components/class/course-dev-panel.tsx(450,31): error TS2554: Expected 2 arguments, but got 1.
+src/components/class/course-dev-panel.tsx(506,15): error TS2554: Expected 2 arguments, but got 1.
+src/components/class/course-dev-panel.tsx(531,15): error TS2554: Expected 2 arguments, but got 1.
+src/components/class/polls/quick-poll.tsx(599,16): error TS2304: Cannot find name 'Play'.
+src/components/class/session-manager/session-timer.tsx(154,15): error TS2345: Argument of type '{ status: string; actualDuration: undefined; id: string; title: string; duration: number; type: "content" | "quiz" | "discussion" | "activity" | "intro" | "break" | "wrapup"; description?: string | undefined; aiSuggestion?: string | undefined; }[]' is not assignable to parameter of type 'SetStateAction<AgendaItem[]>'.
+  Type '{ status: string; actualDuration: undefined; id: string; title: string; duration: number; type: "content" | "quiz" | "discussion" | "activity" | "intro" | "break" | "wrapup"; description?: string | undefined; aiSuggestion?: string | undefined; }[]' is not assignable to type 'AgendaItem[]'.
+    Type '{ status: string; actualDuration: undefined; id: string; title: string; duration: number; type: "intro" | "content" | "activity" | "discussion" | "quiz" | "break" | "wrapup"; description?: string; aiSuggestion?: string; }' is not assignable to type 'AgendaItem'.
+      Types of property 'status' are incompatible.
+        Type 'string' is not assignable to type '"active" | "pending" | "completed" | "skipped"'.
+src/components/class/session-manager/session-timer.tsx(155,22): error TS2345: Argument of type '{ status: string; actualDuration: undefined; id: string; title: string; duration: number; type: "content" | "quiz" | "discussion" | "activity" | "intro" | "break" | "wrapup"; description?: string | undefined; aiSuggestion?: string | undefined; }[]' is not assignable to parameter of type 'AgendaItem[]'.
+  Type '{ status: string; actualDuration: undefined; id: string; title: string; duration: number; type: "intro" | "content" | "activity" | "discussion" | "quiz" | "break" | "wrapup"; description?: string; aiSuggestion?: string; }' is not assignable to type 'AgendaItem'.
+    Types of property 'status' are incompatible.
+      Type 'string' is not assignable to type '"active" | "pending" | "completed" | "skipped"'.
+src/components/monitoring/ErrorBoundary.tsx(3,38): error TS2307: Cannot find module 'react-error-boundary' or its corresponding type declarations.
+src/components/monitoring/ErrorBoundary.tsx(6,39): error TS7031: Binding element 'error' implicitly has an 'any' type.
+src/components/monitoring/ErrorBoundary.tsx(6,46): error TS7031: Binding element 'resetErrorBoundary' implicitly has an 'any' type.
+src/components/parent/communication/page.tsx(2,18): error TS2304: Cannot find name 'ParentConversation'.
+src/components/parent/communication/page.tsx(3,22): error TS2304: Cannot find name 'BroadcastMessage'.
+src/components/parent/communication/page.tsx(4,20): error TS2304: Cannot find name 'TeacherContact'.
+src/components/parent/communication/page.tsx(5,26): error TS2304: Cannot find name 'StudentCommunication'.
+src/components/parent/communication/page.tsx(6,25): error TS2304: Cannot find name 'NotificationSettings'.
+src/components/parent/communication/page.tsx(7,27): error TS2304: Cannot find name 'EmergencyContactSystem'.
+src/components/parent/communication/page.tsx(11,37): error TS2304: Cannot find name 'useState'.
+src/components/parent/communication/page.tsx(11,46): error TS2304: Cannot find name 'TabType'.
+src/components/parent/communication/page.tsx(13,29): error TS2304: Cannot find name 'useParentCommunicationData'.
+src/components/parent/communication/page.tsx(16,6): error TS2304: Cannot find name 'CommunicationProvider'.
+src/components/parent/communication/page.tsx(16,39): error TS2304: Cannot find name 'selectedStudentId'.
+src/components/parent/communication/page.tsx(17,8): error TS2304: Cannot find name 'CommunicationTabs'.
+src/components/parent/communication/page.tsx(19,8): error TS2304: Cannot find name 'CommunicationContent'.
+src/components/parent/communication/page.tsx(20,44): error TS2304: Cannot find name 'ConversationsTab'.
+src/components/parent/communication/page.tsx(21,40): error TS2304: Cannot find name 'BroadcastMessagesTab'.
+src/components/parent/communication/page.tsx(22,39): error TS2304: Cannot find name 'TeacherContactsTab'.
+src/components/parent/communication/page.tsx(23,40): error TS2304: Cannot find name 'EmergencyContactTab'.
+src/components/parent/communication/page.tsx(24,39): error TS2304: Cannot find name 'CommunicationSettingsTab'.
+src/components/parent/communication/page.tsx(25,9): error TS2304: Cannot find name 'CommunicationContent'.
+src/components/parent/communication/page.tsx(26,7): error TS2304: Cannot find name 'CommunicationProvider'.
+src/components/parent/financial/page.tsx(7,12): error TS2304: Cannot find name 'FinancialSummary'.
+src/components/parent/financial/page.tsx(8,20): error TS2304: Cannot find name 'SpendingHistory'.
+src/components/parent/financial/page.tsx(9,19): error TS2304: Cannot find name 'PaymentHistory'.
+src/components/parent/financial/page.tsx(10,21): error TS2304: Cannot find name 'UpcomingPayment'.
+src/components/parent/financial/page.tsx(11,19): error TS2304: Cannot find name 'BudgetSettings'.
+src/components/parent/financial/page.tsx(12,23): error TS2304: Cannot find name 'SubscriptionStatus'.
+src/components/parent/financial/page.tsx(13,22): error TS2304: Cannot find name 'StudentFinancialSummary'.
+src/components/parent/financial/page.tsx(29,8): error TS2304: Cannot find name 'FinancialSummarySection'.
+src/components/parent/financial/page.tsx(29,41): error TS18047: 'financialData' is possibly 'null'.
+src/components/parent/financial/page.tsx(31,8): error TS2304: Cannot find name 'FinancialTabs'.
+src/components/parent/financial/page.tsx(32,20): error TS2304: Cannot find name 'activeTab'.
+src/components/parent/financial/page.tsx(34,22): error TS2304: Cannot find name 'setActiveTab'.
+src/components/parent/financial/page.tsx(37,8): error TS2304: Cannot find name 'StudentSelector'.
+src/components/parent/financial/page.tsx(38,19): error TS18047: 'financialData' is possibly 'null'.
+src/components/parent/financial/page.tsx(38,33): error TS2339: Property 'studentFinancials' does not exist on type 'ParentFinancialData'.
+src/components/parent/financial/page.tsx(43,8): error TS2304: Cannot find name 'FinancialContent'.
+src/components/parent/financial/page.tsx(44,10): error TS2304: Cannot find name 'activeTab'.
+src/components/parent/financial/page.tsx(44,39): error TS2304: Cannot find name 'OverviewTab'.
+src/components/parent/financial/page.tsx(45,10): error TS2304: Cannot find name 'activeTab'.
+src/components/parent/financial/page.tsx(45,39): error TS2304: Cannot find name 'SpendingAnalysisTab'.
+src/components/parent/financial/page.tsx(46,10): error TS2304: Cannot find name 'activeTab'.
+src/components/parent/financial/page.tsx(46,39): error TS2304: Cannot find name 'PaymentHistoryTab'.
+src/components/parent/financial/page.tsx(47,10): error TS2304: Cannot find name 'activeTab'.
+src/components/parent/financial/page.tsx(47,37): error TS2304: Cannot find name 'BudgetSettingsTab'.
+src/components/parent/financial/page.tsx(48,9): error TS2304: Cannot find name 'FinancialContent'.
+src/components/parent/financial/PaymentManagement.tsx(2,17): error TS2304: Cannot find name 'PaymentAction'.
+src/components/parent/financial/PaymentManagement.tsx(3,22): error TS2304: Cannot find name 'ScheduledPayment'.
+src/components/parent/financial/PaymentManagement.tsx(4,19): error TS2304: Cannot find name 'PaymentMethod'.
+src/components/parent/financial/PaymentManagement.tsx(5,19): error TS2304: Cannot find name 'Invoice'.
+src/components/parent/financial/PaymentManagement.tsx(6,19): error TS2304: Cannot find name 'RefundRequest'.
+src/components/parent/financial/PaymentManagement.tsx(7,20): error TS2304: Cannot find name 'PaymentSettings'.
+src/components/parent/financial/PaymentManagement.tsx(11,36): error TS2304: Cannot find name 'useParentPaymentSystem'.
+src/components/parent/financial/PaymentManagement.tsx(16,8): error TS2304: Cannot find name 'PaymentQuickActions'.
+src/components/parent/financial/PaymentManagement.tsx(18,19): error TS2304: Cannot find name 'handlePaymentAction'.
+src/components/parent/financial/PaymentManagement.tsx(22,8): error TS2304: Cannot find name 'ScheduledPaymentsTable'.
+src/components/parent/financial/PaymentManagement.tsx(24,19): error TS2304: Cannot find name 'handleCancelScheduledPayment'.
+src/components/parent/financial/PaymentManagement.tsx(25,19): error TS2304: Cannot find name 'handleModifyScheduledPayment'.
+src/components/parent/financial/PaymentManagement.tsx(29,8): error TS2304: Cannot find name 'PaymentMethodsManager'.
+src/components/parent/financial/PaymentManagement.tsx(31,16): error TS2304: Cannot find name 'handleAddPaymentMethod'.
+src/components/parent/financial/PaymentManagement.tsx(32,19): error TS2304: Cannot find name 'handleRemovePaymentMethod'.
+src/components/parent/financial/PaymentManagement.tsx(33,23): error TS2304: Cannot find name 'handleSetDefaultMethod'.
+src/components/parent/financial/PaymentManagement.tsx(37,8): error TS2304: Cannot find name 'InvoiceHistoryTable'.
+src/components/parent/financial/PaymentManagement.tsx(39,24): error TS2304: Cannot find name 'handleViewInvoice'.
+src/components/parent/financial/PaymentManagement.tsx(40,21): error TS2304: Cannot find name 'handleDownloadInvoice'.
+src/components/parent/financial/PaymentManagement.tsx(44,8): error TS2304: Cannot find name 'RefundRequestsSection'.
+src/components/parent/financial/PaymentManagement.tsx(46,19): error TS2304: Cannot find name 'handleSubmitRefundRequest'.
+src/components/parent/financial/PaymentManagement.tsx(47,19): error TS2304: Cannot find name 'handleCancelRefundRequest'.
+src/components/parent/PerformanceOptimizedDashboard.tsx(28,31): error TS2307: Cannot find module 'react-error-boundary' or its corresponding type declarations.
+src/components/parent/PerformanceOptimizedDashboard.tsx(911,31): error TS7031: Binding element 'error' implicitly has an 'any' type.
+src/components/parent/PerformanceOptimizedDashboard.tsx(911,38): error TS7031: Binding element 'resetErrorBoundary' implicitly has an 'any' type.
+src/components/parent/PerformanceOptimizedDashboard.tsx(918,19): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/components/parent/students/StudentProgressTab.tsx(2,20): error TS2304: Cannot find name 'AcademicMetrics'.
+src/components/parent/students/StudentProgressTab.tsx(3,21): error TS2304: Cannot find name 'SubjectProgress'.
+src/components/parent/students/StudentProgressTab.tsx(4,23): error TS2304: Cannot find name 'LearningTrajectory'.
+src/components/parent/students/StudentProgressTab.tsx(5,21): error TS2304: Cannot find name 'SkillDevelopment'.
+src/components/parent/students/StudentProgressTab.tsx(6,24): error TS2304: Cannot find name 'ComparativeData'.
+src/components/parent/students/StudentProgressTab.tsx(7,20): error TS2304: Cannot find name 'TeacherComment'.
+src/components/parent/students/StudentProgressTab.tsx(8,24): error TS2304: Cannot find name 'AIInsight'.
+src/components/parent/students/StudentProgressTab.tsx(11,38): error TS7031: Binding element 'studentId' implicitly has an 'any' type.
+src/components/parent/students/StudentProgressTab.tsx(12,24): error TS2304: Cannot find name 'useStudentProgress'.
+src/components/parent/students/StudentProgressTab.tsx(17,8): error TS2304: Cannot find name 'Card'.
+src/components/parent/students/StudentProgressTab.tsx(18,10): error TS2304: Cannot find name 'CardHeader'.
+src/components/parent/students/StudentProgressTab.tsx(19,12): error TS2304: Cannot find name 'CardTitle'.
+src/components/parent/students/StudentProgressTab.tsx(19,53): error TS2304: Cannot find name 'CardTitle'.
+src/components/parent/students/StudentProgressTab.tsx(20,11): error TS2304: Cannot find name 'CardHeader'.
+src/components/parent/students/StudentProgressTab.tsx(21,10): error TS2304: Cannot find name 'CardContent'.
+src/components/parent/students/StudentProgressTab.tsx(22,12): error TS2304: Cannot find name 'LearningTrajectoryChart'.
+src/components/parent/students/StudentProgressTab.tsx(23,12): error TS2304: Cannot find name 'KeyMetricsGrid'.
+src/components/parent/students/StudentProgressTab.tsx(24,11): error TS2304: Cannot find name 'CardContent'.
+src/components/parent/students/StudentProgressTab.tsx(25,9): error TS2304: Cannot find name 'Card'.
+src/components/parent/students/StudentProgressTab.tsx(28,8): error TS2304: Cannot find name 'SubjectPerformanceBreakdown'.
+src/components/parent/students/StudentProgressTab.tsx(31,8): error TS2304: Cannot find name 'SkillDevelopmentRadar'.
+src/components/parent/students/StudentProgressTab.tsx(34,8): error TS2304: Cannot find name 'ComparativeResultsSection'.
+src/components/parent/students/StudentProgressTab.tsx(37,8): error TS2304: Cannot find name 'AIInsightsSection'.
+src/components/parent/students/StudentProgressTab.tsx(40,8): error TS2304: Cannot find name 'TeacherCommentsSection'.
+src/components/parent/students/StudentsOverview.tsx(2,12): error TS2304: Cannot find name 'ParentStudent'.
+src/components/parent/students/StudentsOverview.tsx(3,19): error TS2304: Cannot find name 'ClassInfo'.
+src/components/parent/students/StudentsOverview.tsx(4,19): error TS2304: Cannot find name 'ProgressSummary'.
+src/components/parent/students/StudentsOverview.tsx(5,18): error TS2304: Cannot find name 'Task'.
+src/components/parent/students/StudentsOverview.tsx(6,15): error TS2304: Cannot find name 'AIInsights'.
+src/components/parent/students/StudentsOverview.tsx(7,21): error TS2304: Cannot find name 'StudentFinancialSummary'.
+src/components/parent/students/StudentsOverview.tsx(11,20): error TS2304: Cannot find name 'useParentStudents'.
+src/components/parent/students/StudentsOverview.tsx(15,21): error TS7006: Parameter 'student' implicitly has an 'any' type.
+src/components/parent/students/StudentsOverview.tsx(16,10): error TS2304: Cannot find name 'StudentDashboardCard'.
+src/components/parent/students/StudentsOverview.tsx(19,32): error TS2304: Cannot find name 'router'.
+src/components/parent/students/StudentsOverview.tsx(20,33): error TS2304: Cannot find name 'router'.
+src/components/parent/students/StudentsOverview.tsx(21,35): error TS2304: Cannot find name 'router'.
+src/components/parent/students/StudentsOverview.tsx(22,33): error TS2304: Cannot find name 'router'.
+src/components/parent/students/StudentsOverview.tsx(24,12): error TS2304: Cannot find name 'StudentQuickStats'.
+src/components/parent/students/StudentsOverview.tsx(25,12): error TS2304: Cannot find name 'AIInsightsPreview'.
+src/components/parent/students/StudentsOverview.tsx(26,12): error TS2304: Cannot find name 'UpcomingTasksPreview'.
+src/components/parent/students/StudentsOverview.tsx(27,11): error TS2304: Cannot find name 'StudentDashboardCard'.
+src/components/reports/engagement-dashboard.tsx(380,19): error TS2322: Type 'string' is not assignable to type 'never'.
+src/components/spaced-repetition/CalendarExport.tsx(12,3): error TS2305: Module '"lucide-react"' has no exported member 'GoogleChrome'.
+src/components/spaced-repetition/CalendarExport.tsx(14,3): error TS2305: Module '"lucide-react"' has no exported member 'Outlook'.
+src/components/spaced-repetition/ForgettingCurveGraph.tsx(462,33): error TS2551: Property 'daysOverdue' does not exist on type 'ReviewNode'. Did you mean 'isOverdue'?
+src/components/spaced-repetition/ForgettingCurveGraph.tsx(462,57): error TS2551: Property 'daysOverdue' does not exist on type 'ReviewNode'. Did you mean 'isOverdue'?
+src/components/student/PaymentAlertButton.tsx(37,9): error TS2304: Cannot find name 'toast'.
+src/components/whiteboard/BackgroundTemplates.tsx(51,26): error TS2367: This comparison appears to be unintentional because the types '"dot" | "grid" | "graph" | "isometric" | "lined"' and '"dark"' have no overlap.
+src/components/whiteboard/GraphRenderer.tsx(206,30): error TS2339: Property 'on' does not exist on type 'HTMLDivElement'.
+src/components/whiteboard/ImageUpload.tsx(12,32): error TS2312: An interface can only extend an object type or intersection of object types with statically known members.
+src/components/whiteboard/ImageUpload.tsx(49,11): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'ImageElement'.
+src/components/whiteboard/ImageUpload.tsx(67,23): error TS2345: Argument of type 'ImageElement' is not assignable to parameter of type 'AnyMathElement'.
+  Type 'ImageElement' is missing the following properties from type 'ImageElement': id, authorId, layer, locked, and 8 more.
+src/components/whiteboard/ImageUpload.tsx(170,59): error TS2503: Cannot find namespace 'fabric'.
+src/components/whiteboard/ImageUpload.tsx(171,14): error TS2304: Cannot find name 'fabric'.
+src/components/whiteboard/ImageUpload.tsx(172,19): error TS2339: Property 'x' does not exist on type 'ImageElement'.
+src/components/whiteboard/ImageUpload.tsx(173,18): error TS2339: Property 'y' does not exist on type 'ImageElement'.
+src/components/whiteboard/MathCanvas.tsx(18,30): error TS7016: Could not find a declaration file for module 'uuid'. '/Users/nazy/ADK_WORKSPACE/TutorMekimi/Tutor/tutorme-app/node_modules/uuid/dist/esm-browser/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/uuid` if it exists or add a new declaration (.d.ts) file containing `declare module 'uuid';`
+src/components/whiteboard/MathCanvas.tsx(161,24): error TS2339: Property 'mathElementId' does not exist on type 'FabricObject<Partial<FabricObjectProps>, SerializedObjectProps, ObjectEvents>'.
+src/components/whiteboard/MathCanvas.tsx(163,68): error TS2339: Property 'mathElementId' does not exist on type 'FabricObject<Partial<FabricObjectProps>, SerializedObjectProps, ObjectEvents>'.
+src/components/whiteboard/MathCanvas.tsx(176,17): error TS2339: Property 'width' does not exist on type 'Partial<AnyMathElement>'.
+  Property 'width' does not exist on type 'Partial<PathElement>'.
+src/components/whiteboard/MathCanvas.tsx(177,17): error TS2339: Property 'height' does not exist on type 'Partial<AnyMathElement>'.
+  Property 'height' does not exist on type 'Partial<PathElement>'.
+src/components/whiteboard/MathCanvas.tsx(179,17): error TS2339: Property 'radius' does not exist on type 'Partial<AnyMathElement>'.
+  Property 'radius' does not exist on type 'Partial<PathElement>'.
+src/components/whiteboard/MathCanvas.tsx(183,27): error TS2339: Property 'mathElementId' does not exist on type 'FabricObject<Partial<FabricObjectProps>, SerializedObjectProps, ObjectEvents>'.
+src/components/whiteboard/MathCanvas.tsx(282,21): error TS2339: Property 'mathElementId' does not exist on type 'FabricObject<Partial<FabricObjectProps>, SerializedObjectProps, ObjectEvents>'.
+src/components/whiteboard/MathCanvas.tsx(750,30): error TS2551: Property 'getPointer' does not exist on type 'Canvas'. Did you mean 'getPointerId'?
+src/components/whiteboard/MathCanvas.tsx(761,30): error TS2551: Property 'getPointer' does not exist on type 'Canvas'. Did you mean 'getPointerId'?
+src/components/whiteboard/MathCanvas.tsx(808,30): error TS2551: Property 'getPointer' does not exist on type 'Canvas'. Did you mean 'getPointerId'?
+src/components/whiteboard/MathCanvas.tsx(820,30): error TS2551: Property 'getPointer' does not exist on type 'Canvas'. Did you mean 'getPointerId'?
+src/components/whiteboard/MathWhiteboardContainer.tsx(414,13): error TS2322: Type 'string' is not assignable to type 'never'.
+src/components/whiteboard/PdfOverlay.tsx(374,13): error TS2322: Type '{ r: number; g: number; b: number; }' is not assignable to type 'Color | undefined'.
+src/components/whiteboard/PdfOverlay.tsx(390,19): error TS2322: Type '{ r: number; g: number; b: number; }' is not assignable to type 'Color | undefined'.
+src/components/whiteboard/PdfOverlay.tsx(403,13): error TS2322: Type '{ r: number; g: number; b: number; }' is not assignable to type 'Color | undefined'.
+src/components/whiteboard/PdfOverlay.tsx(411,28): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BlobPart'.
+  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/hooks/use-math-whiteboard.ts(260,19): error TS2345: Argument of type '(prev: AnyMathElement[]) => (PathElement | RectangleElement | CircleElement | LineElement | TextElement | ... 58 more ... | { ...; })[]' is not assignable to parameter of type 'SetStateAction<AnyMathElement[]>'.
+  Type '(prev: AnyMathElement[]) => (PathElement | RectangleElement | CircleElement | LineElement | TextElement | ... 58 more ... | { ...; })[]' is not assignable to type '(prevState: AnyMathElement[]) => AnyMathElement[]'.
+    Type '(PathElement | RectangleElement | CircleElement | LineElement | TextElement | EquationElement | ... 57 more ... | { ...; })[]' is not assignable to type 'AnyMathElement[]'.
+      Type 'PathElement | RectangleElement | CircleElement | LineElement | TextElement | EquationElement | ... 57 more ... | { ...; }' is not assignable to type 'AnyMathElement'.
+        Type '{ version: number; type: "path" | "rectangle"; width?: number | undefined; height?: number | undefined; fillColor?: string | undefined; strokeColor: string; strokeWidth: number; id: string; authorId: string; ... 10 more ...; isEraser: boolean; }' is not assignable to type 'AnyMathElement'.
+          Type '{ version: number; type: "path" | "rectangle"; width?: number | undefined; height?: number | undefined; fillColor?: string | undefined; strokeColor: string; strokeWidth: number; id: string; authorId: string; ... 10 more ...; isEraser: boolean; }' is not assignable to type 'PathElement | RectangleElement'.
+            Type '{ version: number; type: "path" | "rectangle"; width?: number | undefined; height?: number | undefined; fillColor?: string | undefined; strokeColor: string; strokeWidth: number; id: string; authorId: string; ... 10 more ...; isEraser: boolean; }' is not assignable to type 'RectangleElement'.
+              Types of property 'type' are incompatible.
+                Type '"path" | "rectangle"' is not assignable to type '"rectangle"'.
+                  Type '"path"' is not assignable to type '"rectangle"'.
+src/hooks/use-math-whiteboard.ts(464,17): error TS2345: Argument of type '(prev: AnyMathElement[]) => (PathElement | RectangleElement | CircleElement | LineElement | TextElement | ... 58 more ... | { ...; })[]' is not assignable to parameter of type 'SetStateAction<AnyMathElement[]>'.
+  Type '(prev: AnyMathElement[]) => (PathElement | RectangleElement | CircleElement | LineElement | TextElement | ... 58 more ... | { ...; })[]' is not assignable to type '(prevState: AnyMathElement[]) => AnyMathElement[]'.
+    Type '(PathElement | RectangleElement | CircleElement | LineElement | TextElement | EquationElement | ... 57 more ... | { ...; })[]' is not assignable to type 'AnyMathElement[]'.
+      Type 'PathElement | RectangleElement | CircleElement | LineElement | TextElement | EquationElement | ... 57 more ... | { ...; }' is not assignable to type 'AnyMathElement'.
+        Type '{ type: "path" | "rectangle"; width?: number | undefined; height?: number | undefined; fillColor?: string | undefined; strokeColor: string; strokeWidth: number; id: string; authorId: string; layer: number; ... 10 more ...; isEraser: boolean; }' is not assignable to type 'AnyMathElement'.
+          Type '{ type: "path" | "rectangle"; width?: number | undefined; height?: number | undefined; fillColor?: string | undefined; strokeColor: string; strokeWidth: number; id: string; authorId: string; layer: number; ... 10 more ...; isEraser: boolean; }' is not assignable to type 'PathElement | RectangleElement'.
+            Type '{ type: "path" | "rectangle"; width?: number | undefined; height?: number | undefined; fillColor?: string | undefined; strokeColor: string; strokeWidth: number; id: string; authorId: string; layer: number; ... 10 more ...; isEraser: boolean; }' is not assignable to type 'RectangleElement'.
+              Types of property 'type' are incompatible.
+                Type '"path" | "rectangle"' is not assignable to type '"rectangle"'.
+                  Type '"path"' is not assignable to type '"rectangle"'.
+src/hooks/use-unified-whiteboard.ts(116,66): error TS2345: Argument of type 'WhiteboardStroke' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'WhiteboardStroke'.
+src/hooks/use-unified-whiteboard.ts(146,13): error TS2339: Property 'visibleStrokes' does not exist on type '{ strokes: WhiteboardStroke[]; metrics: { total: number; culled: number; simplified: number; }; }'.
+src/hooks/use-whiteboard-presence.ts(172,41): error TS2345: Argument of type '{ userId: string; name: string; color: string; }' is not assignable to parameter of type 'PresenceUser'.
+  Type '{ userId: string; name: string; color: string; }' is missing the following properties from type 'PresenceUser': role, lastActivity
+src/hooks/useParentRealTimeNotifications.ts(3,9): error TS2552: Cannot find name 'NotificationType'. Did you mean 'Notification'?
+src/hooks/useParentRealTimeNotifications.ts(4,13): error TS2304: Cannot find name 'NotificationPriority'.
+src/hooks/useParentRealTimeNotifications.ts(15,45): error TS2304: Cannot find name 'useState'.
+src/hooks/useParentRealTimeNotifications.ts(16,29): error TS2552: Cannot find name 'useSession'. Did you mean 'session'?
+src/hooks/useParentRealTimeNotifications.ts(19,45): error TS2304: Cannot find name 'useParentWebSocket'.
+src/hooks/useParentRealTimeNotifications.ts(21,3): error TS2304: Cannot find name 'useEffect'.
+src/hooks/useParentRealTimeNotifications.ts(28,22): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/hooks/useParentRealTimeNotifications.ts(30,36): error TS2304: Cannot find name 'filterNotificationForParent'.
+src/hooks/useParentRealTimeNotifications.ts(38,5): error TS2304: Cannot find name 'showSmartNotification'.
+src/hooks/useParentRealTimeNotifications.ts(38,27): error TS2304: Cannot find name 'filteredNotification'.
+src/hooks/useParentRealTimeNotifications.ts(43,13): error TS2552: Cannot find name 'markNotificationRead'. Did you mean 'notificationId'?
+src/hooks/useParentRealTimeNotifications.ts(44,24): error TS7006: Parameter 'prev' implicitly has an 'any' type.
+src/hooks/useParentRealTimeNotifications.ts(45,18): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/hooks/useParentRealTimeNotifications.ts(53,41): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/hooks/useParentRealTimeNotifications.ts(55,39): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/lib/accessibility/test-helpers.ts(147,12): error TS2322: Type 'string | boolean' is not assignable to type 'boolean'.
+  Type 'string' is not assignable to type 'boolean'.
+src/lib/admin/auth.ts(164,54): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/admin/auth.ts(167,44): error TS7006: Parameter 'assignment' implicitly has an 'any' type.
+src/lib/admin/auth.ts(271,20): error TS7006: Parameter 'user' implicitly has an 'any' type.
+src/lib/admin/auth.ts(272,45): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/admin/auth.ts(275,35): error TS7006: Parameter 'assignment' implicitly has an 'any' type.
+src/lib/api/error-handler.ts(4,50): error TS2345: Argument of type '{ contexts: { api: { path: unknown; method: unknown; query: unknown; userAgent: unknown; }; user: unknown; }; tags: { source: string; route: unknown; requestId: unknown; }; }' is not assignable to parameter of type 'ExclusiveEventHintOrCaptureContext | undefined'.
+  Types of property 'contexts' are incompatible.
+    Type '{ api: { path: unknown; method: unknown; query: unknown; userAgent: unknown; }; user: unknown; }' is not assignable to type 'Contexts'.
+      Property 'user' is incompatible with index signature.
+        Type 'unknown' is not assignable to type 'Context | undefined'.
+src/lib/api/error-handler.ts(25,26): error TS2304: Cannot find name 'NextResponse'.
+src/lib/api/error-handler.ts(27,12): error TS2304: Cannot find name 'NextResponse'.
+src/lib/api/error-handler.ts(28,30): error TS2339: Property 'startTransaction' does not exist on type 'typeof import("/Users/nazy/ADK_WORKSPACE/TutorMekimi/Tutor/tutorme-app/node_modules/@sentry/nextjs/build/types/index.types")'.
+src/lib/auth.ts(9,32): error TS2307: Cannot find module '@auth/drizzle-adapter' or its corresponding type declarations.
+src/lib/cache-manager.ts(351,38): error TS7006: Parameter 'delay' implicitly has an 'any' type.
+src/lib/db-enhanced.ts(111,13): error TS2353: Object literal may only specify known properties, and 'retryDelayOnFailover' does not exist in type 'RedisSocketOptions'.
+src/lib/db-enhanced.ts(176,19): error TS2339: Property '$runCommandRaw' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/difficulty-resolver.ts(7,64): error TS2307: Cannot find module '@/app/tutor/dashboard/components/CourseBuilder' or its corresponding type declarations.
+src/lib/difficulty-resolver.ts(62,13): error TS2862: Type 'Partial<T>' is generic and can only be indexed for reading.
+src/lib/difficulty-resolver.ts(158,9): error TS18047: 'resolvedModule' is possibly 'null'.
+src/lib/difficulty-resolver.ts(164,17): error TS18047: 'resolvedModule' is possibly 'null'.
+src/lib/difficulty-resolver.ts(170,9): error TS18047: 'resolvedModule' is possibly 'null'.
+src/lib/difficulty-resolver.ts(175,10): error TS18047: 'resolvedModule' is possibly 'null'.
+src/lib/difficulty-resolver.ts(183,11): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/difficulty-resolver.ts(188,19): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/difficulty-resolver.ts(193,11): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/difficulty-resolver.ts(193,59): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/difficulty-resolver.ts(195,56): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/difficulty-resolver.ts(202,30): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/difficulty-resolver.ts(207,34): error TS18047: 'resolvedLesson' is possibly 'null'.
+src/lib/extract-file-text.ts(77,40): error TS2345: Argument of type '(item: { str?: string; }) => string' is not assignable to parameter of type '(value: TextItem | TextMarkedContent, index: number, array: (TextItem | TextMarkedContent)[]) => string'.
+  Types of parameters 'item' and 'value' are incompatible.
+    Type 'TextItem | TextMarkedContent' is not assignable to type '{ str?: string | undefined; }'.
+      Type 'TextMarkedContent' has no properties in common with type '{ str?: string | undefined; }'.
+src/lib/financial/parent-financial-service.ts(72,65): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/financial/parent-financial-service.ts(73,29): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/financial/parent-financial-service.ts(88,14): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/financial/parent-financial-service.ts(89,11): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/financial/parent-financial-service.ts(102,64): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/monitoring/sentry-setup.ts(16,5): error TS2353: Object literal may only specify known properties, and 'autoSessionTracking' does not exist in type 'CoreOptions<BaseTransportOptions> | BrowserOptions | NodeOptions | VercelEdgeOptions'.
+src/lib/monitoring/sentry-setup.ts(53,47): error TS2554: Expected 1-2 arguments, but got 3.
+src/lib/monitoring/sentry.ts(8,7): error TS2322: Type 'string' is not assignable to type 'Record<string, string>'.
+src/lib/openapi/index.ts(1,26): error TS2307: Cannot find module 'swagger-jsdoc' or its corresponding type declarations.
+src/lib/openapi/index.ts(2,23): error TS2307: Cannot find module 'swagger-ui-express' or its corresponding type declarations.
+src/lib/performance/bundle-optimizer.ts(303,21): error TS2345: Argument of type 'Uint8Array<ArrayBufferLike>[]' is not assignable to parameter of type 'BlobPart[]'.
+  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BlobPart'.
+    Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+      Types of property 'buffer' are incompatible.
+        Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+          Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/performance/bundle-optimizer.ts(353,11): error TS2322: Type 'number | null' is not assignable to type 'number'.
+  Type 'null' is not assignable to type 'number'.
+src/lib/performance/bundle-optimizer.ts(354,11): error TS2322: Type 'number | null' is not assignable to type 'number'.
+  Type 'null' is not assignable to type 'number'.
+src/lib/performance/optimization.tsx(3,32): error TS2307: Cannot find module '@tanstack/react-virtual' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(43,39): error TS2307: Cannot find module '../components/dashboards/StudentDashboard' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(44,37): error TS2307: Cannot find module '../components/dashboards/TutorDashboard' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(45,38): error TS2307: Cannot find module '../components/dashboards/ParentDashboard' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(46,37): error TS2307: Cannot find module '../components/dashboards/AdminDashboard' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(47,38): error TS2307: Cannot find module '../components/ai/AIChatComponent' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(48,42): error TS2307: Cannot find module '../components/whiteboard/WhiteboardComponent' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(49,41): error TS2307: Cannot find module '../components/live/LiveClassComponent' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(50,39): error TS2307: Cannot find module '../components/payment/PaymentComponent' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(67,21): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+src/lib/performance/optimization.tsx(85,45): error TS7006: Parameter 'virtualItem' implicitly has an 'any' type.
+src/lib/performance/optimization.tsx(162,14): error TS2307: Cannot find module '../utils/non-critical-features' or its corresponding type declarations.
+src/lib/performance/optimization.tsx(180,41): error TS2304: Cannot find name 'useState'.
+src/lib/performance/optimization.tsx(182,3): error TS2304: Cannot find name 'useEffect'.
+src/lib/performance/optimization.tsx(222,3): error TS2304: Cannot find name 'useEffect'.
+src/lib/performance/optimization.tsx(242,3): error TS2304: Cannot find name 'useEffect'.
+src/lib/performance/optimization.tsx(251,42): error TS2339: Property 'memory' does not exist on type 'Performance'.
+src/lib/performance/parent-optimization.ts(1,69): error TS2304: Cannot find name 'OptimizedData'.
+src/lib/performance/parent-optimization.ts(10,5): error TS2304: Cannot find name 'getParentProfile'.
+src/lib/performance/parent-optimization.ts(11,5): error TS2304: Cannot find name 'getStudentSummaries'.
+src/lib/performance/parent-optimization.ts(12,5): error TS2304: Cannot find name 'getFinancialSummary'.
+src/lib/performance/parent-optimization.ts(13,5): error TS2304: Cannot find name 'getRecentActivity'.
+src/lib/performance/parent-optimization.ts(14,5): error TS2304: Cannot find name 'getUnreadNotificationCount'.
+src/lib/performance/parent-optimization.ts(18,9): error TS2304: Cannot find name 'cacheParentData'.
+src/lib/performance/performance-monitoring.ts(398,30): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/performance/performance-monitoring.ts(625,67): error TS2339: Property 'url' does not exist on type 'URL | Request'.
+  Property 'url' does not exist on type 'URL'.
+src/lib/performance/performance-monitoring.ts(830,33): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/performance/performance-monitoring.ts(830,60): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/performance/performance-monitoring.ts(830,63): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/performance/performance-monitoring.ts(831,32): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/performance/performance-monitoring.ts(831,35): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(100,44): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(100,49): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(103,45): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(107,44): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(107,49): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(108,43): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(108,48): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(133,41): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(134,27): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(490,58): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(513,42): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(558,28): error TS7006: Parameter 'enrollment' implicitly has an 'any' type.
+src/lib/performance/student-analytics.ts(575,5): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Record<PerformanceCluster, number>'.
+src/lib/pwa/service-worker.ts(6,15): error TS2451: Cannot redeclare block-scoped variable 'self'.
+src/lib/pwa/service-worker.ts(6,21): error TS2304: Cannot find name 'ServiceWorkerGlobalScope'.
+src/lib/pwa/service-worker.ts(52,9): error TS2339: Property 'waitUntil' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(56,24): error TS2339: Property 'skipWaiting' does not exist on type 'Window & typeof globalThis'.
+src/lib/pwa/service-worker.ts(65,9): error TS2339: Property 'waitUntil' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(75,25): error TS2339: Property 'clients' does not exist on type 'Window & typeof globalThis'.
+src/lib/pwa/service-worker.ts(143,11): error TS2339: Property 'request' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(151,11): error TS2339: Property 'respondWith' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(180,13): error TS2339: Property 'respondWith' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(183,11): error TS2339: Property 'respondWith' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(189,11): error TS2339: Property 'respondWith' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(195,11): error TS2339: Property 'respondWith' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(201,11): error TS2339: Property 'respondWith' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(207,10): error TS2304: Cannot find name 'FetchEvent'.
+src/lib/pwa/service-worker.ts(263,42): error TS2304: Cannot find name 'FetchEvent'.
+src/lib/pwa/service-worker.ts(279,43): error TS2304: Cannot find name 'FetchEvent'.
+src/lib/pwa/service-worker.ts(333,12): error TS2339: Property 'skipWaiting' does not exist on type 'Window & typeof globalThis'.
+src/lib/pwa/service-worker.ts(336,12): error TS2339: Property 'clients' does not exist on type 'Window & typeof globalThis'.
+src/lib/pwa/service-worker.ts(340,26): error TS2304: Cannot find name 'Client'.
+src/lib/pwa/service-worker.ts(354,13): error TS2339: Property 'tag' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(355,11): error TS2339: Property 'waitUntil' does not exist on type 'Event'.
+src/lib/pwa/service-worker.ts(384,8): error TS2339: Property 'clients' does not exist on type 'Window & typeof globalThis'.
+src/lib/pwa/service-worker.ts(384,51): error TS7006: Parameter 'clients' implicitly has an 'any' type.
+src/lib/pwa/service-worker.ts(385,22): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/lib/quiz/auto-grading.ts(165,28): error TS2352: Conversion of type 'string | string[] | undefined' to type 'Record<string, string>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'string[]' is not comparable to type 'Record<string, string>'.
+    Index signature for type 'string' is missing in type 'string[]'.
+src/lib/quiz/auto-grading.ts(166,28): error TS2352: Conversion of type 'string | string[]' to type 'Record<string, string>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'string[]' is not comparable to type 'Record<string, string>'.
+    Index signature for type 'string' is missing in type 'string[]'.
+src/lib/reports/engagement-analytics.ts(35,38): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(154,54): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(208,40): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(211,47): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(237,46): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(263,46): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(312,45): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(312,50): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(313,35): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(364,20): error TS7006: Parameter 'm' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(467,58): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(476,13): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(477,10): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(484,28): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/lib/reports/engagement-analytics.ts(484,31): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/sdk/generator.ts(1,27): error TS7016: Could not find a declaration file for module 'swagger-client'. '/Users/nazy/ADK_WORKSPACE/TutorMekimi/Tutor/tutorme-app/node_modules/swagger-client/lib/commonjs.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/swagger-client` if it exists or add a new declaration (.d.ts) file containing `declare module 'swagger-client';`
+src/lib/sdk/generator.ts(7,24): error TS2304: Cannot find name 'SDKOptions'.
+src/lib/sdk/generator.ts(10,28): error TS7006: Parameter 'request' implicitly has an 'any' type.
+src/lib/sdk/generator.ts(21,35): error TS2304: Cannot find name 'ChatMessageParams'.
+src/lib/sdk/generator.ts(21,63): error TS2304: Cannot find name 'ChatResponse'.
+src/lib/sdk/generator.ts(25,31): error TS2304: Cannot find name 'PaymentParams'.
+src/lib/security/ai-sanitization.ts(132,18): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/ai-sanitization.ts(168,18): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/client-encryption.ts(154,7): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: AlgorithmIdentifier | ... 3 more ... | AesDerivedKeyParams, extractable: boolean, keyUsages: Iterable<...>): Promise<...>', gave the following error.
+    Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BufferSource'.
+      Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+        Types of property 'buffer' are incompatible.
+          Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+            Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+  Overload 2 of 2, '(algorithm: AlgorithmIdentifier | EcdhKeyDeriveParams | HkdfParams | Pbkdf2Params, baseKey: CryptoKey, derivedKeyType: AlgorithmIdentifier | ... 3 more ... | AesDerivedKeyParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<...>', gave the following error.
+    Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BufferSource'.
+      Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+        Types of property 'buffer' are incompatible.
+          Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+            Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/security/client-encryption.ts(179,7): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BufferSource'.
+  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/security/client-encryption.ts(197,7): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'BufferSource'.
+  Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+    Types of property 'buffer' are incompatible.
+      Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+        Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/security/client-encryption.ts(439,7): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'BufferSource'.
+      Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+        Types of property 'buffer' are incompatible.
+          Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+            Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/security/client-encryption.ts(462,7): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'BufferSource'.
+      Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+        Types of property 'buffer' are incompatible.
+          Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+            Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/security/client-encryption.ts(484,5): error TS2322: Type 'string' is not assignable to type '"v1"'.
+src/lib/security/client-encryption.ts(493,5): error TS2322: Type 'string' is not assignable to type '"v1"'.
+src/lib/security/client-encryption.ts(546,7): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'Uint8Array<ArrayBufferLike>' is not assignable to parameter of type 'BufferSource'.
+      Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'ArrayBufferView<ArrayBuffer>'.
+        Types of property 'buffer' are incompatible.
+          Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.
+            Type 'SharedArrayBuffer' is missing the following properties from type 'ArrayBuffer': resizable, resize, detached, transfer, transferToFixedLength
+src/lib/security/client-encryption.ts(618,50): error TS2345: Argument of type 'string' is not assignable to parameter of type 'KeyUsage[]'.
+src/lib/security/comprehensive-audit.ts(459,12): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/security/comprehensive-audit.ts(462,12): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/security/payment-security.ts(145,18): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/payment-security.ts(244,18): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/payment-security.ts(363,18): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/payment-security.ts(427,55): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/lib/security/payment-security.ts(441,18): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/payment-security.ts(466,44): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ LOW: number; MEDIUM: number; HIGH: number; CRITICAL: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ LOW: number; MEDIUM: number; HIGH: number; CRITICAL: number; }'.
+src/lib/security/payment-security.ts(485,28): error TS18046: 'error' is of type 'unknown'.
+src/lib/security/pipl-compliance.ts(216,44): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/lib/security/pipl-compliance.ts(237,39): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/security/rate-limit.ts(43,40): error TS18048: 'windowMs' is possibly 'undefined'.
+src/lib/security/rate-limit.ts(89,32): error TS18048: 'windowMs' is possibly 'undefined'.
+src/lib/security/rate-limit.ts(100,51): error TS18048: 'windowMs' is possibly 'undefined'.
+src/lib/security/rbac.ts(24,7): error TS2741: Property 'PARENT' is missing in type '{ ADMIN: ("admin:payments:read" | "admin:webhooks:read" | "admin:api_keys" | "admin:users:read" | "tutor:clinics" | "tutor:reports:read" | "student:own:read" | "student:book")[]; TUTOR: ("tutor:clinics" | ... 2 more ... | "student:book")[]; STUDENT: ("student:own:read" | "student:book")[]; }' but required in type 'Record<Role, Permission[]>'.
+src/lib/security/security-audit.ts(74,55): error TS2345: Argument of type 'object' is not assignable to parameter of type 'AuditMetadata'.
+  Index signature for type 'string' is missing in type '{}'.
+src/lib/storage/s3.ts(18,5): error TS2724: '"@aws-sdk/client-s3"' has no exported member named 'DeleteObjectCommand'. Did you mean 'PutObjectCommand'?
+src/lib/storage/s3.ts(19,5): error TS2305: Module '"@aws-sdk/client-s3"' has no exported member 'HeadObjectCommand'.
+src/lib/storage/s3.ts(21,28): error TS2724: '"@aws-sdk/client-s3"' has no exported member named 'GetObjectCommand'. Did you mean 'PutObjectCommand'?
+src/lib/storage/s3.ts(125,18): error TS2339: Property 'send' does not exist on type 'S3Client'.
+src/lib/stores/communication.store.ts(3,30): error TS2304: Cannot find name 'Conversation'.
+src/lib/stores/communication.store.ts(5,25): error TS2304: Cannot find name 'Message'.
+src/lib/stores/communication.store.ts(9,19): error TS2304: Cannot find name 'Template'.
+src/lib/stores/communication.store.ts(10,16): error TS2304: Cannot find name 'EditorState'.
+src/lib/stores/communication.store.ts(19,16): error TS2304: Cannot find name 'MessagePreferences'.
+src/lib/stores/communication.store.ts(23,68): error TS2304: Cannot find name 'SendOptions'.
+src/lib/stores/communication.store.ts(28,35): error TS2304: Cannot find name 'create'.
+src/lib/stores/communication.store.ts(29,3): error TS2304: Cannot find name 'persist'.
+src/lib/stores/communication.store.ts(30,5): error TS2304: Cannot find name 'immer'.
+src/lib/stores/communication.store.ts(30,12): error TS7006: Parameter 'set' implicitly has an 'any' type.
+src/lib/stores/communication.store.ts(30,17): error TS7006: Parameter 'get' implicitly has an 'any' type.
+src/lib/stores/communication.store.ts(32,27): error TS7006: Parameter 'conversationId' implicitly has an 'any' type.
+src/lib/stores/communication.store.ts(32,43): error TS7006: Parameter 'content' implicitly has an 'any' type.
+src/lib/stores/communication.store.ts(32,52): error TS7006: Parameter 'options' implicitly has an 'any' type.
+src/lib/stores/communication.store.ts(33,31): error TS2304: Cannot find name 'createMessage'.
+src/lib/stores/communication.store.ts(35,14): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/lib/stores/communication.store.ts(50,20): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/lib/stores/index.ts(4,36): error TS2307: Cannot find module './course-builder.store' or its corresponding type declarations.
+src/lib/stores/index.ts(6,39): error TS2304: Cannot find name 'createLiveClassStore'.
+src/lib/stores/index.ts(7,38): error TS2304: Cannot find name 'createCommunicationStore'.
+src/lib/stores/index.ts(8,38): error TS2304: Cannot find name 'createCourseBuilderStore'.
+src/lib/stores/live-class.store.ts(6,25): error TS2304: Cannot find name 'Student'.
+src/lib/stores/live-class.store.ts(11,13): error TS2304: Cannot find name 'ChatMessage'.
+src/lib/stores/live-class.store.ts(16,30): error TS2304: Cannot find name 'BreakoutRoom'.
+src/lib/stores/live-class.store.ts(20,33): error TS2304: Cannot find name 'WhiteboardLayer'.
+src/lib/stores/live-class.store.ts(30,25): error TS2304: Cannot find name 'Student'.
+src/lib/stores/live-class.store.ts(32,58): error TS2304: Cannot find name 'Student'.
+src/lib/stores/live-class.store.ts(33,25): error TS2304: Cannot find name 'ChatMessage'.
+src/lib/stores/live-class.store.ts(35,48): error TS2304: Cannot find name 'WhiteboardLayer'.
+src/lib/stores/live-class.store.ts(40,3): error TS2345: Argument of type 'StateCreator<LiveClassState, [], [["zustand/immer", never]], { students: Map<any, any>; handRaised: never[]; selectedStudent: null; messages: never[]; currentMessage: string; ... 10 more ...; updateStudentState: (studentId: string, updates: Student) => void; }>' is not assignable to parameter of type 'StateCreator<LiveClassState, [], [["zustand/immer", never]]>'.
+  Type 'StateCreator<LiveClassState, [], [["zustand/immer", never]], { students: Map<any, any>; handRaised: never[]; selectedStudent: null; messages: never[]; currentMessage: string; ... 10 more ...; updateStudentState: (studentId: string, updates: Student) => void; }>' is not assignable to type '(setState: { (partial: LiveClassState | Partial<LiveClassState> | ((state: LiveClassState) => LiveClassState | Partial<...>), replace?: false | undefined): void; (state: LiveClassState | ((state: LiveClassState) => LiveClassState), replace: true): void; }, getState: () => LiveClassState, store: StoreApi<...>) => Liv...'.
+    Type '{ students: Map<any, any>; handRaised: never[]; selectedStudent: null; messages: never[]; currentMessage: string; isTyping: Set<string>; breakoutRooms: Map<any, any>; activeBreakoutSession: null; ... 7 more ...; updateStudentState: (studentId: string, updates: Student) => void; }' is missing the following properties from type 'LiveClassState': removeStudent, addMessage, joinBreakoutRoom, setWhiteboardLayer, broadcastTutor
+src/lib/stores/live-class.store.ts(74,34): error TS2304: Cannot find name 'useLiveClassStore'.
+src/lib/stores/live-class.store.ts(74,53): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/lib/stores/live-class.store.ts(75,40): error TS2304: Cannot find name 'useLiveClassStore'.
+src/lib/stores/live-class.store.ts(75,59): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/lib/stores/live-class.store.ts(76,51): error TS18046: 's' is of type 'unknown'.
+src/lib/stores/live-class.store.ts(78,36): error TS2304: Cannot find name 'useLiveClassStore'.
+src/lib/stores/live-class.store.ts(78,55): error TS7006: Parameter 'state' implicitly has an 'any' type.
+src/lib/validation/parent-child-security.ts(27,7): error TS2353: Object literal may only specify known properties, and 'code' does not exist in type '{ path?: PropertyKey[] | undefined; abort?: boolean | undefined; params?: Record<string, any> | undefined; when?: ((payload: ParsePayload<unknown>) => boolean) | undefined; error?: string | ... 1 more ... | undefined; message?: string | undefined; }'.
+src/lib/validation/parent-child-security.ts(41,18): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: readonly Literal[], params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodLiteral<...>', gave the following error.
+    Argument of type 'boolean' is not assignable to parameter of type 'readonly Literal[]'.
+  Overload 2 of 2, '(value: true, params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodLiteral<...>', gave the following error.
+    Object literal may only specify known properties, and 'errorMap' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+src/lib/whiteboard/annotations.ts(20,13): error TS2693: 'string' only refers to a type, but is being used as a value here.
+src/lib/whiteboard/annotations.ts(208,7): error TS2322: Type '{ [x: string]: any; userId: string; startIndex: number; endIndex: number; }[]' is not assignable to type '{ userId: string; userName: string; startIndex: number; endIndex: number; }[]'.
+  Property 'userName' is missing in type '{ [x: string]: any; userId: string; startIndex: number; endIndex: number; }' but required in type '{ userId: string; userName: string; startIndex: number; endIndex: number; }'.
+src/lib/whiteboard/annotations.ts(253,7): error TS2322: Type '{ [x: string]: any; userId: string; startIndex: number; endIndex: number; }[]' is not assignable to type '{ userId: string; userName: string; startIndex: number; endIndex: number; }[]'.
+  Property 'userName' is missing in type '{ [x: string]: any; userId: string; startIndex: number; endIndex: number; }' but required in type '{ userId: string; userName: string; startIndex: number; endIndex: number; }'.
+src/lib/whiteboard/annotations.ts(288,5): error TS2322: Type '{ [x: string]: any; userId: string; startIndex: number; endIndex: number; }[]' is not assignable to type '{ userId: string; userName: string; startIndex: number; endIndex: number; }[]'.
+  Property 'userName' is missing in type '{ [x: string]: any; userId: string; startIndex: number; endIndex: number; }' but required in type '{ userId: string; userName: string; startIndex: number; endIndex: number; }'.
+src/lib/whiteboard/branching.ts(456,7): error TS2322: Type 'Branch | null | undefined' is not assignable to type 'Branch | undefined'.
+  Type 'null' is not assignable to type 'Branch | undefined'.
+src/lib/whiteboard/crdt-enhanced.ts(65,11): error TS2554: Expected 2-3 arguments, but got 1.
+src/lib/whiteboard/crdt-enhanced.ts(66,19): error TS2554: Expected 2-3 arguments, but got 1.
+src/lib/whiteboard/crdt-enhanced.ts(228,36): error TS2339: Property 'errors' does not exist on type 'ZodError<{ id: string; points: { x: number; y: number; pressure?: number | undefined; }[]; color: string; width: number; type: "pen" | "eraser" | "marker" | "text" | "shape" | "pencil" | "highlighter" | "calligraphy"; ... 18 more ...; targetPort?: "top" | ... 4 more ... | undefined; }>'.
+src/lib/whiteboard/crdt-enhanced.ts(228,48): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/whiteboard/crdt-enhanced.ts(264,36): error TS2339: Property 'errors' does not exist on type 'ZodError<{ id: string; type: "create" | "update" | "delete"; elementId: string; timestamp: number; vectorClock: Record<string, number>; userId: string; sessionId: string; data?: Record<string | number | symbol, unknown> | undefined; previousData?: Record<...> | undefined; }>'.
+src/lib/whiteboard/crdt-enhanced.ts(264,48): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/lib/whiteboard/durability.ts(349,36): error TS2352: Conversion of type '[key: string, items: [id: string, fields: string[]][]][] | null' to type '[string, [string, string[]][]]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '[key: string, items: [id: string, fields: string[]][]][]' is not comparable to type '[string, [string, string[]][]]'.
+    Target requires 2 element(s) but source may have fewer.
+src/lib/whiteboard/durability.ts(555,46): error TS7053: Element implicitly has an 'any' type because expression of type '1' can't be used to index type '{}'.
+  Property '1' does not exist on type '{}'.
+src/lib/whiteboard/index.ts(256,63): error TS2345: Argument of type 'WhiteboardStroke' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'WhiteboardStroke'.
+src/lib/whiteboard/pathfinding.ts(257,7): error TS2739: Type '{ x: number; y: number; }' is missing the following properties from type 'PathNode': g, h, f
+src/lib/whiteboard/pathfinding.ts(258,7): error TS2739: Type '{ x: number; y: number; }' is missing the following properties from type 'PathNode': g, h, f
+src/lib/whiteboard/pathfinding.ts(259,7): error TS2739: Type '{ x: number; y: number; }' is missing the following properties from type 'PathNode': g, h, f
+src/lib/whiteboard/pathfinding.ts(260,7): error TS2739: Type '{ x: number; y: number; }' is missing the following properties from type 'PathNode': g, h, f
+src/lib/whiteboard/performance.ts(224,10): error TS2540: Cannot assign to 'epsilon' because it is a read-only property.
+src/lib/whiteboard/performance.ts(594,59): error TS18048: 'options.simplificationThreshold' is possibly 'undefined'.
+src/stores/classroom-store.ts(145,3): error TS2345: Argument of type 'StateCreator<ClassroomState, [], [["zustand/immer", never]], { setStudents: (students: StudentState[]) => void; updateStudent: (userId: string, updates: Partial<StudentState>) => void; ... 36 more ...; classStartTime: Date; }>' is not assignable to parameter of type 'StateCreator<ClassroomState, [], [["zustand/immer", never]]>'.
+  Type 'StateCreator<ClassroomState, [], [["zustand/immer", never]], { setStudents: (students: StudentState[]) => void; updateStudent: (userId: string, updates: Partial<StudentState>) => void; ... 36 more ...; classStartTime: Date; }>' is not assignable to type '(setState: { (partial: ClassroomState | Partial<ClassroomState> | ((state: ClassroomState) => ClassroomState | Partial<...>), replace?: false | undefined): void; (state: ClassroomState | ((state: ClassroomState) => ClassroomState), replace: true): void; }, getState: () => ClassroomState, store: StoreApi<...>) => Cla...'.
+    Call signature return types '{ setStudents: (students: StudentState[]) => void; updateStudent: (userId: string, updates: Partial<StudentState>) => void; setChatMessages: (messages: ChatMessage[]) => void; ... 35 more ...; classStartTime: Date; }' and 'ClassroomState' are incompatible.
+      The types of 'agenda' are incompatible between these types.
+        Type '{ id: string; title: string; duration: number; type: string; status: string; }[]' is not assignable to type 'AgendaItem[]'.
+          Type '{ id: string; title: string; duration: number; type: string; status: string; }' is not assignable to type 'AgendaItem'.
+            Types of property 'type' are incompatible.
+              Type 'string' is not assignable to type '"content" | "quiz" | "discussion" | "activity" | "intro" | "break" | "wrapup"'.

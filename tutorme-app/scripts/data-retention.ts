@@ -7,9 +7,9 @@
  * Or: npm run data-retention (if script added)
  */
 
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { drizzleDb } from '../src/lib/db/drizzle'
+import { webhookEvent, userActivityLog } from '../src/lib/db/schema'
+import { lt } from 'drizzle-orm'
 
 const WEBHOOK_RETENTION_DAYS = parseInt(process.env.WEBHOOK_RETENTION_DAYS ?? '90', 10)
 const AUDIT_RETENTION_DAYS = parseInt(process.env.AUDIT_RETENTION_DAYS ?? '365', 10)
@@ -20,13 +20,13 @@ async function main() {
   const auditCutoff = new Date(now.getTime() - AUDIT_RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
   const [webhookResult, auditResult] = await Promise.all([
-    prisma.webhookEvent.deleteMany({ where: { createdAt: { lt: webhookCutoff } } }),
-    prisma.userActivityLog.deleteMany({ where: { createdAt: { lt: auditCutoff } } })
+    drizzleDb.delete(webhookEvent).where(lt(webhookEvent.createdAt, webhookCutoff)).returning({ id: webhookEvent.id }),
+    drizzleDb.delete(userActivityLog).where(lt(userActivityLog.createdAt, auditCutoff)).returning({ id: userActivityLog.id })
   ])
 
   console.log(
-    `Data retention: deleted ${webhookResult.count} webhook events (older than ${WEBHOOK_RETENTION_DAYS}d), ` +
-      `${auditResult.count} activity logs (older than ${AUDIT_RETENTION_DAYS}d).`
+    `Data retention: deleted ${webhookResult.length} webhook events (older than ${WEBHOOK_RETENTION_DAYS}d), ` +
+    `${auditResult.length} activity logs (older than ${AUDIT_RETENTION_DAYS}d).`
   )
 }
 
@@ -35,4 +35,7 @@ main()
     console.error(e)
     process.exit(1)
   })
-  .finally(() => prisma.$disconnect())
+  .finally(() => {
+    console.log('Finished data retention run.')
+    process.exit(0)
+  })

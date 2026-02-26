@@ -15,10 +15,11 @@ docker-compose up -d db redis
 sleep 5
 
 echo "Running migrations..."
-npx prisma migrate dev --name init
+npx drizzle-kit push
 
-echo "Generating Prisma client..."
-npx prisma generate
+echo "Generating schemas..."
+npx drizzle-kit generate
+npx prisma generate # Required temporarily until Phase 3 query migration is complete
 
 echo "Initializing admin system..."
 npx tsx src/scripts/seed-admin.ts
