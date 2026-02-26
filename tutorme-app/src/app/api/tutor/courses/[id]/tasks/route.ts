@@ -40,14 +40,14 @@ export async function GET(req: NextRequest) {
         where: { curriculumId },
         select: { lessons: { select: { id: true } } },
     })
-    const lessonIds = modules.flatMap((m) => m.lessons.map((l) => l.id))
+    const lessonIds = modules.flatMap((m: any) => m.lessons.map((l: any) => l.id))
 
     // Get all batches for this curriculum
     const batches = await db.courseBatch.findMany({
         where: { curriculumId },
         select: { id: true },
     })
-    const batchIds = batches.map((b) => b.id)
+    const batchIds = batches.map((b: any) => b.id)
 
     // Fetch tasks by tutor that belong to this course (via lesson or batch)
     const tasks = await db.generatedTask.findMany({
@@ -62,15 +62,15 @@ export async function GET(req: NextRequest) {
     })
 
     // Count submissions per task
-    const taskIds = tasks.map((t) => t.id)
+    const taskIds = tasks.map((t: any) => t.id)
     const submissionCounts = await db.taskSubmission.groupBy({
         by: ['taskId'],
         where: { taskId: { in: taskIds } },
         _count: { id: true },
     })
-    const submissionMap = new Map(submissionCounts.map((s) => [s.taskId, s._count.id]))
+    const submissionMap = new Map(submissionCounts.map((s: any) => [s.taskId, s._count.id]))
 
-    const result = tasks.map((t) => ({
+    const result = tasks.map((t: any) => ({
         id: t.id,
         title: t.title,
         description: t.description,
