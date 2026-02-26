@@ -51,7 +51,7 @@ async function getHandler(req: NextRequest, session: Session) {
         take: limit
       })
 
-      groups = memberships.map((membership) => ({
+      groups = memberships.map((membership: any) => ({
         ...membership.group,
         isMember: true,
         memberRole: membership.role,
@@ -92,7 +92,7 @@ async function getHandler(req: NextRequest, session: Session) {
         take: limit
       })
 
-      groups = groups.map((group) => ({
+      groups = groups.map((group: any) => ({
         ...group,
         isMember: group.members.length > 0,
         memberRole: group.members[0]?.role ?? null,
@@ -270,8 +270,8 @@ async function deleteHandler(req: NextRequest, session: Session) {
 
     // Check if user is the creator (can't leave, must delete group)
     if (membership.group.createdBy === session.user.id) {
-      return NextResponse.json({ 
-        error: 'Group creator cannot leave. Delete the group instead.' 
+      return NextResponse.json({
+        error: 'Group creator cannot leave. Delete the group instead.'
       }, { status: 400 })
     }
 

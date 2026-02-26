@@ -22,7 +22,8 @@ function normalizeCourseText(value: string): string {
  */
 export const GET = withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
-  const { id: classId } = await params
+  const params = await context?.params ?? {}
+  const { id: classId } = params
 
   const liveSession = await db.liveSession.findFirst({
     where: {
@@ -168,7 +169,8 @@ export const GET = withAuth(async (req, session, context: any) => {
  */
 export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
-  const { id: classId } = await params
+  const params = await context?.params ?? {}
+  const { id: classId } = params
 
   const liveSession = await db.liveSession.findFirst({
     where: {
@@ -209,7 +211,8 @@ export const POST = withCsrf(withAuth(async (req, session, context: any) => {
 
 export const DELETE = withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
-  const { id: classId } = await params
+  const params = await context?.params ?? {}
+  const { id: classId } = params
 
   try {
     // Check if the class exists and belongs to this tutor

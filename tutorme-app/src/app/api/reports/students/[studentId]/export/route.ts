@@ -72,14 +72,14 @@ export const GET = withAuth(async (req: NextRequest, session, context: any) => {
     switch (format.toLowerCase()) {
       case 'pdf': {
         const pdfBuffer = generateStudentReportPDF(studentData, classInfo)
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(pdfBuffer as any, {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="student-report-${studentId}.pdf"`,
           },
         })
       }
-      
+
       case 'csv': {
         const csvData = generateCSV([studentData as unknown as Record<string, unknown>])
         return new NextResponse(csvData, {
@@ -89,7 +89,7 @@ export const GET = withAuth(async (req: NextRequest, session, context: any) => {
           },
         })
       }
-      
+
       default:
         return NextResponse.json(
           { success: false, error: 'Invalid format. Use pdf or csv' },

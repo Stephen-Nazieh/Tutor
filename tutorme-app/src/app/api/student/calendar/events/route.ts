@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       orderBy: { clinic: { startTime: 'asc' } },
     })
 
-    const events = bookings.map((b) => {
+    const events = bookings.map((b: any) => {
       const clinic = b.clinic
       const startTime = new Date(clinic.startTime)
       const endTime = new Date(startTime.getTime() + clinic.duration * 60 * 1000)

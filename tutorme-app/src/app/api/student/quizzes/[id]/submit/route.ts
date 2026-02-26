@@ -10,30 +10,30 @@ import { db } from '@/lib/db'
 import { gradeQuiz } from '@/lib/quiz/auto-grading'
 
 export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await context.params
+    const params = await context?.params ?? {}
     const { id } = params
     const studentId = session.user.id
-    
+
     const body = await req.json()
     const { attemptId, answers, timeSpent } = body
-    
+
     if (!attemptId) {
         throw new ValidationError('attemptId is required')
     }
-    
+
     if (!answers || typeof answers !== 'object') {
         throw new ValidationError('answers are required')
     }
-    
+
     // Get quiz
     const quiz = await db.quiz.findUnique({
         where: { id }
     })
-    
+
     if (!quiz) {
         throw new NotFoundError('Quiz not found')
     }
-    
+
     // Get attempt
     const attempt = await db.quizAttempt.findFirst({
         where: {
@@ -43,11 +43,11 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
             status: 'in_progress'
         }
     })
-    
+
     if (!attempt) {
         throw new NotFoundError('Active attempt not found')
     }
-    
+
     // Check if time limit exceeded
     if (quiz.timeLimit) {
         const elapsedMinutes = (Date.now() - attempt.startedAt.getTime()) / 60000
@@ -56,14 +56,14 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
             console.log(`Quiz ${id} auto-submitted due to time limit for student ${studentId}`)
         }
     }
-    
+
     // Grade the quiz
     const questions = quiz.questions as any[]
     const gradingResult = await gradeQuiz(questions, answers, {
         useAI: true,
         studentId
     })
-    
+
     // Update attempt
     const updatedAttempt = await db.quizAttempt.update({
         where: { id: attemptId },
@@ -78,23 +78,23 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
             isGraded: true
         }
     })
-    
+
     // Award XP and check for badges
     try {
         const { onQuizComplete } = await import('@/lib/gamification/triggers')
         const gamificationResult = await onQuizComplete(
             studentId,
-            id,
+            Array.isArray(id) ? id[0] : id,
             gradingResult.percentage,
             gradingResult.percentage === 100
         )
-        
-        // Include gamification results in response
-        ;(updatedAttempt as any).gamification = gamificationResult
+
+            // Include gamification results in response
+            ; (updatedAttempt as any).gamification = gamificationResult
     } catch (error) {
         console.error('Failed to award XP/badges:', error)
     }
-    
+
     return NextResponse.json({
         success: true,
         attempt: {

@@ -22,7 +22,7 @@ const SaveWhiteboardSchema = z.object({
 })
 
 export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context.params
+  const params = await context?.params ?? {}
   const { sessionId } = params
   const userId = session.user.id
 
@@ -40,7 +40,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   if (payloadSize > MAX_PAYLOAD_BYTES) {
     return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
   }
-  
+
   // Find the whiteboard page
   const page = await db.whiteboardPage.findFirst({
     where: {
@@ -51,23 +51,23 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       }
     }
   })
-  
+
   if (!page) {
     return NextResponse.json({ error: 'Page not found' }, { status: 404 })
   }
-  
+
   // Update page
   const updateData: Record<string, unknown> = {}
   if (strokes !== undefined) updateData.strokes = strokes
   if (shapes !== undefined) updateData.shapes = shapes
   if (texts !== undefined) updateData.texts = texts
   if (viewState !== undefined) updateData.viewState = viewState
-  
+
   const updatedPage = await db.whiteboardPage.update({
     where: { id: pageId },
     data: updateData
   })
-  
+
   // Update whiteboard updatedAt
   await db.whiteboard.updateMany({
     where: {
@@ -78,6 +78,6 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       updatedAt: new Date()
     }
   })
-  
+
   return NextResponse.json({ success: true, page: updatedPage })
 })
