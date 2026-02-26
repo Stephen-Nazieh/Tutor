@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'

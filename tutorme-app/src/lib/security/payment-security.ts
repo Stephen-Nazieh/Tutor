@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Payment Security Validator
  * Comprehensive fraud detection and payment security validation

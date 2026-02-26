@@ -4,16 +4,16 @@ import prettier from 'eslint-config-prettier/flat';
 
 const config = [
   {
-    linterOptions: {
-      reportUnusedDisableDirectives: false,
-    },
     ignores: [
       '.next/**',
       'out/**',
       'build/**',
-      'coverage/**',
+      'coverage/',
+      'playwright-report/',
       'playwright-report/**',
+      'test-results/',
       'test-results/**',
+      'node_modules/',
       'node_modules/**',
       'next-env.d.ts',
       'public/**',
@@ -24,6 +24,11 @@ const config = [
       'pkg_head.json',
       'pkg_head2.json',
     ],
+  },
+  {
+    linterOptions: {
+      reportUnusedDisableDirectives: false,
+    },
   },
   ...nextVitals,
   ...nextTs,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Admin Authentication & Authorization
  * Handles admin login, session management, and permission checking

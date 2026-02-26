@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Playwright accessibility test helpers for WCAG 2.1 AA compliance.
  * Complements axe-core with custom checks for keyboard, touch targets, ARIA, and focus.

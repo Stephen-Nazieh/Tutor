@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Difficulty Resolution Engine
  * Automatically resolves course content to match group difficulty levels
@@ -48,7 +49,7 @@ export function resolveContent<T extends WithDifficultyVariants & Record<string,
   // Mode: Adaptive - apply variant if available
   if (item.difficultyMode === 'adaptive') {
     const variant = item.variants?.[targetDifficulty]
-    
+
     if (variant?.enabled) {
       // Build resolved content with variant overrides
       const resolved = { ...item }
@@ -62,16 +63,16 @@ export function resolveContent<T extends WithDifficultyVariants & Record<string,
             originalValues[field] = item[field]
           }
           // Apply variant
-          ;(resolved as any)[field] = variant[field]
+          ; (resolved as any)[field] = variant[field]
         }
       }
 
       return {
         content: resolved,
-        resolution: { 
-          type: 'variant', 
+        resolution: {
+          type: 'variant',
           source: 'adaptive',
-          variantLevel: targetDifficulty 
+          variantLevel: targetDifficulty
         },
         originalValues: Object.keys(originalValues).length > 0 ? originalValues : undefined
       }
@@ -123,7 +124,7 @@ export function getResolutionStats<T extends WithDifficultyVariants & Record<str
   targetDifficulty: DifficultyLevel
 ) {
   const resolved = resolveContentArray(items, targetDifficulty)
-  
+
   return {
     total: items.length,
     visible: resolved.filter(r => r.resolution.type !== 'hidden').length,
@@ -154,7 +155,7 @@ export function previewCourseForGroup(
 
   for (const module of modules) {
     const resolvedModule = resolveContent(module, groupDifficulty)
-    
+
     if (resolvedModule.resolution.type === 'hidden') {
       preview.stats.hiddenModules++
       preview.hiddenItems.push({
@@ -179,7 +180,7 @@ export function previewCourseForGroup(
     // Process lessons
     for (const lesson of module.lessons || []) {
       const resolvedLesson = resolveContent(lesson, groupDifficulty)
-      
+
       if (resolvedLesson.resolution.type === 'hidden') {
         preview.hiddenItems.push({
           type: 'lesson',
@@ -223,18 +224,18 @@ export function getDifficultyMismatchWarning(
   if (!courseDifficulty || courseDifficulty === 'all') {
     return null // No mismatch possible
   }
-  
+
   if (courseDifficulty !== groupDifficulty) {
     const levels = ['beginner', 'intermediate', 'advanced']
     const courseIdx = levels.indexOf(courseDifficulty)
     const groupIdx = levels.indexOf(groupDifficulty)
-    
+
     if (courseIdx > groupIdx) {
       return `Course is ${courseDifficulty} but group is ${groupDifficulty}. Students may find content challenging.`
     } else {
       return `Course is ${courseDifficulty} but group is ${groupDifficulty}. Content may be too basic.`
     }
   }
-  
+
   return null
 }

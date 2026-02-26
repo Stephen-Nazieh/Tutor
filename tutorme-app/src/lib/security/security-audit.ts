@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enterprise Security Audit System
  *

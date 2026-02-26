@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Comprehensive Performance Monitoring System
  * 

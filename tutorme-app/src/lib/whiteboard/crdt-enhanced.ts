@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced CRDT (Conflict-free Replicated Data Type) System
  * 

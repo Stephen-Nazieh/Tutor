@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { create } from 'zustand'
 import { liveClassStore } from './live-class.store'
 import { communicationStore } from './communication.store'

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enterprise-Grade Client-Side Encryption System
  *

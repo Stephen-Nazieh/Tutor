@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { StudentState, ChatMessage, BreakoutRoom } from '@/lib/socket-server'

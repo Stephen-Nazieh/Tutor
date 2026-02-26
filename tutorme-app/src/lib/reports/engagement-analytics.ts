@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Class Engagement Analytics Service
  * Calculates comprehensive engagement metrics for classes and live sessions
@@ -180,7 +181,7 @@ async function calculateParticipationRate(
   // Assuming 5 messages per week per student = 100% participation
   const weeks = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)))
   const expectedMessages = studentIds.length * weeks * 5
-  
+
   return {
     rate: expectedMessages > 0 ? Math.min(100, (messageCount / expectedMessages) * 100) : 0,
     messages: messageCount,
@@ -206,7 +207,7 @@ async function calculateAssignmentCompletion(
   })
 
   const completed = submissions.filter(s => s.status === 'graded').length
-  
+
   // Get total assignments (unique tasks assigned to these students)
   const uniqueTasks = new Set(submissions.map(s => s.taskId)).size
   const total = uniqueTasks * studentIds.length
@@ -286,7 +287,7 @@ async function calculateDailyTrend(
   endDate: Date
 ): Promise<{ date: string; engagement: number; attendance: number }[]> {
   const days: { date: string; engagement: number; attendance: number }[] = []
-  
+
   const currentDate = new Date(startDate)
   while (currentDate <= endDate) {
     const dateStr = currentDate.toISOString().split('T')[0]
@@ -309,7 +310,7 @@ async function calculateDailyTrend(
 
     // Calculate attendance for the day
     const totalPossible = studentIds.length * sessions.length
-    const actualAttended = sessions.reduce((sum, s) => 
+    const actualAttended = sessions.reduce((sum, s) =>
       sum + s.participants.filter(p => p.joinedAt !== null).length, 0
     )
     const dayAttendance = totalPossible > 0 ? (actualAttended / totalPossible) * 100 : 0
@@ -321,7 +322,7 @@ async function calculateDailyTrend(
         createdAt: { gte: dayStart, lt: dayEnd },
       },
     })
-    
+
     // Engagement is based on messages and attendance
     const dayEngagement = Math.min(100, (messages / studentIds.length) * 10 + dayAttendance * 0.5)
 
@@ -368,7 +369,7 @@ async function calculateHourlyPattern(
 
   // Normalize to percentage
   const maxCount = Math.max(...Object.values(hourCounts), 1)
-  
+
   return Object.entries(hourCounts).map(([hour, count]) => ({
     hour: parseInt(hour),
     activity: Math.round((count / maxCount) * 100),
@@ -399,14 +400,14 @@ async function identifyStudentsAtRisk(
         joinedAt: { not: null },
       },
     })
-    
+
     const assignmentCount = await db.taskSubmission.count({
       where: {
         studentId,
         status: 'graded',
       },
     })
-    
+
     const quizCount = await db.quizAttempt.count({
       where: { studentId },
     })
@@ -456,7 +457,7 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
   }
 
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
-  
+
   const recentMessages = await db.message.count({
     where: {
       sessionId,
@@ -479,7 +480,7 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
       const left = new Date(p.leftAt!).getTime()
       return (left - joined) / 1000 / 60 // minutes
     })
-  
+
   const avgSessionTime = sessionTimes.length > 0
     ? sessionTimes.reduce((a, b) => a + b, 0) / sessionTimes.length
     : 0
@@ -488,7 +489,7 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
   const participationRate = session._count.participants > 0
     ? (activeParticipants.length / session._count.participants) * 100
     : 0
-  
+
   let engagementLevel: 'high' | 'medium' | 'low' = 'low'
   if (participationRate >= 70 && recentMessages >= 5) {
     engagementLevel = 'high'

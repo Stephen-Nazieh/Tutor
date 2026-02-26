@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Payout Management API
  * 

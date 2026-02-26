@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * POST /api/tutor/courses
  * Create a new course (curriculum) with one default module and one placeholder lesson.

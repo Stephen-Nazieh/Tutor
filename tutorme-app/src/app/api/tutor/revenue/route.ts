@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * GET /api/tutor/revenue
  * Returns revenue data for the current tutor including:

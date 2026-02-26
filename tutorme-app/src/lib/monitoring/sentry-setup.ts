@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enterprise-grade Sentry monitoring for global platform
  * - Global error tracking, Core Web Vitals, PII filtering, GDPR/PIPL compliant

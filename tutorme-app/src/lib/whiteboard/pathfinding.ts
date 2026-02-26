@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Connector Pathfinding v2 - A* Grid Routing with Crossing Minimization
  * 

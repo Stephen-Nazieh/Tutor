@@ -48,14 +48,13 @@ import { cn } from '@/lib/utils'
 import { AIWhiteboard, extractWhiteboardItems } from '@/components/ai-tutor/ai-whiteboard'
 import { TopicSidebar } from '@/components/ai-tutor/topic-sidebar'
 import { TutorPreferences } from '@/components/ai-tutor/tutor-preferences'
-import { AIAvatar, AIAvatarPlaceholder } from '@/components/ai-tutor/ai-avatar'
-import {
-  PersonalitySelector,
-  XpAnimation,
-  LevelUpAnimation,
-  ConfidenceMeter
-} from '@/components/gamification'
-import type { AvatarPersonality } from '@/lib/gamification/service'
+import dynamic from 'next/dynamic'
+import { AIAvatarPlaceholder } from '@/components/ai-tutor/ai-avatar'
+const AIAvatar = dynamic(() => import('@/components/ai-tutor/ai-avatar').then(m => m.AIAvatar), { ssr: false })
+import { PersonalitySelector } from '@/components/gamification/personality-selector'
+import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
+import { ConfidenceMeter } from '@/components/gamification/confidence-meter'
+import type { AvatarPersonality } from '@/lib/gamification/constants'
 import {
   Select,
   SelectContent,
@@ -871,8 +870,8 @@ export default function SubjectChatPage() {
 
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${message.role === 'user'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white border shadow-sm'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white border shadow-sm'
                           }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>

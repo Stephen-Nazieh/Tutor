@@ -60,7 +60,7 @@ function buildArcPoints(start: THREE.Vector3, end: THREE.Vector3, active: boolea
 // Day/Night Cycle Component - Shows which parts of Earth are in daylight
 function DayNightCycle() {
   const meshRef = useRef<THREE.Mesh>(null)
-  
+
   useFrame(() => {
     if (!meshRef.current) return
     // Rotate based on current UTC time
@@ -93,9 +93,9 @@ function DayNightCycle() {
   return (
     <mesh ref={meshRef}>
       <sphereGeometry args={[GLOBE_RADIUS + 0.02, 64, 64]} />
-      <meshBasicMaterial 
-        map={texture} 
-        transparent 
+      <meshBasicMaterial
+        map={texture}
+        transparent
         opacity={0.4}
         blending={THREE.MultiplyBlending}
       />
@@ -104,11 +104,11 @@ function DayNightCycle() {
 }
 
 // Cluster Marker Component - Shows grouped users when zoomed out
-function ClusterMarker({ 
-  cluster, 
+function ClusterMarker({
+  cluster,
   onClick,
-  cameraDistance 
-}: { 
+  cameraDistance
+}: {
   cluster: Cluster
   onClick: () => void
   cameraDistance: number
@@ -116,7 +116,7 @@ function ClusterMarker({
   const meshRef = useRef<THREE.Mesh>(null)
   const count = cluster.users.length
   const color = CLUSTER_COLORS[cluster.id.charCodeAt(0) % CLUSTER_COLORS.length]
-  
+
   // Scale based on count and camera distance
   const baseScale = Math.min(0.15, 0.08 + count * 0.01)
   const scale = baseScale * Math.min(1, cameraDistance / 6)
@@ -140,7 +140,7 @@ function ClusterMarker({
       </mesh>
       <Html distanceFactor={10}>
         <div className="flex flex-col items-center pointer-events-none">
-          <div 
+          <div
             className="px-2 py-0.5 rounded-full text-xs font-bold text-white whitespace-nowrap"
             style={{ backgroundColor: color }}
           >
@@ -156,12 +156,12 @@ function ClusterMarker({
 }
 
 // Enhanced User Marker with mock data indicator
-function UserMarker({ 
-  user, 
-  onHover, 
+function UserMarker({
+  user,
+  onHover,
   onLeave,
-  cameraDistance 
-}: { 
+  cameraDistance
+}: {
   user: UserWithPosition
   onHover: (user: UserWithPosition, x: number, y: number) => void
   onLeave: () => void
@@ -169,10 +169,10 @@ function UserMarker({
 }) {
   const meshRef = useRef<THREE.Mesh>(null)
   const glowRef = useRef<THREE.Mesh>(null)
-  
+
   const color = user.role === 'TUTOR' ? TUTOR_COLOR : STUDENT_COLOR
   const scale = (user.role === 'TUTOR' ? 0.08 : 0.062) * Math.min(1, cameraDistance / 6)
-  
+
   useFrame(({ clock }) => {
     if (glowRef.current && user.isActive) {
       const pulse = (Math.sin(clock.getElapsedTime() * 3) + 1) / 2
@@ -206,7 +206,7 @@ function UserMarker({
           emissiveIntensity={user.isActive ? 1.12 : 0.55}
         />
       </mesh>
-      
+
       {/* Glow effect */}
       {user.isActive && (
         <mesh ref={glowRef} scale={[scale * 2.4, scale * 2.4, scale * 2.4]}>
@@ -218,7 +218,7 @@ function UserMarker({
           />
         </mesh>
       )}
-      
+
       {/* Mock data indicator - small dot */}
       {user.isMock && (
         <mesh position={[scale * 1.5, scale * 1.5, 0]} scale={[scale * 0.3, scale * 0.3, scale * 0.3]}>
@@ -226,7 +226,7 @@ function UserMarker({
           <meshBasicMaterial color="#fbbf24" />
         </mesh>
       )}
-      
+
       {/* HTML Label for active users */}
       {user.isActive && (
         <Html distanceFactor={10}>
@@ -251,12 +251,12 @@ function UserMarker({
 }
 
 // Optimized Arc Component with LOD (Level of Detail)
-function AnimatedArc({ 
-  session, 
+function AnimatedArc({
+  session,
   pulse,
   cameraDistance,
   isVisible
-}: { 
+}: {
   session: SessionWithPositions
   pulse: number
   cameraDistance: number
@@ -264,7 +264,7 @@ function AnimatedArc({
 }) {
   const lineRef = useRef<any>(null)
   const particlesRef = useRef<THREE.Points>(null)
-  
+
   // Skip expensive calculations if not visible
   const points = useMemo(() => {
     if (!isVisible) return []
@@ -279,14 +279,14 @@ function AnimatedArc({
   // Reduce animation frequency when camera is far
   useFrame(({ clock }) => {
     if (!particlesRef.current || !session.isActive || !curve || !isVisible) return
-    
+
     // Skip frames based on camera distance
     const frameSkip = cameraDistance > 7 ? 2 : 1
     if (Math.floor(clock.elapsedTime * 60) % frameSkip !== 0) return
-    
+
     const time = clock.getElapsedTime()
     const positions = particlesRef.current.geometry.attributes.position.array as Float32Array
-    
+
     for (let i = 0; i < 5; i++) {
       const t = ((time * 0.5 + i * 0.2) % 1)
       const point = curve.getPoint(t)
@@ -294,9 +294,16 @@ function AnimatedArc({
       positions[i * 3 + 1] = point.y
       positions[i * 3 + 2] = point.z
     }
-    
+
     particlesRef.current.geometry.attributes.position.needsUpdate = true
   })
+
+  const particleGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry()
+    const positions = new Float32Array(5 * 3)
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    return geometry
+  }, [])
 
   // Don't render if too far or not visible
   if (!isVisible || cameraDistance > 8) {
@@ -314,13 +321,6 @@ function AnimatedArc({
   const activeOpacity = 0.45 + pulse * 0.45
   const focusBoost = session.isActive
 
-  const particleGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry()
-    const positions = new Float32Array(5 * 3)
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    return geometry
-  }, [])
-
   return (
     <group>
       <Line
@@ -331,7 +331,7 @@ function AnimatedArc({
         opacity={session.isActive ? activeOpacity : focusBoost ? 0.35 : 0.2}
         lineWidth={session.isActive ? (focusBoost ? 3.0 : 2.4) : focusBoost ? 1.5 : 0.95}
       />
-      
+
       {session.isActive && cameraDistance < 7 && (
         <Line
           points={points}
@@ -341,7 +341,7 @@ function AnimatedArc({
           lineWidth={focusBoost ? 4.4 : 4.0}
         />
       )}
-      
+
       {session.isActive && cameraDistance < 6 && (
         <points ref={particlesRef} geometry={particleGeometry}>
           <pointsMaterial
@@ -416,10 +416,10 @@ function clusterUsers(users: UserWithPosition[], threshold: number = 15): Cluste
 
     for (const other of users) {
       if (visited.has(other.id)) continue
-      
+
       const latDiff = Math.abs(user.coordinates.lat - other.coordinates.lat)
       const lonDiff = Math.abs(user.coordinates.lon - other.coordinates.lon)
-      
+
       if (latDiff < threshold && lonDiff < threshold) {
         cluster.push(other)
         visited.add(other.id)
@@ -444,14 +444,14 @@ function clusterUsers(users: UserWithPosition[], threshold: number = 15): Cluste
 }
 
 // Main Scene Component
-function Scene({ 
-  users, 
+function Scene({
+  users,
   sessions,
   autoRotate,
   onAutoRotateChange,
   onStatsUpdate,
-  onUserHover 
-}: { 
+  onUserHover
+}: {
   users: OnlineUser[]
   sessions: LiveSession[]
   autoRotate: boolean
@@ -466,24 +466,24 @@ function Scene({
   const [showClusters, setShowClusters] = useState(false)
   const [clusters, setClusters] = useState<Cluster[]>([])
   const [selectedCluster, setSelectedCluster] = useState<Cluster | null>(null)
-  
+
   // Persist last known good data to prevent flickering during loading
   const lastGeoDataRef = useRef<GeolocationResult[] | null>(null)
   const lastUserPositionsRef = useRef<UserWithPosition[]>([])
   const lastSessionPositionsRef = useRef<SessionWithPositions[]>([])
-  
+
   const { camera } = useThree()
   const [cameraDistance, setCameraDistance] = useState(6.3)
-  
+
   // Hysteresis for clustering to prevent flickering at threshold
   const CLUSTER_OUT_THRESHOLD = 7.5  // Zoom out to enable clustering
   const CLUSTER_IN_THRESHOLD = 6.5   // Zoom in more to disable clustering
-  
+
   // Track camera distance for LOD with hysteresis
   useFrame(() => {
     const dist = camera.position.distanceTo(new THREE.Vector3(0, 0, 0))
     setCameraDistance(dist)
-    
+
     // Hysteresis: different thresholds for enabling vs disabling clustering
     setShowClusters(prev => {
       if (!prev && dist > CLUSTER_OUT_THRESHOLD) return true  // Enable when zoomed out far
@@ -500,7 +500,7 @@ function Scene({
     // Use cached data if available, or last known good data
     const effectiveGeoData = geoData || lastGeoDataRef.current
     if (!effectiveGeoData) return
-    
+
     // Update cache when we have fresh data
     if (geoData) {
       lastGeoDataRef.current = geoData
@@ -538,16 +538,16 @@ function Scene({
   // Build session positions with stable updates
   useEffect(() => {
     // Use last known positions if current ones are empty (loading state)
-    const effectiveUserPositions = userPositions.length > 0 
-      ? userPositions 
+    const effectiveUserPositions = userPositions.length > 0
+      ? userPositions
       : lastUserPositionsRef.current
-    
+
     const sessionsWithPos: SessionWithPositions[] = []
-    
+
     for (const session of sessions) {
       const tutor = effectiveUserPositions.find(u => u.id === session.tutorId)
       const student = effectiveUserPositions.find(u => u.id === session.studentId)
-      
+
       if (tutor && student) {
         sessionsWithPos.push({
           ...session,
@@ -556,20 +556,20 @@ function Scene({
         })
       }
     }
-    
+
     // Merge with existing sessions to prevent flickering - only update changed positions
     setSessionPositions(prev => {
       const newMap = new Map(sessionsWithPos.map(s => [s.id, s]))
       const prevMap = new Map(prev.map(s => [s.id, s]))
-      
+
       // Keep all current sessions, update positions if changed
       const merged: SessionWithPositions[] = []
       const allIds = new Set([...prevMap.keys(), ...newMap.keys()])
-      
+
       for (const id of allIds) {
         const newSession = newMap.get(id)
         const prevSession = prevMap.get(id)
-        
+
         if (newSession) {
           // Session exists in new data - use it
           merged.push(newSession)
@@ -579,10 +579,10 @@ function Scene({
           merged.push(prevSession)
         }
       }
-      
+
       return merged
     })
-    
+
     lastSessionPositionsRef.current = sessionsWithPos
   }, [sessions, userPositions])
 
@@ -612,7 +612,7 @@ function Scene({
       // Stable sort by ID to prevent random reordering
       return a.id.localeCompare(b.id)
     })
-    
+
     // Limit based on camera distance - show more when zoomed out, fewer when zoomed in
     const maxArcs = cameraDistance > 8 ? 30 : cameraDistance > 6 ? 50 : 75
     return sorted.slice(0, maxArcs)
@@ -649,12 +649,12 @@ function Scene({
       </Sphere>
 
       <Sphere args={[GLOBE_RADIUS, 96, 96]}>
-        <meshStandardMaterial 
-          color="#0c2a43" 
-          emissive="#0b3b5e" 
-          emissiveIntensity={0.36} 
-          metalness={0.2} 
-          roughness={0.52} 
+        <meshStandardMaterial
+          color="#0c2a43"
+          emissive="#0b3b5e"
+          emissiveIntensity={0.36}
+          metalness={0.2}
+          roughness={0.52}
         />
       </Sphere>
 
@@ -704,11 +704,11 @@ function Scene({
 }
 
 // Stats Panel Component
-function GeoStatsPanel({ 
-  mockCount, 
-  realCount, 
-  isLoading 
-}: { 
+function GeoStatsPanel({
+  mockCount,
+  realCount,
+  isLoading
+}: {
   mockCount: number
   realCount: number
   isLoading: boolean
@@ -743,7 +743,7 @@ function GeoStatsPanel({
         )}
       </div>
       <div className="mt-1 h-1 w-24 bg-slate-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className="h-full bg-gradient-to-r from-green-400 to-cyan-400 transition-all duration-500"
           style={{ width: `${realPercent}%` }}
         />
@@ -753,56 +753,56 @@ function GeoStatsPanel({
 }
 
 // User Tooltip Component
-function UserTooltip({ 
-  user, 
-  x, 
+function UserTooltip({
+  user,
+  x,
   y,
-  sessions 
-}: { 
+  sessions
+}: {
   user: UserWithPosition
   x: number
   y: number
   sessions: LiveSession[]
 }) {
   const color = user.role === 'TUTOR' ? TUTOR_COLOR : STUDENT_COLOR
-  const activeSessions = sessions.filter(s => 
+  const activeSessions = sessions.filter(s =>
     (user.role === 'TUTOR' ? s.tutorId : s.studentId) === user.id && s.isActive
   )
 
   return (
-    <div 
+    <div
       className="fixed z-50 pointer-events-none"
-      style={{ 
-        left: x + 15, 
+      style={{
+        left: x + 15,
         top: y - 15,
       }}
     >
-      <div 
+      <div
         className="bg-slate-900/95 backdrop-blur-md rounded-lg px-4 py-3 border shadow-2xl min-w-[200px]"
         style={{ borderColor: `${color}50` }}
       >
         <div className="flex items-center gap-2 mb-2">
-          <div 
+          <div
             className="w-2 h-2 rounded-full"
             style={{ backgroundColor: color }}
           />
           <span className="font-semibold text-white text-sm">{user.name}</span>
-          <span 
+          <span
             className="text-[10px] px-1.5 py-0.5 rounded"
-            style={{ 
+            style={{
               backgroundColor: `${color}30`,
-              color: color 
+              color: color
             }}
           >
             {user.role}
           </span>
         </div>
-        
+
         <div className="space-y-1 text-xs text-slate-400">
           <div className="flex items-center gap-1.5">
             <MapPin className="w-3 h-3" />
             <span>
-              {user.coordinates.city !== 'Unknown' 
+              {user.coordinates.city !== 'Unknown'
                 ? `${user.coordinates.city}, ${user.coordinates.country}`
                 : user.coordinates.country
               }
@@ -811,14 +811,14 @@ function UserTooltip({
               <span className="text-amber-400/70" title="Estimated location">(est.)</span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-1.5">
             <span className="text-slate-500">Lat:</span>
             <span>{user.coordinates.lat.toFixed(2)}°</span>
             <span className="text-slate-500 ml-2">Lon:</span>
             <span>{user.coordinates.lon.toFixed(2)}°</span>
           </div>
-          
+
           {activeSessions.length > 0 && (
             <div className="pt-2 mt-2 border-t border-slate-700">
               <span className="text-green-400">●</span>
@@ -839,9 +839,9 @@ function UserTooltip({
 }
 
 // Main Component
-export default function LiveTopologyGlobe({ 
-  users, 
-  sessions, 
+export default function LiveTopologyGlobe({
+  users,
+  sessions,
   className,
   autoRotate = true,
   onAutoRotateChange
@@ -856,32 +856,32 @@ export default function LiveTopologyGlobe({
       ref={containerRef}
       className={`absolute inset-0 overflow-hidden bg-[radial-gradient(circle_at_22%_18%,#14235f_0%,#05081d_42%,#020617_86%)] ${className}`}
     >
-      <GeoStatsPanel 
+      <GeoStatsPanel
         mockCount={geoStats.mockCount}
         realCount={geoStats.realCount}
         isLoading={isGeoLoading}
       />
-      
+
       {hoveredUser && (
-        <UserTooltip 
-          user={hoveredUser.user} 
-          x={hoveredUser.x} 
+        <UserTooltip
+          user={hoveredUser.user}
+          x={hoveredUser.x}
           y={hoveredUser.y}
           sessions={sessions}
         />
       )}
-      
+
       <Canvas
         camera={{ position: [0, 0, 6.3], fov: 46 }}
         dpr={[1, 1.8]}
         style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
       >
         <color attach="background" args={['#020617']} />
-        <Scene 
-          users={users} 
+        <Scene
+          users={users}
           sessions={sessions}
           autoRotate={autoRotate}
-          onAutoRotateChange={onAutoRotateChange || (() => {})}
+          onAutoRotateChange={onAutoRotateChange || (() => { })}
           onStatsUpdate={(stats) => {
             setGeoStats(stats)
             setIsGeoLoading(false)

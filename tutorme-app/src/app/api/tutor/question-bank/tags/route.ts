@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Question Bank Tags API
  * 

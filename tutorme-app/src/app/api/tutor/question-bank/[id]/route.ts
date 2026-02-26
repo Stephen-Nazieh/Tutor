@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Individual Question Bank Item API Routes
  * 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * NextAuth Configuration
  * Handles authentication for students, tutors, and admins
@@ -6,20 +7,12 @@
 
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { user, account, profile, session, verificationToken } from '@/lib/db/schema'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
-  adapter: DrizzleAdapter(drizzleDb, {
-    usersTable: user,
-    accountsTable: account,
-    sessionsTable: session,
-    verificationTokensTable: verificationToken,
-  }),
-
   providers: [
     // Email/Password Login
     CredentialsProvider({

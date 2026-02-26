@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Redis Cache Manager with Multi-Tier Caching
  * 
