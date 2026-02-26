@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { 
-  Activity, 
-  Users, 
-  Calendar, 
+import {
+  Activity,
+  Users,
+  Calendar,
   Clock,
   TrendingUp,
   TrendingDown,
@@ -45,7 +45,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
 
   useEffect(() => {
     if (!classId) return
-    
+
     fetchEngagementData()
   }, [classId, period])
 
@@ -55,7 +55,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
       const res = await fetch(`/api/analytics/engagement/${classId}?days=${period}`, {
         credentials: 'include',
       })
-      
+
       if (res.ok) {
         const data = await res.json()
         if (data.success) {
@@ -77,7 +77,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
       const res = await fetch(`/api/reports/engagement/${classId}?days=${period}`, {
         credentials: 'include',
       })
-      
+
       if (res.ok) {
         const blob = await res.blob()
         const url = window.URL.createObjectURL(blob)
@@ -199,8 +199,8 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
               </p>
               <Badge className={
                 engagement.overallEngagement >= 70 ? 'bg-green-100 text-green-700' :
-                engagement.overallEngagement >= 50 ? 'bg-yellow-100 text-yellow-700' :
-                'bg-red-100 text-red-700'
+                  engagement.overallEngagement >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
               }>
                 {getEngagementLabel(engagement.overallEngagement)} Engagement
               </Badge>
@@ -266,7 +266,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
             {engagement.dailyTrend.map((day, i) => {
               const maxEngagement = Math.max(...engagement.dailyTrend.map(d => d.engagement))
               const height = maxEngagement > 0 ? (day.engagement / maxEngagement) * 100 : 0
-              
+
               return (
                 <div
                   key={i}
@@ -278,7 +278,7 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
                   <span className="text-[10px] text-gray-500 rotate-45 origin-left translate-y-2">
                     {new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </span>
-                  
+
                   {/* Tooltip */}
                   <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
                     <div>Engagement: {day.engagement}%</div>
@@ -303,20 +303,20 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
             {engagement.hourlyPattern.map((hour) => {
               const maxActivity = Math.max(...engagement.hourlyPattern.map(h => h.activity))
               const height = maxActivity > 0 ? (hour.activity / maxActivity) * 100 : 0
-              
+
               return (
                 <div
                   key={hour.hour}
                   className="flex-1 flex flex-col items-center gap-1 group relative"
                 >
-                  <div 
+                  <div
                     className="w-full bg-purple-500 rounded-t-sm opacity-70 group-hover:opacity-100 transition-opacity"
                     style={{ height: `${height}%`, minHeight: '4px' }}
                   />
                   {hour.hour % 4 === 0 && (
                     <span className="text-[10px] text-gray-500">{hour.hour}</span>
                   )}
-                  
+
                   {/* Tooltip */}
                   <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
                     {hour.hour}:00 - Activity: {hour.activity}%
@@ -355,15 +355,15 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
   )
 }
 
-function MetricCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  description 
-}: { 
+function MetricCard({
+  title,
+  value,
+  icon: Icon,
+  description
+}: {
   title: string
   value: number
-  icon: React.ElementType
+  icon: any
   description: string
 }) {
   const getColor = (v: number) => {

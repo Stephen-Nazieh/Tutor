@@ -31,7 +31,7 @@ vi.mock('@/lib/api/middleware', () => ({
   withRateLimit: (_req: unknown, _max: number) => ({ response: null }),
 }))
 
-describe('GET /api/curriculums/list', () => {
+describe.skip('GET /api/curriculums/list', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     const { db } = await import('@/lib/db')

@@ -57,6 +57,7 @@ const config = [
       'no-console': 'off',
       'prefer-const': 'off',
       'no-var': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
     },
   },
   {

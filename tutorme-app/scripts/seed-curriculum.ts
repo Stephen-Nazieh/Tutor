@@ -84,8 +84,8 @@ async function seedCurriculum() {
   console.log('Seeding IELTS Academic curriculum...')
 
   // Check if already exists
-  const existing = await prisma.curriculum.findUnique({
-    where: { code: IELTS_STRUCTURE.code }
+  const existing = await prisma.curriculum.findFirst({
+    where: { name: IELTS_STRUCTURE.name }
   })
 
   if (existing) {
@@ -96,11 +96,10 @@ async function seedCurriculum() {
   // Create curriculum
   const curriculum = await prisma.curriculum.create({
     data: {
-      code: IELTS_STRUCTURE.code,
       name: IELTS_STRUCTURE.name,
-      category: IELTS_STRUCTURE.category,
+      subject: IELTS_STRUCTURE.category,
       description: IELTS_STRUCTURE.description,
-      createdBy: 'system'
+      creatorId: 'system'
     }
   })
 
@@ -109,7 +108,7 @@ async function seedCurriculum() {
   // Create modules and lessons
   for (let i = 0; i < IELTS_STRUCTURE.modules.length; i++) {
     const modData = IELTS_STRUCTURE.modules[i]
-    
+
     const module = await prisma.curriculumModule.create({
       data: {
         curriculumId: curriculum.id,
@@ -126,7 +125,7 @@ async function seedCurriculum() {
     // Create lessons
     for (let j = 0; j < modData.lessons.length; j++) {
       const lessonData = modData.lessons[j]
-      
+
       const lesson = await prisma.curriculumLesson.create({
         data: {
           moduleId: module.id,
@@ -142,7 +141,7 @@ async function seedCurriculum() {
           aiConfidence: 0.95
         }
       })
-      
+
       console.log('  Created lesson:', lesson.title)
     }
   }

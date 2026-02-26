@@ -1,0 +1,232 @@
+
+> tutorme-app@0.1.0 lint
+> eslint .
+
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/courses/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/dashboard/student-progress/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/payouts/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/question-bank/[id]/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/question-bank/tags/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/quizzes/[id]/analytics/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/quizzes/[id]/assign/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/quizzes/[id]/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/quizzes/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/revenue/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/tutor/stats/route.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/class/breakout-control-panel.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/class/course-dev-panel.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/class/polls/quick-poll.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/class/session-manager/session-timer.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/monitoring/ErrorBoundary.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/parent/PerformanceOptimizedDashboard.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/spaced-repetition/CalendarExport.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/spaced-repetition/ForgettingCurveGraph.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/student/PaymentAlertButton.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/whiteboard/BackgroundTemplates.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/whiteboard/GraphRenderer.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/whiteboard/ImageUpload.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/whiteboard/MathCanvas.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/components/whiteboard/PdfOverlay.tsx
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/hooks/use-math-whiteboard.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/hooks/use-unified-whiteboard.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/hooks/use-whiteboard-presence.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/hooks/useParentRealTimeNotifications.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/accessibility/test-helpers.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/admin/auth.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/api/error-handler.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/auth.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/cache-manager.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/db-enhanced.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/difficulty-resolver.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/extract-file-text.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/financial/parent-financial-service.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/monitoring/sentry-setup.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/monitoring/sentry.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/openapi/index.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/performance/bundle-optimizer.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/performance/optimization.tsx
+   1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/ban-ts-comment
+  67:23  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/performance/optimization.tsx:67:23
+  65 |   const parentRef = React.useRef<HTMLDivElement>(null);
+  66 |
+> 67 |   const virtualizer = useVirtualizer({
+     |                       ^^^^^^^^^^^^^^ TanStack Virtual's `useVirtualizer()` API returns functions that cannot be memoized safely
+  68 |     count: items.length,
+  69 |     getScrollElement: () => parentRef.current,
+  70 |     estimateSize,  react-hooks/incompatible-library
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/performance/parent-optimization.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/performance/performance-monitoring.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/performance/student-analytics.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/pwa/service-worker.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/quiz/auto-grading.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/reports/engagement-analytics.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/sdk/generator.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/ai-sanitization.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/client-encryption.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/comprehensive-audit.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/payment-security.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/pipl-compliance.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/rate-limit.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/rbac.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/security/security-audit.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/storage/s3.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/stores/communication.store.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/stores/index.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/stores/live-class.store.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/validation/parent-child-security.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/annotations.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/branching.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/crdt-enhanced.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/durability.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/index.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/pathfinding.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/whiteboard/performance.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/stores/classroom-store.ts
+  1:1  error  Do not use "@ts-nocheck" because it alters compilation errors  @typescript-eslint/ban-ts-comment
+
+✖ 72 problems (71 errors, 1 warning)
+
