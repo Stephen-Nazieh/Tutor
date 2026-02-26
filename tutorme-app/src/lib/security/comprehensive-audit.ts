@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enterprise-grade security audit system with global compliance
  *

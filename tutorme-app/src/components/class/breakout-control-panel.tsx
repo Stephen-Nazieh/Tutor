@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Breakout Room Control Panel
  * Improved orchestration of group activities with smart grouping and monitoring

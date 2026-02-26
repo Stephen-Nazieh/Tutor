@@ -8,18 +8,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
-import { 
-  getGamificationSummary, 
-  awardXp, 
+import {
+  getGamificationSummary,
+  awardXp,
   checkDailyLogin,
-  updateSkillScores,
-  XP_REWARDS 
+  updateSkillScores
 } from '@/lib/gamification/service'
+import { XP_REWARDS } from '@/lib/gamification/constants'
 
 // GET /api/gamification - Get user's gamification data
 export const GET = withAuth(async (req, session) => {
   const summary = await getGamificationSummary(session.user.id)
-  
+
   return NextResponse.json({ success: true, data: summary })
 }, { role: 'STUDENT' })
 
@@ -36,7 +36,7 @@ export const POST = withCsrf(withAuth(async (request: NextRequest, session) => {
   }
 
   const result = await awardXp(session.user.id, amount, source, metadata)
-  
+
   return NextResponse.json({ success: true, data: result })
 }, { role: 'STUDENT' }))
 
@@ -46,6 +46,6 @@ export const PUT = withCsrf(withAuth(async (request: NextRequest, session) => {
   const scores = body
 
   const result = await updateSkillScores(session.user.id, scores)
-  
+
   return NextResponse.json({ success: true, data: result })
 }, { role: 'STUDENT' }))

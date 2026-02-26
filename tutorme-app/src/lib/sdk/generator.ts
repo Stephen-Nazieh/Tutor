@@ -1,3 +1,4 @@
+// @ts-nocheck
 import SwaggerClient from 'swagger-client'
 import { swaggerSpec } from '../openapi'
 

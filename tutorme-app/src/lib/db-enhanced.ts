@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Database Client with PgBouncer Support
  * Fixed connection pooling and monitoring

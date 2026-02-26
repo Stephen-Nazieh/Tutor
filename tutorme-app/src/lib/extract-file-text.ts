@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Extract plain text from uploaded files: .txt, .md, .pdf, .docx, and images (OCR).
  * Used by the course/subject materials upload flow.

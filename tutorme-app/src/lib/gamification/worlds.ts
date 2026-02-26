@@ -11,10 +11,10 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { mission, missionProgress } from '@/lib/db/schema'
 import {
   awardXp,
-  XP_REWARDS,
   canAccessWorld,
   getOrCreateGamification,
 } from './service'
+import { XP_REWARDS } from './constants'
 import { logActivity } from './activity-log'
 
 export const DEFAULT_WORLDS = [

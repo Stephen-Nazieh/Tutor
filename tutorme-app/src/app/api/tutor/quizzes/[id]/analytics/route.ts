@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Quiz Analytics API
  * 

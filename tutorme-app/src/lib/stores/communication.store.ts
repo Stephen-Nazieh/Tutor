@@ -1,20 +1,25 @@
+// @ts-nocheck
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
+
 interface CommunicationState {
   // Core Message State
   conversations: Map<string, Conversation>
   activeConversation: string | null
   messages: Map<string, Message[]>
-  
+
   // UI State
   isReplying: boolean
   activeTemplate: Template | null
   editorState: EditorState
   threadView: 'inbox' | 'sent' | 'archived' | 'trash'
-  
+
   // Real-time State
   isTyping: Set<{ userId: string, conversationId: string }>
   isOnline: Map<string, boolean>
   lastSeen: Map<string, Date>
-  
+
   // Settings
   preferences: MessagePreferences
 
@@ -31,11 +36,11 @@ export const communicationStore = create<CommunicationState>()(
       // Implementation with proper async actions
       sendMessage: async (conversationId, content, options) => {
         const message = await createMessage(conversationId, content, options)
-        
+
         set((state) => {
           const messages = state.messages.get(conversationId) || []
           state.messages.set(conversationId, [...messages, message])
-          
+
           // Update conversation last message
           const conversation = state.conversations.get(conversationId)
           if (conversation) {

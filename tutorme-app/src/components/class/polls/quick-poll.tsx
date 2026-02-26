@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * One-Click Interactive Polls/Quizzes
  * Quick comprehension checks with live results

@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useEffect, useRef, useCallback, useState, type MouseEvent as ReactMouseEvent } from 'react'

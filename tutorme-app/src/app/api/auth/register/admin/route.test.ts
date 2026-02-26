@@ -68,8 +68,12 @@ describe('POST /api/auth/register/admin', () => {
     process.env.ADMIN_BOOTSTRAP_KEY = originalBootstrapKey
   })
 
-  it('returns 403 when admin bootstrap is already closed', async () => {
+  it('returns 400 when admin bootstrap is already closed', async () => {
     mocks.userCount.mockResolvedValue(1)
+
+    // Explicitly disable public registration for this test
+    const prevAllowPublic = process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION
+    process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION = 'false'
 
     const req = new Request('http://localhost/api/auth/register/admin', {
       method: 'POST',
@@ -78,7 +82,15 @@ describe('POST /api/auth/register/admin', () => {
     })
 
     const res = await POST(req as unknown as NextRequest)
-    expect(res.status).toBe(403)
+
+    // Restore env
+    if (prevAllowPublic === undefined) {
+      delete process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION
+    } else {
+      process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION = prevAllowPublic
+    }
+
+    expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ error: 'Admin bootstrap is closed' })
   })
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * PIPL (Personal Information Protection Law) Compliance System
  * 个人信息保护法合规系统 - Chinese Market

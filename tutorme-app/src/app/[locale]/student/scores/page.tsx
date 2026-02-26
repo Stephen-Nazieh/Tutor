@@ -27,7 +27,10 @@ import {
   Zap,
   Users
 } from 'lucide-react'
-import { SkillRadar, ConfidenceTracker, XpBar, DailyQuestsWidget } from '@/components/gamification'
+import { SkillRadar } from '@/components/gamification/skill-radar'
+import { ConfidenceTracker } from '@/components/gamification/confidence-tracker'
+import { XpBar } from '@/components/gamification/xp-bar'
+import { DailyQuestsWidget } from '@/components/gamification/daily-quests'
 
 interface ScoreData {
   id: string

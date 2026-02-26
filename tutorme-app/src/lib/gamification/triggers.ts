@@ -7,7 +7,8 @@
 import { eq, and, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { taskSubmission, quizAttempt, sessionParticipant, message } from '@/lib/db/schema'
-import { awardXp, XP_REWARDS, getOrCreateGamification, checkDailyLogin } from './service'
+import { awardXp, getOrCreateGamification, checkDailyLogin } from './service'
+import { XP_REWARDS } from './constants'
 import { checkAndAwardBadges, awardBadge } from './badges'
 import { updateLeaderboardEntry } from './leaderboard'
 

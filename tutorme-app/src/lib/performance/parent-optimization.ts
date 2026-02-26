@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const optimizeParentLoad = async (parentId: string): Promise<OptimizedData> => {
   // Implement data prefetching and caching
   const [

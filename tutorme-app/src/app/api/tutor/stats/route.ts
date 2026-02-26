@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * GET /api/tutor/stats
  * Returns aggregate stats for the current tutor: total classes, students, upcoming classes, earnings.

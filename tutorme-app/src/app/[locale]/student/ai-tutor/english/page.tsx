@@ -10,10 +10,10 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 import { toast } from 'sonner'
-import { 
-  Send, 
-  BookOpen, 
-  MessageCircle, 
+import {
+  Send,
+  BookOpen,
+  MessageCircle,
   AlertCircle,
   Video,
   FileText,
@@ -30,8 +30,10 @@ import {
   Globe,
   ChevronRight
 } from 'lucide-react'
-import { AIAvatar, AIAvatarPlaceholder } from '@/components/ai-tutor/ai-avatar'
-import { SkillRadar } from '../../dashboard/components'
+import dynamic from 'next/dynamic'
+import { AIAvatarPlaceholder } from '@/components/ai-tutor/ai-avatar'
+const AIAvatar = dynamic(() => import('@/components/ai-tutor/ai-avatar').then(m => m.AIAvatar), { ssr: false })
+import { SkillRadar } from '../../dashboard/components/SkillRadar'
 import { AIWhiteboard, extractWhiteboardItems } from '@/components/ai-tutor/ai-whiteboard'
 import { TopicSidebar, ENGLISH_TOPICS } from '@/components/ai-tutor/topic-sidebar'
 import { TutorPreferences } from '@/components/ai-tutor/tutor-preferences'
@@ -39,15 +41,12 @@ import { CurriculumSidebar, CurriculumMiniCard } from '@/components/ai-tutor/cur
 import { AIActivityArea } from '@/components/ai-tutor/ai-activity-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import { 
-  PersonalitySelector,
-  MissionModeToggle,
-  WorldsSidebar,
-  ConfidenceMeter,
-  XpAnimation,
-  LevelUpAnimation
-} from '@/components/gamification'
-import type { AvatarPersonality } from '@/lib/gamification/service'
+import { PersonalitySelector } from '@/components/gamification/personality-selector'
+import { MissionModeToggle } from '@/components/gamification/mission-mode-toggle'
+import { WorldsSidebar } from '@/components/gamification/worlds-sidebar'
+import { ConfidenceMeter } from '@/components/gamification/confidence-meter'
+import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
+import type { AvatarPersonality } from '@/lib/gamification/constants'
 
 interface Message {
   id: string
@@ -81,7 +80,7 @@ interface WhiteboardItem {
 export default function EnglishTutorPage() {
   const router = useRouter()
   const scrollRef = useRef<HTMLDivElement>(null)
-  
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -92,20 +91,20 @@ export default function EnglishTutorPage() {
   const [currentTopic, setCurrentTopic] = useState<string | undefined>()
   const [showPreferences, setShowPreferences] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
-  
+
   // Sidebar collapsed state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [whiteboardCollapsed, setWhiteboardCollapsed] = useState(false)
   const [activityAreaCollapsed, setActivityAreaCollapsed] = useState(false)
-  
+
   // Curriculum state
   const [curriculum, setCurriculum] = useState<any>(null)
   const [currentLessonId, setCurrentLessonId] = useState<string | undefined>()
-  
+
   // Suggestions based on context
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [showCurriculum, setShowCurriculum] = useState(false)
-  
+
   // GAMIFICATION STATE
   const [personality, setPersonality] = useState<AvatarPersonality>('friendly_mentor')
   const [mode, setMode] = useState<'free' | 'mission'>('free')
@@ -131,57 +130,57 @@ export default function EnglishTutorPage() {
       const enrollRes = await fetch('/api/ai-tutor/enrollments')
       const enrollData = await enrollRes.json()
       const englishEnroll = enrollData.enrollments?.find((e: any) => e.subject === 'english')
-      
+
       if (!englishEnroll) {
         toast.error('Not enrolled in English tutor')
         router.push('/student/ai-tutor/browse')
         return
       }
-      
+
       setEnrollment(englishEnroll)
-      
+
       // Set personality from enrollment
       if (englishEnroll.avatarPersonality) {
         setPersonality(englishEnroll.avatarPersonality)
       }
-      
+
       // Load curriculum if assigned
       if (englishEnroll.curriculumId) {
         await loadCurriculum()
       }
-      
+
       // Load gamification data
       const [usageRes, gamificationRes, worldsRes] = await Promise.all([
         fetch('/api/ai-tutor/usage'),
         fetch('/api/gamification'),
         fetch('/api/gamification/worlds')
       ])
-      
+
       const usageData = await usageRes.json()
       setUsage({
         remaining: usageData.remainingMessages,
         total: usageData.remainingMessages + (usageData.messagesSent || 0)
       })
-      
+
       const gamificationData = await gamificationRes.json()
       if (gamificationData.success) {
         setGamification(gamificationData.data)
         setConfidenceScore(gamificationData.data.skills.confidence)
       }
-      
+
       const worldsData = await worldsRes.json()
       if (worldsData.success) {
         setWorlds(worldsData.data)
       }
-      
+
       // Load session messages
       const sessionRes = await fetch(`/api/ai-tutor/sessions?enrollmentId=${englishEnroll.id}`)
       const sessionData = await sessionRes.json()
-      
+
       if (sessionData.sessions?.length > 0) {
         const latestSession = sessionData.sessions[0]
         setMessages(latestSession.messages || [])
-        
+
         // Extract whiteboard items from messages
         const allItems: WhiteboardItem[] = []
         latestSession.messages?.forEach((msg: any) => {
@@ -252,26 +251,26 @@ export default function EnglishTutorPage() {
       }
 
       setMessages(prev => [...prev, assistantMessage])
-      
+
       // Show XP animation if XP was earned
       if (data.data.xpEarned) {
         setXpGain({ amount: data.data.xpEarned, reason: 'AI Conversation' })
         setShowXpAnimation(true)
       }
-      
+
       // Show level up animation
       if (data.data.leveledUp) {
         setTimeout(() => setShowLevelUp(true), 2000)
       }
-      
+
       // Update gamification data
       if (data.data.gamification) {
         setGamification(data.data.gamification)
         setConfidenceScore(data.data.gamification.skills.confidence)
       }
-      
+
       setUsage(prev => ({ ...prev, remaining: prev.remaining - 1 }))
-      
+
       // Extract whiteboard items from response
       const newItems = extractWhiteboardItems(data.data.response)
       if (newItems.length > 0) {
@@ -309,7 +308,7 @@ export default function EnglishTutorPage() {
       const data = await res.json()
       if (data.curriculum) {
         setCurriculum(data.curriculum)
-        
+
         // Find current lesson
         if (data.curriculum.modules) {
           for (const module of data.curriculum.modules) {
@@ -331,7 +330,7 @@ export default function EnglishTutorPage() {
     setCurrentLessonId(lesson.id)
     setInput(`Let's work on "${lesson.title}" from ${module.title}. Can you walk me through this lesson?`)
     setShowCurriculum(false)
-    
+
     // Link session to lesson if available
     if (lesson.id) {
       linkSessionToLesson(lesson.id)
@@ -343,7 +342,7 @@ export default function EnglishTutorPage() {
       // Get current session ID from recent sessions
       const sessionRes = await fetch(`/api/ai-tutor/sessions?enrollmentId=${enrollment?.id}`)
       const sessionData = await sessionRes.json()
-      
+
       if (sessionData.sessions?.length > 0) {
         const latestSession = sessionData.sessions[0]
         await fetch('/api/ai-tutor/lesson-context', {
@@ -407,7 +406,7 @@ export default function EnglishTutorPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {/* Gamification Stats */}
             {gamification && (
@@ -417,7 +416,7 @@ export default function EnglishTutorPage() {
                   <Zap className="w-4 h-4 text-blue-500" />
                   <span className="text-sm font-medium text-blue-700">Level {gamification.level}</span>
                 </div>
-                
+
                 {/* Streak */}
                 {gamification.streakDays > 0 && (
                   <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 rounded-lg">
@@ -427,27 +426,27 @@ export default function EnglishTutorPage() {
                 )}
               </div>
             )}
-            
+
             {/* Personality Selector */}
             <PersonalitySelector
               currentPersonality={personality}
               onSelect={setPersonality}
             />
-            
+
             {/* Confidence Meter */}
             <ConfidenceMeter
               isListening={isRecording}
               confidenceScore={confidenceScore}
               className="hidden lg:flex"
             />
-            
+
             {/* Usage Badge */}
             <div className="text-right hidden sm:block">
               <p className="text-xs text-gray-500">
                 {usage.remaining === -1 ? 'Unlimited' : `${usage.remaining} left`}
               </p>
             </div>
-            
+
             {/* Preferences */}
             <Sheet open={showPreferences} onOpenChange={setShowPreferences}>
               <SheetTrigger asChild>
@@ -488,14 +487,14 @@ export default function EnglishTutorPage() {
             } : undefined}
             onModeChange={setMode}
           />
-          
+
           {mode === 'mission' && currentMission && (
             <Badge variant="outline" className="bg-blue-50 text-blue-700">
               <Target className="w-3 h-3 mr-1" />
               Mission Mode
             </Badge>
           )}
-          
+
           <Link href="/student/worlds">
             <Button variant="outline" size="sm">
               <Globe className="w-4 h-4 mr-1" />
@@ -544,7 +543,7 @@ export default function EnglishTutorPage() {
                     <TabsTrigger value="topics">Topics</TabsTrigger>
                   )}
                 </TabsList>
-                
+
                 <TabsContent value="curriculum" className="flex-1 mt-0">
                   <CurriculumSidebar
                     curriculum={curriculum}
@@ -554,7 +553,7 @@ export default function EnglishTutorPage() {
                     onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
                   />
                 </TabsContent>
-                
+
                 {!sidebarCollapsed && (
                   <TabsContent value="topics" className="flex-1 mt-0">
                     <TopicSidebar
@@ -635,23 +634,21 @@ export default function EnglishTutorPage() {
                 {messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
+                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'
+                      }`}
                   >
                     {message.role === 'assistant' && (
                       <AIAvatarPlaceholder mood={getMood(message.hintType)} size="sm" />
                     )}
-                    
+
                     <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.role === 'user'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white border shadow-sm'
-                      }`}
+                      className={`max-w-[80%] rounded-lg p-3 ${message.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white border shadow-sm'
+                        }`}
                     >
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      
+
                       {message.hintType && (
                         <Badge variant="secondary" className="mt-2 text-xs capitalize">
                           {message.hintType}
@@ -660,7 +657,7 @@ export default function EnglishTutorPage() {
                     </div>
                   </div>
                 ))}
-                
+
                 {loading && (
                   <div className="flex gap-3 justify-start">
                     <AIAvatarPlaceholder mood="thinking" size="sm" />
@@ -673,7 +670,7 @@ export default function EnglishTutorPage() {
                     </div>
                   </div>
                 )}
-                
+
                 <div ref={scrollRef} />
               </div>
             </ScrollArea>
@@ -697,14 +694,14 @@ export default function EnglishTutorPage() {
                   disabled={loading || usage.remaining === 0}
                   className="flex-1"
                 />
-                <Button 
+                <Button
                   onClick={sendMessage}
                   disabled={!input.trim() || loading || usage.remaining === 0}
                 >
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               {usage.remaining === 0 && (
                 <p className="text-sm text-orange-600 mt-2 text-center">
                   Daily message limit reached. Upgrade for unlimited messages.
@@ -721,7 +718,7 @@ export default function EnglishTutorPage() {
             "transition-all duration-300 flex",
             whiteboardCollapsed ? "justify-end" : "w-full"
           )}>
-            <AIWhiteboard 
+            <AIWhiteboard
               items={whiteboardItems}
               onClear={() => setWhiteboardItems([])}
               collapsed={whiteboardCollapsed}
@@ -738,24 +735,17 @@ export default function EnglishTutorPage() {
             "transition-all duration-300 flex flex-1 min-h-0",
             activityAreaCollapsed ? "justify-end" : "w-full"
           )}>
-            <AIActivityArea 
+            <AIActivityArea
               className={cn(
                 "transition-all duration-300",
                 activityAreaCollapsed ? "w-16" : "flex-1"
               )}
               collapsed={activityAreaCollapsed}
-              onToggleCollapse={() => setActivityAreaCollapsed(!activityAreaCollapsed)}
-              collapseDirection="right"
-              isListening={isRecording}
-              transcriptions={[]}
-              onStartGame={(gameType) => {
-                console.log('Starting game:', gameType)
-              }}
             />
           </div>
         </div>
       </div>
-      
+
       {/* XP Animation */}
       {showXpAnimation && (
         <XpAnimation
@@ -764,7 +754,7 @@ export default function EnglishTutorPage() {
           onComplete={() => setShowXpAnimation(false)}
         />
       )}
-      
+
       {/* Level Up Animation */}
       {showLevelUp && gamification && (
         <LevelUpAnimation

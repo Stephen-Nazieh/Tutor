@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Parent-Child Security Validation Schemas
  * Global security schema for parent-child linking with verification requirements

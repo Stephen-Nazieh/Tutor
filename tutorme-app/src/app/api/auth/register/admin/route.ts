@@ -11,10 +11,17 @@ import { ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
 
 export async function POST(request: NextRequest) {
-  const { response: rateLimitResponse } = await withRateLimitPreset(request, 'register')
-  if (rateLimitResponse) return rateLimitResponse
-
   try {
+    const { response: rateLimitResponse } = await withRateLimitPreset(request, 'register')
+    if (rateLimitResponse) return rateLimitResponse
+
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+    }
+
     // Public bootstrap is allowed only before any admin account exists,
     // unless explicitly opened for multi-admin self-registration.
     const allowPublicAdminRegistration =
@@ -24,8 +31,8 @@ export async function POST(request: NextRequest) {
     const existingAdminCount = await db.user.count({ where: { role: 'ADMIN' } })
     if (existingAdminCount > 0 && !allowPublicAdminRegistration) {
       return NextResponse.json(
-        { error: 'Admin bootstrap is closed. Ask an existing admin to create additional admin users.' },
-        { status: 403 }
+        { error: 'Admin bootstrap is closed' },
+        { status: 400 }
       )
     }
 
@@ -39,13 +46,6 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         )
       }
-    }
-
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
     const parsed = adminRegistrationSchema.safeParse(body)

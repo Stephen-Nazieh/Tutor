@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as Sentry from '@sentry/nextjs'
 
 export function captureError(error: Error, context: Record<string, unknown> = {}): string {

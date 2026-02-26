@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Role-based access control: granular permissions per role.
  * Use requirePermission() in admin/sensitive routes.

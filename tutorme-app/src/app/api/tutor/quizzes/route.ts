@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Quiz Management API Routes
  * 

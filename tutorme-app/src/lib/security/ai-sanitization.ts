@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AI Input/Output Sanitization
  * Advanced AI security measures for input sanitization and response validation

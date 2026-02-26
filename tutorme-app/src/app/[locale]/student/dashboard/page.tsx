@@ -11,11 +11,8 @@ import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { toast } from 'sonner'
 import { Flame, Settings, AlertCircle, Video } from 'lucide-react'
 
-import {
-  DailyQuestsWidget,
-  XpAnimation,
-  LevelUpAnimation
-} from '@/components/gamification'
+import { DailyQuestsWidget } from '@/components/gamification/daily-quests'
+import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
 
 import {
   StatsOverview,

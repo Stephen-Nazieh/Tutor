@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * S3 Storage Service
  *

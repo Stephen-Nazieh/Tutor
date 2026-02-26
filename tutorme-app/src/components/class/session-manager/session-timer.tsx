@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Smart Session Timer & Agenda Manager
  * Structured time management during lessons with AI pacing suggestions

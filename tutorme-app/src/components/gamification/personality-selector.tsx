@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { AVATAR_PERSONALITIES, type AvatarPersonality } from '@/lib/gamification/service'
+import { AVATAR_PERSONALITIES, type AvatarPersonality } from '@/lib/gamification/constants'
 
 interface PersonalitySelectorProps {
   currentPersonality: AvatarPersonality
@@ -53,7 +53,7 @@ export function PersonalitySelector({
           <span className="hidden sm:inline">{current.name}</span>
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -97,7 +97,7 @@ export function PersonalitySelector({
                         </span>
                       )}
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 mt-1">
                       {p.description}
                     </p>

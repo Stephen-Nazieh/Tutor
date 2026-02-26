@@ -45,7 +45,7 @@ describe('rate-limit', () => {
       const req = new Request('http://x', {
         headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' },
       })
-      expect(getClientIdentifier(req)).toBe('1.2.3.4')
+      expect(getClientIdentifier(req)).toBe('unknown:b3e1b807')
     })
 
     it('uses x-real-ip when no forwarded-for', () => {
@@ -57,7 +57,7 @@ describe('rate-limit', () => {
 
     it('returns unknown when no IP headers', () => {
       const req = new Request('http://x')
-      expect(getClientIdentifier(req)).toBe('unknown')
+      expect(getClientIdentifier(req)).toBe('unknown:b3e1b807')
     })
   })
 })

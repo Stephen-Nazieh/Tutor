@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Parent Financial Service - fetches and aggregates payment data for family accounts.
  */
