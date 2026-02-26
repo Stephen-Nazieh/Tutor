@@ -145,7 +145,7 @@ class MetricBuffer {
           db.performanceMetric.create({
             data: {
               name: metric.name,
-              value: metric.value,
+              metricValue: metric.value,
               unit: metric.unit,
               tags: metric.tags || {},
               userId: metric.userId,
@@ -672,11 +672,11 @@ class PerformanceMonitor {
           timestamp: { gte: cutoff },
         },
         _avg: {
-          value: true,
+          metricValue: true,
         },
       })
 
-      const avgValue = avg._avg.value
+      const avgValue = avg._avg.metricValue
       if (avgValue && avgValue > budget.threshold && budget.alertOnBreach) {
         await this.alertManager.sendAlert({
           id: `budget-${budget.metric}-${Date.now()}`,
@@ -820,14 +820,14 @@ class PerformanceMonitor {
         name: metricName,
         timestamp: { gte: cutoff },
       },
-      orderBy: { value: 'asc' },
+      orderBy: { metricValue: 'asc' },
     })
 
     if (metrics.length === 0) {
       return { avg: 0, min: 0, max: 0, p95: 0, p99: 0, count: 0 }
     }
 
-    const values = metrics.map((m) => m.value).sort((a, b) => a - b)
+    const values = metrics.map((m) => m.metricValue).sort((a, b) => a - b)
     const sum = values.reduce((a, b) => a + b, 0)
 
     return {

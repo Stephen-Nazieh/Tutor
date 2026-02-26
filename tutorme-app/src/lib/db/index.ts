@@ -383,5 +383,8 @@ export { db }
 /** Alias for code that imports prisma from @/lib/db */
 export const prisma = db
 
+// Drizzle is NOT re-exported here so that @/lib/db is safe for client/instrumentation (pg is Node-only).
+// Server-only code that needs Drizzle: import { drizzleDb } from '@/lib/db/drizzle'
+
 // Re-export Prisma types (will be empty on client)
 export * from '@prisma/client'

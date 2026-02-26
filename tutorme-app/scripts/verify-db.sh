@@ -74,8 +74,8 @@ echo "╠═══════════════════════�
 if [ "$COUNT_5433" = "1" ] 2>/dev/null; then
     echo "║  ✅ Database is working correctly!                     ║"
     echo "║                                                        ║"
-    echo "║  If you don't see users in Prisma Studio:              ║"
-    echo "║  1. Restart Prisma Studio (Ctrl+C then npm run studio) ║"
+    echo "║  If you don't see users in Drizzle Studio:              ║"
+    echo "║  1. Restart DB UI (Ctrl+C then npm run db:studio)      ║"
     echo "║  2. Refresh the page                                   ║"
 else
     echo "║  ❌ App is not saving to port 5433 database            ║"

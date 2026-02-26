@@ -30,7 +30,7 @@ export const GET = withAuth(async (request: NextRequest, session) => {
 
   // Default: get today's quests (map mission -> quest for backward compat)
   const quests = await getTodayQuests(session.user.id)
-  const mapped = quests.map((q: { mission: { requirement?: number; xpReward?: number; title?: string; description?: string }; completed: boolean; [k: string]: unknown }) => ({
+  const mapped = quests.map((q) => ({
     ...q,
     quest: q.mission,
     progress: q.completed ? 1 : 0,

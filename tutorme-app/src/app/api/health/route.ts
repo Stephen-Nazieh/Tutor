@@ -6,8 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { sql } from 'drizzle-orm'
 import { dbMonitor, getHealthCheck } from '@/lib/db/monitor'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
 import { withAuth } from '@/lib/api/middleware'
 
 export const dynamic = 'force-dynamic'
@@ -42,9 +43,9 @@ export async function GET(req: NextRequest) {
     let redisInfo = null
 
     try {
-      // Get database version
-      const result = await db.$queryRaw`SELECT version()`
-      dbVersion = (result as any)[0]?.version
+      const result = await drizzleDb.execute<{ version: string }>(sql`SELECT version() as version`)
+      const rows = (result as { rows?: { version: string }[] })?.rows ?? (Array.isArray(result) ? result : [])
+      dbVersion = rows[0]?.version ?? (result as any)[0]?.version
     } catch (e) {
       // Database query failed
     }

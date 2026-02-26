@@ -5,7 +5,9 @@
  * Provides metrics for optimization and scaling decisions.
  */
 
-import { db, cache } from './index'
+import { cache } from './index'
+import { drizzleDb } from './drizzle'
+import { sql } from 'drizzle-orm'
 
 interface QueryMetrics {
   query: string
@@ -145,7 +147,7 @@ class DatabaseMonitor {
     let dbLatency = 0
 
     try {
-      await db.$queryRaw`SELECT 1`
+      await drizzleDb.execute(sql`SELECT 1`)
       dbLatency = Date.now() - dbStart
       dbHealthy = true
 

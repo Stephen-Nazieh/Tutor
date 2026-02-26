@@ -4,11 +4,13 @@
  */
 
 import { NextResponse } from 'next/server'
+import { eq, gte, desc, and } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getOrCreateGamification, getGamificationSummary } from '@/lib/gamification/service'
 import { getAllBadgesWithProgress, getBadgeStats } from '@/lib/gamification/badges'
 import { getUserLeaderboardStats } from '@/lib/gamification/leaderboard'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { userDailyQuest, mission, userBadge, badge, userActivityLog } from '@/lib/db/schema'
 
 export const GET = withAuth(async (req, session) => {
   try {
@@ -29,34 +31,69 @@ export const GET = withAuth(async (req, session) => {
     // Get leaderboard stats
     const leaderboardStats = await getUserLeaderboardStats(userId)
 
-    // Get daily quests
+    // Get daily quests (Drizzle)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const dailyQuests = await db.userDailyQuest.findMany({
-      where: {
-        userId,
-        date: { gte: today },
-      },
-      include: {
-        mission: true,
-      },
-    })
+    const dailyQuestsRows = await drizzleDb
+      .select({
+        id: userDailyQuest.id,
+        title: mission.title,
+        description: mission.description,
+        xpReward: mission.xpReward,
+        completed: userDailyQuest.completed,
+        requirement: mission.requirement,
+      })
+      .from(userDailyQuest)
+      .innerJoin(mission, eq(mission.id, userDailyQuest.missionId))
+      .where(and(eq(userDailyQuest.userId, userId), gte(userDailyQuest.date, today)))
 
-    // Get recent achievements (badges earned)
-    const userBadges = await db.userBadge.findMany({
-      where: { userId },
-      include: { badge: true },
-      orderBy: { earnedAt: 'desc' },
-      take: 5,
-    })
+    const dailyQuests = dailyQuestsRows.map((dq) => ({
+      id: dq.id,
+      title: dq.title,
+      description: dq.description,
+      xpReward: dq.xpReward,
+      completed: dq.completed,
+      requirement: dq.requirement,
+    }))
 
-    // Get recent activity
-    const recentActivity = await db.userActivityLog.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    })
+    // Get recent achievements (badges earned) (Drizzle)
+    const userBadgesRows = await drizzleDb
+      .select({
+        id: userBadge.id,
+        name: badge.name,
+        description: badge.description,
+        xpBonus: badge.xpBonus,
+        earnedAt: userBadge.earnedAt,
+      })
+      .from(userBadge)
+      .innerJoin(badge, eq(badge.id, userBadge.badgeId))
+      .where(eq(userBadge.userId, userId))
+      .orderBy(desc(userBadge.earnedAt))
+      .limit(5)
+
+    const userBadges = userBadgesRows.map((ub) => ({
+      id: ub.id,
+      title: ub.name,
+      description: ub.description,
+      xpAwarded: ub.xpBonus,
+      unlockedAt: ub.earnedAt,
+    }))
+
+    // Get recent activity (Drizzle)
+    const recentActivityRows = await drizzleDb
+      .select()
+      .from(userActivityLog)
+      .where(eq(userActivityLog.userId, userId))
+      .orderBy(desc(userActivityLog.createdAt))
+      .limit(10)
+
+    const recentActivity = recentActivityRows.map((a) => ({
+      id: a.id,
+      type: a.action,
+      metadata: a.metadata,
+      createdAt: a.createdAt,
+    }))
 
     return NextResponse.json({
       success: true,
@@ -75,27 +112,9 @@ export const GET = withAuth(async (req, session) => {
           stats: badgeStats,
         },
         leaderboard: leaderboardStats,
-        dailyQuests: dailyQuests.map((dq: any) => ({
-          id: dq.id,
-          title: dq.mission.title,
-          description: dq.mission.description,
-          xpReward: dq.mission.xpReward,
-          completed: dq.completed,
-          requirement: dq.mission.requirement,
-        })),
-        recentAchievements: userBadges.map((ub: any) => ({
-          id: ub.id,
-          title: ub.badge.name,
-          description: ub.badge.description,
-          xpAwarded: ub.badge.xpBonus,
-          unlockedAt: ub.earnedAt,
-        })),
-        recentActivity: recentActivity.map((a: any) => ({
-          id: a.id,
-          type: a.action,
-          metadata: a.metadata,
-          createdAt: a.createdAt,
-        })),
+        dailyQuests,
+        recentAchievements: userBadges,
+        recentActivity,
       },
     })
   } catch (error) {

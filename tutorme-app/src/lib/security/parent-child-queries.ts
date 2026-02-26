@@ -1,9 +1,12 @@
 /**
  * Parent-Child Security Database Queries
  * Student existence verification and FamilyMember linking with RBAC
+ * (Drizzle ORM)
  */
 
-import { db } from '@/lib/db'
+import { eq, and, inArray } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, familyMember } from '@/lib/db/schema'
 import type { StudentLinkingInput } from '@/lib/validation/parent-child-security'
 
 export interface VerifiedStudent {
@@ -22,46 +25,53 @@ export async function verifyStudentExists(
   input: StudentLinkingInput
 ): Promise<VerifiedStudent | null> {
   if (input.childEmail) {
-    const byEmail = await db.user.findFirst({
-      where: {
-        email: input.childEmail.toLowerCase(),
-        role: 'STUDENT',
-      },
-      select: {
-        id: true,
-        email: true,
-        profile: { select: { name: true, studentUniqueId: true } },
-      },
-    })
-    if (byEmail) {
+    const normalized = input.childEmail.toLowerCase()
+    const rows = await drizzleDb
+      .select({
+        userId: user.id,
+        email: user.email,
+        name: profile.name,
+        studentUniqueId: profile.studentUniqueId,
+      })
+      .from(user)
+      .innerJoin(profile, eq(profile.userId, user.id))
+      .where(and(eq(user.email, normalized), eq(user.role, 'STUDENT')))
+      .limit(1)
+    const row = rows[0]
+    if (row) {
       return {
-        userId: byEmail.id,
-        email: byEmail.email,
-        name: byEmail.profile?.name ?? null,
-        studentUniqueId: byEmail.profile?.studentUniqueId ?? null,
+        userId: row.userId,
+        email: row.email,
+        name: row.name ?? null,
+        studentUniqueId: row.studentUniqueId ?? null,
       }
     }
   }
 
   if (input.childUniqueId && input.childUniqueId.length >= 8) {
-    const byUniqueId = await db.profile.findFirst({
-      where: {
-        studentUniqueId: input.childUniqueId,
-        user: { role: 'STUDENT' },
-      },
-      select: {
-        userId: true,
-        user: { select: { email: true } },
-        name: true,
-        studentUniqueId: true,
-      },
-    })
-    if (byUniqueId) {
+    const rows = await drizzleDb
+      .select({
+        userId: profile.userId,
+        email: user.email,
+        name: profile.name,
+        studentUniqueId: profile.studentUniqueId,
+      })
+      .from(profile)
+      .innerJoin(user, eq(user.id, profile.userId))
+      .where(
+        and(
+          eq(profile.studentUniqueId, input.childUniqueId),
+          eq(user.role, 'STUDENT')
+        )
+      )
+      .limit(1)
+    const row = rows[0]
+    if (row) {
       return {
-        userId: byUniqueId.userId,
-        email: byUniqueId.user.email,
-        name: byUniqueId.name,
-        studentUniqueId: byUniqueId.studentUniqueId,
+        userId: row.userId,
+        email: row.email,
+        name: row.name ?? null,
+        studentUniqueId: row.studentUniqueId ?? null,
       }
     }
   }
@@ -106,11 +116,15 @@ export async function verifyAllChildren(
  * Check if student is already linked to another family account.
  */
 export async function isStudentAlreadyLinked(userId: string): Promise<boolean> {
-  const existing = await db.familyMember.findFirst({
-    where: {
-      userId,
-      relation: { in: ['child', 'children'] },
-    },
-  })
-  return !!existing
+  const rows = await drizzleDb
+    .select({ id: familyMember.id })
+    .from(familyMember)
+    .where(
+      and(
+        eq(familyMember.userId, userId),
+        inArray(familyMember.relation, ['child', 'children'])
+      )
+    )
+    .limit(1)
+  return rows.length > 0
 }

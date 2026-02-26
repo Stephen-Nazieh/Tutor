@@ -1,16 +1,24 @@
 /**
  * NextAuth Configuration
  * Handles authentication for students, tutors, and admins
+ * Uses Drizzle ORM and @auth/drizzle-adapter.
  */
 
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { db } from '@/lib/db'
+import { DrizzleAdapter } from '@auth/drizzle-adapter'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, account, profile, session, verificationToken } from '@/lib/db/schema'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
+  adapter: DrizzleAdapter(drizzleDb, {
+    usersTable: user,
+    accountsTable: account,
+    sessionsTable: session,
+    verificationTokensTable: verificationToken,
+  }),
 
   providers: [
     // Email/Password Login
@@ -27,36 +35,31 @@ export const authOptions: NextAuthOptions = {
 
         const normalizedEmail = credentials.email.trim().toLowerCase()
 
-        // Find user by email
-        const user = await db.user.findFirst({
-          where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
-          include: { profile: true }
-        })
-
-        if (!user || !user.password) {
+        // Find user by email (Drizzle)
+        const [userRow] = await drizzleDb.select().from(user).where(eq(user.email, normalizedEmail)).limit(1)
+        if (!userRow?.password) {
           return null
         }
 
-        // Verify password
-        const isValid = await bcrypt.compare(credentials.password, user.password)
+        // Get profile for onboarding/tos
+        const [profileRow] = await drizzleDb.select().from(profile).where(eq(profile.userId, userRow.id)).limit(1)
 
+        const isValid = await bcrypt.compare(credentials.password, userRow.password)
         if (!isValid) {
           const { logFailedLogin } = await import('@/lib/security/suspicious-activity')
           await logFailedLogin(null, normalizedEmail)
           return null
         }
 
-
-        // Check if onboarding is complete
-        const onboardingComplete = checkOnboardingComplete(user)
-        const tosAccepted = user.profile?.tosAccepted || false
+        const onboardingComplete = checkOnboardingComplete({ profile: profileRow ?? undefined })
+        const tosAccepted = profileRow?.tosAccepted ?? false
 
         return {
-          id: user.id,
-          email: user.email,
-          name: user.profile?.name || user.email,
-          role: user.role,
-          image: user.profile?.avatarUrl,
+          id: userRow.id,
+          email: userRow.email,
+          name: profileRow?.name ?? userRow.email,
+          role: userRow.role,
+          image: profileRow?.avatarUrl ?? undefined,
           onboardingComplete,
           tosAccepted
         }
@@ -114,17 +117,8 @@ export const authOptions: NextAuthOptions = {
 
 // Helper function to check if onboarding is complete
 function checkOnboardingComplete(user: { profile?: { isOnboarded?: boolean | null } | null }): boolean {
-  // Check if user profile exists and has completed onboarding
-  if (!user?.profile) {
-    return false
-  }
-  
-  // Profile exists but isOnboarded field is not set (null/undefined) - consider not onboarded
-  if (user.profile.isOnboarded === null || user.profile.isOnboarded === undefined) {
-    return false
-  }
-  
-  // Return the actual onboarding status
+  if (!user?.profile) return false
+  if (user.profile.isOnboarded === null || user.profile.isOnboarded === undefined) return false
   return user.profile.isOnboarded
 }
 

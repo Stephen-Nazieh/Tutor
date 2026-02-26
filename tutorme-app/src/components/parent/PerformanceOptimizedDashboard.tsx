@@ -51,7 +51,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { reportMetric, reportError } from '@/lib/performance/performance-monitoring'
+import { reportMetric, reportError } from '@/lib/performance/performance-monitoring-shared'
 
 // ============================================================================
 // Types

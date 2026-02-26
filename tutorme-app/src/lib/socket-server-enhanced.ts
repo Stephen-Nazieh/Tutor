@@ -5,8 +5,7 @@
 
 import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
-import { verify } from 'jsonwebtoken'
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 import { createClient } from 'redis'
 import { promisify } from 'util'
 
@@ -145,10 +144,12 @@ const directMessageRooms = new Map<string, DirectMessageRoom>()
 const activeWhiteboards = new Map<string, WhiteboardState>()
 const userSocketMap = new Map<string, string>()
 
-// Authentication functions
+// Authentication functions (use jose to match NextAuth and avoid jsonwebtoken dependency)
 async function validateJWT(token: string): Promise<{ userId: string; role: string; email: string; name: string } | null> {
   try {
-    const decoded = verify(token, process.env.NEXTAUTH_SECRET!) as any
+    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
+    const { payload } = await jwtVerify(token, secret)
+    const decoded = payload as { id?: string; role?: string; email?: string; name?: string }
 
     // Validate required fields
     if (!decoded.id || !decoded.role) {

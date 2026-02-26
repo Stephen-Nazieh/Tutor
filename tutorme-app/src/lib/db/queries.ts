@@ -1,466 +1,433 @@
 /**
- * Optimized Database Queries
- * 
- * Pre-built, optimized queries for common operations with:
- * - Proper select clauses (no over-fetching)
- * - Included relations (no N+1)
- * - Query result caching
- * - Pagination support
+ * Optimized Database Queries (Drizzle)
+ * Replaces Prisma with Drizzle ORM; uses cache and drizzleDb.
  */
 
-import { db, cache } from './index'
+import { eq, and, inArray, gt, desc, asc, sql } from 'drizzle-orm'
+import { drizzleDb } from './drizzle'
+import { cache } from './index'
 import cacheManager from '@/lib/cache-manager'
+import {
+  user,
+  profile,
+  clinic,
+  clinicBooking,
+  contentItem,
+  contentProgress,
+  userGamification,
+  achievement,
+  aITutorEnrollment,
+} from '@/lib/db/schema'
 
 // ==================== USER QUERIES ====================
 
-/**
- * Get user by ID with profile - optimized select
- */
 export async function getUserById(userId: string) {
   return cache.getOrSet(
     `user:${userId}`,
-    () => db.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        image: true,
-        createdAt: true,
-        profile: {
-          select: {
-            id: true,
-            name: true,
-            bio: true,
-            avatarUrl: true,
-            dateOfBirth: true,
-            timezone: true,
-            gradeLevel: true,
-            subjectsOfInterest: true,
-            isOnboarded: true,
-            hourlyRate: true,
-            specialties: true,
-          }
-        }
+    async () => {
+      const [userRow] = await drizzleDb.select().from(user).where(eq(user.id, userId)).limit(1)
+      if (!userRow) return null
+      const [profileRow] = await drizzleDb.select().from(profile).where(eq(profile.userId, userId)).limit(1)
+      return {
+        ...userRow,
+        profile: profileRow
+          ? {
+              id: profileRow.id,
+              name: profileRow.name,
+              bio: profileRow.bio,
+              avatarUrl: profileRow.avatarUrl,
+              dateOfBirth: profileRow.dateOfBirth,
+              timezone: profileRow.timezone,
+              gradeLevel: profileRow.gradeLevel,
+              subjectsOfInterest: profileRow.subjectsOfInterest,
+              isOnboarded: profileRow.isOnboarded,
+              hourlyRate: profileRow.hourlyRate,
+              specialties: profileRow.specialties,
+            }
+          : null,
       }
-    }),
-    300 // 5 minute cache
+    },
+    300
   )
 }
 
-/**
- * Get user by email
- */
 export async function getUserByEmail(email: string) {
-  return db.user.findUnique({
-    where: { email: email.toLowerCase() },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      password: true,
-      image: true,
-      profile: { select: { name: true, avatarUrl: true } }
-    }
-  })
+  const [userRow] = await drizzleDb
+    .select()
+    .from(user)
+    .where(eq(user.email, email.toLowerCase()))
+    .limit(1)
+  if (!userRow) return null
+  const [profileRow] = await drizzleDb.select().from(profile).where(eq(profile.userId, userRow.id)).limit(1)
+  return {
+    ...userRow,
+    profile: profileRow ? { name: profileRow.name, avatarUrl: profileRow.avatarUrl } : null,
+  }
 }
 
 // ==================== TUTOR QUERIES ====================
 
-/**
- * Get tutor dashboard stats - optimized aggregation
- */
 export async function getTutorDashboardStats(tutorId: string) {
   return cache.getOrSet(
     `tutor:stats:${tutorId}`,
     async () => {
-      const [
-        totalClasses,
-        upcomingClasses,
-        totalStudents,
-        recentClasses
-      ] = await Promise.all([
-        // Total classes count
-        db.clinic.count({ where: { tutorId } }),
-        
-        // Upcoming classes count
-        db.clinic.count({
-          where: {
-            tutorId,
-            startTime: { gt: new Date() },
-            status: { in: ['SCHEDULED', 'IN_PROGRESS'] }
-          }
-        }),
-        
-        // Unique students count
-        db.clinicBooking.groupBy({
-          by: ['studentId'],
-          where: { clinic: { tutorId } },
-          _count: { studentId: true }
-        }).then(groups => groups.length),
-        
-        // Recent classes (last 5)
-        db.clinic.findMany({
-          where: { tutorId },
-          orderBy: { startTime: 'desc' },
-          take: 5,
-          select: {
-            id: true,
-            title: true,
-            startTime: true,
-            status: true,
-            maxStudents: true,
-            _count: { select: { bookings: true } }
-          }
+      const now = new Date()
+      const [totalResult] = await drizzleDb.select({ count: sql<number>`count(*)::int` }).from(clinic).where(eq(clinic.tutorId, tutorId))
+      const totalClasses = totalResult?.count ?? 0
+
+      const [upcomingResult] = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(clinic)
+        .where(and(eq(clinic.tutorId, tutorId), gt(clinic.startTime, now), inArray(clinic.status, ['SCHEDULED', 'IN_PROGRESS'])))
+      const upcomingClasses = upcomingResult?.count ?? 0
+
+      const uniqueStudents = await drizzleDb
+        .select({ studentId: clinicBooking.studentId })
+        .from(clinicBooking)
+        .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
+        .where(eq(clinic.tutorId, tutorId))
+        .groupBy(clinicBooking.studentId)
+      const totalStudents = uniqueStudents.length
+
+      const recentClasses = await drizzleDb
+        .select({
+          id: clinic.id,
+          title: clinic.title,
+          startTime: clinic.startTime,
+          status: clinic.status,
+          maxStudents: clinic.maxStudents,
         })
-      ])
-      
+        .from(clinic)
+        .where(eq(clinic.tutorId, tutorId))
+        .orderBy(desc(clinic.startTime))
+        .limit(5)
+
+      const bookingCounts = await drizzleDb
+        .select({ clinicId: clinicBooking.clinicId, count: sql<number>`count(*)::int` })
+        .from(clinicBooking)
+        .where(inArray(clinicBooking.clinicId, recentClasses.map((c) => c.id)))
+        .groupBy(clinicBooking.clinicId)
+      const countMap = new Map(bookingCounts.map((b) => [b.clinicId, b.count]))
+
       return {
         totalClasses,
         upcomingClasses,
         totalStudents,
-        recentClasses
-      }
-    },
-    60 // 1 minute cache
-  )
-}
-
-/**
- * Get tutor classes with bookings - single query with include
- */
-export async function getTutorClasses(tutorId: string, options: {
-  status?: string
-  upcoming?: boolean
-  limit?: number
-  offset?: number
-} = {}) {
-  const { status, upcoming, limit = 20, offset = 0 } = options
-  
-  const where: any = { tutorId }
-  
-  if (status) where.status = status
-  if (upcoming) where.startTime = { gt: new Date() }
-  
-  const [classes, total] = await Promise.all([
-    db.clinic.findMany({
-      where,
-      orderBy: { startTime: 'desc' },
-      skip: offset,
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        maxStudents: true,
-        price: true,
-        meetingUrl: true,
-        roomId: true,
-        createdAt: true,
-        bookings: {
-          select: {
-            id: true,
-            status: true,
-            student: {
-              select: {
-                id: true,
-                email: true,
-                profile: { select: { name: true, avatarUrl: true } }
-              }
-            }
-          }
-        },
-        _count: { select: { bookings: true } }
-      }
-    }),
-    db.clinic.count({ where })
-  ])
-  
-  return { classes, total, hasMore: offset + limit < total }
-}
-
-// ==================== STUDENT QUERIES ====================
-
-/**
- * Get student dashboard data - optimized batch query
- */
-export async function getStudentDashboardData(studentId: string) {
-  return cache.getOrSet(
-    `student:dashboard:${studentId}`,
-    async () => {
-      const [
-        enrollments,
-        upcomingClasses,
-        progress,
-        gamification,
-        recentAchievements
-      ] = await Promise.all([
-        // AI Tutor enrollments
-        db.aITutorEnrollment.findMany({
-          where: { studentId },
-          include: {
-            subject: true,
-            level: true,
-          }
-        }),
-        
-        // Upcoming class bookings
-        db.clinicBooking.findMany({
-          where: {
-            studentId,
-            clinic: {
-              startTime: { gt: new Date() },
-              status: { in: ['SCHEDULED', 'IN_PROGRESS'] }
-            }
-          },
-          orderBy: { clinic: { startTime: 'asc' } },
-          take: 5,
-          include: {
-            clinic: {
-              select: {
-                id: true,
-                title: true,
-                startTime: true,
-                endTime: true,
-                meetingUrl: true,
-                tutor: {
-                  select: {
-                    id: true,
-                    profile: { select: { name: true, avatarUrl: true } }
-                  }
-                }
-              }
-            }
-          }
-        }),
-        
-        // Learning progress summary
-        db.contentProgress.groupBy({
-          by: ['status'],
-          where: { userId: studentId },
-          _count: { status: true }
-        }),
-        
-        // Gamification stats
-        db.userGamification.findUnique({
-          where: { userId: studentId }
-        }),
-        
-        // Recent achievements
-        db.achievement.findMany({
-          where: { userId: studentId },
-          orderBy: { earnedAt: 'desc' },
-          take: 5
-        })
-      ])
-      
-      return {
-        enrollments,
-        upcomingClasses,
-        progressSummary: progress.reduce((acc, p) => ({
-          ...acc,
-          [p.status]: p._count.status
-        }), {}),
-        gamification,
-        recentAchievements
+        recentClasses: recentClasses.map((c) => ({ ...c, _count: { bookings: countMap.get(c.id) ?? 0 } })),
       }
     },
     60
   )
 }
 
-/**
- * Get student learning progress with content details
- */
-export async function getStudentProgress(studentId: string, options: {
-  subject?: string
-  limit?: number
-  offset?: number
-} = {}) {
-  const { subject, limit = 20, offset = 0 } = options
-  
-  const where: any = { userId: studentId }
-  if (subject) where.content = { subject }
-  
-  const [progress, total] = await Promise.all([
-    db.contentProgress.findMany({
-      where,
-      orderBy: { updatedAt: 'desc' },
-      skip: offset,
-      take: limit,
-      include: {
-        content: {
-          select: {
-            id: true,
-            title: true,
-            subject: true,
-            type: true,
-            duration: true,
-            thumbnailUrl: true,
-          }
-        }
-      }
-    }),
-    db.contentProgress.count({ where })
+export async function getTutorClasses(
+  tutorId: string,
+  options: { status?: string; upcoming?: boolean; limit?: number; offset?: number } = {}
+) {
+  const { status, upcoming, limit = 20, offset = 0 } = options
+  const conditions = [eq(clinic.tutorId, tutorId)]
+  if (status) conditions.push(eq(clinic.status, status))
+  if (upcoming) conditions.push(gt(clinic.startTime, new Date()))
+
+  const [classes, totalResult] = await Promise.all([
+    drizzleDb
+      .select()
+      .from(clinic)
+      .where(and(...conditions))
+      .orderBy(desc(clinic.startTime))
+      .limit(limit)
+      .offset(offset),
+    drizzleDb.select({ count: sql<number>`count(*)::int` }).from(clinic).where(and(...conditions)),
   ])
-  
+  const total = totalResult[0]?.count ?? 0
+
+  const clinicIds = classes.map((c) => c.id)
+  const bookings =
+    clinicIds.length > 0
+      ? await drizzleDb
+          .select()
+          .from(clinicBooking)
+          .where(inArray(clinicBooking.clinicId, clinicIds))
+      : []
+  const bookingsByClinic = new Map<string, typeof bookings>()
+  for (const b of bookings) {
+    if (!bookingsByClinic.has(b.clinicId)) bookingsByClinic.set(b.clinicId, [])
+    bookingsByClinic.get(b.clinicId)!.push(b)
+  }
+
+  const userIds = [...new Set(bookings.map((b) => b.studentId))]
+  const profiles =
+    userIds.length > 0
+      ? await drizzleDb.select().from(profile).where(inArray(profile.userId, userIds))
+      : []
+  const profileMap = new Map(profiles.map((p) => [p.userId, p]))
+
+  const classesWithBookings = classes.map((c) => {
+    const clsBookings = bookingsByClinic.get(c.id) ?? []
+    return {
+      ...c,
+      price: (c as { price?: number })?.price ?? null,
+      meetingUrl: c.roomUrl ?? null,
+      bookings: clsBookings.map((b) => ({
+        id: b.id,
+        status: (b as { status?: string })?.status ?? null,
+        student: profileMap.get(b.studentId)
+          ? {
+              id: b.studentId,
+              email: '',
+              profile: { name: profileMap.get(b.studentId)!.name, avatarUrl: profileMap.get(b.studentId)!.avatarUrl },
+            }
+          : null,
+      })),
+      _count: { bookings: clsBookings.length },
+    }
+  })
+
+  return { classes: classesWithBookings, total, hasMore: offset + limit < total }
+}
+
+// ==================== STUDENT QUERIES ====================
+
+export async function getStudentDashboardData(studentId: string) {
+  return cache.getOrSet(
+    `student:dashboard:${studentId}`,
+    async () => {
+      const [enrollments, bookingsWithClinic, progressRows, gamificationRow, achievements] = await Promise.all([
+        drizzleDb.select().from(aITutorEnrollment).where(eq(aITutorEnrollment.studentId, studentId)),
+        drizzleDb
+          .select({
+            booking: clinicBooking,
+            clinic: clinic,
+          })
+          .from(clinicBooking)
+          .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
+          .where(
+            and(
+              eq(clinicBooking.studentId, studentId),
+              gt(clinic.startTime, new Date()),
+              inArray(clinic.status, ['SCHEDULED', 'IN_PROGRESS'])
+            )
+          )
+          .orderBy(asc(clinic.startTime))
+          .limit(5),
+        drizzleDb
+          .select({ completed: contentProgress.completed, count: sql<number>`count(*)::int` })
+          .from(contentProgress)
+          .where(eq(contentProgress.studentId, studentId))
+          .groupBy(contentProgress.completed),
+        drizzleDb.select().from(userGamification).where(eq(userGamification.userId, studentId)).limit(1),
+        drizzleDb
+          .select()
+          .from(achievement)
+          .where(eq(achievement.userId, studentId))
+          .orderBy(desc(achievement.unlockedAt))
+          .limit(5),
+      ])
+
+      const progressSummary = progressRows.reduce(
+        (acc, p) => ({ ...acc, [String(p.completed)]: p.count }),
+        {} as Record<string, number>
+      )
+
+      return {
+        enrollments,
+        upcomingClasses: bookingsWithClinic.map(({ booking, clinic: c }) => ({
+          ...booking,
+          clinic: {
+            id: c.id,
+            title: c.title,
+            startTime: c.startTime,
+            endTime: new Date(c.startTime.getTime() + (c.duration || 60) * 60 * 1000),
+            meetingUrl: c.roomUrl,
+            tutor: { id: c.tutorId, profile: {} },
+          },
+        })),
+        progressSummary,
+        gamification: gamificationRow[0] ?? null,
+        recentAchievements: achievements,
+      }
+    },
+    60
+  )
+}
+
+export async function getStudentProgress(
+  studentId: string,
+  options: { subject?: string; limit?: number; offset?: number } = {}
+) {
+  const { subject, limit = 20, offset = 0 } = options
+  const progressWhere = eq(contentProgress.studentId, studentId)
+  const [progressRows, totalResult] = await Promise.all([
+    drizzleDb
+      .select()
+      .from(contentProgress)
+      .where(progressWhere)
+      .orderBy(desc(contentProgress.updatedAt))
+      .limit(limit)
+      .offset(offset),
+    drizzleDb.select({ count: sql<number>`count(*)::int` }).from(contentProgress).where(progressWhere),
+  ])
+  const total = totalResult[0]?.count ?? 0
+  const contentIds = progressRows.map((p) => p.contentId)
+  const contents =
+    contentIds.length > 0
+      ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.id, contentIds))
+      : []
+  const contentMap = new Map(contents.map((c) => [c.id, c]))
+  const progress = progressRows.map((p) => ({
+    ...p,
+    content: contentMap.get(p.contentId)
+      ? {
+          id: p.contentId,
+          title: contentMap.get(p.contentId)!.title,
+          subject: contentMap.get(p.contentId)!.subject,
+          type: contentMap.get(p.contentId)!.type,
+          duration: contentMap.get(p.contentId)!.duration,
+          thumbnailUrl: contentMap.get(p.contentId)!.thumbnailUrl,
+        }
+      : null,
+  }))
   return { progress, total, hasMore: offset + limit < total }
 }
 
 // ==================== CLASS QUERIES ====================
 
-/**
- * Get available classes for students with booking status
- */
-export async function getAvailableClasses(studentId: string, options: {
-  subject?: string
-  upcoming?: boolean
-  limit?: number
-  offset?: number
-} = {}) {
+export async function getAvailableClasses(
+  studentId: string,
+  options: { subject?: string; upcoming?: boolean; limit?: number; offset?: number } = {}
+) {
   const { subject, upcoming = true, limit = 20, offset = 0 } = options
-  
-  const where: any = {
-    status: { in: ['SCHEDULED', 'IN_PROGRESS'] }
-  }
-  
-  if (upcoming) where.startTime = { gt: new Date() }
-  if (subject) where.subject = subject
-  
-  const [classes, total] = await Promise.all([
-    db.clinic.findMany({
-      where,
-      orderBy: { startTime: 'asc' },
-      skip: offset,
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        subject: true,
-        startTime: true,
-        endTime: true,
-        maxStudents: true,
-        price: true,
-        tutor: {
-          select: {
-            id: true,
-            profile: { select: { name: true, avatarUrl: true, specialties: true } }
-          }
-        },
-        bookings: {
-          where: { studentId },
-          select: { id: true, status: true }
-        },
-        _count: { select: { bookings: true } }
-      }
-    }),
-    db.clinic.count({ where })
+  const conditions = [inArray(clinic.status, ['SCHEDULED', 'IN_PROGRESS'])]
+  if (upcoming) conditions.push(gt(clinic.startTime, new Date()))
+  if (subject) conditions.push(eq(clinic.subject, subject))
+
+  const [classes, totalResult, studentBookings] = await Promise.all([
+    drizzleDb.select().from(clinic).where(and(...conditions)).orderBy(asc(clinic.startTime)).limit(limit).offset(offset),
+    drizzleDb.select({ count: sql<number>`count(*)::int` }).from(clinic).where(and(...conditions)),
+    drizzleDb.select().from(clinicBooking).where(eq(clinicBooking.studentId, studentId)),
   ])
-  
-  // Transform to include booking status
-  const transformed = classes.map(cls => ({
-    ...cls,
-    isBooked: cls.bookings.length > 0,
-    bookingStatus: cls.bookings[0]?.status || null,
-    spotsLeft: cls.maxStudents - cls._count.bookings
-  }))
-  
+  const total = totalResult[0]?.count ?? 0
+  const bookingByClinic = new Map(studentBookings.map((b) => [b.clinicId, b]))
+  const clinicIds = classes.map((c) => c.id)
+  const bookingCounts =
+    clinicIds.length > 0
+      ? await drizzleDb
+          .select({ clinicId: clinicBooking.clinicId, count: sql<number>`count(*)::int` })
+          .from(clinicBooking)
+          .where(inArray(clinicBooking.clinicId, clinicIds))
+          .groupBy(clinicBooking.clinicId)
+      : []
+  const countMap = new Map(bookingCounts.map((b) => [b.clinicId, b.count]))
+
+  const tutorIds = [...new Set(classes.map((c) => c.tutorId))]
+  const profiles = tutorIds.length > 0 ? await drizzleDb.select().from(profile).where(inArray(profile.userId, tutorIds)) : []
+  const profileMap = new Map(profiles.map((p) => [p.userId, p]))
+
+  const transformed = classes.map((c) => {
+    const b = bookingByClinic.get(c.id)
+    const spots = (c.maxStudents ?? 50) - (countMap.get(c.id) ?? 0)
+    return {
+      ...c,
+      meetingUrl: c.roomUrl,
+      tutor: profileMap.get(c.tutorId)
+        ? { id: c.tutorId, profile: { name: profileMap.get(c.tutorId)!.name, avatarUrl: profileMap.get(c.tutorId)!.avatarUrl, specialties: profileMap.get(c.tutorId)!.specialties } }
+        : null,
+      bookings: b ? [{ id: b.id, status: (b as { status?: string })?.status }] : [],
+      isBooked: !!b,
+      bookingStatus: b ? (b as { status?: string })?.status ?? null : null,
+      spotsLeft: spots,
+      _count: { bookings: countMap.get(c.id) ?? 0 },
+    }
+  })
   return { classes: transformed, total, hasMore: offset + limit < total }
 }
 
-/**
- * Get class details with all bookings
- */
 export async function getClassDetails(classId: string) {
   return cache.getOrSet(
     `class:${classId}`,
-    () => db.clinic.findUnique({
-      where: { id: classId },
-      include: {
+    async () => {
+      const [c] = await drizzleDb.select().from(clinic).where(eq(clinic.id, classId)).limit(1)
+      if (!c) return null
+      const [bookings, tutorProfile] = await Promise.all([
+        drizzleDb.select().from(clinicBooking).where(eq(clinicBooking.clinicId, classId)),
+        drizzleDb.select().from(profile).where(eq(profile.userId, c.tutorId)).limit(1),
+      ])
+      const studentIds = bookings.map((b) => b.studentId)
+      const studentProfiles =
+        studentIds.length > 0 ? await drizzleDb.select().from(profile).where(inArray(profile.userId, studentIds)) : []
+      const studentProfileMap = new Map(studentProfiles.map((p) => [p.userId, p]))
+      const usersForStudents = studentIds.length > 0 ? await drizzleDb.select().from(user).where(inArray(user.id, studentIds)) : []
+      const userMap = new Map(usersForStudents.map((u) => [u.id, u]))
+      return {
+        ...c,
+        meetingUrl: c.roomUrl,
         tutor: {
-          select: {
-            id: true,
-            profile: {
-              select: {
-                name: true,
-                avatarUrl: true,
-                bio: true,
-                specialties: true,
-                hourlyRate: true
+          id: c.tutorId,
+          profile: tutorProfile[0]
+            ? {
+                name: tutorProfile[0].name,
+                avatarUrl: tutorProfile[0].avatarUrl,
+                bio: tutorProfile[0].bio,
+                specialties: tutorProfile[0].specialties,
+                hourlyRate: tutorProfile[0].hourlyRate,
               }
-            }
-          }
+            : null,
         },
-        bookings: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                email: true,
-                profile: { select: { name: true, avatarUrl: true } }
+        bookings: bookings.map((b) => ({
+          ...b,
+          student: userMap.get(b.studentId)
+            ? {
+                id: b.studentId,
+                email: userMap.get(b.studentId)!.email,
+                profile: studentProfileMap.get(b.studentId)
+                  ? { name: studentProfileMap.get(b.studentId)!.name, avatarUrl: studentProfileMap.get(b.studentId)!.avatarUrl }
+                  : null,
               }
-            }
-          }
-        },
-        _count: { select: { bookings: true } }
+            : null,
+        })),
+        _count: { bookings: bookings.length },
       }
-    }),
-    120 // 2 minute cache
+    },
+    120
   )
 }
 
 // ==================== GAMIFICATION QUERIES ====================
 
-/**
- * Get leaderboard - optimized with caching
- */
-export async function getLeaderboard(options: {
-  type?: 'XP' | 'STREAK' | 'ACHIEVEMENTS'
-  limit?: number
-  period?: 'WEEK' | 'MONTH' | 'ALL_TIME'
-} = {}) {
-  const { type = 'XP', limit = 20, period = 'ALL_TIME' } = options
-  const cacheKey = `leaderboard:${type}:${period}:${limit}`
-  
-  return cache.getOrSet(cacheKey, async () => {
-    const orderBy: any = {}
-    
-    switch (type) {
-      case 'STREAK':
-        orderBy.currentStreak = 'desc'
-        break
-      case 'ACHIEVEMENTS':
-        orderBy.totalAchievements = 'desc'
-        break
-      case 'XP':
-      default:
-        orderBy.totalXp = 'desc'
-    }
-    
-    return db.userGamification.findMany({
-      orderBy,
-      take: limit,
-      include: {
+export async function getLeaderboard(
+  options: { type?: 'XP' | 'STREAK' | 'ACHIEVEMENTS'; limit?: number; period?: 'WEEK' | 'MONTH' | 'ALL_TIME' } = {}
+) {
+  const { type = 'XP', limit = 20 } = options
+  const cacheKey = `leaderboard:${type}:${options.period ?? 'ALL_TIME'}:${limit}`
+
+  return cache.getOrSet(
+    cacheKey,
+    async () => {
+      const orderColumn = type === 'STREAK' ? userGamification.streakDays : userGamification.xp
+      const rows = await drizzleDb
+        .select()
+        .from(userGamification)
+        .orderBy(desc(orderColumn))
+        .limit(limit)
+
+      const userIds = rows.map((r) => r.userId)
+      const profiles = userIds.length > 0 ? await drizzleDb.select().from(profile).where(inArray(profile.userId, userIds)) : []
+      const profileMap = new Map(profiles.map((p) => [p.userId, p]))
+
+      return rows.map((r) => ({
+        ...r,
         user: {
-          select: {
-            id: true,
-            profile: { select: { name: true, avatarUrl: true } }
-          }
-        }
-      }
-    })
-  }, 300) // 5 minute cache
+          id: r.userId,
+          profile: profileMap.get(r.userId) ? { name: profileMap.get(r.userId)!.name, avatarUrl: profileMap.get(r.userId)!.avatarUrl } : null,
+        },
+      }))
+    },
+    300
+  )
 }
 
 // ==================== CONTENT QUERIES ====================
 
-/**
- * Get content library with filters
- */
 export async function getContentLibrary(options: {
   subject?: string
   type?: string
@@ -470,54 +437,35 @@ export async function getContentLibrary(options: {
   offset?: number
 } = {}) {
   const { subject, type, difficulty, search, limit = 20, offset = 0 } = options
-  
-  const where: any = { published: true }
-  
-  if (subject) where.subject = subject
-  if (type) where.type = type
-  if (difficulty) where.difficulty = difficulty
+  const conditions = [eq(contentItem.isPublished, true)]
+  if (subject) conditions.push(eq(contentItem.subject, subject))
+  if (type) conditions.push(eq(contentItem.type, type))
+  if (difficulty) conditions.push(eq(contentItem.difficulty, difficulty))
   if (search) {
-    where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } }
-    ]
+    const term = `%${search}%`
+    conditions.push(sql`(${contentItem.title} ilike ${term} or coalesce(${contentItem.description}, '')::text ilike ${term})`)
   }
-  
-  const [content, total] = await Promise.all([
-    db.content.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip: offset,
-      take: limit,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        subject: true,
-        type: true,
-        difficulty: true,
-        duration: true,
-        thumbnailUrl: true,
-        author: {
-          select: {
-            id: true,
-            profile: { select: { name: true } }
-          }
-        },
-        _count: { select: { progress: true, quizzes: true } }
-      }
-    }),
-    db.content.count({ where })
+
+  const [content, totalResult] = await Promise.all([
+    drizzleDb
+      .select()
+      .from(contentItem)
+      .where(and(...conditions))
+      .orderBy(desc(contentItem.createdAt))
+      .limit(limit)
+      .offset(offset),
+    drizzleDb.select({ count: sql<number>`count(*)::int` }).from(contentItem).where(and(...conditions)),
   ])
-  
-  return { content, total, hasMore: offset + limit < total }
+  const total = totalResult[0]?.count ?? 0
+  return {
+    content: content.map((c) => ({ ...c, author: null, _count: { progress: 0, quizzes: 0 } })),
+    total,
+    hasMore: offset + limit < total,
+  }
 }
 
 // ==================== CACHE INVALIDATION ====================
 
-/**
- * Invalidate user-related caches (db cache + cacheManager for API routes)
- */
 export async function invalidateUserCache(userId: string) {
   await Promise.all([
     cache.delete(`user:${userId}`),
@@ -528,16 +476,10 @@ export async function invalidateUserCache(userId: string) {
   ])
 }
 
-/**
- * Invalidate class-related caches
- */
 export async function invalidateClassCache(classId: string) {
   await cache.delete(`class:${classId}`)
 }
 
-/**
- * Invalidate leaderboard cache
- */
 export async function invalidateLeaderboardCache() {
   await cache.invalidatePattern('leaderboard:*')
 }

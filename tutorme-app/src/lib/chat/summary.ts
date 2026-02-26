@@ -3,7 +3,9 @@
  * Generates AI summaries of chat sessions for tutors and students
  */
 
-import { db } from '@/lib/db'
+import { asc, eq, like, and } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { message, profile, user } from '@/lib/db/schema'
 import { generateWithFallback } from '../ai/orchestrator'
 
 export type SummaryType = 'session' | 'topic' | 'student' | 'breakout'
@@ -39,29 +41,38 @@ export async function generateSessionSummary(
   options: SummaryOptions = { type: 'session', maxLength: 'medium', includeActionItems: true }
 ): Promise<{ success: boolean; summary?: ChatSummary; error?: string }> {
   try {
-    // Fetch all messages for the session
-    const messages = await db.message.findMany({
-      where: { sessionId },
-      orderBy: { timestamp: 'asc' },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        }
-      }
-    })
+    const messagesRows = await drizzleDb
+      .select({
+        id: message.id,
+        sessionId: message.sessionId,
+        userId: message.userId,
+        content: message.content,
+        type: message.type,
+        timestamp: message.timestamp,
+        userName: profile.name,
+      })
+      .from(message)
+      .leftJoin(user, eq(message.userId, user.id))
+      .leftJoin(profile, eq(user.id, profile.userId))
+      .where(eq(message.sessionId, sessionId))
+      .orderBy(asc(message.timestamp))
+    const messages = messagesRows.map((m) => ({
+      userId: m.userId,
+      content: m.content,
+      timestamp: m.timestamp,
+      type: m.type,
+      user: { profile: { name: m.userName } },
+    }))
 
     if (messages.length === 0) {
       return { success: false, error: '没有找到聊天记录' }
     }
 
-    // Format messages for AI
-    const formattedChat = messages.map((m: typeof messages[0]) => ({
+    const formattedChat = messages.map((m) => ({
       user: m.user?.profile?.name || m.userId,
       content: m.content,
       time: m.timestamp,
-      type: m.type
+      type: m.type,
     }))
 
     const prompt = createSummaryPrompt(formattedChat, options)
@@ -69,7 +80,7 @@ export async function generateSessionSummary(
     const parsed = parseSummaryResponse(result.content)
 
     // Calculate metrics
-    const uniqueParticipants = new Set(messages.map((m: typeof messages[0]) => m.userId)).size
+    const uniqueParticipants = new Set(messages.map((m) => m.userId)).size
     const duration = messages.length > 1
       ? (messages[messages.length - 1].timestamp.getTime() - messages[0].timestamp.getTime()) / 1000 / 60
       : 0
@@ -111,21 +122,26 @@ export async function generateBreakoutSummary(
   options: SummaryOptions = { type: 'breakout', maxLength: 'short' }
 ): Promise<{ success: boolean; summary?: ChatSummary; error?: string }> {
   try {
-    // Fetch messages for the breakout room
-    const messages = await db.message.findMany({
-      where: {
-        // Breakout rooms would use a special session ID format
-        sessionId: { startsWith: `breakout_${breakoutRoomId}` }
-      },
-      orderBy: { timestamp: 'asc' },
-      include: {
-        user: {
-          include: {
-            profile: true
-          }
-        }
-      }
-    })
+    const messagesRows = await drizzleDb
+      .select({
+        userId: message.userId,
+        content: message.content,
+        timestamp: message.timestamp,
+        type: message.type,
+        userName: profile.name,
+      })
+      .from(message)
+      .leftJoin(user, eq(message.userId, user.id))
+      .leftJoin(profile, eq(user.id, profile.userId))
+      .where(like(message.sessionId, `breakout_${breakoutRoomId}%`))
+      .orderBy(asc(message.timestamp))
+    const messages = messagesRows.map((m) => ({
+      userId: m.userId,
+      content: m.content,
+      timestamp: m.timestamp,
+      type: m.type,
+      user: { profile: { name: m.userName } },
+    }))
 
     if (messages.length === 0) {
       return { success: false, error: '没有找到分组讨论记录' }
@@ -345,13 +361,11 @@ export async function generateStudentParticipationSummary(
   studentId: string
 ): Promise<{ success: boolean; summary?: string; error?: string }> {
   try {
-    const messages = await db.message.findMany({
-      where: {
-        sessionId,
-        userId: studentId
-      },
-      orderBy: { timestamp: 'asc' }
-    })
+    const messages = await drizzleDb
+      .select({ userId: message.userId, content: message.content, timestamp: message.timestamp })
+      .from(message)
+      .where(and(eq(message.sessionId, sessionId), eq(message.userId, studentId)))
+      .orderBy(asc(message.timestamp))
 
     if (messages.length === 0) {
       return { success: false, error: '学生没有发言记录' }
@@ -388,11 +402,11 @@ export async function generateTopicSummary(
   topic: string
 ): Promise<{ success: boolean; summary?: string; error?: string }> {
   try {
-    // Fetch all messages
-    const messages = await db.message.findMany({
-      where: { sessionId },
-      orderBy: { timestamp: 'asc' }
-    })
+    const messages = await drizzleDb
+      .select({ content: message.content })
+      .from(message)
+      .where(eq(message.sessionId, sessionId))
+      .orderBy(asc(message.timestamp))
 
     // Filter messages related to the topic (simple keyword match)
     const topicMessages = messages.filter(m =>

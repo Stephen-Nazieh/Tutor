@@ -4,7 +4,7 @@
  */
 
 import * as Sentry from '@sentry/nextjs'
-import { reportMetric, reportError } from '@/lib/performance/performance-monitoring'
+import { reportMetric, reportError } from '@/lib/performance/performance-monitoring-shared'
 
 export function getSentryInitOptions(overrides?: Record<string, unknown>) {
   const base: Parameters<typeof Sentry.init>[0] = {

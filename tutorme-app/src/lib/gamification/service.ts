@@ -1,11 +1,14 @@
 /**
  * Gamification Service
- * 
- * Handles XP, Level, Streak, and Skill Score calculations
+ *
+ * Handles XP, Level, Streak, and Skill Score calculations (Drizzle ORM)
  * Merged Socratic teaching with Gamified Avatar personalities
  */
 
-import { db } from '@/lib/db'
+import crypto from 'crypto'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { userGamification } from '@/lib/db/schema'
 import { logActivity } from './activity-log'
 
 // XP required for each level (exponential growth)
@@ -138,23 +141,36 @@ export const AVATAR_PERSONALITIES = {
 export type AvatarPersonality = keyof typeof AVATAR_PERSONALITIES
 
 export async function getOrCreateGamification(userId: string) {
-  let gamification = await db.userGamification.findUnique({
-    where: { userId },
-  })
+  const [existing] = await drizzleDb
+    .select()
+    .from(userGamification)
+    .where(eq(userGamification.userId, userId))
+    .limit(1)
 
-  if (!gamification) {
-    gamification = await db.userGamification.create({
-      data: {
-        userId,
-        level: 1,
-        xp: 0,
-        streakDays: 0,
-        longestStreak: 0,
-      },
+  if (existing) return existing
+
+  const [created] = await drizzleDb
+    .insert(userGamification)
+    .values({
+      id: crypto.randomUUID(),
+      userId,
+      level: 1,
+      xp: 0,
+      streakDays: 0,
+      longestStreak: 0,
+      totalStudyMinutes: 0,
+      grammarScore: 0,
+      vocabularyScore: 0,
+      speakingScore: 0,
+      listeningScore: 0,
+      confidenceScore: 0,
+      fluencyScore: 0,
+      unlockedWorlds: [],
     })
-  }
+    .returning()
 
-  return gamification
+  if (!created) throw new Error('Failed to create user gamification')
+  return created
 }
 
 export function calculateLevel(xp: number): number {
@@ -185,21 +201,21 @@ export async function awardXp(
   userId: string,
   amount: number,
   source: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ) {
   const gamification = await getOrCreateGamification(userId)
-  
+
   const newXp = gamification.xp + amount
   const newLevel = calculateLevel(newXp)
   const leveledUp = newLevel > gamification.level
 
-  const updated = await db.userGamification.update({
-    where: { userId },
-    data: {
-      xp: newXp,
-      level: newLevel,
-    },
-  })
+  const [updated] = await drizzleDb
+    .update(userGamification)
+    .set({ xp: newXp, level: newLevel })
+    .where(eq(userGamification.userId, userId))
+    .returning()
+
+  if (!updated) throw new Error('Failed to update gamification')
 
   await logActivity(userId, 'XP_EARNED', {
     amount,
@@ -219,14 +235,14 @@ export async function awardXp(
 
 export async function updateStreak(userId: string) {
   const gamification = await getOrCreateGamification(userId)
-  
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  
+
   const lastActive = gamification.lastActiveDate
     ? new Date(gamification.lastActiveDate)
     : null
-  
+
   let newStreak = gamification.streakDays
   let streakBonus = 0
   let streakContinued = false
@@ -239,7 +255,7 @@ export async function updateStreak(userId: string) {
     if (diffDays === 1) {
       newStreak += 1
       streakContinued = true
-      
+
       if (newStreak === 3) streakBonus = XP_REWARDS.STREAK_3_DAYS
       else if (newStreak === 7) streakBonus = XP_REWARDS.STREAK_7_DAYS
       else if (newStreak === 30) streakBonus = XP_REWARDS.STREAK_30_DAYS
@@ -255,14 +271,17 @@ export async function updateStreak(userId: string) {
 
   const longestStreak = Math.max(gamification.longestStreak, newStreak)
 
-  const updated = await db.userGamification.update({
-    where: { userId },
-    data: {
+  const [updated] = await drizzleDb
+    .update(userGamification)
+    .set({
       streakDays: newStreak,
       longestStreak,
       lastActiveDate: today,
-    },
-  })
+    })
+    .where(eq(userGamification.userId, userId))
+    .returning()
+
+  if (!updated) throw new Error('Failed to update streak')
 
   await logActivity(userId, streakBroken ? 'STREAK_BROKEN' : 'STREAK_UPDATED', {
     streakDays: newStreak,
@@ -281,18 +300,18 @@ export async function updateStreak(userId: string) {
 
 export async function checkDailyLogin(userId: string) {
   const gamification = await getOrCreateGamification(userId)
-  
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  
+
   const lastActive = gamification.lastActiveDate
     ? new Date(gamification.lastActiveDate)
     : null
-  
+
   if (!lastActive || lastActive.getTime() !== today.getTime()) {
     const streakResult = await updateStreak(userId)
     const xpResult = await awardXp(userId, XP_REWARDS.DAILY_LOGIN, 'daily_login')
-    
+
     return {
       firstLoginToday: true,
       xpEarned: xpResult.xpEarned + streakResult.streakBonus,
@@ -326,17 +345,20 @@ export async function updateSkillScores(
     return Math.round(existing * 0.7 + newScore * 0.3)
   }
 
-  const updated = await db.userGamification.update({
-    where: { userId },
-    data: {
+  const [updated] = await drizzleDb
+    .update(userGamification)
+    .set({
       grammarScore: calculateScore(gamification.grammarScore, scores.grammar),
       vocabularyScore: calculateScore(gamification.vocabularyScore, scores.vocabulary),
       speakingScore: calculateScore(gamification.speakingScore, scores.speaking),
       listeningScore: calculateScore(gamification.listeningScore, scores.listening),
       confidenceScore: calculateScore(gamification.confidenceScore, scores.confidence),
       fluencyScore: calculateScore(gamification.fluencyScore, scores.fluency),
-    },
-  })
+    })
+    .where(eq(userGamification.userId, userId))
+    .returning()
+
+  if (!updated) throw new Error('Failed to update skill scores')
 
   if (scores.confidence && scores.confidence > gamification.confidenceScore + 5) {
     await logActivity(userId, 'CONFIDENCE_MILESTONE', {
@@ -378,19 +400,19 @@ export async function getGamificationSummary(userId: string) {
 
 export async function unlockWorld(userId: string, worldId: string) {
   const gamification = await getOrCreateGamification(userId)
-  
+
   const current = gamification.unlockedWorlds ?? []
   if (!current.includes(worldId)) {
-    const updated = await db.userGamification.update({
-      where: { userId },
-      data: {
-        unlockedWorlds: [...current, worldId],
-      },
-    })
+    const [updated] = await drizzleDb
+      .update(userGamification)
+      .set({ unlockedWorlds: [...current, worldId] })
+      .where(eq(userGamification.userId, userId))
+      .returning()
 
-    await logActivity(userId, 'WORLD_UNLOCK', { worldId })
-
-    return { unlocked: true, updated }
+    if (updated) {
+      await logActivity(userId, 'WORLD_UNLOCK', { worldId })
+      return { unlocked: true, updated }
+    }
   }
 
   return { unlocked: false }

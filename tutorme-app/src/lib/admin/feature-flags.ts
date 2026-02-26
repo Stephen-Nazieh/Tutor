@@ -1,15 +1,19 @@
 /**
- * Feature Flag System
+ * Feature Flag System (Drizzle)
  * Centralized feature flag management with caching
  */
 
-import { prisma } from '@/lib/db'
-import { FeatureFlag } from '@prisma/client'
-import { AdminSession } from './auth'
+import crypto from 'crypto'
+import { eq, asc, desc, isNull } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { featureFlag, featureFlagChange } from '@/lib/db/schema'
+import type { AdminSession } from './auth'
 
-// In-memory cache for feature flags (refreshed periodically)
-let flagsCache: Map<string, FeatureFlag> | null = null
-let cacheTimestamp: number = 0
+export type FeatureFlagRow = typeof featureFlag.$inferSelect
+
+// In-memory cache
+let flagsCache: Map<string, FeatureFlagRow> | null = null
+let cacheTimestamp = 0
 const CACHE_TTL = 60 * 1000 // 1 minute
 
 export interface FlagEvaluationContext {
@@ -19,134 +23,74 @@ export interface FlagEvaluationContext {
   email?: string
 }
 
-/**
- * Get all feature flags (with caching)
- */
-export async function getAllFeatureFlags(): Promise<FeatureFlag[]> {
-  // Check cache
+export async function getAllFeatureFlags(): Promise<FeatureFlagRow[]> {
   if (flagsCache && Date.now() - cacheTimestamp < CACHE_TTL) {
     return Array.from(flagsCache.values())
   }
-
-  // Fetch from database
-  const flags = await prisma.featureFlag.findMany({
-    where: { deletedAt: null },
-    orderBy: { key: 'asc' },
-  })
-
-  // Update cache
-  flagsCache = new Map(flags.map(f => [f.key, f]))
+  const flags = await drizzleDb
+    .select()
+    .from(featureFlag)
+    .where(isNull(featureFlag.deletedAt))
+    .orderBy(asc(featureFlag.key))
+  flagsCache = new Map(flags.map((f) => [f.key, f]))
   cacheTimestamp = Date.now()
-
   return flags
 }
 
-/**
- * Get a specific feature flag by key
- */
-export async function getFeatureFlag(key: string): Promise<FeatureFlag | null> {
-  // Check cache first
-  if (flagsCache && flagsCache.has(key)) {
-    return flagsCache.get(key)!
-  }
-
-  const flag = await prisma.featureFlag.findUnique({
-    where: { key },
-  })
-
-  return flag
+export async function getFeatureFlag(key: string): Promise<FeatureFlagRow | null> {
+  if (flagsCache?.has(key)) return flagsCache.get(key)!
+  const [flag] = await drizzleDb.select().from(featureFlag).where(eq(featureFlag.key, key)).limit(1)
+  return flag ?? null
 }
 
-/**
- * Evaluate if a feature flag is enabled for a given context
- */
 export async function isFeatureEnabled(
   key: string,
   context?: FlagEvaluationContext
 ): Promise<boolean> {
   const flag = await getFeatureFlag(key)
-
-  if (!flag) {
-    // Default to enabled for unknown flags (safe default)
-    return true
-  }
-
-  if (!flag.enabled) {
-    return false
-  }
-
-  // Global scope - enabled for all
-  if (flag.scope === 'global') {
-    return true
-  }
-
-  // No context provided, can't evaluate scoped flags
-  if (!context) {
-    return flag.enabled
-  }
-
+  if (!flag) return true
+  if (!flag.enabled) return false
+  if (flag.scope === 'global') return true
+  if (!context) return flag.enabled
   const targetValue = flag.targetValue as Record<string, unknown> | undefined
-
-  // User-specific flag
-  if (flag.scope === 'user' && targetValue?.userId) {
-    return targetValue.userId === context.userId
-  }
-
-  // Role-specific flag
+  if (flag.scope === 'user' && targetValue?.userId) return targetValue.userId === context.userId
   if (flag.scope === 'role' && targetValue?.roles) {
-    const allowedRoles = targetValue.roles as string[]
-    return context.role ? allowedRoles.includes(context.role) : false
+    const roles = targetValue.roles as string[]
+    return context.role ? roles.includes(context.role) : false
   }
-
-  // Tier-specific flag
   if (flag.scope === 'tier' && targetValue?.tiers) {
-    const allowedTiers = targetValue.tiers as string[]
-    return context.tier ? allowedTiers.includes(context.tier) : false
+    const tiers = targetValue.tiers as string[]
+    return context.tier ? tiers.includes(context.tier) : false
   }
-
   return flag.enabled
 }
 
-/**
- * Check multiple feature flags at once
- */
 export async function checkFeatures(
   keys: string[],
   context?: FlagEvaluationContext
 ): Promise<Record<string, boolean>> {
   const flags = await getAllFeatureFlags()
-  const flagMap = new Map(flags.map(f => [f.key, f]))
-
+  const flagMap = new Map(flags.map((f) => [f.key, f]))
   const results: Record<string, boolean> = {}
-
   for (const key of keys) {
     const flag = flagMap.get(key)
-    
     if (!flag) {
-      results[key] = true // Default to enabled
+      results[key] = true
       continue
     }
-
     if (!flag.enabled) {
       results[key] = false
       continue
     }
-
     if (flag.scope === 'global') {
       results[key] = true
       continue
     }
-
-    // Evaluate scoped flags
     results[key] = await isFeatureEnabled(key, context)
   }
-
   return results
 }
 
-/**
- * Create a new feature flag
- */
 export async function createFeatureFlag(
   data: {
     key: string
@@ -158,29 +102,26 @@ export async function createFeatureFlag(
     config?: Record<string, unknown>
   },
   adminSession: AdminSession
-): Promise<FeatureFlag> {
-  const flag = await prisma.featureFlag.create({
-    data: {
+): Promise<FeatureFlagRow> {
+  const [flag] = await drizzleDb
+    .insert(featureFlag)
+    .values({
+      id: crypto.randomUUID(),
       key: data.key,
       name: data.name,
-      description: data.description,
+      description: data.description ?? null,
       enabled: data.enabled ?? true,
-      scope: data.scope || 'global',
-      targetValue: data.targetValue || undefined,
-      config: data.config || {},
+      scope: data.scope ?? 'global',
+      targetValue: data.targetValue ?? undefined,
+      config: (data.config ?? {}) as Record<string, unknown>,
       createdBy: adminSession.adminId,
-    },
-  })
-
-  // Invalidate cache
+    })
+    .returning()
   flagsCache = null
-
+  if (!flag) throw new Error('Failed to create feature flag')
   return flag
 }
 
-/**
- * Update a feature flag
- */
 export async function updateFeatureFlag(
   id: string,
   data: {
@@ -193,149 +134,96 @@ export async function updateFeatureFlag(
   },
   adminSession: AdminSession,
   changeReason?: string
-): Promise<FeatureFlag> {
-  // Get previous state for audit
-  const previousFlag = await prisma.featureFlag.findUnique({
-    where: { id },
+): Promise<FeatureFlagRow> {
+  const [previousFlag] = await drizzleDb.select().from(featureFlag).where(eq(featureFlag.id, id)).limit(1)
+  if (!previousFlag) throw new Error('Feature flag not found')
+  await drizzleDb.insert(featureFlagChange).values({
+    id: crypto.randomUUID(),
+    flagId: id,
+    changedBy: adminSession.adminId,
+    previousValue: previousFlag as unknown as Record<string, unknown>,
+    newValue: data as Record<string, unknown>,
+    changeReason: changeReason ?? null,
   })
-
-  if (!previousFlag) {
-    throw new Error('Feature flag not found')
-  }
-
-  // Create change record
-  await prisma.featureFlagChange.create({
-    data: {
-      flagId: id,
-      changedBy: adminSession.adminId,
-      previousValue: previousFlag as unknown as Record<string, unknown>,
-      newValue: data as Record<string, unknown>,
-      changeReason,
-    },
-  })
-
-  const flag = await prisma.featureFlag.update({
-    where: { id },
-    data: {
-      ...data,
-      updatedBy: adminSession.adminId,
-    },
-  })
-
-  // Invalidate cache
+  const set: Record<string, unknown> = { updatedBy: adminSession.adminId }
+  if (data.name !== undefined) set.name = data.name
+  if (data.description !== undefined) set.description = data.description
+  if (data.enabled !== undefined) set.enabled = data.enabled
+  if (data.scope !== undefined) set.scope = data.scope
+  if (data.targetValue !== undefined) set.targetValue = data.targetValue
+  if (data.config !== undefined) set.config = data.config
+  const [flag] = await drizzleDb
+    .update(featureFlag)
+    .set(set as Partial<typeof featureFlag.$inferInsert>)
+    .where(eq(featureFlag.id, id))
+    .returning()
   flagsCache = null
-
+  if (!flag) throw new Error('Failed to update feature flag')
   return flag
 }
 
-/**
- * Delete (soft delete) a feature flag
- */
-export async function deleteFeatureFlag(
-  id: string,
-  adminSession: AdminSession
-): Promise<void> {
-  await prisma.featureFlag.update({
-    where: { id },
-    data: {
-      deletedAt: new Date(),
-      updatedBy: adminSession.adminId,
-    },
-  })
-
-  // Invalidate cache
+export async function deleteFeatureFlag(id: string, adminSession: AdminSession): Promise<void> {
+  await drizzleDb
+    .update(featureFlag)
+    .set({ deletedAt: new Date(), updatedBy: adminSession.adminId })
+    .where(eq(featureFlag.id, id))
   flagsCache = null
 }
 
-/**
- * Get feature flag change history
- */
 export async function getFeatureFlagHistory(flagId: string) {
-  return prisma.featureFlagChange.findMany({
-    where: { flagId },
-    include: {
-      user: {
-        select: {
-          email: true,
-          profile: {
-            select: { name: true },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+  return drizzleDb
+    .select()
+    .from(featureFlagChange)
+    .where(eq(featureFlagChange.flagId, flagId))
+    .orderBy(desc(featureFlagChange.createdAt))
 }
 
-/**
- * Toggle a feature flag on/off
- */
 export async function toggleFeatureFlag(
   id: string,
   enabled: boolean,
   adminSession: AdminSession,
   changeReason?: string
-): Promise<FeatureFlag> {
+): Promise<FeatureFlagRow> {
   return updateFeatureFlag(
     id,
     { enabled },
     adminSession,
-    changeReason || `Feature ${enabled ? 'enabled' : 'disabled'}`
+    changeReason ?? `Feature ${enabled ? 'enabled' : 'disabled'}`
   )
 }
 
-/**
- * Invalidate the feature flag cache
- */
 export function invalidateFeatureFlagCache(): void {
   flagsCache = null
   cacheTimestamp = 0
 }
 
-// Predefined feature flags for the platform
 export const DefaultFeatureFlags = {
-  // AI Features
   AI_TUTOR_ENABLED: 'ai_tutor_enabled',
   AI_TUTOR_SOCRATIC_MODE: 'ai_tutor_socratic_mode',
   AI_TUTOR_REAL_TIME_FEEDBACK: 'ai_tutor_real_time_feedback',
   AI_TUTOR_VOICE_INPUT: 'ai_tutor_voice_input',
-  
-  // Live Session Features
   LIVE_WHITEBOARD: 'live_whiteboard',
   LIVE_BREAKOUT_ROOMS: 'live_breakout_rooms',
   LIVE_SCREEN_SHARE: 'live_screen_share',
   LIVE_RECORDING: 'live_recording',
   LIVE_AI_MONITORING: 'live_ai_monitoring',
-  
-  // Content Features
   CONTENT_QUIZZES: 'content_quizzes',
   CONTENT_TRANSCRIPTS: 'content_transcripts',
   CONTENT_BOOKMARKS: 'content_bookmarks',
   CONTENT_NOTES: 'content_notes',
-  
-  // Gamification
   GAMIFICATION_ENABLED: 'gamification_enabled',
   GAMIFICATION_ACHIEVEMENTS: 'gamification_achievements',
   GAMIFICATION_LEADERBOARD: 'gamification_leaderboard',
-  
-  // Social Features
   STUDY_GROUPS: 'study_groups',
   PEER_COLLABORATION: 'peer_collaboration',
   TUTOR_REVIEWS: 'tutor_reviews',
-  
-  // Payment Features
   PAYMENTS_ENABLED: 'payments_enabled',
   SUBSCRIPTIONS_ENABLED: 'subscriptions_enabled',
-  
-  // Admin Features
   ADMIN_ANALYTICS_ADVANCED: 'admin_analytics_advanced',
   ADMIN_USER_IMPERSONATION: 'admin_user_impersonation',
   ADMIN_CONTENT_MODERATION: 'admin_content_moderation',
 } as const
 
-/**
- * Initialize default feature flags
- */
 export async function initializeDefaultFeatureFlags(adminId: string): Promise<void> {
   const defaults = [
     { key: DefaultFeatureFlags.AI_TUTOR_ENABLED, name: 'AI Tutor', description: 'Enable AI tutoring features', enabled: true },
@@ -349,18 +237,18 @@ export async function initializeDefaultFeatureFlags(adminId: string): Promise<vo
     { key: DefaultFeatureFlags.PAYMENTS_ENABLED, name: 'Payments', description: 'Enable payment processing', enabled: false },
     { key: DefaultFeatureFlags.SUBSCRIPTIONS_ENABLED, name: 'Subscriptions', description: 'Enable subscription plans', enabled: false },
   ]
-
   for (const flag of defaults) {
-    const existing = await prisma.featureFlag.findUnique({
-      where: { key: flag.key },
-    })
-
+    const [existing] = await drizzleDb.select().from(featureFlag).where(eq(featureFlag.key, flag.key)).limit(1)
     if (!existing) {
-      await prisma.featureFlag.create({
-        data: {
-          ...flag,
-          createdBy: adminId,
-        },
+      await drizzleDb.insert(featureFlag).values({
+        id: crypto.randomUUID(),
+        key: flag.key,
+        name: flag.name,
+        description: flag.description ?? null,
+        enabled: flag.enabled ?? true,
+        scope: 'global',
+        config: {},
+        createdBy: adminId,
       })
     }
   }

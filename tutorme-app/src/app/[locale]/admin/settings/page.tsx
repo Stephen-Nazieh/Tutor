@@ -61,9 +61,10 @@ export default function SettingsPage() {
   }
 
   const renderSettingInput = (setting: Record<string, unknown>) => {
+    const settingValue = (setting.settingValue ?? setting.value) as Record<string, unknown> | undefined
     const value = editedSettings[setting.key as string] !== undefined
       ? editedSettings[setting.key as string]
-      : (setting.value as Record<string, unknown>)?.value
+      : settingValue?.value
 
     const valueType = (setting.valueType as string) || 'string'
 

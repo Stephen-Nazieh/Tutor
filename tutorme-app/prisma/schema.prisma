@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Required for migrate deploy when Prisma reports "pgbouncer cannot connect to server".
+  // Use same as DATABASE_URL when Postgres is direct (e.g. port 5433); or your direct Postgres URL when using PgBouncer.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -1705,10 +1708,11 @@ model SecurityEvent {
 }
 
 // Performance monitoring (enterprise metrics, security event tracking)
+// Note: column named 'metricValue' to avoid Prisma Studio count-query bug (CTE uses 'value')
 model PerformanceMetric {
-  id        String   @id @default(cuid())
-  name      String
-  value     Float
+  id          String   @id @default(cuid())
+  name        String
+  metricValue Float    @map("metric_value")
   unit      String
   tags      Json?
   userId    String?
@@ -2014,11 +2018,12 @@ model LlmRoutingRule {
   @@index([priority])
 }
 
+// Note: column named 'settingValue' to avoid Prisma Studio count-query bug (CTE uses 'value')
 model SystemSetting {
   id              String   @id @default(cuid())
   category        String
   key             String
-  value           Json
+  settingValue    Json     @map("setting_value")
   valueType       String // 'string', 'number', 'boolean', 'json'
   description     String?
   isEditable      Boolean  @default(true)

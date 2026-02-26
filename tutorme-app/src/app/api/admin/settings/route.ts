@@ -97,13 +97,13 @@ export async function POST(req: NextRequest) {
         category_key: { category, key },
       },
       update: {
-        value,
+        settingValue: value,
         updatedBy: session.adminId,
       },
       create: {
         category,
         key,
-        value,
+        settingValue: value,
         valueType: valueType || 'string',
         description,
         requiresRestart: requiresRestart || false,

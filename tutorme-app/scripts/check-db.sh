@@ -233,7 +233,7 @@ echo "║                                                        ║"
 echo "║  Database URL: postgresql://tutorme:tutorme_password   ║"
 echo "║                @localhost:5432/tutorme                 ║"
 echo "║                                                        ║"
-echo "║  Prisma Studio: http://localhost:5555                  ║"
+echo "║  DB UI: https://local.drizzle.studio (run db:studio)   ║"
 echo "╚════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -244,12 +244,12 @@ echo "  npm run db:studio     - Open database GUI"
 echo "  npm run db:migrate    - Run migrations"
 echo ""
 
-# Open Prisma Studio option
+# Open Drizzle Studio (DB UI) option
 if command -v npx &> /dev/null; then
-    read -p "🚀 Open Prisma Studio now? (y/n): " -n 1 -r
+    read -p "🚀 Open Drizzle Studio (DB UI) now? (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Opening Prisma Studio..."
-        npx prisma studio
+        echo "Opening Drizzle Studio..."
+        npx drizzle-kit studio --port 4983
     fi
 fi

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/db'
+import { eq, and } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { reviewSchedule } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -16,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { reviewId, days = 1 } = body
-    
+
     if (!reviewId) {
       return NextResponse.json(
         { success: false, error: 'Review ID required' },
@@ -24,13 +26,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find the review schedule
-    const schedule = await prisma.reviewSchedule.findFirst({
-      where: { 
-        id: reviewId,
-        studentId: session.user.id
-      }
-    })
+    const [schedule] = await drizzleDb
+      .select()
+      .from(reviewSchedule)
+      .where(
+        and(
+          eq(reviewSchedule.id, reviewId),
+          eq(reviewSchedule.studentId, session.user.id)
+        )
+      )
+      .limit(1)
 
     if (!schedule) {
       return NextResponse.json(
@@ -39,26 +44,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update next review date
     const newNextReview = new Date()
     newNextReview.setDate(newNextReview.getDate() + days)
 
-    await prisma.reviewSchedule.update({
-      where: { id: schedule.id },
-      data: {
+    await drizzleDb
+      .update(reviewSchedule)
+      .set({
         nextReview: newNextReview,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      })
+      .where(eq(reviewSchedule.id, schedule.id))
 
     return NextResponse.json({
       success: true,
       data: {
         message: `Review postponed by ${days} day${days !== 1 ? 's' : ''}`,
-        newNextReview
-      }
+        newNextReview,
+      },
     })
-
   } catch (error) {
     console.error('Error snoozing review:', error)
     return NextResponse.json(

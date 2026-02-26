@@ -1,13 +1,15 @@
 /**
  * POST /api/auth/register
- * Register a new user account
+ * Register a new user account (Drizzle ORM)
  */
 
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
-import { db } from '@/lib/db'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, familyAccount, familyMember, emergencyContact } from '@/lib/db/schema'
 import { RegisterUserSchema } from '@/lib/validation/schemas'
 import { ValidationError } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
@@ -27,15 +29,15 @@ function normalizeUsernameSeed(seed: string): string {
   return `user${nanoid(6).toLowerCase()}`
 }
 
-async function generateUniqueUsername(tx: Prisma.TransactionClient, preferred: string): Promise<string> {
+async function generateUniqueUsername(
+  checkExists: (username: string) => Promise<boolean>,
+  preferred: string
+): Promise<string> {
   const base = normalizeUsernameSeed(preferred)
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const suffix = attempt === 0 ? '' : String(Math.floor(Math.random() * 9000) + 1000)
     const candidate = `${base}${suffix}`.slice(0, 30)
-    const exists = await tx.profile.findUnique({
-      where: { username: candidate },
-      select: { id: true },
-    })
+    const exists = await checkExists(candidate)
     if (!exists) return candidate
   }
   return `tutor${nanoid(8).toLowerCase()}`
@@ -43,15 +45,13 @@ async function generateUniqueUsername(tx: Prisma.TransactionClient, preferred: s
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse request body first to catch JSON parsing errors
-    let body
+    let body: unknown
     try {
       body = await request.json()
     } catch {
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
-    // Validate request body with Zod
     const parsed = RegisterUserSchema.safeParse(body)
     if (!parsed.success) {
       const messages = parsed.error.issues
@@ -62,12 +62,12 @@ export async function POST(request: NextRequest) {
 
     const { email, password, role } = parsed.data
     const name = sanitizeHtml(parsed.data.name).trim().slice(0, 100) || 'User'
+    const normalizedEmail = email.toLowerCase()
 
-    // Role/email scoped rate limit prevents cross-tab role registrations from tripping each other.
     const clientId = getClientIdentifier(request)
     const registerOptions = RATE_LIMIT_PRESETS.register
     const scopedRateLimit = await checkRateLimit(
-      `register:${clientId}:${String(role).toUpperCase()}:${String(email).toLowerCase()}`,
+      `register:${clientId}:${String(role).toUpperCase()}:${normalizedEmail}`,
       registerOptions
     )
     if (!scopedRateLimit.allowed) {
@@ -85,210 +85,199 @@ export async function POST(request: NextRequest) {
 
     let verifiedStudents: Map<number, import('@/lib/security/parent-child-queries').VerifiedStudent> | undefined
 
-    // Check if email already exists
-    const existingUser = await db.user.findUnique({
-      where: { email: email.toLowerCase() }
-    })
-
+    const [existingUser] = await drizzleDb
+      .select()
+      .from(user)
+      .where(eq(user.email, normalizedEmail))
+      .limit(1)
     if (existingUser) {
       throw new ValidationError('Email already registered')
     }
 
-    // PARENT: Verify all children exist before creating family (security requirement)
-    if (role === 'PARENT' && body.additionalData?.students) {
-      const { verified, errors } = await verifyAllChildren(body.additionalData.students)
-      if (errors.length > 0) {
-        const msg = errors.map((e) => `Child ${e.index + 1}: ${e.message}`).join('; ')
-        return NextResponse.json({ error: msg }, { status: 400 })
-      }
-      // Check no student is already linked to another family
-      verifiedStudents = verified
-      for (const [, student] of verified) {
-        if (await isStudentAlreadyLinked(student.userId)) {
-          return NextResponse.json(
-            {
-              error: `Student ${student.email} is already linked to another parent account.`,
-            },
-            { status: 400 }
-          )
+    if (role === 'PARENT' && body && typeof body === 'object' && 'additionalData' in body) {
+      const additionalData = (body as { additionalData?: { students?: import('@/lib/validation/parent-child-security').StudentLinkingInput[] } }).additionalData
+      if (additionalData?.students?.length) {
+        const { verified, errors } = await verifyAllChildren(additionalData.students)
+        if (errors.length > 0) {
+          const msg = errors.map((e) => `Child ${e.index + 1}: ${e.message}`).join('; ')
+          return NextResponse.json({ error: msg }, { status: 400 })
+        }
+        verifiedStudents = verified
+        for (const [, student] of verified) {
+          if (await isStudentAlreadyLinked(student.userId)) {
+            return NextResponse.json(
+              { error: `Student ${student.email} is already linked to another parent account.` },
+              { status: 400 }
+            )
+          }
         }
       }
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user with profile in a transaction
-    const user = await db.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Create the user
-      const newUser = await tx.user.create({
-        data: {
-          email: email.toLowerCase(),
-          password: hashedPassword,
-          role,
-        },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          createdAt: true,
-        }
+    const newUser = await drizzleDb.transaction(async (tx) => {
+      const userId = crypto.randomUUID()
+      await tx.insert(user).values({
+        id: userId,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role,
       })
 
+      const checkUsername = async (username: string) => {
+        const [existing] = await tx.select().from(profile).where(eq(profile.username, username)).limit(1)
+        return !!existing
+      }
       const defaultUsername =
         role === 'TUTOR'
-          ? await generateUniqueUsername(tx, name || email.split('@')[0] || 'tutor')
+          ? await generateUniqueUsername(checkUsername, name || email.split('@')[0] || 'tutor')
           : null
 
-      // Create the profile (with studentUniqueId for STUDENT role - used for parent linking)
-      await tx.profile.create({
-        data: {
-          userId: newUser.id,
-          name,
-          ...(defaultUsername ? { username: defaultUsername } : {}),
-          tosAccepted: true,
-          tosAcceptedAt: new Date(),
-          ...(role === 'STUDENT' && {
-            studentUniqueId: `STU-${nanoid(12)}`,
-          }),
-        },
+      await tx.insert(profile).values({
+        id: crypto.randomUUID(),
+        userId,
+        name,
+        username: defaultUsername ?? undefined,
+        tosAccepted: true,
+        tosAcceptedAt: new Date(),
+        timezone: 'Asia/Shanghai',
+        emailNotifications: true,
+        smsNotifications: false,
+        subjectsOfInterest: [],
+        preferredLanguages: [],
+        learningGoals: [],
+        isOnboarded: role !== 'TUTOR',
+        specialties: [],
+        paidClassesEnabled: false,
+        ...(role === 'STUDENT' && { studentUniqueId: `STU-${nanoid(12)}` }),
       })
 
-      // If TUTOR role, update profile with tutor-specific data
-      if (role === 'TUTOR' && body.additionalData) {
-        const { education, experience, subjects, gradeLevels, hourlyRate } = body.additionalData
-        
-        await tx.profile.update({
-          where: { userId: newUser.id },
-          data: {
-            // Map education to credentials, experience to bio
-            credentials: education ? sanitizeHtml(education).trim().slice(0, 2000) : null,
-            // Combine experience with bio if provided
-            bio: experience ? `Experience: ${experience} years` : null,
-            // Map subjects to specialties
-            specialties: Array.isArray(subjects) ? subjects : [],
-            // Store hourly rate
-            hourlyRate: typeof hourlyRate === 'number' ? hourlyRate : null,
-            // Tutor starts as not onboarded - needs admin approval
-            isOnboarded: false,
-          },
-        })
+      if (role === 'TUTOR' && body && typeof body === 'object' && 'additionalData' in body) {
+        const ad = (body as { additionalData?: { education?: string; experience?: string; subjects?: string[]; gradeLevels?: unknown; hourlyRate?: number } }).additionalData
+        if (ad) {
+          await tx
+            .update(profile)
+            .set({
+              credentials: ad.education ? sanitizeHtml(ad.education).trim().slice(0, 2000) : null,
+              bio: ad.experience ? `Experience: ${ad.experience} years` : null,
+              specialties: Array.isArray(ad.subjects) ? ad.subjects : [],
+              hourlyRate: typeof ad.hourlyRate === 'number' ? ad.hourlyRate : null,
+              isOnboarded: false,
+            })
+            .where(eq(profile.userId, userId))
+        }
       }
 
-      // If PARENT role, create family account and related data
-      if (role === 'PARENT' && body.additionalData) {
-        const { students, emergencyContacts, notificationPreferences } = body.additionalData
-        
-        // Create FamilyAccount
-        const familyAccount = await tx.familyAccount.create({
-          data: {
-            familyName: name,
-            primaryEmail: email.toLowerCase(),
-            phoneNumber: body.profileData?.phoneNumber,
-            timezone: body.profileData?.timezone || 'Asia/Shanghai',
-            defaultCurrency: 'CNY',
-          }
+      if (role === 'PARENT' && body && typeof body === 'object' && 'additionalData' in body) {
+        const ad = (body as {
+          additionalData?: { students?: Array<{ name?: string }>; emergencyContacts?: Array<{ name: string; relationship: string; phone: string }> }
+          profileData?: { phoneNumber?: string; timezone?: string }
+        }).additionalData
+        const profileData = (body as { profileData?: { phoneNumber?: string; timezone?: string } }).profileData
+        const familyAccountId = crypto.randomUUID()
+        await tx.insert(familyAccount).values({
+          id: familyAccountId,
+          familyName: name,
+          familyType: 'PARENT_STUDENT',
+          primaryEmail: normalizedEmail,
+          phoneNumber: profileData?.phoneNumber ?? null,
+          timezone: profileData?.timezone ?? 'Asia/Shanghai',
+          defaultCurrency: 'CNY',
+          monthlyBudget: 0,
+          enableBudget: false,
+          allowAdults: false,
+          isActive: true,
+          isVerified: false,
         })
-
-        // Link parent user to family account
-        await tx.familyMember.create({
-          data: {
-            familyAccountId: familyAccount.id,
-            userId: newUser.id,
-            name,
-            relation: 'parent',
-            email: email.toLowerCase(),
-          }
+        await tx.insert(familyMember).values({
+          id: crypto.randomUUID(),
+          familyAccountId,
+          userId,
+          name,
+          relation: 'parent',
+          email: normalizedEmail,
         })
-
-        // Create emergency contacts (filter out empty placeholder entries)
-        const validContacts = (emergencyContacts || []).filter(
+        const contacts = (ad?.emergencyContacts || []).filter(
           (c: { name?: string; phone?: string }) => c.name && c.phone
         )
-        if (validContacts.length > 0) {
-          await tx.emergencyContact.createMany({
-            data: validContacts.map((contact: { name: string; relationship: string; phone: string }) => ({
-              parentId: familyAccount.id,
-              name: contact.name,
-              relation: contact.relationship,
-              phone: contact.phone,
-              isPrimary: false,
-            }))
+        for (const contact of contacts as Array<{ name: string; relationship: string; phone: string }>) {
+          await tx.insert(emergencyContact).values({
+            id: crypto.randomUUID(),
+            parentId: familyAccountId,
+            name: contact.name,
+            relation: contact.relationship,
+            phone: contact.phone,
+            isPrimary: false,
           })
         }
-
-        // Create family member records for verified students (with userId for proper linking)
-        if (students && students.length > 0 && verifiedStudents) {
+        const students = ad?.students
+        if (students?.length && verifiedStudents) {
           for (let i = 0; i < students.length; i++) {
             const v = verifiedStudents.get(i)
             if (v) {
-              await tx.familyMember.create({
-                data: {
-                  familyAccountId: familyAccount.id,
-                  userId: v.userId,
-                  name: v.name || students[i].name || v.email,
-                  relation: 'child',
-                  email: v.email,
-                },
+              const studentName = (students[i] as { name?: string })?.name || v.name || v.email
+              await tx.insert(familyMember).values({
+                id: crypto.randomUUID(),
+                familyAccountId,
+                userId: v.userId,
+                name: studentName,
+                relation: 'child',
+                email: v.email,
               })
             }
           }
         }
       }
 
-      return newUser
+      return { id: userId, email: normalizedEmail, role, createdAt: new Date() }
     })
 
-    // For STUDENT: fetch studentUniqueId to return (for parent linking)
     let studentUniqueId: string | undefined
     if (role === 'STUDENT') {
-      const profile = await db.profile.findUnique({
-        where: { userId: user.id },
-        select: { studentUniqueId: true },
-      })
-      studentUniqueId = profile?.studentUniqueId ?? undefined
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'User registered successfully',
-      user: {
-        id: user.id,
-        name,
-        email: user.email,
-        role: user.role,
-        tosAccepted: true,
-        ...(studentUniqueId && { studentUniqueId }),
-      },
-    }, { status: 201 })
-
-  } catch (error) {
-    console.error('Registration error:', error)
-
-    // Handle Zod validation errors
-    if (error && typeof error === 'object' && 'issues' in error) {
-      const zodError = error as { issues: Array<{ message: string }> }
-      const message = zodError.issues.map(i => i.message).join(', ')
-      return NextResponse.json({ error: message }, { status: 400 })
-    }
-
-    // Handle ValidationError
-    if (error instanceof ValidationError || (error as Error)?.name === 'ValidationError') {
-      const message = (error as Error).message || 'Validation error'
-      return NextResponse.json({ error: message }, { status: 400 })
-    }
-
-    // Handle Prisma errors
-    if (error && typeof error === 'object' && 'code' in error) {
-      const prismaError = error as { code: string; message?: string }
-      if (prismaError.code === 'P2002') {
-        return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
-      }
+      const [prof] = await drizzleDb
+        .select({ studentUniqueId: profile.studentUniqueId })
+        .from(profile)
+        .where(eq(profile.userId, newUser.id))
+        .limit(1)
+      studentUniqueId = prof?.studentUniqueId ?? undefined
     }
 
     return NextResponse.json(
-      { error: 'Internal server error. Please try again.' },
-      { status: 500 }
+      {
+        success: true,
+        message: 'User registered successfully',
+        user: {
+          id: newUser.id,
+          name,
+          email: newUser.email,
+          role: newUser.role,
+          tosAccepted: true,
+          ...(studentUniqueId && { studentUniqueId }),
+        },
+      },
+      { status: 201 }
     )
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('Registration error:', err.message, err.stack)
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as { issues: Array<{ message: string }> }
+      return NextResponse.json({ error: zodError.issues.map((i) => i.message).join(', ') }, { status: 400 })
+    }
+    if (error instanceof ValidationError || (error as Error)?.name === 'ValidationError') {
+      return NextResponse.json({ error: (error as Error).message || 'Validation error' }, { status: 400 })
+    }
+    if (error && typeof error === 'object' && 'code' in error) {
+      const e = error as { code: string }
+      if (e.code === '23505') {
+        return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
+      }
+    }
+    const message =
+      process.env.NODE_ENV === 'development'
+        ? err.message || 'Internal server error. Please try again.'
+        : 'Internal server error. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

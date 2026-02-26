@@ -38,106 +38,75 @@ fi
 echo -e "${GREEN}✅ Docker is running${NC}"
 echo ""
 
-# Check for port conflicts on 5433
-echo -e "${BLUE}▶ Checking port $DB_PORT for PostgreSQL...${NC}"
-if lsof -Pi :$DB_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
-    PORT_PID=$(lsof -Pi :$DB_PORT -sTCP:LISTEN -t)
-    echo -e "${YELLOW}⚠️  Port $DB_PORT is already in use!${NC}"
-    echo "   Process ID: $PORT_PID"
-    echo ""
-    read -p "   Kill the process using port $DB_PORT? (y/n): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        kill -9 $PORT_PID 2>/dev/null || true
-        sleep 1
-        echo -e "${GREEN}✅ Port $DB_PORT freed${NC}"
-    else
-        echo -e "${RED}❌ Cannot continue - port $DB_PORT is required${NC}"
-        exit 1
-    fi
-else
-    echo -e "${GREEN}✅ Port $DB_PORT is available${NC}"
-fi
-echo ""
-
-# Stop and remove old container if exists
-if docker ps -a | grep -q "tutorme-db"; then
-    echo -e "${BLUE}▶ Cleaning up old database container...${NC}"
-    docker stop tutorme-db 2>/dev/null || true
-    docker rm tutorme-db 2>/dev/null || true
-    echo -e "${GREEN}✅ Old container removed${NC}"
-    echo ""
-fi
-
-# Create PostgreSQL container with port 5433
-echo -e "${BLUE}▶ Creating PostgreSQL database on port $DB_PORT...${NC}"
-docker run -d --name tutorme-db \
-  -e POSTGRES_USER=tutorme \
-  -e POSTGRES_PASSWORD=tutorme_password \
-  -e POSTGRES_DB=tutorme \
-  -p $DB_PORT:5432 \
-  postgres:16-alpine
-
-# Wait for database to be ready
-echo "   Waiting for database to initialize..."
-RETRY_COUNT=0
-MAX_RETRIES=10
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if docker exec tutorme-db pg_isready -U tutorme > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ PostgreSQL is ready${NC}"
-        break
-    else
+# Start database stack via docker-compose (Postgres :5432 + PgBouncer :5433 + Redis)
+echo -e "${BLUE}▶ Starting database (Postgres + PgBouncer + Redis)...${NC}"
+if [ -f "docker-compose.yml" ]; then
+    docker-compose up -d db pgbouncer redis
+    echo "   Waiting for Postgres to be healthy..."
+    RETRY_COUNT=0
+    MAX_RETRIES=30
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        if docker exec tutorme-db pg_isready -U postgres -d tutorme > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ PostgreSQL is ready (port 5432)${NC}"
+            break
+        fi
         RETRY_COUNT=$((RETRY_COUNT + 1))
         if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
             echo -e "${RED}❌ Database failed to start${NC}"
-            docker logs tutorme-db --tail 20
+            docker-compose logs db --tail 20
             exit 1
         fi
-        echo "   Waiting... ($RETRY_COUNT/$MAX_RETRIES)"
-        sleep 2
-    fi
-done
-echo ""
-
-# Create Redis container
-echo -e "${BLUE}▶ Creating Redis cache...${NC}"
-if docker ps | grep -q tutorme-redis; then
-    echo -e "${GREEN}✅ Redis is already running${NC}"
-elif docker ps -a | grep -q tutorme-redis; then
-    docker start tutorme-redis
-    echo -e "${GREEN}✅ Redis started${NC}"
+        sleep 1
+    done
+    echo -e "${GREEN}✅ PgBouncer (port $DB_PORT) and Redis ready${NC}"
 else
-    docker run -d --name tutorme-redis \
-      -p $REDIS_PORT:6379 \
-      redis:7-alpine
-    echo -e "${GREEN}✅ Redis created and started${NC}"
+    echo -e "${YELLOW}⚠️  docker-compose.yml not found; starting standalone containers...${NC}"
+    docker run -d --name tutorme-db \
+      -e POSTGRES_USER=postgres \
+      -e POSTGRES_PASSWORD=postgres_password \
+      -e POSTGRES_DB=tutorme \
+      -p 5432:5432 \
+      postgres:16-alpine
+    sleep 3
+    if docker ps -a | grep -q tutorme-redis; then
+        docker start tutorme-redis 2>/dev/null || true
+    else
+        docker run -d --name tutorme-redis -p $REDIS_PORT:6379 redis:7-alpine
+    fi
+    echo -e "${GREEN}✅ Standalone Postgres (5432) and Redis started${NC}"
 fi
 echo ""
 
-# Update .env.local with correct port
+# Update .env.local for docker-compose (Option B: Postgres 5432 + PgBouncer 5433)
 echo -e "${BLUE}▶ Configuring environment...${NC}"
-if [ -f ".env.local" ]; then
-    if grep -q "localhost:5432" .env.local; then
-        sed -i '' 's/localhost:5432/localhost:5433/g' .env.local
-        echo -e "${GREEN}✅ Updated .env.local to use port 5433${NC}"
-    elif grep -q "localhost:5433" .env.local; then
-        echo -e "${GREEN}✅ .env.local already configured for port 5433${NC}"
-    fi
-else
-    if [ -f ".env.example" ]; then
-        cp .env.example .env.local
-        sed -i '' 's/localhost:5432/localhost:5433/g' .env.local
-        echo -e "${GREEN}✅ Created .env.local from example (port 5433)${NC}"
+if [ -f "docker-compose.yml" ]; then
+    ENV_DATABASE="DATABASE_URL=\"postgresql://postgres:postgres_password@localhost:$DB_PORT/tutorme\""
+    ENV_DIRECT="DIRECT_URL=\"postgresql://postgres:postgres_password@localhost:5432/tutorme\""
+    if [ -f ".env.local" ]; then
+        (grep -q "DATABASE_URL=" .env.local && sed -i '' "s|DATABASE_URL=.*|$ENV_DATABASE|" .env.local) || echo "$ENV_DATABASE" >> .env.local
+        (grep -q "DIRECT_URL=" .env.local && sed -i '' "s|DIRECT_URL=.*|$ENV_DIRECT|" .env.local) || echo "$ENV_DIRECT" >> .env.local
+        echo -e "${GREEN}✅ .env.local updated (app → 5433, Studio → 5432)${NC}"
     else
-        cat > .env.local << 'ENVFILE'
-DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
+        cat > .env.local << ENVFILE
+# Production-ready: app via PgBouncer (5433), Studio via direct Postgres (5432)
+$ENV_DATABASE
+$ENV_DIRECT
+
 REDIS_URL="redis://localhost:6379"
 NEXTAUTH_SECRET="your-secret-key-here-min-32-chars-long"
 NEXTAUTH_URL="http://localhost:3003"
 NEXT_PUBLIC_APP_URL="http://localhost:3003"
+NODE_ENV="development"
 ENVFILE
-        echo -e "${GREEN}✅ Created minimal .env.local${NC}"
+        echo -e "${GREEN}✅ Created .env.local for docker-compose stack${NC}"
+    fi
+else
+    if [ -f ".env.local" ]; then
+        grep -q "localhost:5433" .env.local || sed -i '' 's/localhost:5432/localhost:5433/g' .env.local
+        echo -e "${GREEN}✅ .env.local configured${NC}"
+    else
+        [ -f ".env.example" ] && cp .env.example .env.local && sed -i '' 's/localhost:5432/localhost:5433/g' .env.local
+        echo -e "${GREEN}✅ Created .env.local from example${NC}"
     fi
 fi
 echo ""
@@ -272,7 +241,7 @@ echo "║     Tutor5 / tutor5@gmail.com / Tutor5@tutorme         ║"
 echo "║                                                        ║"
 echo "╠════════════════════════════════════════════════════════╣"
 echo "║  🌐 App URL:  http://localhost:3003                    ║"
-echo "║  🗄️  Database: postgresql://localhost:$DB_PORT         ║"
+echo "║  🗄️  Database: Postgres :5432, PgBouncer :$DB_PORT     ║"
 echo "╚════════════════════════════════════════════════════════╝"
 echo ""
 echo -e "${CYAN}🚀 Development server is running!${NC}"
@@ -295,7 +264,7 @@ fi
 echo ""
 
 # Handle Ctrl+C to clean up
-trap 'echo ""; echo -e "${YELLOW}🛑 Shutting down...${NC}"; kill $DEV_PID 2>/dev/null || true; docker stop tutorme-db tutorme-redis 2>/dev/null || true; exit 0' INT
+trap 'echo ""; echo -e "${YELLOW}🛑 Shutting down...${NC}"; kill $DEV_PID 2>/dev/null || true; [ -f docker-compose.yml ] && docker-compose stop db pgbouncer redis 2>/dev/null || true; docker stop tutorme-db tutorme-redis 2>/dev/null || true; exit 0' INT
 
 # Wait for the dev server process
 wait $DEV_PID

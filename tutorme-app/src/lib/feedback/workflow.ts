@@ -3,8 +3,9 @@
  * Manages AI-generated feedback pending tutor approval
  */
 
-import type { Prisma } from '@prisma/client'
-import { db } from '@/lib/db'
+import { and, asc, eq, gte, inArray } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { feedbackWorkflow, profile, user } from '@/lib/db/schema'
 import { generateWithFallback } from '../ai/orchestrator'
 
 export type FeedbackType = 'task_feedback' | 'progress_report' | 'encouragement' | 'correction'
@@ -265,36 +266,35 @@ export async function submitFeedbackForReview(
 ): Promise<{ success: boolean; workflowId?: string; autoApproved: boolean; error?: string }> {
   try {
     const autoApproved = feedback.aiConfidence >= AUTO_APPROVE_THRESHOLD
+    const workflowId = crypto.randomUUID()
+    const now = new Date()
 
-    // Create workflow record
-    const workflow = await db.feedbackWorkflow.create({
-      data: {
-        submissionId: request.submissionId,
-        studentId: request.studentId,
-        aiScore: feedback.score,
-        aiComments: feedback.content,
-        aiStrengths: feedback.strengths,
-        aiImprovements: feedback.improvements,
-        aiResources: feedback.resources,
-        status: autoApproved ? 'approved' : 'ai_generated',
-        autoApproved: autoApproved,
-        approvedBy: autoApproved ? 'SYSTEM' : undefined,
-        approvedAt: autoApproved ? new Date() : undefined
-      }
+    await drizzleDb.insert(feedbackWorkflow).values({
+      id: workflowId,
+      submissionId: request.submissionId,
+      studentId: request.studentId,
+      aiScore: feedback.score ?? null,
+      aiComments: feedback.content,
+      aiStrengths: feedback.strengths,
+      aiImprovements: feedback.improvements,
+      aiResources: feedback.resources,
+      status: autoApproved ? 'approved' : 'ai_generated',
+      autoApproved,
+      approvedBy: autoApproved ? 'SYSTEM' : null,
+      approvedAt: autoApproved ? now : null,
     })
 
-    // If auto-approved, update status
     if (autoApproved) {
-      await db.feedbackWorkflow.update({
-        where: { id: workflow.id },
-        data: { status: 'sent_to_student' }
-      })
+      await drizzleDb
+        .update(feedbackWorkflow)
+        .set({ status: 'sent_to_student' })
+        .where(eq(feedbackWorkflow.id, workflowId))
     }
 
     return {
       success: true,
-      workflowId: workflow.id,
-      autoApproved
+      workflowId,
+      autoApproved,
     }
   } catch (error) {
     console.error('Failed to submit feedback:', error)
@@ -330,53 +330,59 @@ export async function getPendingFeedback(
   }[]
   total: number
 }> {
-  const where: Prisma.FeedbackWorkflowWhereInput = {
-    status: { in: ['ai_generated', 'tutor_modified'] }
-  }
+  const statusFilter = inArray(feedbackWorkflow.status, ['ai_generated', 'tutor_modified'])
 
-  if (options?.priority) {
-    // Note: priority is not in the schema, so this is filtered in memory
-  }
-
-  const [workflows, total] = await Promise.all([
-    db.feedbackWorkflow.findMany({
-      where,
-      orderBy: [
-        { createdAt: 'asc' }
-      ],
-      take: options?.limit || 20,
-      skip: options?.offset || 0,
-      include: {
-        student: {
-          include: {
-            profile: true
-          }
-        }
-      }
-    }),
-    db.feedbackWorkflow.count({ where })
+  const [workflowsRows, countResult] = await Promise.all([
+    drizzleDb
+      .select({
+        id: feedbackWorkflow.id,
+        studentId: feedbackWorkflow.studentId,
+        submissionId: feedbackWorkflow.submissionId,
+        aiScore: feedbackWorkflow.aiScore,
+        aiComments: feedbackWorkflow.aiComments,
+        aiStrengths: feedbackWorkflow.aiStrengths,
+        aiImprovements: feedbackWorkflow.aiImprovements,
+        aiResources: feedbackWorkflow.aiResources,
+        autoApproved: feedbackWorkflow.autoApproved,
+        createdAt: feedbackWorkflow.createdAt,
+        studentName: profile.name,
+      })
+      .from(feedbackWorkflow)
+      .leftJoin(user, eq(feedbackWorkflow.studentId, user.id))
+      .leftJoin(profile, eq(user.id, profile.userId))
+      .where(statusFilter)
+      .orderBy(asc(feedbackWorkflow.createdAt))
+      .limit(options?.limit ?? 20)
+      .offset(options?.offset ?? 0),
+    drizzleDb
+      .select({ id: feedbackWorkflow.id })
+      .from(feedbackWorkflow)
+      .where(statusFilter),
   ])
 
+  const total = countResult.length
+  const workflows = workflowsRows
+
   return {
-    items: workflows.map(w => ({
+    items: workflows.map((w) => ({
       id: w.id,
       studentId: w.studentId,
       submissionId: w.submissionId,
-      type: 'task_feedback' as FeedbackType, // Default since schema doesn't have type field
+      type: 'task_feedback' as FeedbackType,
       priority: 'medium',
       aiContent: {
-        content: w.aiComments || '',
-        score: w.aiScore || undefined,
-        tone: 'neutral',
-        strengths: w.aiStrengths as string[] || [],
-        improvements: w.aiImprovements as string[] || [],
-        resources: w.aiResources as string[] || [],
-        aiConfidence: w.autoApproved ? 0.9 : 0.7
+        content: w.aiComments ?? '',
+        score: w.aiScore ?? undefined,
+        tone: 'neutral' as const,
+        strengths: (w.aiStrengths as string[]) ?? [],
+        improvements: (w.aiImprovements as string[]) ?? [],
+        resources: (w.aiResources as string[]) ?? [],
+        aiConfidence: w.autoApproved ? 0.9 : 0.7,
       },
       createdAt: w.createdAt,
-      studentName: w.student?.profile?.name || undefined
+      studentName: w.studentName ?? undefined,
     })),
-    total
+    total,
   }
 }
 
@@ -394,9 +400,11 @@ export async function reviewFeedback(
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const workflow = await db.feedbackWorkflow.findUnique({
-      where: { id: workflowId }
-    })
+    const [workflow] = await drizzleDb
+      .select()
+      .from(feedbackWorkflow)
+      .where(eq(feedbackWorkflow.id, workflowId))
+      .limit(1)
 
     if (!workflow) {
       return { success: false, error: '反馈记录不存在' }
@@ -406,33 +414,33 @@ export async function reviewFeedback(
       return { success: false, error: '该反馈已被处理' }
     }
 
-    let updateData: Prisma.FeedbackWorkflowUpdateInput = {
-      status: decision === 'approve' || decision === 'modify' ? 'approved' : 'rejected',
-      approvedAt: new Date(),
-      approvedBy: reviewerId
-    }
+    const isApproveOrModify = decision === 'approve' || decision === 'modify'
+    const firstUpdate =
+      decision === 'modify' && modifications
+        ? {
+            status: 'tutor_modified' as const,
+            approvedAt: new Date(),
+            approvedBy: reviewerId,
+            modifiedScore: modifications.modifiedScore ?? undefined,
+            modifiedComments: modifications.modifiedComments ?? undefined,
+            addedNotes: modifications.addedNotes ?? undefined,
+          }
+        : {
+            status: (isApproveOrModify ? 'approved' : 'rejected') as 'approved' | 'rejected',
+            approvedAt: new Date(),
+            approvedBy: reviewerId,
+          }
 
-    if (decision === 'modify' && modifications) {
-      updateData = {
-        ...updateData,
-        status: 'tutor_modified',
-        modifiedScore: modifications.modifiedScore,
-        modifiedComments: modifications.modifiedComments,
-        addedNotes: modifications.addedNotes
-      }
-    }
+    await drizzleDb
+      .update(feedbackWorkflow)
+      .set(firstUpdate)
+      .where(eq(feedbackWorkflow.id, workflowId))
 
-    await db.feedbackWorkflow.update({
-      where: { id: workflowId },
-      data: updateData
-    })
-
-    // If approved or modified, mark as sent to student
-    if (decision === 'approve' || decision === 'modify') {
-      await db.feedbackWorkflow.update({
-        where: { id: workflowId },
-        data: { status: 'sent_to_student' }
-      })
+    if (isApproveOrModify) {
+      await drizzleDb
+        .update(feedbackWorkflow)
+        .set({ status: 'sent_to_student' })
+        .where(eq(feedbackWorkflow.id, workflowId))
     }
 
     return { success: true }
@@ -460,41 +468,39 @@ export async function getFeedbackStats(
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const where: Prisma.FeedbackWorkflowWhereInput = {}
-
   const [
-    pendingCount,
-    approvedToday,
-    rejectedToday,
-    allWorkflows
+    pendingRows,
+    approvedTodayRows,
+    rejectedTodayRows,
+    allWorkflows,
   ] = await Promise.all([
-    db.feedbackWorkflow.count({
-      where: { ...where, status: { in: ['ai_generated', 'tutor_modified'] } }
-    }),
-    db.feedbackWorkflow.count({
-      where: {
-        ...where,
-        status: { in: ['approved', 'sent_to_student'] },
-        approvedAt: { gte: today }
-      }
-    }),
-    db.feedbackWorkflow.count({
-      where: {
-        ...where,
-        status: 'rejected',
-        approvedAt: { gte: today }
-      }
-    }),
-    db.feedbackWorkflow.findMany({
-      where,
-      select: {
-        autoApproved: true
-      }
-    })
+    drizzleDb
+      .select({ id: feedbackWorkflow.id })
+      .from(feedbackWorkflow)
+      .where(inArray(feedbackWorkflow.status, ['ai_generated', 'tutor_modified'])),
+    drizzleDb
+      .select({ id: feedbackWorkflow.id })
+      .from(feedbackWorkflow)
+      .where(
+        and(
+          inArray(feedbackWorkflow.status, ['approved', 'sent_to_student']),
+          gte(feedbackWorkflow.approvedAt, today)
+        )
+      ),
+    drizzleDb
+      .select({ id: feedbackWorkflow.id })
+      .from(feedbackWorkflow)
+      .where(
+        and(eq(feedbackWorkflow.status, 'rejected'), gte(feedbackWorkflow.approvedAt, today))
+      ),
+    drizzleDb.select({ autoApproved: feedbackWorkflow.autoApproved }).from(feedbackWorkflow),
   ])
 
+  const pendingCount = pendingRows.length
+  const approvedToday = approvedTodayRows.length
+  const rejectedToday = rejectedTodayRows.length
   const totalWorkflows = allWorkflows.length
-  const autoApprovedCount = allWorkflows.filter(w => w.autoApproved).length
+  const autoApprovedCount = allWorkflows.filter((w) => w.autoApproved).length
 
   return {
     pendingCount,

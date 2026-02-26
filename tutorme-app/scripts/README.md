@@ -55,32 +55,33 @@ npm run db:check:win
 | Command | Description |
 |---------|-------------|
 | `npm run initialize` | **Full setup** - DB + migrations + seed + dev server |
-| `npm run studio` | Open Prisma Studio GUI (database viewer) |
+| `npm run studio` / `npm run db:studio` | Open Drizzle Studio (database UI) on port 4983 |
 | `npm run db:check` | Check existing database status |
 | `npm run db:migrate` | Run database migrations |
 | `npm run db:seed` | Seed test data |
 
 ---
 
-## 🗄️ Using Prisma Studio (Database GUI)
+## 🗄️ Using Drizzle Studio (Database GUI)
 
-Prisma Studio is a web-based GUI for viewing and editing your database.
+Drizzle Studio is the database UI for this project (no Prisma). It connects to Postgres on **localhost:5433** (the same port Docker exposes for the database).
 
-### Start Prisma Studio:
+### Start Drizzle Studio:
 ```bash
+npm run db:studio
+# OR:
 npm run studio
 # OR in a separate terminal:
-npx prisma studio
+npx drizzle-kit studio --port 4983
 ```
 
-Then open: **http://localhost:5555**
+Then open: **https://local.drizzle.studio** (it connects to the server on port 4983)
 
-### What you can do in Prisma Studio:
-- View all tables (User, Curriculum, Lesson, etc.)
-- Add new users manually
-- Edit existing records
-- Delete test data
-- View relationships between tables
+### What you can do in Drizzle Studio:
+- View all tables (User, Profile, Curriculum, etc.)
+- Add and edit records
+- Run queries
+- Browse relationships
 
 ### Screenshot of tables you'll see:
 ```
@@ -111,8 +112,8 @@ DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
 # Start containers manually
 docker start tutorme-db tutorme-redis
 
-# View database GUI
-npx prisma studio
+# View database GUI (Drizzle Studio)
+npm run db:studio
 
 # Check container logs
 docker logs tutorme-db
