@@ -61,7 +61,7 @@ export const GET = withAuth(
     })
 
     const data = {
-      conversations: conversations.map((c) => {
+      conversations: conversations.map((c: any) => {
         const other =
           c.participant1Id === userId ? c.participant2 : c.participant1
         return {
@@ -72,7 +72,7 @@ export const GET = withAuth(
             email: other.email,
           },
           lastUpdated: c.updatedAt,
-          messages: c.messages.map((m) => ({
+          messages: c.messages.map((m: any) => ({
             id: m.id,
             content: m.content,
             senderId: m.senderId,

@@ -11,7 +11,7 @@ import { reviewFeedback } from '@/lib/feedback/workflow'
 async function postHandler(
   request: NextRequest,
   session: Session,
-  context?: { params?: Promise<{ id: string }> }
+  context?: any
 ) {
   const csrfError = await requireCsrf(request)
   if (csrfError) return csrfError

@@ -8,7 +8,8 @@ import { withAuth } from '@/lib/api/middleware'
 import { getClassPerformanceSummary } from '@/lib/performance/student-analytics'
 
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { classId } = await params
 
   // Note: Curriculum model doesn't have tutorId field

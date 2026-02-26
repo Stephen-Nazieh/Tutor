@@ -10,14 +10,14 @@ import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context.params
+  const params = await context?.params ?? {}
   const { sessionId } = params
-  
+
   // Only tutors can view all student whiteboards
   if (session.user.role !== 'TUTOR') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
-  
+
   // Get all whiteboards for this session that are not private
   const whiteboards = await db.whiteboard.findMany({
     where: {
@@ -37,9 +37,9 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       updatedAt: 'desc'
     }
   })
-  
+
   // Get student names
-  const studentIds = whiteboards.map(wb => wb.tutorId)
+  const studentIds = whiteboards.map((wb: any) => wb.tutorId)
   const students = await db.user.findMany({
     where: {
       id: { in: studentIds }
@@ -53,11 +53,11 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       }
     }
   })
-  
-  const studentMap = new Map(students.map(s => [s.id, s.profile?.name || 'Unknown']))
-  
+
+  const studentMap = new Map(students.map((s: any) => [s.id, s.profile?.name || 'Unknown']))
+
   // Format response
-  const formattedWhiteboards = whiteboards.map(wb => ({
+  const formattedWhiteboards = whiteboards.map((wb: any) => ({
     id: wb.id,
     studentId: wb.tutorId,
     studentName: studentMap.get(wb.tutorId) || 'Unknown',
@@ -66,6 +66,6 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     pages: wb.pages,
     updatedAt: wb.updatedAt
   }))
-  
+
   return NextResponse.json({ whiteboards: formattedWhiteboards })
 })

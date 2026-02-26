@@ -9,7 +9,8 @@ import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth(async (req, session, routeContext: any) => {
+  const params = await routeContext?.params;
   const { lessonId } = await params
 
   // Get session
@@ -32,7 +33,8 @@ export const GET = withAuth(async (req, session, { params }) => {
   return NextResponse.json({ messages })
 }, { role: 'STUDENT' })
 
-export const POST = withCsrf(withAuth(async (req, session, { params }) => {
+export const POST = withCsrf(withAuth(async (req, session, routeContext: any) => {
+  const params = await routeContext?.params;
   const { lessonId } = await params
   const body = await req.json()
   const { role, content, section, whiteboardItems } = body
@@ -55,7 +57,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
   // Add message to context
   const context = (lessonSession.sessionContext as any) || {}
   const messages = context.messages || []
-  
+
   messages.push({
     id: Date.now().toString(),
     role,

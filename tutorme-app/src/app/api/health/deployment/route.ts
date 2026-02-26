@@ -153,7 +153,7 @@ async function checkDatabaseHealth(): Promise<HealthCheck> {
   const startTime = Date.now()
 
   try {
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: any) => {
       const [users, curricula, liveSessions, payments] = await Promise.all([
         tx.user.count(),
         tx.curriculum.count(),
@@ -259,7 +259,7 @@ async function checkSecurityHealth(): Promise<HealthCheck> {
       take: 20,
     })
 
-    const securityEvents = criticalEvents.map((event) => ({
+    const securityEvents = criticalEvents.map((event: any) => ({
       action: event.action,
       userId: event.userId,
       actorId: event.actorId,

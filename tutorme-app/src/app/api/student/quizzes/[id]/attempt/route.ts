@@ -9,19 +9,19 @@ import { withAuth, withCsrf, ValidationError, NotFoundError, ForbiddenError } fr
 import { db } from '@/lib/db'
 
 export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await context.params
+    const params = await context?.params ?? {}
     const { id } = params
     const studentId = session.user.id
-    
+
     // Get quiz
     const quiz = await db.quiz.findUnique({
         where: { id }
     })
-    
+
     if (!quiz) {
         throw new NotFoundError('Quiz not found')
     }
-    
+
     // Check if quiz is available
     const now = new Date()
     if (quiz.startDate && new Date(quiz.startDate) > now) {
@@ -30,7 +30,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
     if (quiz.dueDate && new Date(quiz.dueDate) < now) {
         throw new ForbiddenError('This quiz has passed its due date')
     }
-    
+
     // Check if student has attempts remaining
     const completedAttempts = await db.quizAttempt.count({
         where: {
@@ -39,11 +39,11 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
             status: { in: ['submitted', 'graded'] }
         }
     })
-    
+
     if (completedAttempts >= quiz.allowedAttempts) {
         throw new ForbiddenError('You have used all your attempts for this quiz')
     }
-    
+
     // Check for existing in-progress attempt
     const existingAttempt = await db.quizAttempt.findFirst({
         where: {
@@ -52,18 +52,18 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
             status: 'in_progress'
         }
     })
-    
+
     if (existingAttempt) {
         // Return existing attempt
         return NextResponse.json({
             attemptId: existingAttempt.id,
             startedAt: existingAttempt.startedAt,
-            timeRemaining: quiz.timeLimit 
+            timeRemaining: quiz.timeLimit
                 ? calculateTimeRemaining(existingAttempt.startedAt, quiz.timeLimit)
                 : undefined
         })
     }
-    
+
     // Create new attempt
     const attempt = await db.quizAttempt.create({
         data: {
@@ -78,7 +78,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context)
             questionResults: []
         }
     })
-    
+
     return NextResponse.json({
         attemptId: attempt.id,
         startedAt: attempt.startedAt,

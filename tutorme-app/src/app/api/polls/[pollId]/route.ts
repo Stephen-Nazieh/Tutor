@@ -12,7 +12,7 @@ import { z } from 'zod'
 // GET /api/polls/[pollId] - Get a specific poll
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -20,7 +20,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+    const { pollId } = params || {};
 
     const poll = await db.poll.findUnique({
       where: { id: pollId },
@@ -49,7 +50,7 @@ export async function GET(
     const formattedPoll = {
       ...poll,
       responses: poll.isAnonymous
-        ? poll.responses.map(r => ({ ...r, studentId: undefined }))
+        ? poll.responses.map((r: any) => ({ ...r, studentId: undefined }))
         : poll.responses,
       totalResponses: poll.responses.length
     }
@@ -70,7 +71,7 @@ const UpdatePollSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -78,12 +79,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+    const { pollId } = params || {};
     const body = await request.json()
     const validated = UpdatePollSchema.parse(body)
 
     const updateData: any = {}
-    
+
     if (validated.status) {
       updateData.status = validated.status
       if (validated.status === 'ACTIVE') {
@@ -92,11 +94,11 @@ export async function PATCH(
         updateData.endedAt = new Date()
       }
     }
-    
+
     if (validated.question !== undefined) {
       updateData.question = validated.question
     }
-    
+
     if (validated.showResults !== undefined) {
       updateData.showResults = validated.showResults
     }
@@ -121,7 +123,7 @@ export async function PATCH(
     return NextResponse.json({ poll })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid input', details: (error as any).errors }, { status: 400 })
     }
     console.error('Failed to update poll:', error)
     return NextResponse.json({ error: 'Failed to update poll' }, { status: 500 })
@@ -131,7 +133,7 @@ export async function PATCH(
 // DELETE /api/polls/[pollId] - Delete a poll
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ pollId: string }> }
+  context: any
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -139,7 +141,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { pollId } = await params
+    const params = await context?.params;
+    const { pollId } = params || {};
 
     await db.poll.delete({
       where: { id: pollId }

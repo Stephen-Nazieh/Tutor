@@ -39,7 +39,7 @@ export const GET = withAuth(
       },
     })
 
-    const courses = sharedCourses.map((s) => ({
+    const courses = sharedCourses.map((s: any) => ({
       shareId: s.id,
       courseId: s.curriculum.id,
       name: s.curriculum.name,

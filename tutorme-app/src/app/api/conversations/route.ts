@@ -65,8 +65,8 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
   // Format conversations with other participant info.
   const formattedConversations = conversations
-    .filter((conv) => isConversationAllowedByRoles(conv.participant1.role as AppRole, conv.participant2.role as AppRole))
-    .map((conv) => {
+    .filter((conv: any) => isConversationAllowedByRoles(conv.participant1.role as AppRole, conv.participant2.role as AppRole))
+    .map((conv: any) => {
       const otherParticipant = conv.participant1Id === userId
         ? conv.participant2
         : conv.participant1

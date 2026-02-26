@@ -8,7 +8,8 @@ import { withAuth } from '@/lib/api/middleware'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
 
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { studentId } = await params
   const { searchParams } = new URL(req.url)
   const curriculumId = searchParams.get('curriculumId') || undefined

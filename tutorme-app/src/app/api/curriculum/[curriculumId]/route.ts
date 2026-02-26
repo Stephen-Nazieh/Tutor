@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { curriculumId } = await params
 
   // Get curriculum with modules and lessons

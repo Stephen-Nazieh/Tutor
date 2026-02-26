@@ -13,15 +13,15 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     const studentId = session.user.id
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status') // 'available', 'completed', 'all'
-    
+
     // Get student's enrolled curricula
     const enrollments = await db.curriculumEnrollment.findMany({
         where: { studentId },
         select: { curriculumId: true }
     })
-    
-    const enrolledCurriculumIds = enrollments.map(e => e.curriculumId)
-    
+
+    const enrolledCurriculumIds = enrollments.map((e: any) => e.curriculumId)
+
     // Get active quiz assignments for this student
     const assignments = await db.quizAssignment.findMany({
         where: {
@@ -41,10 +41,10 @@ export const GET = withAuth(async (req: NextRequest, session) => {
             quiz: true
         }
     })
-    
+
     // Get unique quizzes
     const quizMap = new Map()
-    assignments.forEach(assignment => {
+    assignments.forEach((assignment: any) => {
         if (!quizMap.has(assignment.quizId)) {
             quizMap.set(assignment.quizId, {
                 quiz: assignment.quiz,
@@ -53,7 +53,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
             })
         }
     })
-    
+
     // Get student's attempts for these quizzes
     const quizIds = Array.from(quizMap.keys())
     const attempts = await db.quizAttempt.findMany({
@@ -63,30 +63,30 @@ export const GET = withAuth(async (req: NextRequest, session) => {
         },
         orderBy: { completedAt: 'desc' }
     })
-    
+
     // Group attempts by quiz
     const attemptsByQuiz = new Map()
-    attempts.forEach(attempt => {
+    attempts.forEach((attempt: any) => {
         if (!attemptsByQuiz.has(attempt.quizId)) {
             attemptsByQuiz.set(attempt.quizId, [])
         }
         attemptsByQuiz.get(attempt.quizId).push(attempt)
     })
-    
+
     // Format quizzes for student
     const now = new Date()
     const quizzes: StudentQuiz[] = []
-    
+
     for (const [quizId, data] of quizMap) {
         const quiz = data.quiz
         const quizAttempts = attemptsByQuiz.get(quizId) || []
         const completedAttempts = quizAttempts.filter((a: any) => a.status === 'graded' || a.status === 'submitted')
         const attemptsMade = completedAttempts.length
         const bestAttempt = completedAttempts[0] // Sorted by completedAt desc
-        
+
         // Determine status
         let quizStatus: StudentQuiz['status'] = 'available'
-        
+
         if (quiz.startDate && new Date(quiz.startDate) > now) {
             quizStatus = 'upcoming'
         } else if (quiz.dueDate && new Date(quiz.dueDate) < now) {
@@ -96,11 +96,11 @@ export const GET = withAuth(async (req: NextRequest, session) => {
         } else if (attemptsMade > 0) {
             quizStatus = 'available' // Can retry
         }
-        
+
         // Filter by status if requested
         if (status === 'available' && quizStatus !== 'available' && quizStatus !== 'upcoming') continue
         if (status === 'completed' && quizStatus !== 'completed') continue
-        
+
         quizzes.push({
             id: quiz.id,
             title: quiz.title,
@@ -118,7 +118,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
             canAttempt: quizStatus === 'available' && attemptsMade < quiz.allowedAttempts
         })
     }
-    
+
     // Sort: upcoming first, then available by due date, then completed
     quizzes.sort((a, b) => {
         if (a.status === 'upcoming' && b.status !== 'upcoming') return -1
@@ -126,6 +126,6 @@ export const GET = withAuth(async (req: NextRequest, session) => {
         if (a.dueDate && b.dueDate) return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
         return 0
     })
-    
+
     return NextResponse.json({ quizzes })
 }, { role: 'STUDENT' })

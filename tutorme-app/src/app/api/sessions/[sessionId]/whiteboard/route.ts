@@ -28,10 +28,10 @@ const WhiteboardPatchSchema = z.object({
 
 // GET - Get current user's whiteboard for this session
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context.params
+  const params = await context?.params ?? {}
   const { sessionId } = params
   const userId = session.user.id
-  
+
   // Find whiteboard for this user in this session
   const whiteboard = await db.whiteboard.findFirst({
     where: {
@@ -44,30 +44,30 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       }
     }
   })
-  
+
   if (!whiteboard) {
     return NextResponse.json({ whiteboard: null })
   }
-  
+
   return NextResponse.json({ whiteboard })
 })
 
 // POST - Create a new whiteboard for this session
 export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context.params
+  const params = await context?.params ?? {}
   const { sessionId } = params
   const userId = session.user.id
   const userRole = session.user.role
-  
+
   // Check if session exists
   const liveSession = await db.liveSession.findUnique({
     where: { id: sessionId }
   })
-  
+
   if (!liveSession) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
   }
-  
+
   // Check if user already has a whiteboard for this session
   const existingWhiteboard = await db.whiteboard.findFirst({
     where: {
@@ -75,11 +75,11 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       tutorId: userId,
     }
   })
-  
+
   if (existingWhiteboard) {
     return NextResponse.json({ whiteboard: existingWhiteboard })
   }
-  
+
   const { response: rateLimitResponse } = await withRateLimit(req, 30)
   if (rateLimitResponse) return rateLimitResponse
 
@@ -90,7 +90,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     throw new ValidationError(parsedBody.error.issues[0]?.message || 'Invalid whiteboard payload')
   }
   const body = parsedBody.data
-  
+
   // Create new whiteboard
   const whiteboard = await db.whiteboard.create({
     data: {
@@ -120,16 +120,16 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       pages: true
     }
   })
-  
+
   return NextResponse.json({ whiteboard }, { status: 201 })
 })
 
 // PATCH - Update whiteboard settings
 export const PATCH = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context.params
+  const params = await context?.params ?? {}
   const { sessionId } = params
   const userId = session.user.id
-  
+
   const { response: rateLimitResponse } = await withRateLimit(req, 30)
   if (rateLimitResponse) return rateLimitResponse
 
@@ -139,7 +139,7 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
     throw new ValidationError(parsedBody.error.issues[0]?.message || 'Invalid whiteboard payload')
   }
   const { visibility, isBroadcasting, title, backgroundColor, backgroundStyle } = parsedBody.data
-  
+
   // Find the whiteboard
   const whiteboard = await db.whiteboard.findFirst({
     where: {
@@ -147,11 +147,11 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
       tutorId: userId,
     }
   })
-  
+
   if (!whiteboard) {
     return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
   }
-  
+
   // Build update data
   const updateData: Record<string, unknown> = {}
   if (visibility !== undefined) updateData.visibility = visibility
@@ -159,11 +159,11 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   if (title !== undefined) updateData.title = title
   if (backgroundColor !== undefined) updateData.backgroundColor = backgroundColor
   if (backgroundStyle !== undefined) updateData.backgroundStyle = backgroundStyle
-  
+
   const updatedWhiteboard = await db.whiteboard.update({
     where: { id: whiteboard.id },
     data: updateData
   })
-  
+
   return NextResponse.json({ whiteboard: updatedWhiteboard })
 })

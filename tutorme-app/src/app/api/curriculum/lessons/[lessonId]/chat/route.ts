@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { 
+import {
   advanceLesson,
   buildCurriculumPrompt,
   startLesson,
@@ -17,7 +17,8 @@ import { generateWithFallback } from '@/lib/ai/orchestrator'
 const SECTIONS = ['introduction', 'concept', 'example', 'practice', 'review'] as const
 type LessonSection = typeof SECTIONS[number]
 
-export const POST = withCsrf(withAuth(async (req, session, { params }) => {
+export const POST = withCsrf(withAuth(async (req, session, routeContext: any) => {
+  const params = await routeContext?.params;
   const { lessonId } = await params
   const body = await req.json()
   const { message, sessionId, currentSection } = body
@@ -44,7 +45,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
 
   // Get or create lesson session
   let lessonSession: LessonSession | null = null
-  
+
   if (sessionId) {
     const dbSession = await db.lessonSession.findUnique({
       where: { id: sessionId }
@@ -64,7 +65,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
         }
       }
     })
-    
+
     if (dbSession) {
       lessonSession = dbSession as any
     } else {
@@ -83,7 +84,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
   // Get conversation history
   const context = (lessonSession.sessionContext as any) || {}
   const history = context.messages || []
-  
+
   // Add user message
   history.push({
     role: 'user',
@@ -96,7 +97,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
     temperature: 0.7,
     maxTokens: 2000
   })
-  
+
   const aiResponse = aiResult.content
 
   // Parse response for metadata
@@ -144,12 +145,12 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
   // Check if should advance section
   const currentSectionIndex = SECTIONS.indexOf(lessonSession.currentSection as LessonSection)
   const nextSectionIndex = SECTIONS.indexOf(nextSection as LessonSection)
-  
+
   let updatedSession = lessonSession
   if (nextSectionIndex > currentSectionIndex || understandingLevel >= 80) {
     // Advance to next section
     const advanceResult = await advanceLesson(lessonSession, message)
-    
+
     // Update session in database
     updatedSession = await db.lessonSession.update({
       where: { id: lessonSession.id },
@@ -162,7 +163,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
           lastMessage: message,
           lastResponse: parsedResponse
         },
-        whiteboardItems: whiteboardItems.length > 0 
+        whiteboardItems: whiteboardItems.length > 0
           ? [...(lessonSession.whiteboardItems || []), ...whiteboardItems]
           : lessonSession.whiteboardItems
       }
@@ -179,7 +180,7 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
           lastMessage: message,
           lastResponse: parsedResponse
         },
-        whiteboardItems: whiteboardItems.length > 0 
+        whiteboardItems: whiteboardItems.length > 0
           ? [...(lessonSession.whiteboardItems || []), ...whiteboardItems]
           : lessonSession.whiteboardItems
       }
@@ -236,7 +237,8 @@ export const POST = withCsrf(withAuth(async (req, session, { params }) => {
   })
 }, { role: 'STUDENT' }))
 
-export const GET = withAuth(async (req, session, { params }) => {
+export const GET = withAuth(async (req, session, routeContext: any) => {
+  const params = await routeContext?.params;
   const { lessonId } = await params
 
   // Get current session

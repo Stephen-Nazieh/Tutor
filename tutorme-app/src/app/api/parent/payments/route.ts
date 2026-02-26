@@ -33,28 +33,28 @@ export const GET = withAuth(
       }),
       family.studentIds.length > 0
         ? db.curriculumEnrollment.findMany({
-            where: { studentId: { in: family.studentIds } },
-            include: {
-              payments: true,
-              student: { select: { profile: { select: { name: true } } } },
-              curriculum: { select: { name: true } },
-            },
-          })
+          where: { studentId: { in: family.studentIds } },
+          include: {
+            payments: true,
+            student: { select: { profile: { select: { name: true } } } },
+            curriculum: { select: { name: true } },
+          },
+        })
         : [],
       family.studentIds.length > 0
         ? db.clinicBooking.findMany({
-            where: { studentId: { in: family.studentIds } },
-            include: {
-              payment: true,
-              student: { select: { profile: { select: { name: true } } } },
-              clinic: { select: { title: true } },
-            },
-          })
+          where: { studentId: { in: family.studentIds } },
+          include: {
+            payment: true,
+            student: { select: { profile: { select: { name: true } } } },
+            clinic: { select: { title: true } },
+          },
+        })
         : [],
     ])
 
-    const coursePayments = enrollments.flatMap((e) =>
-      e.payments.map((p) => ({
+    const coursePayments = enrollments.flatMap((e: any) =>
+      e.payments.map((p: any) => ({
         id: p.id,
         type: 'course' as const,
         amount: p.amount,
@@ -68,8 +68,8 @@ export const GET = withAuth(
     )
 
     const clinicPayments = bookings
-      .filter((b) => b.payment)
-      .map((b) => ({
+      .filter((b: any) => b.payment)
+      .map((b: any) => ({
         id: b.payment!.id,
         type: 'clinic' as const,
         amount: b.payment!.amount,
@@ -81,7 +81,7 @@ export const GET = withAuth(
         studentName: b.student.profile?.name ?? null,
       }))
 
-    const budgetPayments = familyPayments.map((p) => ({
+    const budgetPayments = familyPayments.map((p: any) => ({
       id: p.id,
       type: 'budget' as const,
       amount: p.amount,
@@ -97,12 +97,12 @@ export const GET = withAuth(
 
     const totalSpent = allPayments
       .filter(
-        (p) =>
+        (p: any) =>
           p.status === 'COMPLETED' ||
           p.status === 'completed' ||
           p.status === 'paid'
       )
-      .reduce((s, p) => s + p.amount, 0)
+      .reduce((s: any, p: any) => s + p.amount, 0)
 
     const data = {
       payments: allPayments.slice(0, 50),

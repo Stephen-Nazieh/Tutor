@@ -61,7 +61,7 @@ export const GET = withAuth(async (req, session, context) => {
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({ 
+  const curriculum = await db.curriculum.findUnique({
     where: { id },
     include: {
       modules: { include: { lessons: true } }
@@ -99,7 +99,7 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
     }
 
     // Check at least one lesson exists
-    const hasLessons = curriculum.modules.some(m => m.lessons.length > 0)
+    const hasLessons = curriculum.modules.some((m: any) => m.lessons.length > 0)
     if (!hasLessons) {
       validationErrors.push('Course must have at least one lesson')
     }

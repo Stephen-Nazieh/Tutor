@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = await request.json()
     body = bodySchema.parse(parsed)
-  } catch (err) {
+  } catch (err: any) {
     const message = err instanceof z.ZodError
-      ? err.errors.map((e) => e.message).join(', ')
+      ? (err as any).errors.map((e: any) => e.message).join(', ')
       : 'Invalid request body'
     return NextResponse.json({ error: message }, { status: 400 })
   }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       include: { enrollment: true },
     })
 
-    const isPaid = completedPayments.some((p) => {
+    const isPaid = completedPayments.some((p: any) => {
       const meta = p.metadata as Record<string, unknown> | null
       return meta?.studentId === session.user.id || p.enrollment?.studentId === session.user.id
     })

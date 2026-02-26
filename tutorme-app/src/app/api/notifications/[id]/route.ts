@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
-export const DELETE = withAuth(async (req: NextRequest, session, { params }) => {
+export const DELETE = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
   const { id } = await params
   const userId = session.user.id
   

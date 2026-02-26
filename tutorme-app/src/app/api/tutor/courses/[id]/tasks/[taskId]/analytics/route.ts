@@ -57,20 +57,20 @@ export async function GET(req: NextRequest) {
 
     // ---- Overall stats ----
     const totalStudents = submissions.length
-    const scores = submissions.map((s) => s.score ?? 0)
+    const scores = submissions.map((s: any) => s.score ?? 0)
     const avgScore = totalStudents > 0
-        ? Math.round((scores.reduce((a, b) => a + b, 0) / totalStudents) * 10) / 10
+        ? Math.round((scores.reduce((a: number, b: number) => a + b, 0) / totalStudents) * 10) / 10
         : 0
     const medianScore = totalStudents > 0
-        ? (() => { const sorted = [...scores].sort((a, b) => a - b); const mid = Math.floor(sorted.length / 2); return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2 })()
+        ? (() => { const sorted = [...scores].sort((a: number, b: number) => a - b); const mid = Math.floor(sorted.length / 2); return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2 })()
         : 0
     const highestScore = totalStudents > 0 ? Math.max(...scores) : 0
     const lowestScore = totalStudents > 0 ? Math.min(...scores) : 0
 
     // Time stats
-    const times = submissions.map((s) => s.timeSpent)
+    const times = submissions.map((s: any) => s.timeSpent)
     const avgTime = totalStudents > 0
-        ? Math.round(times.reduce((a, b) => a + b, 0) / totalStudents)
+        ? Math.round(times.reduce((a: number, b: number) => a + b, 0) / totalStudents)
         : 0
 
     // Score distribution buckets
@@ -166,16 +166,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Finalize stats
-    const questionStats = [...questionStatsMap.values()].map((stat) => {
+    const questionStats = [...questionStatsMap.values()].map((stat: any) => {
         const correctRate = stat.totalAttempts > 0
             ? Math.round((stat.correctCount / stat.totalAttempts) * 1000) / 10
             : 0
 
         // Get top 3 common wrong answers
         const topWrong = [...stat.commonWrongAnswers.entries()]
-            .sort((a, b) => b[1] - a[1])
+            .sort((a: any, b: any) => b[1] - a[1])
             .slice(0, 3)
-            .map(([answer, count]) => ({ answer, count }))
+            .map(([answer, count]: any) => ({ answer, count }))
 
         return {
             questionId: stat.questionId,
@@ -199,7 +199,7 @@ export async function GET(req: NextRequest) {
     })
 
     // ---- Per-student scores ----
-    const studentScores = submissions.map((s) => ({
+    const studentScores = submissions.map((s: any) => ({
         studentId: s.student.id,
         studentName: s.student.profile?.name ?? `Student ${s.student.id.slice(-6)}`,
         score: s.score ?? 0,
@@ -210,7 +210,7 @@ export async function GET(req: NextRequest) {
     }))
 
     // Questions needing review
-    const questionsNeedingReview = questionStats.filter((q) => q.needsReview)
+    const questionsNeedingReview = questionStats.filter((q: any) => q.needsReview)
 
     return NextResponse.json({
         task: {

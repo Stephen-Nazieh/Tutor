@@ -46,18 +46,18 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
   }, [])
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     })
   }
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
-      month: 'long', 
-      day: 'numeric' 
+      month: 'long',
+      day: 'numeric'
     })
   }
 
@@ -114,7 +114,7 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard 
+          <StatCard
             icon={BookOpen}
             label="Total Classes"
             value={stats?.totalClasses || 0}
@@ -122,7 +122,7 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
             trendUp
             color="from-blue-500 to-cyan-500"
           />
-          <StatCard 
+          <StatCard
             icon={Users}
             label="Active Students"
             value={stats?.totalStudents || 0}
@@ -130,14 +130,14 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
             trendUp
             color="from-purple-500 to-pink-500"
           />
-          <StatCard 
+          <StatCard
             icon={Calendar}
             label="Upcoming"
             value={stats?.upcomingClasses || 0}
             sublabel="This week"
             color="from-orange-500 to-red-500"
           />
-          <StatCard 
+          <StatCard
             icon={DollarSign}
             label="Earnings"
             value={`${stats?.currency || 'SGD'} ${(stats?.earnings || 0).toLocaleString()}`}
@@ -149,7 +149,7 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">
-          <Button 
+          <Button
             className="bg-white text-slate-900 hover:bg-white/90 font-medium shadow-lg"
             onClick={onScheduleClass}
           >
@@ -157,7 +157,7 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
             Schedule Class
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
-          <Button 
+          <Button
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 font-medium shadow-lg border-0"
             onClick={onCreateCourse}
           >
@@ -176,7 +176,7 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
 }
 
 interface StatCardProps {
-  icon: React.ElementType
+  icon: any
   label: string
   value: string | number
   sublabel?: string

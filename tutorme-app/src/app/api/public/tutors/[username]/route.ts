@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
             credentials: mockTutor.credentials,
             hourlyRate: mockTutor.hourlyRate,
           },
-          courses: mockTutor.courses.map((course) => ({
+          courses: mockTutor.courses.map((course: any) => ({
             id: course.id,
             name: course.name,
             description: course.description,
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
   }
 
-  const courses = tutor.createdCurricula.map((course) => ({
+  const courses = tutor.createdCurricula.map((course: any) => ({
     id: course.id,
     name: course.name,
     description: course.description,
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
     estimatedHours: course.estimatedHours,
     enrollmentCount: course._count.enrollments,
     moduleCount: course._count.modules,
-    lessonCount: course.modules.reduce((sum, mod) => sum + mod._count.lessons, 0),
+    lessonCount: course.modules.reduce((sum: number, mod: any) => sum + mod._count.lessons, 0),
     updatedAt: course.updatedAt,
   }))
 

@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
-export const POST = withCsrf(withAuth(async (req, session, context: { params?: Promise<{ contentId: string }> }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const params = context?.params ? await context.params : null
   const contentId = params?.contentId
   if (!contentId) {

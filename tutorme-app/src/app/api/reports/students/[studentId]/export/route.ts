@@ -9,7 +9,8 @@ import { db } from '@/lib/db'
 import { generateStudentReportPDF, generateCSV } from '@/lib/reports/export-service'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
 
-export const GET = withAuth(async (req: NextRequest, session, { params }) => {
+export const GET = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
   const { studentId } = await params
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'
@@ -71,14 +72,14 @@ export const GET = withAuth(async (req: NextRequest, session, { params }) => {
     switch (format.toLowerCase()) {
       case 'pdf': {
         const pdfBuffer = generateStudentReportPDF(studentData, classInfo)
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(pdfBuffer as any, {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="student-report-${studentId}.pdf"`,
           },
         })
       }
-      
+
       case 'csv': {
         const csvData = generateCSV([studentData as unknown as Record<string, unknown>])
         return new NextResponse(csvData, {
@@ -88,7 +89,7 @@ export const GET = withAuth(async (req: NextRequest, session, { params }) => {
           },
         })
       }
-      
+
       default:
         return NextResponse.json(
           { success: false, error: 'Invalid format. Use pdf or csv' },

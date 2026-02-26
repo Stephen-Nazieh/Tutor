@@ -28,14 +28,14 @@ export async function GET(_request: NextRequest) {
         })
 
         // Filter to tasks that include this student in assignments JSON
-        const studentTasks = generatedTasks.filter((task) => {
+        const studentTasks = generatedTasks.filter((task: any) => {
             const assignments = task.assignments as Record<string, unknown> | null
             if (!assignments) return false
             return Object.keys(assignments).includes(studentId)
         })
 
         // 2. Get existing submissions for these tasks
-        const taskIds = studentTasks.map((t) => t.id)
+        const taskIds = studentTasks.map((t: any) => t.id)
         const submissions = await db.taskSubmission.findMany({
             where: {
                 studentId,
@@ -43,11 +43,11 @@ export async function GET(_request: NextRequest) {
             },
         })
 
-        const submissionMap = new Map(submissions.map((s) => [s.taskId, s]))
+        const submissionMap = new Map(submissions.map((s: any) => [s.taskId, s]))
 
         // 3. Build assignment items
-        const assignments = studentTasks.map((task) => {
-            const submission = submissionMap.get(task.id)
+        const assignments = studentTasks.map((task: any) => {
+            const submission = submissionMap.get(task.id) as any
             const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !submission
             return {
                 id: task.id,
@@ -73,9 +73,9 @@ export async function GET(_request: NextRequest) {
         })
 
         // 4. Summary stats
-        const pending = assignments.filter((a) => a.status === 'pending').length
-        const submitted = assignments.filter((a) => a.status === 'submitted').length
-        const overdue = assignments.filter((a) => a.status === 'overdue').length
+        const pending = assignments.filter((a: any) => a.status === 'pending').length
+        const submitted = assignments.filter((a: any) => a.status === 'submitted').length
+        const overdue = assignments.filter((a: any) => a.status === 'overdue').length
 
         return NextResponse.json({
             assignments,

@@ -10,11 +10,11 @@ import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context.params
+  const params = await context?.params ?? {}
   const { sessionId, studentId } = params
   const userId = session.user.id
   const userRole = session.user.role
-  
+
   // Find the student's whiteboard
   const whiteboard = await db.whiteboard.findFirst({
     where: {
@@ -28,11 +28,11 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       }
     }
   })
-  
+
   if (!whiteboard) {
     return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
   }
-  
+
   // Check permissions
   if (userRole === 'TUTOR') {
     // Tutor can view if visibility is not 'private'
@@ -50,7 +50,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       return NextResponse.json({ whiteboard })
     }
   }
-  
+
   // Get student name
   const student = await db.user.findUnique({
     where: { id: studentId },
@@ -62,7 +62,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       }
     }
   })
-  
+
   return NextResponse.json({
     whiteboard: {
       ...whiteboard,

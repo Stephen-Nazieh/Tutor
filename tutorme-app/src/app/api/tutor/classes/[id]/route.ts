@@ -20,9 +20,10 @@ function normalizeCourseText(value: string): string {
  * GET /api/tutor/classes/:id
  * Returns a tutor-owned class with participants/messages for live hub bootstrapping.
  */
-export const GET = withAuth(async (req, session, { params }: { params: Promise<{ id: string }> }) => {
+export const GET = withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
-  const { id: classId } = await params
+  const params = await context?.params ?? {}
+  const { id: classId } = params
 
   const liveSession = await db.liveSession.findFirst({
     where: {
@@ -61,7 +62,7 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
     messagesByUser.set(m.userId, (messagesByUser.get(m.userId) || 0) + 1)
   }
 
-  const students = liveSession.participants.map((p) => {
+  const students = liveSession.participants.map((p: any) => {
     const chatCount = messagesByUser.get(p.studentId) || 0
     const engagementScore = Math.max(20, Math.min(100, 40 + chatCount * 12))
     const attentionLevel = engagementScore >= 80 ? 'high' : engagementScore >= 55 ? 'medium' : 'low'
@@ -82,9 +83,9 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
     }
   })
 
-  const activeStudents = students.filter((s) => s.status === 'online')
+  const activeStudents = students.filter((s: any) => s.status === 'online')
   const averageEngagement = activeStudents.length > 0
-    ? Math.round(activeStudents.reduce((sum, s) => sum + s.engagementScore, 0) / activeStudents.length)
+    ? Math.round(activeStudents.reduce((sum: number, s: any) => sum + s.engagementScore, 0) / activeStudents.length)
     : 0
 
   const classStart = liveSession.startedAt || liveSession.scheduledAt || new Date()
@@ -106,9 +107,9 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
 
   const normalizedSessionTitle = normalizeCourseText(liveSession.title || '')
   const exactNameMatch = tutorCourses.find(
-    (course) => normalizeCourseText(course.name) === normalizedSessionTitle
+    (course: any) => normalizeCourseText(course.name) === normalizedSessionTitle
   )
-  const containsMatch = tutorCourses.find((course) => {
+  const containsMatch = tutorCourses.find((course: any) => {
     const normalizedCourseName = normalizeCourseText(course.name)
     return (
       normalizedCourseName.length > 0 &&
@@ -134,7 +135,7 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
       linkedCourseId: deterministicLinkedCourseId,
     },
     students,
-    messages: liveSession.messages.map((m) => ({
+    messages: liveSession.messages.map((m: any) => ({
       id: m.id,
       studentId: m.userId,
       studentName: m.user.profile?.name || m.user.email || 'User',
@@ -152,10 +153,10 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
       totalChatMessages: liveSession.messages.length,
       classDuration,
       classStartTime: classStart.toISOString(),
-      veryEngaged: students.filter((s) => s.engagementScore >= 85).length,
-      engaged: students.filter((s) => s.engagementScore >= 60 && s.engagementScore < 85).length,
-      passive: students.filter((s) => s.engagementScore >= 30 && s.engagementScore < 60).length,
-      disengaged: students.filter((s) => s.engagementScore < 30).length,
+      veryEngaged: students.filter((s: any) => s.engagementScore >= 85).length,
+      engaged: students.filter((s: any) => s.engagementScore >= 60 && s.engagementScore < 85).length,
+      passive: students.filter((s: any) => s.engagementScore >= 30 && s.engagementScore < 60).length,
+      disengaged: students.filter((s: any) => s.engagementScore < 30).length,
       engagementTrend: 'stable',
     },
     alerts: [],
@@ -166,9 +167,10 @@ export const GET = withAuth(async (req, session, { params }: { params: Promise<{
  * POST /api/tutor/classes/:id
  * Starts the class (sets status ACTIVE and startedAt if needed).
  */
-export const POST = withCsrf(withAuth(async (req, session, { params }: { params: Promise<{ id: string }> }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
-  const { id: classId } = await params
+  const params = await context?.params ?? {}
+  const { id: classId } = params
 
   const liveSession = await db.liveSession.findFirst({
     where: {
@@ -207,9 +209,10 @@ export const POST = withCsrf(withAuth(async (req, session, { params }: { params:
   })
 }, { role: 'TUTOR' }))
 
-export const DELETE = withAuth(async (req, session, { params }: { params: Promise<{ id: string }> }) => {
+export const DELETE = withAuth(async (req, session, context: any) => {
   const tutorId = session.user.id
-  const { id: classId } = await params
+  const params = await context?.params ?? {}
+  const { id: classId } = params
 
   try {
     // Check if the class exists and belongs to this tutor

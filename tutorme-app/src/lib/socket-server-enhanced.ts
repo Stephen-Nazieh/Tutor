@@ -149,7 +149,7 @@ const userSocketMap = new Map<string, string>()
 async function validateJWT(token: string): Promise<{ userId: string; role: string; email: string; name: string } | null> {
   try {
     const decoded = verify(token, process.env.NEXTAUTH_SECRET!) as any
-    
+
     // Validate required fields
     if (!decoded.id || !decoded.role) {
       console.error('Invalid JWT: missing required fields')
@@ -197,17 +197,17 @@ function cleanupInactiveClassRooms() {
   activeRooms.forEach((room, roomId) => {
     const age = now - room.createdAt.getTime()
     const inactiveTime = now - room.lastActivity
-    
+
     // Remove rooms older than 4 hours or inactive for 15+ minutes
     if (age > ROOM_MAX_AGE || (inactiveTime > ROOM_CLEANUP_INTERVAL && room.students.size === 0)) {
       // Persist room state to Redis if enabled
       if (redisClient) {
         persistRoomToRedis(roomId, room)
       }
-      
+
       activeRooms.delete(roomId)
       cleanedCount++
-      console.log(`Cleanup: Removed inactive room ${roomId} (age: ${Math.floor(age/1000/60)}min, lastActivity: ${Math.floor(inactiveTime/1000/60)}min)`)
+      console.log(`Cleanup: Removed inactive room ${roomId} (age: ${Math.floor(age / 1000 / 60)}min, lastActivity: ${Math.floor(inactiveTime / 1000 / 60)}min)`)
     }
   })
 
@@ -224,7 +224,7 @@ function cleanupInactiveDMRooms() {
       // Persist to Redis if needed (implement later)
       directMessageRooms.delete(roomId)
       cleanedCount++
-      console.log(`Cleanup: Removed inactive DM room ${roomId} (lastActivity: ${Math.floor((now - room.lastActivity)/1000/60)}min)`)
+      console.log(`Cleanup: Removed inactive DM room ${roomId} (lastActivity: ${Math.floor((now - room.lastActivity) / 1000 / 60)}min)`)
     }
   })
 
@@ -238,13 +238,13 @@ function cleanupInactiveWhiteboards() {
   activeWhiteboards.forEach((wb, wbId) => {
     const age = now - wb.createdAt
     const inactiveTime = now - wb.lastActivity
-    
+
     // Remove whiteboards older than 2 hours or with no active users for 10+ minutes
     if (age > WHITEBOARD_MAX_AGE || (inactiveTime > WHITEBOARD_CLEANUP_INTERVAL && wb.activeUsers.size === 0)) {
       // Persist to Redis if needed (implement later)
       activeWhiteboards.delete(wbId)
       cleanedCount++
-      console.log(`Cleanup: Removed inactive whiteboard ${wbId} (age: ${Math.floor(age/1000/60)}min, lastActivity: ${Math.floor(inactiveTime/1000/60)}min)`)
+      console.log(`Cleanup: Removed inactive whiteboard ${wbId} (age: ${Math.floor(age / 1000 / 60)}min, lastActivity: ${Math.floor(inactiveTime / 1000 / 60)}min)`)
     }
   })
 
@@ -254,7 +254,7 @@ function cleanupInactiveWhiteboards() {
 // Redis persistence helpers (stub implementation - expand later)
 async function persistRoomToRedis(roomId: string, room: ClassRoom) {
   if (!redisClient) return
-  
+
   try {
     await redisClient.setex(`room:${roomId}`, 86400, JSON.stringify({
       id: room.id,
@@ -271,11 +271,11 @@ async function persistRoomToRedis(roomId: string, room: ClassRoom) {
 
 async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
   if (!redisClient) return null
-  
+
   try {
     const data = await redisClient.get(`room:${roomId}`)
     if (!data) return null
-    
+
     const parsed = JSON.parse(data)
     return {
       ...parsed,
@@ -291,7 +291,7 @@ async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
 async function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
   try {
     const token = socket.handshake.auth.token
-    
+
     if (!token) {
       return next(new Error('Authentication token required'))
     }
@@ -319,7 +319,7 @@ async function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void)
 // Rate limiting middleware
 function rateLimitMiddleware(socket: Socket, next: (err?: Error) => void) {
   const connectionId = socket.id
-  
+
   try {
     if (isRateLimited(connectionId)) {
       return next(new Error('Rate limit exceeded'))
@@ -339,11 +339,11 @@ async function initRedis() {
       return
     }
 
-    redisClient = createClient({ 
+    redisClient = createClient({
       url: process.env.REDIS_URL,
       socket: { keepAlive: true }
     })
-    
+
     redisPubClient = redisClient.duplicate()
     redisSubClient = redisClient.duplicate()
 
@@ -398,7 +398,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
   // Start cleanup intervals
   setInterval(cleanupInactiveClassRooms, ROOM_CLEANUP_INTERVAL)
-  setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL)  
+  setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL)
   setInterval(cleanupInactiveWhiteboards, WHITEBOARD_CLEANUP_INTERVAL)
   setInterval(() => {
     // Clean up old rate limit states
@@ -418,7 +418,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
       const { roomId } = data
       const userId = socket.data.userId
       const role = socket.data.role
-      
+
       if (!userId) {
         socket.emit('error', { message: 'Authentication required' })
         return
@@ -430,12 +430,13 @@ export async function initEnhancedSocketServer(server: NetServer) {
       // Get or create room from Redis first, then memory
       let room = activeRooms.get(roomId)
       if (!room && redisClient) {
-        room = await getRoomFromRedis(roomId)
-        if (room) {
+        const redisRoom = await getRoomFromRedis(roomId)
+        if (redisRoom) {
+          room = redisRoom
           activeRooms.set(roomId, room)
         }
       }
-      
+
       if (!room) {
         room = {
           id: roomId,
@@ -455,15 +456,15 @@ export async function initEnhancedSocketServer(server: NetServer) {
     // Enhanced disconnect handler with cleanup
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id} (user: ${socket.data.userId})`)
-      
+
       // Clean up various states
       const userId = socket.data.userId
       const roomId = socket.data.roomId
-      
+
       if (userId) {
         userSocketMap.delete(userId)
       }
-      
+
       if (roomId) {
         const room = activeRooms.get(roomId)
         if (room && socket.data.role === 'student') {
@@ -496,16 +497,16 @@ function addStudentToRoom(socket: Socket, room: ClassRoom) {
     lastActivity: Date.now(),
     joinedAt: Date.now()
   }
-  
+
   room.students.set(socket.data.userId, studentState)
   room.lastActivity = Date.now()
-  
-  socket.to(room.id).emit('student_joined', { 
-    userId: socket.data.userId, 
-    name: socket.data.name, 
-    state: studentState 
+
+  socket.to(room.id).emit('student_joined', {
+    userId: socket.data.userId,
+    name: socket.data.name,
+    state: studentState
   })
-  
+
   socket.emit('room_state', {
     students: Array.from(room.students.values()),
     chatHistory: room.chatHistory.slice(-50),
@@ -515,7 +516,7 @@ function addStudentToRoom(socket: Socket, room: ClassRoom) {
 
 function addTutorToRoom(socket: Socket, room: ClassRoom) {
   room.lastActivity = Date.now()
-  
+
   socket.emit('room_state', {
     students: Array.from(room.students.values()),
     chatHistory: room.chatHistory,

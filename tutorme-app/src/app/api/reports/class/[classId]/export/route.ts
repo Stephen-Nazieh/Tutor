@@ -6,8 +6,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
-import { 
-  generateClassReportPDF, 
+import {
+  generateClassReportPDF,
   generateClassReportExcel,
   generateCSV,
   ClassExportData,
@@ -19,9 +19,9 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   // Get class/curriculum info
   const curriculum = await db.curriculum.findUnique({
     where: { id: classId },
-    select: { 
-      id: true, 
-      title: true, 
+    select: {
+      id: true,
+      title: true,
       subject: true,
     },
   })
@@ -50,7 +50,7 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
 
   for (const enrollment of enrollments) {
     const performance = await getStudentPerformance(enrollment.studentId, classId)
-    
+
     const studentData: StudentExportData = {
       id: enrollment.studentId,
       name: enrollment.student.profile?.name || `Student ${enrollment.studentId.slice(-6)}`,
@@ -129,14 +129,15 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   }
 }
 
-export const GET = withAuth(async (req: NextRequest, session, { params }) => {
+export const GET = withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
   const { classId } = await params
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'
 
   try {
     const data = await getClassExportData(classId)
-    
+
     if (!data) {
       return NextResponse.json(
         { success: false, error: 'Class not found' },
@@ -147,25 +148,25 @@ export const GET = withAuth(async (req: NextRequest, session, { params }) => {
     switch (format.toLowerCase()) {
       case 'pdf': {
         const pdfBuffer = generateClassReportPDF(data)
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(pdfBuffer as any, {
           headers: {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="class-report-${classId}.pdf"`,
           },
         })
       }
-      
+
       case 'excel':
       case 'xlsx': {
         const excelBuffer = generateClassReportExcel(data)
-        return new NextResponse(excelBuffer, {
+        return new NextResponse(excelBuffer as any, {
           headers: {
             'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition': `attachment; filename="class-report-${classId}.xlsx"`,
           },
         })
       }
-      
+
       case 'csv': {
         const csvData = generateCSV(data.students as unknown as Record<string, unknown>[])
         return new NextResponse(csvData, {
@@ -175,7 +176,7 @@ export const GET = withAuth(async (req: NextRequest, session, { params }) => {
           },
         })
       }
-      
+
       default:
         return NextResponse.json(
           { success: false, error: 'Invalid format. Use pdf, excel, or csv' },

@@ -9,8 +9,9 @@ import { dailyProvider } from '@/lib/video/daily-provider'
 import { db } from '@/lib/db'
 
 // POST /api/class/rooms/[id]/join - Join a class room
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, { params }: { params: Promise<{ id: string }> }) => {
-  const { id } = await params
+export const POST = withCsrf(withAuth(async (req: NextRequest, session, context: any) => {
+  const params = await context?.params;
+  const { id } = params || {};
 
   // Find the class session
   const classSession = await db.liveSession.findUnique({

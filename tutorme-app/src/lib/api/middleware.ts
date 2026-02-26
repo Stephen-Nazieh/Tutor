@@ -230,14 +230,14 @@ export async function requireCsrf(req: NextRequest): Promise<NextResponse | null
     return null
 }
 
-type AnyHandler = (req: NextRequest, ...args: unknown[]) => Promise<Response> | Response
+type AnyHandler = (req: NextRequest, ...args: any[]) => Promise<Response> | Response
 
 /**
  * Wraps a state-changing handler to require a valid CSRF token (POST/PUT/PATCH/DELETE).
  * Use with withAuth: export const POST = withCsrf(withAuth(async (req, session) => ...))
  */
 export function withCsrf(handler: AnyHandler): AnyHandler {
-    return async (req: NextRequest, ...args: unknown[]) => {
+    return async (req: NextRequest, ...args: any[]) => {
         const csrfError = await requireCsrf(req)
         if (csrfError) return csrfError
         return handler(req, ...args)

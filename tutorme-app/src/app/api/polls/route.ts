@@ -60,13 +60,13 @@ export async function GET(request: NextRequest) {
     })
 
     // Filter responses for anonymous polls
-    const formattedPolls = polls.map(poll => ({
+    const formattedPolls = polls.map((poll: any) => ({
       ...poll,
-      responses: poll.isAnonymous 
-        ? poll.responses.map(r => ({
-            ...r,
-            studentId: undefined
-          }))
+      responses: poll.isAnonymous
+        ? poll.responses.map((r: any) => ({
+          ...r,
+          studentId: undefined
+        }))
         : poll.responses,
       totalResponses: poll.responses.length
     }))
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ poll }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid input', details: (error as any).errors }, { status: 400 })
     }
     console.error('Failed to create poll:', error)
     return NextResponse.json({ error: 'Failed to create poll' }, { status: 500 })

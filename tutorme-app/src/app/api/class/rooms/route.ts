@@ -132,7 +132,7 @@ export const GET = withAuth(async (req, session) => {
   // Filter out expired rooms
   const activeSessions = (
     await Promise.all(
-      sessions.map(async (s) => {
+      sessions.map(async (s: any) => {
         if (!s.roomId) return null
         const isActive = await dailyProvider.isRoomActive(s.roomId)
         return isActive ? s : null

@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
     })
 
     // Map DB rows → builder Module[] shape
-    const modules = dbModules.map((m) => {
+    const modules = dbModules.map((m: any) => {
         const mBuilder = (m.builderData ?? {}) as Record<string, any>
         return {
             id: m.id,
@@ -199,7 +199,7 @@ export async function GET(req: NextRequest) {
             difficultyMode: mBuilder.difficultyMode ?? 'all',
             variants: mBuilder.variants ?? {},
             moduleQuizzes: mBuilder.moduleQuizzes ?? [],
-            lessons: m.lessons.map((l) => {
+            lessons: m.lessons.map((l: any) => {
                 const lBuilder = (l.builderData ?? {}) as Record<string, any>
                 return {
                     id: l.id,
@@ -250,8 +250,8 @@ export async function PUT(req: NextRequest) {
     const developmentMode = body.developmentMode === 'multi' ? 'multi' : 'single'
     const previewDifficulty =
         body.previewDifficulty === 'beginner' ||
-        body.previewDifficulty === 'intermediate' ||
-        body.previewDifficulty === 'advanced'
+            body.previewDifficulty === 'intermediate' ||
+            body.previewDifficulty === 'advanced'
             ? body.previewDifficulty
             : 'all'
     const shouldAutoCreateAdaptiveVariants = developmentMode === 'multi' && previewDifficulty === 'all'
@@ -261,15 +261,15 @@ export async function PUT(req: NextRequest) {
     }
 
     // Use a transaction for atomic save
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: any) => {
         // 1. Get existing module & lesson IDs so we can delete removed ones
         const existingModules = await tx.curriculumModule.findMany({
             where: { curriculumId },
             select: { id: true, lessons: { select: { id: true } } },
         })
-        const existingModuleIds = new Set(existingModules.map((m) => m.id))
+        const existingModuleIds = new Set(existingModules.map((m: any) => m.id))
         const existingLessonIds = new Set(
-            existingModules.flatMap((m) => m.lessons.map((l) => l.id))
+            existingModules.flatMap((m: any) => m.lessons.map((l: any) => l.id))
         )
 
         const incomingModuleIds = new Set(modules.map((m) => m.id))
@@ -372,7 +372,7 @@ export async function PUT(req: NextRequest) {
                 select: { lessonId: true, type: true, question: true },
             })
             const signatures = new Set(
-                existingItems.map((item) => toQuestionSignature(item.type, item.question, item.lessonId ?? null))
+                existingItems.map((item: any) => toQuestionSignature(item.type, item.question, item.lessonId ?? null))
             )
 
             const toCreate = questionCandidates.filter((item) => {
@@ -445,10 +445,12 @@ export async function PUT(req: NextRequest) {
                         },
                         select: { id: true, name: true, order: true },
                     })
-                    batch = created
-                    selectedByDifficulty.set(difficulty, batch)
+                    batch = created as any
+                    selectedByDifficulty.set(difficulty, batch as any)
                     nextOrder += 1
                 }
+
+                if (!batch) continue
 
                 const joinLink = `${req.nextUrl.origin}/curriculum/${curriculumId}?batch=${batch.id}`
                 await tx.courseBatch.update({

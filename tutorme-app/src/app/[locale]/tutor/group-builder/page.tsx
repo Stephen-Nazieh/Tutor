@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
-  Users, 
-  Plus, 
+import {
+  Users,
+  Plus,
   Copy,
   Loader2,
   ArrowLeft,
@@ -134,7 +134,7 @@ export default function GroupBuilderPage() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  
+
   // Course assignment modal state
   const [assignModalOpen, setAssignModalOpen] = useState(false)
   const [selectedBatchForAssign, setSelectedBatchForAssign] = useState<string | null>(null)
@@ -201,7 +201,7 @@ export default function GroupBuilderPage() {
   const handleCreateBatch = async () => {
     if (!newBatchName.trim()) return
     setCreatingBatch(true)
-    
+
     const newBatch: BatchItem = {
       id: `batch-${Date.now()}`,
       name: newBatchName.trim(),
@@ -216,12 +216,12 @@ export default function GroupBuilderPage() {
       isLive: false,
       assignedCourses: []
     }
-    
+
     setBatches(prev => [...prev, newBatch])
     setActiveTab(newBatch.id)
     setNewBatchName('')
     setHasUnsavedChanges(true)
-    
+
     toast.success('Group created. Click Save to persist changes.')
     setCreatingBatch(false)
   }
@@ -233,20 +233,20 @@ export default function GroupBuilderPage() {
 
   const handleSaveGroup = async (batchId: string) => {
     setSaving(true)
-    
+
     const batch = batches.find(b => b.id === batchId)
     if (!batch) {
       toast.error('Group not found')
       setSaving(false)
       return
     }
-    
+
     // Save to localStorage
     const storedGroups = localStorage.getItem('tutor_groups')
     const existingGroups: BatchItem[] = storedGroups ? JSON.parse(storedGroups) : []
     const updatedGroups = [batch, ...existingGroups.filter(g => g.id !== batch.id)]
     localStorage.setItem('tutor_groups', JSON.stringify(updatedGroups))
-    
+
     setHasUnsavedChanges(false)
     toast.success('Group saved successfully')
     setSaving(false)
@@ -325,15 +325,15 @@ export default function GroupBuilderPage() {
           {
             courseId: course.id,
             name: course.name,
-            description: course.description,
+            description: course.description || null,
             subject: course.subject,
-            difficulty: course.difficulty,
+            difficulty: (course as any).difficulty || 'beginner',
             assignedAt: new Date().toISOString()
           }
         ]
       }
     }))
-    
+
     setHasUnsavedChanges(true)
     toast.success(`Course "${course.name}" assigned to group`)
   }
@@ -382,8 +382,8 @@ export default function GroupBuilderPage() {
         </div>
         <div className="flex items-center gap-2">
           {hasUnsavedChanges && (
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               onClick={handleSaveAllGroups}
               disabled={saving}
               className="gap-2"
@@ -423,8 +423,8 @@ export default function GroupBuilderPage() {
           <div className="flex items-center gap-4 border-b pb-4">
             <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-2">
               {batches.map((batch) => (
-                <TabsTrigger 
-                  key={batch.id} 
+                <TabsTrigger
+                  key={batch.id}
                   value={batch.id}
                   className="data-[state=active]:bg-blue-50 data-[state=active]:border-blue-200 border px-4 py-2 rounded-lg"
                 >
@@ -447,9 +447,9 @@ export default function GroupBuilderPage() {
                 onChange={(e) => setNewBatchName(e.target.value)}
                 className="w-[180px]"
               />
-              <Button 
-                size="sm" 
-                onClick={handleCreateBatch} 
+              <Button
+                size="sm"
+                onClick={handleCreateBatch}
                 disabled={creatingBatch || !newBatchName.trim()}
               >
                 {creatingBatch ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
@@ -529,8 +529,8 @@ export default function GroupBuilderPage() {
                                 ? level.value === 'beginner'
                                   ? "bg-green-500 text-white border-green-500"
                                   : level.value === 'intermediate'
-                                  ? "bg-blue-500 text-white border-blue-500"
-                                  : "bg-purple-500 text-white border-purple-500"
+                                    ? "bg-blue-500 text-white border-blue-500"
+                                    : "bg-purple-500 text-white border-purple-500"
                                 : "bg-white text-gray-700 hover:bg-gray-50"
                             )}
                           >
@@ -641,8 +641,8 @@ export default function GroupBuilderPage() {
                   ) : (
                     <div className="space-y-3">
                       {batch.assignedCourses.map((course) => (
-                        <div 
-                          key={course.courseId} 
+                        <div
+                          key={course.courseId}
                           className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                         >
                           <div className="flex-1 min-w-0">
@@ -758,13 +758,13 @@ export default function GroupBuilderPage() {
                     Share this group link for students to join this specific group.
                   </p>
                   <div className="flex gap-2">
-                    <Input 
-                      readOnly 
-                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/enroll?group=${batch.id}`} 
+                    <Input
+                      readOnly
+                      value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/enroll?group=${batch.id}`}
                       className="font-mono text-sm bg-white flex-1"
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => copyGroupLink(batch.id)}
                     >
                       <Copy className="h-4 w-4 mr-2" />

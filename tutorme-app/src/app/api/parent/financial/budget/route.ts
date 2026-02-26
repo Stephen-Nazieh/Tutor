@@ -67,14 +67,14 @@ export const GET = withAuth(
           month: now.getMonth() + 1,
           year: now.getFullYear(),
         },
-        budgetRecords: budgetRecords.map((r) => ({
+        budgetRecords: budgetRecords.map((r: any) => ({
           month: r.month,
           year: r.year,
           amount: r.amount,
           spent: r.spent,
           remaining: Math.round((r.amount - r.spent) * 100) / 100,
         })),
-        alerts: alerts.map((a) => ({
+        alerts: alerts.map((a: any) => ({
           id: a.id,
           type: a.type,
           message: a.message,

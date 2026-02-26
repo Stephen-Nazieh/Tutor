@@ -50,20 +50,20 @@ export async function GET(req: NextRequest) {
         })
 
         // 2. Lesson progress
-        const allLessonIds = enrollments.flatMap((e) =>
-            e.curriculum.modules.flatMap((m) => m.lessons.map((l) => l.id))
+        const allLessonIds = enrollments.flatMap((e: any) =>
+            e.curriculum.modules.flatMap((m: any) => m.lessons.map((l: any) => l.id))
         )
         const lessonProgress = await db.curriculumLessonProgress.findMany({
             where: { studentId, lessonId: { in: allLessonIds } },
         })
-        const progressMap = new Map(lessonProgress.map((lp) => [lp.lessonId, lp]))
+        const progressMap = new Map(lessonProgress.map((lp: any) => [lp.lessonId, lp]))
 
         // 3. StudentPerformance for weaknesses
         const performances = await db.studentPerformance.findMany({
             where: { studentId },
         })
         const allWeaknesses: string[] = performances.flatMap(
-            (p) => (p.weaknesses as string[]) || []
+            (p: any) => (p.weaknesses as string[]) || []
         )
 
         // 4. Build ordered flat path across all curricula
@@ -87,8 +87,8 @@ export async function GET(req: NextRequest) {
                 for (const lesson of mod.lessons) {
                     const prog = progressMap.get(lesson.id)
                     const status: 'completed' | 'in_progress' | 'not_started' =
-                        prog?.status === 'COMPLETED' ? 'completed' :
-                            prog?.status === 'IN_PROGRESS' ? 'in_progress' : 'not_started'
+                        (prog as any)?.status === 'COMPLETED' ? 'completed' :
+                            (prog as any)?.status === 'IN_PROGRESS' ? 'in_progress' : 'not_started'
 
                     pathEntries.push({
                         lessonId: lesson.id,
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
                         courseId: curriculum.id,
                         moduleTitle: mod.title,
                         status,
-                        score: prog?.score ?? null,
+                        score: (prog as any)?.score ?? null,
                         order: globalOrder++,
                     })
                 }

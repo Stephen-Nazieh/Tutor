@@ -11,9 +11,10 @@ import { db } from '@/lib/db'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ curriculumId: string }> }
+  context: any
 ) {
-  const { curriculumId } = await params
+  const params = await context?.params;
+  const { curriculumId } = params || {};
 
   const curriculum = await db.curriculum.findFirst({
     where: {

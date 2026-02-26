@@ -9,14 +9,15 @@ import { withAuth } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 
 // PATCH - Update insight
-export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }, session) => {
+export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const { id: insightId } = await params
-  
+  const params = await context?.params ?? {}
+  const { id: insightId } = params
+
   try {
     const body = await req.json()
     const { applied, title, content } = body
-    
+
     // Verify insight belongs to tutor
     const insight = await db.aIAssistantInsight.findFirst({
       where: {
@@ -24,14 +25,14 @@ export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Pro
         session: { tutorId },
       },
     })
-    
+
     if (!insight) {
       return NextResponse.json(
         { error: 'Insight not found' },
         { status: 404 }
       )
     }
-    
+
     const updatedInsight = await db.aIAssistantInsight.update({
       where: { id: insightId },
       data: {
@@ -40,7 +41,7 @@ export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Pro
         ...(content && { content }),
       },
     })
-    
+
     return NextResponse.json({ insight: updatedInsight })
   } catch (error) {
     console.error('Update insight error:', error)
@@ -52,10 +53,11 @@ export const PATCH = withAuth(async (req: NextRequest, { params }: { params: Pro
 }, { role: 'TUTOR' })
 
 // DELETE - Delete insight
-export const DELETE = withAuth(async (req: NextRequest, { params }: { params: Promise<{ id: string }> }, session) => {
+export const DELETE = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const { id: insightId } = await params
-  
+  const params = await context?.params ?? {}
+  const { id: insightId } = params
+
   try {
     // Verify insight belongs to tutor
     const insight = await db.aIAssistantInsight.findFirst({
@@ -64,18 +66,18 @@ export const DELETE = withAuth(async (req: NextRequest, { params }: { params: Pr
         session: { tutorId },
       },
     })
-    
+
     if (!insight) {
       return NextResponse.json(
         { error: 'Insight not found' },
         { status: 404 }
       )
     }
-    
+
     await db.aIAssistantInsight.delete({
       where: { id: insightId },
     })
-    
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete insight error:', error)

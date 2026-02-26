@@ -10,7 +10,7 @@ import { db } from '@/lib/db'
 
 export async function GET(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: any
 ) {
   const session = await (await import('next-auth')).getServerSession(
     (await import('@/lib/auth')).authOptions
@@ -93,7 +93,7 @@ export async function GET(
     tutorName,
     sharedMessage: shareRecord.message,
     sharedAt: shareRecord.sharedAt,
-    modules: course.modules.map((m) => ({
+    modules: course.modules.map((m: any) => ({
       id: m.id,
       title: m.title,
       description: m.description,

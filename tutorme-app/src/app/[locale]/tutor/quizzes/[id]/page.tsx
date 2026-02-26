@@ -50,7 +50,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [activeTab, setActiveTab] = useState('questions')
-    
+
     // Form state
     const [formData, setFormData] = useState({
         title: '',
@@ -66,7 +66,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
         startDate: '',
         dueDate: ''
     })
-    
+
     const [questions, setQuestions] = useState<QuizQuestion[]>([])
 
     // Resolve params
@@ -77,7 +77,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
     // Fetch quiz
     const fetchQuiz = useCallback(async () => {
         if (!quizId) return
-        
+
         try {
             const res = await fetch(`/api/tutor/quizzes/${quizId}`)
             if (res.ok) {
@@ -116,7 +116,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
     // Save quiz
     const handleSave = async () => {
         if (!quizId) return
-        
+
         setSaving(true)
         try {
             const payload = {
@@ -149,7 +149,7 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
     // Publish quiz
     const handlePublish = async () => {
         if (!quizId) return
-        
+
         if (questions.length === 0) {
             toast.error('Add at least one question before publishing')
             return
@@ -268,8 +268,8 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
                             </CardHeader>
                             <CardContent>
                                 <QuestionEditor
-                                    questions={questions}
-                                    onChange={setQuestions}
+                                    questions={questions as any}
+                                    onChange={setQuestions as any}
                                     compact={false}
                                 />
                             </CardContent>
@@ -303,8 +303,8 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
                                     </div>
                                     <div>
                                         <Label>Quiz Type</Label>
-                                        <Select 
-                                            value={formData.type} 
+                                        <Select
+                                            value={formData.type}
                                             onValueChange={(v) => setFormData(prev => ({ ...prev, type: v as QuizType }))}
                                         >
                                             <SelectTrigger>
@@ -376,8 +376,8 @@ export default function QuizBuilderPage({ params }: { params: Promise<{ id: stri
                                     </div>
                                     <div>
                                         <Label>When to show correct answers</Label>
-                                        <Select 
-                                            value={formData.showCorrectAnswers} 
+                                        <Select
+                                            value={formData.showCorrectAnswers}
                                             onValueChange={(v) => setFormData(prev => ({ ...prev, showCorrectAnswers: v as Quiz['showCorrectAnswers'] }))}
                                         >
                                             <SelectTrigger>
@@ -627,7 +627,7 @@ function QuizAnalyticsPanel({ quizId }: { quizId: string }) {
                                 <div key={range} className="flex items-center gap-4">
                                     <div className="w-24 text-sm">{range.replace('-', ' - ')}%</div>
                                     <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
-                                        <div 
+                                        <div
                                             className="h-full bg-blue-500 rounded-full"
                                             style={{ width: `${percentage}%` }}
                                         />

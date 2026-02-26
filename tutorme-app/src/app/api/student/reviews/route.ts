@@ -43,7 +43,7 @@ function calculateReviewDueDate(
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -53,7 +53,7 @@ export async function GET() {
 
     const studentId = session.user.id
     const now = new Date()
-    
+
     // Get all student content progress with review data
     const contentProgress = await prisma.contentProgress.findMany({
       where: { studentId },
@@ -128,31 +128,31 @@ export async function GET() {
     // If no review schedules exist, create them from content progress
     if (reviewSchedules.length === 0) {
       const newSchedules = []
-      
+
       for (const progress of contentProgress) {
         if (progress.progress > 0) {
           // Calculate performance from quiz attempts for this content
           const contentQuizzes = quizAttempts.filter(
-            q => q.quiz?.contentId === progress.contentId && q.completedAt
+            (q: any) => q.quiz?.contentId === progress.contentId && q.completedAt
           )
-          
+
           const avgPerformance = contentQuizzes.length > 0
-            ? contentQuizzes.reduce((sum, q) => sum + (q.score || 0), 0) / contentQuizzes.length
+            ? contentQuizzes.reduce((sum: number, q: any) => sum + (q.score || 0), 0) / contentQuizzes.length
             : 70 // Default assumption
 
           // Calculate ease factor based on performance (1.3 - 2.5)
           const easeFactor = 1.3 + (Math.min(100, avgPerformance) / 100) * 1.2
-          
+
           // Calculate stability
           const repetitionCount = contentQuizzes.length
           const stability = calculateStability(repetitionCount, easeFactor)
-          
+
           // Last review is either from quiz completion or content progress update
           const lastReview = contentQuizzes[0]?.completedAt || progress.updatedAt
-          
+
           // Calculate next review
           const nextReview = calculateReviewDueDate(lastReview, stability)
-          
+
           newSchedules.push({
             id: `${studentId}-${progress.contentId}`,
             studentId,
@@ -169,7 +169,7 @@ export async function GET() {
           })
         }
       }
-      
+
       reviewSchedules = newSchedules
     }
 
@@ -181,13 +181,13 @@ export async function GET() {
       schedules: typeof reviewSchedules
     }>()
     const daysToProject = 30
-    
+
     // Group schedules by subject
     for (const schedule of reviewSchedules) {
       const subjectId = schedule.content?.subjectId || 'general'
       const subjectName = schedule.content?.subject?.name || 'General'
       const subjectColor = schedule.content?.subject?.color || '#3B82F6'
-      
+
       if (!subjectsMap.has(subjectId)) {
         subjectsMap.set(subjectId, {
           id: subjectId,
@@ -196,13 +196,13 @@ export async function GET() {
           schedules: []
         })
       }
-      
-      subjectsMap.get(subjectId).schedules.push(schedule)
+
+      subjectsMap.get(subjectId)?.schedules.push(schedule)
     }
 
     // Build retention curves for each subject
     const subjectCurves = []
-    
+
     for (const [subjectId, subjectData] of subjectsMap) {
       const curve = {
         subjectId,
@@ -223,20 +223,20 @@ export async function GET() {
       for (let day = 0; day <= daysToProject; day++) {
         const pointDate = new Date(now)
         pointDate.setDate(pointDate.getDate() + day)
-        
+
         // Calculate average retention for this subject on this day
         let totalRetention = 0
         let hasReviewOnThisDay = false
         let reviewData: { reviewId: string; contentTitle?: string; contentId?: string } | null = null
-        
+
         for (const schedule of subjectData.schedules) {
           const lastReview = new Date(schedule.lastReviewed)
           const hoursSinceLastReview = (pointDate.getTime() - lastReview.getTime()) / (1000 * 60 * 60)
-          
+
           // Check if there's a scheduled review on this day
           const nextReview = new Date(schedule.nextReview)
           const isSameDay = nextReview.toDateString() === pointDate.toDateString()
-          
+
           if (isSameDay) {
             hasReviewOnThisDay = true
             reviewData = {
@@ -255,11 +255,11 @@ export async function GET() {
             totalRetention += retention
           }
         }
-        
-        const avgRetention = subjectData.schedules.length > 0 
+
+        const avgRetention = subjectData.schedules.length > 0
           ? Math.round(totalRetention / subjectData.schedules.length)
           : 0
-        
+
         curve.dataPoints.push({
           day,
           date: pointDate,
@@ -268,16 +268,16 @@ export async function GET() {
           ...reviewData
         })
       }
-      
+
       subjectCurves.push(curve)
     }
 
     // Get upcoming reviews (next 14 days)
     const upcomingReviews = reviewSchedules
-      .filter(s => s.nextReview >= now && s.nextReview <= new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000))
-      .sort((a, b) => a.nextReview.getTime() - b.nextReview.getTime())
+      .filter((s: any) => s.nextReview >= now && s.nextReview <= new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000))
+      .sort((a: any, b: any) => a.nextReview.getTime() - b.nextReview.getTime())
       .slice(0, 10)
-      .map(s => ({
+      .map((s: any) => ({
         id: s.id,
         contentId: s.contentId,
         contentTitle: s.content?.title || 'Unknown',
@@ -297,9 +297,9 @@ export async function GET() {
 
     // Get overdue reviews
     const overdueReviews = reviewSchedules
-      .filter(s => s.nextReview < now)
-      .sort((a, b) => a.nextReview.getTime() - b.nextReview.getTime())
-      .map(s => ({
+      .filter((s: any) => s.nextReview < now)
+      .sort((a: any, b: any) => a.nextReview.getTime() - b.nextReview.getTime())
+      .map((s: any) => ({
         id: s.id,
         contentId: s.contentId,
         contentTitle: s.content?.title || 'Unknown',
@@ -320,7 +320,7 @@ export async function GET() {
         subjectCurves,
         upcomingReviews,
         overdueReviews,
-        totalDue: overdueReviews.length + upcomingReviews.filter(r => r.daysUntilDue === 0).length
+        totalDue: overdueReviews.length + upcomingReviews.filter((r: any) => r.daysUntilDue === 0).length
       }
     })
 
@@ -337,7 +337,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
@@ -347,7 +347,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { contentId, performance } = body
-    
+
     if (!contentId) {
       return NextResponse.json(
         { success: false, error: 'Content ID required' },
@@ -357,7 +357,7 @@ export async function POST(request: NextRequest) {
 
     const studentId = session.user.id
     const now = new Date()
-    
+
     // Get or create review schedule
     let schedule = await prisma.reviewSchedule.findFirst({
       where: { studentId, contentId }
@@ -367,7 +367,7 @@ export async function POST(request: NextRequest) {
       // Create new schedule
       const easeFactor = 1.3 + (Math.min(100, performance || 70) / 100) * 1.2
       const stability = calculateStability(1, easeFactor)
-      
+
       schedule = await prisma.reviewSchedule.create({
         data: {
           studentId,
@@ -383,7 +383,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Update existing schedule
       const newRepetitionCount = schedule.repetitionCount + 1
-      
+
       // Adjust ease factor based on performance
       let newEaseFactor = schedule.easeFactor
       if (performance !== undefined) {
@@ -393,13 +393,13 @@ export async function POST(request: NextRequest) {
           newEaseFactor = Math.min(2.5, schedule.easeFactor + 0.15)
         }
       }
-      
+
       const newStability = calculateStability(
         newRepetitionCount,
         newEaseFactor,
         schedule.stability
       )
-      
+
       await prisma.reviewSchedule.update({
         where: { id: schedule.id },
         data: {

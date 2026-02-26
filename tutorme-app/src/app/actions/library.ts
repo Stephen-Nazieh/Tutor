@@ -45,7 +45,7 @@ export async function getLibraryTasks(userId: string): Promise<LibraryTask[]> {
       where: { userId },
       orderBy: { createdAt: 'desc' }
     });
-    return tasks.map(task => ({
+    return tasks.map((task: any) => ({
       ...task,
       topics: task.topics as string[],
       options: task.options as string[] | undefined
@@ -79,7 +79,7 @@ export async function saveLibraryTask(
         usageCount: 0
       }
     });
-    
+
     revalidatePath('/tutor/library');
     return {
       ...task,
@@ -103,16 +103,16 @@ export async function toggleFavoriteTask(
     const task = await db.libraryTask.findUnique({
       where: { id: taskId }
     });
-    
+
     if (!task || task.userId !== userId) {
       return false;
     }
-    
+
     await db.libraryTask.update({
       where: { id: taskId },
       data: { isFavorite: !task.isFavorite }
     });
-    
+
     revalidatePath('/tutor/library');
     return true;
   } catch (error) {
@@ -132,15 +132,15 @@ export async function deleteLibraryTask(
     const task = await db.libraryTask.findUnique({
       where: { id: taskId }
     });
-    
+
     if (!task || task.userId !== userId) {
       return false;
     }
-    
+
     await db.libraryTask.delete({
       where: { id: taskId }
     });
-    
+
     revalidatePath('/tutor/library');
     return true;
   } catch (error) {
@@ -161,7 +161,7 @@ export async function incrementTaskUsage(taskId: string): Promise<boolean> {
         lastUsedAt: new Date()
       }
     });
-    
+
     return true;
   } catch (error) {
     console.error('Failed to increment task usage:', error);

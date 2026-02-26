@@ -8,7 +8,8 @@ import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
 import { db } from '@/lib/db'
 import { startLesson } from '@/lib/curriculum/lesson-controller'
 
-export const POST = withCsrf(withAuth(async (req, session, { params }) => {
+export const POST = withCsrf(withAuth(async (req, session, context: any) => {
+  const params = await context?.params;
   const { lessonId } = await params
 
   // Verify lesson exists

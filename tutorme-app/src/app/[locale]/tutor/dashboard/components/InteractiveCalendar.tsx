@@ -58,11 +58,11 @@ import {
 } from 'lucide-react'
 
 // Date manipulation
-import { 
-  addDays, 
-  addWeeks, 
-  format, 
-  isSameDay, 
+import {
+  addDays,
+  addWeeks,
+  format,
+  isSameDay,
   startOfWeek,
   eachDayOfInterval,
   isWithinInterval
@@ -125,7 +125,7 @@ const SUBJECTS = [
 const generateDemoEvents = (): CalendarEvent[] => {
   const today = new Date()
   const events: CalendarEvent[] = []
-  
+
   // Generate recurring weekly classes
   const recurringClasses = [
     { title: 'Advanced Mathematics', subject: 'Mathematics', duration: 60, students: 12, max: 20, day: 1, time: 14, color: 'bg-blue-500', isRecurring: true, pattern: 'weekly' as const },
@@ -134,14 +134,14 @@ const generateDemoEvents = (): CalendarEvent[] => {
     { title: 'Chemistry Lab', subject: 'Chemistry', duration: 120, students: 6, max: 10, day: 4, time: 15, color: 'bg-orange-500', isRecurring: true, pattern: 'weekly' as const },
     { title: 'Office Hours', subject: 'Office Hours', duration: 60, students: 0, max: 5, day: 5, time: 17, color: 'bg-gray-500', type: 'office_hours' as const, isRecurring: true, pattern: 'weekly' as const },
   ]
-  
+
   // Generate 4 weeks of recurring classes
   for (let week = 0; week < 4; week++) {
     recurringClasses.forEach((cls, idx) => {
       const eventDate = new Date(today)
       eventDate.setDate(today.getDate() - today.getDay() + cls.day + (week * 7))
       eventDate.setHours(cls.time, 0, 0, 0)
-      
+
       if (eventDate >= new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)) {
         events.push({
           id: `recurring-${week}-${idx}`,
@@ -162,7 +162,7 @@ const generateDemoEvents = (): CalendarEvent[] => {
       }
     })
   }
-  
+
   // Add some one-time events
   events.push({
     id: 'special-1',
@@ -174,7 +174,7 @@ const generateDemoEvents = (): CalendarEvent[] => {
     subject: 'Office Hours',
     color: 'bg-red-500'
   })
-  
+
   return events
 }
 
@@ -194,12 +194,12 @@ const generateAvailability = (): AvailabilityBlock[] => [
 type CalendarView = 'month' | 'week' | 'day' | 'availability'
 
 // Draggable Event Component
-function DraggableEvent({ 
-  event, 
-  onClick, 
+function DraggableEvent({
+  event,
+  onClick,
   hasConflict,
   style = {}
-}: { 
+}: {
   event: CalendarEvent
   onClick: () => void
   hasConflict?: boolean
@@ -250,13 +250,13 @@ function DraggableEvent({
   )
 }
 
-export function InteractiveCalendar({ 
-  events: initialEvents, 
+export function InteractiveCalendar({
+  events: initialEvents,
   onEventClick,
   onDateClick,
   onCreateClass,
   onEventUpdate,
-  loading 
+  loading
 }: InteractiveCalendarProps) {
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents || generateDemoEvents())
   const [availability, setAvailability] = useState<AvailabilityBlock[]>(generateAvailability())
@@ -268,7 +268,7 @@ export function InteractiveCalendar({
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [showConflictWarning, setShowConflictWarning] = useState<CalendarEvent[]>([])
   const [notifications, setNotifications] = useState<string[]>([])
-  
+
   // New feature states
   const [showBatchModal, setShowBatchModal] = useState(false)
   const [showCalendarIntegrations, setShowCalendarIntegrations] = useState(false)
@@ -287,7 +287,7 @@ export function InteractiveCalendar({
       },
     }),
     useSensor(KeyboardSensor, {
-      coordinateGetter: (event: { active: { rect: { current: { translated: { left: number; top: number } | null } | null } | null } }) => {
+      coordinateGetter: (event: any) => {
         const { active } = event
         const node = active?.rect?.current?.translated
         return node ? { x: node.left, y: node.top } : { x: 0, y: 0 }
@@ -306,14 +306,14 @@ export function InteractiveCalendar({
           const end1 = start1 + event1.duration * 60000
           const start2 = event2.date.getTime()
           const end2 = start2 + event2.duration * 60000
-          
+
           if ((start1 < end2 && end1 > start2)) {
             conflicts.push(event1, event2)
           }
         }
       })
     })
-    
+
     const uniqueConflicts = Array.from(new Set(conflicts))
     if (uniqueConflicts.length > 0) {
       setShowConflictWarning(uniqueConflicts)
@@ -326,7 +326,7 @@ export function InteractiveCalendar({
       const timeDiff = e.date.getTime() - new Date().getTime()
       return timeDiff > 0 && timeDiff < 24 * 60 * 60 * 1000 && e.status === 'scheduled'
     })
-    
+
     if (upcoming.length > 0) {
       setNotifications(upcoming.map(e => `${e.title} at ${e.date.toLocaleTimeString()}`))
     }
@@ -341,28 +341,28 @@ export function InteractiveCalendar({
   }, [events, subjectFilter, typeFilter])
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                     'July', 'August', 'September', 'October', 'November', 'December']
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December']
 
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
-    
+
     const firstDay = new Date(year, month, 1)
     const lastDay = new Date(year, month + 1, 0)
     const daysInMonth = lastDay.getDate()
     const startingDayOfWeek = firstDay.getDay()
-    
+
     const days: (Date | null)[] = []
-    
+
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null)
     }
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(new Date(year, month, i))
     }
-    
+
     return days
   }, [currentDate])
 
@@ -396,7 +396,7 @@ export function InteractiveCalendar({
   }
 
   const toggleAvailability = (id: string) => {
-    setAvailability(prev => prev.map(block => 
+    setAvailability(prev => prev.map(block =>
       block.id === id ? { ...block, isAvailable: !block.isAvailable } : block
     ))
   }
@@ -412,11 +412,11 @@ export function InteractiveCalendar({
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
-    
+
     if (over && active.id !== over.id) {
       const draggedEvent = events.find(e => e.id === active.id)
       const dropData = over.data.current as { date?: Date; hour?: number } | undefined
-      
+
       if (draggedEvent && dropData?.date) {
         const newDate = new Date(dropData.date)
         if (dropData.hour !== undefined) {
@@ -424,15 +424,15 @@ export function InteractiveCalendar({
         } else {
           newDate.setHours(draggedEvent.date.getHours(), draggedEvent.date.getMinutes(), 0, 0)
         }
-        
+
         const updatedEvent = { ...draggedEvent, date: newDate }
-        
+
         setEvents(prev => prev.map(e => e.id === draggedEvent.id ? updatedEvent : e))
         onEventUpdate?.(updatedEvent)
         toast.success(`Rescheduled: ${draggedEvent.title} to ${format(newDate, 'MMM d, h:mm a')}`)
       }
     }
-    
+
     setActiveDragEvent(null)
   }, [events, onEventUpdate])
 
@@ -440,11 +440,11 @@ export function InteractiveCalendar({
   const connectCalendar = (provider: 'google' | 'outlook' | 'apple') => {
     // In real implementation, this would open OAuth flow
     toast.loading(`Connecting to ${provider} calendar...`)
-    
+
     // Simulate connection
     setTimeout(() => {
-      setCalendarConnections(prev => prev.map(conn => 
-        conn.provider === provider 
+      setCalendarConnections(prev => prev.map(conn =>
+        conn.provider === provider
           ? { ...conn, connected: true, email: `tutor@${provider}.com`, lastSynced: new Date() }
           : conn
       ))
@@ -453,8 +453,8 @@ export function InteractiveCalendar({
   }
 
   const disconnectCalendar = (provider: string) => {
-    setCalendarConnections(prev => prev.map(conn => 
-      conn.provider === provider 
+    setCalendarConnections(prev => prev.map(conn =>
+      conn.provider === provider
         ? { ...conn, connected: false, email: undefined, lastSynced: undefined }
         : conn
     ))
@@ -464,7 +464,7 @@ export function InteractiveCalendar({
   const syncCalendars = () => {
     toast.loading('Syncing calendars...')
     setTimeout(() => {
-      setCalendarConnections(prev => prev.map(conn => 
+      setCalendarConnections(prev => prev.map(conn =>
         conn.connected ? { ...conn, lastSynced: new Date() } : conn
       ))
       toast.success('Calendars synced!')
@@ -517,11 +517,11 @@ export function InteractiveCalendar({
                 Today
               </Button>
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* Calendar Integrations */}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowCalendarIntegrations(true)}
               >
@@ -533,8 +533,8 @@ export function InteractiveCalendar({
               </Button>
 
               {/* Batch Create */}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => setShowBatchModal(true)}
               >
@@ -625,8 +625,8 @@ export function InteractiveCalendar({
 
         <CardContent className="pt-0">
           {view === 'month' && (
-            <MonthView 
-              days={calendarDays} 
+            <MonthView
+              days={calendarDays}
               events={filteredEvents}
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}
@@ -637,9 +637,9 @@ export function InteractiveCalendar({
           )}
 
           {view === 'week' && (
-            <WeekView 
-              currentDate={currentDate} 
-              events={filteredEvents} 
+            <WeekView
+              currentDate={currentDate}
+              events={filteredEvents}
               onEventClick={handleEventClick}
               onDateClick={handleDateClick}
               conflicts={showConflictWarning}
@@ -647,8 +647,8 @@ export function InteractiveCalendar({
           )}
 
           {view === 'day' && (
-            <DayView 
-              currentDate={currentDate} 
+            <DayView
+              currentDate={currentDate}
               events={filteredEvents}
               onEventClick={handleEventClick}
               conflicts={showConflictWarning}
@@ -656,7 +656,7 @@ export function InteractiveCalendar({
           )}
 
           {view === 'availability' && (
-            <AvailabilityView 
+            <AvailabilityView
               availability={availability}
               onToggle={toggleAvailability}
               onSave={() => {
@@ -693,20 +693,20 @@ export function InteractiveCalendar({
                     </div>
                   </div>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <Clock className="w-5 h-5 text-gray-500" />
                     <div>
                       <p className="font-medium">
-                        {selectedEvent.date.toLocaleDateString('en-US', { 
-                          weekday: 'long', 
-                          month: 'long', 
-                          day: 'numeric' 
+                        {selectedEvent.date.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric'
                         })}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {selectedEvent.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - 
+                        {selectedEvent.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} -
                         {new Date(selectedEvent.date.getTime() + selectedEvent.duration * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -720,8 +720,8 @@ export function InteractiveCalendar({
                           {selectedEvent.studentCount} / {selectedEvent.maxStudents} students enrolled
                         </p>
                         <p className="text-sm text-gray-500">
-                          {selectedEvent.maxStudents && selectedEvent.studentCount && 
-                           selectedEvent.maxStudents - selectedEvent.studentCount} spots remaining
+                          {selectedEvent.maxStudents && selectedEvent.studentCount &&
+                            selectedEvent.maxStudents - selectedEvent.studentCount} spots remaining
                         </p>
                       </div>
                     </div>
@@ -757,7 +757,7 @@ export function InteractiveCalendar({
                       Edit Series
                     </Button>
                   )}
-                  <Button 
+                  <Button
                     className="bg-gradient-to-r from-purple-600 to-blue-600"
                     onClick={() => {
                       toast.success('Joining class...')
@@ -778,17 +778,17 @@ export function InteractiveCalendar({
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {selectedDate?.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {selectedDate?.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </DialogTitle>
               <DialogDescription>
                 {getEventsForDate(selectedDate || new Date()).length} events scheduled
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-3 py-4">
               {getEventsForDate(selectedDate || new Date()).map((event) => (
                 <div
@@ -814,7 +814,7 @@ export function InteractiveCalendar({
                   </div>
                 </div>
               ))}
-              
+
               {getEventsForDate(selectedDate || new Date()).length === 0 && (
                 <p className="text-center text-gray-500 py-4">No events scheduled for this day</p>
               )}
@@ -847,10 +847,10 @@ export function InteractiveCalendar({
                 Sync your schedule with external calendars
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 py-4">
               {calendarConnections.map((connection) => (
-                <div 
+                <div
                   key={connection.id}
                   className={cn(
                     "p-4 border rounded-lg transition-colors",
@@ -881,20 +881,20 @@ export function InteractiveCalendar({
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       {connection.connected ? (
                         <>
-                          <Switch 
+                          <Switch
                             checked={connection.syncEnabled}
                             onCheckedChange={(checked) => {
-                              setCalendarConnections(prev => prev.map(c => 
+                              setCalendarConnections(prev => prev.map(c =>
                                 c.id === connection.id ? { ...c, syncEnabled: checked } : c
                               ))
                             }}
                           />
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => disconnectCalendar(connection.provider)}
                           >
@@ -902,7 +902,7 @@ export function InteractiveCalendar({
                           </Button>
                         </>
                       ) : (
-                        <Button 
+                        <Button
                           size="sm"
                           onClick={() => connectCalendar(connection.provider)}
                         >
@@ -911,7 +911,7 @@ export function InteractiveCalendar({
                       )}
                     </div>
                   </div>
-                  
+
                   {connection.connected && connection.lastSynced && (
                     <p className="text-xs text-gray-500 mt-2">
                       Last synced: {format(connection.lastSynced, 'MMM d, h:mm a')}
@@ -934,7 +934,7 @@ export function InteractiveCalendar({
         </Dialog>
 
         {/* Batch Class Creation Modal */}
-        <BatchClassModal 
+        <BatchClassModal
           open={showBatchModal}
           onClose={() => setShowBatchModal(false)}
           onCreate={(newEvents) => {
@@ -968,7 +968,7 @@ function DroppableDay({ date, children, className }: { date: Date; children: Rea
   })
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
       className={cn(
         className,
@@ -987,7 +987,7 @@ function DroppableHour({ date, hour, children, className }: { date: Date; hour: 
   })
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
       className={cn(
         className,
@@ -1009,11 +1009,11 @@ function MonthView({ days, events, onDateClick, onEventClick, isToday, getEvents
           </div>
         ))}
       </div>
-      
+
       <div className="grid grid-cols-7">
         {days.map((date: Date | null, index: number) => (
-          <DroppableDay 
-            key={index} 
+          <DroppableDay
+            key={index}
             date={date || new Date()}
             className={cn(
               "min-h-[100px] p-2 border-r border-b last:border-r-0",
@@ -1073,7 +1073,7 @@ function MonthView({ days, events, onDateClick, onEventClick, isToday, getEvents
 function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }: any) {
   const weekStart = new Date(currentDate)
   weekStart.setDate(currentDate.getDate() - currentDate.getDay())
-  
+
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const day = new Date(weekStart)
     day.setDate(weekStart.getDate() + i)
@@ -1092,11 +1092,11 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
           </div>
         ))}
       </div>
-      
+
       <div className="flex-1 grid grid-cols-7">
         {weekDays.map((day, index) => (
           <div key={index} className="border-r last:border-r-0">
-            <div 
+            <div
               className="h-12 border-b p-2 text-center cursor-pointer hover:bg-gray-50"
               onClick={() => onDateClick(day)}
             >
@@ -1107,14 +1107,14 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
             </div>
             <div className="relative">
               {hours.map((hour) => (
-                <DroppableHour 
-                  key={hour} 
-                  date={day} 
+                <DroppableHour
+                  key={hour}
+                  date={day}
                   hour={hour}
                   className="h-16 border-b"
                 />
               ))}
-              
+
               {events
                 .filter((event: CalendarEvent) => event.date.toDateString() === day.toDateString())
                 .map((event: CalendarEvent) => {
@@ -1123,7 +1123,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
                   const top = (hour - 8) * 64 + (minute / 60) * 64
                   const height = (event.duration / 60) * 64
                   const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
-                  
+
                   return (
                     <DraggableEvent
                       key={event.id}
@@ -1144,7 +1144,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
 
 function DayView({ currentDate, events, onEventClick, conflicts }: any) {
   const hours = Array.from({ length: 14 }, (_, i) => i + 7)
-  
+
   const dayEvents = events.filter(
     (event: CalendarEvent) => event.date.toDateString() === currentDate.toDateString()
   ).sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
@@ -1158,24 +1158,24 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
           </div>
         ))}
       </div>
-      
+
       <div className="flex-1 relative">
         {hours.map((hour) => (
-          <DroppableHour 
-            key={hour} 
-            date={currentDate} 
+          <DroppableHour
+            key={hour}
+            date={currentDate}
             hour={hour}
             className="h-20 border-b"
           />
         ))}
-        
+
         {dayEvents.map((event: CalendarEvent) => {
           const hour = event.date.getHours()
           const minute = event.date.getMinutes()
           const top = (hour - 7) * 80 + (minute / 60) * 80
           const height = (event.duration / 60) * 80
           const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
-          
+
           return (
             <DraggableEvent
               key={event.id}
@@ -1186,7 +1186,7 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
             />
           )
         })}
-        
+
         {dayEvents.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400">
             <p>No events scheduled for this day</p>
@@ -1199,7 +1199,7 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
 
 function AvailabilityView({ availability, onToggle, onSave }: any) {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  
+
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 p-4 rounded-lg">
@@ -1208,7 +1208,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
           Mark when you&apos;re available for classes. Students will only be able to book during these times.
         </p>
       </div>
-      
+
       <div className="space-y-4">
         {days.map((day, dayIndex) => (
           <div key={day} className="border rounded-lg p-4">
@@ -1221,8 +1221,8 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
                     key={block.id}
                     className={cn(
                       "p-3 rounded-lg border cursor-pointer transition-all",
-                      block.isAvailable 
-                        ? "bg-green-50 border-green-200" 
+                      block.isAvailable
+                        ? "bg-green-50 border-green-200"
                         : "bg-gray-50 border-gray-200 opacity-50"
                     )}
                     onClick={() => onToggle(block.id)}
@@ -1241,7 +1241,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
           </div>
         ))}
       </div>
-      
+
       <div className="flex justify-end gap-3">
         <Button variant="outline">Cancel</Button>
         <Button onClick={onSave} className="bg-gradient-to-r from-green-600 to-emerald-600">
@@ -1274,10 +1274,10 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
     const newEvents: CalendarEvent[] = []
     const baseDate = new Date(startDate)
     const [hours, minutes] = startTime.split(':').map(Number)
-    
+
     for (let i = 0; i < occurrences; i++) {
       const eventDate = new Date(baseDate)
-      
+
       if (recurringPattern === 'daily') {
         eventDate.setDate(baseDate.getDate() + i)
       } else if (recurringPattern === 'weekly') {
@@ -1285,11 +1285,11 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
       } else if (recurringPattern === 'biweekly') {
         eventDate.setDate(baseDate.getDate() + (i * 14))
       }
-      
+
       eventDate.setHours(hours, minutes, 0, 0)
-      
+
       const subjectColor = SUBJECTS.find(s => s.name === subject)?.color || 'bg-blue-500'
-      
+
       newEvents.push({
         id: `batch-${Date.now()}-${i}`,
         title: title || `${subject} Class`,
@@ -1306,10 +1306,10 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
         recurringPattern: occurrences > 1 ? recurringPattern : undefined
       })
     }
-    
+
     onCreate(newEvents)
     onClose()
-    
+
     // Reset form
     setTitle('')
     setOccurrences(4)
@@ -1327,12 +1327,12 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
             Create multiple recurring classes at once
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Class Title</Label>
-              <Input 
+              <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Advanced Math"
@@ -1356,7 +1356,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Start Date</Label>
-              <Input 
+              <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -1364,7 +1364,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
             </div>
             <div className="space-y-2">
               <Label>Start Time</Label>
-              <Input 
+              <Input
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
@@ -1375,7 +1375,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Duration (min)</Label>
-              <Input 
+              <Input
                 type="number"
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
@@ -1385,7 +1385,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
             </div>
             <div className="space-y-2">
               <Label>Max Students</Label>
-              <Input 
+              <Input
                 type="number"
                 value={maxStudents}
                 onChange={(e) => setMaxStudents(Number(e.target.value))}
@@ -1394,7 +1394,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
             </div>
             <div className="space-y-2">
               <Label>Occurrences</Label>
-              <Input 
+              <Input
                 type="number"
                 value={occurrences}
                 onChange={(e) => setOccurrences(Number(e.target.value))}
@@ -1433,7 +1433,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
           <div className="p-3 bg-blue-50 rounded-lg text-sm">
             <p className="font-medium text-blue-900">Preview</p>
             <p className="text-blue-700">
-              Will create <strong>{occurrences}</strong> {recurringPattern} classes 
+              Will create <strong>{occurrences}</strong> {recurringPattern} classes
               starting <strong>{format(new Date(startDate), 'MMM d, yyyy')}</strong>
             </p>
           </div>
