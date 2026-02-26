@@ -7,8 +7,8 @@ services:
     container_name: tutorme-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_USER: tutorme
+      POSTGRES_PASSWORD: tutorme_password
       POSTGRES_DB: tutorme
       # Connection pool settings
       POSTGRES_MAX_CONNECTIONS: 200
@@ -61,8 +61,8 @@ services:
       DATABASES_HOST: db
       DATABASES_PORT: 5432
       DATABASES_DATABASE: tutorme
-      DATABASES_USER: postgres
-      DATABASES_PASSWORD: postgres_password
+      DATABASES_USER: tutorme
+      DATABASES_PASSWORD: tutorme_password
       
       POOL_MODE: transaction
       MAX_CLIENT_CONN: 1000
@@ -81,8 +81,8 @@ services:
       CLIENT_IDLE_TIMEOUT: 0
       CLIENT_LOGIN_TIMEOUT: 60
       
-      ADMIN_USERS: postgres
-      STATS_USERS: postgres
+      ADMIN_USERS: tutorme
+      STATS_USERS: tutorme
     ports:
       - "5433:6432"
     depends_on:

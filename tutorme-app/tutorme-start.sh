@@ -111,9 +111,10 @@ else
 fi
 echo ""
 
-# Run Prisma migrations
-echo -e "${BLUE}▶ Running database migrations...${NC}"
-npx prisma migrate dev --name init || true
+# Run Drizzle structure and fallback Prisma generator
+echo -e "${BLUE}▶ Syncing database schemas...${NC}"
+npx drizzle-kit push || true
+npx drizzle-kit generate
 npx prisma generate
 echo -e "${GREEN}✅ Migrations complete${NC}"
 echo ""

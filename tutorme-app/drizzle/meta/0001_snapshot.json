@@ -1,0 +1,45 @@
+{
+  "id": "752f8566-ad46-456e-890e-4e78bd30e165",
+  "prevId": "829dbdd7-c6d0-4d3a-802d-b6227604226a",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public._drizzle_placeholder": {
+      "name": "_drizzle_placeholder",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
