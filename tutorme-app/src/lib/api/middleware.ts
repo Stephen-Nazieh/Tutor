@@ -201,7 +201,7 @@ export async function requireAuth(): Promise<Session> {
 /**
  * Require specific role - throws if wrong role
  */
-export async function requireRole(role: 'TUTOR' | 'STUDENT' | 'ADMIN'): Promise<Session> {
+export async function requireRole(role: 'TUTOR' | 'STUDENT' | 'ADMIN' | 'PARENT'): Promise<Session> {
     const session = await requireAuth()
     if (normalizeRole(session.user.role) !== normalizeRole(role)) {
         throw new ForbiddenError(`This action requires ${role} role`)

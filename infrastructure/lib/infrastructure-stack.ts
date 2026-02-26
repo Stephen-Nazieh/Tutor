@@ -60,6 +60,17 @@ export class InfrastructureStack extends cdk.Stack {
       instanceId: ec2Instance.instanceId,
     });
 
+    // Optional: clone repo on first boot (set context in cdk.json: "repoUrl": "https://github.com/owner/repo.git")
+    const repoUrl = this.node.tryGetContext('repoUrl') as string | undefined;
+    if (repoUrl) {
+      ec2Instance.userData.addCommands(
+        'dnf install git -y',
+        'mkdir -p /opt/tutorme',
+        `git clone --depth 1 ${repoUrl} /opt/tutorme || true`,
+        'echo "Repo clone attempted" >> /var/log/bootstrap_success.log'
+      );
+    }
+
     // 5. UserData script for setting up Nginx, Docker, Certbot
     ec2Instance.userData.addCommands(
       'yum update -y',
@@ -91,8 +102,9 @@ export class InfrastructureStack extends cdk.Stack {
       'echo "Setup complete" > /var/log/bootstrap_success.log'
     );
 
-    // Provide Output for easy access
+    // Outputs for GitHub Actions and ops
     new cdk.CfnOutput(this, 'TutormeAppPublicIP', { value: eip.ref, description: 'Elastic IP Address of the Server' });
     new cdk.CfnOutput(this, 'TutormeAppPublicDns', { value: ec2Instance.instancePublicDnsName, description: 'Public DNS Name' });
+    new cdk.CfnOutput(this, 'TutormeAppInstanceId', { value: ec2Instance.instanceId, description: 'EC2 Instance ID (for SSM deploy)' });
   }
 }

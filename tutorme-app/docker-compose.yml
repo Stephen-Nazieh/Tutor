@@ -168,6 +168,33 @@ services:
     profiles:
       - monitoring
 
+  # Next.js app + Socket.io (production deploy on EC2)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tutorme-app
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
+      DATABASE_POOL_URL: "postgresql://postgres:postgres_password@pgbouncer:6432/tutorme"
+      REDIS_URL: "redis://redis:6379"
+      OLLAMA_URL: "http://ollama:11434"
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - prod
+
 volumes:
   postgres_data:
   redis_data:

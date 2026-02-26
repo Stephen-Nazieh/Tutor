@@ -1,0 +1,33 @@
+# Dependencies and build
+node_modules
+.next
+.git
+*.log
+npm-debug.log*
+
+# Env and secrets (injected at runtime via env_file)
+.env
+.env.*
+!.env.example
+
+# Test and tooling
+coverage
+.nyc_output
+e2e
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+playwright.config.*
+vitest.config.*
+
+# IDE and OS
+.idea
+.vscode
+.DS_Store
+*.bak
+
+# Docs and misc
+docs
+README.md
+*.md

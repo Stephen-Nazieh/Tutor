@@ -6,13 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, ValidationError, NotFoundError, ForbiddenError, withRateLimitPreset } from '@/lib/api/middleware'
+import { withAuth, withCsrf, ValidationError, NotFoundError, ForbiddenError, withRateLimitPreset } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { db } from '@/lib/db'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
 import { calculateCommission } from '@/lib/commission/platform-revenue'
 
-export const POST = withAuth(async (req: NextRequest, session) => {
+export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'paymentCreate')
   if (rateLimitResponse) return rateLimitResponse
 
@@ -219,4 +219,4 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     checkoutUrl: paymentResponse.checkoutUrl,
     paymentId: payment.id
   })
-})
+}))
