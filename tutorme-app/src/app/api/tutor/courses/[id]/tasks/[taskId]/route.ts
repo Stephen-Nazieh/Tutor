@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
             createdAt: task.createdAt.toISOString(),
             assignedAt: task.assignedAt?.toISOString() ?? null,
         },
-        submissions: submissions.map((s) => ({
+        submissions: submissions.map((s: any) => ({
             id: s.id,
             studentId: s.studentId,
             studentName: s.student?.profile?.name ?? 'Unknown',

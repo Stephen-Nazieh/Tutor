@@ -53,14 +53,14 @@ export async function POST(req: NextRequest) {
             where: { batchId: task.batchId },
             select: { studentId: true },
         })
-        studentIds = enrollments.map((e) => e.studentId)
+        studentIds = enrollments.map((e: any) => e.studentId)
     } else {
         // 'all' — everyone enrolled in the curriculum
         const enrollments = await db.curriculumEnrollment.findMany({
             where: { curriculumId: courseId },
             select: { studentId: true },
         })
-        studentIds = enrollments.map((e) => e.studentId)
+        studentIds = enrollments.map((e: any) => e.studentId)
     }
 
     // Build assignments map — each student gets the same questions (uniform)

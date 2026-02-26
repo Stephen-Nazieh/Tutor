@@ -47,7 +47,7 @@ Build a high-performance collaborative PDF tutoring system with:
 
 2. Persist room state and annotations in DB (currently in-memory socket state).
 3. Add full conflict-resolution for simultaneous object edits.
-4. Add student-side panel and tutor-student role aware permissions for room entry.
+4. Add student-side panel and tutor-student role aware permissions for room entry...
 5. Add complete AI coordinate grounding reliability for red-circle auto-marking.
 
 ## 2. Detailed Workstreams

@@ -38,14 +38,14 @@ export async function GET(req: NextRequest) {
         where: { curriculumId },
         select: { lessons: { select: { id: true } } },
     })
-    const lessonIds = modules.flatMap((m) => m.lessons.map((l) => l.id))
+    const lessonIds = modules.flatMap((m: any) => m.lessons.map((l: any) => l.id))
 
     // Get batches
     const batches = await db.courseBatch.findMany({
         where: { curriculumId },
         select: { id: true },
     })
-    const batchIds = batches.map((b) => b.id)
+    const batchIds = batches.map((b: any) => b.id)
 
     // Optional batch filter
     const batchFilter = req.nextUrl.searchParams.get('batchId')
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         })
     }
 
-    const taskIds = tasks.map((t) => t.id)
+    const taskIds = tasks.map((t: any) => t.id)
 
     // Get all submissions for these tasks
     const allSubmissions = await db.taskSubmission.findMany({
@@ -93,11 +93,11 @@ export async function GET(req: NextRequest) {
     })
 
     // Per-task stats
-    const taskSummaries = tasks.map((t) => {
-        const subs = allSubmissions.filter((s) => s.taskId === t.id)
-        const scores = subs.map((s) => s.score ?? 0)
+    const taskSummaries = tasks.map((t: any) => {
+        const subs = allSubmissions.filter((s: any) => s.taskId === t.id)
+        const scores = subs.map((s: any) => s.score ?? 0)
         const avg = scores.length > 0
-            ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+            ? Math.round((scores.reduce((a: number, b: number) => a + b, 0) / scores.length) * 10) / 10
             : null
         const assigned = t.assignments ? Object.keys(t.assignments as object).length : 0
 
@@ -137,9 +137,9 @@ export async function GET(req: NextRequest) {
     })
 
     // Overall class average
-    const allScores = allSubmissions.map((s) => s.score ?? 0)
+    const allScores = allSubmissions.map((s: any) => s.score ?? 0)
     const classAverage = allScores.length > 0
-        ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) / 10
+        ? Math.round((allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length) * 10) / 10
         : 0
 
     // Students needing attention: avg score < 50% across submitted tasks
@@ -162,8 +162,8 @@ export async function GET(req: NextRequest) {
             averageScore: Math.round((data.totalScore / data.count) * 10) / 10,
             taskCount: data.count,
         }))
-        .filter((s) => s.averageScore < 50)
-        .sort((a, b) => a.averageScore - b.averageScore)
+        .filter((s: any) => s.averageScore < 50)
+        .sort((a: any, b: any) => a.averageScore - b.averageScore)
 
     return NextResponse.json({
         courseName: curriculum.name,

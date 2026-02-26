@@ -70,14 +70,14 @@ export async function POST(req: NextRequest) {
                 where: { batchId },
                 select: { studentId: true },
             })
-            studentIds = enrollments.map((e) => e.studentId)
+            studentIds = enrollments.map((e: any) => e.studentId)
         } else {
             // 'all'
             const enrollments = await db.curriculumEnrollment.findMany({
                 where: { curriculumId },
                 select: { studentId: true },
             })
-            studentIds = enrollments.map((e) => e.studentId)
+            studentIds = enrollments.map((e: any) => e.studentId)
         }
     }
 

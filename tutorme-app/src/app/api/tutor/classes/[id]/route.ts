@@ -62,7 +62,7 @@ export const GET = withAuth(async (req, session, context: any) => {
     messagesByUser.set(m.userId, (messagesByUser.get(m.userId) || 0) + 1)
   }
 
-  const students = liveSession.participants.map((p) => {
+  const students = liveSession.participants.map((p: any) => {
     const chatCount = messagesByUser.get(p.studentId) || 0
     const engagementScore = Math.max(20, Math.min(100, 40 + chatCount * 12))
     const attentionLevel = engagementScore >= 80 ? 'high' : engagementScore >= 55 ? 'medium' : 'low'
@@ -83,9 +83,9 @@ export const GET = withAuth(async (req, session, context: any) => {
     }
   })
 
-  const activeStudents = students.filter((s) => s.status === 'online')
+  const activeStudents = students.filter((s: any) => s.status === 'online')
   const averageEngagement = activeStudents.length > 0
-    ? Math.round(activeStudents.reduce((sum, s) => sum + s.engagementScore, 0) / activeStudents.length)
+    ? Math.round(activeStudents.reduce((sum: number, s: any) => sum + s.engagementScore, 0) / activeStudents.length)
     : 0
 
   const classStart = liveSession.startedAt || liveSession.scheduledAt || new Date()
@@ -107,9 +107,9 @@ export const GET = withAuth(async (req, session, context: any) => {
 
   const normalizedSessionTitle = normalizeCourseText(liveSession.title || '')
   const exactNameMatch = tutorCourses.find(
-    (course) => normalizeCourseText(course.name) === normalizedSessionTitle
+    (course: any) => normalizeCourseText(course.name) === normalizedSessionTitle
   )
-  const containsMatch = tutorCourses.find((course) => {
+  const containsMatch = tutorCourses.find((course: any) => {
     const normalizedCourseName = normalizeCourseText(course.name)
     return (
       normalizedCourseName.length > 0 &&
@@ -135,7 +135,7 @@ export const GET = withAuth(async (req, session, context: any) => {
       linkedCourseId: deterministicLinkedCourseId,
     },
     students,
-    messages: liveSession.messages.map((m) => ({
+    messages: liveSession.messages.map((m: any) => ({
       id: m.id,
       studentId: m.userId,
       studentName: m.user.profile?.name || m.user.email || 'User',
@@ -153,10 +153,10 @@ export const GET = withAuth(async (req, session, context: any) => {
       totalChatMessages: liveSession.messages.length,
       classDuration,
       classStartTime: classStart.toISOString(),
-      veryEngaged: students.filter((s) => s.engagementScore >= 85).length,
-      engaged: students.filter((s) => s.engagementScore >= 60 && s.engagementScore < 85).length,
-      passive: students.filter((s) => s.engagementScore >= 30 && s.engagementScore < 60).length,
-      disengaged: students.filter((s) => s.engagementScore < 30).length,
+      veryEngaged: students.filter((s: any) => s.engagementScore >= 85).length,
+      engaged: students.filter((s: any) => s.engagementScore >= 60 && s.engagementScore < 85).length,
+      passive: students.filter((s: any) => s.engagementScore >= 30 && s.engagementScore < 60).length,
+      disengaged: students.filter((s: any) => s.engagementScore < 30).length,
       engagementTrend: 'stable',
     },
     alerts: [],
