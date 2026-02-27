@@ -6,10 +6,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { and, eq, gte, sql } from 'drizzle-orm'
 import { securityAudit, SECURITY_EVENT_TYPES, SECURITY_SEVERITY } from '@/lib/security/comprehensive-audit'
 import { complianceAudit } from '@/lib/monitoring/compliance-audit'
 import { globalPerformanceMonitor } from '@/lib/monitoring/sentry-setup'
-import { db, cache } from '@/lib/db'
+import { cache } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum,
+  liveSession,
+  payment,
+  securityEvent,
+  user,
+} from '@/lib/db/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -153,16 +162,12 @@ async function checkDatabaseHealth(): Promise<HealthCheck> {
   const startTime = Date.now()
 
   try {
-    await db.$transaction(async (tx: any) => {
-      const [users, curricula, liveSessions, payments] = await Promise.all([
-        tx.user.count(),
-        tx.curriculum.count(),
-        tx.liveSession.count(),
-        tx.payment.count(),
-      ])
-
-      const totalRecords = users + curricula + liveSessions + payments
-
+    await drizzleDb.transaction(async (tx) => {
+      const [u] = await tx.select({ count: sql<number>`count(*)::int` }).from(user)
+      const [c] = await tx.select({ count: sql<number>`count(*)::int` }).from(curriculum)
+      const [l] = await tx.select({ count: sql<number>`count(*)::int` }).from(liveSession)
+      const [p] = await tx.select({ count: sql<number>`count(*)::int` }).from(payment)
+      const totalRecords = (u?.count ?? 0) + (c?.count ?? 0) + (l?.count ?? 0) + (p?.count ?? 0)
       if (totalRecords === 0 && process.env.NODE_ENV === 'production') {
         throw new Error('Database appears empty in production, possible data loss')
       }
@@ -189,7 +194,7 @@ async function checkDatabaseHealth(): Promise<HealthCheck> {
       details: {
         latency_ms: duration,
         connected: true,
-        prisma_version: '5.0.0',
+        orm: 'drizzle',
       },
       duration,
     }
@@ -251,15 +256,18 @@ async function checkSecurityHealth(): Promise<HealthCheck> {
 
   try {
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const criticalEvents = await db.securityEvent.findMany({
-      where: {
-        createdAt: { gte: dayAgo },
-        severity: SECURITY_SEVERITY.CRITICAL,
-      },
-      take: 20,
-    })
+    const criticalEvents = await drizzleDb
+      .select()
+      .from(securityEvent)
+      .where(
+        and(
+          gte(securityEvent.createdAt, dayAgo),
+          eq(securityEvent.severity, SECURITY_SEVERITY.CRITICAL)
+        )
+      )
+      .limit(20)
 
-    const securityEvents = criticalEvents.map((event: any) => ({
+    const securityEvents = criticalEvents.map((event) => ({
       action: event.action,
       userId: event.userId,
       actorId: event.actorId,
@@ -388,12 +396,12 @@ async function checkInfrastructureHealth(): Promise<HealthCheck> {
       await tempRedis.quit()
     }
 
-    let replicationStatus: unknown[] = []
+    let replicationStatus: { state?: string }[] = []
     try {
-      const result = await db.$queryRaw<
-        { state: string }[]
-      >`SELECT state FROM pg_stat_replication WHERE state = 'streaming'`
-      replicationStatus = result ?? []
+      const result = await drizzleDb.execute(
+        sql`SELECT state FROM pg_stat_replication WHERE state = 'streaming'`
+      )
+      replicationStatus = (result as { rows?: { state?: string }[] }).rows ?? []
     } catch {
       // Replication not configured (common in dev/single-node)
     }

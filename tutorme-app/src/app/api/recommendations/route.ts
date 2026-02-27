@@ -1,47 +1,59 @@
 /**
- * Study Recommendations API
+ * Study Recommendations API (Drizzle ORM)
  * GET /api/recommendations — AI-powered recommendations (withAuth)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
+import { and, desc, eq, gt, lt } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { contentItem, contentProgress, quizAttempt } from '@/lib/db/schema'
 
 async function getHandler(_req: NextRequest, session: Session) {
   try {
+    const userId = session.user.id!
+    const weakAreas = await drizzleDb
+      .select()
+      .from(quizAttempt)
+      .where(
+        and(eq(quizAttempt.studentId, userId), lt(quizAttempt.score, 70))
+      )
+      .orderBy(desc(quizAttempt.completedAt))
+      .limit(5)
 
-    const weakAreas = await db.quizAttempt.findMany({
-      where: {
-        studentId: session.user.id!,
-        score: { lt: 70 }
-      },
-      take: 5,
-      orderBy: { completedAt: 'desc' }
-    })
+    const inProgressRows = await drizzleDb
+      .select()
+      .from(contentProgress)
+      .where(
+        and(
+          eq(contentProgress.studentId, userId),
+          gt(contentProgress.progress, 0),
+          lt(contentProgress.progress, 100)
+        )
+      )
+      .limit(3)
 
-    // Get content progress
-    const inProgressContent = await db.contentProgress.findMany({
-      where: {
-        studentId: session.user.id!,
-        progress: { gt: 0, lt: 100 }
-      },
-      include: {
-        content: {
-          select: {
-            id: true,
-            title: true,
-            subject: true
-          }
-        }
-      },
-      take: 3
-    })
+    const inProgressContent = await Promise.all(
+      inProgressRows.map(async (p) => {
+        const [content] = await drizzleDb
+          .select({
+            id: contentItem.id,
+            title: contentItem.title,
+            subject: contentItem.subject,
+          })
+          .from(contentItem)
+          .where(eq(contentItem.id, p.contentId))
+          .limit(1)
+        return { ...p, content: content ?? null }
+      })
+    )
 
-    // Build prompt for AI recommendations
-    const weakQuizIds = weakAreas.map((a: any) => a.quizId)
-    const inProgressSubjects = inProgressContent.map((p: any) => p.content?.subject).filter(Boolean)
+    const weakQuizIds = weakAreas.map((a) => a.quizId)
+    const inProgressSubjects = inProgressContent
+      .map((p) => p.content?.subject)
+      .filter(Boolean)
 
     const prompt = `As an AI tutor, provide 3 personalized study recommendations for a student.
 

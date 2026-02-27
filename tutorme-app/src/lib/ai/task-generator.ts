@@ -3,7 +3,9 @@
  * Generates personalized tasks with multiple distribution modes
  */
 
-import { db } from '@/lib/db'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { studentPerformance } from '@/lib/db/schema'
 import { generateWithFallback } from './orchestrator'
 
 export type DistributionMode = 'uniform' | 'personalized' | 'clustered' | 'peer_group'
@@ -160,10 +162,12 @@ async function getStudentProfiles(
 ): Promise<StudentProfile[]> {
   const profiles = await Promise.all(
     studentIds.map(async (id) => {
-      // Get student performance data
-      const performance = await db.studentPerformance.findFirst({
-        where: { studentId: id }
-      })
+      const rows = await drizzleDb
+        .select()
+        .from(studentPerformance)
+        .where(eq(studentPerformance.studentId, id))
+        .limit(1)
+      const performance = rows[0]
 
       if (!performance) {
         return {

@@ -1,28 +1,37 @@
 /**
- * Bookmarks API. All methods require auth; POST/DELETE require CSRF.
+ * Bookmarks API (Drizzle ORM). All methods require auth; POST/DELETE require CSRF.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
+import { and, desc, eq } from 'drizzle-orm'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { bookmark as bookmarkTable, contentItem } from '@/lib/db/schema'
 
 async function getHandler(_req: NextRequest, session: Session) {
-  const bookmarks = await db.bookmark.findMany({
-    where: { studentId: session.user.id },
-    include: {
-      content: {
-        select: {
-          id: true,
-          title: true,
-          subject: true,
-          type: true,
-          duration: true
-        }
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  })
+  const rows = await drizzleDb
+    .select()
+    .from(bookmarkTable)
+    .where(eq(bookmarkTable.studentId, session.user.id))
+    .orderBy(desc(bookmarkTable.createdAt))
+
+  const bookmarks = await Promise.all(
+    rows.map(async (b) => {
+      const [content] = await drizzleDb
+        .select({
+          id: contentItem.id,
+          title: contentItem.title,
+          subject: contentItem.subject,
+          type: contentItem.type,
+          duration: contentItem.duration,
+        })
+        .from(contentItem)
+        .where(eq(contentItem.id, b.contentId))
+        .limit(1)
+      return { ...b, content: content ?? null }
+    })
+  )
   return NextResponse.json({ bookmarks })
 }
 
@@ -31,12 +40,14 @@ async function postHandler(req: NextRequest, session: Session) {
   if (csrfError) return csrfError
   try {
     const { contentId } = await req.json()
-    const bookmark = await db.bookmark.create({
-      data: {
+    const [bookmark] = await drizzleDb
+      .insert(bookmarkTable)
+      .values({
+        id: crypto.randomUUID(),
         studentId: session.user.id,
-        contentId
-      }
-    })
+        contentId,
+      })
+      .returning()
     return NextResponse.json({ bookmark })
   } catch {
     return NextResponse.json(
@@ -51,12 +62,14 @@ async function deleteHandler(req: NextRequest, session: Session) {
   if (csrfError) return csrfError
   try {
     const { contentId } = await req.json()
-    await db.bookmark.deleteMany({
-      where: {
-        studentId: session.user.id,
-        contentId
-      }
-    })
+    await drizzleDb
+      .delete(bookmarkTable)
+      .where(
+        and(
+          eq(bookmarkTable.studentId, session.user.id),
+          eq(bookmarkTable.contentId, contentId)
+        )
+      )
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json(

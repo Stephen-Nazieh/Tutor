@@ -1,11 +1,24 @@
-// @ts-nocheck
 /**
- * Student Performance Analytics Service
+ * Student Performance Analytics Service (Drizzle ORM)
  * Calculates metrics from task submissions, identifies strengths/weaknesses,
  * and assigns performance clusters
  */
 
-import { db } from '@/lib/db'
+import { and, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumEnrollment,
+  liveSession,
+  message,
+  profile,
+  quizAttempt,
+  sessionParticipant,
+  studentPerformance,
+  taskSubmission,
+  user,
+  generatedTask,
+  courseBatch,
+} from '@/lib/db/schema'
 
 export type PerformanceCluster = 'advanced' | 'intermediate' | 'struggling'
 
@@ -79,13 +92,10 @@ export async function calculateStudentMetrics(
   studentId: string,
   curriculumId?: string
 ): Promise<StudentMetrics> {
-  // Get all task submissions for the student
-  const submissions = await db.taskSubmission.findMany({
-    where: {
-      studentId
-      // Note: curriculum filtering would require joining with GeneratedTask
-    }
-  })
+  const submissions = await drizzleDb
+    .select()
+    .from(taskSubmission)
+    .where(eq(taskSubmission.studentId, studentId))
 
   if (submissions.length === 0) {
     return {
@@ -97,54 +107,44 @@ export async function calculateStudentMetrics(
     }
   }
 
-  // Calculate average score
-  const averageScore = submissions.reduce((sum, s) => sum + (s.score || 0), 0) / submissions.length
+  const averageScore =
+    submissions.reduce((sum, s) => sum + (Number(s.score) || 0), 0) /
+    submissions.length
 
-  // Calculate completion rate
-  const completedTasks = submissions.filter(s => s.status === 'graded').length
+  const completedTasks = submissions.filter((s) => s.status === 'graded').length
   const completionRate = (completedTasks / submissions.length) * 100
 
-  // Calculate engagement (based on time spent and attempts)
-  const avgTimeSpent = submissions.reduce((sum, s) => sum + (s.timeSpent || 0), 0) / submissions.length
-  const avgAttempts = submissions.reduce((sum, s) => sum + (s.attempts || 1), 0) / submissions.length
-  const engagementScore = Math.min(100, (avgTimeSpent / 300) * 50 + (1 / avgAttempts) * 50)
+  const avgTimeSpent =
+    submissions.reduce((sum, s) => sum + (s.timeSpent || 0), 0) /
+    submissions.length
+  const avgAttempts =
+    submissions.reduce((sum, s) => sum + (s.attempts || 1), 0) /
+    submissions.length
+  const engagementScore = Math.min(
+    100,
+    (avgTimeSpent / 300) * 50 + (1 / avgAttempts) * 50
+  )
 
-  // Get attendance data from session participants
-  const enrollments = await db.curriculumEnrollment.findMany({
-    where: { studentId }
-  })
+  const participantRows = await drizzleDb
+    .select({ sessionId: sessionParticipant.sessionId, joinedAt: sessionParticipant.joinedAt })
+    .from(sessionParticipant)
+    .where(eq(sessionParticipant.studentId, studentId))
 
-  let totalSessions = 0
-  let attendedSessions = 0
+  const distinctSessions = new Set(participantRows.map((p) => p.sessionId))
+  const attendedSessionIds = new Set(
+    participantRows.filter((p) => p.joinedAt != null).map((p) => p.sessionId)
+  )
+  const totalSessions = distinctSessions.size
+  const attendedSessions = attendedSessionIds.size
+  const attendanceRate =
+    totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0
 
-  for (const enrollment of enrollments) {
-    const sessions = await db.liveSession.findMany({
-      where: {
-        participants: {
-          some: {
-            studentId
-          }
-        }
-      },
-      include: {
-        participants: true
-      }
-    })
-    totalSessions += sessions.length
-    attendedSessions += sessions.filter(s =>
-      s.participants.some(p => p.studentId === studentId && p.joinedAt)
-    ).length
-  }
-
-  const attendanceRate = totalSessions > 0 ? (attendedSessions / totalSessions) * 100 : 0
-
-  // Calculate participation (messages sent during sessions)
-  const messages = await db.message.count({
-    where: {
-      userId: studentId
-    }
-  })
-  const participationRate = Math.min(100, messages * 5) // 20 messages = 100%
+  const [msgRow] = await drizzleDb
+    .select({ count: sql<number>`count(*)::int` })
+    .from(message)
+    .where(eq(message.userId, studentId))
+  const messageCount = msgRow?.count ?? 0
+  const participationRate = Math.min(100, messageCount * 5)
 
   return {
     averageScore: Math.round(averageScore * 10) / 10,
@@ -165,10 +165,10 @@ export async function analyzeSubjectPerformance(
 ): Promise<{ strengths: string[]; weaknesses: string[] }> {
   const subjectScores: Record<string, number[]> = {}
 
-  // --- 1. Traditional: TaskSubmission overall scores by topic ---
-  const submissions = await db.taskSubmission.findMany({
-    where: { studentId }
-  })
+  const submissions = await drizzleDb
+    .select()
+    .from(taskSubmission)
+    .where(eq(taskSubmission.studentId, studentId))
 
   for (const submission of submissions) {
     const answers = submission.answers as any
@@ -195,11 +195,16 @@ export async function analyzeSubjectPerformance(
     }
   }
 
-  // From QuizAttempts
-  const attempts = await db.quizAttempt.findMany({
-    where: { studentId, questionResults: { not: null } },
-    take: 50
-  })
+  const attempts = await drizzleDb
+    .select()
+    .from(quizAttempt)
+    .where(
+      and(
+        eq(quizAttempt.studentId, studentId),
+        isNotNull(quizAttempt.questionResults)
+      )
+    )
+    .limit(50)
   for (const a of attempts) {
     const qr = a.questionResults as Array<{ questionId: string; correct?: boolean }> | null
     if (!Array.isArray(qr)) continue
@@ -270,11 +275,12 @@ export function determineLearningPace(
 export async function identifyCommonMistakes(
   studentId: string
 ): Promise<CommonMistake[]> {
-  const submissions = await db.taskSubmission.findMany({
-    where: { studentId },
-    orderBy: { submittedAt: 'desc' },
-    take: 50
-  })
+  const submissions = await drizzleDb
+    .select()
+    .from(taskSubmission)
+    .where(eq(taskSubmission.studentId, studentId))
+    .orderBy(desc(taskSubmission.submittedAt))
+    .limit(50)
 
   const mistakeCounts: Record<string, { count: number; lastAt: Date }> = {}
 
@@ -313,14 +319,19 @@ export async function identifyCommonMistakes(
     }
   }
 
-  // --- 3. New: derive from QuizAttempt.questionResults ---
-  const attempts = await db.quizAttempt.findMany({
-    where: { studentId, questionResults: { not: null } },
-    orderBy: { completedAt: 'desc' },
-    take: 50
-  })
+  const quizAttempts = await drizzleDb
+    .select()
+    .from(quizAttempt)
+    .where(
+      and(
+        eq(quizAttempt.studentId, studentId),
+        isNotNull(quizAttempt.questionResults)
+      )
+    )
+    .orderBy(desc(quizAttempt.completedAt))
+    .limit(50)
 
-  for (const a of attempts) {
+  for (const a of quizAttempts) {
     const qr = a.questionResults as Array<{
       questionId: string
       correct?: boolean
@@ -385,11 +396,17 @@ export async function getQuestionLevelBreakdown(
   let totalCorrect = 0
   let totalQuestions = 0
 
-  const attempts = await db.quizAttempt.findMany({
-    where: { studentId, questionResults: { not: null } },
-    orderBy: { completedAt: 'desc' },
-    take: 50
-  })
+  const attempts = await drizzleDb
+    .select()
+    .from(quizAttempt)
+    .where(
+      and(
+        eq(quizAttempt.studentId, studentId),
+        isNotNull(quizAttempt.questionResults)
+      )
+    )
+    .orderBy(desc(quizAttempt.completedAt))
+    .limit(50)
 
   for (const a of attempts) {
     const results = a.questionResults as Array<{ questionId: string; correct?: boolean; pointsEarned?: number; pointsMax?: number; selectedAnswer?: unknown }> | null
@@ -420,11 +437,17 @@ export async function getQuestionLevelBreakdown(
     })
   }
 
-  const submissions = await db.taskSubmission.findMany({
-    where: { studentId, questionResults: { not: null } },
-    orderBy: { submittedAt: 'desc' },
-    take: 50
-  })
+  const submissions = await drizzleDb
+    .select()
+    .from(taskSubmission)
+    .where(
+      and(
+        eq(taskSubmission.studentId, studentId),
+        isNotNull(taskSubmission.questionResults)
+      )
+    )
+    .orderBy(desc(taskSubmission.submittedAt))
+    .limit(50)
 
   for (const s of submissions) {
     const results = s.questionResults as Array<{ questionId: string; correct?: boolean; pointsEarned?: number; pointsMax?: number; selectedAnswer?: unknown }> | null
@@ -476,17 +499,48 @@ export async function getStudentPerformance(
   // Get subject analysis
   const { strengths, weaknesses } = await analyzeSubjectPerformance(studentId)
 
-  // Get task history
-  const submissions = await db.taskSubmission.findMany({
-    where: {
-      studentId,
-      ...(curriculumId && {
-        task: { classId: curriculumId }
-      })
-    },
-    orderBy: { submittedAt: 'desc' },
-    take: 20
-  })
+  let submissions
+  if (curriculumId) {
+    const batchIds = await drizzleDb
+      .select({ id: courseBatch.id })
+      .from(courseBatch)
+      .where(eq(courseBatch.curriculumId, curriculumId))
+    const taskIds =
+      batchIds.length > 0
+        ? (
+            await drizzleDb
+              .select({ id: generatedTask.id })
+              .from(generatedTask)
+              .where(inArray(generatedTask.batchId, batchIds.map((b) => b.id)))
+          ).map((t) => t.id)
+        : []
+    submissions =
+      taskIds.length > 0
+        ? await drizzleDb
+            .select()
+            .from(taskSubmission)
+            .where(
+              and(
+                eq(taskSubmission.studentId, studentId),
+                inArray(taskSubmission.taskId, taskIds)
+              )
+            )
+            .orderBy(desc(taskSubmission.submittedAt))
+            .limit(20)
+        : await drizzleDb
+            .select()
+            .from(taskSubmission)
+            .where(eq(taskSubmission.studentId, studentId))
+            .orderBy(desc(taskSubmission.submittedAt))
+            .limit(20)
+  } else {
+    submissions = await drizzleDb
+      .select()
+      .from(taskSubmission)
+      .where(eq(taskSubmission.studentId, studentId))
+      .orderBy(desc(taskSubmission.submittedAt))
+      .limit(20)
+  }
 
   const taskHistory: TaskHistoryItem[] = submissions.map(s => {
     const answers = s.answers as any
@@ -544,23 +598,29 @@ export async function getClassPerformanceSummary(
   topStudents: { id: string; name: string; score: number }[]
   studentsNeedingAttention: { id: string; name: string; reason: string }[]
 }> {
-  const enrollments = await db.curriculumEnrollment.findMany({
-    where: { curriculumId },
-    include: {
-      student: {
-        include: {
-          profile: true
-        }
-      }
-    }
-  })
+  const enrollments = await drizzleDb
+    .select({
+      studentId: curriculumEnrollment.studentId,
+    })
+    .from(curriculumEnrollment)
+    .where(eq(curriculumEnrollment.curriculumId, curriculumId))
 
   const studentPerformances = await Promise.all(
-    enrollments.map(async (enrollment) => ({
-      id: enrollment.studentId,
-      name: enrollment.student.profile?.name || 'Unknown',
-      performance: await getStudentPerformance(enrollment.studentId, curriculumId)
-    }))
+    enrollments.map(async (enrollment) => {
+      const [profileRow] = await drizzleDb
+        .select({ name: profile.name })
+        .from(profile)
+        .where(eq(profile.userId, enrollment.studentId))
+        .limit(1)
+      return {
+        id: enrollment.studentId,
+        name: profileRow?.name ?? 'Unknown',
+        performance: await getStudentPerformance(
+          enrollment.studentId,
+          curriculumId
+        ),
+      }
+    })
   )
 
   const clusterDistribution: Record<PerformanceCluster, number> = {
@@ -613,37 +673,68 @@ export async function updateStudentPerformanceRecord(
 ): Promise<void> {
   const performance = await getStudentPerformance(studentId, curriculumId)
 
-  // Find existing record
-  const existing = await db.studentPerformance.findFirst({
-    where: { studentId }
-  })
+  const [existing] = await drizzleDb
+    .select()
+    .from(studentPerformance)
+    .where(eq(studentPerformance.studentId, studentId))
+    .limit(1)
 
   const data = {
     studentId,
     cluster: performance.performanceCluster,
     strengths: performance.subjectStrengths,
     weaknesses: performance.subjectWeaknesses,
-    commonMistakes: performance.commonMistakes.map(m => ({
+    commonMistakes: performance.commonMistakes.map((m) => ({
       type: m.type,
-      frequency: m.frequency
+      frequency: m.frequency,
     })),
-    learningStyle: performance.learningStyle || 'mixed',
+    learningStyle: performance.learningStyle ?? 'mixed',
     averageScore: performance.overallMetrics.averageScore,
     completionRate: performance.overallMetrics.completionRate,
     engagementScore: performance.overallMetrics.engagementScore,
     attendanceRate: performance.overallMetrics.attendanceRate,
     participationRate: performance.overallMetrics.participationRate,
-    pace: performance.pace
+    pace: performance.pace,
   }
 
   if (existing) {
-    await db.studentPerformance.update({
-      where: { id: existing.id },
-      data
-    })
+    await drizzleDb
+      .update(studentPerformance)
+      .set({
+        cluster: data.cluster,
+        strengths: data.strengths,
+        weaknesses: data.weaknesses,
+        commonMistakes: data.commonMistakes,
+        learningStyle: data.learningStyle,
+        averageScore: data.averageScore,
+        completionRate: data.completionRate,
+        engagementScore: data.engagementScore,
+        attendanceRate: data.attendanceRate,
+        participationRate: data.participationRate,
+        pace: data.pace,
+        curriculumId: curriculumId ?? null,
+      })
+      .where(eq(studentPerformance.id, existing.id))
   } else {
-    await db.studentPerformance.create({
-      data
+    await drizzleDb.insert(studentPerformance).values({
+      id: crypto.randomUUID(),
+      studentId: data.studentId,
+      curriculumId: curriculumId ?? null,
+      cluster: data.cluster,
+      strengths: data.strengths,
+      weaknesses: data.weaknesses,
+      commonMistakes: data.commonMistakes,
+      learningStyle: data.learningStyle,
+      averageScore: data.averageScore,
+      completionRate: data.completionRate,
+      engagementScore: data.engagementScore,
+      attendanceRate: data.attendanceRate,
+      participationRate: data.participationRate,
+      pace: data.pace,
+      taskHistory: [],
+      skillBreakdown: {},
+      recommendedPeers: [],
+      updatedAt: new Date(),
     })
   }
 }

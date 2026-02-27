@@ -41,7 +41,7 @@ services:
       -c log_rotation_age=1d
       -c log_rotation_size=100MB
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d tutorme"]
+      test: ["CMD-SHELL", "pg_isready -U tutorme -d tutorme"]
       interval: 5s
       timeout: 5s
       retries: 5

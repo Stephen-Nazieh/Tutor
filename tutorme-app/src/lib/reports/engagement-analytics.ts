@@ -1,10 +1,20 @@
-// @ts-nocheck
 /**
  * Class Engagement Analytics Service
- * Calculates comprehensive engagement metrics for classes and live sessions
+ * Calculates comprehensive engagement metrics for classes and live sessions (Drizzle ORM)
  */
 
-import { db } from '@/lib/db'
+import { and, eq, gte, inArray, isNotNull, lt, sql } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumEnrollment,
+  liveSession,
+  message,
+  profile,
+  quizAttempt,
+  sessionParticipant,
+  taskSubmission,
+  user,
+} from '@/lib/db/schema'
 import { EngagementMetrics } from './export-service'
 
 export interface EngagementCalculationOptions {
@@ -28,12 +38,11 @@ export async function calculateClassEngagement(
     includeHourlyPattern = true,
   } = options
 
-  // Get all students enrolled in the class
-  const enrollments = await db.curriculumEnrollment.findMany({
-    where: { curriculumId: classId },
-    select: { studentId: true },
-  })
-  const studentIds = enrollments.map(e => e.studentId)
+  const enrollments = await drizzleDb
+    .select({ studentId: curriculumEnrollment.studentId })
+    .from(curriculumEnrollment)
+    .where(eq(curriculumEnrollment.curriculumId, classId))
+  const studentIds = enrollments.map((e) => e.studentId)
 
   if (studentIds.length === 0) {
     return {
@@ -129,31 +138,35 @@ async function calculateAttendanceRate(
   startDate: Date,
   endDate: Date
 ): Promise<{ rate: number; sessions: number; attended: number }> {
-  // Get live sessions for this class/curriculum
-  const sessions = await db.liveSession.findMany({
-    where: {
-      classId,
-      scheduledAt: { gte: startDate, lte: endDate },
-    },
-    include: {
-      participants: {
-        where: {
-          studentId: { in: studentIds },
-        },
-      },
-    },
-  })
+  const sessions = await drizzleDb
+    .select()
+    .from(liveSession)
+    .where(
+      and(
+        eq(liveSession.curriculumId, classId),
+        gte(liveSession.scheduledAt, startDate),
+        lt(liveSession.scheduledAt, new Date(endDate.getTime() + 1))
+      )
+    )
 
   if (sessions.length === 0) {
     return { rate: 0, sessions: 0, attended: 0 }
   }
 
-  let totalPossibleAttendances = studentIds.length * sessions.length
   let actualAttendances = 0
-
   for (const session of sessions) {
-    actualAttendances += session.participants.filter(p => p.joinedAt !== null).length
+    const participants = await drizzleDb
+      .select()
+      .from(sessionParticipant)
+      .where(
+        and(
+          eq(sessionParticipant.sessionId, session.id),
+          inArray(sessionParticipant.studentId, studentIds)
+        )
+      )
+    actualAttendances += participants.filter((p) => p.joinedAt != null).length
   }
+  const totalPossibleAttendances = studentIds.length * sessions.length
 
   return {
     rate: totalPossibleAttendances > 0 ? (actualAttendances / totalPossibleAttendances) * 100 : 0,
@@ -170,12 +183,17 @@ async function calculateParticipationRate(
   startDate: Date,
   endDate: Date
 ): Promise<{ rate: number; messages: number }> {
-  const messageCount = await db.message.count({
-    where: {
-      userId: { in: studentIds },
-      createdAt: { gte: startDate, lte: endDate },
-    },
-  })
+  const [countRow] = await drizzleDb
+    .select({ count: sql<number>`count(*)::int` })
+    .from(message)
+    .where(
+      and(
+        inArray(message.userId, studentIds),
+        gte(message.timestamp, startDate),
+        lt(message.timestamp, new Date(endDate.getTime() + 1))
+      )
+    )
+  const messageCount = countRow?.count ?? 0
 
   // Participation rate based on messages per student per week
   // Assuming 5 messages per week per student = 100% participation
@@ -196,17 +214,18 @@ async function calculateAssignmentCompletion(
   startDate: Date,
   endDate: Date
 ): Promise<{ rate: number; completed: number; total: number }> {
-  const submissions = await db.taskSubmission.findMany({
-    where: {
-      studentId: { in: studentIds },
-      submittedAt: { gte: startDate, lte: endDate },
-    },
-    include: {
-      task: true,
-    },
-  })
+  const submissions = await drizzleDb
+    .select()
+    .from(taskSubmission)
+    .where(
+      and(
+        inArray(taskSubmission.studentId, studentIds),
+        gte(taskSubmission.submittedAt, startDate),
+        lt(taskSubmission.submittedAt, new Date(endDate.getTime() + 1))
+      )
+    )
 
-  const completed = submissions.filter(s => s.status === 'graded').length
+  const completed = submissions.filter((s) => s.status === 'graded').length
 
   // Get total assignments (unique tasks assigned to these students)
   const uniqueTasks = new Set(submissions.map(s => s.taskId)).size
@@ -227,12 +246,16 @@ async function calculateQuizParticipation(
   startDate: Date,
   endDate: Date
 ): Promise<{ rate: number; attempts: number; totalQuizzes: number }> {
-  const attempts = await db.quizAttempt.findMany({
-    where: {
-      studentId: { in: studentIds },
-      completedAt: { gte: startDate, lte: endDate },
-    },
-  })
+  const attempts = await drizzleDb
+    .select()
+    .from(quizAttempt)
+    .where(
+      and(
+        inArray(quizAttempt.studentId, studentIds),
+        gte(quizAttempt.completedAt, startDate),
+        lt(quizAttempt.completedAt, new Date(endDate.getTime() + 1))
+      )
+    )
 
   // Get total available quizzes
   const uniqueQuizzes = new Set(attempts.map(a => a.quizId)).size
@@ -253,16 +276,19 @@ async function calculateDiscussionActivity(
   startDate: Date,
   endDate: Date
 ): Promise<{ rate: number; posts: number; reactions: number }> {
-  const messages = await db.message.findMany({
-    where: {
-      userId: { in: studentIds },
-      createdAt: { gte: startDate, lte: endDate },
-    },
-  })
+  const messages = await drizzleDb
+    .select()
+    .from(message)
+    .where(
+      and(
+        inArray(message.userId, studentIds),
+        gte(message.timestamp, startDate),
+        lt(message.timestamp, new Date(endDate.getTime() + 1))
+      )
+    )
 
-  // Count messages that are questions or replies (longer messages indicate discussion)
-  const discussionMessages = messages.filter(m => {
-    const content = (m.content as string) || ''
+  const discussionMessages = messages.filter((m) => {
+    const content = String(m.content ?? '')
     return content.length > 50 || content.includes('?')
   })
 
@@ -295,33 +321,44 @@ async function calculateDailyTrend(
     const dayEnd = new Date(currentDate)
     dayEnd.setDate(dayEnd.getDate() + 1)
 
-    // Get sessions for this day
-    const sessions = await db.liveSession.findMany({
-      where: {
-        classId,
-        scheduledAt: { gte: dayStart, lt: dayEnd },
-      },
-      include: {
-        participants: {
-          where: { studentId: { in: studentIds } },
-        },
-      },
-    })
+    const daySessions = await drizzleDb
+      .select()
+      .from(liveSession)
+      .where(
+        and(
+          eq(liveSession.curriculumId, classId),
+          gte(liveSession.scheduledAt, dayStart),
+          lt(liveSession.scheduledAt, dayEnd)
+        )
+      )
 
-    // Calculate attendance for the day
-    const totalPossible = studentIds.length * sessions.length
-    const actualAttended = sessions.reduce((sum, s) =>
-      sum + s.participants.filter(p => p.joinedAt !== null).length, 0
-    )
+    let actualAttended = 0
+    for (const s of daySessions) {
+      const participants = await drizzleDb
+        .select()
+        .from(sessionParticipant)
+        .where(
+          and(
+            eq(sessionParticipant.sessionId, s.id),
+            inArray(sessionParticipant.studentId, studentIds)
+          )
+        )
+      actualAttended += participants.filter((p) => p.joinedAt != null).length
+    }
+    const totalPossible = studentIds.length * daySessions.length
     const dayAttendance = totalPossible > 0 ? (actualAttended / totalPossible) * 100 : 0
 
-    // Get messages for engagement calculation
-    const messages = await db.message.count({
-      where: {
-        userId: { in: studentIds },
-        createdAt: { gte: dayStart, lt: dayEnd },
-      },
-    })
+    const [msgCountRow] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(message)
+      .where(
+        and(
+          inArray(message.userId, studentIds),
+          gte(message.timestamp, dayStart),
+          lt(message.timestamp, dayEnd)
+        )
+      )
+    const messages = msgCountRow?.count ?? 0
 
     // Engagement is based on messages and attendance
     const dayEngagement = Math.min(100, (messages / studentIds.length) * 10 + dayAttendance * 0.5)
@@ -346,15 +383,16 @@ async function calculateHourlyPattern(
   startDate: Date,
   endDate: Date
 ): Promise<{ hour: number; activity: number }[]> {
-  const messages = await db.message.findMany({
-    where: {
-      userId: { in: studentIds },
-      createdAt: { gte: startDate, lte: endDate },
-    },
-    select: {
-      createdAt: true,
-    },
-  })
+  const messages = await drizzleDb
+    .select({ timestamp: message.timestamp })
+    .from(message)
+    .where(
+      and(
+        inArray(message.userId, studentIds),
+        gte(message.timestamp, startDate),
+        lt(message.timestamp, new Date(endDate.getTime() + 1))
+      )
+    )
 
   // Count messages by hour
   const hourCounts: Record<number, number> = {}
@@ -362,8 +400,8 @@ async function calculateHourlyPattern(
     hourCounts[i] = 0
   }
 
-  messages.forEach(m => {
-    const hour = new Date(m.createdAt).getHours()
+  messages.forEach((m) => {
+    const hour = new Date(m.timestamp).getHours()
     hourCounts[hour]++
   })
 
@@ -393,33 +431,48 @@ async function identifyStudentsAtRisk(
   // - Less than 50% quiz participation
 
   for (const studentId of studentIds) {
-    // Get individual student metrics
-    const attendanceCount = await db.sessionParticipant.count({
-      where: {
-        studentId,
-        joinedAt: { not: null },
-      },
-    })
+    const [attRow] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(sessionParticipant)
+      .where(
+        and(
+          eq(sessionParticipant.studentId, studentId),
+          isNotNull(sessionParticipant.joinedAt)
+        )
+      )
+    const attendanceCount = attRow?.count ?? 0
 
-    const assignmentCount = await db.taskSubmission.count({
-      where: {
-        studentId,
-        status: 'graded',
-      },
-    })
+    const [assignRow] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(taskSubmission)
+      .where(
+        and(
+          eq(taskSubmission.studentId, studentId),
+          eq(taskSubmission.status, 'graded')
+        )
+      )
+    const assignmentCount = assignRow?.count ?? 0
 
-    const quizCount = await db.quizAttempt.count({
-      where: { studentId },
-    })
+    const [quizRow] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(quizAttempt)
+      .where(eq(quizAttempt.studentId, studentId))
+    const quizCount = quizRow?.count ?? 0
 
-    // Simplified risk assessment
-    // (In production, compare against expected counts)
     if (attendanceCount < 2 || assignmentCount < 2 || quizCount < 1) {
-      const student = await db.user.findUnique({
-        where: { id: studentId },
-        select: { profile: { select: { name: true } } },
-      })
-      atRisk.push(student?.profile?.name || `Student-${studentId.slice(-6)}`)
+      const [userRow] = await drizzleDb
+        .select()
+        .from(user)
+        .where(eq(user.id, studentId))
+        .limit(1)
+      const [profileRow] = userRow
+        ? await drizzleDb
+            .select({ name: profile.name })
+            .from(profile)
+            .where(eq(profile.userId, studentId))
+            .limit(1)
+        : []
+      atRisk.push(profileRow?.name ?? `Student-${studentId.slice(-6)}`)
     }
   }
 
@@ -436,15 +489,11 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
   averageSessionTime: number
   engagementLevel: 'high' | 'medium' | 'low'
 }> {
-  const session = await db.liveSession.findUnique({
-    where: { id: sessionId },
-    include: {
-      participants: true,
-      _count: {
-        select: { participants: true },
-      },
-    },
-  })
+  const [session] = await drizzleDb
+    .select()
+    .from(liveSession)
+    .where(eq(liveSession.id, sessionId))
+    .limit(1)
 
   if (!session) {
     return {
@@ -456,16 +505,25 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
     }
   }
 
+  const participants = await drizzleDb
+    .select()
+    .from(sessionParticipant)
+    .where(eq(sessionParticipant.sessionId, sessionId))
+
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
 
-  const recentMessages = await db.message.count({
-    where: {
-      sessionId,
-      createdAt: { gte: fiveMinutesAgo },
-    },
-  })
+  const [recentMsgRow] = await drizzleDb
+    .select({ count: sql<number>`count(*)::int` })
+    .from(message)
+    .where(
+      and(
+        eq(message.sessionId, sessionId),
+        gte(message.timestamp, fiveMinutesAgo)
+      )
+    )
+  const recentMessages = recentMsgRow?.count ?? 0
 
-  const activeParticipants = session.participants.filter(p => {
+  const activeParticipants = participants.filter((p) => {
     if (!p.joinedAt) return false
     // Consider active if joined within last 30 minutes
     const joinedTime = new Date(p.joinedAt).getTime()
@@ -499,7 +557,7 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
 
   return {
     activeStudents: activeParticipants.length,
-    totalStudents: session._count.participants,
+    totalStudents: participants.length,
     chatMessagesLast5Min: recentMessages,
     averageSessionTime: Math.round(avgSessionTime),
     engagementLevel,

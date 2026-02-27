@@ -12,7 +12,8 @@
  * Integrates with: UserActivityLog, SecurityEvent, PerformanceAlert
  */
 
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { securityEvent } from '@/lib/db/schema'
 import { logAudit, AUDIT_ACTIONS } from './audit'
 
 // =============================================================================
@@ -75,11 +76,10 @@ export async function logSecurityEvent(
       await logAudit(userId, `security_${eventType}`, meta)
     }
 
-    await db.securityEvent.create({
-      data: {
-        eventType: `security_${eventType}`,
-        metadata: meta,
-      },
+    await drizzleDb.insert(securityEvent).values({
+      id: crypto.randomUUID(),
+      eventType: `security_${eventType}`,
+      metadata: meta,
     })
   } catch (error) {
     console.error('[SecurityAudit] logSecurityEvent failed:', error)

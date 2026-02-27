@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError, NotFoundError, withRateLimit } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession as liveSessionTable } from '@/lib/db/schema'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { z } from 'zod'
 
@@ -20,31 +22,30 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   }
   const { sessionId } = parsed.data
 
-  // Fetch the live session by roomId
-  const liveSession = await db.liveSession.findFirst({
-    where: { roomId: sessionId }
-  })
+  const [sessionRow] = await drizzleDb
+    .select()
+    .from(liveSessionTable)
+    .where(eq(liveSessionTable.roomId, sessionId))
+    .limit(1)
 
-  if (!liveSession) {
+  if (!sessionRow) {
     throw new NotFoundError('Session not found')
   }
 
-  // Create a meeting token
-  // Determine properties based on role
-  const isOwner = session.user.id === liveSession.tutorId
+  const isOwner = session.user.id === sessionRow.tutorId
 
   const token = await dailyProvider.createMeetingToken(
-    liveSession.roomId,
+    sessionId,
     session.user.id,
     { isOwner }
   )
 
   return NextResponse.json({
-    sessionId: liveSession.id,
+    sessionId: sessionRow.id,
     room: {
-      url: liveSession.roomUrl,
-      id: liveSession.roomId
+      url: sessionRow.roomUrl ?? undefined,
+      id: sessionRow.roomId ?? undefined,
     },
-    token
+    token,
   })
 }))

@@ -1,9 +1,8 @@
 /**
  * Whiteboard History Service
  * Manages whiteboard snapshots and history for replay/audit
+ * (DB persistence not yet implemented; uses in-memory state)
  */
-
-import { db } from '@/lib/db'
 
 export interface WhiteboardSnapshot {
   id: string

@@ -5,8 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { and, eq, gte, sql } from 'drizzle-orm'
 import { getHealthCheck } from '@/lib/db/monitor'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { securityEvent } from '@/lib/db/schema'
 import { SECURITY_EVENT_TYPES, SECURITY_SEVERITY } from '@/lib/security/comprehensive-audit'
 
 export const dynamic = 'force-dynamic'
@@ -108,8 +110,9 @@ export async function GET(_req: NextRequest) {
 
 async function getDbVersion(): Promise<string | null> {
   try {
-    const result = await db.$queryRaw<{ version: string }[]>`SELECT version()`
-    return result[0]?.version ?? null
+    const result = await drizzleDb.execute(sql`SELECT version() as version`)
+    const rows = (result as { rows?: { version?: string }[] }).rows
+    return rows?.[0]?.version ?? null
   } catch {
     return null
   }
@@ -132,16 +135,25 @@ async function getRedisInfo(): Promise<string | null> {
 async function getSecurityStats(): Promise<{ recentCount: number; criticalCount: number }> {
   try {
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-    const [recentCount, criticalCount] = await Promise.all([
-      db.securityEvent.count({ where: { createdAt: { gte: dayAgo } } }),
-      db.securityEvent.count({
-        where: {
-          createdAt: { gte: dayAgo },
-          severity: SECURITY_SEVERITY.CRITICAL,
-        },
-      }),
+    const [recentRows, criticalRows] = await Promise.all([
+      drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(securityEvent)
+        .where(gte(securityEvent.createdAt, dayAgo)),
+      drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(securityEvent)
+        .where(
+          and(
+            gte(securityEvent.createdAt, dayAgo),
+            eq(securityEvent.severity, SECURITY_SEVERITY.CRITICAL)
+          )
+        ),
     ])
-    return { recentCount, criticalCount }
+    return {
+      recentCount: recentRows[0]?.count ?? 0,
+      criticalCount: criticalRows[0]?.count ?? 0,
+    }
   } catch {
     return { recentCount: 0, criticalCount: 0 }
   }

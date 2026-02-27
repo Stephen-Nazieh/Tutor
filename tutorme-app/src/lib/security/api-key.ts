@@ -1,10 +1,13 @@
 /**
  * API key management: create, verify, revoke.
  * Keys are hashed (SHA-256) before storage; plain key is returned only on create.
+ * (Drizzle ORM)
  */
 
 import crypto from 'crypto'
-import { db } from '@/lib/db'
+import { desc, eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { apiKey } from '@/lib/db/schema'
 
 const HASH_ALGO = 'sha256'
 const KEY_PREFIX = 'tm_'
@@ -17,13 +20,18 @@ function hashKey(plain: string): string {
 /**
  * Generate a new API key. Returns { id, name, key } - store `key` securely; it cannot be retrieved again.
  */
-export async function createApiKey(name: string, createdById?: string): Promise<{ id: string; name: string; key: string }> {
+export async function createApiKey(
+  name: string,
+  createdById?: string
+): Promise<{ id: string; name: string; key: string }> {
   const raw = crypto.randomBytes(KEY_BYTES).toString('base64url')
   const key = KEY_PREFIX + raw
   const keyHash = hashKey(key)
-  const record = await db.apiKey.create({
-    data: { name, keyHash, createdById }
-  })
+  const [record] = await drizzleDb
+    .insert(apiKey)
+    .values({ id: crypto.randomUUID(), name, keyHash, createdById })
+    .returning()
+  if (!record) throw new Error('Failed to create API key')
   return { id: record.id, name: record.name, key }
 }
 
@@ -33,12 +41,16 @@ export async function createApiKey(name: string, createdById?: string): Promise<
 export async function verifyApiKey(bearerToken: string): Promise<{ id: string } | null> {
   if (!bearerToken.startsWith(KEY_PREFIX)) return null
   const keyHash = hashKey(bearerToken)
-  const record = await db.apiKey.findFirst({ where: { keyHash } })
+  const [record] = await drizzleDb
+    .select()
+    .from(apiKey)
+    .where(eq(apiKey.keyHash, keyHash))
+    .limit(1)
   if (!record) return null
-  await db.apiKey.update({
-    where: { id: record.id },
-    data: { lastUsedAt: new Date() }
-  })
+  await drizzleDb
+    .update(apiKey)
+    .set({ lastUsedAt: new Date() })
+    .where(eq(apiKey.id, record.id))
   return { id: record.id }
 }
 
@@ -46,17 +58,27 @@ export async function verifyApiKey(bearerToken: string): Promise<{ id: string } 
  * Revoke (delete) an API key by id.
  */
 export async function revokeApiKey(id: string): Promise<boolean> {
-  const result = await db.apiKey.deleteMany({ where: { id } })
-  return result.count > 0
+  const deleted = await drizzleDb
+    .delete(apiKey)
+    .where(eq(apiKey.id, id))
+    .returning({ id: apiKey.id })
+  return deleted.length > 0
 }
 
 /**
  * List API keys (without secret). Optional filter by createdById.
  */
 export async function listApiKeys(createdById?: string) {
-  return db.apiKey.findMany({
-    where: createdById ? { createdById } : undefined,
-    select: { id: true, name: true, createdAt: true, lastUsedAt: true },
-    orderBy: { createdAt: 'desc' }
-  })
+  const base = drizzleDb
+    .select({
+      id: apiKey.id,
+      name: apiKey.name,
+      createdAt: apiKey.createdAt,
+      lastUsedAt: apiKey.lastUsedAt,
+    })
+    .from(apiKey)
+    .orderBy(desc(apiKey.createdAt))
+  return createdById
+    ? base.where(eq(apiKey.createdById, createdById))
+    : base
 }

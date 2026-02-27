@@ -9,7 +9,9 @@
  * - Cross-border transfers (PIPL Art 29)
  */
 
-import { db } from '@/lib/db'
+import { and, gte, like, sql } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { securityEvent } from '@/lib/db/schema'
 import { logAudit } from '@/lib/security/audit'
 
 export type ComplianceAction =
@@ -40,11 +42,10 @@ export async function logComplianceAudit(
     if (userId) {
       await logAudit(userId, `compliance_${action}`, rest)
     }
-    await db.securityEvent.create({
-      data: {
-        eventType: `compliance_${action}`,
-        metadata: metadata as object,
-      },
+    await drizzleDb.insert(securityEvent).values({
+      id: crypto.randomUUID(),
+      eventType: `compliance_${action}`,
+      metadata: metadata as object,
     })
   } catch (error) {
     console.error('[ComplianceAudit] logComplianceAudit failed:', error)
@@ -94,12 +95,17 @@ export const complianceAudit = {
    */
   async verifyGDPRCompliance(): Promise<{ compliant: boolean; details?: Record<string, unknown> }> {
     try {
-      const recentComplianceEvents = await db.securityEvent.count({
-        where: {
-          eventType: { startsWith: 'compliance_gdpr' },
-          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-        },
-      })
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      const rows = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(securityEvent)
+        .where(
+          and(
+            like(securityEvent.eventType, 'compliance_gdpr%'),
+            gte(securityEvent.createdAt, sevenDaysAgo)
+          )
+        )
+      const recentComplianceEvents = rows[0]?.count ?? 0
       return {
         compliant: true,
         details: {

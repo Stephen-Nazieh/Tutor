@@ -1,44 +1,49 @@
 /**
- * AI Tutor Subscription API
+ * AI Tutor Subscription API (Drizzle ORM)
  * Get and manage subscription tier
  */
 
+import { and, eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aITutorDailyUsage, aITutorSubscription } from '@/lib/db/schema'
 
 // GET - Get current subscription and usage
 export const GET = withAuth(async (req, session) => {
-  // Get or create subscription
-    let subscription = await db.aITutorSubscription.findUnique({
-      where: { userId: session.user.id }
-    })
+  let [subscription] = await drizzleDb
+    .select()
+    .from(aITutorSubscription)
+    .where(eq(aITutorSubscription.userId, session.user.id))
+    .limit(1)
 
-    if (!subscription) {
-      // Create FREE tier subscription by default
-      subscription = await db.aITutorSubscription.create({
-        data: {
-          userId: session.user.id,
-          tier: 'FREE',
-          dailySessions: 3,
-          dailyMessages: 50,
-          isActive: true
-        }
+  if (!subscription) {
+    const [created] = await drizzleDb
+      .insert(aITutorSubscription)
+      .values({
+        id: crypto.randomUUID(),
+        userId: session.user.id,
+        tier: 'FREE',
+        dailySessions: 3,
+        dailyMessages: 50,
+        isActive: true,
       })
-    }
+      .returning()
+    subscription = created!
+  }
 
-    // Get today's usage
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    
-    const dailyUsage = await db.aITutorDailyUsage.findUnique({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date: today
-        }
-      }
-    })
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const [dailyUsage] = await drizzleDb
+    .select()
+    .from(aITutorDailyUsage)
+    .where(
+      and(
+        eq(aITutorDailyUsage.userId, session.user.id),
+        eq(aITutorDailyUsage.date, today)
+      )
+    )
+    .limit(1)
 
   return NextResponse.json({
     subscription: {
@@ -74,21 +79,37 @@ export const POST = withCsrf(withAuth(async (req, session) => {
 
     const limits = tierLimits[tier as keyof typeof tierLimits]
 
-    const subscription = await db.aITutorSubscription.upsert({
-      where: { userId: session.user.id },
-      update: {
-        tier,
-        dailySessions: limits.dailySessions,
-        dailyMessages: limits.dailyMessages
-      },
-      create: {
-        userId: session.user.id,
-        tier,
-        dailySessions: limits.dailySessions,
-        dailyMessages: limits.dailyMessages,
-        isActive: true
-      }
-    })
+    const [existing] = await drizzleDb
+      .select()
+      .from(aITutorSubscription)
+      .where(eq(aITutorSubscription.userId, session.user.id))
+      .limit(1)
+
+    const subscription = existing
+      ? (
+          await drizzleDb
+            .update(aITutorSubscription)
+            .set({
+              tier: tier as 'FREE' | 'BASIC' | 'PREMIUM',
+              dailySessions: limits.dailySessions,
+              dailyMessages: limits.dailyMessages,
+            })
+            .where(eq(aITutorSubscription.id, existing.id))
+            .returning()
+        )[0]!
+      : (
+          await drizzleDb
+            .insert(aITutorSubscription)
+            .values({
+              id: crypto.randomUUID(),
+              userId: session.user.id,
+              tier: tier as 'FREE' | 'BASIC' | 'PREMIUM',
+              dailySessions: limits.dailySessions,
+              dailyMessages: limits.dailyMessages,
+              isActive: true,
+            })
+            .returning()
+        )[0]!
 
   return NextResponse.json({
     subscription: {

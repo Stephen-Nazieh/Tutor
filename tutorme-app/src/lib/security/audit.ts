@@ -1,9 +1,10 @@
 /**
  * Audit logging for data access and sensitive actions.
- * Writes to UserActivityLog for compliance and security review.
+ * Writes to UserActivityLog for compliance and security review (Drizzle ORM).
  */
 
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { userActivityLog } from '@/lib/db/schema'
 
 export const AUDIT_ACTIONS = {
   PROFILE_VIEW: 'audit_profile_view',
@@ -38,12 +39,11 @@ export async function logAudit(
   metadata?: AuditMetadata
 ): Promise<void> {
   try {
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action,
-        metadata: (metadata ?? {}) as object
-      }
+    await drizzleDb.insert(userActivityLog).values({
+      id: crypto.randomUUID(),
+      userId,
+      action,
+      metadata: (metadata ?? {}) as object,
     })
   } catch (error) {
     console.error('Audit log failed:', error)

@@ -1,9 +1,18 @@
 /**
  * Curriculum Lesson Controller
- * Manages structured lesson flow with AI tutor
+ * Manages structured lesson flow with AI tutor (Drizzle ORM)
  */
 
-import { db } from '@/lib/db'
+import { and, eq, inArray, sql } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum,
+  curriculumLesson,
+  curriculumLessonProgress,
+  curriculumModule,
+  curriculumProgress,
+  lessonSession,
+} from '@/lib/db/schema'
 import { chatWithFallback } from '@/lib/ai/orchestrator'
 
 export type LessonSection = 'introduction' | 'concept' | 'example' | 'practice' | 'review'
@@ -60,75 +69,76 @@ export async function startLesson(
   studentId: string,
   lessonId: string
 ): Promise<LessonSession> {
-  // Check if lesson exists
-  const lesson = await db.curriculumLesson.findUnique({
-    where: { id: lessonId },
-    include: {
-      module: {
-        include: {
-          curriculum: true
-        }
-      }
-    }
-  })
+  const [lessonRow] = await drizzleDb
+    .select()
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.id, lessonId))
+    .limit(1)
+  if (!lessonRow) throw new Error('Lesson not found')
 
-  if (!lesson) {
-    throw new Error('Lesson not found')
-  }
+  const [moduleRow] = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.id, lessonRow.moduleId))
+    .limit(1)
+  if (!moduleRow) throw new Error('Module not found')
 
-  // Check prerequisites
-  const prerequisiteIds = lesson.prerequisiteLessonIds || []
+  const prerequisiteIds = lessonRow.prerequisiteLessonIds || []
   if (prerequisiteIds.length > 0) {
-    const completedPrerequisites = await db.curriculumLessonProgress.count({
-      where: {
-        studentId,
-        lessonId: { in: prerequisiteIds },
-        status: 'COMPLETED'
-      }
-    })
-
-    if (completedPrerequisites < prerequisiteIds.length) {
+    const [countRow] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(curriculumLessonProgress)
+      .where(
+        and(
+          eq(curriculumLessonProgress.studentId, studentId),
+          inArray(curriculumLessonProgress.lessonId, prerequisiteIds),
+          eq(curriculumLessonProgress.status, 'COMPLETED')
+        )
+      )
+    if ((countRow?.count ?? 0) < prerequisiteIds.length) {
       throw new Error('Prerequisites not met')
     }
   }
 
-  // Check for existing active session
-  const existingSession = await db.lessonSession.findUnique({
-    where: {
-      studentId_lessonId: {
-        lessonId,
-        studentId
-      }
-    }
-  })
-
+  const [existingSession] = await drizzleDb
+    .select()
+    .from(lessonSession)
+    .where(
+      and(
+        eq(lessonSession.studentId, studentId),
+        eq(lessonSession.lessonId, lessonId)
+      )
+    )
+    .limit(1)
   if (existingSession && existingSession.status !== 'completed') {
     return existingSession as LessonSession
   }
 
-  // Create lesson progress record
-  await db.curriculumLessonProgress.upsert({
-    where: {
-      lessonId_studentId: {
-        lessonId,
-        studentId
-      }
-    },
-    create: {
+  await drizzleDb
+    .insert(curriculumLessonProgress)
+    .values({
+      id: crypto.randomUUID(),
       lessonId,
       studentId,
       status: 'IN_PROGRESS',
-      currentSection: 'introduction'
-    },
-    update: {
-      status: 'IN_PROGRESS',
-      currentSection: 'introduction'
-    }
-  })
+      currentSection: 'introduction',
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [
+        curriculumLessonProgress.lessonId,
+        curriculumLessonProgress.studentId,
+      ],
+      set: {
+        status: 'IN_PROGRESS',
+        currentSection: 'introduction',
+      },
+    })
 
-  // Create new session
-  const session = await db.lessonSession.create({
-    data: {
+  const [session] = await drizzleDb
+    .insert(lessonSession)
+    .values({
+      id: crypto.randomUUID(),
       studentId,
       lessonId,
       status: 'active',
@@ -143,11 +153,11 @@ export async function startLesson(
         conceptExplained: false,
         exampleWalked: false,
         practiceDone: false,
-        reviewDone: false
-      }
-    }
-  })
-
+        reviewDone: false,
+      },
+    })
+    .returning()
+  if (!session) throw new Error('Failed to create lesson session')
   return session as LessonSession
 }
 
@@ -178,27 +188,20 @@ export async function advanceLesson(
   context[`${session.currentSection}Done`] = true
   context.currentStep = 0
 
-  // Update session in database
-  await db.lessonSession.update({
-    where: { id: session.id },
-    data: {
-      currentSection: nextSection,
-      sessionContext: context
-    }
-  })
+  await drizzleDb
+    .update(lessonSession)
+    .set({ currentSection: nextSection, sessionContext: context })
+    .where(eq(lessonSession.id, session.id))
 
-  // Update progress record
-  await db.curriculumLessonProgress.update({
-    where: {
-      lessonId_studentId: {
-        lessonId: session.lessonId,
-        studentId: session.studentId
-      }
-    },
-    data: {
-      currentSection: nextSection
-    }
-  })
+  await drizzleDb
+    .update(curriculumLessonProgress)
+    .set({ currentSection: nextSection })
+    .where(
+      and(
+        eq(curriculumLessonProgress.lessonId, session.lessonId),
+        eq(curriculumLessonProgress.studentId, session.studentId)
+      )
+    )
 
   return {
     newSection: nextSection,
@@ -400,81 +403,108 @@ export function getRemediationPath(
  * Complete a lesson session
  */
 export async function completeLesson(sessionId: string): Promise<void> {
-  const session = await db.lessonSession.findUnique({
-    where: { id: sessionId },
-    include: {
-      lesson: {
-        include: {
-          module: true
-        }
-      }
+  const [sessionRow] = await drizzleDb
+    .select()
+    .from(lessonSession)
+    .where(eq(lessonSession.id, sessionId))
+    .limit(1)
+  if (!sessionRow) return
+
+  const [lessonRow] = await drizzleDb
+    .select()
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.id, sessionRow.lessonId))
+    .limit(1)
+  if (!lessonRow) return
+
+  const [moduleRow] = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.id, lessonRow.moduleId))
+    .limit(1)
+  if (!moduleRow) return
+
+  const curriculumId = moduleRow.curriculumId
+  const mastery = (sessionRow.conceptMastery as Record<string, number>) || {}
+  const avgScore =
+    Object.keys(mastery).length > 0
+      ? Object.values(mastery).reduce((a, b) => a + b, 0) / Object.keys(mastery).length
+      : 0
+
+  await drizzleDb.transaction(async (tx) => {
+    await tx
+      .update(lessonSession)
+      .set({ status: 'completed', completedAt: new Date() })
+      .where(eq(lessonSession.id, sessionId))
+
+    await tx
+      .update(curriculumLessonProgress)
+      .set({
+        status: 'COMPLETED',
+        completedAt: new Date(),
+        score: Math.round(avgScore),
+      })
+      .where(
+        and(
+          eq(curriculumLessonProgress.lessonId, sessionRow.lessonId),
+          eq(curriculumLessonProgress.studentId, sessionRow.studentId)
+        )
+      )
+
+    const [totalRow] = await tx
+      .select({
+        count: sql<number>`count(*)::int`,
+      })
+      .from(curriculumLesson)
+      .innerJoin(
+        curriculumModule,
+        eq(curriculumModule.id, curriculumLesson.moduleId)
+      )
+      .where(eq(curriculumModule.curriculumId, curriculumId))
+    const totalLessons = totalRow?.count ?? 0
+
+    const [existing] = await tx
+      .select()
+      .from(curriculumProgress)
+      .where(
+        and(
+          eq(curriculumProgress.studentId, sessionRow.studentId),
+          eq(curriculumProgress.curriculumId, curriculumId)
+        )
+      )
+      .limit(1)
+
+    if (existing) {
+      await tx
+        .update(curriculumProgress)
+        .set({
+          lessonsCompleted: existing.lessonsCompleted + 1,
+          currentLessonId: sessionRow.lessonId,
+          averageScore: avgScore,
+        })
+        .where(
+          and(
+            eq(curriculumProgress.studentId, sessionRow.studentId),
+            eq(curriculumProgress.curriculumId, curriculumId)
+          )
+        )
+    } else {
+      await tx.insert(curriculumProgress).values({
+        id: crypto.randomUUID(),
+        studentId: sessionRow.studentId,
+        curriculumId,
+        lessonsCompleted: 1,
+        totalLessons,
+        currentLessonId: sessionRow.lessonId,
+        averageScore: avgScore,
+        isCompleted: false,
+      })
     }
   })
 
-  if (!session) return
-
-  // Calculate final score from concept mastery
-  const mastery = session.conceptMastery as Record<string, number>
-  const avgScore = Object.keys(mastery).length > 0
-    ? Object.values(mastery).reduce((a, b) => a + b, 0) / Object.keys(mastery).length
-    : 0
-
-  await db.$transaction([
-    // Mark session as completed
-    db.lessonSession.update({
-      where: { id: sessionId },
-      data: {
-        status: 'completed',
-        completedAt: new Date()
-      }
-    }),
-
-    // Update lesson progress
-    db.curriculumLessonProgress.update({
-      where: {
-        lessonId_studentId: {
-          lessonId: session.lessonId,
-          studentId: session.studentId
-        }
-      },
-      data: {
-        status: 'COMPLETED',
-        completedAt: new Date(),
-        score: Math.round(avgScore)
-      }
-    }),
-
-    // Update curriculum progress
-    db.curriculumProgress.upsert({
-      where: {
-        studentId_curriculumId: {
-          studentId: session.studentId,
-          curriculumId: session.lesson.module.curriculumId
-        }
-      },
-      create: {
-        studentId: session.studentId,
-        curriculumId: session.lesson.module.curriculumId,
-        lessonsCompleted: 1,
-        totalLessons: await db.curriculumLesson.count({
-          where: { module: { curriculumId: session.lesson.module.curriculumId } }
-        }),
-        currentLessonId: session.lessonId,
-        averageScore: avgScore,
-        startedAt: new Date()
-      },
-      update: {
-        lessonsCompleted: { increment: 1 },
-        currentLessonId: session.lessonId,
-        averageScore: avgScore
-      }
-    })
-  ])
-  
-  // Award XP and check for badges (outside transaction to not block)
   try {
     const { onLessonComplete } = await import('@/lib/gamification/triggers')
-    await onLessonComplete(session.studentId, session.lessonId)
+    await onLessonComplete(sessionRow.studentId, sessionRow.lessonId)
   } catch (error) {
     console.error('Failed to award lesson completion XP:', error)
   }
@@ -487,49 +517,54 @@ export async function getNextLesson(
   studentId: string,
   curriculumId: string
 ): Promise<{ lessonId: string; title: string; moduleTitle: string } | null> {
-  // Find first incomplete lesson with prerequisites met
-  const lessons = await db.curriculumLesson.findMany({
-    where: {
-      module: { curriculumId }
-    },
-    include: {
-      module: true,
-      progressRecords: {
-        where: { studentId }
+  const modules = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, curriculumId))
+    .orderBy(curriculumModule.order)
+
+  for (const mod of modules) {
+    const lessons = await drizzleDb
+      .select()
+      .from(curriculumLesson)
+      .where(eq(curriculumLesson.moduleId, mod.id))
+      .orderBy(curriculumLesson.order)
+
+    for (const lesson of lessons) {
+      const [progress] = await drizzleDb
+        .select()
+        .from(curriculumLessonProgress)
+        .where(
+          and(
+            eq(curriculumLessonProgress.lessonId, lesson.id),
+            eq(curriculumLessonProgress.studentId, studentId)
+          )
+        )
+        .limit(1)
+      if (progress?.status === 'COMPLETED') continue
+
+      const prereqs = lesson.prerequisiteLessonIds || []
+      if (prereqs.length > 0) {
+        const [countRow] = await drizzleDb
+          .select({ count: sql<number>`count(*)::int` })
+          .from(curriculumLessonProgress)
+          .where(
+            and(
+              eq(curriculumLessonProgress.studentId, studentId),
+              inArray(curriculumLessonProgress.lessonId, prereqs),
+              eq(curriculumLessonProgress.status, 'COMPLETED')
+            )
+          )
+        if ((countRow?.count ?? 0) < prereqs.length) continue
       }
-    },
-    orderBy: [
-      { module: { order: 'asc' } },
-      { order: 'asc' }
-    ]
-  })
 
-  for (const lesson of lessons) {
-    const progress = lesson.progressRecords[0]
-    
-    // Skip completed lessons
-    if (progress?.status === 'COMPLETED') continue
-
-    // Check prerequisites
-    const prereqs = lesson.prerequisiteLessonIds || []
-    if (prereqs.length > 0) {
-      const completedPrereqs = await db.curriculumLessonProgress.count({
-        where: {
-          studentId,
-          lessonId: { in: prereqs },
-          status: 'COMPLETED'
-        }
-      })
-      if (completedPrereqs < prereqs.length) continue
-    }
-
-    return {
-      lessonId: lesson.id,
-      title: lesson.title,
-      moduleTitle: lesson.module.title
+      return {
+        lessonId: lesson.id,
+        title: lesson.title,
+        moduleTitle: mod.title,
+      }
     }
   }
-
   return null
 }
 
@@ -545,38 +580,49 @@ export async function getStudentProgress(
   currentModule: string
   overallProgress: number
 }> {
-  const curriculum = await db.curriculum.findUnique({
-    where: { id: curriculumId },
-    include: {
-      modules: {
-        include: {
-          lessons: {
-            include: {
-              progressRecords: {
-                where: { studentId }
-              }
-            }
-          }
-        }
-      }
-    }
-  })
+  const [curriculumRow] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(eq(curriculum.id, curriculumId))
+    .limit(1)
+  if (!curriculumRow) throw new Error('Curriculum not found')
 
-  if (!curriculum) {
-    throw new Error('Curriculum not found')
-  }
+  const modules = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, curriculumId))
+    .orderBy(curriculumModule.order)
 
   let totalLessons = 0
   let completedLessons = 0
   let currentModule = ''
 
-  for (const module of curriculum.modules) {
-    for (const lesson of module.lessons) {
+  for (const mod of modules) {
+    const lessons = await drizzleDb
+      .select()
+      .from(curriculumLesson)
+      .where(eq(curriculumLesson.moduleId, mod.id))
+      .orderBy(curriculumLesson.order)
+
+    for (const lesson of lessons) {
       totalLessons++
-      if (lesson.progressRecords[0]?.status === 'COMPLETED') {
+      const [progress] = await drizzleDb
+        .select()
+        .from(curriculumLessonProgress)
+        .where(
+          and(
+            eq(curriculumLessonProgress.lessonId, lesson.id),
+            eq(curriculumLessonProgress.studentId, studentId)
+          )
+        )
+        .limit(1)
+      if (progress?.status === 'COMPLETED') {
         completedLessons++
-      } else if (!currentModule && lesson.progressRecords[0]?.status === 'IN_PROGRESS') {
-        currentModule = module.title
+      } else if (
+        !currentModule &&
+        progress?.status === 'IN_PROGRESS'
+      ) {
+        currentModule = mod.title
       }
     }
   }
@@ -584,8 +630,12 @@ export async function getStudentProgress(
   return {
     totalLessons,
     completedLessons,
-    currentModule: currentModule || curriculum.modules[0]?.title || '',
-    overallProgress: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+    currentModule:
+      currentModule || modules[0]?.title || '',
+    overallProgress:
+      totalLessons > 0
+        ? Math.round((completedLessons / totalLessons) * 100)
+        : 0,
   }
 }
 
@@ -593,13 +643,12 @@ export async function getStudentProgress(
  * Get lesson content for teaching
  */
 export async function getLessonContent(lessonId: string): Promise<LessonContent> {
-  const lesson = await db.curriculumLesson.findUnique({
-    where: { id: lessonId }
-  })
-
-  if (!lesson) {
-    throw new Error('Lesson not found')
-  }
+  const [lesson] = await drizzleDb
+    .select()
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.id, lessonId))
+    .limit(1)
+  if (!lesson) throw new Error('Lesson not found')
 
   return {
     id: lesson.id,
@@ -612,7 +661,7 @@ export async function getLessonContent(lessonId: string): Promise<LessonContent>
     keyConcepts: lesson.keyConcepts || [],
     examples: (lesson.examples as any[]) || [],
     practiceProblems: (lesson.practiceProblems as any[]) || [],
-    commonMisconceptions: lesson.commonMisconceptions || []
+    commonMisconceptions: lesson.commonMisconceptions || [],
   }
 }
 

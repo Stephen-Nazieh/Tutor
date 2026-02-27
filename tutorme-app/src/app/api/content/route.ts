@@ -6,8 +6,11 @@
  */
 
 import { NextResponse } from 'next/server'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
-import { db, cache } from '@/lib/db'
+import { cache } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { contentItem, contentProgress, profile } from '@/lib/db/schema'
 
 const CONTENT_LIST_CACHE_TTL = 60 // 1 minute
 
@@ -17,32 +20,52 @@ export const GET = withAuth(async (req, session) => {
   const contentWithProgress = await cache.getOrSet(
     cacheKey,
     async () => {
-      const profile = await db.profile.findUnique({
-        where: { userId: session.user.id },
-        select: { subjectsOfInterest: true }
-      })
+      const [profileRow] = await drizzleDb
+        .select({ subjectsOfInterest: profile.subjectsOfInterest })
+        .from(profile)
+        .where(eq(profile.userId, session.user.id))
+        .limit(1)
 
-      const whereClause: Record<string, unknown> = { isPublished: true }
-      if (profile?.subjectsOfInterest && profile.subjectsOfInterest.length > 0) {
-        whereClause.subject = { in: profile.subjectsOfInterest }
+      let contents
+      if (
+        profileRow?.subjectsOfInterest &&
+        profileRow.subjectsOfInterest.length > 0
+      ) {
+        contents = await drizzleDb
+          .select()
+          .from(contentItem)
+          .where(
+            and(
+              eq(contentItem.isPublished, true),
+              inArray(contentItem.subject, profileRow.subjectsOfInterest)
+            )
+          )
+          .orderBy(desc(contentItem.createdAt))
+          .limit(20)
+      } else {
+        contents = await drizzleDb
+          .select()
+          .from(contentItem)
+          .where(eq(contentItem.isPublished, true))
+          .orderBy(desc(contentItem.createdAt))
+          .limit(20)
       }
-
-      const contents = await db.contentItem.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: 20
-      })
 
       if (contents.length === 0) return []
 
-      const contentIds: string[] = contents.map((c: { id: string }) => c.id)
-      const progressList = await db.contentProgress.findMany({
-        where: {
-          contentId: { in: contentIds },
-          studentId: session.user.id
-        }
-      })
-      const progressByContentId = new Map(progressList.map((p: { contentId: string }) => [p.contentId, p]))
+      const contentIds = contents.map((c) => c.id)
+      const progressList = await drizzleDb
+        .select()
+        .from(contentProgress)
+        .where(
+          and(
+            inArray(contentProgress.contentId, contentIds),
+            eq(contentProgress.studentId, session.user.id)
+          )
+        )
+      const progressByContentId = new Map(
+        progressList.map((p) => [p.contentId, p])
+      )
 
       return contents.map((content: { id: string; subject: string; title: string; type: string; duration: number | null; difficulty: string | null; thumbnailUrl: string | null }) => {
         const progress = progressByContentId.get(content.id) as { progress: number; completed: boolean; updatedAt: Date } | undefined

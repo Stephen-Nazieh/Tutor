@@ -1,11 +1,13 @@
 /**
- * AI Tutor Usage API
+ * AI Tutor Usage API (Drizzle ORM)
  * Check if user can send messages or start live sessions
  */
 
+import { and, eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aITutorDailyUsage, aITutorSubscription } from '@/lib/db/schema'
 
 // GET - Check current usage and limits
 export const GET = withAuth(async (req, session) => {
@@ -13,12 +15,12 @@ export const GET = withAuth(async (req, session) => {
   return NextResponse.json(result)
 }, { role: 'STUDENT' })
 
-// Helper function to check usage (can be imported by other routes)
 export async function checkUsage(userId: string) {
-  // Get subscription
-  const subscription = await db.aITutorSubscription.findUnique({
-    where: { userId }
-  })
+  const [subscription] = await drizzleDb
+    .select()
+    .from(aITutorSubscription)
+    .where(eq(aITutorSubscription.userId, userId))
+    .limit(1)
 
   if (!subscription || !subscription.isActive) {
     return {
@@ -26,30 +28,41 @@ export async function checkUsage(userId: string) {
       canStartLiveSession: false,
       reason: 'No active subscription',
       remainingMessages: 0,
-      remainingSessions: 0
+      remainingSessions: 0,
     }
   }
 
-  // Get today's usage
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  
-  const dailyUsage = await db.aITutorDailyUsage.upsert({
-    where: {
-      userId_date: {
+
+  const [existing] = await drizzleDb
+    .select()
+    .from(aITutorDailyUsage)
+    .where(
+      and(
+        eq(aITutorDailyUsage.userId, userId),
+        eq(aITutorDailyUsage.date, today)
+      )
+    )
+    .limit(1)
+
+  let dailyUsage: { messageCount: number; sessionCount: number }
+  if (existing) {
+    dailyUsage = existing
+  } else {
+    const [inserted] = await drizzleDb
+      .insert(aITutorDailyUsage)
+      .values({
+        id: crypto.randomUUID(),
         userId,
-        date: today
-      }
-    },
-    update: {},
-    create: {
-      userId,
-      date: today,
-      sessionCount: 0,
-      messageCount: 0,
-      minutesUsed: 0
-    }
-  })
+        date: today,
+        sessionCount: 0,
+        messageCount: 0,
+        minutesUsed: 0,
+      })
+      .returning()
+    dailyUsage = inserted!
+  }
 
   // Check message limit
   const dailyMessages = subscription.dailyMessages
@@ -82,41 +95,42 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  if (type === 'message') {
-    await db.aITutorDailyUsage.update({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date: today
-        }
-      },
-      data: {
-        messageCount: { increment: amount }
-      }
-    })
-  } else if (type === 'session') {
-    await db.aITutorDailyUsage.update({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date: today
-        }
-      },
-      data: {
-        sessionCount: { increment: amount }
-      }
-    })
-  } else if (type === 'minute') {
-    await db.aITutorDailyUsage.update({
-      where: {
-        userId_date: {
-          userId: session.user.id,
-          date: today
-        }
-      },
-      data: {
-        minutesUsed: { increment: amount }
-      }
+  const [row] = await drizzleDb
+    .select()
+    .from(aITutorDailyUsage)
+    .where(
+      and(
+        eq(aITutorDailyUsage.userId, session.user.id),
+        eq(aITutorDailyUsage.date, today)
+      )
+    )
+    .limit(1)
+
+  if (row) {
+    if (type === 'message') {
+      await drizzleDb
+        .update(aITutorDailyUsage)
+        .set({ messageCount: row.messageCount + amount })
+        .where(eq(aITutorDailyUsage.id, row.id))
+    } else if (type === 'session') {
+      await drizzleDb
+        .update(aITutorDailyUsage)
+        .set({ sessionCount: row.sessionCount + amount })
+        .where(eq(aITutorDailyUsage.id, row.id))
+    } else if (type === 'minute') {
+      await drizzleDb
+        .update(aITutorDailyUsage)
+        .set({ minutesUsed: row.minutesUsed + amount })
+        .where(eq(aITutorDailyUsage.id, row.id))
+    }
+  } else {
+    await drizzleDb.insert(aITutorDailyUsage).values({
+      id: crypto.randomUUID(),
+      userId: session.user.id,
+      date: today,
+      sessionCount: type === 'session' ? amount : 0,
+      messageCount: type === 'message' ? amount : 0,
+      minutesUsed: type === 'minute' ? amount : 0,
     })
   }
 
