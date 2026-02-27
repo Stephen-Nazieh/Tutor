@@ -8,6 +8,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io'
 import { jwtVerify } from 'jose'
 import { createClient } from 'redis'
 import { promisify } from 'util'
+import { registerLiveClassWhiteboardHandlers, cleanupLcwbPresence } from './socket-server'
 
 // Types from original socket-server.ts
 export type StudentStatus = 'on_track' | 'needs_help' | 'struggling' | 'idle'
@@ -147,24 +148,35 @@ const userSocketMap = new Map<string, string>()
 // Authentication functions (use jose to match NextAuth and avoid jsonwebtoken dependency)
 async function validateJWT(token: string): Promise<{ userId: string; role: string; email: string; name: string } | null> {
   try {
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
+    const secretRaw = process.env.NEXTAUTH_SECRET
+    if (!secretRaw) {
+      console.error('Socket auth: NEXTAUTH_SECRET is missing')
+      return null
+    }
+    const secret = new TextEncoder().encode(secretRaw)
     const { payload } = await jwtVerify(token, secret)
     const decoded = payload as { id?: string; role?: string; email?: string; name?: string }
 
     // Validate required fields
-    if (!decoded.id || !decoded.role) {
-      console.error('Invalid JWT: missing required fields')
+    if (!decoded.id || decoded.role == null || decoded.role === '') {
+      console.error('Socket auth: JWT missing required fields (id, role)')
       return null
     }
 
+    // Normalize role to lowercase; socket handlers expect 'tutor' | 'student'
+    const role = String(decoded.role).toLowerCase()
+    const allowedRoles = ['student', 'tutor', 'parent', 'admin']
+    const normalizedRole = allowedRoles.includes(role) ? role : 'student'
+
     return {
       userId: decoded.id,
-      role: decoded.role,
+      role: normalizedRole,
       email: decoded.email || '',
       name: decoded.name || ''
     }
   } catch (error) {
-    console.error('JWT validation failed:', error)
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error('Socket auth: JWT validation failed:', msg)
     return null
   }
 }
@@ -414,9 +426,12 @@ export async function initEnhancedSocketServer(server: NetServer) {
   io.on('connection', (socket) => {
     console.log(`Authenticated client connected: ${socket.id} (user: ${socket.data.userId})`)
 
+    // Live-class whiteboard (lcwb_*) handlers — shared with socket-server.ts
+    registerLiveClassWhiteboardHandlers(io, socket)
+
     // Enhanced room management with authentication
-    socket.on('join_class', async (data: { roomId: string }) => {
-      const { roomId } = data
+    socket.on('join_class', async (data: { roomId: string; name?: string }) => {
+      const { roomId, name } = data
       const userId = socket.data.userId
       const role = socket.data.role
 
@@ -425,6 +440,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         return
       }
 
+      if (name !== undefined) socket.data.name = name
       socket.join(roomId)
       socket.data.roomId = roomId
 
@@ -466,21 +482,20 @@ export async function initEnhancedSocketServer(server: NetServer) {
         userSocketMap.delete(userId)
       }
 
-      if (roomId) {
+      if (roomId && userId) {
         const room = activeRooms.get(roomId)
         if (room && socket.data.role === 'student') {
           room.students.delete(userId)
           room.lastActivity = Date.now()
           socket.to(roomId).emit('student_left', { userId })
         }
+        io.to(roomId).emit('lcwb_cursor_remove', { userId })
+        cleanupLcwbPresence(io, roomId, userId)
       }
 
       // Connection rate limit cleanup
       connectionRateLimits.delete(socket.id)
     })
-
-    // Copy existing handlers from original file (I'll implement the most critical ones)
-    // For now, we'll focus on the core authentication and cleanup
   })
 
   return io

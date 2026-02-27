@@ -20,17 +20,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!)
+    const secret = process.env.NEXTAUTH_SECRET
+    if (!secret) {
+      console.error('Socket token: NEXTAUTH_SECRET is not set')
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
+    }
+    const role = session.user.role ?? 'STUDENT'
+    const secretEncoded = new TextEncoder().encode(secret)
+    // Longer expiry in dev so tokens survive HMR and short idle; 5m in production
+    const expiry = process.env.NODE_ENV === 'development' ? '24h' : '5m'
     const socketToken = await new SignJWT({
       id: session.user.id,
-      role: session.user.role ?? 'STUDENT',
+      role: typeof role === 'string' ? role : String(role),
       email: (session.user as { email?: string }).email ?? '',
       name: session.user.name ?? '',
     })
       .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('5m')
+      .setExpirationTime(expiry)
       .setIssuedAt()
-      .sign(secret)
+      .sign(secretEncoded)
 
     return NextResponse.json({ token: socketToken })
   } catch (error) {

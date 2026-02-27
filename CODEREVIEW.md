@@ -354,4 +354,4 @@ If product requirement is that **students** can view other students’ public bo
 | Executive Summary / §2.1 | Outdated “typecheck fails” | Updated: typecheck and tests pass; incremental hardening |
 | Params normalization | getParamAsync in dynamic routes | Applied: ai-assistant/insights/[id], whiteboards/[id], whiteboards/[id]/snapshots (400 when id missing) |
 | security-audit.ts | @ts-nocheck + Prisma db | Done: removed @ts-nocheck; crypto import; generateWeeklySecurityReport uses Drizzle; meta typed as AuditMetadata |
-| Live class whiteboard (§11) | lcwb_* only in socket-server.ts; enhanced server has none | **Open:** Port or delegate lcwb_* handlers into socket-server-enhanced.ts (or use server that registers them) so share/view/write work in production |
+| Live class whiteboard (§11) | lcwb_* only in socket-server.ts; enhanced server had none | **Done:** Exported `registerLiveClassWhiteboardHandlers` and `cleanupLcwbPresence` from socket-server.ts; enhanced server calls them on connection and disconnect so share/view/write work in production |

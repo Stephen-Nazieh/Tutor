@@ -688,21 +688,27 @@ export function useLiveClassWhiteboard(
     return () => clearInterval(interval)
   }, [])
   
-  // Tutor: Start broadcasting
+  /** Tutor: Start broadcasting — your strokes are sent to all students in the room in real time. */
   const startBroadcast = useCallback(() => {
-    if (!socket || role !== 'tutor' || !sessionId) return
-    
+    if (role !== 'tutor') return
+    if (!socket || !isConnected) {
+      toast.warning('Connect to the class first')
+      return
+    }
+    if (!sessionId || !roomId) {
+      toast.warning('Session or room not ready')
+      return
+    }
     socket.emit('lcwb_broadcast_start', {
       roomId,
-      whiteboardId: session?.user?.id // Use user ID as whiteboard ID
+      whiteboardId: session?.user?.id
     })
     setIsBroadcasting(true)
-  }, [socket, role, roomId, sessionId, session])
+  }, [socket, isConnected, role, roomId, sessionId, session])
   
-  // Tutor: Stop broadcasting
+  /** Tutor: Stop broadcasting — students no longer receive your strokes. */
   const stopBroadcast = useCallback(() => {
     if (!socket || role !== 'tutor') return
-    
     socket.emit('lcwb_broadcast_stop', { roomId })
     setIsBroadcasting(false)
   }, [socket, role, roomId])
@@ -855,14 +861,23 @@ export function useLiveClassWhiteboard(
     })
   }, [roomId, role, session, socket])
 
+  /** Tutor: Lock/unlock student layers — when locked, students cannot draw on their boards until you unlock. */
   const toggleLayerLock = useCallback((locked: boolean) => {
-    if (!socket || role !== 'tutor' || !roomId) return
+    if (role !== 'tutor') return
+    if (!socket || !isConnected) {
+      toast.warning('Connect to the class first')
+      return
+    }
+    if (!roomId) {
+      toast.warning('Room not ready')
+      return
+    }
     setIsLayerLocked(locked)
     socket.emit('lcwb_layer_lock', {
       roomId,
       locked,
     })
-  }, [socket, role, roomId])
+  }, [socket, isConnected, role, roomId])
 
   const updateLayerConfig = useCallback((nextConfig: LayerConfig[]) => {
     setLayerConfig(nextConfig)

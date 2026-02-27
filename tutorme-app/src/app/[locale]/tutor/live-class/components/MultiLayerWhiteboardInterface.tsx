@@ -262,10 +262,14 @@ export function MultiLayerWhiteboardInterface({
               <div className="pt-2 space-y-2 text-xs text-gray-600">
                 <p className="flex items-start gap-1">
                   <Radio className="w-3 h-3 mt-0.5 text-red-500" />
-                  Use <strong>Broadcast</strong> when explaining concepts to everyone.
+                  <strong>Broadcast</strong>: send your whiteboard to all students in real time.
                 </p>
                 <p className="flex items-start gap-1">
                   <Eye className="w-3 h-3 mt-0.5 text-blue-500" />
+                  <strong>Lock Student Layers</strong>: prevent students from drawing until you unlock.
+                </p>
+                <p className="flex items-start gap-1">
+                  <Eye className="w-3 h-3 mt-0.5 text-muted-foreground" />
                   Switch to <strong>Students</strong> to review individual work quickly.
                 </p>
               </div>

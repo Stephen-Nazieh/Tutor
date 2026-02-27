@@ -187,6 +187,7 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
     myStrokes,
     studentWhiteboards,
     isBroadcasting,
+    isConnected,
     viewingStudentId,
     activeStudentBoards,
     remoteCursors,
@@ -1759,6 +1760,8 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
           <Button
             variant={isLayerLocked ? 'destructive' : 'outline'}
             size="sm"
+            disabled={!isConnected}
+            title={!isConnected ? 'Connect to the class to lock student boards' : (isLayerLocked ? 'Unlock so students can draw again' : 'Lock student boards so only you can draw')}
             onClick={() => toggleLayerLock(!isLayerLocked)}
           >
             {isLayerLocked ? (
@@ -1774,12 +1777,18 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
             )}
           </Button>
           {isBroadcasting ? (
-            <Button variant="destructive" size="sm" onClick={stopBroadcast}>
+            <Button variant="destructive" size="sm" onClick={stopBroadcast} title="Stop sending your board to students">
               <StopIcon className="w-4 h-4 mr-2" />
               Stop Broadcast
             </Button>
           ) : (
-            <Button variant="default" size="sm" onClick={startBroadcast}>
+            <Button
+              variant="default"
+              size="sm"
+              disabled={!isConnected}
+              title={!isConnected ? 'Connect to the class to broadcast your board' : 'Send your whiteboard to all students in real time'}
+              onClick={startBroadcast}
+            >
               <Play className="w-4 h-4 mr-2" />
               Broadcast
             </Button>
