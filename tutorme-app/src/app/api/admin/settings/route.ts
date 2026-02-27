@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db as prisma } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { systemSetting } from '@/lib/db/schema'
+import { eq, and, asc } from 'drizzle-orm'
 import { requireAdmin, logAdminAction, getClientIp } from '@/lib/admin/auth'
 import { Permissions } from '@/lib/admin/permissions'
+import crypto from 'crypto'
 
 const DEFAULT_SETTINGS = {
   general: {
@@ -31,27 +34,22 @@ const DEFAULT_SETTINGS = {
 
 export async function GET(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.SETTINGS_READ)
-  
+
   if (!session) return response!
 
   try {
     const { searchParams } = new URL(req.url)
     const category = searchParams.get('category')
 
-    const where: Record<string, unknown> = {}
-    if (category) {
-      where.category = category
-    }
+    const conditions = category ? [eq(systemSetting.category, category)] : []
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-    const settings = await prisma.systemSetting.findMany({
-      where,
-      orderBy: [
-        { category: 'asc' },
-        { key: 'asc' },
-      ],
-    })
+    const settings = await drizzleDb
+      .select()
+      .from(systemSetting)
+      .where(whereClause)
+      .orderBy(asc(systemSetting.category), asc(systemSetting.key))
 
-    // If no settings exist, return defaults
     if (settings.length === 0 && category) {
       const defaults = DEFAULT_SETTINGS[category as keyof typeof DEFAULT_SETTINGS]
       if (defaults) {
@@ -78,7 +76,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.SETTINGS_WRITE)
-  
+
   if (!session) return response!
 
   try {
@@ -92,24 +90,42 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const setting = await prisma.systemSetting.upsert({
-      where: {
-        category_key: { category, key },
-      },
-      update: {
-        settingValue: value,
-        updatedBy: session.adminId,
-      },
-      create: {
+    const existing = await drizzleDb
+      .select()
+      .from(systemSetting)
+      .where(and(eq(systemSetting.category, category), eq(systemSetting.key, key)))
+      .limit(1)
+
+    const valueTypeFinal = valueType || 'string'
+    const requiresRestartFinal = requiresRestart ?? false
+
+    let setting: typeof systemSetting.$inferSelect
+    if (existing.length > 0) {
+      const [row] = existing
+      await drizzleDb
+        .update(systemSetting)
+        .set({
+          settingValue: value,
+          updatedBy: session.adminId,
+        })
+        .where(eq(systemSetting.id, row.id))
+      setting = { ...row, settingValue: value, updatedBy: session.adminId }
+    } else {
+      const id = crypto.randomUUID()
+      await drizzleDb.insert(systemSetting).values({
+        id,
         category,
         key,
         settingValue: value,
-        valueType: valueType || 'string',
-        description,
-        requiresRestart: requiresRestart || false,
+        valueType: valueTypeFinal,
+        description: description ?? null,
+        isEditable: true,
+        requiresRestart: requiresRestartFinal,
         updatedBy: session.adminId,
-      },
-    })
+      })
+      const [inserted] = await drizzleDb.select().from(systemSetting).where(eq(systemSetting.id, id))
+      setting = inserted!
+    }
 
     await logAdminAction(session.adminId, 'settings.update', {
       resourceType: 'system_setting',

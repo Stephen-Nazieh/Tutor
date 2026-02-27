@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, curriculum, curriculumModule, curriculumLesson, curriculumEnrollment } from '@/lib/db/schema'
 import { MOCK_TUTORS, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors'
 
 interface PublicCourseSummary {
@@ -39,54 +41,101 @@ export async function GET(request: NextRequest) {
   const sort = normalizeSearch(request.nextUrl.searchParams.get('sort')) || 'popular'
   const useMock = shouldUseMockPublicTutors() || request.nextUrl.searchParams.get('mock') === '1'
 
-  const tutors = await db.user.findMany({
-    where: {
-      role: 'TUTOR',
-      profile: {
-        username: { not: null },
-      },
-    },
-    select: {
-      id: true,
-      profile: {
-        select: {
-          name: true,
-          username: true,
-          bio: true,
-          avatarUrl: true,
-          specialties: true,
-          hourlyRate: true,
-        },
-      },
-      createdCurricula: {
-        where: { isPublished: true },
-        include: {
-          _count: { select: { modules: true, enrollments: true } },
-          modules: {
-            select: { _count: { select: { lessons: true } } },
-          },
-        },
-        orderBy: { updatedAt: 'desc' },
-        take: 100,
-      },
-    },
-    take: 300,
-  })
+  const tutorsWithProfile = await drizzleDb
+    .select({
+      id: user.id,
+      name: profile.name,
+      username: profile.username,
+      bio: profile.bio,
+      avatarUrl: profile.avatarUrl,
+      specialties: profile.specialties,
+      hourlyRate: profile.hourlyRate,
+    })
+    .from(user)
+    .innerJoin(profile, eq(profile.userId, user.id))
+    .where(and(eq(user.role, 'TUTOR'), sql`${profile.username} IS NOT NULL`))
+    .limit(300)
 
-  const mapped: PublicTutorSummary[] = tutors
-    .map((tutor: any) => {
-      const username = tutor.profile?.username || ''
+  const tutorIds = tutorsWithProfile.map((t) => t.id)
+  if (tutorIds.length === 0) {
+    const filtered: PublicTutorSummary[] = []
+    return NextResponse.json({
+      tutors: filtered,
+      total: 0,
+      availableSubjects: [],
+      source: 'db',
+    })
+  }
+
+  const publishedCurricula = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(
+    and(
+      eq(curriculum.isPublished, true),
+      sql`${curriculum.creatorId} IS NOT NULL`,
+      inArray(curriculum.creatorId, tutorIds)
+    )
+  )
+    .orderBy(desc(curriculum.updatedAt))
+
+  const curriculumIds = publishedCurricula.map((c) => c.id)
+  const curriculaByCreator = new Map<string, typeof publishedCurricula>()
+  for (const c of publishedCurricula) {
+    if (!c.creatorId) continue
+    const list = curriculaByCreator.get(c.creatorId) ?? []
+    if (list.length < 100) list.push(c)
+    curriculaByCreator.set(c.creatorId, list)
+  }
+
+  let moduleCounts = new Map<string, number>()
+  let enrollmentCounts = new Map<string, number>()
+  let lessonCountsByModule = new Map<string, number>()
+  let modules: { curriculumId: string; id: string }[] = []
+  if (curriculumIds.length > 0) {
+    modules = await drizzleDb
+      .select({ curriculumId: curriculumModule.curriculumId, id: curriculumModule.id })
+      .from(curriculumModule)
+      .where(inArray(curriculumModule.curriculumId, curriculumIds))
+    for (const m of modules) {
+      moduleCounts.set(m.curriculumId, (moduleCounts.get(m.curriculumId) ?? 0) + 1)
+    }
+    const enrollments = await drizzleDb
+      .select({ curriculumId: curriculumEnrollment.curriculumId })
+      .from(curriculumEnrollment)
+      .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
+    for (const e of enrollments) {
+      enrollmentCounts.set(e.curriculumId, (enrollmentCounts.get(e.curriculumId) ?? 0) + 1)
+    }
+    const lessons = await drizzleDb
+      .select({ moduleId: curriculumLesson.moduleId })
+      .from(curriculumLesson)
+      .where(inArray(curriculumLesson.moduleId, modules.map((m) => m.id)))
+    for (const l of lessons) {
+      lessonCountsByModule.set(l.moduleId, (lessonCountsByModule.get(l.moduleId) ?? 0) + 1)
+    }
+  }
+  const lessonCountByCurriculum = new Map<string, number>()
+  for (const cid of curriculumIds) {
+    const modIds = modules.filter((m) => m.curriculumId === cid).map((m) => m.id)
+    const total = modIds.reduce((s, mid) => s + (lessonCountsByModule.get(mid) ?? 0), 0)
+    lessonCountByCurriculum.set(cid, total)
+  }
+
+  const mapped: PublicTutorSummary[] = tutorsWithProfile
+    .map((tutor) => {
+      const username = tutor.username ?? ''
       if (!username) return null
-
-      const courses: PublicCourseSummary[] = tutor.createdCurricula.map((course: any) => ({
+      const coursesList = curriculaByCreator.get(tutor.id) ?? []
+      const courses: PublicCourseSummary[] = coursesList.map((course) => ({
         id: course.id,
         name: course.name,
         subject: course.subject,
         gradeLevel: course.gradeLevel,
         difficulty: course.difficulty,
-        enrollmentCount: course._count.enrollments,
-        moduleCount: course._count.modules,
-        lessonCount: course.modules.reduce((sum: number, mod: any) => sum + mod._count.lessons, 0),
+        enrollmentCount: enrollmentCounts.get(course.id) ?? 0,
+        moduleCount: moduleCounts.get(course.id) ?? 0,
+        lessonCount: lessonCountByCurriculum.get(course.id) ?? 0,
         updatedAt: course.updatedAt,
       }))
 
@@ -98,12 +147,12 @@ export async function GET(request: NextRequest) {
 
       return {
         id: tutor.id,
-        name: tutor.profile?.name || 'Tutor',
+        name: tutor.name ?? 'Tutor',
         username,
-        bio: tutor.profile?.bio || '',
-        avatarUrl: tutor.profile?.avatarUrl || null,
-        specialties: tutor.profile?.specialties || [],
-        hourlyRate: tutor.profile?.hourlyRate || null,
+        bio: tutor.bio ?? '',
+        avatarUrl: tutor.avatarUrl ?? null,
+        specialties: tutor.specialties ?? [],
+        hourlyRate: tutor.hourlyRate ?? null,
         courseCount: courses.length,
         totalEnrollments,
         subjects,

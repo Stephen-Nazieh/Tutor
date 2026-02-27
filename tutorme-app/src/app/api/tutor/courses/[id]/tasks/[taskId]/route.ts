@@ -9,7 +9,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { generatedTask, taskSubmission, profile } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 
 function getTaskId(req: NextRequest): string {
     const parts = req.nextUrl.pathname.split('/')
@@ -18,9 +20,11 @@ function getTaskId(req: NextRequest): string {
 }
 
 async function verifyTaskOwnership(taskId: string, userId: string) {
-    return db.generatedTask.findFirst({
-        where: { id: taskId, tutorId: userId },
-    })
+    const [task] = await drizzleDb
+        .select()
+        .from(generatedTask)
+        .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, userId)))
+    return task ?? null
 }
 
 // ---- GET — Full task with questions ----
@@ -37,24 +41,20 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    // Get submission stats
-    const submissions = await db.taskSubmission.findMany({
-        where: { taskId },
-        select: {
-            id: true,
-            studentId: true,
-            score: true,
-            maxScore: true,
-            status: true,
-            submittedAt: true,
-            student: {
-                select: {
-                    profile: { select: { name: true } },
-                },
-            },
-        },
-        orderBy: { submittedAt: 'desc' },
-    })
+    const submissions = await drizzleDb
+        .select({
+            id: taskSubmission.id,
+            studentId: taskSubmission.studentId,
+            score: taskSubmission.score,
+            maxScore: taskSubmission.maxScore,
+            status: taskSubmission.status,
+            submittedAt: taskSubmission.submittedAt,
+            name: profile.name,
+        })
+        .from(taskSubmission)
+        .leftJoin(profile, eq(profile.userId, taskSubmission.studentId))
+        .where(eq(taskSubmission.taskId, taskId))
+        .orderBy(desc(taskSubmission.submittedAt))
 
     return NextResponse.json({
         task: {
@@ -75,10 +75,10 @@ export async function GET(req: NextRequest) {
             createdAt: task.createdAt.toISOString(),
             assignedAt: task.assignedAt?.toISOString() ?? null,
         },
-        submissions: submissions.map((s: any) => ({
+        submissions: submissions.map((s) => ({
             id: s.id,
             studentId: s.studentId,
-            studentName: s.student?.profile?.name ?? 'Unknown',
+            studentName: s.name ?? 'Unknown',
             score: s.score,
             maxScore: s.maxScore,
             status: s.status,
@@ -104,7 +104,6 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json()
     const updateData: Record<string, unknown> = {}
 
-    // Only update provided fields
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
     if (body.type !== undefined) updateData.type = body.type
@@ -119,10 +118,15 @@ export async function PATCH(req: NextRequest) {
         updateData.dueDate = body.dueDate ? new Date(body.dueDate) : null
     }
 
-    const task = await db.generatedTask.update({
-        where: { id: taskId },
-        data: updateData,
-    })
+    const [task] = await drizzleDb
+        .update(generatedTask)
+        .set(updateData as Record<string, unknown>)
+        .where(eq(generatedTask.id, taskId))
+        .returning()
+
+    if (!task) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
 
     return NextResponse.json({
         task: {
@@ -148,9 +152,8 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    // Delete associated submissions first (cascade isn't on the schema for GenTask→Submission)
-    await db.taskSubmission.deleteMany({ where: { taskId } })
-    await db.generatedTask.delete({ where: { id: taskId } })
+    await drizzleDb.delete(taskSubmission).where(eq(taskSubmission.taskId, taskId))
+    await drizzleDb.delete(generatedTask).where(eq(generatedTask.id, taskId))
 
     return NextResponse.json({ message: 'Task deleted' })
 }

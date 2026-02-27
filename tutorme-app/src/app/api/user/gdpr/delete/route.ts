@@ -5,7 +5,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
 
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
@@ -18,32 +20,35 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
 
   await logAudit(userId, AUDIT_ACTIONS.DATA_DELETE, { resource: 'gdpr_delete' })
 
-  // Anonymize user (keep id for referential integrity)
-  await db.user.update({
-    where: { id: userId },
-    data: {
+  await drizzleDb
+    .update(user)
+    .set({
       email: `deleted-${userId}@deleted.local`,
       password: null,
       image: null,
-      emailVerified: null
-    }
-  })
+      emailVerified: null,
+    })
+    .where(eq(user.id, userId))
 
-  const profile = await db.profile.findUnique({ where: { userId } })
-  if (profile) {
-    await db.profile.update({
-      where: { userId },
-      data: {
+  const [profileRow] = await drizzleDb
+    .select()
+    .from(profile)
+    .where(eq(profile.userId, userId))
+    .limit(1)
+  if (profileRow) {
+    await drizzleDb
+      .update(profile)
+      .set({
         name: null,
         bio: null,
         avatarUrl: null,
-        dateOfBirth: null
-      }
-    })
+        dateOfBirth: null,
+      })
+      .where(eq(profile.userId, userId))
   }
 
-  // Invalidate sessions by updating updatedAt (NextAuth may still hold session; user must log out)
   return NextResponse.json({
-    message: 'Account data anonymized. Please log out; you will not be able to log in again with this account.'
+    message:
+      'Account data anonymized. Please log out; you will not be able to log in again with this account.',
   })
 }))

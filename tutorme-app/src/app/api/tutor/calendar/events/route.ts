@@ -12,8 +12,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { calendarEvent, curriculum, courseBatch, notification } from '@/lib/db/schema'
+import { eq, and, or, gte, lte, asc, isNull, lt, gt } from 'drizzle-orm'
 import { z } from 'zod'
+import { nanoid } from 'nanoid'
 
 const EventTypeEnum = z.enum(['LESSON', 'CLINIC', 'CONSULTATION', 'BREAK', 'PERSONAL', 'OTHER'])
 const EventStatusEnum = z.enum(['CONFIRMED', 'TENTATIVE', 'CANCELLED'])
@@ -75,42 +78,43 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   }
   
   try {
-    const events = await db.calendarEvent.findMany({
-      where: {
-        tutorId,
-        deletedAt: null,
-        ...(includeCancelled ? {} : { isCancelled: false }),
-        ...(type ? { type: type as any } : {}),
-        OR: [
-          // Events that overlap with the date range
-          {
-            startTime: { gte: startDate, lte: endDate },
-          },
-          {
-            endTime: { gte: startDate, lte: endDate },
-          },
-          {
-            // Events that span the entire range
-            AND: [
-              { startTime: { lte: startDate } },
-              { endTime: { gte: endDate } },
-            ],
-          },
-        ],
-      },
-      orderBy: { startTime: 'asc' },
-      take: limit,
-      include: {
-        curriculum: {
-          select: { id: true, name: true, subject: true },
-        },
-        batch: {
-          select: { id: true, name: true },
-        },
-      },
-    })
-    
-    // Expand recurring events within the date range
+    const dateRangeConditions = or(
+      and(gte(calendarEvent.startTime, startDate), lte(calendarEvent.startTime, endDate)),
+      and(gte(calendarEvent.endTime, startDate), lte(calendarEvent.endTime, endDate)),
+      and(lte(calendarEvent.startTime, startDate), gte(calendarEvent.endTime, endDate))
+    )
+    const whereConditions = [
+      eq(calendarEvent.tutorId, tutorId),
+      isNull(calendarEvent.deletedAt),
+      dateRangeConditions,
+    ]
+    if (!includeCancelled) whereConditions.push(eq(calendarEvent.isCancelled, false))
+    if (type) whereConditions.push(eq(calendarEvent.type, type as 'LESSON' | 'CLINIC' | 'CONSULTATION' | 'BREAK' | 'PERSONAL' | 'OTHER'))
+
+    const rows = await drizzleDb
+      .select({
+        event: calendarEvent,
+        curriculumId: curriculum.id,
+        curriculumName: curriculum.name,
+        curriculumSubject: curriculum.subject,
+        batchId: courseBatch.id,
+        batchName: courseBatch.name,
+      })
+      .from(calendarEvent)
+      .leftJoin(curriculum, eq(calendarEvent.curriculumId, curriculum.id))
+      .leftJoin(courseBatch, eq(calendarEvent.batchId, courseBatch.id))
+      .where(and(...whereConditions))
+      .orderBy(asc(calendarEvent.startTime))
+      .limit(limit)
+
+    const events = rows.map((r) => ({
+      ...r.event,
+      curriculum: r.curriculumId
+        ? { id: r.curriculumId, name: r.curriculumName, subject: r.curriculumSubject }
+        : null,
+      batch: r.batchId ? { id: r.batchId, name: r.batchName } : null,
+    }))
+
     const expandedEvents = expandRecurringEvents(events, startDate, endDate)
     
     return NextResponse.json({
@@ -154,26 +158,24 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
     
-    // Check for conflicts (unless it's a personal event)
     if (data.type !== 'PERSONAL') {
-      const conflicts = await db.calendarEvent.findMany({
-        where: {
-          tutorId,
-          deletedAt: null,
-          isCancelled: false,
-          OR: [
-            {
-              startTime: { lt: endTime },
-              endTime: { gt: startTime },
-            },
-          ],
-        },
-      })
-      
+      const conflicts = await drizzleDb
+        .select()
+        .from(calendarEvent)
+        .where(
+          and(
+            eq(calendarEvent.tutorId, tutorId),
+            isNull(calendarEvent.deletedAt),
+            eq(calendarEvent.isCancelled, false),
+            lt(calendarEvent.startTime, endTime),
+            gt(calendarEvent.endTime, startTime)
+          )
+        )
+
       if (conflicts.length > 0) {
         return NextResponse.json({
           error: 'Schedule conflict detected',
-          conflicts: conflicts.map((c: any) => ({
+          conflicts: conflicts.map((c) => ({
             id: c.id,
             title: c.title,
             startTime: c.startTime,
@@ -182,14 +184,16 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         }, { status: 409 })
       }
     }
-    
-    // Create event
-    const event = await db.calendarEvent.create({
-      data: {
+
+    const [inserted] = await drizzleDb
+      .insert(calendarEvent)
+      .values({
+        id: nanoid(),
         tutorId,
         title: data.title,
         description: data.description,
         type: data.type,
+        status: 'CONFIRMED',
         startTime,
         endTime,
         timezone: data.timezone,
@@ -207,16 +211,31 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         recurrenceRule: data.recurrenceRule,
         isRecurring: !!data.recurrenceRule,
         createdBy: 'manual',
-      },
-      include: {
-        curriculum: {
-          select: { id: true, name: true, subject: true },
-        },
-        batch: {
-          select: { id: true, name: true },
-        },
-      },
-    })
+        isCancelled: false,
+      })
+      .returning()
+
+    const eventId = inserted!.id
+    const [curriculumRow] = data.curriculumId
+      ? await drizzleDb
+          .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
+          .from(curriculum)
+          .where(eq(curriculum.id, data.curriculumId))
+          .limit(1)
+      : [null]
+    const [batchRow] = data.batchId
+      ? await drizzleDb
+          .select({ id: courseBatch.id, name: courseBatch.name })
+          .from(courseBatch)
+          .where(eq(courseBatch.id, data.batchId))
+          .limit(1)
+      : [null]
+
+    const event = {
+      ...inserted!,
+      curriculum: curriculumRow ? { id: curriculumRow.id, name: curriculumRow.name, subject: curriculumRow.subject } : null,
+      batch: batchRow ? { id: batchRow.id, name: batchRow.name } : null,
+    }
     
     // Create notification reminders (background task)
     createReminderNotifications(event, tutorId).catch(console.error)
@@ -335,27 +354,24 @@ function addInterval(date: Date, freq: string, interval: number): Date {
   return result
 }
 
-// Helper: Create reminder notifications
-async function createReminderNotifications(event: any, tutorId: string) {
+async function createReminderNotifications(event: { id: string; title: string; startTime: Date; reminders?: Array<{ minutes: number }> }, tutorId: string) {
   const reminders = event.reminders || []
-  
   for (const reminder of reminders) {
     const reminderTime = new Date(event.startTime.getTime() - reminder.minutes * 60000)
-    
     if (reminderTime > new Date()) {
-      await db.notification.create({
+      await drizzleDb.insert(notification).values({
+        id: nanoid(),
+        userId: tutorId,
+        type: 'reminder',
+        title: `Reminder: ${event.title}`,
+        message: `Starting in ${reminder.minutes} minutes`,
+        actionUrl: `/tutor/calendar?event=${event.id}`,
         data: {
-          userId: tutorId,
-          type: 'reminder',
-          title: `Reminder: ${event.title}`,
-          message: `Starting in ${reminder.minutes} minutes`,
-          actionUrl: `/tutor/calendar?event=${event.id}`,
-          data: {
-            eventId: event.id,
-            reminderMinutes: reminder.minutes,
-            scheduledFor: reminderTime.toISOString(),
-          },
+          eventId: event.id,
+          reminderMinutes: reminder.minutes,
+          scheduledFor: reminderTime.toISOString(),
         },
+        read: false,
       })
     }
   }

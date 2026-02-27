@@ -10,82 +10,141 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumEnrollment,
+  curriculum,
+  resource,
+  resourceShare,
+  profile,
+} from '@/lib/db/schema'
+import { eq, and, inArray, desc, or, isNull } from 'drizzle-orm'
 
 export async function GET() {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  const session = await getServerSession(authOptions)
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
-    const studentId = session.user.id
+  const studentId = session.user.id
 
-    // Get tutors the student is enrolled with
-    const enrollments = await db.curriculumEnrollment.findMany({
-        where: { studentId },
-        select: {
-            curriculumId: true,
-            curriculum: { select: { creatorId: true } },
-        },
+  const enrollmentsRows = await drizzleDb
+    .select({
+      curriculumId: curriculumEnrollment.curriculumId,
+      creatorId: curriculum.creatorId,
     })
+    .from(curriculumEnrollment)
+    .innerJoin(
+      curriculum,
+      eq(curriculumEnrollment.curriculumId, curriculum.id)
+    )
+    .where(eq(curriculumEnrollment.studentId, studentId))
 
-    const enrolledTutorIds = [...new Set(enrollments.map((e: any) => e.curriculum.creatorId))]
-    const enrolledCurriculumIds = enrollments.map((e: any) => e.curriculumId)
+  const enrolledTutorIds = [
+    ...new Set(
+      enrollmentsRows.map((e) => e.creatorId).filter((id): id is string => id != null)
+    ),
+  ]
+  const enrolledCurriculumIds = enrollmentsRows.map((e) => e.curriculumId)
 
-    // Find resources accessible to this student
-    const resources = await db.resource.findMany({
-        where: {
-            OR: [
-                // Directly shared with this student
-                {
-                    shares: {
-                        some: { recipientId: studentId },
-                    },
-                },
-                // Shared with all in a curriculum the student is in
-                {
-                    shares: {
-                        some: {
-                            sharedWithAll: true,
-                            OR: [
-                                { curriculumId: null }, // All students of the tutor
-                                { curriculumId: { in: enrolledCurriculumIds } },
-                            ],
-                            sharedByTutorId: { in: enrolledTutorIds },
-                        },
-                    },
-                },
-                // Public resources from enrolled tutors
-                {
-                    isPublic: true,
-                    tutorId: { in: enrolledTutorIds },
-                },
-            ],
-        },
-        include: {
-            tutor: { select: { name: true } },
-            shares: {
-                where: { recipientId: studentId },
-                select: { message: true, createdAt: true },
-            },
-        },
-        orderBy: { createdAt: 'desc' },
+  const directShareIds = (
+    await drizzleDb
+      .select({ resourceId: resourceShare.resourceId })
+      .from(resourceShare)
+      .where(eq(resourceShare.recipientId, studentId))
+  ).map((r) => r.resourceId)
+
+  const curriculumIdsFilter =
+    enrolledCurriculumIds.length > 0
+      ? or(
+          isNull(resourceShare.curriculumId),
+          inArray(resourceShare.curriculumId, enrolledCurriculumIds)
+        )
+      : isNull(resourceShare.curriculumId)
+  const sharedWithAllRows =
+    enrolledTutorIds.length > 0
+      ? await drizzleDb
+          .select({ resourceId: resourceShare.resourceId })
+          .from(resourceShare)
+          .where(
+            and(
+              eq(resourceShare.sharedWithAll, true),
+              inArray(resourceShare.sharedByTutorId, enrolledTutorIds),
+              curriculumIdsFilter
+            )
+          )
+      : []
+  const sharedWithAllIds = sharedWithAllRows.map((r) => r.resourceId)
+
+  const publicResourceIds =
+    enrolledTutorIds.length > 0
+      ? (
+          await drizzleDb
+            .select({ id: resource.id })
+            .from(resource)
+            .where(
+              and(
+                eq(resource.isPublic, true),
+                inArray(resource.tutorId, enrolledTutorIds)
+              )
+            )
+        ).map((r) => r.id)
+      : []
+
+  const allResourceIds = [
+    ...new Set([...directShareIds, ...sharedWithAllIds, ...publicResourceIds]),
+  ]
+
+  if (allResourceIds.length === 0) {
+    return NextResponse.json({ resources: [] })
+  }
+
+  const resources = await drizzleDb
+    .select()
+    .from(resource)
+    .where(inArray(resource.id, allResourceIds))
+    .orderBy(desc(resource.createdAt))
+
+  const tutorIds = [...new Set(resources.map((r) => r.tutorId))]
+  const profiles =
+    tutorIds.length > 0
+      ? await drizzleDb
+          .select({ userId: profile.userId, name: profile.name })
+          .from(profile)
+          .where(inArray(profile.userId, tutorIds))
+      : []
+  const nameByTutorId = new Map(profiles.map((p) => [p.userId, p.name]))
+
+  const sharesToStudent = await drizzleDb
+    .select({
+      resourceId: resourceShare.resourceId,
+      message: resourceShare.message,
     })
+    .from(resourceShare)
+    .where(
+      and(
+        eq(resourceShare.recipientId, studentId),
+        inArray(resourceShare.resourceId, allResourceIds)
+      )
+    )
+  const messageByResourceId = new Map(
+    sharesToStudent.map((s) => [s.resourceId, s.message])
+  )
 
-    const formatted = resources.map((r: any) => ({
-        id: r.id,
-        name: r.name,
-        description: r.description,
-        type: r.type,
-        size: r.size,
-        mimeType: r.mimeType,
-        url: r.url,
-        tags: r.tags,
-        downloadCount: r.downloadCount,
-        createdAt: r.createdAt,
-        tutorName: r.tutor.name,
-        sharedMessage: r.shares[0]?.message || null,
-    }))
+  const formatted = resources.map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    type: r.type,
+    size: r.size,
+    mimeType: r.mimeType,
+    url: r.url,
+    tags: r.tags,
+    downloadCount: r.downloadCount,
+    createdAt: r.createdAt,
+    tutorName: nameByTutorId.get(r.tutorId) ?? 'Tutor',
+    sharedMessage: messageByResourceId.get(r.id) ?? null,
+  }))
 
-    return NextResponse.json({ resources: formatted })
+  return NextResponse.json({ resources: formatted })
 }

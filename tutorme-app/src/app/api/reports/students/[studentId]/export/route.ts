@@ -5,9 +5,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, curriculum } from '@/lib/db/schema'
 import { generateStudentReportPDF, generateCSV } from '@/lib/reports/export-service'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
+import { eq } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context: any) => {
   const params = await context?.params;
@@ -17,7 +19,6 @@ export const GET = withAuth(async (req: NextRequest, session, context: any) => {
   const classId = searchParams.get('classId')
 
   try {
-    // Access policy: tutor + student(self) + admin
     const isOwnRecord = session.user.role === 'STUDENT' && session.user.id === studentId
     const isTutor = session.user.role === 'TUTOR'
     const isAdmin = session.user.role === 'ADMIN'
@@ -25,38 +26,42 @@ export const GET = withAuth(async (req: NextRequest, session, context: any) => {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    // Get student info
-    const student = await db.user.findUnique({
-      where: { id: studentId },
-      include: { profile: true },
-    })
+    const [studentRow] = await drizzleDb
+      .select({
+        id: user.id,
+        email: user.email,
+        name: profile.name,
+      })
+      .from(user)
+      .leftJoin(profile, eq(profile.userId, user.id))
+      .where(eq(user.id, studentId))
+      .limit(1)
 
-    if (!student) {
+    if (!studentRow) {
       return NextResponse.json(
         { success: false, error: 'Student not found' },
         { status: 404 }
       )
     }
 
-    // Get performance data
     const performance = await getStudentPerformance(studentId, classId || undefined)
 
-    // Get class info if provided
     let classInfo = { title: 'All Classes', subject: 'General' }
     if (classId) {
-      const curriculum = await db.curriculum.findUnique({
-        where: { id: classId },
-        select: { title: true, subject: true },
-      })
-      if (curriculum) {
-        classInfo = { title: curriculum.title, subject: curriculum.subject }
+      const [curriculumRow] = await drizzleDb
+        .select({ name: curriculum.name, subject: curriculum.subject })
+        .from(curriculum)
+        .where(eq(curriculum.id, classId))
+        .limit(1)
+      if (curriculumRow) {
+        classInfo = { title: curriculumRow.name, subject: curriculumRow.subject }
       }
     }
 
     const studentData = {
       id: studentId,
-      name: student.profile?.name || `Student ${studentId.slice(-6)}`,
-      email: student.email,
+      name: studentRow.name ?? `Student ${studentId.slice(-6)}`,
+      email: studentRow.email,
       averageScore: performance.overallMetrics.averageScore,
       completionRate: performance.overallMetrics.completionRate,
       engagementScore: performance.overallMetrics.engagementScore,

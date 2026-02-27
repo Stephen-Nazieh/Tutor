@@ -7,7 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { contentItem } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 function buildPublicUrl(key: string): string {
   const bucket = process.env.S3_BUCKET
@@ -38,17 +40,18 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session, context:
     : undefined
   const transcript = typeof body.transcript === 'string' ? body.transcript.slice(0, 100_000) : undefined
 
-  const updated = await db.contentItem.updateMany({
-    where: { id: contentId },
-    data: {
+  const result = await drizzleDb
+    .update(contentItem)
+    .set({
       url,
       uploadStatus: 'ready',
       ...(durationSeconds != null && { duration: durationSeconds }),
       ...(transcript != null && { transcript }),
-    },
-  })
+    })
+    .where(eq(contentItem.id, contentId))
+    .returning({ id: contentItem.id })
 
-  if (updated.count === 0) {
+  if (result.length === 0) {
     return NextResponse.json({ error: 'Content not found' }, { status: 404 })
   }
 

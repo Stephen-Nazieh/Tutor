@@ -5,7 +5,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumEnrollment, user, profile } from '@/lib/db/schema'
 import {
   generateClassReportPDF,
   generateClassReportExcel,
@@ -14,31 +15,38 @@ import {
   StudentExportData,
 } from '@/lib/reports/export-service'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
+import { eq, inArray } from 'drizzle-orm'
 
 async function getClassExportData(classId: string): Promise<ClassExportData | null> {
-  // Get class/curriculum info
-  const curriculum = await db.curriculum.findUnique({
-    where: { id: classId },
-    select: {
-      id: true,
-      title: true,
-      subject: true,
-    },
-  })
+  const [curriculumRow] = await drizzleDb
+    .select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject })
+    .from(curriculum)
+    .where(eq(curriculum.id, classId))
+    .limit(1)
 
-  if (!curriculum) return null
+  if (!curriculumRow) return null
 
-  // Get enrolled students
-  const enrollments = await db.curriculumEnrollment.findMany({
-    where: { curriculumId: classId },
-    include: {
-      student: {
-        include: {
-          profile: true,
-        },
-      },
-    },
-  })
+  const enrollmentsRows = await drizzleDb
+    .select({
+      studentId: curriculumEnrollment.studentId,
+    })
+    .from(curriculumEnrollment)
+    .where(eq(curriculumEnrollment.curriculumId, classId))
+
+  const studentIds = enrollmentsRows.map((r) => r.studentId)
+  const studentsWithProfile =
+    studentIds.length > 0
+      ? await drizzleDb
+          .select({
+            id: user.id,
+            email: user.email,
+            name: profile.name,
+          })
+          .from(user)
+          .leftJoin(profile, eq(profile.userId, user.id))
+          .where(inArray(user.id, studentIds))
+      : []
+  const studentMap = new Map(studentsWithProfile.map((s) => [s.id, s]))
 
   const students: StudentExportData[] = []
   let totalScore = 0
@@ -48,13 +56,14 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   let intermediateCount = 0
   let strugglingCount = 0
 
-  for (const enrollment of enrollments) {
-    const performance = await getStudentPerformance(enrollment.studentId, classId)
+  for (const row of enrollmentsRows) {
+    const studentInfo = studentMap.get(row.studentId)
+    const performance = await getStudentPerformance(row.studentId, classId)
 
     const studentData: StudentExportData = {
-      id: enrollment.studentId,
-      name: enrollment.student.profile?.name || `Student ${enrollment.studentId.slice(-6)}`,
-      email: enrollment.student.email,
+      id: row.studentId,
+      name: studentInfo?.name ?? `Student ${row.studentId.slice(-6)}`,
+      email: studentInfo?.email,
       averageScore: performance.overallMetrics.averageScore,
       completionRate: performance.overallMetrics.completionRate,
       engagementScore: performance.overallMetrics.engagementScore,
@@ -82,7 +91,6 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   const avgEngagement = totalStudents > 0 ? totalEngagement / totalStudents : 0
   const avgAttendance = totalStudents > 0 ? totalAttendance / totalStudents : 0
 
-  // Calculate score distribution
   const scoreDistribution = [
     { range: '0-59', count: students.filter(s => s.averageScore < 60).length },
     { range: '60-69', count: students.filter(s => s.averageScore >= 60 && s.averageScore < 70).length },
@@ -91,14 +99,12 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
     { range: '90-100', count: students.filter(s => s.averageScore >= 90).length },
   ]
 
-  // Calculate cluster distribution
   const clusterDistribution = [
     { name: '优秀', count: advancedCount, percentage: totalStudents > 0 ? (advancedCount / totalStudents) * 100 : 0 },
     { name: '中等', count: intermediateCount, percentage: totalStudents > 0 ? (intermediateCount / totalStudents) * 100 : 0 },
     { name: '需帮助', count: strugglingCount, percentage: totalStudents > 0 ? (strugglingCount / totalStudents) * 100 : 0 },
   ]
 
-  // Sort for top performers and needs attention
   const sortedStudents = [...students].sort((a, b) => b.averageScore - a.averageScore)
   const topPerformers = sortedStudents.slice(0, 10)
   const needsAttention = sortedStudents.filter(s => s.cluster === 'struggling' || s.averageScore < 60).slice(0, 10)
@@ -106,8 +112,8 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   return {
     classInfo: {
       id: classId,
-      title: curriculum.title,
-      subject: curriculum.subject,
+      title: curriculumRow.name,
+      subject: curriculumRow.subject,
       totalStudents,
       averageScore,
       reportDate: new Date().toLocaleDateString(),

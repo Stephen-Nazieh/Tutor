@@ -7,7 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { resource } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { deleteObject, isS3Configured } from '@/lib/storage/s3'
 
 // GET - Resource details
@@ -16,18 +18,21 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const id = params?.id as string
   const tutorId = session.user.id
 
-  const resource = await db.resource.findFirst({
-    where: { id, tutorId },
-  })
+  const rows = await drizzleDb
+    .select()
+    .from(resource)
+    .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+    .limit(1)
 
-  if (!resource) {
+  const resourceRow = rows[0]
+  if (!resourceRow) {
     return NextResponse.json(
       { error: 'Resource not found' },
       { status: 404 }
     )
   }
 
-  return NextResponse.json({ resource })
+  return NextResponse.json({ resource: resourceRow })
 }, { role: 'TUTOR' })
 
 // PATCH - Update resource
@@ -40,10 +45,12 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
     const body = await req.json()
     const { name, description, tags, isPublic } = body
 
-    // Check resource exists and belongs to tutor
-    const existing = await db.resource.findFirst({
-      where: { id, tutorId },
-    })
+    const existing = await drizzleDb
+      .select()
+      .from(resource)
+      .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+      .limit(1)
+      .then((r) => r[0])
 
     if (!existing) {
       return NextResponse.json(
@@ -52,18 +59,19 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
-    const updateData: any = {}
+    const updateData: { name?: string; description?: string | null; tags?: string[]; isPublic?: boolean } = {}
     if (name !== undefined) updateData.name = name.slice(0, 255)
-    if (description !== undefined) updateData.description = description?.slice(0, 1000)
+    if (description !== undefined) updateData.description = description?.slice(0, 1000) ?? null
     if (tags !== undefined) updateData.tags = tags
     if (isPublic !== undefined) updateData.isPublic = isPublic
 
-    const resource = await db.resource.update({
-      where: { id },
-      data: updateData,
-    })
+    const [resourceRow] = await drizzleDb
+      .update(resource)
+      .set(updateData)
+      .where(eq(resource.id, id))
+      .returning()
 
-    return NextResponse.json({ resource })
+    return NextResponse.json({ resource: resourceRow })
   } catch (error) {
     console.error('Update resource error:', error)
     return NextResponse.json(
@@ -80,10 +88,12 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
 
   try {
-    // Check resource exists and belongs to tutor
-    const existing = await db.resource.findFirst({
-      where: { id, tutorId },
-    })
+    const existing = await drizzleDb
+      .select()
+      .from(resource)
+      .where(and(eq(resource.id, id), eq(resource.tutorId, tutorId)))
+      .limit(1)
+      .then((r) => r[0])
 
     if (!existing) {
       return NextResponse.json(
@@ -92,19 +102,15 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
-    // Delete file from S3 storage
     if (isS3Configured() && existing.key) {
       try {
         await deleteObject(existing.key)
       } catch (err) {
-        // Log but don't fail the request — DB record still gets deleted
         console.error('[resource-delete] S3 delete failed:', err)
       }
     }
 
-    await db.resource.delete({
-      where: { id },
-    })
+    await drizzleDb.delete(resource).where(eq(resource.id, id))
 
     return NextResponse.json({ success: true })
   } catch (error) {

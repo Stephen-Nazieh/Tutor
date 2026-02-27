@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, sessionReplayArtifact, sessionParticipant, message, user, profile } from '@/lib/db/schema'
+import { eq, and, asc, sql } from 'drizzle-orm'
 import { generateSessionSummary } from '@/lib/chat/summary'
+import { randomUUID } from 'crypto'
 
 function getSessionId(req: NextRequest): string {
   const parts = req.nextUrl.pathname.split('/')
@@ -10,12 +13,19 @@ function getSessionId(req: NextRequest): string {
   return parts[idx + 1]
 }
 
-function buildTranscript(messages: Array<{ timestamp: Date; content: string; user: { profile: { name: string | null } | null; email: string } }>): string {
+function buildTranscript(
+  messages: Array<{
+    timestamp: Date | null
+    content: string
+    userName: string | null
+    userEmail: string | null
+  }>
+): string {
   return messages
-    .map((message) => {
-      const speaker = message.user.profile?.name?.trim() || message.user.email.split('@')[0] || 'Speaker'
-      const at = message.timestamp.toISOString()
-      return `[${at}] ${speaker}: ${message.content}`
+    .map((m) => {
+      const speaker = m.userName?.trim() || m.userEmail?.split('@')[0] || 'Speaker'
+      const at = m.timestamp?.toISOString() ?? new Date().toISOString()
+      return `[${at}] ${speaker}: ${m.content}`
     })
     .join('\n')
 }
@@ -28,60 +38,88 @@ export async function POST(req: NextRequest) {
 
   const liveSessionId = getSessionId(req)
 
-  const liveSession = await db.liveSession.findFirst({
-    where: { id: liveSessionId, tutorId: session.user.id },
-    select: {
-      id: true,
-      tutorId: true,
-      title: true,
-      subject: true,
-      recordingUrl: true,
-      startedAt: true,
-      endedAt: true,
-      _count: { select: { participants: true, messages: true } },
-    },
-  })
+  const sessionRows = await drizzleDb
+    .select({
+      id: liveSession.id,
+      tutorId: liveSession.tutorId,
+      title: liveSession.title,
+      subject: liveSession.subject,
+      recordingUrl: liveSession.recordingUrl,
+      startedAt: liveSession.startedAt,
+      endedAt: liveSession.endedAt,
+    })
+    .from(liveSession)
+    .where(and(eq(liveSession.id, liveSessionId), eq(liveSession.tutorId, session.user.id)))
+    .limit(1)
 
-  if (!liveSession) {
+  const liveSessionRow = sessionRows[0]
+  if (!liveSessionRow) {
     return NextResponse.json({ error: 'Live session not found' }, { status: 404 })
   }
 
-  await db.sessionReplayArtifact.upsert({
-    where: { sessionId: liveSessionId },
-    create: {
+  const [partCount, messagesCountResult] = await Promise.all([
+    drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(sessionParticipant)
+      .where(eq(sessionParticipant.sessionId, liveSessionId)),
+    drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(message)
+      .where(eq(message.sessionId, liveSessionId)),
+  ])
+
+  const _count = {
+    participants: partCount[0]?.count ?? 0,
+    messages: messagesCountResult[0]?.count ?? 0,
+  }
+
+  const existingArtifact = await drizzleDb
+    .select()
+    .from(sessionReplayArtifact)
+    .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
+    .limit(1)
+
+  if (existingArtifact[0]) {
+    await drizzleDb
+      .update(sessionReplayArtifact)
+      .set({
+        recordingUrl: liveSessionRow.recordingUrl,
+        status: 'processing',
+        endedAt: liveSessionRow.endedAt,
+      })
+      .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
+  } else {
+    await drizzleDb.insert(sessionReplayArtifact).values({
+      id: randomUUID(),
       sessionId: liveSessionId,
       tutorId: session.user.id,
-      recordingUrl: liveSession.recordingUrl,
+      recordingUrl: liveSessionRow.recordingUrl,
       status: 'processing',
-      startedAt: liveSession.startedAt,
-      endedAt: liveSession.endedAt,
-    },
-    update: {
-      recordingUrl: liveSession.recordingUrl,
-      status: 'processing',
-      endedAt: liveSession.endedAt,
-    },
-  })
+      startedAt: liveSessionRow.startedAt,
+      endedAt: liveSessionRow.endedAt,
+    })
+  }
 
   try {
-    const messages = await db.message.findMany({
-      where: { sessionId: liveSessionId },
-      orderBy: { timestamp: 'asc' },
-      include: {
-        user: {
-          select: {
-            email: true,
-            profile: { select: { name: true } },
-          },
-        },
-      },
-    })
+    const messageRows = await drizzleDb
+      .select({
+        timestamp: message.timestamp,
+        content: message.content,
+        userName: profile.name,
+        userEmail: user.email,
+      })
+      .from(message)
+      .innerJoin(user, eq(message.userId, user.id))
+      .leftJoin(profile, eq(profile.userId, user.id))
+      .where(eq(message.sessionId, liveSessionId))
+      .orderBy(asc(message.timestamp))
 
-    const transcript = messages.length > 0
-      ? buildTranscript(messages)
-      : liveSession.recordingUrl
-        ? 'Transcript unavailable from chat history. Recording exists and is pending audio transcription ingestion.'
-        : 'No transcript available for this session.'
+    const transcript =
+      messageRows.length > 0
+        ? buildTranscript(messageRows)
+        : liveSessionRow.recordingUrl
+          ? 'Transcript unavailable from chat history. Recording exists and is pending audio transcription ingestion.'
+          : 'No transcript available for this session.'
 
     const summaryResult = await generateSessionSummary(liveSessionId, {
       type: 'session',
@@ -90,48 +128,52 @@ export async function POST(req: NextRequest) {
       language: 'en',
     })
 
-    const summaryText = summaryResult.success && summaryResult.summary
-      ? summaryResult.summary.overview
-      : 'Summary generation is unavailable for this session.'
+    const summaryText =
+      summaryResult.success && summaryResult.summary
+        ? summaryResult.summary.overview
+        : 'Summary generation is unavailable for this session.'
 
     const summaryPayload = {
-      ...((summaryResult.success && summaryResult.summary) ? summaryResult.summary : {}),
+      ...(summaryResult.success && summaryResult.summary ? summaryResult.summary : {}),
       sessionMeta: {
-        title: liveSession.title,
-        subject: liveSession.subject,
-        participants: liveSession._count.participants,
-        messages: liveSession._count.messages,
+        title: liveSessionRow.title,
+        subject: liveSessionRow.subject,
+        participants: _count.participants,
+        messages: _count.messages,
         generatedAt: new Date().toISOString(),
       },
       transcriptMeta: {
-        source: messages.length > 0 ? 'chat_messages' : 'recording_placeholder',
+        source: messageRows.length > 0 ? 'chat_messages' : 'recording_placeholder',
         hasTranscriptText: Boolean(transcript?.trim()),
       },
     }
 
-    await db.sessionReplayArtifact.update({
-      where: { sessionId: liveSessionId },
-      data: {
+    await drizzleDb
+      .update(sessionReplayArtifact)
+      .set({
         transcript,
         summary: summaryText,
         summaryJson: summaryPayload,
-        recordingUrl: liveSession.recordingUrl,
+        recordingUrl: liveSessionRow.recordingUrl,
         status: summaryResult.success ? 'ready' : 'failed',
         generatedAt: new Date(),
-      },
-    })
+      })
+      .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
 
     return NextResponse.json({ success: true, transcriptLength: transcript.length })
   } catch (error) {
-    await db.sessionReplayArtifact.update({
-      where: { sessionId: liveSessionId },
-      data: {
+    await drizzleDb
+      .update(sessionReplayArtifact)
+      .set({
         status: 'failed',
         generatedAt: new Date(),
-      },
-    })
+      })
+      .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
 
     console.error('Failed to generate replay artifact:', error)
-    return NextResponse.json({ error: 'Failed to generate replay artifact' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to generate replay artifact' },
+      { status: 500 }
+    )
   }
 }

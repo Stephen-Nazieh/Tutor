@@ -6,8 +6,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { whiteboard, whiteboardPage } from '@/lib/db/schema'
+import { eq, and, isNull, asc, desc } from 'drizzle-orm'
 import { z } from 'zod'
+import crypto from 'crypto'
 
 const CreatePageSchema = z.object({
   name: z.string().min(1),
@@ -22,25 +25,33 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const params = await context?.params
   const whiteboardId = params?.id as string
   const userId = session.user.id
-  
+
   try {
-    // Verify ownership
-    const whiteboard = await db.whiteboard.findFirst({
-      where: { id: whiteboardId, tutorId: userId, deletedAt: null },
-    })
-    
-    if (!whiteboard) {
+    const [wb] = await drizzleDb
+      .select()
+      .from(whiteboard)
+      .where(
+        and(
+          eq(whiteboard.id, whiteboardId),
+          eq(whiteboard.tutorId, userId),
+          isNull(whiteboard.deletedAt)
+        )
+      )
+      .limit(1)
+
+    if (!wb) {
       return NextResponse.json(
         { error: 'Whiteboard not found' },
         { status: 404 }
       )
     }
-    
-    const pages = await db.whiteboardPage.findMany({
-      where: { whiteboardId },
-      orderBy: { order: 'asc' },
-    })
-    
+
+    const pages = await drizzleDb
+      .select()
+      .from(whiteboardPage)
+      .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+      .orderBy(asc(whiteboardPage.order))
+
     return NextResponse.json({ pages })
   } catch (error) {
     console.error('Fetch pages error:', error)
@@ -56,58 +67,68 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const params = await context?.params
   const whiteboardId = params?.id as string
   const userId = session.user.id
-  
+
   try {
     const body = await req.json()
     const validation = CreatePageSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: validation.error.format() },
         { status: 400 }
       )
     }
-    
+
     const data = validation.data
-    
-    // Verify ownership
-    const whiteboard = await db.whiteboard.findFirst({
-      where: { id: whiteboardId, tutorId: userId, deletedAt: null },
-    })
-    
-    if (!whiteboard) {
+
+    const [wb] = await drizzleDb
+      .select()
+      .from(whiteboard)
+      .where(
+        and(
+          eq(whiteboard.id, whiteboardId),
+          eq(whiteboard.tutorId, userId),
+          isNull(whiteboard.deletedAt)
+        )
+      )
+      .limit(1)
+
+    if (!wb) {
       return NextResponse.json(
         { error: 'Whiteboard not found' },
         { status: 404 }
       )
     }
-    
-    // Get max order if not specified
+
     let order = data.order
     if (order === undefined) {
-      const maxOrder = await db.whiteboardPage.aggregate({
-        where: { whiteboardId },
-        _max: { order: true },
-      })
-      order = (maxOrder._max.order ?? -1) + 1
+      const [maxRow] = await drizzleDb
+        .select({ order: whiteboardPage.order })
+        .from(whiteboardPage)
+        .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+        .orderBy(desc(whiteboardPage.order))
+        .limit(1)
+      order = (maxRow?.order ?? -1) + 1
     }
-    
-    const page = await db.whiteboardPage.create({
-      data: {
+
+    const inserted = await drizzleDb
+      .insert(whiteboardPage)
+      .values({
+        id: crypto.randomUUID(),
         whiteboardId,
         name: data.name,
         order,
-        backgroundColor: data.backgroundColor,
-        backgroundStyle: data.backgroundStyle,
-        backgroundImage: data.backgroundImage,
+        backgroundColor: data.backgroundColor ?? null,
+        backgroundStyle: data.backgroundStyle ?? null,
+        backgroundImage: data.backgroundImage ?? null,
         strokes: [],
         shapes: [],
         texts: [],
         images: [],
-      },
-    })
-    
-    return NextResponse.json({ page }, { status: 201 })
+      })
+      .returning()
+
+    return NextResponse.json({ page: inserted[0] }, { status: 201 })
   } catch (error) {
     console.error('Create page error:', error)
     return NextResponse.json(
@@ -122,45 +143,52 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
   const params = await context?.params
   const whiteboardId = params?.id as string
   const userId = session.user.id
-  
+
   try {
     const body = await req.json()
-    const { pageOrders } = body // [{ id, order }, ...]
-    
+    const { pageOrders } = body as { pageOrders: { id: string; order: number }[] }
+
     if (!Array.isArray(pageOrders)) {
       return NextResponse.json(
         { error: 'pageOrders array is required' },
         { status: 400 }
       )
     }
-    
-    // Verify ownership
-    const whiteboard = await db.whiteboard.findFirst({
-      where: { id: whiteboardId, tutorId: userId, deletedAt: null },
-    })
-    
-    if (!whiteboard) {
+
+    const [wb] = await drizzleDb
+      .select()
+      .from(whiteboard)
+      .where(
+        and(
+          eq(whiteboard.id, whiteboardId),
+          eq(whiteboard.tutorId, userId),
+          isNull(whiteboard.deletedAt)
+        )
+      )
+      .limit(1)
+
+    if (!wb) {
       return NextResponse.json(
         { error: 'Whiteboard not found' },
         { status: 404 }
       )
     }
-    
-    // Update all page orders in a transaction
-    await db.$transaction(
-      pageOrders.map((po: { id: string; order: number }) =>
-        db.whiteboardPage.update({
-          where: { id: po.id },
-          data: { order: po.order },
-        })
-      )
-    )
-    
-    const pages = await db.whiteboardPage.findMany({
-      where: { whiteboardId },
-      orderBy: { order: 'asc' },
+
+    await drizzleDb.transaction(async (tx) => {
+      for (const po of pageOrders) {
+        await tx
+          .update(whiteboardPage)
+          .set({ order: po.order })
+          .where(eq(whiteboardPage.id, po.id))
+      }
     })
-    
+
+    const pages = await drizzleDb
+      .select()
+      .from(whiteboardPage)
+      .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+      .orderBy(asc(whiteboardPage.order))
+
     return NextResponse.json({ pages })
   } catch (error) {
     console.error('Reorder pages error:', error)

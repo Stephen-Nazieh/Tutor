@@ -8,8 +8,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { withAuth, requireCsrf, withRateLimitPreset } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { clinic, clinicBooking, payment, user, profile } from '@/lib/db/schema'
+import { eq, and, gte, inArray, asc, ilike, sql } from 'drizzle-orm'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
+import crypto from 'crypto'
 
 async function getHandler(req: NextRequest, session: Session) {
   try {
@@ -17,117 +20,194 @@ async function getHandler(req: NextRequest, session: Session) {
     const myBookings = searchParams.get('myBookings') === 'true'
     const limit = parseInt(searchParams.get('limit') || '10')
     const subjectParam = searchParams.get('subject')?.trim() || null
-
-    let classes
+    const studentId = session.user.id
 
     if (myBookings) {
-      // Get classes the user has booked (optionally filtered by subject)
-      const bookingsWhere: { studentId: string; clinic?: { subject: { equals: string; mode: 'insensitive' } } } = {
-        studentId: session.user.id
-      }
-      if (subjectParam) {
-        bookingsWhere.clinic = { subject: { equals: subjectParam, mode: 'insensitive' } }
-      }
-      const bookings = await db.clinicBooking.findMany({
-        where: bookingsWhere,
-        include: {
-          payment: { select: { id: true, status: true, gatewayCheckoutUrl: true } },
-          clinic: {
-            include: {
-              tutor: {
-                select: {
-                  id: true,
-                  profile: {
-                    select: {
-                      name: true,
-                      avatarUrl: true,
-                      hourlyRate: true
-                    }
-                  }
-                }
-              },
-              _count: {
-                select: { bookings: true }
-              }
-            }
-          }
-        },
-        orderBy: {
-          clinic: { startTime: 'asc' }
-        },
-        take: limit
-      })
+      const bookingsWhere = subjectParam
+        ? and(
+            eq(clinicBooking.studentId, studentId),
+            ilike(clinic.subject, subjectParam)
+          )
+        : eq(clinicBooking.studentId, studentId)
 
-      classes = bookings.map((booking: any) => {
-        const clinic = booking.clinic
-        const hourlyRate = clinic.tutor?.profile?.hourlyRate ?? 0
+      const bookings = await drizzleDb
+        .select({
+          bookingId: clinicBooking.id,
+          clinicId: clinicBooking.clinicId,
+          studentId: clinicBooking.studentId,
+          bookedAt: clinicBooking.bookedAt,
+          attended: clinicBooking.attended,
+          requiresPayment: clinicBooking.requiresPayment,
+          clinicTitle: clinic.title,
+          clinicSubject: clinic.subject,
+          clinicDescription: clinic.description,
+          tutorId: clinic.tutorId,
+          startTime: clinic.startTime,
+          duration: clinic.duration,
+          maxStudents: clinic.maxStudents,
+          status: clinic.status,
+          roomUrl: clinic.roomUrl,
+          roomId: clinic.roomId,
+          clinicRequiresPayment: clinic.requiresPayment,
+          paymentId: payment.id,
+          paymentStatus: payment.status,
+          gatewayCheckoutUrl: payment.gatewayCheckoutUrl,
+          tutorName: profile.name,
+          avatarUrl: profile.avatarUrl,
+          hourlyRate: profile.hourlyRate,
+        })
+        .from(clinicBooking)
+        .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+        .leftJoin(payment, eq(payment.bookingId, clinicBooking.id))
+        .leftJoin(user, eq(clinic.tutorId, user.id))
+        .leftJoin(profile, eq(profile.userId, user.id))
+        .where(bookingsWhere)
+        .orderBy(asc(clinic.startTime))
+        .limit(limit)
+
+      const clinicIds = [...new Set(bookings.map((b) => b.clinicId))]
+      const bookingCounts =
+        clinicIds.length > 0
+          ? await Promise.all(
+              clinicIds.map(async (cId) => {
+                const [row] = await drizzleDb
+                  .select({ count: sql<number>`count(*)::int` })
+                  .from(clinicBooking)
+                  .where(eq(clinicBooking.clinicId, cId))
+                return { clinicId: cId, count: row?.count ?? 0 }
+              })
+            )
+          : []
+      const countMap = new Map(bookingCounts.map((r) => [r.clinicId, r.count]))
+
+      const classes = bookings.map((booking) => {
+        const hourlyRate = booking.hourlyRate ?? 0
         const price =
-          clinic.requiresPayment && hourlyRate > 0
-            ? Math.round(hourlyRate * (clinic.duration / 60) * 100) / 100
+          booking.clinicRequiresPayment && hourlyRate > 0
+            ? Math.round(hourlyRate * (booking.duration / 60) * 100) / 100
             : null
-        const paymentStatus = booking.payment?.status ?? null
         return {
-          ...clinic,
+          id: booking.clinicId,
+          title: booking.clinicTitle,
+          subject: booking.clinicSubject,
+          description: booking.clinicDescription,
+          tutorId: booking.tutorId,
+          startTime: booking.startTime,
+          duration: booking.duration,
+          maxStudents: booking.maxStudents,
+          status: booking.status,
+          roomUrl: booking.roomUrl,
+          roomId: booking.roomId,
+          requiresPayment: booking.clinicRequiresPayment ?? false,
           isBooked: true,
-          bookingId: booking.id,
-          currentBookings: clinic._count.bookings,
+          bookingId: booking.bookingId,
+          currentBookings: countMap.get(booking.clinicId) ?? 0,
           price,
-          requiresPayment: clinic.requiresPayment ?? false,
-          paymentStatus,
-          paymentCheckoutUrl: booking.payment?.gatewayCheckoutUrl ?? null
-        }
-      })
-    } else {
-      // Get upcoming classes (optionally filtered by subject)
-      const now = new Date()
-      const where: { startTime: { gte: Date }; status: { in: string[] }; subject?: { equals: string; mode: 'insensitive' } } = {
-        startTime: { gte: now },
-        status: { in: ['scheduled', 'live'] }
-      }
-      if (subjectParam) {
-        where.subject = { equals: subjectParam, mode: 'insensitive' }
-      }
-      classes = await db.clinic.findMany({
-        where,
-        include: {
+          paymentStatus: booking.paymentStatus ?? null,
+          paymentCheckoutUrl: booking.gatewayCheckoutUrl ?? null,
           tutor: {
-            select: {
-              id: true,
-              profile: {
-                select: {
-                  name: true,
-                  avatarUrl: true,
-                  hourlyRate: true
-                }
-              }
-            }
+            id: booking.tutorId,
+            profile: {
+              name: booking.tutorName,
+              avatarUrl: booking.avatarUrl,
+              hourlyRate: booking.hourlyRate,
+            },
           },
-          _count: {
-            select: { bookings: true }
-          },
-          bookings: {
-            where: { studentId: session.user.id },
-            select: { id: true }
-          }
-        },
-        orderBy: { startTime: 'asc' },
-        take: limit
+        }
       })
 
-      classes = classes.map((cls: any) => {
-        const hourlyRate = cls.tutor?.profile?.hourlyRate ?? 0
-        const price =
-          cls.requiresPayment && hourlyRate > 0
-            ? Math.round(hourlyRate * (cls.duration / 60) * 100) / 100
-            : null
-        return {
-          ...cls,
-          isBooked: cls.bookings.length > 0,
-          currentBookings: cls._count.bookings,
-          price
-        }
-      })
+      return NextResponse.json({ classes })
     }
+
+    const now = new Date()
+    const clinicsWhere = subjectParam
+      ? and(
+          gte(clinic.startTime, now),
+          inArray(clinic.status, ['scheduled', 'live']),
+          ilike(clinic.subject, subjectParam)
+        )
+      : and(
+          gte(clinic.startTime, now),
+          inArray(clinic.status, ['scheduled', 'live'])
+        )
+
+    const clinics = await drizzleDb
+      .select({
+        id: clinic.id,
+        title: clinic.title,
+        subject: clinic.subject,
+        description: clinic.description,
+        tutorId: clinic.tutorId,
+        startTime: clinic.startTime,
+        duration: clinic.duration,
+        maxStudents: clinic.maxStudents,
+        status: clinic.status,
+        roomUrl: clinic.roomUrl,
+        roomId: clinic.roomId,
+        requiresPayment: clinic.requiresPayment,
+        tutorName: profile.name,
+        avatarUrl: profile.avatarUrl,
+        hourlyRate: profile.hourlyRate,
+      })
+      .from(clinic)
+      .leftJoin(user, eq(clinic.tutorId, user.id))
+      .leftJoin(profile, eq(profile.userId, user.id))
+      .where(clinicsWhere)
+      .orderBy(asc(clinic.startTime))
+      .limit(limit)
+
+    const clinicIds = clinics.map((c) => c.id)
+    const bookingCounts =
+      clinicIds.length > 0
+        ? await Promise.all(
+            clinicIds.map(async (cId) => {
+              const [row] = await drizzleDb
+                .select({ count: sql<number>`count(*)::int` })
+                .from(clinicBooking)
+                .where(eq(clinicBooking.clinicId, cId))
+              return { clinicId: cId, count: row?.count ?? 0 }
+            })
+          )
+        : []
+    const countMap = new Map(bookingCounts.map((r) => [r.clinicId, r.count]))
+
+    const myBookingClinicIds =
+      clinicIds.length > 0
+        ? (
+            await drizzleDb
+              .select({ clinicId: clinicBooking.clinicId })
+              .from(clinicBooking)
+              .where(
+                and(
+                  eq(clinicBooking.studentId, studentId),
+                  inArray(clinicBooking.clinicId, clinicIds)
+                )
+              )
+          ).map((r) => r.clinicId)
+        : []
+    const myBookingSet = new Set(myBookingClinicIds)
+
+    const classes = clinics.map((cls) => {
+      const hourlyRate = cls.hourlyRate ?? 0
+      const price =
+        cls.requiresPayment && hourlyRate > 0
+          ? Math.round(hourlyRate * (cls.duration / 60) * 100) / 100
+          : null
+      return {
+        ...cls,
+        isBooked: myBookingSet.has(cls.id),
+        currentBookings: countMap.get(cls.id) ?? 0,
+        price,
+        tutor: {
+          id: cls.tutorId,
+          profile: {
+            name: cls.tutorName,
+            avatarUrl: cls.avatarUrl,
+            hourlyRate: cls.hourlyRate,
+          },
+        },
+      }
+    })
 
     return NextResponse.json({ classes })
   } catch (error) {
@@ -151,123 +231,126 @@ async function postHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
     }
 
-    // Check if class exists and has space
-    const classItem = await db.clinic.findUnique({
-      where: { id: classId },
-      include: {
-        tutor: {
-          include: {
-            profile: true
-          }
-        },
-        _count: {
-          select: { bookings: true }
-        }
-      }
-    })
+    const [classRow] = await drizzleDb
+      .select()
+      .from(clinic)
+      .where(eq(clinic.id, classId))
+      .limit(1)
 
-    if (!classItem) {
+    if (!classRow) {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 })
     }
 
-    if (classItem.status !== 'scheduled') {
+    const [bookingsCountRow] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(clinicBooking)
+      .where(eq(clinicBooking.clinicId, classId))
+
+    const bookingsCount = bookingsCountRow?.count ?? 0
+
+    if (classRow.status !== 'scheduled') {
       return NextResponse.json({ error: 'Class is not open for booking' }, { status: 400 })
     }
 
-    if (classItem._count.bookings >= classItem.maxStudents) {
+    if (bookingsCount >= classRow.maxStudents) {
       return NextResponse.json({ error: 'Class is full' }, { status: 400 })
     }
 
-    // Check if already booked
-    const existingBooking = await db.clinicBooking.findFirst({
-      where: {
-        clinicId: classId,
-        studentId: session.user.id
-      }
-    })
+    const [existingBooking] = await drizzleDb
+      .select()
+      .from(clinicBooking)
+      .where(
+        and(
+          eq(clinicBooking.clinicId, classId),
+          eq(clinicBooking.studentId, session.user.id)
+        )
+      )
+      .limit(1)
 
     if (existingBooking) {
       return NextResponse.json({ error: 'Already booked this class' }, { status: 400 })
     }
 
-    const requiresPayment = Boolean(classItem.requiresPayment)
+    const [tutorProfile] = await drizzleDb
+      .select()
+      .from(profile)
+      .where(eq(profile.userId, classRow.tutorId))
+      .limit(1)
 
-    // Create booking
-    const booking = await db.clinicBooking.create({
-      data: {
-        clinicId: classId,
-        studentId: session.user.id,
-        requiresPayment
-      },
-      include: {
-        clinic: {
-          include: {
-            tutor: {
-              select: {
-                profile: {
-                  select: {
-                    name: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+    const requiresPayment = Boolean(classRow.requiresPayment)
+    const bookingId = crypto.randomUUID()
+
+    await drizzleDb.insert(clinicBooking).values({
+      id: bookingId,
+      clinicId: classId,
+      studentId: session.user.id,
+      attended: false,
+      requiresPayment,
     })
+
+    const booking = {
+      id: bookingId,
+      clinicId: classId,
+      studentId: session.user.id,
+      requiresPayment,
+      clinic: {
+        ...classRow,
+        tutor: { profile: tutorProfile ?? null },
+      },
+    }
 
     if (!requiresPayment) {
       return NextResponse.json({
         success: true,
         booking,
-        message: `Booked ${classItem.title} with ${booking.clinic.tutor.profile?.name || 'Tutor'}`
+        message: `Booked ${classRow.title} with ${tutorProfile?.name ?? 'Tutor'}`,
       })
     }
 
-    // Paid class: create payment and return checkout URL
-    const hourlyRate = classItem.tutor.profile?.hourlyRate ?? 0
+    const hourlyRate = tutorProfile?.hourlyRate ?? 0
     if (hourlyRate <= 0) {
-      await db.clinicBooking.update({
-        where: { id: booking.id },
-        data: { requiresPayment: false }
-      })
+      await drizzleDb
+        .update(clinicBooking)
+        .set({ requiresPayment: false })
+        .where(eq(clinicBooking.id, bookingId))
       return NextResponse.json({
         success: true,
         booking,
-        message: `Booked ${classItem.title} with ${booking.clinic.tutor.profile?.name || 'Tutor'}`
+        message: `Booked ${classRow.title} with ${tutorProfile?.name ?? 'Tutor'}`,
       })
     }
 
-    const durationHours = classItem.duration / 60
+    const durationHours = classRow.duration / 60
     const amount = Math.round(hourlyRate * durationHours * 100) / 100
-    const tutorProfile = classItem.tutor.profile
-    const currency = (tutorProfile?.currency as string) || 'SGD'
+    const currency = tutorProfile?.currency ?? 'SGD'
     const preferredGateway = tutorProfile?.paymentGatewayPreference
-    const gatewayName = (preferredGateway === 'AIRWALLEX' || preferredGateway === 'HITPAY'
-      ? preferredGateway
-      : (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY')) as GatewayName
+    const gatewayName = (
+      preferredGateway === 'AIRWALLEX' || preferredGateway === 'HITPAY'
+        ? preferredGateway
+        : (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY')
+    ) as GatewayName
     const gateway = getPaymentGateway(gatewayName)
     const studentEmail = (session.user as { email?: string }).email ?? ''
 
     const paymentResponse = await gateway.createPayment({
       amount,
       currency,
-      bookingId: booking.id,
+      bookingId,
       studentEmail: studentEmail || '',
-      description: `${classItem.title} - ${classItem.subject}`,
-      metadata: { clinicId: classItem.id, clinicTitle: classItem.title }
+      description: `${classRow.title} - ${classRow.subject}`,
+      metadata: { clinicId: classRow.id, clinicTitle: classRow.title },
     })
 
-    await db.payment.create({
-      data: {
-        bookingId: booking.id,
-        amount,
-        currency,
-        status: 'PENDING',
-        gateway: gatewayName,
-        gatewayPaymentId: paymentResponse.paymentId,
-        gatewayCheckoutUrl: paymentResponse.checkoutUrl
-      }
+    const paymentId = crypto.randomUUID()
+    await drizzleDb.insert(payment).values({
+      id: paymentId,
+      bookingId,
+      amount,
+      currency,
+      status: 'PENDING',
+      gateway: gatewayName,
+      gatewayPaymentId: paymentResponse.paymentId,
+      gatewayCheckoutUrl: paymentResponse.checkoutUrl,
     })
 
     return NextResponse.json({
@@ -295,27 +378,31 @@ async function deleteHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Booking ID required' }, { status: 400 })
     }
 
-    // Verify the booking belongs to this user
-    const booking = await db.clinicBooking.findFirst({
-      where: {
-        id: bookingId,
-        studentId: session.user.id
-      },
-      include: { clinic: true }
-    })
+    const [booking] = await drizzleDb
+      .select({
+        bookingId: clinicBooking.id,
+        clinicId: clinic.id,
+        startTime: clinic.startTime,
+      })
+      .from(clinicBooking)
+      .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+      .where(
+        and(
+          eq(clinicBooking.id, bookingId),
+          eq(clinicBooking.studentId, session.user.id)
+        )
+      )
+      .limit(1)
 
     if (!booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Check if class is in the past
-    if (new Date(booking.clinic.startTime) < new Date()) {
+    if (new Date(booking.startTime) < new Date()) {
       return NextResponse.json({ error: 'Cannot cancel past class' }, { status: 400 })
     }
 
-    await db.clinicBooking.delete({
-      where: { id: bookingId }
-    })
+    await drizzleDb.delete(clinicBooking).where(eq(clinicBooking.id, bookingId))
 
     return NextResponse.json({
       success: true,

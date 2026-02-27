@@ -1,100 +1,126 @@
 /**
  * Revenue Balance API
- * 
+ *
  * GET /api/tutor/revenue/balance
  * Returns current available balance and earnings summary
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { payment, payout, clinicBooking, clinic, curriculumEnrollment, curriculum } from '@/lib/db/schema'
+import { eq, and, inArray } from 'drizzle-orm'
+
+const COMPLETED = 'COMPLETED'
+const PENDING = 'PENDING'
+const PROCESSING = 'PROCESSING'
 
 export const GET = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
 
-  // Get all completed payments for this tutor
-  const completedPayments = await db.payment.findMany({
-    where: {
-      status: 'COMPLETED',
-      OR: [
-        { tutorId },
-        { booking: { clinic: { tutorId } } },
-        { enrollment: { curriculum: { creatorId: tutorId } } },
-      ],
-    },
-    select: {
-      id: true,
-      amount: true,
-      currency: true,
-      createdAt: true,
-    },
-  })
+  const [clinicIdsResult, curriculumIdsResult] = await Promise.all([
+    drizzleDb.select({ id: clinic.id }).from(clinic).where(eq(clinic.tutorId, tutorId)),
+    drizzleDb.select({ id: curriculum.id }).from(curriculum).where(eq(curriculum.creatorId, tutorId)),
+  ])
 
-  // Get pending payments
-  const pendingPayments = await db.payment.findMany({
-    where: {
-      status: { in: ['PENDING', 'PROCESSING'] },
-      OR: [
-        { tutorId },
-        { booking: { clinic: { tutorId } } },
-        { enrollment: { curriculum: { creatorId: tutorId } } },
-      ],
-    },
-    select: {
-      amount: true,
-      currency: true,
-    },
-  })
+  const clinicIds = clinicIdsResult.map((c) => c.id)
+  const curriculumIds = curriculumIdsResult.map((c) => c.id)
 
-  // Get all payouts
-  const payouts = await db.payout.findMany({
-    where: {
-      tutorId,
-    },
-    select: {
-      amount: true,
-      status: true,
-    },
-  })
+  let bookingIds: string[] = []
+  let enrollmentIds: string[] = []
 
-  // Calculate totals
-  const totalEarnings = completedPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
-  const pendingAmount = pendingPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+  if (clinicIds.length > 0) {
+    const bookings = await drizzleDb
+      .select({ id: clinicBooking.id })
+      .from(clinicBooking)
+      .where(inArray(clinicBooking.clinicId, clinicIds))
+    bookingIds = bookings.map((b) => b.id)
+  }
+  if (curriculumIds.length > 0) {
+    const enrollments = await drizzleDb
+      .select({ id: curriculumEnrollment.id })
+      .from(curriculumEnrollment)
+      .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
+    enrollmentIds = enrollments.map((e) => e.id)
+  }
+
+  const allCompleted = await drizzleDb
+    .select({
+      id: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      createdAt: payment.createdAt,
+      tutorId: payment.tutorId,
+      bookingId: payment.bookingId,
+      enrollmentId: payment.enrollmentId,
+    })
+    .from(payment)
+    .where(eq(payment.status, COMPLETED))
+
+  const completedPaymentsFiltered = allCompleted.filter(
+    (p) =>
+      p.tutorId === tutorId ||
+      (p.bookingId && bookingIds.includes(p.bookingId)) ||
+      (p.enrollmentId && enrollmentIds.includes(p.enrollmentId))
+  )
+
+  const allPending = await drizzleDb
+    .select({
+      id: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      tutorId: payment.tutorId,
+      bookingId: payment.bookingId,
+      enrollmentId: payment.enrollmentId,
+    })
+    .from(payment)
+    .where(inArray(payment.status, [PENDING, PROCESSING]))
+
+  const pendingPaymentsFiltered = allPending.filter(
+    (p) =>
+      p.tutorId === tutorId ||
+      (p.bookingId && bookingIds.includes(p.bookingId)) ||
+      (p.enrollmentId && enrollmentIds.includes(p.enrollmentId))
+  )
+
+  const payouts = await drizzleDb
+    .select({ amount: payout.amount, status: payout.status })
+    .from(payout)
+    .where(eq(payout.tutorId, tutorId))
+
+  const totalEarnings = completedPaymentsFiltered.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+  const pendingAmount = pendingPaymentsFiltered.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
   const totalPayouts = payouts
-    .filter((p: any) => p.status === 'COMPLETED')
-    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+    .filter((p) => p.status === COMPLETED)
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
   const pendingPayouts = payouts
-    .filter((p: any) => p.status === 'PENDING' || p.status === 'PROCESSING')
-    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+    .filter((p) => p.status === PENDING || p.status === PROCESSING)
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
 
   const availableBalance = totalEarnings - totalPayouts - pendingPayouts
 
-  // Calculate this month's earnings
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const thisMonthEarnings = completedPayments
-    .filter((p: any) => new Date(p.createdAt) >= monthStart)
-    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+  const thisMonthEarnings = completedPaymentsFiltered
+    .filter((p) => p.createdAt && new Date(p.createdAt) >= monthStart)
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
 
-  // Calculate last month's earnings for comparison
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
-  const lastMonthEarnings = completedPayments
-    .filter((p: any) => {
-      const date = new Date(p.createdAt)
-      return date >= lastMonthStart && date <= lastMonthEnd
+  const lastMonthEarnings = completedPaymentsFiltered
+    .filter((p) => {
+      const date = p.createdAt ? new Date(p.createdAt) : null
+      return date && date >= lastMonthStart && date <= lastMonthEnd
     })
-    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
 
-  const monthlyChange = lastMonthEarnings > 0
-    ? ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100
-    : 0
+  const monthlyChange =
+    lastMonthEarnings > 0 ? ((thisMonthEarnings - lastMonthEarnings) / lastMonthEarnings) * 100 : 0
 
-  // Get recent payments (last 5)
-  const recentPayments = completedPayments
-    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const recentPayments = completedPaymentsFiltered
+    .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
     .slice(0, 5)
-    .map((p: any) => ({
+    .map((p) => ({
       id: p.id,
       amount: p.amount,
       currency: p.currency,

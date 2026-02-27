@@ -5,57 +5,84 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, account, clinicBooking, clinic, payment } from '@/lib/db/schema'
+import { eq, inArray } from 'drizzle-orm'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
 
 export const GET = withAuth(async (_req, session) => {
   const userId = session.user.id
 
-  const [user, profile, accounts, bookings, paymentsSummary] = await Promise.all([
-    db.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    }),
-    db.profile.findUnique({ where: { userId } }),
-    db.account.findMany({
-      where: { userId },
-      select: { provider: true, type: true }
-    }),
-    db.clinicBooking.findMany({
-      where: { studentId: userId },
-      include: { clinic: { select: { title: true, startTime: true } } }
-    }),
-    db.clinicBooking.findMany({
-      where: { studentId: userId },
-      select: { id: true }
-    }).then((bookings: { id: string }[]) =>
-      bookings.length === 0
-        ? []
-        : db.payment.findMany({
-            where: { bookingId: { in: bookings.map((b: { id: string }) => b.id) } },
-            select: { id: true, amount: true, status: true, createdAt: true }
-          })
-    )
-  ])
+  const [userRow] = await drizzleDb
+    .select({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1)
 
-  if (!user) {
+  const [profileRow] = await drizzleDb
+    .select()
+    .from(profile)
+    .where(eq(profile.userId, userId))
+    .limit(1)
+
+  const accounts = await drizzleDb
+    .select({ provider: account.provider, type: account.type })
+    .from(account)
+    .where(eq(account.userId, userId))
+
+  const bookingsWithClinic = await drizzleDb
+    .select({
+      id: clinicBooking.id,
+      clinicId: clinicBooking.clinicId,
+      bookedAt: clinicBooking.bookedAt,
+      attended: clinicBooking.attended,
+      clinicTitle: clinic.title,
+      clinicStartTime: clinic.startTime,
+    })
+    .from(clinicBooking)
+    .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+    .where(eq(clinicBooking.studentId, userId))
+
+  const bookingIds = bookingsWithClinic.map((b) => b.id)
+  const paymentsSummary =
+    bookingIds.length > 0
+      ? await drizzleDb
+          .select({
+            id: payment.id,
+            amount: payment.amount,
+            status: payment.status,
+            createdAt: payment.createdAt,
+          })
+          .from(payment)
+          .where(inArray(payment.bookingId, bookingIds))
+      : []
+
+  if (!userRow) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
+  const clinicBookings = bookingsWithClinic.map((b) => ({
+    id: b.id,
+    clinicId: b.clinicId,
+    bookedAt: b.bookedAt,
+    attended: b.attended,
+    clinic: { title: b.clinicTitle, startTime: b.clinicStartTime },
+  }))
+
   const exportData = {
     exportedAt: new Date().toISOString(),
-    user: { ...user },
-    profile: profile ?? null,
+    user: { ...userRow },
+    profile: profileRow ?? null,
     linkedAccounts: accounts,
-    clinicBookings: bookings,
-    payments: paymentsSummary
+    clinicBookings,
+    payments: paymentsSummary,
   }
 
   await logAudit(userId, AUDIT_ACTIONS.DATA_EXPORT, { resource: 'gdpr_export' })

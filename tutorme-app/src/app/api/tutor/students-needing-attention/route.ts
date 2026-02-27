@@ -1,22 +1,22 @@
 /**
  * GET /api/tutor/students-needing-attention
- * Returns students linked to this tutor who need attention:
- * - Low quiz scores: students in tutor's live sessions with recent QuizAttempt below 60%
- * - Missed clinics: students who booked but did not attend this tutor's clinics (recent)
+ * Returns students linked to this tutor who need attention.
  */
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, sessionParticipant, quizAttempt, clinic, clinicBooking, user, profile } from '@/lib/db/schema'
+import { eq, and, inArray, gte } from 'drizzle-orm'
 
 const QUIZ_LOOKBACK_DAYS = 30
 const MISSED_BOOKING_DAYS = 14
-const LOW_QUIZ_THRESHOLD = 0.6 // below 60%
+const LOW_QUIZ_THRESHOLD = 0.6
 
-function getDisplayName(user: { email: string; profile?: { name: string | null } | null }): string {
-  const name = user.profile?.name?.trim()
+function getDisplayName(row: { email: string | null; name: string | null }): string {
+  const name = row.name?.trim()
   if (name) return name
-  const local = user.email?.split('@')[0]
+  const local = row.email?.split('@')[0]
   return local || 'Student'
 }
 
@@ -30,33 +30,38 @@ export const GET = withAuth(async (_req, session) => {
   const quizSince = new Date(now.getTime() - QUIZ_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
   const bookingSince = new Date(now.getTime() - MISSED_BOOKING_DAYS * 24 * 60 * 60 * 1000)
 
-  // Students who have participated in this tutor's live sessions
-  const tutorSessionIds = await db.liveSession
-    .findMany({ where: { tutorId }, select: { id: true } })
-    .then((s: { id: string }[]) => s.map((x: { id: string }) => x.id))
+  const tutorSessions = await drizzleDb
+    .select({ id: liveSession.id })
+    .from(liveSession)
+    .where(eq(liveSession.tutorId, tutorId))
+  const tutorSessionIds = tutorSessions.map((s) => s.id)
 
-  const participantRows = await db.sessionParticipant.findMany({
-    where: { sessionId: { in: tutorSessionIds } },
-    select: { studentId: true },
-  })
-  const tutorStudentIds = [...new Set(participantRows.map((p: { studentId: string }) => p.studentId))]
+  if (tutorSessionIds.length === 0) {
+    return NextResponse.json({ students: [] })
+  }
+
+  const participantRows = await drizzleDb
+    .select({ studentId: sessionParticipant.studentId })
+    .from(sessionParticipant)
+    .where(inArray(sessionParticipant.sessionId, tutorSessionIds))
+  const tutorStudentIds = [...new Set(participantRows.map((p) => p.studentId))]
 
   if (tutorStudentIds.length === 0) {
     return NextResponse.json({ students: [] })
   }
 
-  // Low quiz: recent attempts below threshold for these students
-  const lowQuizStudents = await db.quizAttempt.findMany({
-    where: {
-      studentId: { in: tutorStudentIds },
-      completedAt: { gte: quizSince },
-    },
-    select: { studentId: true, score: true, maxScore: true },
-    orderBy: { completedAt: 'desc' },
-  })
+  const lowQuizRows = await drizzleDb
+    .select({ studentId: quizAttempt.studentId, score: quizAttempt.score, maxScore: quizAttempt.maxScore })
+    .from(quizAttempt)
+    .where(
+      and(
+        inArray(quizAttempt.studentId, tutorStudentIds),
+        gte(quizAttempt.completedAt, quizSince)
+      )
+    )
 
   const lowQuizByStudent = new Map<string, { count: number; recentPct: number }>()
-  for (const a of lowQuizStudents) {
+  for (const a of lowQuizRows) {
     const pct = a.maxScore > 0 ? a.score / a.maxScore : 0
     if (pct < LOW_QUIZ_THRESHOLD) {
       const cur = lowQuizByStudent.get(a.studentId)
@@ -65,49 +70,37 @@ export const GET = withAuth(async (_req, session) => {
     }
   }
 
-  // Missed clinics: booked but not attended for this tutor's clinics
-  const tutorClinicIds = await db.clinic
-    .findMany({ where: { tutorId }, select: { id: true } })
-    .then((c: { id: string }[]) => c.map((x: { id: string }) => x.id))
-
+  const tutorClinics = await drizzleDb.select({ id: clinic.id }).from(clinic).where(eq(clinic.tutorId, tutorId))
+  const tutorClinicIds = tutorClinics.map((c) => c.id)
   const missedBookingStudentIds: string[] = []
   if (tutorClinicIds.length > 0) {
-    const missed = await db.clinicBooking.findMany({
-      where: {
-        clinicId: { in: tutorClinicIds },
-        attended: false,
-        bookedAt: { gte: bookingSince },
-      },
-      select: { studentId: true },
-    })
-    missed.forEach((b: { studentId: string }) => missedBookingStudentIds.push(b.studentId))
+    const missed = await drizzleDb
+      .select({ studentId: clinicBooking.studentId })
+      .from(clinicBooking)
+      .where(
+        and(
+          inArray(clinicBooking.clinicId, tutorClinicIds),
+          eq(clinicBooking.attended, false),
+          gte(clinicBooking.bookedAt, bookingSince)
+        )
+      )
+    missed.forEach((b) => missedBookingStudentIds.push(b.studentId))
   }
 
-  const needAttention = new Map<
-    string,
-    { issue: string; color: string }
-  >()
+  const needAttention = new Map<string, { issue: string; color: string }>()
 
   for (const [studentId, { count, recentPct }] of lowQuizByStudent) {
     const pct = Math.round(recentPct * 100)
     const issue =
-      count >= 3
-        ? `${count} recent quiz(zes) below 60%`
-        : `Recent quiz score below 60% (${pct}%)`
+      count >= 3 ? `${count} recent quiz(zes) below 60%` : `Recent quiz score below 60% (${pct}%)`
     needAttention.set(studentId, { issue, color: 'red' })
   }
   for (const studentId of missedBookingStudentIds) {
     const existing = needAttention.get(studentId)
     if (!existing) {
-      needAttention.set(studentId, {
-        issue: 'Missed scheduled clinic',
-        color: 'yellow',
-      })
+      needAttention.set(studentId, { issue: 'Missed scheduled clinic', color: 'yellow' })
     } else {
-      needAttention.set(studentId, {
-        issue: `${existing.issue}; missed clinic`,
-        color: 'red',
-      })
+      needAttention.set(studentId, { issue: `${existing.issue}; missed clinic`, color: 'red' })
     }
   }
 
@@ -116,16 +109,21 @@ export const GET = withAuth(async (_req, session) => {
     return NextResponse.json({ students: [] })
   }
 
-  const users = await db.user.findMany({
-    where: { id: { in: userIds } },
-    select: { id: true, email: true, profile: { select: { name: true } } },
-  })
-
-  const students = users.map((user: { id: string; email: string; profile: { name: string | null } | null }) => {
-    const att = needAttention.get(user.id)!
-    const name = getDisplayName(user)
-    return {
+  const users = await drizzleDb
+    .select({
       id: user.id,
+      email: user.email,
+      name: profile.name,
+    })
+    .from(user)
+    .leftJoin(profile, eq(profile.userId, user.id))
+    .where(inArray(user.id, userIds))
+
+  const students = users.map((u) => {
+    const att = needAttention.get(u.id)!
+    const name = getDisplayName({ email: u.email, name: u.name })
+    return {
+      id: u.id,
       name,
       initial: getInitial(name),
       color: att.color,

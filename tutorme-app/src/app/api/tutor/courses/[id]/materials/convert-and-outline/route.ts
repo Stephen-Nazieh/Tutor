@@ -5,7 +5,9 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { convertToEditablePrompt, courseOutlineFromCurriculumPrompt } from '@/lib/ai/prompts'
 
@@ -14,11 +16,11 @@ const DEFAULT_LESSON_MINUTES = 45
 export const POST = withCsrf(withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    select: { id: true, subject: true, languageOfInstruction: true, courseMaterials: true },
-  })
-  if (!curriculum) throw new NotFoundError('Course not found')
+  const [curriculumRow] = await drizzleDb
+    .select({ id: curriculum.id, subject: curriculum.subject, languageOfInstruction: curriculum.languageOfInstruction, courseMaterials: curriculum.courseMaterials })
+    .from(curriculum)
+    .where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
 
   const body = await req.json().catch(() => ({}))
   const text = typeof body.text === 'string' ? body.text.trim() : ''
@@ -30,8 +32,8 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
     throw new ValidationError('text is required and must be under 50000 characters')
   }
 
-  const lang = curriculum.languageOfInstruction ?? 'en'
-  const materials = (curriculum.courseMaterials as Record<string, unknown>) ?? {}
+  const lang = curriculumRow.languageOfInstruction ?? 'en'
+  const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
 
   // Step 1: Convert to editable
   const convertPrompt = convertToEditablePrompt({
@@ -48,7 +50,7 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
   // Step 2: Generate outline from converted curriculum
   const outlinePrompt = courseOutlineFromCurriculumPrompt({
     curriculumText: editableCurriculum,
-    subject: curriculum.subject,
+    subject: curriculumRow.subject,
     typicalLessonMinutes,
     language: lang,
   })
@@ -77,10 +79,10 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
   }
 
   materials.outline = outline
-  await db.curriculum.update({
-    where: { id },
-    data: { courseMaterials: materials as object },
-  })
+  await drizzleDb
+    .update(curriculum)
+    .set({ courseMaterials: materials as object })
+    .where(eq(curriculum.id, id))
 
   return NextResponse.json({
     editableCurriculum,

@@ -5,9 +5,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum } from '@/lib/db/schema'
 import { calculateClassEngagement } from '@/lib/reports/engagement-analytics'
 import { generateEngagementReportExcel } from '@/lib/reports/export-service'
+import { eq } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context: any) => {
   const params = await context?.params;
@@ -16,13 +18,13 @@ export const GET = withAuth(async (req: NextRequest, session, context: any) => {
   const days = parseInt(searchParams.get('days') || '30')
 
   try {
-    // Get class info
-    const curriculum = await db.curriculum.findUnique({
-      where: { id: classId },
-      select: { title: true, subject: true },
-    })
+    const [curriculumRow] = await drizzleDb
+      .select({ name: curriculum.name, subject: curriculum.subject })
+      .from(curriculum)
+      .where(eq(curriculum.id, classId))
+      .limit(1)
 
-    if (!curriculum) {
+    if (!curriculumRow) {
       return NextResponse.json(
         { success: false, error: 'Class not found' },
         { status: 404 }
@@ -39,7 +41,7 @@ export const GET = withAuth(async (req: NextRequest, session, context: any) => {
       includeHourlyPattern: true,
     })
 
-    const excelBuffer = generateEngagementReportExcel(engagement, curriculum.title)
+    const excelBuffer = generateEngagementReportExcel(engagement, curriculumRow.name)
 
     return new NextResponse(excelBuffer as any, {
       headers: {

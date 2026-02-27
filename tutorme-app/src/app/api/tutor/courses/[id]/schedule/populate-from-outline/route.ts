@@ -5,20 +5,22 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export const POST = withCsrf(withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    select: { courseMaterials: true, schedule: true },
-  })
-  if (!curriculum) throw new NotFoundError('Course not found')
+  const [curriculumRow] = await drizzleDb
+    .select({ courseMaterials: curriculum.courseMaterials, schedule: curriculum.schedule })
+    .from(curriculum)
+    .where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
 
-  const materials = curriculum.courseMaterials as {
+  const materials = curriculumRow.courseMaterials as {
     outline?: { title: string; durationMinutes: number }[]
     outlineModules?: { modules: { lessons: { title: string; durationMinutes: number }[] }[] }
   } | null
@@ -50,10 +52,10 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
     durationMinutes: item.durationMinutes ?? 45,
   }))
 
-  await db.curriculum.update({
-    where: { id },
-    data: { schedule: scheduleDistributed as object },
-  })
+  await drizzleDb
+    .update(curriculum)
+    .set({ schedule: scheduleDistributed as object })
+    .where(eq(curriculum.id, id))
 
   return NextResponse.json({
     schedule: scheduleDistributed,

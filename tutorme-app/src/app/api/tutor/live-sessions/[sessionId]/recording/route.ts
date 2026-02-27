@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, sessionReplayArtifact } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
+import { randomUUID } from 'crypto'
 
 function getSessionId(req: NextRequest): string {
   const parts = req.nextUrl.pathname.split('/')
@@ -20,43 +23,52 @@ export async function PATCH(req: NextRequest) {
   const isRecording = Boolean(body?.isRecording)
   const recordingUrl = typeof body?.recordingUrl === 'string' ? body.recordingUrl : null
 
-  const liveSession = await db.liveSession.findFirst({
-    where: {
-      id: liveSessionId,
-      tutorId: session.user.id,
-    },
-    select: { id: true },
-  })
+  const rows = await drizzleDb
+    .select()
+    .from(liveSession)
+    .where(and(eq(liveSession.id, liveSessionId), eq(liveSession.tutorId, session.user.id)))
+    .limit(1)
 
-  if (!liveSession) {
+  const liveSessionRow = rows[0]
+  if (!liveSessionRow) {
     return NextResponse.json({ error: 'Live session not found' }, { status: 404 })
   }
 
-  await db.liveSession.update({
-    where: { id: liveSessionId },
-    data: {
+  await drizzleDb
+    .update(liveSession)
+    .set({
       recordingUrl: isRecording ? null : recordingUrl,
-      recordingAvailableAt: isRecording ? null : (recordingUrl ? new Date() : null),
-    },
-  })
+      recordingAvailableAt: isRecording ? null : recordingUrl ? new Date() : null,
+    })
+    .where(eq(liveSession.id, liveSessionId))
 
-  await db.sessionReplayArtifact.upsert({
-    where: { sessionId: liveSessionId },
-    create: {
+  const existing = await drizzleDb
+    .select()
+    .from(sessionReplayArtifact)
+    .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
+    .limit(1)
+
+  if (existing[0]) {
+    await drizzleDb
+      .update(sessionReplayArtifact)
+      .set({
+        recordingUrl: isRecording ? null : recordingUrl,
+        status: isRecording ? 'processing' : 'pending',
+        startedAt: isRecording ? new Date() : undefined,
+        endedAt: isRecording ? null : new Date(),
+      })
+      .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
+  } else {
+    await drizzleDb.insert(sessionReplayArtifact).values({
+      id: randomUUID(),
       sessionId: liveSessionId,
       tutorId: session.user.id,
       recordingUrl: isRecording ? null : recordingUrl,
       status: isRecording ? 'processing' : 'pending',
       startedAt: isRecording ? new Date() : null,
       endedAt: isRecording ? null : new Date(),
-    },
-    update: {
-      recordingUrl: isRecording ? null : recordingUrl,
-      status: isRecording ? 'processing' : 'pending',
-      startedAt: isRecording ? new Date() : undefined,
-      endedAt: isRecording ? null : new Date(),
-    },
-  })
+    })
+  }
 
   return NextResponse.json({ success: true })
 }

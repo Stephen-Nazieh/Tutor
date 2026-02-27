@@ -6,26 +6,28 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aIAssistantInsight, aIAssistantSession } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 // PATCH - Update insight
 export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const params = await context?.params ?? {}
-  const { id: insightId } = params
+  const params = (await context?.params) ?? {}
+  const insightId = params.id as string
 
   try {
     const body = await req.json()
     const { applied, title, content } = body
 
-    // Verify insight belongs to tutor
-    const insight = await db.aIAssistantInsight.findFirst({
-      where: {
-        id: insightId,
-        session: { tutorId },
-      },
-    })
+    const rows = await drizzleDb
+      .select({ insight: aIAssistantInsight })
+      .from(aIAssistantInsight)
+      .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
+      .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+      .limit(1)
 
+    const insight = rows[0]?.insight
     if (!insight) {
       return NextResponse.json(
         { error: 'Insight not found' },
@@ -33,14 +35,16 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
-    const updatedInsight = await db.aIAssistantInsight.update({
-      where: { id: insightId },
-      data: {
-        ...(applied !== undefined && { applied }),
-        ...(title && { title }),
-        ...(content && { content }),
-      },
-    })
+    const updateData: { applied?: boolean; title?: string; content?: string } = {}
+    if (applied !== undefined) updateData.applied = applied
+    if (title) updateData.title = title
+    if (content) updateData.content = content
+
+    const [updatedInsight] = await drizzleDb
+      .update(aIAssistantInsight)
+      .set(updateData)
+      .where(eq(aIAssistantInsight.id, insightId))
+      .returning()
 
     return NextResponse.json({ insight: updatedInsight })
   } catch (error) {
@@ -55,28 +59,25 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
 // DELETE - Delete insight
 export const DELETE = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const params = await context?.params ?? {}
-  const { id: insightId } = params
+  const params = (await context?.params) ?? {}
+  const insightId = params.id as string
 
   try {
-    // Verify insight belongs to tutor
-    const insight = await db.aIAssistantInsight.findFirst({
-      where: {
-        id: insightId,
-        session: { tutorId },
-      },
-    })
+    const rows = await drizzleDb
+      .select()
+      .from(aIAssistantInsight)
+      .innerJoin(aIAssistantSession, eq(aIAssistantInsight.sessionId, aIAssistantSession.id))
+      .where(and(eq(aIAssistantInsight.id, insightId), eq(aIAssistantSession.tutorId, tutorId)))
+      .limit(1)
 
-    if (!insight) {
+    if (rows.length === 0) {
       return NextResponse.json(
         { error: 'Insight not found' },
         { status: 404 }
       )
     }
 
-    await db.aIAssistantInsight.delete({
-      where: { id: insightId },
-    })
+    await drizzleDb.delete(aIAssistantInsight).where(eq(aIAssistantInsight.id, insightId))
 
     return NextResponse.json({ success: true })
   } catch (error) {

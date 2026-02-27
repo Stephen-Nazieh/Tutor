@@ -8,55 +8,64 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { resource, resourceShare } from '@/lib/db/schema'
+import { eq, or, and } from 'drizzle-orm'
 import { createPresignedDownloadUrl, isS3Configured } from '@/lib/storage/s3'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-    const params = await context?.params
-    const id = params?.id as string
-    const userId = session.user.id
+  const params = await context?.params
+  const id = params?.id as string
+  const userId = session.user.id
 
-    // Find resource — tutor owns it OR it's shared/public for a student
-    const resource = await db.resource.findFirst({
-        where: {
-            id,
-            OR: [
-                { tutorId: userId },
-                { isPublic: true },
-                {
-                    shares: {
-                        some: {
-                            OR: [
-                                { recipientId: userId },
-                                { sharedWithAll: true },
-                            ],
-                        },
-                    },
-                },
-            ],
-        },
-    })
+  let resourceRow: (typeof resource.$inferSelect) | null = null
 
-    if (!resource) {
-        return NextResponse.json({ error: 'Resource not found or access denied' }, { status: 404 })
-    }
+  const direct = await drizzleDb
+    .select()
+    .from(resource)
+    .where(
+      and(
+        eq(resource.id, id),
+        or(eq(resource.tutorId, userId), eq(resource.isPublic, true))!
+      )
+    )
+    .limit(1)
+  resourceRow = direct[0] ?? null
 
-    // Increment download count (fire-and-forget)
-    db.resource.update({
-        where: { id },
-        data: { downloadCount: { increment: 1 } },
-    }).catch(() => { })
-
-    // Generate presigned download URL only if S3 is configured
-    if (isS3Configured() && resource.key) {
-        const downloadUrl = await createPresignedDownloadUrl(
-            resource.key,
-            3600, // 1-hour expiry
-            resource.name
+  if (!resourceRow) {
+    const shared = await drizzleDb
+      .select({ resource })
+      .from(resource)
+      .innerJoin(resourceShare, eq(resourceShare.resourceId, resource.id))
+      .where(
+        and(
+          eq(resource.id, id),
+          or(eq(resourceShare.recipientId, userId), eq(resourceShare.sharedWithAll, true))!
         )
-        return NextResponse.json({ downloadUrl, expiresIn: 3600 })
-    }
+      )
+      .limit(1)
+    resourceRow = shared[0]?.resource ?? null
+  }
 
-    // Fallback: redirect to stored URL (local or public)
-    return NextResponse.json({ downloadUrl: resource.url, expiresIn: null })
-})
+  if (!resourceRow) {
+    return NextResponse.json({ error: 'Resource not found or access denied' }, { status: 404 })
+  }
+
+  drizzleDb
+    .update(resource)
+    .set({ downloadCount: resourceRow.downloadCount + 1 })
+    .where(eq(resource.id, id))
+    .then(() => {})
+    .catch(() => {})
+
+  if (isS3Configured() && resourceRow.key) {
+    const downloadUrl = await createPresignedDownloadUrl(
+      resourceRow.key,
+      3600,
+      resourceRow.name
+    )
+    return NextResponse.json({ downloadUrl, expiresIn: 3600 })
+  }
+
+  return NextResponse.json({ downloadUrl: resourceRow.url, expiresIn: null })
+}, { role: 'TUTOR' })

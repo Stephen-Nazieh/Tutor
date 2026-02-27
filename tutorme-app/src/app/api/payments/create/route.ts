@@ -8,9 +8,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError, ForbiddenError, withRateLimitPreset } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumProgress, user, profile, payment, clinicBooking, clinic } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
-import { calculateCommission } from '@/lib/commission/platform-revenue'
+import { eq, and, isNull } from 'drizzle-orm'
 
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'paymentCreate')
@@ -21,7 +22,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
 
   let payerStudentId = session.user.id
   const userRole = (session.user.role || '').toUpperCase()
-  
+
   if (userRole === 'PARENT') {
     if (!studentId || typeof studentId !== 'string') {
       throw new ValidationError('studentId is required when parent creates payment')
@@ -41,46 +42,58 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
 
   // --- Course payment ---
   if (curriculumId) {
-    const curriculum = await db.curriculum.findFirst({
-      where: { id: curriculumId, isPublished: true }
-    })
-    if (!curriculum) throw new NotFoundError('Curriculum not found')
-    const amount = curriculum.price != null ? Number(curriculum.price) : 0
+    const [curriculumRow] = await drizzleDb
+      .select()
+      .from(curriculum)
+      .where(and(eq(curriculum.id, curriculumId), eq(curriculum.isPublished, true)))
+      .limit(1)
+    if (!curriculumRow) throw new NotFoundError('Curriculum not found')
+    const amount = curriculumRow.price != null ? Number(curriculumRow.price) : 0
     if (amount <= 0) throw new ValidationError('This course is free; use Enroll instead')
 
-    const existingEnrollment = await db.curriculumProgress.findUnique({
-      where: {
-        studentId_curriculumId: { studentId: payerStudentId, curriculumId }
-      }
-    })
+    const [existingEnrollment] = await drizzleDb
+      .select()
+      .from(curriculumProgress)
+      .where(and(eq(curriculumProgress.studentId, payerStudentId), eq(curriculumProgress.curriculumId, curriculumId)))
+      .limit(1)
     if (existingEnrollment) {
       throw new ValidationError('You are already enrolled in this course')
     }
 
-    const user = await db.user.findUnique({
-      where: { id: payerStudentId },
-      select: { email: true, profile: { select: { paymentGatewayPreference: true } } }
-    })
-    const studentEmail = user?.email ?? ''
-    const currency = (curriculum.currency as string) || 'SGD'
-    
+    const [userRow] = await drizzleDb
+      .select({
+        email: user.email,
+        paymentGatewayPreference: profile.paymentGatewayPreference,
+      })
+      .from(user)
+      .leftJoin(profile, eq(profile.userId, user.id))
+      .where(eq(user.id, payerStudentId))
+      .limit(1)
+    const studentEmail = userRow?.email ?? ''
+    const currency = (curriculumRow.currency as string) || 'SGD'
+
     // Determine gateway: frontend preference > user profile > environment default
     let gatewayName: GatewayName
     if (requestedGateway && (requestedGateway === 'HITPAY' || requestedGateway === 'AIRWALLEX')) {
       gatewayName = requestedGateway
-    } else if (user?.profile?.paymentGatewayPreference) {
-      gatewayName = user.profile.paymentGatewayPreference as GatewayName
+    } else if (userRow?.paymentGatewayPreference) {
+      gatewayName = userRow.paymentGatewayPreference as GatewayName
     } else {
       gatewayName = (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY') as GatewayName
     }
-    
+
     const gateway = getPaymentGateway(gatewayName)
 
-    const pendingCoursePayments = await db.payment.findMany({
-      where: { bookingId: null, status: 'PENDING', gateway: gatewayName },
-      take: 50
-    })
-    const existingPayment = pendingCoursePayments.find((p: { metadata: unknown; gatewayCheckoutUrl: string | null; id: string }) => {
+    const pendingCoursePayments = await drizzleDb
+      .select()
+      .from(payment)
+      .where(and(
+        isNull(payment.bookingId),
+        eq(payment.status, 'PENDING'),
+        eq(payment.gateway, gatewayName)
+      ))
+      .limit(50)
+    const existingPayment = pendingCoursePayments.find((p) => {
       const m = p.metadata as Record<string, unknown> | null
       return m?.type === 'course' && m?.curriculumId === curriculumId && m?.studentId === payerStudentId
     })
@@ -97,29 +110,29 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
       currency,
       curriculumId,
       studentEmail,
-      description: `${curriculum.name} (${curriculum.subject})`,
+      description: `${curriculumRow.name} (${curriculumRow.subject})`,
       metadata: { type: 'course', curriculumId, studentId: payerStudentId, payerId: session.user.id, payerRole: session.user.role },
       successUrl: `${baseUrl}/payment/success?type=course&curriculumId=${encodeURIComponent(curriculumId)}`,
       cancelUrl: `${baseUrl}/payment/cancel?type=course&curriculumId=${encodeURIComponent(curriculumId)}`
     })
 
-    const payment = await db.payment.create({
-      data: {
-        bookingId: null,
-        amount,
-        currency,
-        status: 'PENDING',
-        gateway: gatewayName,
-        tutorId: curriculum.creatorId || null,
-        gatewayPaymentId: paymentResponse.paymentId,
-        gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-        metadata: { type: 'course', curriculumId, studentId: payerStudentId, payerId: session.user.id, payerRole: session.user.role }
-      }
+    const paymentId = crypto.randomUUID()
+    await drizzleDb.insert(payment).values({
+      id: paymentId,
+      bookingId: null,
+      amount,
+      currency,
+      status: 'PENDING',
+      gateway: gatewayName,
+      tutorId: curriculumRow.creatorId ?? null,
+      gatewayPaymentId: paymentResponse.paymentId,
+      gatewayCheckoutUrl: paymentResponse.checkoutUrl,
+      metadata: { type: 'course', curriculumId, studentId: payerStudentId, payerId: session.user.id, payerRole: session.user.role }
     })
 
     return NextResponse.json({
       checkoutUrl: paymentResponse.checkoutUrl,
-      paymentId: payment.id
+      paymentId
     })
   }
 
@@ -128,53 +141,69 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     throw new ValidationError('bookingId or curriculumId is required')
   }
 
-  const booking = await db.clinicBooking.findUnique({
-    where: { id: bookingId },
-    include: {
-      clinic: {
-        include: {
-          tutor: {
-            include: {
-              profile: true
-            }
-          }
-        }
-      },
-      student: {
-        select: { email: true, id: true }
-      },
-      payment: true
-    }
-  })
+  const [bookingRow] = await drizzleDb
+    .select({
+      booking: clinicBooking,
+      clinic: clinic,
+      tutorId: clinic.tutorId,
+      clinicTitle: clinic.title,
+      clinicSubject: clinic.subject,
+      clinicDuration: clinic.duration,
+      studentId: clinicBooking.studentId,
+    })
+    .from(clinicBooking)
+    .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
+    .where(eq(clinicBooking.id, bookingId))
+    .limit(1)
 
-  if (!booking) {
+  if (!bookingRow) {
     throw new NotFoundError('Booking not found')
   }
 
+  const booking = bookingRow.booking
   if (booking.studentId !== payerStudentId) {
     throw new ForbiddenError('You can only create payment for your own booking or your linked child booking')
   }
 
-  if (booking.payment) {
-    if (booking.payment.status === 'COMPLETED') {
+  // Fetch tutor profile for hourly rate and payment preference
+  const [tutorUser] = await drizzleDb
+    .select({
+      userId: user.id,
+      hourlyRate: profile.hourlyRate,
+      currency: profile.currency,
+      paymentGatewayPreference: profile.paymentGatewayPreference,
+    })
+    .from(user)
+    .innerJoin(profile, eq(profile.userId, user.id))
+    .where(eq(user.id, bookingRow.tutorId))
+    .limit(1)
+
+  // Existing payment for this booking
+  const [existingPaymentRow] = await drizzleDb
+    .select()
+    .from(payment)
+    .where(eq(payment.bookingId, bookingId))
+    .limit(1)
+
+  if (existingPaymentRow) {
+    if (existingPaymentRow.status === 'COMPLETED') {
       throw new ValidationError('This booking is already paid')
     }
-    if (booking.payment.status === 'PENDING' && booking.payment.gatewayCheckoutUrl) {
+    if (existingPaymentRow.status === 'PENDING' && existingPaymentRow.gatewayCheckoutUrl) {
       return NextResponse.json({
-        checkoutUrl: booking.payment.gatewayCheckoutUrl,
-        paymentId: booking.payment.id
+        checkoutUrl: existingPaymentRow.gatewayCheckoutUrl,
+        paymentId: existingPaymentRow.id
       })
     }
   }
 
-  const clinic = booking.clinic
-  const tutorProfile = clinic.tutor.profile
+  const tutorProfile = tutorUser
   const hourlyRate = tutorProfile?.hourlyRate ?? 0
   if (hourlyRate <= 0) {
     throw new ValidationError('This class has no payment amount set')
   }
 
-  const durationHours = clinic.duration / 60
+  const durationHours = bookingRow.clinicDuration / 60
   const amount = Math.round(hourlyRate * durationHours * 100) / 100
   const currency = (tutorProfile?.currency as string) || 'SGD'
   const preferredGateway = tutorProfile?.paymentGatewayPreference
@@ -183,40 +212,53 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     : (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY')) as GatewayName
   const gateway = getPaymentGateway(gatewayName)
 
+  const [studentRow] = await drizzleDb
+    .select({ email: user.email })
+    .from(user)
+    .where(eq(user.id, booking.studentId))
+    .limit(1)
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
   const paymentResponse = await gateway.createPayment({
     amount,
     currency,
     bookingId: booking.id,
-    studentEmail: booking.student.email,
-    description: `${clinic.title} - ${clinic.subject}`,
-    metadata: { clinicId: clinic.id, clinicTitle: clinic.title },
+    studentEmail: studentRow?.email ?? '',
+    description: `${bookingRow.clinicTitle} - ${bookingRow.clinicSubject}`,
+    metadata: { clinicId: bookingRow.clinic.id, clinicTitle: bookingRow.clinicTitle },
     successUrl: `${baseUrl}/payment/success?type=booking`,
     cancelUrl: `${baseUrl}/payment/cancel?type=booking`
   })
 
-  const payment = await db.payment.upsert({
-    where: { bookingId: booking.id },
-    create: {
+  let paymentId: string
+  if (existingPaymentRow) {
+    await drizzleDb
+      .update(payment)
+      .set({
+        tutorId: bookingRow.tutorId,
+        gatewayPaymentId: paymentResponse.paymentId,
+        gatewayCheckoutUrl: paymentResponse.checkoutUrl,
+        status: 'PENDING'
+      })
+      .where(eq(payment.id, existingPaymentRow.id))
+    paymentId = existingPaymentRow.id
+  } else {
+    paymentId = crypto.randomUUID()
+    await drizzleDb.insert(payment).values({
+      id: paymentId,
       bookingId: booking.id,
       amount,
       currency,
       status: 'PENDING',
       gateway: gatewayName,
-      tutorId: clinic.tutorId,
+      tutorId: bookingRow.tutorId,
       gatewayPaymentId: paymentResponse.paymentId,
       gatewayCheckoutUrl: paymentResponse.checkoutUrl
-    },
-    update: {
-      tutorId: clinic.tutorId,
-      gatewayPaymentId: paymentResponse.paymentId,
-      gatewayCheckoutUrl: paymentResponse.checkoutUrl,
-      status: 'PENDING'
-    }
-  })
+    })
+  }
 
   return NextResponse.json({
     checkoutUrl: paymentResponse.checkoutUrl,
-    paymentId: payment.id
+    paymentId
   })
 }))

@@ -6,8 +6,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError, withRateLimit } from '@/lib/api/middleware'
 import { dailyProvider } from '@/lib/video/daily-provider'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, breakoutRoom, breakoutRoomAssignment } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
+import crypto from 'crypto'
 
 const BreakoutSchema = z.object({
   parentSessionId: z.string().min(1, 'Parent session ID is required').max(128),
@@ -31,62 +34,57 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     throw new ValidationError('Parent session ID and student ID are required')
   }
 
-  // Verify the parent session exists and belongs to this tutor
-  const parentSession = await db.liveSession.findFirst({
-    where: {
-      id: parentSessionId,
-      tutorId: session.user.id
-    }
-  })
+  const [parentSession] = await drizzleDb
+    .select()
+    .from(liveSession)
+    .where(and(eq(liveSession.id, parentSessionId), eq(liveSession.tutorId, session.user.id)))
+    .limit(1)
 
   if (!parentSession) {
     throw new NotFoundError('Parent session not found')
   }
 
-  // Create breakout room via Daily.co
-  const breakoutRoom = await dailyProvider.createBreakoutRoom(
+  const breakoutRoomResult = await dailyProvider.createBreakoutRoom(
     parentSessionId,
     { durationMinutes }
   )
 
-  // Create tokens for tutor and student
   const tutorToken = await dailyProvider.createMeetingToken(
-    breakoutRoom.id,
+    breakoutRoomResult.id,
     session.user.id,
     { isOwner: true, durationMinutes }
   )
 
   const studentToken = await dailyProvider.createMeetingToken(
-    breakoutRoom.id,
+    breakoutRoomResult.id,
     studentId,
     { isOwner: false, durationMinutes }
   )
 
-  // Store breakout room in database
-  const room = await db.breakoutRoom.create({
-    data: {
-      sessionId: parentSessionId,
-      name: `Breakout-${breakoutRoom.id.slice(-6)}`,
-      aiEnabled: true,
-      aiMode: 'passive',
-      status: 'active',
-      endsAt: new Date(Date.now() + durationMinutes * 60 * 1000)
-    }
+  const roomId = crypto.randomUUID()
+  const assignmentId = crypto.randomUUID()
+  await drizzleDb.insert(breakoutRoom).values({
+    id: roomId,
+    sessionId: parentSessionId,
+    name: `Breakout-${breakoutRoomResult.id.slice(-6)}`,
+    aiEnabled: true,
+    aiMode: 'passive',
+    status: 'active',
+    endsAt: new Date(Date.now() + durationMinutes * 60 * 1000),
+    aiNotes: {},
+    alerts: {},
   })
-
-  // Create assignment for student
-  await db.breakoutRoomAssignment.create({
-    data: {
-      roomId: room.id,
-      studentId: studentId
-    }
+  await drizzleDb.insert(breakoutRoomAssignment).values({
+    id: assignmentId,
+    roomId,
+    studentId,
   })
 
   return NextResponse.json({
     breakoutRoom: {
-      id: room.id,
-      dailyRoomId: breakoutRoom.id,
-      url: breakoutRoom.url,
+      id: roomId,
+      dailyRoomId: breakoutRoomResult.id,
+      url: breakoutRoomResult.url,
       tutorToken,
       studentToken
     }

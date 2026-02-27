@@ -7,25 +7,45 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import { UpdateCourseSettingsSchema } from '@/lib/validation/schemas'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumModule, curriculumLesson, curriculumEnrollment } from '@/lib/db/schema'
+import { eq, asc, and, inArray, sql } from 'drizzle-orm'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 
 export const GET = withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    include: {
-      modules: { orderBy: { order: 'asc' }, include: { lessons: { orderBy: { order: 'asc' } } } },
-      _count: { select: { enrollments: true } },
-    },
-  })
+  const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
 
-  if (!curriculum) throw new NotFoundError('Course not found')
+  const modules = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, id))
+    .orderBy(asc(curriculumModule.order))
 
-  const schedule = curriculum.schedule as Array<{ dayOfWeek: string; startTime: string; durationMinutes: number }> | null
+  const moduleIds = modules.map((m) => m.id)
+  const lessons =
+    moduleIds.length > 0
+      ? await drizzleDb
+          .select()
+          .from(curriculumLesson)
+          .where(and(inArray(curriculumLesson.moduleId, moduleIds)))
+          .orderBy(asc(curriculumLesson.order))
+      : []
 
-  const materials = curriculum.courseMaterials as {
+  const [{ count: enrollmentCount }] = await drizzleDb
+    .select({ count: sql<number>`count(*)::int` })
+    .from(curriculumEnrollment)
+    .where(eq(curriculumEnrollment.curriculumId, id))
+
+  const modulesWithLessons = modules.map((m) => ({
+    ...m,
+    lessons: lessons.filter((l) => l.moduleId === m.id),
+  }))
+
+  const schedule = curriculumRow.schedule as Array<{ dayOfWeek: string; startTime: string; durationMinutes: number }> | null
+  const materials = curriculumRow.courseMaterials as {
     curriculumText?: string
     notesText?: string
     editableCurriculum?: string
@@ -36,23 +56,23 @@ export const GET = withAuth(async (req, session, context) => {
 
   return NextResponse.json({
     course: {
-      id: curriculum.id,
-      name: curriculum.name,
-      description: curriculum.description,
-      subject: curriculum.subject,
-      gradeLevel: curriculum.gradeLevel,
-      difficulty: curriculum.difficulty,
-      estimatedHours: curriculum.estimatedHours,
-      isPublished: curriculum.isPublished,
-      isLiveOnline: curriculum.isLiveOnline,
-      languageOfInstruction: curriculum.languageOfInstruction,
-      price: curriculum.price,
-      currency: curriculum.currency,
-      curriculumSource: curriculum.curriculumSource,
-      outlineSource: curriculum.outlineSource,
+      id: curriculumRow.id,
+      name: curriculumRow.name,
+      description: curriculumRow.description,
+      subject: curriculumRow.subject,
+      gradeLevel: curriculumRow.gradeLevel,
+      difficulty: curriculumRow.difficulty,
+      estimatedHours: curriculumRow.estimatedHours,
+      isPublished: curriculumRow.isPublished,
+      isLiveOnline: curriculumRow.isLiveOnline,
+      languageOfInstruction: curriculumRow.languageOfInstruction,
+      price: curriculumRow.price,
+      currency: curriculumRow.currency,
+      curriculumSource: curriculumRow.curriculumSource,
+      outlineSource: curriculumRow.outlineSource,
       schedule: schedule ?? [],
-      studentCount: curriculum._count.enrollments,
-      modules: curriculum.modules,
+      studentCount: enrollmentCount ?? 0,
+      modules: modulesWithLessons,
       courseMaterials: materials ?? undefined,
     },
   })
@@ -61,13 +81,18 @@ export const GET = withAuth(async (req, session, context) => {
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    include: {
-      modules: { include: { lessons: true } }
-    }
-  })
-  if (!curriculum) throw new NotFoundError('Course not found')
+  const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
+
+  const modules = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, id))
+  const moduleIds = modules.map((m) => m.id)
+  const lessons =
+    moduleIds.length > 0
+      ? await drizzleDb.select().from(curriculumLesson).where(inArray(curriculumLesson.moduleId, moduleIds))
+      : []
 
   const body = await req.json().catch(() => ({}))
   const parsed = UpdateCourseSettingsSchema.safeParse(body)
@@ -79,63 +104,55 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
   const safeName = data.name !== undefined && data.name !== null ? sanitizeHtmlWithMax(String(data.name), 200) : undefined
   const safeDescription = data.description !== undefined ? sanitizeHtmlWithMax(String(data.description), 5000) : undefined
 
-  // Pre-publish validation: check required fields before publishing
-  if (data.isPublished === true && !curriculum.isPublished) {
+  if (data.isPublished === true && !curriculumRow.isPublished) {
     const validationErrors: string[] = []
-
-    // Check course name
-    if (!curriculum.name || curriculum.name.trim().length < 2) {
+    if (!curriculumRow.name || curriculumRow.name.trim().length < 2) {
       validationErrors.push('Course must have a name (at least 2 characters)')
     }
-
-    // Check subject
-    if (!curriculum.subject) {
+    if (!curriculumRow.subject) {
       validationErrors.push('Course must have a subject selected')
     }
-
-    // Check at least one module exists
-    if (curriculum.modules.length === 0) {
+    if (modules.length === 0) {
       validationErrors.push('Course must have at least one module')
     }
-
-    // Check at least one lesson exists
-    const hasLessons = curriculum.modules.some((m: any) => m.lessons.length > 0)
+    const hasLessons = modules.some((m) => lessons.some((l) => l.moduleId === m.id))
     if (!hasLessons) {
       validationErrors.push('Course must have at least one lesson')
     }
-
-    // Check price is set (can be 0 for free courses)
-    if (curriculum.price === null || curriculum.price === undefined) {
+    if (curriculumRow.price === null || curriculumRow.price === undefined) {
       validationErrors.push('Course must have a price set (use 0 for free courses)')
     }
-
-    // Check currency is set if price > 0
-    if ((curriculum.price ?? 0) > 0 && !curriculum.currency) {
+    if ((curriculumRow.price ?? 0) > 0 && !curriculumRow.currency) {
       validationErrors.push('Currency must be set for paid courses')
     }
-
     if (validationErrors.length > 0) {
       throw new ValidationError(`Cannot publish course: ${validationErrors.join('; ')}`)
     }
   }
 
-  const updated = await db.curriculum.update({
-    where: { id },
-    data: {
-      ...(safeName !== undefined && { name: safeName }),
-      ...(safeDescription !== undefined && { description: safeDescription }),
-      ...(data.gradeLevel !== undefined && { gradeLevel: data.gradeLevel }),
-      ...(data.difficulty !== undefined && data.difficulty !== null && { difficulty: data.difficulty }),
-      ...(data.languageOfInstruction !== undefined && { languageOfInstruction: data.languageOfInstruction }),
-      ...(data.price !== undefined && { price: data.price }),
-      ...(data.currency !== undefined && { currency: data.currency }),
-      ...(data.curriculumSource !== undefined && { curriculumSource: data.curriculumSource }),
-      ...(data.outlineSource !== undefined && { outlineSource: data.outlineSource }),
-      ...(data.schedule !== undefined && { schedule: data.schedule as object }),
-      ...(data.isLiveOnline !== undefined && { isLiveOnline: data.isLiveOnline }),
-      ...(data.isPublished !== undefined && { isPublished: data.isPublished }),
-    },
-  })
+  const updatePayload: Record<string, unknown> = {}
+  if (safeName !== undefined) updatePayload.name = safeName
+  if (safeDescription !== undefined) updatePayload.description = safeDescription
+  if (data.gradeLevel !== undefined) updatePayload.gradeLevel = data.gradeLevel
+  if (data.difficulty !== undefined && data.difficulty !== null) updatePayload.difficulty = data.difficulty
+  if (data.languageOfInstruction !== undefined) updatePayload.languageOfInstruction = data.languageOfInstruction
+  if (data.price !== undefined) updatePayload.price = data.price
+  if (data.currency !== undefined) updatePayload.currency = data.currency
+  if (data.curriculumSource !== undefined) updatePayload.curriculumSource = data.curriculumSource
+  if (data.outlineSource !== undefined) updatePayload.outlineSource = data.outlineSource
+  if (data.schedule !== undefined) updatePayload.schedule = data.schedule
+  if (data.isLiveOnline !== undefined) updatePayload.isLiveOnline = data.isLiveOnline
+  if (data.isPublished !== undefined) updatePayload.isPublished = data.isPublished
+
+  const [updated] = await drizzleDb
+    .update(curriculum)
+    .set(updatePayload as Record<string, unknown>)
+    .where(eq(curriculum.id, id))
+    .returning()
+
+  if (!updated) {
+    throw new NotFoundError('Course not found')
+  }
 
   return NextResponse.json({
     course: {

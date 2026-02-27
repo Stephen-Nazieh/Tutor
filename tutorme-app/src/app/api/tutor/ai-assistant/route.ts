@@ -6,74 +6,80 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aIAssistantSession, aIAssistantMessage, aIAssistantInsight } from '@/lib/db/schema'
+import { eq, and, desc, asc, gte } from 'drizzle-orm'
 import { chatWithFallback } from '@/lib/ai/orchestrator'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
+import { randomUUID } from 'crypto'
 
 // GET - Get or create active session
 export const GET = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
-  // Get most recent active session
-  let aiSession = await db.aIAssistantSession.findFirst({
-    where: { tutorId, status: 'active' },
-    orderBy: { updatedAt: 'desc' },
-    include: {
-      messages: {
-        orderBy: { createdAt: 'asc' },
-        take: 50,
-      },
-      insights: {
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      },
-    },
-  })
-  
-  // Create new session if none exists
-  if (!aiSession) {
-    aiSession = await db.aIAssistantSession.create({
-      data: {
-        tutorId,
-        title: 'AI Teaching Assistant',
-        status: 'active',
-      },
-      include: {
-        messages: true,
-        insights: true,
-      },
+
+  const activeSessions = await drizzleDb
+    .select()
+    .from(aIAssistantSession)
+    .where(and(eq(aIAssistantSession.tutorId, tutorId), eq(aIAssistantSession.status, 'active')))
+    .orderBy(desc(aIAssistantSession.updatedAt))
+    .limit(1)
+
+  let aiSessionRow = activeSessions[0] ?? null
+
+  if (!aiSessionRow) {
+    const id = randomUUID()
+    await drizzleDb.insert(aIAssistantSession).values({
+      id,
+      tutorId,
+      title: 'AI Teaching Assistant',
+      status: 'active',
     })
-    
-    // Add welcome message
-    await db.aIAssistantMessage.create({
-      data: {
-        sessionId: aiSession.id,
-        role: 'assistant',
-        content: "Hello! I'm your AI Teaching Assistant. I can help you with:\n\n• Lesson plan ideas\n• Explaining complex topics\n• Analyzing student performance\n• Generating practice questions\n• Teaching strategies\n\nWhat would you like help with today?",
-      },
+    await drizzleDb.insert(aIAssistantMessage).values({
+      id: randomUUID(),
+      sessionId: id,
+      role: 'assistant',
+      content:
+        "Hello! I'm your AI Teaching Assistant. I can help you with:\n\n• Lesson plan ideas\n• Explaining complex topics\n• Analyzing student performance\n• Generating practice questions\n• Teaching strategies\n\nWhat would you like help with today?",
     })
-    
-    // Refresh to include welcome message
-    aiSession = await db.aIAssistantSession.findUnique({
-      where: { id: aiSession.id },
-      include: {
-        messages: { orderBy: { createdAt: 'asc' } },
-        insights: true,
-      },
-    })
+    const [created] = await drizzleDb
+      .select()
+      .from(aIAssistantSession)
+      .where(eq(aIAssistantSession.id, id))
+      .limit(1)
+    aiSessionRow = created!
   }
-  
-  return NextResponse.json({ session: aiSession })
+
+  const sessionId = aiSessionRow.id
+  const messages = await drizzleDb
+    .select()
+    .from(aIAssistantMessage)
+    .where(eq(aIAssistantMessage.sessionId, sessionId))
+    .orderBy(asc(aIAssistantMessage.createdAt))
+    .limit(50)
+  const insights = await drizzleDb
+    .select()
+    .from(aIAssistantInsight)
+    .where(eq(aIAssistantInsight.sessionId, sessionId))
+    .orderBy(desc(aIAssistantInsight.createdAt))
+    .limit(10)
+
+  const sessionPayload = {
+    ...aiSessionRow,
+    messages,
+    insights,
+  }
+
+  return NextResponse.json({ session: sessionPayload })
 }, { role: 'TUTOR' })
 
 // POST - Send message and get AI response
 export const POST = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
     const { message, sessionId, context } = body
-    
+
     if (!message) {
       return NextResponse.json(
         { error: 'Message is required' },
@@ -88,77 +94,79 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         { status: 400 }
       )
     }
-    
-    // Get or create session
-    let aiSession
+
+    let aiSessionRow: (typeof aIAssistantSession.$inferSelect) | null = null
     if (sessionId) {
-      aiSession = await db.aIAssistantSession.findFirst({
-        where: { id: sessionId, tutorId },
-      })
+      const rows = await drizzleDb
+        .select()
+        .from(aIAssistantSession)
+        .where(and(eq(aIAssistantSession.id, sessionId), eq(aIAssistantSession.tutorId, tutorId)))
+        .limit(1)
+      aiSessionRow = rows[0] ?? null
     }
-    
-    if (!aiSession) {
-      aiSession = await db.aIAssistantSession.create({
-        data: {
-          tutorId,
-          title: context ? `Chat about ${context}` : 'AI Teaching Assistant',
-          context,
-          status: 'active',
-        },
+
+    if (!aiSessionRow) {
+      const id = randomUUID()
+      await drizzleDb.insert(aIAssistantSession).values({
+        id,
+        tutorId,
+        title: context ? `Chat about ${context}` : 'AI Teaching Assistant',
+        context: context ?? null,
+        status: 'active',
       })
+      const [created] = await drizzleDb
+        .select()
+        .from(aIAssistantSession)
+        .where(eq(aIAssistantSession.id, id))
+        .limit(1)
+      aiSessionRow = created!
     }
-    
-    // Save user message (sanitized)
-    await db.aIAssistantMessage.create({
-      data: {
-        sessionId: aiSession.id,
-        role: 'user',
-        content: safeMessage,
-      },
+
+    await drizzleDb.insert(aIAssistantMessage).values({
+      id: randomUUID(),
+      sessionId: aiSessionRow.id,
+      role: 'user',
+      content: safeMessage,
     })
-    
-    // Get recent messages for context
-    const recentMessages = await db.aIAssistantMessage.findMany({
-      where: { sessionId: aiSession.id },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    })
-    
-    // Build conversation for AI (sanitize user messages to prevent prompt injection)
-    const conversation = recentMessages.reverse().map((m: { role: string; content: string }) => ({
+
+    const recentRows = await drizzleDb
+      .select()
+      .from(aIAssistantMessage)
+      .where(eq(aIAssistantMessage.sessionId, aiSessionRow.id))
+      .orderBy(desc(aIAssistantMessage.createdAt))
+      .limit(10)
+    const conversation = recentRows.reverse().map((m) => ({
       role: m.role as 'user' | 'assistant' | 'system',
       content: m.role === 'user' ? AISecurityManager.sanitizeAiInput(m.content || '') : (m.content || ''),
     }))
-    
-    // Add system prompt
+
     const systemPrompt = `You are an AI Teaching Assistant helping tutors improve their teaching. 
 You can help with lesson planning, explaining concepts, student engagement strategies, and content creation.
 Be concise, practical, and encouraging. Provide specific examples when possible.`
-    
-    // Get AI response
+
     const aiResult = await chatWithFallback([
       { role: 'system', content: systemPrompt },
       ...conversation,
     ])
     const aiResponseContent = typeof aiResult === 'string' ? aiResult : aiResult.content
 
-    // Save AI response
-    const assistantMessage = await db.aIAssistantMessage.create({
-      data: {
-        sessionId: aiSession.id,
+    const assistantMessageRow = await drizzleDb
+      .insert(aIAssistantMessage)
+      .values({
+        id: randomUUID(),
+        sessionId: aiSessionRow.id,
         role: 'assistant',
         content: aiResponseContent,
         metadata: { model: 'fallback', timestamp: new Date().toISOString() },
-      },
-    })
-    
-    // Update session timestamp
-    await db.aIAssistantSession.update({
-      where: { id: aiSession.id },
-      data: { updatedAt: new Date() },
-    })
-    
-    // Validate AI response before returning
+      })
+      .returning()
+      .then((r) => r[0])
+
+    await drizzleDb
+      .update(aIAssistantSession)
+      .set({ updatedAt: new Date() })
+      .where(eq(aIAssistantSession.id, aiSessionRow.id))
+
     const validation = await AISecurityManager.validateAiResponse(aiResponseContent)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
       return NextResponse.json(
@@ -167,12 +175,11 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
       )
     }
 
-    // Generate insights based on conversation
-    await generateInsights(aiSession.id, tutorId, safeMessage, aiResponseContent)
+    await generateInsights(aiSessionRow.id, tutorId, safeMessage, aiResponseContent)
 
     return NextResponse.json({
-      message: assistantMessage,
-      session: aiSession,
+      message: assistantMessageRow,
+      session: aiSessionRow,
     })
   } catch (error) {
     console.error('AI Assistant error:', error)
@@ -183,58 +190,44 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
   }
 }, { role: 'TUTOR' })
 
-// Generate insights from conversation
 async function generateInsights(
-  sessionId: string, 
-  tutorId: string, 
-  userMessage: string, 
+  sessionId: string,
+  tutorId: string,
+  userMessage: string,
   aiResponse: string
 ) {
-  // Check for patterns that suggest insights
   const patterns = [
-    { 
-      type: 'lesson_idea', 
-      keywords: ['lesson', 'plan', 'teach', 'topic', 'subject'],
-      title: 'Lesson Plan Suggestion',
-    },
-    { 
-      type: 'student_analysis', 
-      keywords: ['student', 'struggling', 'difficulty', 'performance'],
-      title: 'Student Support Strategy',
-    },
-    { 
-      type: 'content_suggestion', 
-      keywords: ['material', 'content', 'resource', 'worksheet', 'quiz'],
-      title: 'Content Resource Idea',
-    },
-    { 
-      type: 'engagement_tip', 
-      keywords: ['engage', 'attention', 'participation', 'interactive'],
-      title: 'Engagement Tip',
-    },
+    { type: 'lesson_idea', keywords: ['lesson', 'plan', 'teach', 'topic', 'subject'], title: 'Lesson Plan Suggestion' },
+    { type: 'student_analysis', keywords: ['student', 'struggling', 'difficulty', 'performance'], title: 'Student Support Strategy' },
+    { type: 'content_suggestion', keywords: ['material', 'content', 'resource', 'worksheet', 'quiz'], title: 'Content Resource Idea' },
+    { type: 'engagement_tip', keywords: ['engage', 'attention', 'participation', 'interactive'], title: 'Engagement Tip' },
   ]
-  
+
   const lowerMessage = userMessage.toLowerCase()
-  
+
   for (const pattern of patterns) {
-    if (pattern.keywords.some(k => lowerMessage.includes(k))) {
-      // Check if we already have a recent insight of this type
-      const existing = await db.aIAssistantInsight.findFirst({
-        where: { 
-          sessionId, 
+    if (pattern.keywords.some((k) => lowerMessage.includes(k))) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+      const existing = await drizzleDb
+        .select()
+        .from(aIAssistantInsight)
+        .where(
+          and(
+            eq(aIAssistantInsight.sessionId, sessionId),
+            eq(aIAssistantInsight.type, pattern.type),
+            gte(aIAssistantInsight.createdAt, oneHourAgo)
+          )
+        )
+        .limit(1)
+      const hasRecent = existing.length > 0
+      if (!hasRecent) {
+        await drizzleDb.insert(aIAssistantInsight).values({
+          id: randomUUID(),
+          sessionId,
           type: pattern.type,
-          createdAt: { gte: new Date(Date.now() - 1000 * 60 * 60) }, // Within last hour
-        },
-      })
-      
-      if (!existing) {
-        await db.aIAssistantInsight.create({
-          data: {
-            sessionId,
-            type: pattern.type,
-            title: pattern.title,
-            content: aiResponse.slice(0, 500),
-          },
+          title: pattern.title,
+          content: aiResponse.slice(0, 500),
+          applied: false,
         })
       }
       break

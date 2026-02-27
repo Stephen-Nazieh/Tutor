@@ -11,8 +11,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { calendarAvailability, calendarException, calendarEvent } from '@/lib/db/schema'
+import { eq, and, or, gte, lte, asc, isNull } from 'drizzle-orm'
 import { z } from 'zod'
+import { nanoid } from 'nanoid'
 
 const AvailabilitySchema = z.object({
   dayOfWeek: z.number().min(0).max(6),
@@ -33,28 +36,24 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   const check = searchParams.get('check') === 'true'
   
   try {
-    // Get recurring availability
-    const availability = await db.calendarAvailability.findMany({
-      where: {
-        tutorId,
-        OR: [
-          { validUntil: null },
-          { validUntil: { gte: new Date() } },
-        ],
-      },
-      orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
-    })
-    
-    // Get exceptions
-    const exceptions = await db.calendarException.findMany({
-      where: {
-        tutorId,
-        date: {
-          gte: start ? new Date(start) : new Date(),
-          ...(end ? { lte: new Date(end) } : {}),
-        },
-      },
-    })
+    const now = new Date()
+    const availabilityWhere = and(
+      eq(calendarAvailability.tutorId, tutorId),
+      or(isNull(calendarAvailability.validUntil), gte(calendarAvailability.validUntil, now))
+    )
+    const availability = await drizzleDb
+      .select()
+      .from(calendarAvailability)
+      .where(availabilityWhere)
+      .orderBy(asc(calendarAvailability.dayOfWeek), asc(calendarAvailability.startTime))
+
+    const exceptionConditions = [eq(calendarException.tutorId, tutorId)]
+    if (start) exceptionConditions.push(gte(calendarException.date, new Date(start)))
+    if (end) exceptionConditions.push(lte(calendarException.date, new Date(end)))
+    const exceptions = await drizzleDb
+      .select()
+      .from(calendarException)
+      .where(and(...exceptionConditions))
     
     if (!check) {
       // Return raw availability data
@@ -119,9 +118,10 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
     
-    // Create availability slot
-    const availability = await db.calendarAvailability.create({
-      data: {
+    const [created] = await drizzleDb
+      .insert(calendarAvailability)
+      .values({
+        id: nanoid(),
         tutorId,
         dayOfWeek: data.dayOfWeek,
         startTime: data.startTime,
@@ -130,13 +130,13 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         isAvailable: data.isAvailable,
         validFrom: data.validFrom ? new Date(data.validFrom) : null,
         validUntil: data.validUntil ? new Date(data.validUntil) : null,
-      },
-    })
-    
+      })
+      .returning()
+    const availability = created!
+
     return NextResponse.json({ availability }, { status: 201 })
   } catch (error: any) {
-    // Handle unique constraint violation
-    if (error.code === 'P2002') {
+    if (error.code === '23505') {
       return NextResponse.json(
         { error: 'Availability slot already exists for this time' },
         { status: 409 }
@@ -162,22 +162,26 @@ async function generateAvailableSlots(
   const slots: any[] = []
   const currentDate = new Date(startDate)
   
-  // Get existing events in range
-  const existingEvents = await db.calendarEvent.findMany({
-    where: {
-      tutorId,
-      deletedAt: null,
-      isCancelled: false,
-      OR: [
-        {
-          startTime: { gte: startDate, lte: endDate },
-        },
-        {
-          endTime: { gte: startDate, lte: endDate },
-        },
-      ],
-    },
-  })
+  const existingEvents = await drizzleDb
+    .select()
+    .from(calendarEvent)
+    .where(
+      and(
+        eq(calendarEvent.tutorId, tutorId),
+        isNull(calendarEvent.deletedAt),
+        eq(calendarEvent.isCancelled, false),
+        or(
+          and(
+            gte(calendarEvent.startTime, startDate),
+            lte(calendarEvent.startTime, endDate)
+          ),
+          and(
+            gte(calendarEvent.endTime, startDate),
+            lte(calendarEvent.endTime, endDate)
+          )
+        )
+      )
+    )
   
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay()

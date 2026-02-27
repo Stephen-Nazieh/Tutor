@@ -1,16 +1,18 @@
 /**
  * AI Quiz Generation API
  * POST /api/tutor/ai-assistant/quiz
- * 
+ *
  * Generates quizzes with adaptive difficulty and various question types.
- * Supports: multiple choice, true/false, short answer, fill in the blank
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { quiz, aIAssistantInsight } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { z } from 'zod'
+import { randomUUID } from 'crypto'
 
 const QuestionTypes = ['mcq', 'true_false', 'short_answer', 'fill_blank'] as const
 const DifficultyLevels = ['beginner', 'intermediate', 'advanced'] as const
@@ -25,17 +27,17 @@ const QuizRequestSchema = z.object({
   learningObjectives: z.array(z.string()).optional(),
   includeAnswers: z.boolean().default(true),
   includeExplanations: z.boolean().default(true),
-  timeLimit: z.number().optional(), // minutes
-  adaptiveBasedOn: z.string().optional(), // previous quiz ID for adaptive difficulty
+  timeLimit: z.number().optional(),
+  adaptiveBasedOn: z.string().optional(),
 })
 
 type QuizRequest = z.infer<typeof QuizRequestSchema>
 
 interface Question {
   id: string
-  type: typeof QuestionTypes[number]
+  type: (typeof QuestionTypes)[number]
   question: string
-  options?: string[] // for mcq
+  options?: string[]
   correctAnswer: string
   explanation?: string
   difficulty: string
@@ -55,25 +57,23 @@ interface Quiz {
 }
 
 function generateQuizPrompt(params: QuizRequest): string {
-  const typeDescriptions: Record<typeof QuestionTypes[number], string> = {
+  const typeDescriptions: Record<(typeof QuestionTypes)[number], string> = {
     mcq: 'Multiple choice with 4 options (A, B, C, D)',
     true_false: 'True/False questions',
     short_answer: 'Short answer questions (1-2 sentence answers)',
     fill_blank: 'Fill in the blank questions with clear blanks indicated',
   }
-  
-  const difficultyGuidelines: Record<typeof DifficultyLevels[number], string> = {
+  const difficultyGuidelines: Record<(typeof DifficultyLevels)[number], string> = {
     beginner: 'Focus on recall and basic understanding. Use straightforward language.',
     intermediate: 'Focus on application and analysis. Require some reasoning.',
     advanced: 'Focus on synthesis and evaluation. Require critical thinking and deep understanding.',
   }
-  
   return `
 Create a ${params.difficulty} level quiz on "${params.topic}" for ${params.subject}.
 
 SPECIFICATIONS:
 - Number of questions: ${params.questionCount}
-- Question types: ${params.questionTypes.map(t => typeDescriptions[t]).join(', ')}
+- Question types: ${params.questionTypes.map((t) => typeDescriptions[t]).join(', ')}
 - Difficulty: ${params.difficulty} (${difficultyGuidelines[params.difficulty]})
 ${params.gradeLevel ? `- Target grade level: ${params.gradeLevel}` : ''}
 ${params.learningObjectives?.length ? `- Learning objectives: ${params.learningObjectives.join(', ')}` : ''}
@@ -117,12 +117,9 @@ function generateId(): string {
 
 function parseQuizResponse(content: string, params: QuizRequest): Quiz {
   try {
-    // Try to extract JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
-      
-      // Add IDs to questions
       const questions: Question[] = (parsed.questions || []).map((q: Partial<Question>) => ({
         id: generateId(),
         type: q.type || 'mcq',
@@ -133,9 +130,7 @@ function parseQuizResponse(content: string, params: QuizRequest): Quiz {
         difficulty: q.difficulty || params.difficulty,
         points: q.points || 1,
       }))
-      
       const totalPoints = questions.reduce((sum, q) => sum + q.points, 0)
-      
       return {
         title: parsed.title || `${params.topic} Quiz`,
         description: parsed.description || `A ${params.difficulty} quiz on ${params.topic}`,
@@ -148,11 +143,9 @@ function parseQuizResponse(content: string, params: QuizRequest): Quiz {
         instructions: parsed.instructions || 'Answer all questions to the best of your ability.',
       }
     }
-  } catch (e) {
-    console.log('JSON parse failed, using fallback')
+  } catch {
+    // fallthrough
   }
-  
-  // Fallback: create a basic quiz structure
   return {
     title: `${params.topic} Quiz`,
     description: `A ${params.difficulty} level quiz covering ${params.topic}.`,
@@ -166,11 +159,12 @@ function parseQuizResponse(content: string, params: QuizRequest): Quiz {
       id: generateId(),
       type: params.questionTypes[i % params.questionTypes.length],
       question: `Question ${i + 1} about ${params.topic}`,
-      options: params.questionTypes[i % params.questionTypes.length] === 'mcq' 
-        ? ['Option A', 'Option B', 'Option C', 'Option D']
-        : params.questionTypes[i % params.questionTypes.length] === 'true_false'
-          ? ['True', 'False']
-          : undefined,
+      options:
+        params.questionTypes[i % params.questionTypes.length] === 'mcq'
+          ? ['Option A', 'Option B', 'Option C', 'Option D']
+          : params.questionTypes[i % params.questionTypes.length] === 'true_false'
+            ? ['True', 'False']
+            : undefined,
       correctAnswer: 'Answer',
       explanation: params.includeExplanations ? 'Explanation of the answer' : undefined,
       difficulty: params.difficulty,
@@ -181,69 +175,73 @@ function parseQuizResponse(content: string, params: QuizRequest): Quiz {
 
 export const POST = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
     const validation = QuizRequestSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: validation.error.format() },
         { status: 400 }
       )
     }
-    
+
     const params = validation.data
-    
-    // Generate quiz prompt
     const prompt = generateQuizPrompt(params)
-    
-    // Generate quiz
     const result = await generateWithFallback(prompt, {
       temperature: 0.7,
       maxTokens: 3000,
     })
-    
-    // Parse the response
-    const quiz = parseQuizResponse(result.content, params)
-    
-    // Save quiz to database if table exists
-    const savedQuiz = await db.quiz?.create({
-      data: {
-        tutorId,
-        title: quiz.title,
-        description: quiz.description,
-        topic: quiz.topic,
-        subject: quiz.subject,
-        difficulty: quiz.difficulty,
-        timeLimit: quiz.timeLimit,
-        questions: quiz.questions,
-        totalPoints: quiz.totalPoints,
-      },
-    }).catch(() => {
-      console.log('Quiz table not found, skipping save')
-      return null
-    })
-    
-    // Create insight
-    await db.aIAssistantInsight.create({
-      data: {
+
+    const quizData = parseQuizResponse(result.content, params)
+
+    let savedQuiz: { id: string } | null = null
+    try {
+      const [inserted] = await drizzleDb
+        .insert(quiz)
+        .values({
+          id: randomUUID(),
+          tutorId,
+          title: quizData.title,
+          description: quizData.description,
+          type: 'generated',
+          status: 'draft',
+          timeLimit: quizData.timeLimit ?? null,
+          allowedAttempts: 3,
+          shuffleQuestions: true,
+          shuffleOptions: true,
+          showCorrectAnswers: 'after_submit',
+          questions: quizData.questions,
+          totalPoints: quizData.totalPoints,
+          tags: [],
+        })
+        .returning({ id: quiz.id })
+      savedQuiz = inserted ?? null
+    } catch {
+      // Quiz table save skipped
+    }
+
+    try {
+      await drizzleDb.insert(aIAssistantInsight).values({
+        id: randomUUID(),
         sessionId: body.sessionId || 'temp',
         type: 'content_suggestion',
-        title: `Generated Quiz: ${quiz.title}`,
-        content: `${quiz.questions.length} questions on ${quiz.topic}`,
+        title: `Generated Quiz: ${quizData.title}`,
+        content: `${quizData.questions.length} questions on ${quizData.topic}`,
         relatedData: {
-          topic: quiz.topic,
-          difficulty: quiz.difficulty,
-          questionCount: quiz.questions.length,
+          topic: quizData.topic,
+          difficulty: quizData.difficulty,
+          questionCount: quizData.questions.length,
         },
-      },
-    }).catch(() => {
-      // Continue even if insight creation fails
-    })
-    
+        applied: false,
+      })
+    } catch {
+      // continue
+    }
+
     return NextResponse.json({
-      quiz,
+      quiz: quizData,
       saved: !!savedQuiz,
       quizId: savedQuiz?.id,
       metadata: {
@@ -262,23 +260,27 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 }, { role: 'TUTOR' })
 
 // GET - List generated quizzes
-export const GET = withAuth(async (req: NextRequest, session) => {
+export const GET = withAuth(async (_req: NextRequest, session) => {
   const tutorId = session.user.id
-  
   try {
-    const quizzes = await db.quiz?.findMany({
-      where: { tutorId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        title: true,
-        topic: true,
-        subject: true,
-        difficulty: true,
-        createdAt: true,
-      },
-    }).catch(() => []) || []
-    
+    const rows = await drizzleDb
+      .select({
+        id: quiz.id,
+        title: quiz.title,
+        createdAt: quiz.createdAt,
+      })
+      .from(quiz)
+      .where(eq(quiz.tutorId, tutorId))
+      .orderBy(desc(quiz.createdAt))
+
+    const quizzes = rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      topic: null as string | null,
+      subject: null as string | null,
+      difficulty: null as string | null,
+      createdAt: r.createdAt,
+    }))
     return NextResponse.json({ quizzes })
   } catch (error) {
     console.error('Fetch quizzes error:', error)

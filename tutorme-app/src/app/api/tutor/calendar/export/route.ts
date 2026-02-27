@@ -8,7 +8,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { calendarEvent, user, profile } from '@/lib/db/schema'
+import { eq, and, or, gte, lte, asc, isNull } from 'drizzle-orm'
 
 function generateICalEvent(event: any): string {
   const formatDate = (date: Date, allDay: boolean = false) => {
@@ -108,40 +110,31 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     const startDate = start ? new Date(start) : defaultStart
     const endDate = end ? new Date(end) : defaultEnd
     
-    const events = await db.calendarEvent.findMany({
-      where: {
-        tutorId,
-        deletedAt: null,
-        ...(type ? { type: type as any } : {}),
-        OR: [
-          {
-            startTime: { gte: startDate, lte: endDate },
-          },
-          {
-            endTime: { gte: startDate, lte: endDate },
-          },
-          {
-            AND: [
-              { startTime: { lte: startDate } },
-              { endTime: { gte: endDate } },
-            ],
-          },
-        ],
-      },
-      orderBy: { startTime: 'asc' },
-    })
-    
-    // Get tutor info
-    const tutor = await db.user.findUnique({
-      where: { id: tutorId },
-      include: {
-        profile: {
-          select: { name: true },
-        },
-      },
-    })
-    
-    const tutorName = tutor?.profile?.name || 'Tutor'
+    const eventConditions = [
+      eq(calendarEvent.tutorId, tutorId),
+      isNull(calendarEvent.deletedAt),
+      or(
+        and(gte(calendarEvent.startTime, startDate), lte(calendarEvent.startTime, endDate)),
+        and(gte(calendarEvent.endTime, startDate), lte(calendarEvent.endTime, endDate)),
+        and(lte(calendarEvent.startTime, startDate), gte(calendarEvent.endTime, endDate))
+      ),
+    ]
+    if (type) eventConditions.push(eq(calendarEvent.type, type as 'LESSON' | 'CLINIC' | 'CONSULTATION' | 'BREAK' | 'PERSONAL' | 'OTHER'))
+
+    const events = await drizzleDb
+      .select()
+      .from(calendarEvent)
+      .where(and(...eventConditions))
+      .orderBy(asc(calendarEvent.startTime))
+
+    const [tutorRow] = await drizzleDb
+      .select({ profileName: profile.name })
+      .from(user)
+      .leftJoin(profile, eq(user.id, profile.userId))
+      .where(eq(user.id, tutorId))
+      .limit(1)
+
+    const tutorName = tutorRow?.profileName || 'Tutor'
     
     // Generate iCal content
     let ical = 'BEGIN:VCALENDAR\r\n'

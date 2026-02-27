@@ -6,7 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { contentItem, videoWatchEvent } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const params = context?.params ? await context.params : null
@@ -30,22 +32,30 @@ export const POST = withCsrf(withAuth(async (req, session, context: any) => {
     )
   }
 
-  const content = await db.contentItem.findFirst({
-    where: { id: contentId, isPublished: true },
-    select: { id: true },
-  })
+  const [content] = await drizzleDb
+    .select({ id: contentItem.id })
+    .from(contentItem)
+    .where(
+      and(
+        eq(contentItem.id, contentId),
+        eq(contentItem.isPublished, true)
+      )
+    )
+    .limit(1)
   if (!content) {
     return NextResponse.json({ error: 'Content not found' }, { status: 404 })
   }
 
-  await db.videoWatchEvent.create({
-    data: {
-      contentId,
-      studentId: session.user.id,
-      eventType: 'quiz_skip',
-      videoSeconds: videoTimestampSeconds,
-      metadata: { note: typeof body.note === 'string' ? body.note.slice(0, 500) : undefined },
-    },
+  await drizzleDb.insert(videoWatchEvent).values({
+    id: crypto.randomUUID(),
+    contentId,
+    studentId: session.user.id,
+    eventType: 'quiz_skip',
+    videoSeconds: videoTimestampSeconds,
+    metadata:
+      typeof body.note === 'string'
+        ? { note: body.note.slice(0, 500) }
+        : undefined,
   })
 
   return NextResponse.json({ ok: true })

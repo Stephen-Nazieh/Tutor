@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { whiteboard, whiteboardPage, whiteboardSnapshot } from '@/lib/db/schema'
+import { eq, and, isNull, desc } from 'drizzle-orm'
+import crypto from 'crypto'
 
 const MAX_SNAPSHOTS_PER_ROOM = 30
 
@@ -20,50 +23,73 @@ const getSchema = z.object({
 })
 
 async function ensurePdfWhiteboard(userId: string, roomId: string) {
-  const existing = await db.whiteboard.findFirst({
-    where: {
-      tutorId: userId,
-      roomId,
-      title: `PDF Tutoring ${roomId}`,
-      deletedAt: null,
-    },
-    include: { pages: true },
-  })
+  const title = `PDF Tutoring ${roomId}`
+  const [existing] = await drizzleDb
+    .select()
+    .from(whiteboard)
+    .where(
+      and(
+        eq(whiteboard.tutorId, userId),
+        eq(whiteboard.roomId, roomId),
+        eq(whiteboard.title, title),
+        isNull(whiteboard.deletedAt)
+      )
+    )
+    .limit(1)
 
   if (existing) {
-    if (!existing.pages.length) {
-      await db.whiteboardPage.create({
-        data: {
-          whiteboardId: existing.id,
-          name: 'PDF Page 1',
-          order: 0,
-          backgroundColor: '#ffffff',
-          backgroundStyle: 'solid',
-        },
+    const pages = await drizzleDb
+      .select()
+      .from(whiteboardPage)
+      .where(eq(whiteboardPage.whiteboardId, existing.id))
+    if (pages.length === 0) {
+      await drizzleDb.insert(whiteboardPage).values({
+        id: crypto.randomUUID(),
+        whiteboardId: existing.id,
+        name: 'PDF Page 1',
+        order: 0,
+        backgroundColor: '#ffffff',
+        backgroundStyle: 'solid',
+        strokes: [],
+        shapes: [],
+        texts: [],
+        images: [],
       })
     }
     return existing
   }
 
-  return db.whiteboard.create({
-    data: {
-      tutorId: userId,
-      roomId,
-      title: `PDF Tutoring ${roomId}`,
-      description: 'Persisted PDF tutoring collaboration snapshots',
-      ownerType: 'tutor',
-      visibility: 'tutor-only',
-      pages: {
-        create: {
-          name: 'PDF Page 1',
-          order: 0,
-          backgroundColor: '#ffffff',
-          backgroundStyle: 'solid',
-        },
-      },
-    },
-    include: { pages: true },
+  const whiteboardId = crypto.randomUUID()
+  await drizzleDb.insert(whiteboard).values({
+    id: whiteboardId,
+    tutorId: userId,
+    roomId,
+    title,
+    description: 'Persisted PDF tutoring collaboration snapshots',
+    ownerType: 'tutor',
+    visibility: 'tutor-only',
+    isTemplate: false,
+    isPublic: false,
+    width: 1920,
+    height: 1080,
+    backgroundColor: '#ffffff',
+    backgroundStyle: 'solid',
+    isBroadcasting: false,
   })
+  await drizzleDb.insert(whiteboardPage).values({
+    id: crypto.randomUUID(),
+    whiteboardId,
+    name: 'PDF Page 1',
+    order: 0,
+    backgroundColor: '#ffffff',
+    backgroundStyle: 'solid',
+    strokes: [],
+    shapes: [],
+    texts: [],
+    images: [],
+  })
+  const [created] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.id, whiteboardId)).limit(1)
+  return created!
 }
 
 export const GET = withAuth(async (req: NextRequest, session) => {
@@ -75,13 +101,14 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   const userId = session.user.id
   const { roomId, limit } = parsed.data
 
-  const whiteboard = await ensurePdfWhiteboard(userId, roomId)
+  const wb = await ensurePdfWhiteboard(userId, roomId)
 
-  const snapshots = await db.whiteboardSnapshot.findMany({
-    where: { whiteboardId: whiteboard.id },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-  })
+  const snapshots = await drizzleDb
+    .select()
+    .from(whiteboardSnapshot)
+    .where(eq(whiteboardSnapshot.whiteboardId, wb.id))
+    .orderBy(desc(whiteboardSnapshot.createdAt))
+    .limit(limit)
 
   return NextResponse.json({ snapshots })
 })
@@ -96,40 +123,40 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   const userId = session.user.id
   const { roomId, page, width, height, objects, name } = parsed.data
 
-  const whiteboard = await ensurePdfWhiteboard(userId, roomId)
+  const wb = await ensurePdfWhiteboard(userId, roomId)
 
-  const snapshot = await db.whiteboardSnapshot.create({
-    data: {
-      whiteboardId: whiteboard.id,
-      name: name || `PDF Snapshot ${new Date().toLocaleString()}`,
-      createdBy: userId,
-      pages: [
-        {
-          page,
-          width,
-          height,
-          objects,
-          capturedAt: new Date().toISOString(),
-        },
-      ],
-    },
-  })
-
-  const existing = await db.whiteboardSnapshot.findMany({
-    where: { whiteboardId: whiteboard.id },
-    orderBy: { createdAt: 'desc' },
-    select: { id: true },
-    skip: MAX_SNAPSHOTS_PER_ROOM,
-  })
-  if (existing.length > 0) {
-    await db.whiteboardSnapshot.deleteMany({
-      where: {
-        id: {
-          in: existing.map((item: { id: string }) => item.id),
-        },
+  const snapshotId = crypto.randomUUID()
+  await drizzleDb.insert(whiteboardSnapshot).values({
+    id: snapshotId,
+    whiteboardId: wb.id,
+    name: name ?? `PDF Snapshot ${new Date().toLocaleString()}`,
+    createdBy: userId,
+    pages: [
+      {
+        page,
+        width,
+        height,
+        objects,
+        capturedAt: new Date().toISOString(),
       },
-    })
+    ],
+  })
+
+  const allSnapshots = await drizzleDb
+    .select({ id: whiteboardSnapshot.id })
+    .from(whiteboardSnapshot)
+    .where(eq(whiteboardSnapshot.whiteboardId, wb.id))
+    .orderBy(desc(whiteboardSnapshot.createdAt))
+  const toDelete = allSnapshots.slice(MAX_SNAPSHOTS_PER_ROOM)
+  for (const row of toDelete) {
+    await drizzleDb.delete(whiteboardSnapshot).where(eq(whiteboardSnapshot.id, row.id))
   }
 
-  return NextResponse.json({ snapshot }, { status: 201 })
+  const [snapshot] = await drizzleDb
+    .select()
+    .from(whiteboardSnapshot)
+    .where(eq(whiteboardSnapshot.id, snapshotId))
+    .limit(1)
+
+  return NextResponse.json({ snapshot: snapshot ?? { id: snapshotId, whiteboardId: wb.id, name: name ?? '', pages: [], createdBy: userId, createdAt: new Date() } }, { status: 201 })
 })

@@ -5,7 +5,9 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { courseOutlineAsModulesPrompt } from '@/lib/ai/prompts'
 
@@ -14,11 +16,11 @@ const DEFAULT_LESSON_MINUTES = 45
 export const POST = withCsrf(withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    select: { id: true, subject: true, languageOfInstruction: true, courseMaterials: true },
-  })
-  if (!curriculum) throw new NotFoundError('Course not found')
+  const [curriculumRow] = await drizzleDb
+    .select({ id: curriculum.id, subject: curriculum.subject, languageOfInstruction: curriculum.languageOfInstruction, courseMaterials: curriculum.courseMaterials })
+    .from(curriculum)
+    .where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
 
   const body = await req.json().catch(() => ({}))
   const typicalLessonMinutes = typeof body.typicalLessonMinutes === 'number'
@@ -27,7 +29,7 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
   const bodyCurriculumText = typeof body.curriculumText === 'string' ? body.curriculumText.trim() : ''
   const bodyNotesText = typeof body.notesText === 'string' ? body.notesText.trim() : ''
 
-  const materials = (curriculum.courseMaterials as Record<string, unknown>) ?? {}
+  const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
   const curriculumText =
     bodyCurriculumText ||
     (materials.editableCurriculum as string) ||
@@ -50,9 +52,9 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
   const prompt = courseOutlineAsModulesPrompt({
     curriculumText: curriculumText.trim() || notesOnly || '(No curriculum; generate from notes.)',
     notesText: curriculumText.trim() && notesText ? notesText : undefined,
-    subject: curriculum.subject,
+    subject: curriculumRow.subject,
     typicalLessonMinutes,
-    language: curriculum.languageOfInstruction ?? 'en',
+    language: curriculumRow.languageOfInstruction ?? 'en',
   })
 
   const result = await generateWithFallback(prompt, {
@@ -112,10 +114,10 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
 
   materials.outline = outline
   materials.outlineModules = { modules }
-  await db.curriculum.update({
-    where: { id },
-    data: { courseMaterials: materials as object },
-  })
+  await drizzleDb
+    .update(curriculum)
+    .set({ courseMaterials: materials as object })
+    .where(eq(curriculum.id, id))
 
   return NextResponse.json({
     outline,

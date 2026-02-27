@@ -5,36 +5,38 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumModule, curriculumLesson } from '@/lib/db/schema'
+import { eq, asc, inArray } from 'drizzle-orm'
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export const POST = withCsrf(withAuth(async (req, session, context) => {
   const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    include: {
-      modules: {
-        orderBy: { order: 'asc' },
-        include: {
-          lessons: { orderBy: { order: 'asc' } },
-        },
-      },
-    },
-  })
-  if (!curriculum) throw new NotFoundError('Course not found')
+  const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
 
-  const lessons: { duration: number }[] = []
-  for (const mod of curriculum.modules) {
-    for (const les of mod.lessons) {
-      lessons.push({
-        duration: typeof les.duration === 'number' && les.duration > 0 ? les.duration : 45,
-      })
-    }
-  }
+  const modules = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, id))
+    .orderBy(asc(curriculumModule.order))
+  const moduleIds = modules.map((m) => m.id)
+  const lessons =
+    moduleIds.length > 0
+      ? await drizzleDb
+          .select({ duration: curriculumLesson.duration })
+          .from(curriculumLesson)
+          .where(inArray(curriculumLesson.moduleId, moduleIds))
+          .orderBy(asc(curriculumLesson.order))
+      : []
 
-  if (lessons.length === 0) {
+  const lessonsWithDuration = lessons.map((les) => ({
+    duration: typeof les.duration === 'number' && les.duration > 0 ? les.duration : 45,
+  }))
+
+  if (lessonsWithDuration.length === 0) {
     return NextResponse.json(
       { error: 'Add at least one lesson to the course content first.' },
       { status: 400 }
@@ -50,16 +52,16 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
     : '09:00'
 
   const firstDayIndex = DAYS.indexOf(firstDay)
-  const scheduleDistributed = lessons.map((les, i) => ({
+  const scheduleDistributed = lessonsWithDuration.map((les, i) => ({
     dayOfWeek: DAYS[(firstDayIndex + i) % DAYS.length],
     startTime,
     durationMinutes: les.duration,
   }))
 
-  await db.curriculum.update({
-    where: { id },
-    data: { schedule: scheduleDistributed as object },
-  })
+  await drizzleDb
+    .update(curriculum)
+    .set({ schedule: scheduleDistributed as object })
+    .where(eq(curriculum.id, id))
 
   return NextResponse.json({
     schedule: scheduleDistributed,

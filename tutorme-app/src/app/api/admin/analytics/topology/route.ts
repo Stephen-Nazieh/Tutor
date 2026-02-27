@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db as prisma } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, sessionParticipant, user, profile } from '@/lib/db/schema'
+import { and, or, gte, inArray, desc } from 'drizzle-orm'
 import { requireAdmin } from '@/lib/admin/auth'
 import { Permissions } from '@/lib/admin/permissions'
 
@@ -79,6 +81,8 @@ function isActiveSession(status: string | null, startedAt: Date | null, endedAt:
   return Boolean(startedAt)
 }
 
+const ACTIVE_STATUSES = ['active', 'live', 'in_progress', 'inprogress', 'ongoing']
+
 export async function GET(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.ANALYTICS_READ)
   if (!session) return response!
@@ -90,60 +94,54 @@ export async function GET(req: NextRequest) {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Math.max(1, Math.min(days, 180)))
 
-    const sessions = await prisma.liveSession.findMany({
-      where: {
-        OR: [
-          { startedAt: { gte: startDate } },
-          {
-            status: {
-              in: ['active', 'live', 'in_progress', 'inprogress', 'ongoing'],
-            },
-          },
-        ],
-        participants: { some: {} },
-      },
-      select: {
-        id: true,
-        subject: true,
-        status: true,
-        startedAt: true,
-        endedAt: true,
-        tutor: {
-          select: {
-            id: true,
-            email: true,
-            profile: {
-              select: {
-                name: true,
-                timezone: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-        participants: {
-          select: {
-            student: {
-              select: {
-                id: true,
-                email: true,
-                profile: {
-                  select: {
-                    name: true,
-                    timezone: true,
-                    avatarUrl: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        startedAt: 'desc',
-      },
-      take: 600,
-    })
+    const sessionIdsWithParticipants = await drizzleDb
+      .selectDistinct({ sessionId: sessionParticipant.sessionId })
+      .from(sessionParticipant)
+
+    const ids = sessionIdsWithParticipants.map((r) => r.sessionId)
+    if (ids.length === 0) {
+      return NextResponse.json({
+        topology: { nodes: [], edges: [], stats: { tutors: 0, students: 0, liveConnections: 0, totalConnections: 0 } },
+        meta: { days, generatedAt: new Date().toISOString() },
+      })
+    }
+
+    const sessions = await drizzleDb
+      .select()
+      .from(liveSession)
+      .where(
+        and(
+          inArray(liveSession.id, ids),
+          or(
+            gte(liveSession.startedAt, startDate),
+            inArray(liveSession.status, ACTIVE_STATUSES)
+          )
+        )
+      )
+      .orderBy(desc(liveSession.startedAt))
+      .limit(600)
+
+    const tutorIds = [...new Set(sessions.map((s) => s.tutorId))]
+    const participantRows = await drizzleDb
+      .select()
+      .from(sessionParticipant)
+      .where(inArray(sessionParticipant.sessionId, sessions.map((s) => s.id)))
+
+    const studentIds = [...new Set(participantRows.map((p) => p.studentId))]
+    const allUserIds = [...new Set([...tutorIds, ...studentIds])]
+
+    const users = await drizzleDb.select().from(user).where(inArray(user.id, allUserIds))
+    const profiles = await drizzleDb.select().from(profile).where(inArray(profile.userId, allUserIds))
+
+    const userById = new Map(users.map((u) => [u.id, u]))
+    const profileByUserId = new Map(profiles.map((p) => [p.userId, p]))
+
+    const participantsBySessionId = new Map<string, typeof participantRows>()
+    for (const p of participantRows) {
+      const list = participantsBySessionId.get(p.sessionId) ?? []
+      list.push(p)
+      participantsBySessionId.set(p.sessionId, list)
+    }
 
     const nodeMap = new Map<
       string,
@@ -173,15 +171,17 @@ export async function GET(req: NextRequest) {
     }> = []
 
     for (const live of sessions) {
-      const tutorId = live.tutor.id
-      const tutorTimezone = live.tutor.profile?.timezone || 'UTC'
+      const tutorId = live.tutorId
+      const tutorUser = userById.get(tutorId)
+      const tutorProfile = profileByUserId.get(tutorId)
+      const tutorTimezone = tutorProfile?.timezone ?? 'UTC'
       const tutorCoords = estimateCoordsFromTimezone(tutorTimezone, tutorId)
       const tutorNode = nodeMap.get(tutorId) || {
         id: tutorId,
         role: 'TUTOR' as const,
-        name: live.tutor.profile?.name || live.tutor.email,
-        email: live.tutor.email,
-        avatarUrl: live.tutor.profile?.avatarUrl || null,
+        name: tutorProfile?.name ?? tutorUser?.email ?? '',
+        email: tutorUser?.email ?? '',
+        avatarUrl: tutorProfile?.avatarUrl ?? null,
         timezone: tutorTimezone,
         lat: tutorCoords.lat,
         lon: tutorCoords.lon,
@@ -192,18 +192,20 @@ export async function GET(req: NextRequest) {
       const active = isActiveSession(live.status, live.startedAt, live.endedAt)
       if (active) tutorNode.activeSessions += 1
 
-      for (const participant of live.participants) {
-        const student = participant.student
-        const studentId = student.id
-        const studentTimezone = student.profile?.timezone || 'UTC'
+      const participants = participantsBySessionId.get(live.id) ?? []
+      for (const participant of participants) {
+        const studentId = participant.studentId
+        const studentUser = userById.get(studentId)
+        const studentProfile = profileByUserId.get(studentId)
+        const studentTimezone = studentProfile?.timezone ?? 'UTC'
         const studentCoords = estimateCoordsFromTimezone(studentTimezone, studentId)
 
         const studentNode = nodeMap.get(studentId) || {
           id: studentId,
           role: 'STUDENT' as const,
-          name: student.profile?.name || student.email,
-          email: student.email,
-          avatarUrl: student.profile?.avatarUrl || null,
+          name: studentProfile?.name ?? studentUser?.email ?? '',
+          email: studentUser?.email ?? '',
+          avatarUrl: studentProfile?.avatarUrl ?? null,
           timezone: studentTimezone,
           lat: studentCoords.lat,
           lon: studentCoords.lon,
@@ -225,7 +227,7 @@ export async function GET(req: NextRequest) {
           subject: live.subject || 'General',
           status: active ? 'ACTIVE' : 'RECENT',
           isActive: active,
-          startedAt: live.startedAt?.toISOString() || null,
+          startedAt: live.startedAt?.toISOString() ?? null,
         })
 
         nodeMap.set(studentId, studentNode)

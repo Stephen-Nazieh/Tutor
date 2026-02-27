@@ -1,173 +1,177 @@
 // @ts-nocheck
 /**
  * Quiz Assignment API
- * 
+ *
  * POST /api/tutor/quizzes/[id]/assign - Assign quiz to students/groups
  * GET /api/tutor/quizzes/[id]/assign - Get assignments for this quiz
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { quiz, quizAssignment } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
+import { randomUUID } from 'crypto'
 
 // GET /api/tutor/quizzes/[id]/assign - Get assignments for this quiz
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-    const params = await context.params
-    const { id } = params
-    
-    // Verify quiz ownership
-    const quiz = await db.quiz.findFirst({
-        where: {
-            id,
-            tutorId: session.user.id
-        }
-    })
-    
-    if (!quiz) {
-        throw new NotFoundError('Quiz not found')
-    }
-    
-    const assignments = await db.quizAssignment.findMany({
-        where: { quizId: id },
-        orderBy: { assignedAt: 'desc' }
-    })
-    
-    return NextResponse.json({ assignments })
+  const params = await context.params
+  const { id } = params
+
+  const quizRows = await drizzleDb
+    .select()
+    .from(quiz)
+    .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+    .limit(1)
+
+  if (!quizRows[0]) {
+    throw new NotFoundError('Quiz not found')
+  }
+
+  const assignments = await drizzleDb
+    .select()
+    .from(quizAssignment)
+    .where(eq(quizAssignment.quizId, id))
+    .orderBy(desc(quizAssignment.assignedAt))
+
+  return NextResponse.json({ assignments })
 }, { role: 'TUTOR' })
 
 // POST /api/tutor/quizzes/[id]/assign - Assign quiz to students/groups
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
+export const POST = withCsrf(
+  withAuth(async (req: NextRequest, session, context) => {
     const params = await context.params
     const { id } = params
-    
-    // Verify quiz ownership
-    const quiz = await db.quiz.findFirst({
-        where: {
-            id,
-            tutorId: session.user.id
-        }
-    })
-    
-    if (!quiz) {
-        throw new NotFoundError('Quiz not found')
+
+    const quizRows = await drizzleDb
+      .select()
+      .from(quiz)
+      .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+      .limit(1)
+
+    const quizRow = quizRows[0]
+    if (!quizRow) {
+      throw new NotFoundError('Quiz not found')
     }
-    
+
     const body = await req.json()
     const {
-        assignedToType, // 'student', 'group', 'all'
-        assignedToId,   // studentId or groupId (null if assignedToAll)
-        assignedToAll = false,
-        dueDate
+      assignedToType,
+      assignedToId,
+      assignedToAll = false,
+      dueDate,
     } = body
-    
-    // Validation
+
     if (!assignedToType) {
-        throw new ValidationError('assignedToType is required')
+      throw new ValidationError('assignedToType is required')
     }
-    
     if (!assignedToAll && !assignedToId) {
-        throw new ValidationError('Either assignedToId or assignedToAll must be provided')
+      throw new ValidationError('Either assignedToId or assignedToAll must be provided')
     }
-    
-    // Check for duplicate assignment
-    const existingAssignment = await db.quizAssignment.findFirst({
-        where: {
-            quizId: id,
-            assignedToType,
-            assignedToId: assignedToId || null,
-            assignedToAll,
-            isActive: true
-        }
-    })
-    
+
+    const existingRows = await drizzleDb
+      .select()
+      .from(quizAssignment)
+      .where(
+        and(
+          eq(quizAssignment.quizId, id),
+          eq(quizAssignment.assignedToType, assignedToType),
+          eq(quizAssignment.assignedToId, assignedToId || null),
+          eq(quizAssignment.assignedToAll, assignedToAll),
+          eq(quizAssignment.isActive, true)
+        )
+      )
+      .limit(1)
+
+    const existingAssignment = existingRows[0]
+
     if (existingAssignment) {
-        // Update existing assignment
-        const updated = await db.quizAssignment.update({
-            where: { id: existingAssignment.id },
-            data: {
-                dueDate: dueDate ? new Date(dueDate) : null,
-                assignedAt: new Date()
-            }
+      const [updated] = await drizzleDb
+        .update(quizAssignment)
+        .set({
+          dueDate: dueDate ? new Date(dueDate) : null,
+          assignedAt: new Date(),
         })
-        
-        return NextResponse.json({
-            success: true,
-            assignment: updated,
-            message: 'Assignment updated'
-        })
+        .where(eq(quizAssignment.id, existingAssignment.id))
+        .returning()
+      return NextResponse.json({
+        success: true,
+        assignment: updated,
+        message: 'Assignment updated',
+      })
     }
-    
-    // Create new assignment
-    const assignment = await db.quizAssignment.create({
-        data: {
-            quizId: id,
-            assignedByTutorId: session.user.id,
-            assignedToType,
-            assignedToId: assignedToId || null,
-            assignedToAll,
-            dueDate: dueDate ? new Date(dueDate) : null
-        }
-    })
-    
-    // Update quiz status to published if it's a draft
-    if (quiz.status === 'draft') {
-        await db.quiz.update({
-            where: { id },
-            data: { status: 'published' }
-        })
+
+    const [assignment] = await drizzleDb
+      .insert(quizAssignment)
+      .values({
+        id: randomUUID(),
+        quizId: id,
+        assignedByTutorId: session.user.id,
+        assignedToType,
+        assignedToId: assignedToId || null,
+        assignedToAll,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        isActive: true,
+      })
+      .returning()
+
+    if (quizRow.status === 'draft') {
+      await drizzleDb.update(quiz).set({ status: 'published' }).where(eq(quiz.id, id))
     }
-    
-    return NextResponse.json({
+
+    return NextResponse.json(
+      {
         success: true,
         assignment,
-        message: 'Quiz assigned successfully'
-    }, { status: 201 })
-}, { role: 'TUTOR' }))
+        message: 'Quiz assigned successfully',
+      },
+      { status: 201 }
+    )
+  }, { role: 'TUTOR' })
+)
 
 // DELETE /api/tutor/quizzes/[id]/assign - Remove assignment
-export const DELETE = withCsrf(withAuth(async (req: NextRequest, session, context) => {
+export const DELETE = withCsrf(
+  withAuth(async (req: NextRequest, session, context) => {
     const params = await context.params
     const { id } = params
-    
-    // Verify quiz ownership
-    const quiz = await db.quiz.findFirst({
-        where: {
-            id,
-            tutorId: session.user.id
-        }
-    })
-    
-    if (!quiz) {
-        throw new NotFoundError('Quiz not found')
+
+    const quizRows = await drizzleDb
+      .select()
+      .from(quiz)
+      .where(and(eq(quiz.id, id), eq(quiz.tutorId, session.user.id)))
+      .limit(1)
+
+    if (!quizRows[0]) {
+      throw new NotFoundError('Quiz not found')
     }
-    
+
     const { searchParams } = new URL(req.url)
     const assignmentId = searchParams.get('assignmentId')
-    
+
     if (!assignmentId) {
-        throw new ValidationError('assignmentId is required')
+      throw new ValidationError('assignmentId is required')
     }
-    
-    // Verify assignment belongs to this quiz
-    const assignment = await db.quizAssignment.findFirst({
-        where: {
-            id: assignmentId,
-            quizId: id
-        }
-    })
-    
+
+    const assignmentRows = await drizzleDb
+      .select()
+      .from(quizAssignment)
+      .where(and(eq(quizAssignment.id, assignmentId), eq(quizAssignment.quizId, id)))
+      .limit(1)
+
+    const assignment = assignmentRows[0]
     if (!assignment) {
-        throw new NotFoundError('Assignment not found')
+      throw new NotFoundError('Assignment not found')
     }
-    
-    // Deactivate instead of delete to preserve attempt history
-    await db.quizAssignment.update({
-        where: { id: assignmentId },
-        data: { isActive: false }
-    })
-    
+
+    await drizzleDb
+      .update(quizAssignment)
+      .set({ isActive: false })
+      .where(eq(quizAssignment.id, assignmentId))
+
     return NextResponse.json({
-        success: true,
-        message: 'Assignment deactivated'
+      success: true,
+      message: 'Assignment deactivated',
     })
-}, { role: 'TUTOR' }))
+  }, { role: 'TUTOR' })
+)

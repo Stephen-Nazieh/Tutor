@@ -1,5 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db as prisma } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  user,
+  userActivityLog,
+  liveSession,
+  contentItem,
+  curriculumEnrollment,
+  securityEvent,
+  payment,
+  refund,
+  sessionParticipant,
+  taskSubmission,
+  quizAttempt,
+  videoWatchEvent,
+  curriculumLessonProgress,
+  poll,
+  whiteboardSession,
+} from '@/lib/db/schema'
+import { eq, gte, lt, and, desc, sql } from 'drizzle-orm'
 import { requireAdmin } from '@/lib/admin/auth'
 import { Permissions } from '@/lib/admin/permissions'
 
@@ -15,16 +33,15 @@ export async function GET(req: NextRequest) {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
-    // Get various metrics
     const [
-      totalUsers,
-      newUsers,
-      activeUsers,
-      totalSessions,
-      totalContentItems,
-      totalEnrollments,
-      recentLogins,
-      usersByRole,
+      totalUsersRows,
+      newUsersRows,
+      activeUsersRows,
+      totalSessionsRows,
+      totalContentItemsRows,
+      totalEnrollmentsRows,
+      recentLoginsRows,
+      usersByRoleRows,
       recentUserActivities,
       recentSecurityEvents,
       recentPayments,
@@ -38,122 +55,123 @@ export async function GET(req: NextRequest) {
       recentPolls,
       recentWhiteboardSessions,
     ] = await Promise.all([
-      // Total users
-      prisma.user.count(),
-
-      // New users in period
-      prisma.user.count({
-        where: { createdAt: { gte: startDate } },
-      }),
-
-      // Active users (had activity in period)
-      prisma.userActivityLog.groupBy({
-        by: ['userId'],
-        where: { createdAt: { gte: startDate } },
-        _count: { userId: true },
-      }).then((r: Array<Record<string, unknown>>) => r.length),
-
-      // Total live sessions
-      prisma.liveSession.count(),
-
-      // Total content items
-      prisma.contentItem.count(),
-
-      // Total enrollments
-      prisma.curriculumEnrollment.count(),
-
-      // Recent login activity
-      prisma.userActivityLog.count({
-        where: {
-          action: 'login',
-          createdAt: { gte: startDate },
-        },
-      }),
-
-      // Users by role
-      prisma.user.groupBy({
-        by: ['role'],
-        _count: { id: true },
-      }),
-      prisma.userActivityLog.findMany({
-        where: { createdAt: { gte: startDate } },
-        select: { userId: true, action: true, createdAt: true },
-        orderBy: { createdAt: 'desc' },
-        take: 20000,
-      }),
-      prisma.securityEvent.findMany({
-        where: { createdAt: { gte: startDate } },
-        select: { id: true, eventType: true, ip: true, severity: true, createdAt: true, action: true },
-        orderBy: { createdAt: 'desc' },
-        take: 5000,
-      }),
-      prisma.payment.findMany({
-        where: { createdAt: { gte: startDate } },
-        select: { id: true, status: true, amount: true, createdAt: true, paidAt: true },
-      }),
-      prisma.refund.findMany({
-        where: { createdAt: { gte: startDate } },
-        select: { id: true, status: true, amount: true, createdAt: true },
-      }),
-      prisma.liveSession.findMany({
-        where: { createdAt: { gte: startDate } },
-        select: { id: true, status: true, createdAt: true, startedAt: true, endedAt: true },
-      }),
-      prisma.sessionParticipant.findMany({
-        where: { joinedAt: { gte: startDate } },
-        select: { sessionId: true, studentId: true, joinedAt: true },
-      }),
-      prisma.taskSubmission.findMany({
-        where: { submittedAt: { gte: startDate } },
-        select: { id: true, studentId: true, submittedAt: true, score: true },
-      }),
-      prisma.quizAttempt.findMany({
-        where: { startedAt: { gte: startDate } },
-        select: { id: true, studentId: true, startedAt: true, score: true },
-      }),
-      prisma.videoWatchEvent.findMany({
-        where: { watchedAt: { gte: startDate } },
-        select: { id: true, studentId: true, watchedAt: true, completed: true },
-      }),
-      prisma.curriculumLessonProgress.findMany({
-        where: { updatedAt: { gte: startDate } },
-        select: { id: true, studentId: true, updatedAt: true, status: true },
-      }),
-      prisma.poll.findMany({
-        where: { createdAt: { gte: startDate } },
-        select: { id: true, status: true, createdAt: true, totalResponses: true },
-      }),
-      prisma.whiteboardSession.findMany({
-        where: { startedAt: { gte: startDate } },
-        select: { id: true, roomId: true, startedAt: true },
-      }),
+      drizzleDb.select({ count: sql<number>`count(*)::int` }).from(user),
+      drizzleDb.select({ count: sql<number>`count(*)::int` }).from(user).where(gte(user.createdAt, startDate)),
+      drizzleDb
+        .select({ userId: userActivityLog.userId })
+        .from(userActivityLog)
+        .where(gte(userActivityLog.createdAt, startDate))
+        .groupBy(userActivityLog.userId),
+      drizzleDb.select({ count: sql<number>`count(*)::int` }).from(liveSession),
+      drizzleDb.select({ count: sql<number>`count(*)::int` }).from(contentItem),
+      drizzleDb.select({ count: sql<number>`count(*)::int` }).from(curriculumEnrollment),
+      drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(userActivityLog)
+        .where(and(eq(userActivityLog.action, 'login'), gte(userActivityLog.createdAt, startDate))),
+      drizzleDb.select({ role: user.role, count: sql<number>`count(*)::int` }).from(user).groupBy(user.role),
+      drizzleDb
+        .select({ userId: userActivityLog.userId, action: userActivityLog.action, createdAt: userActivityLog.createdAt })
+        .from(userActivityLog)
+        .where(gte(userActivityLog.createdAt, startDate))
+        .orderBy(desc(userActivityLog.createdAt))
+        .limit(20000),
+      drizzleDb
+        .select({
+          id: securityEvent.id,
+          eventType: securityEvent.eventType,
+          ip: securityEvent.ip,
+          severity: securityEvent.severity,
+          createdAt: securityEvent.createdAt,
+          action: securityEvent.action,
+        })
+        .from(securityEvent)
+        .where(gte(securityEvent.createdAt, startDate))
+        .orderBy(desc(securityEvent.createdAt))
+        .limit(5000),
+      drizzleDb
+        .select({
+          id: payment.id,
+          status: payment.status,
+          amount: payment.amount,
+          createdAt: payment.createdAt,
+          paidAt: payment.paidAt,
+        })
+        .from(payment)
+        .where(gte(payment.createdAt, startDate)),
+      drizzleDb
+        .select({ id: refund.id, status: refund.status, amount: refund.amount, createdAt: refund.createdAt })
+        .from(refund)
+        .where(gte(refund.createdAt, startDate)),
+      drizzleDb
+        .select({
+          id: liveSession.id,
+          status: liveSession.status,
+          startedAt: liveSession.startedAt,
+          endedAt: liveSession.endedAt,
+        })
+        .from(liveSession)
+        .where(gte(liveSession.startedAt, startDate)),
+      drizzleDb
+        .select({ sessionId: sessionParticipant.sessionId, studentId: sessionParticipant.studentId, joinedAt: sessionParticipant.joinedAt })
+        .from(sessionParticipant)
+        .where(gte(sessionParticipant.joinedAt, startDate)),
+      drizzleDb
+        .select({ id: taskSubmission.id, studentId: taskSubmission.studentId, submittedAt: taskSubmission.submittedAt, score: taskSubmission.score })
+        .from(taskSubmission)
+        .where(gte(taskSubmission.submittedAt, startDate)),
+      drizzleDb
+        .select({ id: quizAttempt.id, studentId: quizAttempt.studentId, startedAt: quizAttempt.startedAt, score: quizAttempt.score })
+        .from(quizAttempt)
+        .where(gte(quizAttempt.startedAt, startDate)),
+      drizzleDb
+        .select({ id: videoWatchEvent.id, studentId: videoWatchEvent.studentId, watchedAt: videoWatchEvent.watchedAt, completed: videoWatchEvent.completed })
+        .from(videoWatchEvent)
+        .where(gte(videoWatchEvent.watchedAt, startDate)),
+      drizzleDb
+        .select({
+          id: curriculumLessonProgress.id,
+          studentId: curriculumLessonProgress.studentId,
+          updatedAt: curriculumLessonProgress.updatedAt,
+          status: curriculumLessonProgress.status,
+        })
+        .from(curriculumLessonProgress)
+        .where(gte(curriculumLessonProgress.updatedAt, startDate)),
+      drizzleDb
+        .select({ id: poll.id, status: poll.status, createdAt: poll.createdAt, totalResponses: poll.totalResponses })
+        .from(poll)
+        .where(gte(poll.createdAt, startDate)),
+      drizzleDb
+        .select({ id: whiteboardSession.id, roomId: whiteboardSession.roomId, startedAt: whiteboardSession.startedAt })
+        .from(whiteboardSession)
+        .where(gte(whiteboardSession.startedAt, startDate)),
     ])
 
-    // Calculate growth rates
+    const totalUsers = totalUsersRows[0]?.count ?? 0
+    const newUsers = newUsersRows[0]?.count ?? 0
+    const activeUsers = activeUsersRows.length
+    const totalSessions = totalSessionsRows[0]?.count ?? 0
+    const totalContentItems = totalContentItemsRows[0]?.count ?? 0
+    const totalEnrollments = totalEnrollmentsRows[0]?.count ?? 0
+    const recentLogins = recentLoginsRows[0]?.count ?? 0
+
     const previousPeriodStart = new Date(startDate)
     previousPeriodStart.setDate(previousPeriodStart.getDate() - days)
 
-    const previousNewUsers = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: previousPeriodStart,
-          lt: startDate,
-        },
-      },
-    })
+    const [previousNewUsersRows] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(user)
+      .where(and(gte(user.createdAt, previousPeriodStart), lt(user.createdAt, startDate)))
 
-    const userGrowthRate = previousNewUsers > 0
-      ? ((newUsers - previousNewUsers) / previousNewUsers) * 100
-      : 0
+    const previousNewUsers = previousNewUsersRows?.count ?? 0
+    const userGrowthRate = previousNewUsers > 0 ? ((newUsers - previousNewUsers) / previousNewUsers) * 100 : 0
 
-    // Enterprise analytics
     const dayBuckets = Array.from({ length: days }, (_, i) => {
       const d = new Date()
       d.setHours(0, 0, 0, 0)
       d.setDate(d.getDate() - (days - 1 - i))
       return d
     })
-
     const toDayKey = (dt: Date) => {
       const d = new Date(dt)
       d.setHours(0, 0, 0, 0)
@@ -180,27 +198,37 @@ export async function GET(req: NextRequest) {
       .slice(0, 10)
       .map(([action, count]) => ({ action, count }))
 
-    const paidPayments = recentPayments.filter((p: any) => p.status === 'COMPLETED')
-    const pendingPayments = recentPayments.filter((p: any) => p.status === 'PENDING' || p.status === 'PROCESSING')
-    const refundedPayments = recentPayments.filter((p: any) => p.status === 'REFUNDED')
-    const paymentVolume = recentPayments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+    const paidPayments = recentPayments.filter((p) => p.status === 'COMPLETED')
+    const pendingPayments = recentPayments.filter((p) => p.status === 'PENDING' || p.status === 'PROCESSING')
+    const refundedPayments = recentPayments.filter((p) => p.status === 'REFUNDED')
+    const paymentVolume = recentPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
     const paymentSuccessRate = recentPayments.length > 0 ? (paidPayments.length / recentPayments.length) * 100 : 0
     const refundRate = recentPayments.length > 0 ? (refundedPayments.length / recentPayments.length) * 100 : 0
 
-    const failedLoginEvents = recentSecurityEvents.filter((e: any) =>
-      e.eventType?.toLowerCase().includes('auth_failed') || e.action?.toLowerCase().includes('login_failed')
+    const failedLoginEvents = recentSecurityEvents.filter(
+      (e) =>
+        e.eventType?.toLowerCase().includes('auth_failed') || e.action?.toLowerCase().includes('login_failed')
     )
-    const criticalSecurityEvents = recentSecurityEvents.filter((e: any) => (e.severity || '').toLowerCase() === 'critical')
-    const suspiciousIps = new Set(failedLoginEvents.map((e: any) => e.ip).filter(Boolean as unknown as (v: string | null) => v is string))
+    const criticalSecurityEvents = recentSecurityEvents.filter(
+      (e) => (e.severity || '').toLowerCase() === 'critical'
+    )
+    const suspiciousIps = new Set(
+      failedLoginEvents.map((e) => e.ip).filter((v): v is string => Boolean(v))
+    )
 
     const sessionParticipantCount = new Map<string, Set<string>>()
     for (const p of recentSessionParticipants) {
-      if (!sessionParticipantCount.has(p.sessionId)) sessionParticipantCount.set(p.sessionId, new Set<string>())
+      if (!sessionParticipantCount.has(p.sessionId))
+        sessionParticipantCount.set(p.sessionId, new Set<string>())
       sessionParticipantCount.get(p.sessionId)?.add(p.studentId)
     }
-    const avgParticipantsPerLive = recentLiveSessions.length > 0
-      ? recentLiveSessions.reduce((sum: number, s: any) => sum + (sessionParticipantCount.get(s.id)?.size || 0), 0) / recentLiveSessions.length
-      : 0
+    const avgParticipantsPerLive =
+      recentLiveSessions.length > 0
+        ? recentLiveSessions.reduce(
+            (sum, s) => sum + (sessionParticipantCount.get(s.id)?.size || 0),
+            0
+          ) / recentLiveSessions.length
+        : 0
 
     const activeFeatureUsers = new Set<string>()
     for (const s of recentTaskSubmissions) activeFeatureUsers.add(s.studentId)
@@ -220,18 +248,20 @@ export async function GET(req: NextRequest) {
       { feature: 'Refund Requests', usageCount: recentRefunds.length },
     ]
 
+    const payingUsers = new Set(
+      paidPayments
+        .map((p) => {
+          const maybe = recentUserActivities.find((a) => a.createdAt <= (p.createdAt ?? new Date(0)))
+          return maybe?.userId
+        })
+        .filter((v): v is string => Boolean(v))
+    ).size
+
     const funnel = {
       registrations: newUsers,
       activeUsers,
       learningActiveUsers: activeFeatureUsers.size,
-      payingUsers: new Set(
-        paidPayments
-          .map((p: any) => {
-            const maybe = recentUserActivities.find((a: any) => a.createdAt <= p.createdAt)
-            return maybe?.userId
-          })
-          .filter(Boolean as unknown as (v: string | undefined) => v is string)
-      ).size,
+      payingUsers,
     }
 
     const enterprise = {
@@ -252,7 +282,7 @@ export async function GET(req: NextRequest) {
       liveClassAnalytics: {
         sessionsCreated: recentLiveSessions.length,
         avgParticipantsPerSession: Math.round(avgParticipantsPerLive * 100) / 100,
-        pollResponses: recentPolls.reduce((sum: number, p: any) => sum + (p.totalResponses || 0), 0),
+        pollResponses: recentPolls.reduce((sum, p) => sum + (p.totalResponses || 0), 0),
         whiteboardSessions: recentWhiteboardSessions.length,
       },
       securityAnalytics: {
@@ -274,10 +304,7 @@ export async function GET(req: NextRequest) {
         totalEnrollments,
         recentLogins,
       },
-      usersByRole: usersByRole.map((r: Record<string, unknown>) => ({
-        role: r.role,
-        count: (r._count as Record<string, number>).id,
-      })),
+      usersByRole: usersByRoleRows.map((r) => ({ role: r.role, count: r.count })),
       enterprise,
     })
   } catch (error) {

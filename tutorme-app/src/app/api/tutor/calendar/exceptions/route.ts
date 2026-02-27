@@ -2,14 +2,17 @@
  * Tutor Calendar Exceptions API
  * POST /api/tutor/calendar/exceptions - Create exception (block/unblock specific dates)
  * GET /api/tutor/calendar/exceptions - List exceptions
- * 
+ *
  * Used to block specific dates or override recurring availability
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { calendarException } from '@/lib/db/schema'
+import { eq, and, asc, gte, lte, isNull } from 'drizzle-orm'
 import { z } from 'zod'
+import { nanoid } from 'nanoid'
 
 const ExceptionSchema = z.object({
   date: z.string().datetime(),
@@ -22,24 +25,21 @@ const ExceptionSchema = z.object({
 export const GET = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
   const { searchParams } = new URL(req.url)
-  
+
   const start = searchParams.get('start')
   const end = searchParams.get('end')
-  
+
   try {
-    const exceptions = await db.calendarException.findMany({
-      where: {
-        tutorId,
-        ...(start || end ? {
-          date: {
-            ...(start ? { gte: new Date(start) } : {}),
-            ...(end ? { lte: new Date(end) } : {}),
-          },
-        } : {}),
-      },
-      orderBy: { date: 'asc' },
-    })
-    
+    const conditions = [eq(calendarException.tutorId, tutorId)]
+    if (start) conditions.push(gte(calendarException.date, new Date(start)))
+    if (end) conditions.push(lte(calendarException.date, new Date(end)))
+
+    const exceptions = await drizzleDb
+      .select()
+      .from(calendarException)
+      .where(and(...conditions))
+      .orderBy(asc(calendarException.date))
+
     return NextResponse.json({ exceptions })
   } catch (error) {
     console.error('Fetch exceptions error:', error)
@@ -52,21 +52,20 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
 export const POST = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
     const validation = ExceptionSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: validation.error.format() },
         { status: 400 }
       )
     }
-    
+
     const data = validation.data
-    
-    // Validate times if provided
+
     if (data.startTime && data.endTime) {
       if (data.startTime >= data.endTime) {
         return NextResponse.json(
@@ -75,54 +74,64 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         )
       }
     }
-    
+
     const date = new Date(data.date)
     date.setUTCHours(0, 0, 0, 0)
-    
-    // Check if exception already exists for this date
-    const existing = await db.calendarException.findFirst({
-      where: {
-        tutorId,
-        date,
-        startTime: data.startTime || null,
-        endTime: data.endTime || null,
-      },
-    })
-    
+
+    const startTimeVal = data.startTime ?? null
+    const endTimeVal = data.endTime ?? null
+
+    const existingWhere =
+      startTimeVal === null
+        ? and(
+            eq(calendarException.tutorId, tutorId),
+            eq(calendarException.date, date),
+            isNull(calendarException.startTime)
+          )
+        : and(
+            eq(calendarException.tutorId, tutorId),
+            eq(calendarException.date, date),
+            eq(calendarException.startTime, startTimeVal)
+          )
+    const [existing] = await drizzleDb
+      .select()
+      .from(calendarException)
+      .where(existingWhere)
+      .limit(1)
+
     if (existing) {
-      // Update existing exception
-      const updated = await db.calendarException.update({
-        where: { id: existing.id },
-        data: {
+      const [updated] = await drizzleDb
+        .update(calendarException)
+        .set({
           isAvailable: data.isAvailable,
-          reason: data.reason,
-        },
-      })
-      
+          reason: data.reason ?? existing.reason,
+        })
+        .where(eq(calendarException.id, existing.id))
+        .returning()
       return NextResponse.json({ exception: updated })
     }
-    
-    // Create new exception
-    const exception = await db.calendarException.create({
-      data: {
+
+    const [created] = await drizzleDb
+      .insert(calendarException)
+      .values({
+        id: nanoid(),
         tutorId,
         date,
         isAvailable: data.isAvailable,
-        startTime: data.startTime,
-        endTime: data.endTime,
+        startTime: startTimeVal,
+        endTime: endTimeVal,
         reason: data.reason,
-      },
-    })
-    
-    return NextResponse.json({ exception }, { status: 201 })
+      })
+      .returning()
+
+    return NextResponse.json({ exception: created! }, { status: 201 })
   } catch (error: any) {
-    if (error.code === 'P2002') {
+    if (error.code === '23505') {
       return NextResponse.json(
         { error: 'Exception already exists for this date and time' },
         { status: 409 }
       )
     }
-    
     console.error('Create exception error:', error)
     return NextResponse.json(
       { error: 'Failed to create exception' },
@@ -131,48 +140,59 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   }
 }, { role: 'TUTOR' })
 
-// Bulk create exceptions (e.g., block multiple dates)
 export const PUT = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
     const { dates, isAvailable = false, reason } = body
-    
+
     if (!Array.isArray(dates) || dates.length === 0) {
       return NextResponse.json(
         { error: 'Dates array is required' },
         { status: 400 }
       )
     }
-    
-    const results = await db.$transaction(
-      dates.map((dateStr: string) => {
-        const date = new Date(dateStr)
-        date.setUTCHours(0, 0, 0, 0)
-        
-        return db.calendarException.upsert({
-          where: {
-            tutorId_date_startTime: {
-              tutorId,
-              date,
-              startTime: null,
-            },
-          },
-          update: {
-            isAvailable,
-            reason,
-          },
-          create: {
+
+    const results = []
+    for (const dateStr of dates) {
+      const date = new Date(dateStr)
+      date.setUTCHours(0, 0, 0, 0)
+
+      const [existing] = await drizzleDb
+        .select()
+        .from(calendarException)
+        .where(
+          and(
+            eq(calendarException.tutorId, tutorId),
+            eq(calendarException.date, date),
+            isNull(calendarException.startTime)
+          )
+        )
+        .limit(1)
+
+      if (existing) {
+        const [updated] = await drizzleDb
+          .update(calendarException)
+          .set({ isAvailable, reason })
+          .where(eq(calendarException.id, existing.id))
+          .returning()
+        if (updated) results.push(updated)
+      } else {
+        const [created] = await drizzleDb
+          .insert(calendarException)
+          .values({
+            id: nanoid(),
             tutorId,
             date,
             isAvailable,
             reason,
-          },
-        })
-      })
-    )
-    
+          })
+          .returning()
+        if (created) results.push(created)
+      }
+    }
+
     return NextResponse.json({
       exceptions: results,
       count: results.length,

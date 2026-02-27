@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { contentItem } from '@/lib/db/schema'
 import { getPresignedPutUrl, isS3Configured } from '@/lib/video/upload'
 
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
@@ -13,16 +14,19 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ error: 'title and subject required' }, { status: 400 })
   }
 
-  const content = await db.contentItem.create({
-    data: {
-      title: String(title).slice(0, 500),
-      subject: String(subject).slice(0, 100),
-      type: 'video',
-      url: null,
-      uploadStatus: 'uploading',
-      duration: null,
-    },
+  const contentId = crypto.randomUUID()
+  await drizzleDb.insert(contentItem).values({
+    id: contentId,
+    title: String(title).slice(0, 500),
+    subject: String(subject).slice(0, 100),
+    type: 'video',
+    url: null,
+    uploadStatus: 'uploading',
+    duration: null,
+    difficulty: 'beginner',
+    isPublished: false,
   })
+  const content = { id: contentId }
 
   const key = 'content/' + content.id + '/' + String(filename).replace(/[^a-zA-Z0-9._-]/g, '_')
 

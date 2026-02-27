@@ -8,7 +8,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { generatedTask } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 function getTaskId(req: NextRequest): string {
     const parts = req.nextUrl.pathname.split('/')
@@ -24,9 +26,10 @@ export async function POST(req: NextRequest) {
 
     const taskId = getTaskId(req)
 
-    const task = await db.generatedTask.findFirst({
-        where: { id: taskId, tutorId: session.user.id },
-    })
+    const [task] = await drizzleDb
+        .select()
+        .from(generatedTask)
+        .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, session.user.id)))
     if (!task) {
         return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
@@ -37,7 +40,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'studentIds array required' }, { status: 400 })
     }
 
-    // Merge into existing assignments
     const existing = (task.assignments ?? {}) as Record<string, unknown>
     for (const sid of newStudentIds) {
         if (!existing[sid]) {
@@ -45,14 +47,19 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    const updated = await db.generatedTask.update({
-        where: { id: taskId },
-        data: {
+    const [updated] = await drizzleDb
+        .update(generatedTask)
+        .set({
             assignments: existing,
             status: task.status === 'draft' ? 'assigned' : task.status,
             assignedAt: task.assignedAt ?? new Date(),
-        },
-    })
+        })
+        .where(eq(generatedTask.id, taskId))
+        .returning()
+
+    if (!updated) {
+        return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+    }
 
     return NextResponse.json({
         message: `Assigned to ${newStudentIds.length} additional students`,

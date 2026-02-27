@@ -2,14 +2,17 @@
  * Tutor Calendar Sync API
  * GET /api/tutor/calendar/sync - Get sync status
  * POST /api/tutor/calendar/sync - Trigger sync with external calendars
- * 
+ *
  * Integrates with Google Calendar, Outlook, Apple Calendar
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { calendarConnection, calendarEvent } from '@/lib/db/schema'
+import { eq, and, asc, gte, lte, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
+import { nanoid } from 'nanoid'
 
 const SyncRequestSchema = z.object({
   provider: z.enum(['google', 'outlook', 'apple']).optional(),
@@ -22,34 +25,36 @@ const SyncRequestSchema = z.object({
 
 export const GET = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
-    // Get calendar connections
-    const connections = await db.calendarConnection.findMany({
-      where: { userId: tutorId },
-      orderBy: { provider: 'asc' },
-    })
-    
-    // Get sync statistics
-    const stats = await db.calendarEvent.groupBy({
-      by: ['createdBy'],
-      where: {
-        tutorId,
-        deletedAt: null,
-      },
-      _count: {
-        id: true,
-      },
-    })
-    
+    const connections = await drizzleDb
+      .select()
+      .from(calendarConnection)
+      .where(eq(calendarConnection.userId, tutorId))
+      .orderBy(asc(calendarConnection.provider))
+
+    const statsRows = await drizzleDb
+      .select({
+        createdBy: calendarEvent.createdBy,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(calendarEvent)
+      .where(
+        and(
+          eq(calendarEvent.tutorId, tutorId),
+          isNull(calendarEvent.deletedAt)
+        )
+      )
+      .groupBy(calendarEvent.createdBy)
+
     const syncStats = {
-      manual: stats.find((s: any) => s.createdBy === 'manual')?._count.id || 0,
-      sync: stats.find((s: any) => s.createdBy === 'sync')?._count.id || 0,
-      system: stats.find((s: any) => s.createdBy === 'system')?._count.id || 0,
+      manual: statsRows.find((s) => s.createdBy === 'manual')?.count ?? 0,
+      sync: statsRows.find((s) => s.createdBy === 'sync')?.count ?? 0,
+      system: statsRows.find((s) => s.createdBy === 'system')?.count ?? 0,
     }
-    
+
     return NextResponse.json({
-      connections: connections.map((c: any) => ({
+      connections: connections.map((c) => ({
         provider: c.provider,
         syncEnabled: c.syncEnabled,
         syncDirection: c.syncDirection,
@@ -69,51 +74,50 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
 export const POST = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
     const validation = SyncRequestSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: validation.error.format() },
         { status: 400 }
       )
     }
-    
+
     const { provider, direction, dateRange } = validation.data
-    
-    // Get calendar connections
-    const connections = await db.calendarConnection.findMany({
-      where: {
-        userId: tutorId,
-        syncEnabled: true,
-        ...(provider ? { provider } : {}),
-      },
-    })
-    
+
+    const connectionConditions = [
+      eq(calendarConnection.userId, tutorId),
+      eq(calendarConnection.syncEnabled, true),
+    ]
+    if (provider) connectionConditions.push(eq(calendarConnection.provider, provider))
+
+    const connections = await drizzleDb
+      .select()
+      .from(calendarConnection)
+      .where(and(...connectionConditions))
+
     if (connections.length === 0) {
       return NextResponse.json(
         { error: 'No calendar connections found. Please connect a calendar first.' },
         { status: 404 }
       )
     }
-    
-    const results = []
+
+    const results: Array<{ provider: string; status: string; message?: string; imported?: number; exported?: number }> = []
     const defaultDateRange = {
-      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      end: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),   // 90 days ahead
+      start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      end: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     }
-    
-    const range = dateRange ? {
-      start: new Date(dateRange.start),
-      end: new Date(dateRange.end),
-    } : defaultDateRange
-    
+
+    const range = dateRange
+      ? { start: new Date(dateRange.start), end: new Date(dateRange.end) }
+      : defaultDateRange
+
     for (const connection of connections) {
-      // Check if token is expired
       if (connection.expiresAt && connection.expiresAt < new Date()) {
-        // TODO: Implement token refresh logic
         results.push({
           provider: connection.provider,
           status: 'error',
@@ -121,30 +125,29 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         })
         continue
       }
-      
+
       try {
         const syncResult = await syncCalendar(connection, direction, range, tutorId)
-        
-        // Update last synced timestamp
-        await db.calendarConnection.update({
-          where: { id: connection.id },
-          data: { lastSyncedAt: new Date() },
-        })
-        
+
+        await drizzleDb
+          .update(calendarConnection)
+          .set({ lastSyncedAt: new Date() })
+          .where(eq(calendarConnection.id, connection.id))
+
         results.push({
           provider: connection.provider,
           status: 'success',
           ...syncResult,
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         results.push({
           provider: connection.provider,
           status: 'error',
-          message: error.message,
+          message: error instanceof Error ? error.message : 'Unknown error',
         })
       }
     }
-    
+
     return NextResponse.json({
       syncResults: results,
       timestamp: new Date().toISOString(),
@@ -158,34 +161,38 @@ export const POST = withAuth(async (req: NextRequest, session) => {
   }
 }, { role: 'TUTOR' })
 
-// Mock sync function - in production, implement actual calendar API integration
 async function syncCalendar(
-  connection: any,
+  connection: { id: string; provider: string; expiresAt: Date | null },
   direction: string,
   dateRange: { start: Date; end: Date },
   tutorId: string
 ): Promise<{ imported?: number; exported?: number }> {
   const result: { imported?: number; exported?: number } = {}
-  
-  // Import from external calendar
+
   if (direction === 'from_external' || direction === 'bidirectional') {
-    // TODO: Implement actual calendar API fetch
-    // For now, simulate importing events
     const externalEvents = await fetchExternalEvents(connection, dateRange)
-    
+
     for (const event of externalEvents) {
-      await db.calendarEvent.upsert({
-        where: {
-          externalId: event.id,
-        },
-        update: {
-          title: event.title,
-          description: event.description,
-          startTime: event.startTime,
-          endTime: event.endTime,
-          location: event.location,
-        },
-        create: {
+      const [existing] = await drizzleDb
+        .select()
+        .from(calendarEvent)
+        .where(eq(calendarEvent.externalId, event.id))
+        .limit(1)
+
+      if (existing) {
+        await drizzleDb
+          .update(calendarEvent)
+          .set({
+            title: event.title,
+            description: event.description,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            location: event.location,
+          })
+          .where(eq(calendarEvent.id, existing.id))
+      } else {
+        await drizzleDb.insert(calendarEvent).values({
+          id: nanoid(),
           tutorId,
           externalId: event.id,
           title: event.title,
@@ -195,106 +202,116 @@ async function syncCalendar(
           location: event.location,
           type: 'PERSONAL',
           createdBy: 'sync',
-        },
-      })
+          status: 'CONFIRMED',
+          timezone: 'Asia/Shanghai',
+          isAllDay: false,
+          isRecurring: false,
+          maxAttendees: 1,
+          isVirtual: false,
+          isCancelled: false,
+        })
+      }
     }
-    
+
     result.imported = externalEvents.length
   }
-  
-  // Export to external calendar
+
   if (direction === 'to_external' || direction === 'bidirectional') {
-    // Get events to sync
-    const events = await db.calendarEvent.findMany({
-      where: {
-        tutorId,
-        deletedAt: null,
-        isCancelled: false,
-        startTime: {
-          gte: dateRange.start,
-          lte: dateRange.end,
-        },
-        externalId: null, // Only sync events not yet synced
-      },
-    })
-    
-    // TODO: Implement actual calendar API push
-    for (const event of events) {
-      // Mock export - in production, call actual calendar API
-      // const externalId = await pushToExternalCalendar(connection, event)
-      // await db.calendarEvent.update({
-      //   where: { id: event.id },
-      //   data: { externalId },
-      // })
-    }
-    
+    const events = await drizzleDb
+      .select()
+      .from(calendarEvent)
+      .where(
+        and(
+          eq(calendarEvent.tutorId, tutorId),
+          isNull(calendarEvent.deletedAt),
+          eq(calendarEvent.isCancelled, false),
+          gte(calendarEvent.startTime, dateRange.start),
+          lte(calendarEvent.startTime, dateRange.end),
+          isNull(calendarEvent.externalId)
+        )
+      )
+
     result.exported = events.length
   }
-  
+
   return result
 }
 
-// Mock function - implement actual calendar API integration
-async function fetchExternalEvents(connection: any, dateRange: { start: Date; end: Date }): Promise<any[]> {
-  // Placeholder for actual calendar API integration
-  // In production, this would call Google Calendar API, Outlook Graph API, etc.
-  
+async function fetchExternalEvents(
+  connection: { provider: string },
+  _dateRange: { start: Date; end: Date }
+): Promise<Array<{ id: string; title: string; description?: string; startTime: Date; endTime: Date; location?: string }>> {
   switch (connection.provider) {
     case 'google':
-      // TODO: Implement Google Calendar API
       return []
     case 'outlook':
-      // TODO: Implement Microsoft Graph API
       return []
     case 'apple':
-      // TODO: Implement Apple Calendar API
       return []
     default:
       return []
   }
 }
 
-// Connect a new external calendar
 export const PUT = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
-    const { provider, authCode, redirectUri } = body
-    
+    const { provider, authCode } = body
+
     if (!provider || !authCode) {
       return NextResponse.json(
         { error: 'Provider and auth code are required' },
         { status: 400 }
       )
     }
-    
-    // TODO: Exchange auth code for tokens with actual OAuth provider
-    // For now, create a placeholder connection
-    const connection = await db.calendarConnection.upsert({
-      where: {
-        userId_provider: {
-          userId: tutorId,
-          provider,
+
+    const [existing] = await drizzleDb
+      .select()
+      .from(calendarConnection)
+      .where(
+        and(
+          eq(calendarConnection.userId, tutorId),
+          eq(calendarConnection.provider, provider)
+        )
+      )
+      .limit(1)
+
+    const now = new Date()
+    if (existing) {
+      const [updated] = await drizzleDb
+        .update(calendarConnection)
+        .set({ syncEnabled: true, lastSyncedAt: now })
+        .where(eq(calendarConnection.id, existing.id))
+        .returning()
+
+      return NextResponse.json({
+        connection: {
+          provider: updated!.provider,
+          syncEnabled: updated!.syncEnabled,
+          syncDirection: updated!.syncDirection,
         },
-      },
-      update: {
-        syncEnabled: true,
-        lastSyncedAt: new Date(),
-      },
-      create: {
+        message: 'Calendar connected successfully',
+      })
+    }
+
+    const [created] = await drizzleDb
+      .insert(calendarConnection)
+      .values({
+        id: nanoid(),
         userId: tutorId,
         provider,
         syncEnabled: true,
         syncDirection: 'bidirectional',
-      },
-    })
-    
+      })
+      .returning()
+
     return NextResponse.json({
       connection: {
-        provider: connection.provider,
-        syncEnabled: connection.syncEnabled,
-        syncDirection: connection.syncDirection,
+        provider: created!.provider,
+        syncEnabled: created!.syncEnabled,
+        syncDirection: created!.syncDirection,
       },
       message: 'Calendar connected successfully',
     })

@@ -5,103 +5,138 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumEnrollment,
+  curriculum,
+  curriculumModule,
+  curriculumLesson,
+  curriculumLessonProgress,
+  quizAttempt,
+  userGamification,
+} from '@/lib/db/schema'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 
-// GET /api/student/subjects/[subjectCode] - Get subject details
 export const GET = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params;
-  const { subjectCode } = params || {};
+  const params = await context?.params
+  const { subjectCode } = params || {}
 
-  // Get curriculum enrollment
-  const enrollment = await db.curriculumEnrollment.findFirst({
-    where: { 
-      studentId: session.user.id,
-      curriculum: {
-        subject: subjectCode
-      }
-    },
-    include: {
-      curriculum: {
-        include: {
-          modules: {
-            include: {
-              lessons: {
-                include: {
-                  progressRecords: {
-                    where: { studentId: session.user.id }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  })
+  const [curriculumRow] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(eq(curriculum.subject, subjectCode))
+    .limit(1)
+  if (!curriculumRow) {
+    throw new NotFoundError('Subject not found')
+  }
 
+  const [enrollment] = await drizzleDb
+    .select()
+    .from(curriculumEnrollment)
+    .where(
+      and(
+        eq(curriculumEnrollment.studentId, session.user.id),
+        eq(curriculumEnrollment.curriculumId, curriculumRow.id)
+      )
+    )
+    .limit(1)
   if (!enrollment) {
     throw new NotFoundError('Subject not found')
   }
 
-  // Get quiz attempts for this student
-  const quizAttempts = await db.quizAttempt.findMany({
-    where: { 
-      studentId: session.user.id
-    },
-    orderBy: { completedAt: 'desc' },
-    take: 20
-  })
+  const modules = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, curriculumRow.id))
+  const moduleIds = modules.map((m) => m.id)
+  const lessons =
+    moduleIds.length > 0
+      ? await drizzleDb
+          .select()
+          .from(curriculumLesson)
+          .where(inArray(curriculumLesson.moduleId, moduleIds))
+      : []
+  const lessonIds = lessons.map((l) => l.id)
+  const progressRecords =
+    lessonIds.length > 0
+      ? await drizzleDb
+          .select()
+          .from(curriculumLessonProgress)
+          .where(
+            and(
+              eq(curriculumLessonProgress.studentId, session.user.id),
+              inArray(curriculumLessonProgress.lessonId, lessonIds)
+            )
+          )
+      : []
+  const progressByLessonId = new Map(
+    progressRecords.map((p) => [p.lessonId, p])
+  )
 
-  // Get gamification data
-  const gamification = await db.userGamification.findUnique({
-    where: { userId: session.user.id }
-  })
+  const quizAttempts = await drizzleDb
+    .select()
+    .from(quizAttempt)
+    .where(eq(quizAttempt.studentId, session.user.id))
+    .orderBy(desc(quizAttempt.completedAt))
+    .limit(20)
 
-  // Calculate stats
-  const allLessons = enrollment.curriculum.modules.flatMap((m: any) => m.lessons)
-  const totalLessons = allLessons.length
-  const completedLessons = allLessons.filter((l: any) => 
-    l.progressRecords.some((r: any) => r.status === 'COMPLETED')
+  const [gamification] = await drizzleDb
+    .select()
+    .from(userGamification)
+    .where(eq(userGamification.userId, session.user.id))
+    .limit(1)
+
+  const totalLessons = lessons.length
+  const completedLessons = lessons.filter(
+    (l) => progressByLessonId.get(l.id)?.status === 'COMPLETED'
   ).length
-  const progress = totalLessons > 0 
-    ? Math.round((completedLessons / totalLessons) * 100) 
-    : 0
+  const progress =
+    totalLessons > 0
+      ? Math.round((completedLessons / totalLessons) * 100)
+      : 0
 
-  const avgScore = quizAttempts.length > 0
-    ? quizAttempts.reduce((sum: number, a: any) => sum + (a.score / a.maxScore) * 100, 0) / quizAttempts.length
-    : 0
+  const avgScore =
+    quizAttempts.length > 0
+      ? quizAttempts.reduce(
+          (sum, a) => sum + (a.score / a.maxScore) * 100,
+          0
+        ) / quizAttempts.length
+      : 0
 
-  // Generate skills based on subject
   const skills = generateSubjectSkills(subjectCode, avgScore)
+  const conceptMastery =
+    subjectCode.toLowerCase() === 'math'
+      ? generateMathConceptMastery(quizAttempts)
+      : undefined
 
-  // Generate concept mastery for math
-  const conceptMastery = subjectCode.toLowerCase() === 'math' 
-    ? generateMathConceptMastery(quizAttempts)
-    : undefined
+  const recentLessons = lessons.slice(0, 5).map((lesson) => {
+    const rec = progressByLessonId.get(lesson.id)
+    return {
+      id: lesson.id,
+      title: lesson.title,
+      completed: rec?.status === 'COMPLETED',
+      score: rec?.score ?? undefined,
+    }
+  })
 
   return NextResponse.json({
     subject: {
-      id: enrollment.curriculum.id,
-      name: enrollment.curriculum.name,
-      subject: enrollment.curriculum.subject,
-      description: enrollment.curriculum.description,
+      id: curriculumRow.id,
+      name: curriculumRow.name,
+      subject: curriculumRow.subject,
+      description: curriculumRow.description,
       progress,
       completedLessons,
       totalLessons,
       confidence: Math.round(avgScore),
-      xp: gamification?.xp || 0,
-      level: gamification?.level || 1,
-      streakDays: gamification?.streakDays || 0,
+      xp: gamification?.xp ?? 0,
+      level: gamification?.level ?? 1,
+      streakDays: gamification?.streakDays ?? 0,
       skills,
       conceptMastery,
-      recentLessons: allLessons.slice(0, 5).map((lesson: any) => ({
-        id: lesson.id,
-        title: lesson.title,
-        completed: lesson.progressRecords.some((r: any) => r.status === 'COMPLETED'),
-        score: lesson.progressRecords[0]?.score || undefined
-      })),
-      enrollmentSource: enrollment.enrollmentSource ?? null
-    }
+      recentLessons,
+      enrollmentSource: enrollment.enrollmentSource ?? null,
+    },
   })
 }, { role: 'STUDENT' })
 

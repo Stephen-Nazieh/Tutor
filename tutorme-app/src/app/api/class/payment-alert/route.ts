@@ -9,8 +9,11 @@ import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { familyMember, curriculum, payment, curriculumEnrollment, familyNotification } from '@/lib/db/schema'
+import { eq, and, inArray, sql } from 'drizzle-orm'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
+import crypto from 'crypto'
 
 const bodySchema = z.object({
   roomId: z.string().min(1, 'Room ID is required'),
@@ -35,49 +38,47 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = await request.json()
     body = bodySchema.parse(parsed)
-  } catch (err: any) {
+  } catch (err: unknown) {
     const message = err instanceof z.ZodError
-      ? (err as any).errors.map((e: any) => e.message).join(', ')
+      ? err.errors.map((e) => e.message).join(', ')
       : 'Invalid request body'
     return NextResponse.json({ error: message }, { status: 400 })
   }
 
   try {
-    // Verify student has valid parent linkage via FamilyMember
-    const familyMember = await db.familyMember.findFirst({
-      where: {
-        userId: session.user.id,
-        relation: { in: ['child', 'children', 'CHILD', 'CHILDREN'] },
-      },
-      include: { familyAccount: true },
-    })
+    const childRelations = ['child', 'children', 'CHILD', 'CHILDREN']
+    const [member] = await drizzleDb
+      .select()
+      .from(familyMember)
+      .where(and(eq(familyMember.userId, session.user.id), inArray(familyMember.relation, childRelations)))
+      .limit(1)
 
-    if (!familyMember?.familyAccount) {
+    if (!member) {
       return NextResponse.json(
         { error: 'No parent linkage found. Please link your account to a parent.' },
         { status: 400 }
       )
     }
 
-    const familyId = familyMember.familyAccountId
+    const familyId = member.familyAccountId
 
-    // Verify curriculum exists and check if it requires payment
-    const curriculum = await db.curriculum.findUnique({
-      where: { id: body.courseId },
-    })
+    const [curriculumRow] = await drizzleDb
+      .select()
+      .from(curriculum)
+      .where(eq(curriculum.id, body.courseId))
+      .limit(1)
 
-    if (!curriculum) {
+    if (!curriculumRow) {
       return NextResponse.json(
         { error: 'Course not found' },
         { status: 404 }
       )
     }
 
-    const isPaidCourse = (curriculum.price ?? 0) > 0
-    const amount = curriculum.price ?? 0
-    const currency = curriculum.currency ?? 'SGD'
+    const isPaidCourse = (curriculumRow.price ?? 0) > 0
+    const amount = curriculumRow.price ?? 0
+    const currency = curriculumRow.currency ?? 'SGD'
 
-    // Free course: student can join without payment check
     if (!isPaidCourse) {
       return NextResponse.json({
         success: true,
@@ -86,32 +87,34 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check for completed payment (via Payment metadata or enrollmentId)
-    const completedPayments = await db.payment.findMany({
-      where: {
-        status: 'COMPLETED',
-        OR: [
-          {
-            metadata: {
-              path: ['curriculumId'],
-              equals: body.courseId,
-            },
-          },
-          {
-            enrollment: {
-              curriculumId: body.courseId,
-              studentId: session.user.id,
-            },
-          },
-        ],
-      },
-      include: { enrollment: true },
-    })
+    const enrollmentIds = await drizzleDb
+      .select({ id: curriculumEnrollment.id })
+      .from(curriculumEnrollment)
+      .where(and(eq(curriculumEnrollment.curriculumId, body.courseId), eq(curriculumEnrollment.studentId, session.user.id)))
 
-    const isPaid = completedPayments.some((p: any) => {
-      const meta = p.metadata as Record<string, unknown> | null
-      return meta?.studentId === session.user.id || p.enrollment?.studentId === session.user.id
-    })
+    const completedByEnrollment =
+      enrollmentIds.length > 0
+        ? await drizzleDb
+            .select()
+            .from(payment)
+            .where(
+              and(
+                eq(payment.status, 'COMPLETED'),
+                inArray(payment.enrollmentId, enrollmentIds.map((e) => e.id))
+              )
+            )
+        : []
+    const completedByMetadata = await drizzleDb
+      .select()
+      .from(payment)
+      .where(
+        and(
+          eq(payment.status, 'COMPLETED'),
+          sql`${payment.metadata}->>'curriculumId' = ${body.courseId} AND ${payment.metadata}->>'studentId' = ${session.user.id}`
+        )
+      )
+
+    const isPaid = completedByEnrollment.length > 0 || completedByMetadata.length > 0
 
     if (isPaid) {
       return NextResponse.json({
@@ -121,19 +124,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Payment required: create notification for parent
     const studentName = session.user.name ?? session.user.email ?? 'Your child'
     const paymentUrl = `/parent/payments?courseId=${encodeURIComponent(body.courseId)}&studentId=${encodeURIComponent(session.user.id)}`
 
-    await db.familyNotification.create({
-      data: {
-        parentId: familyId,
-        title: 'Payment Required for Course',
-        message: `${studentName} wants to join a paid course (${curriculum.name}). Please complete payment of ${currency} ${amount.toFixed(2)}. Go to: ${paymentUrl}`,
-      },
+    await drizzleDb.insert(familyNotification).values({
+      id: crypto.randomUUID(),
+      parentId: familyId,
+      title: 'Payment Required for Course',
+      message: `${studentName} wants to join a paid course (${curriculumRow.name}). Please complete payment of ${currency} ${amount.toFixed(2)}. Go to: ${paymentUrl}`,
+      isRead: false,
     })
 
-    // Audit log for security compliance
     await logAudit(session.user.id, AUDIT_ACTIONS.PAYMENT_ALERT, {
       resource: 'payment-alert',
       resourceId: body.courseId,

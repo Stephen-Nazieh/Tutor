@@ -14,7 +14,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum,
+  curriculumModule,
+  curriculumLesson,
+  questionBankItem,
+  courseBatch,
+} from '@/lib/db/schema'
+import { eq, and, inArray, asc, sql } from 'drizzle-orm'
+import crypto from 'crypto'
 
 const ADAPTIVE_DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
 type AdaptiveDifficulty = (typeof ADAPTIVE_DIFFICULTIES)[number]
@@ -168,28 +177,35 @@ export async function GET(req: NextRequest) {
     const userId = session.user.id
 
     // Verify ownership
-    const curriculum = await db.curriculum.findFirst({
-        where: { id: curriculumId, creatorId: userId },
-        select: { id: true, name: true },
-    })
-    if (!curriculum) {
+    const [curriculumRow] = await drizzleDb
+        .select({ id: curriculum.id, name: curriculum.name })
+        .from(curriculum)
+        .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, userId)))
+    if (!curriculumRow) {
         return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
     }
 
     // Load modules + lessons ordered
-    const dbModules = await db.curriculumModule.findMany({
-        where: { curriculumId },
-        orderBy: { order: 'asc' },
-        include: {
-            lessons: {
-                orderBy: { order: 'asc' },
-            },
-        },
-    })
+    const dbModules = await drizzleDb
+        .select()
+        .from(curriculumModule)
+        .where(eq(curriculumModule.curriculumId, curriculumId))
+        .orderBy(asc(curriculumModule.order))
+
+    const moduleIds = dbModules.map((m) => m.id)
+    const dbLessons =
+        moduleIds.length > 0
+            ? await drizzleDb
+                  .select()
+                  .from(curriculumLesson)
+                  .where(inArray(curriculumLesson.moduleId, moduleIds))
+                  .orderBy(asc(curriculumLesson.order))
+            : []
 
     // Map DB rows → builder Module[] shape
-    const modules = dbModules.map((m: any) => {
+    const modules = dbModules.map((m: (typeof dbModules)[0]) => {
         const mBuilder = (m.builderData ?? {}) as Record<string, any>
+        const moduleLessons = dbLessons.filter((l) => l.moduleId === m.id)
         return {
             id: m.id,
             title: m.title,
@@ -199,24 +215,24 @@ export async function GET(req: NextRequest) {
             difficultyMode: mBuilder.difficultyMode ?? 'all',
             variants: mBuilder.variants ?? {},
             moduleQuizzes: mBuilder.moduleQuizzes ?? [],
-            lessons: m.lessons.map((l: any) => {
-                const lBuilder = (l.builderData ?? {}) as Record<string, any>
+            lessons: moduleLessons.map((l) => {
+                const lBuilder = (l.builderData ?? {}) as Record<string, unknown>
                 return {
                     id: l.id,
                     title: l.title,
                     description: l.description ?? '',
                     duration: l.duration,
                     order: l.order,
-                    isPublished: lBuilder.isPublished ?? false,
+                    isPublished: (lBuilder.isPublished as boolean) ?? false,
                     prerequisites: l.prerequisiteLessonIds ?? [],
-                    media: lBuilder.media ?? { videos: [], images: [] },
-                    docs: lBuilder.docs ?? [],
-                    content: lBuilder.content ?? [],
-                    tasks: lBuilder.tasks ?? [],
-                    homework: lBuilder.homework ?? [],
-                    quizzes: lBuilder.quizzes ?? [],
-                    difficultyMode: lBuilder.difficultyMode ?? 'all',
-                    variants: lBuilder.variants ?? {},
+                    media: (lBuilder.media as Record<string, unknown>) ?? { videos: [], images: [] },
+                    docs: (lBuilder.docs as unknown[]) ?? [],
+                    content: (lBuilder.content as unknown[]) ?? [],
+                    tasks: (lBuilder.tasks as unknown[]) ?? [],
+                    homework: (lBuilder.homework as unknown[]) ?? [],
+                    quizzes: (lBuilder.quizzes as unknown[]) ?? [],
+                    difficultyMode: (lBuilder.difficultyMode as string) ?? 'all',
+                    variants: (lBuilder.variants as Record<string, unknown>) ?? {},
                 }
             }),
         }
@@ -237,11 +253,11 @@ export async function PUT(req: NextRequest) {
     const userId = session.user.id
 
     // Verify ownership
-    const curriculum = await db.curriculum.findFirst({
-        where: { id: curriculumId, creatorId: userId },
-        select: { id: true, name: true },
-    })
-    if (!curriculum) {
+    const [curriculumRow] = await drizzleDb
+        .select({ id: curriculum.id, name: curriculum.name })
+        .from(curriculum)
+        .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, userId)))
+    if (!curriculumRow) {
         return NextResponse.json({ error: 'Not found or not yours' }, { status: 404 })
     }
 
@@ -260,40 +276,37 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: '`modules` array required' }, { status: 400 })
     }
 
-    // Use a transaction for atomic save
-    await db.$transaction(async (tx: any) => {
-        // 1. Get existing module & lesson IDs so we can delete removed ones
-        const existingModules = await tx.curriculumModule.findMany({
-            where: { curriculumId },
-            select: { id: true, lessons: { select: { id: true } } },
-        })
-        const existingModuleIds = new Set(existingModules.map((m: any) => m.id))
-        const existingLessonIds = new Set(
-            existingModules.flatMap((m: any) => m.lessons.map((l: any) => l.id))
-        )
+    await drizzleDb.transaction(async (tx) => {
+        // 1. Get existing module & lesson IDs
+        const existingModules = await tx
+            .select({ id: curriculumModule.id })
+            .from(curriculumModule)
+            .where(eq(curriculumModule.curriculumId, curriculumId))
+        const existingModuleIds = new Set(existingModules.map((m) => m.id))
+        const existingLessons =
+            existingModuleIds.size > 0
+                ? await tx
+                      .select({ id: curriculumLesson.id })
+                      .from(curriculumLesson)
+                      .where(inArray(curriculumLesson.moduleId, [...existingModuleIds]))
+                : []
+        const existingLessonIds = new Set(existingLessons.map((l) => l.id))
 
         const incomingModuleIds = new Set(modules.map((m) => m.id))
         const incomingLessonIds = new Set(
             modules.flatMap((m: any) => (m.lessons ?? []).map((l: any) => l.id))
         )
 
-        // 2. Delete removed lessons
         const removedLessonIds = [...existingLessonIds].filter((id) => !incomingLessonIds.has(id))
         if (removedLessonIds.length > 0) {
-            await tx.curriculumLesson.deleteMany({
-                where: { id: { in: removedLessonIds } },
-            })
+            await tx.delete(curriculumLesson).where(inArray(curriculumLesson.id, removedLessonIds))
         }
 
-        // 3. Delete removed modules
         const removedModuleIds = [...existingModuleIds].filter((id) => !incomingModuleIds.has(id))
         if (removedModuleIds.length > 0) {
-            await tx.curriculumModule.deleteMany({
-                where: { id: { in: removedModuleIds } },
-            })
+            await tx.delete(curriculumModule).where(inArray(curriculumModule.id, removedModuleIds))
         }
 
-        // 4. Upsert modules + lessons
         for (const mod of modules) {
             const moduleBuilderData = {
                 isPublished: mod.isPublished ?? false,
@@ -301,26 +314,26 @@ export async function PUT(req: NextRequest) {
                 variants: mod.variants ?? {},
                 moduleQuizzes: mod.moduleQuizzes ?? [],
             }
-
-            await tx.curriculumModule.upsert({
-                where: { id: mod.id },
-                create: {
+            await tx
+                .insert(curriculumModule)
+                .values({
                     id: mod.id,
                     curriculumId,
                     title: mod.title || 'Untitled Module',
                     description: mod.description || null,
                     order: mod.order ?? 0,
                     builderData: moduleBuilderData,
-                },
-                update: {
-                    title: mod.title || 'Untitled Module',
-                    description: mod.description || null,
-                    order: mod.order ?? 0,
-                    builderData: moduleBuilderData,
-                },
-            })
+                })
+                .onConflictDoUpdate({
+                    target: curriculumModule.id,
+                    set: {
+                        title: mod.title || 'Untitled Module',
+                        description: mod.description || null,
+                        order: mod.order ?? 0,
+                        builderData: moduleBuilderData,
+                    },
+                })
 
-            // Lessons within this module
             const lessons: any[] = mod.lessons ?? []
             for (const les of lessons) {
                 const lessonBuilderData = {
@@ -334,10 +347,9 @@ export async function PUT(req: NextRequest) {
                     homework: les.homework ?? [],
                     quizzes: les.quizzes ?? [],
                 }
-
-                await tx.curriculumLesson.upsert({
-                    where: { id: les.id },
-                    create: {
+                await tx
+                    .insert(curriculumLesson)
+                    .values({
                         id: les.id,
                         moduleId: mod.id,
                         title: les.title || 'Untitled Lesson',
@@ -346,45 +358,46 @@ export async function PUT(req: NextRequest) {
                         order: les.order ?? 0,
                         prerequisiteLessonIds: les.prerequisites ?? [],
                         builderData: lessonBuilderData,
-                        // Keep structured fields at defaults for new lessons
+                        difficulty: 'intermediate',
                         learningObjectives: [],
                         teachingPoints: [],
                         keyConcepts: [],
                         commonMisconceptions: [],
-                    },
-                    update: {
-                        moduleId: mod.id,
-                        title: les.title || 'Untitled Lesson',
-                        description: les.description || null,
-                        duration: les.duration ?? 30,
-                        order: les.order ?? 0,
-                        prerequisiteLessonIds: les.prerequisites ?? [],
-                        builderData: lessonBuilderData,
-                    },
-                })
+                    })
+                    .onConflictDoUpdate({
+                        target: curriculumLesson.id,
+                        set: {
+                            moduleId: mod.id,
+                            title: les.title || 'Untitled Lesson',
+                            description: les.description || null,
+                            duration: les.duration ?? 30,
+                            order: les.order ?? 0,
+                            prerequisiteLessonIds: les.prerequisites ?? [],
+                            builderData: lessonBuilderData,
+                        },
+                    })
             }
         }
 
-        const questionCandidates = extractQuestionBankCandidates(modules, userId, curriculumId, curriculum.name)
+        const questionCandidates = extractQuestionBankCandidates(modules, userId, curriculumId, curriculumRow.name)
         if (questionCandidates.length > 0) {
-            const existingItems = await tx.questionBankItem.findMany({
-                where: { tutorId: userId, curriculumId },
-                select: { lessonId: true, type: true, question: true },
-            })
+            const existingItems = await tx
+                .select({ lessonId: questionBankItem.lessonId, type: questionBankItem.type, question: questionBankItem.question })
+                .from(questionBankItem)
+                .where(and(eq(questionBankItem.tutorId, userId), eq(questionBankItem.curriculumId, curriculumId)))
             const signatures = new Set(
-                existingItems.map((item: any) => toQuestionSignature(item.type, item.question, item.lessonId ?? null))
+                existingItems.map((item) => toQuestionSignature(item.type, item.question, item.lessonId ?? null))
             )
-
             const toCreate = questionCandidates.filter((item) => {
                 const signature = toQuestionSignature(item.type, item.question, item.lessonId)
                 if (signatures.has(signature)) return false
                 signatures.add(signature)
                 return true
             })
-
             if (toCreate.length > 0) {
-                await tx.questionBankItem.createMany({
-                    data: toCreate.map((item) => ({
+                await tx.insert(questionBankItem).values(
+                    toCreate.map((item) => ({
+                        id: crypto.randomUUID(),
                         tutorId: item.tutorId,
                         curriculumId: item.curriculumId,
                         lessonId: item.lessonId,
@@ -398,25 +411,28 @@ export async function PUT(req: NextRequest) {
                         tags: item.tags,
                         subject: item.subject,
                         isPublic: item.isPublic,
-                    })),
-                })
+                        usageCount: 0,
+                    }))
+                )
             }
         }
 
         if (shouldAutoCreateAdaptiveVariants) {
-            const existingVariantBatches = await tx.courseBatch.findMany({
-                where: {
-                    curriculumId,
-                    difficulty: { in: [...ADAPTIVE_DIFFICULTIES] },
-                },
-                orderBy: [{ order: 'asc' }],
-                select: {
-                    id: true,
-                    name: true,
-                    difficulty: true,
-                    order: true,
-                },
-            })
+            const existingVariantBatches = await tx
+                .select({
+                    id: courseBatch.id,
+                    name: courseBatch.name,
+                    difficulty: courseBatch.difficulty,
+                    order: courseBatch.order,
+                })
+                .from(courseBatch)
+                .where(
+                    and(
+                        eq(courseBatch.curriculumId, curriculumId),
+                        inArray(courseBatch.difficulty, [...ADAPTIVE_DIFFICULTIES])
+                    )
+                )
+                .orderBy(asc(courseBatch.order))
 
             const selectedByDifficulty = new Map<AdaptiveDifficulty, { id: string; name: string; order: number }>()
             for (const batch of existingVariantBatches) {
@@ -425,39 +441,33 @@ export async function PUT(req: NextRequest) {
                 selectedByDifficulty.set(difficulty, { id: batch.id, name: batch.name, order: batch.order })
             }
 
-            let nextOrder = await tx.courseBatch
-                .aggregate({
-                    where: { curriculumId },
-                    _max: { order: true },
-                })
-                .then((r: { _max: { order: number | null } }) => (r._max.order ?? -1) + 1)
+            const [{ maxOrder }] = await tx
+                .select({ maxOrder: sql<number>`coalesce(max(${courseBatch.order}), -1)` })
+                .from(courseBatch)
+                .where(eq(courseBatch.curriculumId, curriculumId))
+            let nextOrder = (Number(maxOrder) ?? -1) + 1
 
             for (const difficulty of ADAPTIVE_DIFFICULTIES) {
                 let batch = selectedByDifficulty.get(difficulty)
-
                 if (!batch) {
-                    const created = await tx.courseBatch.create({
-                        data: {
-                            curriculumId,
-                            name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
-                            difficulty,
-                            order: nextOrder,
-                        },
-                        select: { id: true, name: true, order: true },
+                    const batchId = crypto.randomUUID()
+                    await tx.insert(courseBatch).values({
+                        id: batchId,
+                        curriculumId,
+                        name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`,
+                        difficulty,
+                        order: nextOrder,
+                        isLive: false,
+                        maxStudents: 50,
                     })
-                    batch = created as any
-                    selectedByDifficulty.set(difficulty, batch as any)
+                    batch = { id: batchId, name: `Adaptive ${difficulty[0].toUpperCase()}${difficulty.slice(1)}`, order: nextOrder }
+                    selectedByDifficulty.set(difficulty, batch)
                     nextOrder += 1
                 }
-
                 if (!batch) continue
 
                 const joinLink = `${req.nextUrl.origin}/curriculum/${curriculumId}?batch=${batch.id}`
-                await tx.courseBatch.update({
-                    where: { id: batch.id },
-                    data: { meetingUrl: joinLink },
-                })
-
+                await tx.update(courseBatch).set({ meetingUrl: joinLink }).where(eq(courseBatch.id, batch.id))
                 variantJoinLinks.push({
                     difficulty,
                     batchId: batch.id,

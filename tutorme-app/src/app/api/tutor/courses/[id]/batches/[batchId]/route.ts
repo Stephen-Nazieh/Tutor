@@ -5,15 +5,18 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { courseBatch } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 const SCHEDULE_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
   const { id, batchId } = await (context?.params ?? Promise.resolve({ id: '', batchId: '' }))
-  const batch = await db.courseBatch.findFirst({
-    where: { id: batchId, curriculumId: id },
-  })
+  const [batch] = await drizzleDb
+    .select()
+    .from(courseBatch)
+    .where(and(eq(courseBatch.id, batchId), eq(courseBatch.curriculumId, id)))
   if (!batch) throw new NotFoundError('Batch not found')
   const body = await req.json().catch(() => ({}))
   const difficulty = typeof body.difficulty === 'string' && ['beginner', 'intermediate', 'advanced'].includes(body.difficulty)
@@ -32,10 +35,12 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
   const updateData: { difficulty?: string; schedule?: object } = {}
   if (difficulty !== undefined) updateData.difficulty = difficulty
   if (schedule !== undefined) updateData.schedule = schedule as object
-  const updatedBatch = await db.courseBatch.update({
-    where: { id: batchId },
-    data: updateData,
-  })
+  const [updatedBatch] = await drizzleDb
+    .update(courseBatch)
+    .set(updateData)
+    .where(eq(courseBatch.id, batchId))
+    .returning()
+  if (!updatedBatch) throw new NotFoundError('Batch not found')
   const scheduleArr = Array.isArray(updatedBatch.schedule) ? updatedBatch.schedule : []
   return NextResponse.json({
     batch: {

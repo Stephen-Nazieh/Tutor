@@ -12,7 +12,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { generatedTask, curriculumEnrollment, notification } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
+import crypto from 'crypto'
 
 function getIds(req: NextRequest): { courseId: string; taskId: string } {
     const parts = req.nextUrl.pathname.split('/')
@@ -32,10 +35,10 @@ export async function POST(req: NextRequest) {
 
     const { courseId, taskId } = getIds(req)
 
-    // Verify ownership
-    const task = await db.generatedTask.findFirst({
-        where: { id: taskId, tutorId: session.user.id },
-    })
+    const [task] = await drizzleDb
+        .select()
+        .from(generatedTask)
+        .where(and(eq(generatedTask.id, taskId), eq(generatedTask.tutorId, session.user.id)))
     if (!task) {
         return NextResponse.json({ error: 'Task not found' }, { status: 404 })
     }
@@ -43,60 +46,61 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}))
     const assignTo: 'all' | 'batch' | string[] = body.assignTo ?? 'all'
 
-    // Determine target student IDs
     let studentIds: string[] = []
 
     if (Array.isArray(assignTo)) {
         studentIds = assignTo
     } else if (assignTo === 'batch' && task.batchId) {
-        const enrollments = await db.curriculumEnrollment.findMany({
-            where: { batchId: task.batchId },
-            select: { studentId: true },
-        })
-        studentIds = enrollments.map((e: any) => e.studentId)
+        const enrollments = await drizzleDb
+            .select({ studentId: curriculumEnrollment.studentId })
+            .from(curriculumEnrollment)
+            .where(eq(curriculumEnrollment.batchId, task.batchId))
+        studentIds = enrollments.map((e) => e.studentId)
     } else {
-        // 'all' — everyone enrolled in the curriculum
-        const enrollments = await db.curriculumEnrollment.findMany({
-            where: { curriculumId: courseId },
-            select: { studentId: true },
-        })
-        studentIds = enrollments.map((e: any) => e.studentId)
+        const enrollments = await drizzleDb
+            .select({ studentId: curriculumEnrollment.studentId })
+            .from(curriculumEnrollment)
+            .where(eq(curriculumEnrollment.curriculumId, courseId))
+        studentIds = enrollments.map((e) => e.studentId)
     }
 
-    // Build assignments map — each student gets the same questions (uniform)
     const assignments: Record<string, unknown> = {}
     for (const sid of studentIds) {
         assignments[sid] = { questions: task.questions }
     }
 
-    // Update task: set status, assignments, assignedAt
-    const updated = await db.generatedTask.update({
-        where: { id: taskId },
-        data: {
+    const [updated] = await drizzleDb
+        .update(generatedTask)
+        .set({
             status: 'assigned',
             assignments,
             assignedAt: new Date(),
-        },
-    })
+        })
+        .where(eq(generatedTask.id, taskId))
+        .returning()
 
-    // Create notifications for each assigned student
+    if (!updated) {
+        return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+    }
+
     if (studentIds.length > 0) {
-        await db.notification.createMany({
-            data: studentIds.map((sid) => ({
+        await drizzleDb.insert(notification).values(
+            studentIds.map((sid) => ({
+                id: crypto.randomUUID(),
                 userId: sid,
                 type: 'assignment',
                 title: 'New Assignment',
                 message: `You have a new assignment: "${task.title}"`,
-                actionUrl: `/student/assignments`,
+                actionUrl: '/student/assignments',
                 data: {
                     taskId: task.id,
                     taskTitle: task.title,
                     taskType: task.type,
                     dueDate: task.dueDate?.toISOString() ?? null,
                 },
-            })),
-            skipDuplicates: true,
-        })
+                read: false,
+            }))
+        )
     }
 
     return NextResponse.json({

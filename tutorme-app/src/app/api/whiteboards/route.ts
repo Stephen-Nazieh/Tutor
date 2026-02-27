@@ -6,7 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { whiteboard, whiteboardPage, whiteboardSnapshot } from '@/lib/db/schema'
+import { and, eq, desc, isNull, sql, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 const CreateWhiteboardSchema = z.object({
@@ -28,34 +30,73 @@ const CreateWhiteboardSchema = z.object({
 export const GET = withAuth(async (req: NextRequest, session) => {
   const userId = session.user.id
   const { searchParams } = new URL(req.url)
-  
+
   const sessionId = searchParams.get('sessionId')
   const roomId = searchParams.get('roomId')
   const isTemplate = searchParams.get('isTemplate')
-  const limit = parseInt(searchParams.get('limit') || '50', 10)
-  
+  const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100)
+
   try {
-    const whiteboards = await db.whiteboard.findMany({
-      where: {
-        tutorId: userId,
-        deletedAt: null,
-        ...(sessionId ? { sessionId } : {}),
-        ...(roomId ? { roomId } : {}),
-        ...(isTemplate !== null ? { isTemplate: isTemplate === 'true' } : {}),
+    const conditions = [
+      eq(whiteboard.tutorId, userId),
+      isNull(whiteboard.deletedAt),
+      ...(sessionId ? [eq(whiteboard.sessionId, sessionId)] : []),
+      ...(roomId ? [eq(whiteboard.roomId, roomId)] : []),
+      ...(isTemplate !== null && isTemplate !== '' ? [eq(whiteboard.isTemplate, isTemplate === 'true')] : []),
+    ].filter(Boolean) as ReturnType<typeof eq>[]
+
+    const boards = await drizzleDb
+      .select()
+      .from(whiteboard)
+      .where(and(...conditions))
+      .orderBy(desc(whiteboard.updatedAt))
+      .limit(limit)
+
+    const boardIds = boards.map((b) => b.id)
+
+    const [pagesRows, snapshotCounts] = await Promise.all([
+      boardIds.length
+        ? drizzleDb
+            .select({
+              whiteboardId: whiteboardPage.whiteboardId,
+              id: whiteboardPage.id,
+              name: whiteboardPage.name,
+              order: whiteboardPage.order,
+            })
+            .from(whiteboardPage)
+            .where(inArray(whiteboardPage.whiteboardId, boardIds))
+            .orderBy(whiteboardPage.order)
+        : [],
+      boardIds.length
+        ? drizzleDb
+            .select({
+              whiteboardId: whiteboardSnapshot.whiteboardId,
+              count: sql<number>`count(*)::int`,
+            })
+            .from(whiteboardSnapshot)
+            .where(inArray(whiteboardSnapshot.whiteboardId, boardIds))
+            .groupBy(whiteboardSnapshot.whiteboardId)
+        : [],
+    ])
+
+    const snapshotByBoard = Object.fromEntries(
+      (snapshotCounts as { whiteboardId: string; count: number }[]).map((r) => [r.whiteboardId, r.count])
+    )
+    const pagesByBoard = (pagesRows as { whiteboardId: string; id: string; name: string; order: number }[]).reduce(
+      (acc, p) => {
+        if (!acc[p.whiteboardId]) acc[p.whiteboardId] = []
+        acc[p.whiteboardId].push({ id: p.id, name: p.name, order: p.order })
+        return acc
       },
-      orderBy: { updatedAt: 'desc' },
-      take: limit,
-      include: {
-        pages: {
-          select: { id: true, name: true, order: true },
-          orderBy: { order: 'asc' },
-        },
-        _count: {
-          select: { pages: true, snapshots: true },
-        },
-      },
-    })
-    
+      {} as Record<string, { id: string; name: string; order: number }[]>
+    )
+
+    const whiteboards = boards.map((b) => ({
+      ...b,
+      pages: (pagesByBoard[b.id] ?? []).sort((a, b) => a.order - b.order),
+      _count: { pages: pagesByBoard[b.id]?.length ?? 0, snapshots: snapshotByBoard[b.id] ?? 0 },
+    }))
+
     return NextResponse.json({ whiteboards })
   } catch (error) {
     console.error('Fetch whiteboards error:', error)
@@ -69,53 +110,65 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 // POST - Create whiteboard
 export const POST = withAuth(async (req: NextRequest, session) => {
   const userId = session.user.id
-  
+
   try {
     const body = await req.json()
     const validation = CreateWhiteboardSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: validation.error.format() },
         { status: 400 }
       )
     }
-    
+
     const data = validation.data
-    
-    // Create whiteboard with initial page
-    const whiteboard = await db.whiteboard.create({
-      data: {
+    const whiteboardId = crypto.randomUUID()
+    const pageId = crypto.randomUUID()
+
+    await drizzleDb.transaction(async (tx) => {
+      await tx.insert(whiteboard).values({
+        id: whiteboardId,
         tutorId: userId,
         title: data.title,
-        description: data.description,
-        sessionId: data.sessionId,
-        roomId: data.roomId,
-        curriculumId: data.curriculumId,
-        lessonId: data.lessonId,
+        description: data.description ?? null,
+        sessionId: data.sessionId ?? null,
+        roomId: data.roomId ?? null,
+        curriculumId: data.curriculumId ?? null,
+        lessonId: data.lessonId ?? null,
         isTemplate: data.isTemplate,
         isPublic: data.isPublic,
         width: data.width,
         height: data.height,
         backgroundColor: data.backgroundColor,
         backgroundStyle: data.backgroundStyle,
-        pages: {
-          create: {
-            name: 'Page 1',
-            order: 0,
-            strokes: [],
-            shapes: [],
-            texts: [],
-            images: [],
-          },
-        },
-      },
-      include: {
-        pages: true,
-      },
+        visibility: 'private',
+        isBroadcasting: false,
+        ownerType: 'TUTOR',
+      })
+      await tx.insert(whiteboardPage).values({
+        id: pageId,
+        whiteboardId,
+        name: 'Page 1',
+        order: 0,
+        strokes: [],
+        shapes: [],
+        texts: [],
+        images: [],
+      })
     })
-    
-    return NextResponse.json({ whiteboard }, { status: 201 })
+
+    const [wb] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.id, whiteboardId))
+    const pages = await drizzleDb
+      .select()
+      .from(whiteboardPage)
+      .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+      .orderBy(whiteboardPage.order)
+
+    return NextResponse.json(
+      { whiteboard: wb ? { ...wb, pages } : null },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Create whiteboard error:', error)
     return NextResponse.json(

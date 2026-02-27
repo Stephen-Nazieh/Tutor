@@ -6,7 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, ForbiddenError, requireAdminIp, requirePermission } from '@/lib/api/middleware'
 import { PERMISSIONS } from '@/lib/security/rbac'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { payment, clinicBooking, clinic } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session) => {
   const ipErr = requireAdminIp(req)
@@ -22,25 +24,38 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   const gateway = searchParams.get('gateway')
   const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100)
 
-  const where: Record<string, unknown> = {}
-  if (status) where.status = status
-  if (gateway) where.gateway = gateway
+  const conditions = []
+  if (status) conditions.push(eq(payment.status, status as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'REFUNDED' | 'CANCELLED'))
+  if (gateway) conditions.push(eq(payment.gateway, gateway as 'AIRWALLEX' | 'HITPAY'))
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
-  const payments = await db.payment.findMany({
-    where,
-    include: {
-      booking: {
-        select: {
-          id: true,
-          clinicId: true,
-          studentId: true,
-          clinic: { select: { title: true, subject: true } }
+  const rows = await drizzleDb
+    .select({
+      payment: payment,
+      bookingId: clinicBooking.id,
+      bookingClinicId: clinicBooking.clinicId,
+      bookingStudentId: clinicBooking.studentId,
+      clinicTitle: clinic.title,
+      clinicSubject: clinic.subject,
+    })
+    .from(payment)
+    .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
+    .leftJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+    .where(whereClause)
+    .orderBy(desc(payment.createdAt))
+    .limit(limit)
+
+  const payments = rows.map((r) => ({
+    ...r.payment,
+    booking: r.bookingId
+      ? {
+          id: r.bookingId,
+          clinicId: r.bookingClinicId,
+          studentId: r.bookingStudentId,
+          clinic: r.clinicTitle != null ? { title: r.clinicTitle, subject: r.clinicSubject } : null,
         }
-      }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: limit
-  })
+      : null,
+  }))
 
   return NextResponse.json({ payments })
 }, { role: 'ADMIN' })

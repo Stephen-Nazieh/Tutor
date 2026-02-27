@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withRateLimitPreset, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 
 function getCourseId(req: NextRequest): string {
@@ -129,25 +131,25 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     throw new ValidationError('Prompt or references are required')
   }
 
-  const curriculum = await db.curriculum.findFirst({
-    where: { id: courseId, creatorId: session.user.id },
-    select: { id: true, subject: true, gradeLevel: true },
-  })
-  if (!curriculum) {
+  const [curriculumRow] = await drizzleDb
+    .select({ id: curriculum.id, subject: curriculum.subject, gradeLevel: curriculum.gradeLevel })
+    .from(curriculum)
+    .where(and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)))
+  if (!curriculumRow) {
     throw new NotFoundError('Course not found')
   }
 
   let references = uploadedReferences.join('\n\n').slice(0, 18000)
   if (!references.trim()) {
-    const webContext = await fetchWebReference(curriculum.subject || tutorInstruction.split(/\s+/).slice(0, 4).join(' '))
+    const webContext = await fetchWebReference(curriculumRow.subject || tutorInstruction.split(/\s+/).slice(0, 4).join(' '))
     references = webContext
   }
 
   const prompt = buildPrompt({
     tutorInstruction,
     references,
-    subject: curriculum.subject,
-    gradeLevel: curriculum.gradeLevel,
+    subject: curriculumRow.subject,
+    gradeLevel: curriculumRow.gradeLevel,
   })
 
   const ai = await generateWithFallback(prompt, {

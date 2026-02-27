@@ -5,10 +5,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, adminRole, adminAssignment } from '@/lib/db/schema'
+import { eq, inArray } from 'drizzle-orm'
 import { adminRegistrationSchema } from '@/lib/validation/user-registration'
 import { ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
+import crypto from 'crypto'
+import { sql } from 'drizzle-orm'
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,21 +27,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
     }
 
-    // Public bootstrap is allowed only before any admin account exists,
-    // unless explicitly opened for multi-admin self-registration.
     const allowPublicAdminRegistration =
       process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION === 'true' ||
       (process.env.NODE_ENV !== 'production' && process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION !== 'false')
 
-    const existingAdminCount = await db.user.count({ where: { role: 'ADMIN' } })
-    if (existingAdminCount > 0 && !allowPublicAdminRegistration) {
+    const [{ count }] = await drizzleDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(user)
+      .where(eq(user.role, 'ADMIN'))
+    if (count > 0 && !allowPublicAdminRegistration) {
       return NextResponse.json(
         { error: 'Admin bootstrap is closed' },
         { status: 400 }
       )
     }
 
-    // Optional hard gate for first-admin creation in production.
     const bootstrapKey = process.env.ADMIN_BOOTSTRAP_KEY
     if (bootstrapKey) {
       const providedKey = request.headers.get('x-admin-bootstrap-key')
@@ -60,41 +65,40 @@ export async function POST(request: NextRequest) {
     const name = sanitizeHtml(`${data.firstName} ${data.lastName}`).trim().slice(0, 100) || 'Admin'
     const email = data.email.toLowerCase().trim()
 
-    const existingUser = await db.user.findUnique({
-      where: { email },
-    })
-
+    const [existingUser] = await drizzleDb.select().from(user).where(eq(user.email, email)).limit(1)
     if (existingUser) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10)
 
-    const user = await db.$transaction(async (tx: any) => {
-      const newUser = await tx.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          role: 'ADMIN',
-          emailVerified: null,
-        },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          createdAt: true,
-        },
+    const newUser = await drizzleDb.transaction(async (tx) => {
+      const userId = crypto.randomUUID()
+      const profileId = crypto.randomUUID()
+      await tx.insert(user).values({
+        id: userId,
+        email,
+        password: hashedPassword,
+        role: 'ADMIN',
+        emailVerified: null,
       })
 
-      await tx.profile.create({
-        data: {
-          userId: newUser.id,
-          name,
-          tosAccepted: true,
-          tosAcceptedAt: new Date(),
-          organizationName: sanitizeHtml(data.organizationName).trim().slice(0, 200) || null,
-          timezone: data.adminLevel === 'super' ? 'Asia/Shanghai' : 'Asia/Shanghai',
-        },
+      await tx.insert(profile).values({
+        id: profileId,
+        userId,
+        name,
+        tosAccepted: true,
+        tosAcceptedAt: new Date(),
+        organizationName: sanitizeHtml(data.organizationName).trim().slice(0, 200) || null,
+        timezone: 'Asia/Shanghai',
+        emailNotifications: true,
+        smsNotifications: false,
+        subjectsOfInterest: [],
+        preferredLanguages: [],
+        learningGoals: [],
+        isOnboarded: true,
+        specialties: [],
+        paidClassesEnabled: false,
       })
 
       const roleName =
@@ -104,36 +108,23 @@ export async function POST(request: NextRequest) {
             ? 'MODERATOR'
             : 'ADMIN'
 
-      const adminRole = await tx.adminRole.findUnique({
-        where: { name: roleName },
-      })
+      const [adminRoleRow] = await tx.select().from(adminRole).where(eq(adminRole.name, roleName)).limit(1)
+      const roleId = adminRoleRow?.id
+        ? adminRoleRow.id
+        : (await tx.select().from(adminRole).where(inArray(adminRole.name, ['ADMIN', 'SUPER_ADMIN'])).limit(1))[0]?.id
 
-      if (adminRole) {
-        await tx.adminAssignment.create({
-          data: {
-            userId: newUser.id,
-            roleId: adminRole.id,
-            assignedBy: newUser.id,
-            isActive: true,
-          },
+      if (roleId) {
+        await tx.insert(adminAssignment).values({
+          id: crypto.randomUUID(),
+          userId,
+          roleId,
+          assignedBy: userId,
+          isActive: true,
         })
-      } else {
-        const fallbackRole = await tx.adminRole.findFirst({
-          where: { name: { in: ['ADMIN', 'SUPER_ADMIN'] } },
-        })
-        if (fallbackRole) {
-          await tx.adminAssignment.create({
-            data: {
-              userId: newUser.id,
-              roleId: fallbackRole.id,
-              assignedBy: newUser.id,
-              isActive: true,
-            },
-          })
-        }
       }
 
-      return newUser
+      const [u] = await tx.select().from(user).where(eq(user.id, userId)).limit(1)
+      return u!
     })
 
     return NextResponse.json(
@@ -141,10 +132,10 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Admin account created successfully',
         user: {
-          id: user.id,
+          id: newUser.id,
           name,
-          email: user.email,
-          role: user.role,
+          email: newUser.email,
+          role: newUser.role,
           tosAccepted: true,
         },
       },
@@ -161,8 +152,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (error && typeof error === 'object' && 'code' in error) {
-      const prismaError = error as { code: string }
-      if (prismaError.code === 'P2002') {
+      const dbError = error as { code: string }
+      if (dbError.code === '23505') {
         return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
       }
     }

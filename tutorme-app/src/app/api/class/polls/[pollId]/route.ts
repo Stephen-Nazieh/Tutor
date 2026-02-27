@@ -7,7 +7,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { poll } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 
 const updatePollSchema = z.object({
@@ -26,30 +28,31 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
     const body = await req.json()
     const data = updatePollSchema.parse(body)
 
-    // Verify poll belongs to this tutor
-    const existingPoll = await db.poll.findFirst({
-      where: { id: pollId, tutorId: session.user.id }
-    })
+    const [existingPoll] = await drizzleDb
+      .select()
+      .from(poll)
+      .where(and(eq(poll.id, pollId), eq(poll.tutorId, session.user.id)))
+      .limit(1)
 
     if (!existingPoll) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
     }
 
-    const updateData: any = { ...data }
-    
-    // Set timestamps based on status change
-    if (data.status === 'active' && existingPoll.status === 'draft') {
-      updateData.startedAt = new Date()
-    } else if (data.status === 'closed' && existingPoll.status === 'active') {
-      updateData.endedAt = new Date()
+    const set: Partial<typeof poll.$inferInsert> = { ...data }
+    if (data.status === 'active' && existingPoll.status === 'DRAFT') {
+      set.startedAt = new Date()
+      set.status = 'ACTIVE'
+    } else if (data.status === 'closed' && existingPoll.status === 'ACTIVE') {
+      set.endedAt = new Date()
+      set.status = 'CLOSED'
+    } else if (data.status) {
+      set.status = data.status.toUpperCase() as 'DRAFT' | 'ACTIVE' | 'CLOSED'
     }
 
-    const poll = await db.poll.update({
-      where: { id: pollId },
-      data: updateData
-    })
+    await drizzleDb.update(poll).set(set).where(eq(poll.id, pollId))
+    const [updated] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
 
-    return NextResponse.json({ success: true, poll })
+    return NextResponse.json({ success: true, poll: updated })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -73,18 +76,17 @@ export const DELETE = withAuth(async (req: NextRequest, session) => {
       return NextResponse.json({ error: 'Poll ID is required' }, { status: 400 })
     }
 
-    // Verify poll belongs to this tutor
-    const existingPoll = await db.poll.findFirst({
-      where: { id: pollId, tutorId: session.user.id }
-    })
+    const [existingPoll] = await drizzleDb
+      .select()
+      .from(poll)
+      .where(and(eq(poll.id, pollId), eq(poll.tutorId, session.user.id)))
+      .limit(1)
 
     if (!existingPoll) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
     }
 
-    await db.poll.delete({
-      where: { id: pollId }
-    })
+    await drizzleDb.delete(poll).where(eq(poll.id, pollId))
 
     return NextResponse.json({ success: true })
   } catch (error) {

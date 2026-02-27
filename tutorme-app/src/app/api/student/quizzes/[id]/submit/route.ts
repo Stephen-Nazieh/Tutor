@@ -1,109 +1,127 @@
 /**
  * Quiz Submission API
- * 
+ *
  * POST /api/student/quizzes/[id]/submit - Submit quiz answers
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, withCsrf, ValidationError, NotFoundError, ForbiddenError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { quiz, quizAttempt } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { gradeQuiz } from '@/lib/quiz/auto-grading'
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await context?.params ?? {}
-    const { id } = params
-    const studentId = session.user.id
+export const POST = withCsrf(
+  withAuth(
+    async (req: NextRequest, session, context) => {
+      const params = (await context?.params) ?? {}
+      const id = Array.isArray(params.id) ? params.id[0] : params.id
+      const studentId = session.user.id
 
-    const body = await req.json()
-    const { attemptId, answers, timeSpent } = body
+      const body = await req.json()
+      const { attemptId, answers, timeSpent } = body
 
-    if (!attemptId) {
+      if (!attemptId) {
         throw new ValidationError('attemptId is required')
-    }
+      }
 
-    if (!answers || typeof answers !== 'object') {
+      if (!answers || typeof answers !== 'object') {
         throw new ValidationError('answers are required')
-    }
+      }
 
-    // Get quiz
-    const quiz = await db.quiz.findUnique({
-        where: { id }
-    })
+      const [quizRow] = await drizzleDb
+        .select()
+        .from(quiz)
+        .where(eq(quiz.id, id))
+        .limit(1)
 
-    if (!quiz) {
+      if (!quizRow) {
         throw new NotFoundError('Quiz not found')
-    }
+      }
 
-    // Get attempt
-    const attempt = await db.quizAttempt.findFirst({
-        where: {
-            id: attemptId,
-            quizId: id,
-            studentId,
-            status: 'in_progress'
-        }
-    })
+      const [attempt] = await drizzleDb
+        .select()
+        .from(quizAttempt)
+        .where(
+          and(
+            eq(quizAttempt.id, attemptId),
+            eq(quizAttempt.quizId, id),
+            eq(quizAttempt.studentId, studentId),
+            eq(quizAttempt.status, 'in_progress')
+          )
+        )
+        .limit(1)
 
-    if (!attempt) {
+      if (!attempt) {
         throw new NotFoundError('Active attempt not found')
-    }
+      }
 
-    // Check if time limit exceeded
-    if (quiz.timeLimit) {
-        const elapsedMinutes = (Date.now() - attempt.startedAt.getTime()) / 60000
-        if (elapsedMinutes > quiz.timeLimit + 1) { // 1 minute grace period
-            // Auto-submit with current answers
-            console.log(`Quiz ${id} auto-submitted due to time limit for student ${studentId}`)
+      if (quizRow.timeLimit) {
+        const elapsedMinutes =
+          (Date.now() - attempt.startedAt.getTime()) / 60000
+        if (elapsedMinutes > quizRow.timeLimit + 1) {
+          console.log(
+            `Quiz ${id} auto-submitted due to time limit for student ${studentId}`
+          )
         }
-    }
+      }
 
-    // Grade the quiz
-    const questions = quiz.questions as any[]
-    const gradingResult = await gradeQuiz(questions, answers, {
+      const questions = (quizRow.questions as any[]) ?? []
+      const gradingResult = await gradeQuiz(questions, answers, {
         useAI: true,
-        studentId
-    })
+        studentId,
+      })
 
-    // Update attempt
-    const updatedAttempt = await db.quizAttempt.update({
-        where: { id: attemptId },
-        data: {
-            status: 'graded',
-            answers,
-            score: gradingResult.totalScore,
-            maxScore: gradingResult.maxScore,
-            completedAt: new Date(),
-            timeSpent: timeSpent || Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000),
-            questionResults: gradingResult.results,
-            isGraded: true
-        }
-    })
-
-    // Award XP and check for badges
-    try {
-        const { onQuizComplete } = await import('@/lib/gamification/triggers')
-        const gamificationResult = await onQuizComplete(
-            studentId,
-            Array.isArray(id) ? id[0] : id,
-            gradingResult.percentage,
-            gradingResult.percentage === 100
+      const timeSpentSec =
+        timeSpent ??
+        Math.floor(
+          (Date.now() - attempt.startedAt.getTime()) / 1000
         )
 
-            // Include gamification results in response
-            ; (updatedAttempt as any).gamification = gamificationResult
-    } catch (error) {
-        console.error('Failed to award XP/badges:', error)
-    }
+      await drizzleDb
+        .update(quizAttempt)
+        .set({
+          status: 'graded',
+          answers: answers as any,
+          score: gradingResult.totalScore,
+          maxScore: gradingResult.maxScore,
+          completedAt: new Date(),
+          timeSpent: timeSpentSec,
+          questionResults: gradingResult.results as any,
+        })
+        .where(eq(quizAttempt.id, attemptId))
 
-    return NextResponse.json({
+      const [updatedAttempt] = await drizzleDb
+        .select()
+        .from(quizAttempt)
+        .where(eq(quizAttempt.id, attemptId))
+        .limit(1)
+
+      try {
+        const { onQuizComplete } = await import('@/lib/gamification/triggers')
+        const gamificationResult = await onQuizComplete(
+          studentId,
+          id,
+          gradingResult.percentage,
+          gradingResult.percentage === 100
+        )
+        ;(updatedAttempt as any).gamification = gamificationResult
+      } catch (error) {
+        console.error('Failed to award XP/badges:', error)
+      }
+
+      return NextResponse.json({
         success: true,
         attempt: {
-            id: updatedAttempt.id,
-            score: gradingResult.totalScore,
-            maxScore: gradingResult.maxScore,
-            percentage: gradingResult.percentage,
-            completedAt: updatedAttempt.completedAt,
-            questionResults: gradingResult.results
-        }
-    })
-}, { role: 'STUDENT' }))
+          id: updatedAttempt!.id,
+          score: gradingResult.totalScore,
+          maxScore: gradingResult.maxScore,
+          percentage: gradingResult.percentage,
+          completedAt: updatedAttempt!.completedAt,
+          questionResults: gradingResult.results,
+        },
+      })
+    },
+    { role: 'STUDENT' }
+  )
+)

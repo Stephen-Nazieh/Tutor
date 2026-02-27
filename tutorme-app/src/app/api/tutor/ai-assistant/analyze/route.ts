@@ -1,19 +1,17 @@
 /**
  * AI Analysis API
  * POST /api/tutor/ai-assistant/analyze
- * 
- * Analyzes student data and provides insights:
- * - performance: Analyze class performance trends
- * - engagement: Identify disengaged students
- * - difficulty: Detect struggling topics
- * - recommendations: Get teaching recommendations
+ *
+ * Analyzes student data and provides insights.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aIAssistantInsight } from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { z } from 'zod'
+import { randomUUID } from 'crypto'
 
 const AnalyzeRequestSchema = z.object({
   type: z.enum(['performance', 'engagement', 'difficulty', 'recommendations']),
@@ -48,8 +46,7 @@ interface AnalysisResult {
   }[]
 }
 
-async function fetchPerformanceData(tutorId: string, params: AnalyzeRequest): Promise<PerformanceData[]> {
-  // Mock data for now - in production, fetch from actual tables
+async function fetchPerformanceData(_tutorId: string, _params: AnalyzeRequest): Promise<PerformanceData[]> {
   return [
     { studentName: 'Alice Zhang', scores: [85, 88, 92, 90], attendance: 95, participation: 90 },
     { studentName: 'Bob Li', scores: [72, 75, 78, 80], attendance: 85, participation: 70 },
@@ -59,11 +56,18 @@ async function fetchPerformanceData(tutorId: string, params: AnalyzeRequest): Pr
   ]
 }
 
-function generateAnalysisPrompt(type: AnalyzeRequest['type'], data: PerformanceData[], context?: string): string {
-  const dataSummary = data.map(d => 
-    `- ${d.studentName}: Scores [${d.scores.join(', ')}], Attendance ${d.attendance}%, Participation ${d.participation}%`
-  ).join('\n')
-  
+function generateAnalysisPrompt(
+  type: AnalyzeRequest['type'],
+  data: PerformanceData[],
+  context?: string
+): string {
+  const dataSummary = data
+    .map(
+      (d) =>
+        `- ${d.studentName}: Scores [${d.scores.join(', ')}], Attendance ${d.attendance}%, Participation ${d.participation}%`
+    )
+    .join('\n')
+
   const basePrompt = `Analyze the following student performance data:
 
 ${dataSummary}
@@ -116,23 +120,19 @@ Based on this data, provide teaching recommendations:
 
 Prioritize recommendations by expected impact.`,
   }
-  
+
   return typeSpecificPrompts[type]
 }
 
-function parseAnalysisResponse(content: string, type: AnalyzeRequest['type']): AnalysisResult {
-  // Extract sections from the AI response
-  const lines = content.split('\n').filter(l => l.trim())
-  
+function parseAnalysisResponse(content: string, _type: AnalyzeRequest['type']): AnalysisResult {
+  const lines = content.split('\n').filter((l) => l.trim())
   const findings: string[] = []
   const recommendations: string[] = []
   const actionItems: AnalysisResult['actionItems'] = []
-  
   let currentSection = ''
-  
+
   for (const line of lines) {
     const trimmed = line.trim()
-    
     if (trimmed.match(/^(findings|key findings|analysis|observations)/i)) {
       currentSection = 'findings'
       continue
@@ -145,80 +145,74 @@ function parseAnalysisResponse(content: string, type: AnalyzeRequest['type']): A
       currentSection = 'actions'
       continue
     }
-    
     if (trimmed.startsWith('-') || trimmed.startsWith('•') || /^\d+\./.test(trimmed)) {
-      const content = trimmed.replace(/^[-•\d.\s]+/, '').trim()
-      
-      if (currentSection === 'findings') {
-        findings.push(content)
-      } else if (currentSection === 'recommendations') {
-        recommendations.push(content)
-      } else if (currentSection === 'actions') {
-        const priority = trimmed.toLowerCase().includes('urgent') || trimmed.toLowerCase().includes('immediate')
-          ? 'high'
-          : trimmed.toLowerCase().includes('consider') || trimmed.toLowerCase().includes('optional')
-            ? 'low'
-            : 'medium'
-        actionItems.push({ priority, action: content })
+      const text = trimmed.replace(/^[-•\d.\s]+/, '').trim()
+      if (currentSection === 'findings') findings.push(text)
+      else if (currentSection === 'recommendations') recommendations.push(text)
+      else if (currentSection === 'actions') {
+        const priority: 'high' | 'medium' | 'low' =
+          trimmed.toLowerCase().includes('urgent') || trimmed.toLowerCase().includes('immediate')
+            ? 'high'
+            : trimmed.toLowerCase().includes('consider') || trimmed.toLowerCase().includes('optional')
+              ? 'low'
+              : 'medium'
+        actionItems.push({ priority, action: text })
       }
     }
   }
-  
+
   return {
     summary: lines.slice(0, 3).join(' ').slice(0, 200),
     keyFindings: findings.slice(0, 6),
     recommendations: recommendations.slice(0, 5),
-    actionItems: actionItems.length > 0 ? actionItems : [
-      { priority: 'high', action: 'Review analysis with students' },
-      { priority: 'medium', action: 'Implement suggested strategies' },
-    ],
+    actionItems:
+      actionItems.length > 0
+        ? actionItems
+        : [
+            { priority: 'high' as const, action: 'Review analysis with students' },
+            { priority: 'medium' as const, action: 'Implement suggested strategies' },
+          ],
     trends: [
-      { direction: 'improving', metric: 'Average scores', description: 'Overall upward trend' },
+      { direction: 'improving' as const, metric: 'Average scores', description: 'Overall upward trend' },
     ],
   }
 }
 
 export const POST = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
-  
+
   try {
     const body = await req.json()
     const validation = AnalyzeRequestSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: validation.error.format() },
         { status: 400 }
       )
     }
-    
+
     const params = validation.data
-    
-    // Fetch performance data
     const performanceData = await fetchPerformanceData(tutorId, params)
-    
+
     if (performanceData.length === 0) {
       return NextResponse.json(
         { error: 'No data available for analysis' },
         { status: 404 }
       )
     }
-    
-    // Generate analysis prompt
+
     const prompt = generateAnalysisPrompt(params.type, performanceData, params.context)
-    
-    // Get AI analysis
     const result = await generateWithFallback(prompt, {
       temperature: 0.5,
       maxTokens: 2000,
     })
-    
-    // Parse the response
+
     const analysis = parseAnalysisResponse(result.content, params.type)
-    
-    // Save insight
-    await db.aIAssistantInsight.create({
-      data: {
+
+    try {
+      await drizzleDb.insert(aIAssistantInsight).values({
+        id: randomUUID(),
         sessionId: body.sessionId || 'temp',
         type: 'student_analysis',
         title: `${params.type.charAt(0).toUpperCase() + params.type.slice(1)} Analysis`,
@@ -228,11 +222,12 @@ export const POST = withAuth(async (req: NextRequest, session) => {
           timeRange: params.timeRange,
           studentCount: performanceData.length,
         },
-      },
-    }).catch(() => {
-      // Continue even if insight creation fails
-    })
-    
+        applied: false,
+      })
+    } catch {
+      // continue
+    }
+
     return NextResponse.json({
       analysis,
       rawResponse: result.content,

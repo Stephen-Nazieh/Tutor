@@ -8,7 +8,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumModule, curriculumLesson, courseBatch, generatedTask, taskSubmission } from '@/lib/db/schema'
+import { eq, and, or, inArray, desc, sql } from 'drizzle-orm'
+import crypto from 'crypto'
 
 function getCourseId(req: NextRequest): string {
     const parts = req.nextUrl.pathname.split('/')
@@ -26,51 +29,63 @@ export async function GET(req: NextRequest) {
 
     const curriculumId = getCourseId(req)
 
-    // Verify tutor owns this course
-    const curriculum = await db.curriculum.findFirst({
-        where: { id: curriculumId, creatorId: session.user.id },
-        select: { id: true },
-    })
-    if (!curriculum) {
+    const [curriculumRow] = await drizzleDb
+        .select({ id: curriculum.id })
+        .from(curriculum)
+        .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, session.user.id)))
+    if (!curriculumRow) {
         return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    // Get all lessons for this curriculum so we can filter tasks
-    const modules = await db.curriculumModule.findMany({
-        where: { curriculumId },
-        select: { lessons: { select: { id: true } } },
-    })
-    const lessonIds = modules.flatMap((m: any) => m.lessons.map((l: any) => l.id))
+    const modules = await drizzleDb
+        .select({ id: curriculumModule.id })
+        .from(curriculumModule)
+        .where(eq(curriculumModule.curriculumId, curriculumId))
+    const moduleIds = modules.map((m) => m.id)
+    const lessons =
+        moduleIds.length > 0
+            ? await drizzleDb
+                  .select({ id: curriculumLesson.id })
+                  .from(curriculumLesson)
+                  .where(inArray(curriculumLesson.moduleId, moduleIds))
+            : []
+    const lessonIds = lessons.map((l) => l.id)
 
-    // Get all batches for this curriculum
-    const batches = await db.courseBatch.findMany({
-        where: { curriculumId },
-        select: { id: true },
-    })
-    const batchIds = batches.map((b: any) => b.id)
+    const batches = await drizzleDb
+        .select({ id: courseBatch.id })
+        .from(courseBatch)
+        .where(eq(courseBatch.curriculumId, curriculumId))
+    const batchIds = batches.map((b) => b.id)
 
-    // Fetch tasks by tutor that belong to this course (via lesson or batch)
-    const tasks = await db.generatedTask.findMany({
-        where: {
-            tutorId: session.user.id,
-            OR: [
-                { lessonId: { in: lessonIds.length > 0 ? lessonIds : ['__none__'] } },
-                { batchId: { in: batchIds.length > 0 ? batchIds : ['__none__'] } },
-            ],
-        },
-        orderBy: { createdAt: 'desc' },
-    })
+    const taskFilter =
+        lessonIds.length > 0 || batchIds.length > 0
+            ? or(
+                  lessonIds.length > 0 ? inArray(generatedTask.lessonId, lessonIds) : inArray(generatedTask.lessonId, ['__none__']),
+                  batchIds.length > 0 ? inArray(generatedTask.batchId, batchIds) : inArray(generatedTask.batchId, ['__none__'])
+              )
+            : sql`1=0`
 
-    // Count submissions per task
-    const taskIds = tasks.map((t: any) => t.id)
-    const submissionCounts = await db.taskSubmission.groupBy({
-        by: ['taskId'],
-        where: { taskId: { in: taskIds } },
-        _count: { id: true },
-    })
-    const submissionMap = new Map(submissionCounts.map((s: any) => [s.taskId, s._count.id]))
+    const tasks = await drizzleDb
+        .select()
+        .from(generatedTask)
+        .where(and(eq(generatedTask.tutorId, session.user.id), taskFilter))
+        .orderBy(desc(generatedTask.createdAt))
 
-    const result = tasks.map((t: any) => ({
+    const taskIds = tasks.map((t) => t.id)
+    const submissionRows =
+        taskIds.length > 0
+            ? await drizzleDb
+                  .select({
+                      taskId: taskSubmission.taskId,
+                      count: sql<number>`count(*)::int`,
+                  })
+                  .from(taskSubmission)
+                  .where(inArray(taskSubmission.taskId, taskIds))
+                  .groupBy(taskSubmission.taskId)
+            : []
+    const submissionMap = new Map(submissionRows.map((s) => [s.taskId, s.count]))
+
+    const result = tasks.map((t) => ({
         id: t.id,
         title: t.title,
         description: t.description,
@@ -102,12 +117,11 @@ export async function POST(req: NextRequest) {
 
     const curriculumId = getCourseId(req)
 
-    // Verify tutor owns this course
-    const curriculum = await db.curriculum.findFirst({
-        where: { id: curriculumId, creatorId: session.user.id },
-        select: { id: true },
-    })
-    if (!curriculum) {
+    const [curriculumRow] = await drizzleDb
+        .select({ id: curriculum.id })
+        .from(curriculum)
+        .where(and(eq(curriculum.id, curriculumId), eq(curriculum.creatorId, session.user.id)))
+    if (!curriculumRow) {
         return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
@@ -130,34 +144,37 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    // Validate lessonId belongs to this course if provided
     if (lessonId) {
-        const lesson = await db.curriculumLesson.findFirst({
-            where: { id: lessonId, module: { curriculumId } },
-        })
+        const [lesson] = await drizzleDb
+            .select({ id: curriculumLesson.id })
+            .from(curriculumLesson)
+            .innerJoin(curriculumModule, eq(curriculumLesson.moduleId, curriculumModule.id))
+            .where(and(eq(curriculumLesson.id, lessonId), eq(curriculumModule.curriculumId, curriculumId)))
         if (!lesson) {
             return NextResponse.json({ error: 'Lesson not in this course' }, { status: 400 })
         }
     }
 
-    // Validate batchId belongs to this course if provided
     if (batchId) {
-        const batch = await db.courseBatch.findFirst({
-            where: { id: batchId, curriculumId },
-        })
+        const [batch] = await drizzleDb
+            .select({ id: courseBatch.id })
+            .from(courseBatch)
+            .where(and(eq(courseBatch.id, batchId), eq(courseBatch.curriculumId, curriculumId)))
         if (!batch) {
             return NextResponse.json({ error: 'Batch not in this course' }, { status: 400 })
         }
     }
 
-    const task = await db.generatedTask.create({
-        data: {
+    const [task] = await drizzleDb
+        .insert(generatedTask)
+        .values({
+            id: crypto.randomUUID(),
             tutorId: session.user.id,
             title,
             description: description || '',
             type,
             difficulty,
-            questions: questions,
+            questions: questions as unknown[],
             distributionMode,
             assignments: {},
             status,
@@ -165,8 +182,15 @@ export async function POST(req: NextRequest) {
             batchId: batchId || null,
             dueDate: dueDate ? new Date(dueDate) : null,
             maxScore,
-        },
-    })
+            enforceTimeLimit: false,
+            enforceDueDate: false,
+            maxAttempts: 1,
+        })
+        .returning()
+
+    if (!task) {
+        return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
+    }
 
     return NextResponse.json({
         task: {

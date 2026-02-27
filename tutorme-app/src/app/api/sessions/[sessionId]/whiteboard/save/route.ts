@@ -1,13 +1,15 @@
 /**
  * Save whiteboard strokes/pages
- * 
+ *
  * POST /api/sessions/[sessionId]/whiteboard/save
  * Save the current state of a whiteboard
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { whiteboard, whiteboardPage } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 
 const MAX_ITEMS_PER_LAYER = 5000
@@ -22,7 +24,7 @@ const SaveWhiteboardSchema = z.object({
 })
 
 export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params ?? {}
+  const params = (await context?.params) ?? {}
   const { sessionId } = params
   const userId = session.user.id
 
@@ -32,52 +34,76 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const body = await req.json().catch(() => null)
   const parsed = SaveWhiteboardSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid whiteboard payload' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Invalid whiteboard payload' },
+      { status: 400 }
+    )
   }
   const { pageId, strokes, shapes, texts, viewState } = parsed.data
 
   const payloadSize = Buffer.byteLength(JSON.stringify(parsed.data), 'utf8')
   if (payloadSize > MAX_PAYLOAD_BYTES) {
-    return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
+    return NextResponse.json(
+      { error: 'Payload too large' },
+      { status: 413 }
+    )
   }
 
-  // Find the whiteboard page
-  const page = await db.whiteboardPage.findFirst({
-    where: {
-      id: pageId,
-      whiteboard: {
-        sessionId,
-        tutorId: userId
-      }
-    }
-  })
+  const [page] = await drizzleDb
+    .select()
+    .from(whiteboardPage)
+    .where(eq(whiteboardPage.id, pageId))
+    .limit(1)
 
   if (!page) {
     return NextResponse.json({ error: 'Page not found' }, { status: 404 })
   }
 
-  // Update page
+  const [wb] = await drizzleDb
+    .select()
+    .from(whiteboard)
+    .where(
+      and(
+        eq(whiteboard.id, page.whiteboardId),
+        eq(whiteboard.sessionId, sessionId),
+        eq(whiteboard.tutorId, userId)
+      )
+    )
+    .limit(1)
+
+  if (!wb) {
+    return NextResponse.json({ error: 'Page not found' }, { status: 404 })
+  }
+
   const updateData: Record<string, unknown> = {}
   if (strokes !== undefined) updateData.strokes = strokes
   if (shapes !== undefined) updateData.shapes = shapes
   if (texts !== undefined) updateData.texts = texts
   if (viewState !== undefined) updateData.viewState = viewState
 
-  const updatedPage = await db.whiteboardPage.update({
-    where: { id: pageId },
-    data: updateData
-  })
+  await drizzleDb
+    .update(whiteboardPage)
+    .set(updateData)
+    .where(eq(whiteboardPage.id, pageId))
 
-  // Update whiteboard updatedAt
-  await db.whiteboard.updateMany({
-    where: {
-      sessionId,
-      tutorId: userId
-    },
-    data: {
-      updatedAt: new Date()
-    }
-  })
+  await drizzleDb
+    .update(whiteboard)
+    .set({ updatedAt: new Date() })
+    .where(
+      and(
+        eq(whiteboard.sessionId, sessionId),
+        eq(whiteboard.tutorId, userId)
+      )
+    )
 
-  return NextResponse.json({ success: true, page: updatedPage })
+  const [updatedPage] = await drizzleDb
+    .select()
+    .from(whiteboardPage)
+    .where(eq(whiteboardPage.id, pageId))
+    .limit(1)
+
+  return NextResponse.json({
+    success: true,
+    page: updatedPage!,
+  })
 })

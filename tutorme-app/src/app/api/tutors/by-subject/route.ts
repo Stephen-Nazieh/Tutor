@@ -6,7 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db as prisma } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, profile, liveSession, sessionParticipant } from '@/lib/db/schema'
+import { eq, and, ilike, inArray, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,83 +24,79 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Subject code required' }, { status: 400 })
     }
 
-    // Find tutors who teach this subject
-    // We look for tutors who have courses/curriculums for this subject
-    const tutors = await prisma.user.findMany({
-      where: {
-        role: 'TUTOR',
-        liveSessions: {
-          some: {
-            subject: {
-              equals: subjectCode,
-              mode: 'insensitive'
-            }
-          }
-        }
-      },
-      select: {
-        id: true,
-        profile: {
-          select: {
-            name: true,
-            avatarUrl: true,
-            bio: true,
-          }
-        },
-        // Get tutor stats from their sessions
-        liveSessions: {
-          where: {
-            status: 'completed'
-          },
-          select: {
-            id: true,
-            _count: {
-              select: {
-                participants: true
-              }
-            }
-          }
-        },
-        // Get average rating from feedback
-        receivedFeedback: {
-          select: {
-            rating: true
-          }
-        }
-      },
-      take: 20
-    })
+    const tutorIdsWithSubject = await drizzleDb
+      .selectDistinct({ tutorId: liveSession.tutorId })
+      .from(liveSession)
+      .where(ilike(liveSession.subject, subjectCode))
+      .limit(500)
+    const ids = tutorIdsWithSubject.map((r) => r.tutorId).filter(Boolean)
+    if (ids.length === 0) {
+      return NextResponse.json({ tutors: [] })
+    }
 
-    // Format tutor data
-    const formattedTutors = tutors.map((tutor: typeof tutors[0]) => {
-      const ratings = tutor.receivedFeedback.map((f: typeof tutor.receivedFeedback[0]) => f.rating).filter((r: number | null): r is number => r !== null)
-      const avgRating = ratings.length > 0 
-        ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length 
-        : 0
-      
-      const totalStudents = tutor.liveSessions.reduce((sum: number, session: typeof tutor.liveSessions[0]) => 
-        sum + session._count.participants, 0
-      )
-      
+    const users = await drizzleDb
+      .select({ id: user.id })
+      .from(user)
+      .where(and(eq(user.role, 'TUTOR'), inArray(user.id, ids)))
+      .limit(20)
+    const userIds = users.map((u) => u.id)
+    if (userIds.length === 0) {
+      return NextResponse.json({ tutors: [] })
+    }
+
+    const profiles = await drizzleDb
+      .select({ userId: profile.userId, name: profile.name, avatarUrl: profile.avatarUrl, bio: profile.bio })
+      .from(profile)
+      .where(inArray(profile.userId, userIds))
+    const profileByUserId = new Map(profiles.map((p) => [p.userId, p]))
+
+    const completedSessions = await drizzleDb
+      .select({ id: liveSession.id, tutorId: liveSession.tutorId })
+      .from(liveSession)
+      .where(and(ilike(liveSession.subject, subjectCode), eq(liveSession.status, 'completed')))
+    const sessionIds = completedSessions.map((s) => s.id)
+    const participantCounts =
+      sessionIds.length > 0
+        ? await drizzleDb
+            .select({
+              sessionId: sessionParticipant.sessionId,
+              count: sql<number>`count(*)::int`,
+            })
+            .from(sessionParticipant)
+            .where(inArray(sessionParticipant.sessionId, sessionIds))
+            .groupBy(sessionParticipant.sessionId)
+        : []
+    const countBySessionId = new Map(participantCounts.map((r) => [r.sessionId, r.count]))
+    const tutorTotalStudents = new Map<string, number>()
+    for (const s of completedSessions) {
+      const total = tutorTotalStudents.get(s.tutorId) ?? 0
+      tutorTotalStudents.set(s.tutorId, total + (countBySessionId.get(s.id) ?? 0))
+    }
+    const tutorSessionCount = new Map<string, number>()
+    for (const s of completedSessions) {
+      tutorSessionCount.set(s.tutorId, (tutorSessionCount.get(s.tutorId) ?? 0) + 1)
+    }
+
+    const formattedTutors = userIds.map((id) => {
+      const p = profileByUserId.get(id)
       return {
-        id: tutor.id,
-        name: tutor.profile?.name || 'Unknown Tutor',
-        avatar: tutor.profile?.avatarUrl,
-        bio: tutor.profile?.bio || `Experienced ${subjectCode} tutor`,
-        rating: Math.round(avgRating * 10) / 10,
-        reviewCount: ratings.length,
-        hourlyRate: null, // Can be added to Profile model later
+        id,
+        name: p?.name ?? 'Unknown Tutor',
+        avatar: p?.avatarUrl ?? null,
+        bio: p?.bio ?? `Experienced ${subjectCode} tutor`,
+        rating: 0,
+        reviewCount: 0,
+        hourlyRate: null,
         currency: 'SGD',
-        nextAvailableSlot: null, // Can be fetched from availability API
-        totalStudents,
-        totalClasses: tutor.liveSessions.length
+        nextAvailableSlot: null,
+        totalStudents: tutorTotalStudents.get(id) ?? 0,
+        totalClasses: tutorSessionCount.get(id) ?? 0,
       }
     })
 
-    // Sort by rating, then by number of students
-    formattedTutors.sort((a: typeof formattedTutors[0], b: typeof formattedTutors[0]) => {
+    formattedTutors.sort((a, b) => {
       if (b.rating !== a.rating) return b.rating - a.rating
-      return b.totalStudents - a.totalStudents
+      return (b.totalStudents ?? 0) - (a.totalStudents ?? 0)
     })
 
     return NextResponse.json({ tutors: formattedTutors })

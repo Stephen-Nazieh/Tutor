@@ -1,72 +1,84 @@
 /**
  * Get a specific student's whiteboard
- * 
+ *
  * GET /api/sessions/[sessionId]/whiteboard/[studentId]
  * Tutor can view any student's whiteboard; students can only view if public
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { whiteboard, whiteboardPage, profile } from '@/lib/db/schema'
+import { eq, and, asc } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params ?? {}
+  const params = (await context?.params) ?? {}
   const { sessionId, studentId } = params
   const userId = session.user.id
   const userRole = session.user.role
 
-  // Find the student's whiteboard
-  const whiteboard = await db.whiteboard.findFirst({
-    where: {
-      sessionId,
-      tutorId: studentId,
-      ownerType: 'student'
-    },
-    include: {
-      pages: {
-        orderBy: { order: 'asc' }
-      }
-    }
-  })
+  const [whiteboardRow] = await drizzleDb
+    .select()
+    .from(whiteboard)
+    .where(
+      and(
+        eq(whiteboard.sessionId, sessionId),
+        eq(whiteboard.tutorId, studentId),
+        eq(whiteboard.ownerType, 'student')
+      )
+    )
+    .limit(1)
 
-  if (!whiteboard) {
-    return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+  if (!whiteboardRow) {
+    return NextResponse.json(
+      { error: 'Whiteboard not found' },
+      { status: 404 }
+    )
   }
 
-  // Check permissions
   if (userRole === 'TUTOR') {
-    // Tutor can view if visibility is not 'private'
-    if (whiteboard.visibility === 'private') {
-      return NextResponse.json({ error: 'Whiteboard is private' }, { status: 403 })
+    if (whiteboardRow.visibility === 'private') {
+      return NextResponse.json(
+        { error: 'Whiteboard is private' },
+        { status: 403 }
+      )
     }
   } else {
-    // Student can only view if public
-    if (whiteboard.visibility !== 'public') {
-      return NextResponse.json({ error: 'Whiteboard is not public' }, { status: 403 })
+    if (whiteboardRow.visibility !== 'public') {
+      return NextResponse.json(
+        { error: 'Whiteboard is not public' },
+        { status: 403 }
+      )
     }
-    // And not their own
     if (studentId === userId) {
-      // Return their own whiteboard
-      return NextResponse.json({ whiteboard })
+      const pages = await drizzleDb
+        .select()
+        .from(whiteboardPage)
+        .where(eq(whiteboardPage.whiteboardId, whiteboardRow.id))
+        .orderBy(asc(whiteboardPage.order))
+      return NextResponse.json({
+        whiteboard: { ...whiteboardRow, pages },
+      })
     }
   }
 
-  // Get student name
-  const student = await db.user.findUnique({
-    where: { id: studentId },
-    select: {
-      profile: {
-        select: {
-          name: true
-        }
-      }
-    }
-  })
+  const pages = await drizzleDb
+    .select()
+    .from(whiteboardPage)
+    .where(eq(whiteboardPage.whiteboardId, whiteboardRow.id))
+    .orderBy(asc(whiteboardPage.order))
+
+  const [profileRow] = await drizzleDb
+    .select({ name: profile.name })
+    .from(profile)
+    .where(eq(profile.userId, studentId))
+    .limit(1)
 
   return NextResponse.json({
     whiteboard: {
-      ...whiteboard,
-      studentName: student?.profile?.name || 'Unknown'
-    }
+      ...whiteboardRow,
+      pages,
+      studentName: profileRow?.name ?? 'Unknown',
+    },
   })
 })
