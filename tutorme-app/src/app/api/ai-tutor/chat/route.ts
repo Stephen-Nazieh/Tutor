@@ -75,11 +75,17 @@ export const POST = withCsrf(withAuth(async (req, session) => {
         .where(eq(mission.id, missionId))
         .limit(1)
       if (missionRow) {
+        const requirement = missionRow.requirement as Record<string, unknown> | null
+        const difficulty = requirement && typeof requirement.difficulty === 'string' ? requirement.difficulty : '1'
         missionContext = {
+          worldId: (requirement && typeof requirement.worldId === 'string' ? requirement.worldId : missionRow.id),
+          worldName: (requirement && typeof requirement.worldName === 'string' ? requirement.worldName : 'Current mission'),
+          worldEmoji: (requirement && typeof requirement.worldEmoji === 'string' ? requirement.worldEmoji : '🎯'),
           missionId: missionRow.id,
           missionTitle: missionRow.title,
           missionObjective: missionRow.description,
-          missionType: missionRow.type as any,
+          missionType: missionRow.type,
+          difficulty,
         }
       }
     }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * PIPL (Personal Information Protection Law) Compliance System
  * 个人信息保护法合规系统 - Chinese Market
@@ -17,6 +16,7 @@
  * - Cross-border documentation: <200ms
  */
 
+import crypto from 'crypto'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   userActivityLog,
@@ -206,7 +206,7 @@ export const PIPL_ARTICLE_15 = {
     const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]))
     const clinicBookings = clinicBookingsRaw.map((b) => ({ ...b, clinic: clinicById[b.clinicId] ?? null }))
 
-    const curriculumEnrollmentsRaw = await drizzleDb.select().from(curriculumEnrollment).where(eq(curriculumEnrollment.userId, userId))
+    const curriculumEnrollmentsRaw = await drizzleDb.select().from(curriculumEnrollment).where(eq(curriculumEnrollment.studentId, userId))
     const currIds = [...new Set(curriculumEnrollmentsRaw.map((e) => e.curriculumId))]
     const curricula =
       currIds.length > 0

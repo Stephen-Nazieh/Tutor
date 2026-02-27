@@ -7,13 +7,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage, profile } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = (await context?.params) ?? {}
-  const { sessionId, studentId } = params
+  const sessionId = await getParamAsync(context?.params, 'sessionId')
+  const studentId = await getParamAsync(context?.params, 'studentId')
+  if (!sessionId || !studentId) return NextResponse.json({ error: 'Session and student ID required' }, { status: 400 })
   const userId = session.user.id
   const userRole = session.user.role
 

@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
   if (result.success && (result.status === 'completed' || result.status === 'succeeded')) {
     const ids = [result.paymentId ?? '', body?.id, body?.payment_request_id].filter(Boolean) as string[]
-    let paymentRow: { id: string; bookingId: string | null; metadata: unknown; amount: number; currency: string } | undefined
+    let paymentRow: { id: string; bookingId: string | null; metadata: unknown; amount: number; currency: string; tutorId?: string | null } | undefined
     if (ids.length > 0) {
       [paymentRow] = await drizzleDb
         .select()

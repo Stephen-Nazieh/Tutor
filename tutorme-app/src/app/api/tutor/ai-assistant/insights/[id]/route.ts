@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantInsight, aIAssistantSession } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -13,8 +14,10 @@ import { eq, and } from 'drizzle-orm'
 // PATCH - Update insight
 export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const params = (await context?.params) ?? {}
-  const insightId = params.id as string
+  const insightId = await getParamAsync(context?.params, 'id')
+  if (!insightId) {
+    return NextResponse.json({ error: 'Insight ID required' }, { status: 400 })
+  }
 
   try {
     const body = await req.json()
@@ -59,8 +62,10 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
 // DELETE - Delete insight
 export const DELETE = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const params = (await context?.params) ?? {}
-  const insightId = params.id as string
+  const insightId = await getParamAsync(context?.params, 'id')
+  if (!insightId) {
+    return NextResponse.json({ error: 'Insight ID required' }, { status: 400 })
+  }
 
   try {
     const rows = await drizzleDb

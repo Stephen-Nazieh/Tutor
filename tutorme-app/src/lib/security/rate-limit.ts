@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Rate limiting for API routes.
  * Uses Redis when REDIS_URL is set (shared across instances); otherwise in-memory store.
@@ -36,7 +35,8 @@ function checkRateLimitMemory(
   key: string,
   options: RateLimitOptions
 ): RateLimitResult {
-  const { windowMs, max } = options
+  const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS
+  const { max } = options
   const now = Date.now()
   if (memoryStore.size > 10000) prune()
   let entry = memoryStore.get(key)
@@ -84,7 +84,8 @@ async function checkRateLimitRedis(
   const redis = await getRedisClient()
   if (!redis) return checkRateLimitMemory(key, options)
 
-  const { windowMs, max } = options
+  const windowMs = options.windowMs ?? DEFAULT_WINDOW_MS
+  const { max } = options
   const now = Date.now()
   const fullKey = REDIS_PREFIX + key
   const ttlSeconds = Math.ceil(windowMs / 1000)

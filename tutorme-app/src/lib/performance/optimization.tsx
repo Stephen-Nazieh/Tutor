@@ -29,11 +29,14 @@ export const MemoizedDashboard = memo(function MemoizedDashboard({
     </div>
   );
 }, (prevProps, nextProps) => {
-  // Smart comparison that checks data equality and loading state
-  return (
-    prevProps.loadingState === nextProps.loadingState &&
-    JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
-  );
+  // Compare loading state and data (deep equality via JSON for dashboard payloads; avoid for very large objects)
+  if (prevProps.loadingState !== nextProps.loadingState) return false
+  if (prevProps.data === nextProps.data) return true
+  try {
+    return JSON.stringify(prevProps.data) === JSON.stringify(nextProps.data)
+  } catch {
+    return false
+  }
 });
 
 // 2. Dynamic Imports for Code Splitting

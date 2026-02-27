@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, sql } from 'drizzle-orm'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, user, curriculumShare, familyNotification, familyMember } from '@/lib/db/schema'
@@ -57,8 +57,8 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
         where: eq(user.email, email.toLowerCase()),
         with: {
           profile: { columns: { name: true } },
-          familyMembers: {
-            where: (fm, { inArray, or }) => or(
+          familyMemberships: {
+            where: (fm, { or }) => or(
               eq(sql`lower(${fm.relation})`, 'parent'),
               eq(sql`lower(${fm.relation})`, 'children'),
               eq(sql`lower(${fm.relation})`, 'guardian')
@@ -100,7 +100,7 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
         isPublic: false,
       })
 
-      const familyAccountId = recipient.familyMembers[0]?.familyAccountId
+      const familyAccountId = recipient.familyMemberships?.[0]?.familyAccountId
       if (familyAccountId) {
         const tutorName = session.user.name ?? 'Your teacher'
         await drizzleDb.insert(familyNotification).values({
@@ -108,6 +108,7 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
           parentId: familyAccountId,
           title: 'Course Shared by Tutor',
           message: `${tutorName} shared a course with you: "${course.name}". ${data.message} View: /parent/courses/${shareId}`,
+          isRead: false,
         })
       }
 

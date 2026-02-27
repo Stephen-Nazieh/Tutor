@@ -90,7 +90,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
           await drizzleDb
             .update(aITutorSubscription)
             .set({
-              tier: tier as 'FREE' | 'BASIC' | 'PREMIUM',
+              tier: (tier === 'BASIC' ? 'PRO' : tier === 'PREMIUM' ? 'ELITE' : 'FREE'),
               dailySessions: limits.dailySessions,
               dailyMessages: limits.dailyMessages,
             })
@@ -103,7 +103,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
             .values({
               id: crypto.randomUUID(),
               userId: session.user.id,
-              tier: tier as 'FREE' | 'BASIC' | 'PREMIUM',
+              tier: (tier === 'BASIC' ? 'PRO' : tier === 'PREMIUM' ? 'ELITE' : 'FREE'),
               dailySessions: limits.dailySessions,
               dailyMessages: limits.dailyMessages,
               isActive: true,

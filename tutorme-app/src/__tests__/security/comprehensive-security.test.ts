@@ -26,6 +26,14 @@ vi.mock('@/lib/db', () => ({
   },
 }))
 
+vi.mock('@/lib/db/drizzle', () => ({
+  drizzleDb: {
+    insert: vi.fn().mockReturnValue({
+      values: vi.fn().mockResolvedValue(undefined),
+    }),
+  },
+}))
+
 describe('Comprehensive Security Tests', () => {
   beforeEach(() => {
     clientEncryption.clearKeyCache()

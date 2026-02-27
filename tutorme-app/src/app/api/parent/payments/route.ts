@@ -32,7 +32,7 @@ export const GET = withAuth(
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
-    const [familyPaymentsRaw, enrollments, bookings] = await Promise.all([
+    const [familyPaymentsRaw, enrollmentsWithDetails, bookingsWithDetails, coursePaymentRows, clinicPaymentRows] = await Promise.all([
       drizzleDb.query.familyPayment.findMany({
         where: eq(familyPayment.parentId, family.id),
         orderBy: [desc(familyPayment.createdAt)],
@@ -42,7 +42,6 @@ export const GET = withAuth(
         ? drizzleDb.query.curriculumEnrollment.findMany({
           where: inArray(curriculumEnrollment.studentId, family.studentIds),
           with: {
-            payments: true,
             student: { with: { profile: { columns: { name: true } } } },
             curriculum: { columns: { name: true } },
           },
@@ -52,41 +51,75 @@ export const GET = withAuth(
         ? drizzleDb.query.clinicBooking.findMany({
           where: inArray(clinicBooking.studentId, family.studentIds),
           with: {
-            payment: true,
             student: { with: { profile: { columns: { name: true } } } },
             clinic: { columns: { title: true } },
           },
         })
         : Promise.resolve([]),
+      family.studentIds.length > 0
+        ? drizzleDb
+            .select({
+              paymentId: payment.id,
+              amount: payment.amount,
+              currency: payment.currency,
+              status: payment.status,
+              createdAt: payment.createdAt,
+              paidAt: payment.paidAt,
+              enrollmentId: payment.enrollmentId,
+            })
+            .from(payment)
+            .innerJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
+            .where(inArray(curriculumEnrollment.studentId, family.studentIds))
+        : Promise.resolve([]),
+      family.studentIds.length > 0
+        ? drizzleDb
+            .select({
+              paymentId: payment.id,
+              amount: payment.amount,
+              currency: payment.currency,
+              status: payment.status,
+              createdAt: payment.createdAt,
+              paidAt: payment.paidAt,
+              bookingId: payment.bookingId,
+            })
+            .from(payment)
+            .innerJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
+            .where(inArray(clinicBooking.studentId, family.studentIds))
+        : Promise.resolve([]),
     ])
 
-    const coursePayments = (enrollments as any[]).flatMap((e: any) =>
-      (e.payments || []).map((p: any) => ({
-        id: p.id,
+    const enrollmentById = new Map((enrollmentsWithDetails as { id: string; curriculum?: { name: string } | null; student?: { profile?: { name: string | null } } | null }[]).map((e) => [e.id, e]))
+    const bookingById = new Map((bookingsWithDetails as { id: string; clinic?: { title: string } | null; student?: { profile?: { name: string | null } } | null }[]).map((b) => [b.id, b]))
+
+    const coursePayments = coursePaymentRows.map((p) => {
+      const e = enrollmentById.get(p.enrollmentId ?? '')
+      return {
+        id: p.paymentId,
         type: 'course' as const,
         amount: p.amount,
         currency: p.currency,
         status: p.status,
         createdAt: p.createdAt,
         paidAt: p.paidAt,
-        description: e.curriculum?.name,
-        studentName: e.student?.profile?.name ?? null,
-      }))
-    )
+        description: e?.curriculum?.name ?? null,
+        studentName: e?.student?.profile?.name ?? null,
+      }
+    })
 
-    const clinicPayments = (bookings as any[])
-      .filter((b: any) => b.payment)
-      .map((b: any) => ({
-        id: b.payment!.id,
+    const clinicPayments = clinicPaymentRows.map((p) => {
+      const b = bookingById.get(p.bookingId ?? '')
+      return {
+        id: p.paymentId,
         type: 'clinic' as const,
-        amount: b.payment!.amount,
-        currency: b.payment!.currency,
-        status: b.payment!.status,
-        createdAt: b.payment!.createdAt,
-        paidAt: b.payment!.paidAt,
-        description: b.clinic?.title,
-        studentName: b.student?.profile?.name ?? null,
-      }))
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status,
+        createdAt: p.createdAt,
+        paidAt: p.paidAt,
+        description: b?.clinic?.title ?? null,
+        studentName: b?.student?.profile?.name ?? null,
+      }
+    })
 
     const budgetPayments = familyPaymentsRaw.map((p: any) => ({
       id: p.id,

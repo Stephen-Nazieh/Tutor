@@ -38,7 +38,7 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
     }
 
-    const set: Partial<typeof poll.$inferInsert> = { ...data }
+    const set: Partial<typeof poll.$inferInsert> = { showResults: data.showResults }
     if (data.status === 'active' && existingPoll.status === 'DRAFT') {
       set.startedAt = new Date()
       set.status = 'ACTIVE'
@@ -46,7 +46,7 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
       set.endedAt = new Date()
       set.status = 'CLOSED'
     } else if (data.status) {
-      set.status = data.status.toUpperCase() as 'DRAFT' | 'ACTIVE' | 'CLOSED'
+      set.status = (data.status.toUpperCase() === 'ACTIVE' ? 'ACTIVE' : data.status.toUpperCase() === 'CLOSED' ? 'CLOSED' : 'DRAFT') as 'DRAFT' | 'ACTIVE' | 'CLOSED'
     }
 
     await drizzleDb.update(poll).set(set).where(eq(poll.id, pollId))

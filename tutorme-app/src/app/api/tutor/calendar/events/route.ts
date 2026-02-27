@@ -238,7 +238,10 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     }
     
     // Create notification reminders (background task)
-    createReminderNotifications(event, tutorId).catch(console.error)
+    createReminderNotifications(
+      { ...event, reminders: (event.reminders as { minutes: number }[] | undefined) ?? [] },
+      tutorId
+    ).catch(console.error)
     
     return NextResponse.json({ event }, { status: 201 })
   } catch (error) {

@@ -117,6 +117,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
       difficulty: 'intermediate',
       estimatedHours: 40,
       isPublished: true,
+      isLiveOnline: true,
     })
     await createDefaultModules(curriculumId, subjectCode)
   }

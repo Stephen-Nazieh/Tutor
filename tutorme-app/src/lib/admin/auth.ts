@@ -336,7 +336,7 @@ export async function logAdminAction(
       metadata: details.metadata as object || null,
       ipAddress: details.ipAddress || null,
       userAgent: details.userAgent || null,
-      timestamp: new Date(),
+      createdAt: new Date(),
     })
   } catch (error) {
     console.error('Error logging admin action:', error)

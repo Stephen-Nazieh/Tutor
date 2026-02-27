@@ -110,11 +110,15 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
       case 'svg': {
         const targetPage = pages[pageIndex] ?? pages[0]
-        const svg = generateSVG(
-          targetPage ? [targetPage] : [],
-          wb.width,
-          wb.height
-        )
+        const pageForSvg = targetPage
+          ? [{
+              strokes: Array.isArray(targetPage.strokes) ? targetPage.strokes : [],
+              shapes: Array.isArray(targetPage.shapes) ? targetPage.shapes : undefined,
+              texts: Array.isArray(targetPage.texts) ? targetPage.texts : undefined,
+              backgroundColor: targetPage.backgroundColor ?? undefined,
+            }]
+          : []
+        const svg = generateSVG(pageForSvg, wb.width, wb.height)
         return new NextResponse(svg, {
           headers: {
             'Content-Type': 'image/svg+xml',

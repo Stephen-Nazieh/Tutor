@@ -13,7 +13,7 @@ import {
   quizAttempt,
 } from '@/lib/db/schema'
 import { eq, and, or, inArray, desc } from 'drizzle-orm'
-import { StudentQuiz } from '@/types/quiz'
+import { StudentQuiz, QuizType } from '@/types/quiz'
 
 export const GET = withAuth(async (req: NextRequest, session) => {
   const studentId = session.user.id
@@ -151,8 +151,8 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     quizzes.push({
       id: quizRow.id,
       title: quizRow.title,
-      description: quizRow.description,
-      type: quizRow.type,
+      description: quizRow.description ?? undefined,
+      type: quizRow.type as QuizType,
       timeLimit: quizRow.timeLimit ?? undefined,
       allowedAttempts: quizRow.allowedAttempts,
       totalQuestions: Array.isArray(questions) ? questions.length : 0,

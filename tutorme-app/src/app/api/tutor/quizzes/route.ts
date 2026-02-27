@@ -36,13 +36,12 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     if (curriculumId) conditions.push(eq(quiz.curriculumId, curriculumId))
 
     if (searchQuery) {
-        conditions.push(
-            or(
-                ilike(quiz.title, `%${searchQuery}%`),
-                ilike(quiz.description, `%${searchQuery}%`),
-                sql`${quiz.tags} @> ARRAY[${searchQuery}]::text[]`
-            )
+        const searchCond = or(
+            ilike(quiz.title, `%${searchQuery}%`),
+            ilike(quiz.description, `%${searchQuery}%`),
+            sql`${quiz.tags} @> ARRAY[${searchQuery}]::text[]`
         )
+        if (searchCond) conditions.push(searchCond)
     }
 
     const where = and(...conditions)

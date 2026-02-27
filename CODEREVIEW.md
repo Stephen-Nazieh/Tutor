@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-The codebase is a feature-rich AI–human hybrid tutoring platform with clear separation of roles (Student, Tutor, Parent, Admin), i18n, and a dual database layer (Drizzle as default, Prisma legacy for a few scripts). **Build and typecheck currently fail:** `npm run typecheck` reports **~80+ TypeScript errors** across API routes, libs, and scripts. Test and lint outcomes vary (some tests fail; lint can be slow). Security posture is generally good (rate limiting, auth, CSRF on sensitive endpoints, sandboxed code execution), but there are gaps (CSP still uses `unsafe-inline`/`unsafe-eval`, many files use `@ts-nocheck`). This review recommends fixing type errors and test assertions first, then addressing tech debt, security hardening, and consistency.
+The codebase is a feature-rich AI–human hybrid tutoring platform with clear separation of roles (Student, Tutor, Parent, Admin), i18n, and a dual database layer (Drizzle as default, Prisma legacy for a few scripts). **Typecheck and tests now pass** (post-review fixes: params helper, Zod/schema fixes, @ts-nocheck removed in key modules, admin login/register and PIPL tests fixed). Security posture is good (rate limiting, auth, CSRF, sandboxed code execution); remaining gaps include CSP (`unsafe-inline`/`unsafe-eval`), and many files still use `@ts-nocheck`. Continue incremental type and CSP hardening per this review.
 
 ---
 
@@ -57,7 +57,7 @@ The codebase is a feature-rich AI–human hybrid tutoring platform with clear se
 ### 2.1 Current State
 
 - **Strict mode:** Enabled in `tsconfig.json` (`"strict": true`).
-- **Typecheck:** **Fails** with ~80+ errors. `tsconfig` excludes `**/*.test.ts` / `**/*.test.tsx`, so reported errors are from app/lib/scripts only.
+- **Typecheck:** **Passes** (post-review). Params helper (`getParam`/`getParamAsync` in `lib/api/params.ts`), schema/enum fixes, and @ts-nocheck removal in auth, security, validation, and error-handler keep the codebase green. `tsconfig` excludes `**/*.test.ts` / `**/*.test.tsx`.
 
 ### 2.2 Error Categories
 
@@ -276,12 +276,38 @@ The codebase is a feature-rich AI–human hybrid tutoring platform with clear se
 | Area | Status | Notes |
 |------|--------|--------|
 | Architecture | ✅ Structured | Dual ORM and large API surface need ongoing care |
-| TypeScript | ❌ Failing | ~80+ errors; params, schema, imports, scripts |
+| TypeScript | ✅ Passing | typecheck passes; params helper, fixes applied |
 | Security | ✅ Good base | Auth, rate limit, CSRF, sandbox; CSP weak |
-| Tests | ⚠️ Partial | Some failures; fix assertions and CI |
-| Linting | ⚠️ Partial | Slow if not ignoring reports; hook violations |
+| Tests | ✅ Passing | 98 passed; admin login/register mocks, PIPL mock |
+| Linting | ⚠️ Partial | Hook fixes and ignore paths applied; can be slow |
 | DB / Migrations | ✅ Documented | Drizzle default; migrations in start scripts |
-| Docs | ✅ Useful | AGENTS.md, MIGRATIONS.md, DATABASE_SYSTEM_FINDINGS |
-| Dependencies | ⚠️ Peer issues | React/drei; Prisma version alignment |
+| Docs | ✅ Useful | AGENTS.md, MIGRATIONS.md, RBAC_NEW_ROUTES, API_ROUTES |
+| Dependencies | ✅ Addressed | React/drei overrides in package.json |
 
 This review should be used as a living checklist; re-run typecheck and tests after each batch of fixes and update the document as the codebase evolves.
+
+---
+
+## Implementation status (post-review)
+
+| Priority | Item | Status |
+|----------|------|--------|
+| P0.1 | Fix TypeScript errors | Done (typecheck passes) |
+| P0.2 | Fix failing tests (rate limit, admin register) | Done (admin register mocks Drizzle; rate limit tests pass) |
+| P0.3 | Scripts (world/dailyQuest) | Done (runtime checks, optional seeds) |
+| P1.4 | Reduce @ts-nocheck | Done: rate-limit.ts, auth.ts, error-handler.ts, parent-child-security.ts, pipl-compliance.ts, security-audit.ts |
+| P1.5 | CSP hardening | Doc: docs/CSP_HARDENING.md; middleware @see added |
+| P1.6 | ESLint hooks / ignore paths | Memo comparison fixed in optimization.tsx; playwright-report/test-results ignored |
+| P1.7 | API consistency / RBAC doc | docs/RBAC_NEW_ROUTES.md added; getParamAsync used in insights/[id], whiteboards/[id], whiteboards/[id]/snapshots |
+| P2.8 | Split TutorWhiteboardManager | Deferred (optional) |
+| P2.9 | Document API | docs/API_ROUTES.md added |
+| P2.10 | React/drei peer dependency | package.json overrides for react/react-dom ^18 |
+| TODOs | 7 TODO comments | docs/TODO_TRACKING.md added |
+| Docker healthcheck | User alignment | Already correct (tutorme in compose and healthcheck) |
+| ZodError .errors | Polls routes used .errors | Fixed: polls/route.ts, polls/[pollId]/route.ts, polls/[pollId]/vote/route.ts use .issues |
+| Summary table | Section 10 outdated | Updated: TypeScript ✅, Tests ✅, Dependencies ✅, Docs row |
+| pipl-compliance | curriculumEnrollment.userId | Fixed: use studentId (schema has studentId not userId) |
+| parent-child-security | Zod 4 API | Fixed: refine() dropped code; z.literal(true, { message }) for Zod 4 |
+| Executive Summary / §2.1 | Outdated “typecheck fails” | Updated: typecheck and tests pass; incremental hardening |
+| Params normalization | getParamAsync in dynamic routes | Applied: ai-assistant/insights/[id], whiteboards/[id], whiteboards/[id]/snapshots (400 when id missing) |
+| security-audit.ts | @ts-nocheck + Prisma db | Done: removed @ts-nocheck; crypto import; generateWeeklySecurityReport uses Drizzle; meta typed as AuditMetadata |

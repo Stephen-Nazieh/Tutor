@@ -6,6 +6,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { UpdateCourseSettingsSchema } from '@/lib/validation/schemas'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumModule, curriculumLesson, curriculumEnrollment } from '@/lib/db/schema'
@@ -13,7 +14,8 @@ import { eq, asc, and, inArray, sql } from 'drizzle-orm'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 
 export const GET = withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
   const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
   if (!curriculumRow) throw new NotFoundError('Course not found')
@@ -79,7 +81,8 @@ export const GET = withAuth(async (req, session, context) => {
 }, { role: 'TUTOR' })
 
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
   const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
   if (!curriculumRow) throw new NotFoundError('Course not found')

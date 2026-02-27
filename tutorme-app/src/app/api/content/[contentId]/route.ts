@@ -6,12 +6,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, asc, eq } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem, contentQuizCheckpoint } from '@/lib/db/schema'
 
-export const GET = withAuth(async (req, session, context: { params?: Promise<{ contentId?: string }> }) => {
-  const params = context?.params ? await context.params : null
-  const contentId = params?.contentId
+export const GET = withAuth(async (req, session, context) => {
+  const contentId = await getParamAsync(context?.params, 'contentId')
   if (!contentId) {
     return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
   }

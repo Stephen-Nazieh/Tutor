@@ -5,6 +5,7 @@
 
 import { eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
+import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
 import { studentPerformance } from '@/lib/db/schema'
 import { generateWithFallback } from './orchestrator'
 
@@ -575,7 +576,7 @@ export async function submitTask(
         score,
         maxScore: 100,
         timeSpent: submission.timeSpent,
-        questionResults,
+        questionResults: questionResults as unknown as object,
         aiFeedback: {
           feedback: gradingData.feedback,
           suggestions: gradingData.suggestions

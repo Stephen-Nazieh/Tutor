@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     body = bodySchema.parse(parsed)
   } catch (err: unknown) {
     const message = err instanceof z.ZodError
-      ? err.errors.map((e) => e.message).join(', ')
+      ? err.issues.map((e: { message: string }) => e.message).join(', ')
       : 'Invalid request body'
     return NextResponse.json({ error: message }, { status: 400 })
   }

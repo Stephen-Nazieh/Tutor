@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Parent-Child Security Validation Schemas
  * Global security schema for parent-child linking with verification requirements
@@ -25,7 +24,6 @@ export const studentLinkingSchema = z
     {
       message:
         'For security, you must provide either child email or unique ID to link students properly',
-      code: 'INSUFFICIENT_STUDENT_VERIFICATION',
     }
   )
 
@@ -40,7 +38,7 @@ export const parentRegistrationSecuritySchema = z.object({
     .min(1, 'You must link at least one child for parent registration'),
   parentEmail: z.string().email('Valid parent email is required'),
   tosAccepted: z.literal(true, {
-    errorMap: () => ({ message: 'You must accept the Terms of Service' }),
+    message: 'You must accept the Terms of Service',
   }),
 })
 

@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { courseBatch } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -12,7 +13,9 @@ import { eq, and } from 'drizzle-orm'
 const SCHEDULE_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
-  const { id, batchId } = await (context?.params ?? Promise.resolve({ id: '', batchId: '' }))
+  const id = await getParamAsync(context?.params, 'id')
+  const batchId = await getParamAsync(context?.params, 'batchId')
+  if (!id || !batchId) return NextResponse.json({ error: 'Course and batch ID required' }, { status: 400 })
   const [batch] = await drizzleDb
     .select()
     .from(courseBatch)

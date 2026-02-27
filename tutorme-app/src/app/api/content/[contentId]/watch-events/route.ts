@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem, videoWatchEvent } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
@@ -8,9 +9,8 @@ import crypto from 'crypto'
 const VALID = new Set(['play', 'pause', 'seek', 'complete', 'quality_change'])
 const MAX = 100
 
-export const POST = withCsrf(withAuth(async (req, session, context: { params?: Promise<{ contentId?: string }> }) => {
-  const p = context?.params ? await context.params : null
-  const contentId = p?.contentId
+export const POST = withCsrf(withAuth(async (req, session, context) => {
+  const contentId = await getParamAsync(context?.params, 'contentId')
   if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
   const body = await req.json().catch(() => null)
   const events = Array.isArray(body?.events) ? body.events : []

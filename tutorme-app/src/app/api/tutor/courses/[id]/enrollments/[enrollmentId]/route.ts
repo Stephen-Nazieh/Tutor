@@ -4,13 +4,15 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculumEnrollment } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
-  const params = await (context?.params ?? Promise.resolve({ id: '', enrollmentId: '' }))
-  const { id, enrollmentId } = params
+  const id = await getParamAsync(context?.params, 'id')
+  const enrollmentId = await getParamAsync(context?.params, 'enrollmentId')
+  if (!id || !enrollmentId) return NextResponse.json({ error: 'Course and enrollment ID required' }, { status: 400 })
   const [enrollment] = await drizzleDb
     .select()
     .from(curriculumEnrollment)

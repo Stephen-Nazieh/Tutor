@@ -120,7 +120,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
           )
         )
       ),
-      columns: { amount: true, tutorAmount: true, currency: true, createdAt: true, paidAt: true }
+      columns: { amount: true, currency: true, createdAt: true, paidAt: true }
     }),
 
     // Tutor's clinics for time slot analysis
@@ -156,7 +156,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
   // Calculate metrics
   const calculateTotal = (payments: any[]) => {
-    return payments.reduce((sum: number, p: any) => sum + (p.tutorAmount || p.amount || 0), 0)
+    return payments.reduce((sum: number, p: any) => sum + (p.amount ?? 0), 0)
   }
 
   const periodEarnings = calculateTotal(clinicPayments) + calculateTotal(courseEnrollments)
@@ -193,7 +193,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       gte(payment.createdAt, prevStartDate),
       lt(payment.createdAt, startDate)
     ),
-    columns: { amount: true, tutorAmount: true }
+    columns: { amount: true }
   })
   const prevPeriodEarnings = calculateTotal(prevPeriodPayments)
   const revenueChange = prevPeriodEarnings > 0

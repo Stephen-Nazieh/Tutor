@@ -1,11 +1,12 @@
 /**
  * Generate Missions from Curriculum
- * 
- * Creates missions from existing curriculum lessons
+ * Requires Prisma schema with World model and Mission model (worldId, lessonId, etc.).
  * Run with: npx ts-node src/scripts/generate-missions.ts
  */
 
 import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
+
+const dbAny = db as unknown as Record<string, unknown>
 
 // World to curriculum mapping
 const WORLD_CURRICULUM_MAP: Record<string, string> = {
@@ -41,9 +42,15 @@ const GRAMMAR_FOCUS: Record<number, string[]> = {
 }
 
 async function generateMissionsFromCurriculum() {
+  if (!dbAny.world || !dbAny.mission) {
+    console.log('⏭️ World or Mission model not in schema; skipping mission generation.')
+    return
+  }
+  const worldModel = dbAny.world as { findMany: () => Promise<{ id: string; name: string; curriculumId?: string }[]>; update: (a: { where: { id: string }; data: { curriculumId: string } }) => Promise<unknown> }
+  const missionModel = dbAny.mission as { findFirst: (a: { where: { worldId: string; lessonId: string } }) => Promise<unknown>; create: (a: { data: Record<string, unknown> }) => Promise<unknown> }
+
   console.log('🎮 Generating missions from curriculum...\n')
 
-  // Get all curriculums
   const curriculums = await db.curriculum.findMany({
     include: {
       modules: {
@@ -56,8 +63,7 @@ async function generateMissionsFromCurriculum() {
 
   console.log(`Found ${curriculums.length} curriculums`)
 
-  // Get all worlds
-  const worlds = await db.world.findMany()
+  const worlds = await worldModel.findMany()
   console.log(`Found ${worlds.length} worlds\n`)
 
   let totalMissions = 0
@@ -76,9 +82,8 @@ async function generateMissionsFromCurriculum() {
       continue
     }
 
-    // Update world with curriculum link if not set
     if (!world.curriculumId) {
-      await db.world.update({
+      await worldModel.update({
         where: { id: world.id },
         data: { curriculumId: curriculum.id },
       })
@@ -91,8 +96,7 @@ async function generateMissionsFromCurriculum() {
 
     for (const module of curriculum.modules) {
       for (const lesson of module.lessons) {
-        // Check if mission already exists for this lesson
-        const existing = await db.mission.findFirst({
+        const existing = await missionModel.findFirst({
           where: {
             worldId: world.id,
             lessonId: lesson.id,
@@ -122,8 +126,7 @@ async function generateMissionsFromCurriculum() {
         const grammarOptions = GRAMMAR_FOCUS[difficulty] || GRAMMAR_FOCUS[1]
         const grammarFocus = grammarOptions[missionCount % grammarOptions.length]
 
-        // Create mission
-        await db.mission.create({
+        await missionModel.create({
           data: {
             worldId: world.id,
             lessonId: lesson.id,

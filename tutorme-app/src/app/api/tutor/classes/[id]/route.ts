@@ -4,8 +4,9 @@
  * POST /api/tutor/classes/:id - Start class
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   liveSession,
@@ -26,10 +27,10 @@ function normalizeCourseText(value: string): string {
     .trim()
 }
 
-export const GET = withAuth(async (req, session, context: { params?: Promise<{ id?: string }> }) => {
+export const GET = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const params = await context?.params ?? {}
-  const classId = params.id
+  const classId = await getParamAsync(context?.params, 'id')
+  if (!classId) return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
 
   const sessionRows = await drizzleDb
     .select()
@@ -176,10 +177,10 @@ export const GET = withAuth(async (req, session, context: { params?: Promise<{ i
 }, { role: 'TUTOR' })
 
 export const POST = withCsrf(
-  withAuth(async (req, session, context: { params?: Promise<{ id?: string }> }) => {
+  withAuth(async (req: NextRequest, session, context) => {
     const tutorId = session.user.id
-    const params = await context?.params ?? {}
-    const classId = params.id
+    const classId = await getParamAsync(context?.params, 'id')
+    if (!classId) return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
 
     const sessionRows = await drizzleDb
       .select()
@@ -220,10 +221,10 @@ export const POST = withCsrf(
   }, { role: 'TUTOR' })
 )
 
-export const DELETE = withAuth(async (req, session, context: { params?: Promise<{ id?: string }> }) => {
+export const DELETE = withAuth(async (req: NextRequest, session, context) => {
   const tutorId = session.user.id
-  const params = await context?.params ?? {}
-  const classId = params.id
+  const classId = await getParamAsync(context?.params, 'id')
+  if (!classId) return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
 
   try {
     const sessionRows = await drizzleDb

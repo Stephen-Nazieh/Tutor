@@ -18,6 +18,7 @@ const RATE_LIMIT_SKIP = ['/api/auth', '/api/health', '/api/payments/webhooks']
  * Build a strict Content-Security-Policy.
  * Next.js requires 'unsafe-inline' and 'unsafe-eval' for script in dev/prod with current setup;
  * use nonces in future for stricter script-src.
+ * @see docs/CSP_HARDENING.md for hardening steps and nonce/hash migration plan.
  */
 function getCspHeader(): string {
   const directives = [

@@ -2,21 +2,61 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NextRequest } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
-  userCount: vi.fn(),
-  userFindUnique: vi.fn(),
-  transaction: vi.fn(),
   rateLimitPreset: vi.fn(),
+  adminCount: 0,
+  transactionSelectCalls: 0,
 }))
 
-vi.mock('@/lib/db', () => ({
-  db: {
-    user: {
-      count: mocks.userCount,
-      findUnique: mocks.userFindUnique,
+vi.mock('@/lib/db/drizzle', () => {
+  const chain = (resolved: unknown) => ({
+    from: () => ({ where: () => ({ limit: () => Promise.resolve(resolved) }) }),
+  })
+  const chainThenable = (resolved: unknown) => ({
+    from: () => ({ where: () => Promise.resolve(resolved) }),
+  })
+  return {
+    drizzleDb: {
+      select: vi.fn().mockImplementation((columns?: { count?: unknown }) => {
+        if (columns && 'count' in columns) {
+          return chainThenable([{ count: mocks.adminCount }])
+        }
+        return chain([])
+      }),
+      transaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+        mocks.transactionSelectCalls = 0
+        const createdUser = {
+          id: 'admin-1',
+          email: 'admin@example.com',
+          role: 'ADMIN',
+          password: 'hashed',
+          emailVerified: null,
+          image: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        const tx = {
+          insert: () => ({
+            values: () => Promise.resolve(),
+          }),
+          select: () => ({
+            from: () => ({
+              where: () => ({
+                limit: () => {
+                  mocks.transactionSelectCalls++
+                  if (mocks.transactionSelectCalls === 1) {
+                    return Promise.resolve([{ id: 'role-1' }])
+                  }
+                  return Promise.resolve([createdUser])
+                },
+              }),
+            }),
+          }),
+        }
+        return fn(tx)
+      }),
     },
-    $transaction: mocks.transaction,
-  },
-}))
+  }
+})
 
 vi.mock('bcryptjs', () => ({
   default: { hash: vi.fn().mockResolvedValue('hashed-password') },
@@ -40,23 +80,7 @@ describe('POST /api/auth/register/admin', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.rateLimitPreset.mockResolvedValue({ response: null, remaining: 10 })
-    mocks.userFindUnique.mockResolvedValue(null)
-    mocks.transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
-      const tx = {
-        user: {
-          create: vi.fn().mockResolvedValue({
-            id: 'admin-1',
-            email: 'admin@example.com',
-            role: 'ADMIN',
-            createdAt: new Date(),
-          }),
-        },
-        profile: { create: vi.fn().mockResolvedValue({}) },
-        adminRole: { findUnique: vi.fn().mockResolvedValue(null), findFirst: vi.fn().mockResolvedValue(null) },
-        adminAssignment: { create: vi.fn().mockResolvedValue({}) },
-      }
-      return fn(tx)
-    })
+    mocks.adminCount = 0
     delete process.env.ADMIN_BOOTSTRAP_KEY
   })
 
@@ -69,9 +93,7 @@ describe('POST /api/auth/register/admin', () => {
   })
 
   it('returns 400 when admin bootstrap is already closed', async () => {
-    mocks.userCount.mockResolvedValue(1)
-
-    // Explicitly disable public registration for this test
+    mocks.adminCount = 1
     const prevAllowPublic = process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION
     process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION = 'false'
 
@@ -83,7 +105,6 @@ describe('POST /api/auth/register/admin', () => {
 
     const res = await POST(req as unknown as NextRequest)
 
-    // Restore env
     if (prevAllowPublic === undefined) {
       delete process.env.ADMIN_ALLOW_PUBLIC_REGISTRATION
     } else {
@@ -95,7 +116,7 @@ describe('POST /api/auth/register/admin', () => {
   })
 
   it('returns 403 when bootstrap key is required and missing', async () => {
-    mocks.userCount.mockResolvedValue(0)
+    mocks.adminCount = 0
     process.env.ADMIN_BOOTSTRAP_KEY = 'expected-key'
 
     const req = new Request('http://localhost/api/auth/register/admin', {
@@ -110,7 +131,7 @@ describe('POST /api/auth/register/admin', () => {
   })
 
   it('returns 201 when bootstrap key is valid and payload is valid', async () => {
-    mocks.userCount.mockResolvedValue(0)
+    mocks.adminCount = 0
     process.env.ADMIN_BOOTSTRAP_KEY = 'expected-key'
 
     const req = new Request('http://localhost/api/auth/register/admin', {

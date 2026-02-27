@@ -9,7 +9,7 @@
  * - Cross-border transfers (PIPL Art 29)
  */
 
-import { and, gte, like, sql } from 'drizzle-orm'
+import { and, gte, like, sql, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { securityEvent } from '@/lib/db/schema'
 import { logAudit } from '@/lib/security/audit'
@@ -132,12 +132,17 @@ export const complianceAudit = {
    */
   async verifyPIPLCompliance(): Promise<{ compliant: boolean; details?: Record<string, unknown> }> {
     try {
-      const recentPIPLEvents = await db.securityEvent.count({
-        where: {
-          eventType: { in: ['compliance_pipl_consent_created', 'compliance_pipl_cross_border'] },
-          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-        },
-      })
+      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      const [countRow] = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(securityEvent)
+        .where(
+          and(
+            inArray(securityEvent.eventType, ['compliance_pipl_consent_created', 'compliance_pipl_cross_border']),
+            gte(securityEvent.createdAt, cutoff)
+          )
+        )
+      const recentPIPLEvents = countRow?.count ?? 0
       return {
         compliant: true,
         details: {

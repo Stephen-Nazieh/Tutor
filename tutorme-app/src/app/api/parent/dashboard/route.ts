@@ -13,12 +13,14 @@ import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
+  curriculum,
   curriculumEnrollment,
   curriculumLessonProgress,
   userGamification,
   achievement,
   taskSubmission,
   generatedTask,
+  clinic,
   clinicBooking,
   familyPayment,
   payment,
@@ -110,10 +112,7 @@ export const GET = withAuth(
             ? drizzleDb.query.clinicBooking.findMany({
               where: inArray(clinicBooking.studentId, studentIds),
               with: {
-                clinic: {
-                  columns: { title: true, startTime: true },
-                  where: gte(clinic.startTime, now),
-                },
+                clinic: { columns: { title: true, startTime: true } },
               },
             })
             : Promise.resolve([]),
@@ -124,35 +123,48 @@ export const GET = withAuth(
             columns: { id: true, amount: true, status: true, createdAt: true },
           }),
           studentIds.length > 0
-            ? drizzleDb.query.payment.findMany({
-              where: and(
-                eq(payment.status, 'COMPLETED'),
-                gte(payment.createdAt, startOfMonth),
-                or(
-                  studentIds.length > 0 ? inArray(payment.studentId, studentIds) : undefined, // Assuming studentId exists or through joins
-                  // In the original, it was OR [booking: {studentId: in}, enrollment: {studentId: in}]
-                  // We'll use subqueries if needed, but if payment has studentId it's easier.
-                  // Let's use exists for consistency with how Prisma handle it if studentId is not on payment.
-                  // Re-checking prisma schema: payment has enrollment and booking links.
+            ? drizzleDb
+                .select({ id: payment.id, amount: payment.amount })
+                .from(payment)
+                .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
+                .leftJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
+                .where(
+                  and(
+                    eq(payment.status, 'COMPLETED'),
+                    gte(payment.createdAt, startOfMonth),
+                    or(
+                      inArray(clinicBooking.studentId, studentIds),
+                      inArray(curriculumEnrollment.studentId, studentIds)
+                    )
+                  )
                 )
-              ),
-              // Simplified Drizzle version:
-              columns: { id: true, amount: true }
-            })
             : Promise.resolve([]),
           studentIds.length > 0
-            ? drizzleDb.query.payment.findMany({
-              where: and(
-                inArray(payment.status, ['PENDING', 'PROCESSING']),
-                // OR logic for studentIds
-              ),
-              with: {
-                booking: { with: { clinic: { columns: { title: true, startTime: true } } } },
-                enrollment: { with: { curriculum: { columns: { name: true } } } },
-              },
-              orderBy: [desc(payment.createdAt)],
-              limit: 20,
-            })
+            ? drizzleDb
+                .select({
+                  id: payment.id,
+                  amount: payment.amount,
+                  createdAt: payment.createdAt,
+                  clinicTitle: clinic.title,
+                  clinicStartTime: clinic.startTime,
+                  curriculumName: curriculum.name,
+                })
+                .from(payment)
+                .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
+                .leftJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
+                .leftJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
+                .leftJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
+                .where(
+                  and(
+                    inArray(payment.status, ['PENDING', 'PROCESSING']),
+                    or(
+                      inArray(clinicBooking.studentId, studentIds),
+                      inArray(curriculumEnrollment.studentId, studentIds)
+                    )
+                  )
+                )
+                .orderBy(desc(payment.createdAt))
+                .limit(20)
             : Promise.resolve([]),
           drizzleDb.query.familyNotification.findMany({
             where: eq(familyNotification.parentId, family.id),
@@ -168,43 +180,10 @@ export const GET = withAuth(
           }),
         ])
 
-        // Fixing the complex payment OR logic that Drizzle .query doesn't handle easily with in-joins in where
-        // I'll fetch them separately or use raw/select if critical.
-        // Actually, for a dashboard, if we have studentIds, we can just filter in JS if the count is low, 
-        // but for correctness, let's use the select API for these two.
-
-        const [studentPaymentsThisMonthFixed, pendingStudentPaymentsFixed] = await Promise.all([
-          studentIds.length > 0 ? drizzleDb.select({ id: payment.id, amount: payment.amount })
-            .from(payment)
-            .leftJoin(clinicBooking, eq(payment.bookingId, clinicBooking.id))
-            .leftJoin(curriculumEnrollment, eq(payment.enrollmentId, curriculumEnrollment.id))
-            .where(and(
-              eq(payment.status, 'COMPLETED'),
-              gte(payment.createdAt, startOfMonth),
-              or(
-                inArray(clinicBooking.studentId, studentIds),
-                inArray(curriculumEnrollment.studentId, studentIds)
-              )
-            )) : Promise.resolve([]),
-          studentIds.length > 0 ? drizzleDb.query.payment.findMany({
-            where: and(
-              inArray(payment.status, ['PENDING', 'PROCESSING']),
-              // This one is harder with .query 'where', but we can pre-filter if we had the payment IDs.
-              // Let's use findMany but we need to ensure studentId is accessible.
-              // Re-migrating to select for pending too to handle the OR studentId.
-            ),
-            with: {
-              booking: { with: { clinic: { columns: { title: true, startTime: true } } } },
-              enrollment: { with: { curriculum: { columns: { name: true } } } },
-            }
-          }) : Promise.resolve([])
-        ])
-
-        // Let's refine the pending query to handle the student filter
-        const pendingForStudents = studentIds.length > 0 ? (pendingStudentPaymentsFixed as any[]).filter(p => {
-          const sid = p.booking?.studentId || p.enrollment?.studentId
-          return sid && studentIds.includes(sid)
-        }).slice(0, 20) : []
+        const upcomingClinicBookingsFiltered = (upcomingClinicBookings as { clinic?: { startTime: Date } }[]).filter(
+          (b) => b.clinic && new Date(b.clinic.startTime) >= now
+        )
+        const activeClinicBookings = upcomingClinicBookingsFiltered
 
         const submissionSet = new Set(taskSubmissions.map((s: any) => `${s.studentId}:${s.taskId}`))
         const assignmentsDueByStudent = new Map<string, number>()
@@ -220,7 +199,6 @@ export const GET = withAuth(
           }
         }
 
-        const activeClinicBookings = upcomingClinicBookings.filter(b => b.clinic)
 
         const children = family.members
           .filter((m: any) => ['child', 'children'].includes(m.relation.toLowerCase()))
@@ -254,7 +232,8 @@ export const GET = withAuth(
         const familySpentThisMonth = familyPayments
           .filter((p: any) => p.status === 'completed' || p.status === 'paid')
           .reduce((s: any, p: any) => s + p.amount, 0)
-        const studentSpentThisMonth = studentPaymentsThisMonthFixed.reduce((s: any, p: any) => s + (p.amount || 0), 0)
+        const studentPaymentsList = Array.isArray(studentPaymentsThisMonth) ? studentPaymentsThisMonth : []
+        const studentSpentThisMonth = studentPaymentsList.reduce((s: number, p: { amount?: number }) => s + (p.amount ?? 0), 0)
         const spentThisMonth = familySpentThisMonth + studentSpentThisMonth
 
         const recentActivity = [
@@ -283,11 +262,11 @@ export const GET = withAuth(
           financialSummary: {
             monthlyBudget: family.monthlyBudget,
             spentThisMonth,
-            upcomingPayments: pendingForStudents.slice(0, 5).map((p: any) => ({
+            upcomingPayments: (Array.isArray(pendingStudentPayments) ? pendingStudentPayments : []).slice(0, 5).map((p: { id: string; amount: number; clinicTitle?: string | null; curriculumName?: string | null; clinicStartTime?: Date | null; createdAt: Date }) => ({
               id: p.id,
-              description: p.booking?.clinic?.title || p.enrollment?.curriculum?.name || 'Pending payment',
+              description: p.clinicTitle ?? p.curriculumName ?? 'Pending payment',
               amount: p.amount,
-              dueDate: (p.booking?.clinic?.startTime || p.createdAt).toISOString().slice(0, 10),
+              dueDate: (p.clinicStartTime ?? p.createdAt) instanceof Date ? (p.clinicStartTime ?? p.createdAt).toISOString().slice(0, 10) : String(p.clinicStartTime ?? p.createdAt).slice(0, 10),
             })),
           },
           recentActivity,

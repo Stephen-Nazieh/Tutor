@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage, whiteboardSnapshot } from '@/lib/db/schema'
 import { eq, and, isNull, asc, desc } from 'drizzle-orm'
@@ -32,8 +33,10 @@ const UpdateWhiteboardSchema = z.object({
 
 // GET - Get whiteboard
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = (await params)?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+  }
   const userId = session.user.id
   const { searchParams } = new URL(req.url)
   const includePages = searchParams.get('pages') !== 'false'
@@ -78,8 +81,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
 // PUT - Update whiteboard
 export const PUT = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = (await params)?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {
@@ -136,8 +141,10 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
 
 // DELETE - Soft delete whiteboard
 export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = (await params)?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {

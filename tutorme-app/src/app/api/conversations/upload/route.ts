@@ -74,7 +74,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     await writeFile(filePath, buffer)
 
     // File record: MessageAttachment not in Drizzle schema; return URL only
-    const fileRecord = null
+    const fileId: string = fileHash
 
     // Return public URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
@@ -83,7 +83,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({
       success: true,
       file: {
-        id: fileRecord?.id || fileHash,
+        id: fileId,
         name: file.name,
         url: publicUrl,
         type: file.type,

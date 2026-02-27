@@ -153,7 +153,7 @@ export async function PATCH(
     return NextResponse.json({ poll: { ...updated, options, responses } })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid input', details: (error as any).errors }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 })
     }
     console.error('Failed to update poll:', error)
     return NextResponse.json({ error: 'Failed to update poll' }, { status: 500 })

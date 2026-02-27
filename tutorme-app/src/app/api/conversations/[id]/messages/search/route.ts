@@ -81,7 +81,6 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       read: directMessage.read,
       readAt: directMessage.readAt,
       createdAt: directMessage.createdAt,
-      senderId: directMessage.senderId,
       name: profile.name,
       avatarUrl: profile.avatarUrl,
     })

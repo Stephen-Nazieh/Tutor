@@ -5,15 +5,15 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem, videoWatchEvent } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 
 const SEGMENT_SECONDS = 10
 
-export const GET = withAuth(async (req, session, context: { params?: Promise<{ contentId?: string }> }) => {
-  const params = context?.params ? await context.params : null
-  const contentId = params?.contentId
+export const GET = withAuth(async (req, session, context) => {
+  const contentId = await getParamAsync(context?.params, 'contentId')
   if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
 
   const { searchParams } = new URL(req.url)

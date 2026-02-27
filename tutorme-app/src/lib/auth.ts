@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * NextAuth Configuration
  * Handles authentication for students, tutors, and admins

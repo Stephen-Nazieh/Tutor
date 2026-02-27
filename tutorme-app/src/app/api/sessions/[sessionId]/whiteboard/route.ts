@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, ValidationError, withRateLimit } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   whiteboard,
@@ -35,8 +36,8 @@ const WhiteboardPatchSchema = z.object({
 
 // GET - Get current user's whiteboard for this session
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = (await context?.params) ?? {}
-  const { sessionId } = params
+  const sessionId = await getParamAsync(context?.params, 'sessionId')
+  if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
   const userId = session.user.id
 
   const [whiteboardRow] = await drizzleDb
@@ -67,8 +68,8 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
 // POST - Create a new whiteboard for this session
 export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const params = (await context?.params) ?? {}
-  const { sessionId } = params
+  const sessionId = await getParamAsync(context?.params, 'sessionId')
+  if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
   const userId = session.user.id
   const userRole = session.user.role
 
@@ -170,8 +171,8 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
 
 // PATCH - Update whiteboard settings
 export const PATCH = withAuth(async (req: NextRequest, session, context) => {
-  const params = (await context?.params) ?? {}
-  const { sessionId } = params
+  const sessionId = await getParamAsync(context?.params, 'sessionId')
+  if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
   const userId = session.user.id
 
   const { response: rateLimitResponse } = await withRateLimit(req, 30)

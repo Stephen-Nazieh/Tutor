@@ -530,22 +530,23 @@ export async function getLiveSessionEngagement(sessionId: string): Promise<{
     return Date.now() - joinedTime < 30 * 60 * 1000
   })
 
-  // Calculate average session time
-  const sessionTimes = session.participants
-    .filter(p => p.joinedAt && p.leftAt)
-    .map(p => {
+  // Calculate average session time (use participants from query above)
+  const sessionTimes = participants
+    .filter((p: { joinedAt: Date | null; leftAt: Date | null }) => p.joinedAt && p.leftAt)
+    .map((p: { joinedAt: Date | null; leftAt: Date | null }) => {
       const joined = new Date(p.joinedAt!).getTime()
       const left = new Date(p.leftAt!).getTime()
       return (left - joined) / 1000 / 60 // minutes
     })
 
   const avgSessionTime = sessionTimes.length > 0
-    ? sessionTimes.reduce((a, b) => a + b, 0) / sessionTimes.length
+    ? sessionTimes.reduce((a: number, b: number) => a + b, 0) / sessionTimes.length
     : 0
 
-  // Determine engagement level
-  const participationRate = session._count.participants > 0
-    ? (activeParticipants.length / session._count.participants) * 100
+  // Determine engagement level (use participants.length instead of _count)
+  const totalParticipants = participants.length
+  const participationRate = totalParticipants > 0
+    ? (activeParticipants.length / totalParticipants) * 100
     : 0
 
   let engagementLevel: 'high' | 'medium' | 'low' = 'low'

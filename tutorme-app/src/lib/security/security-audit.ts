@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Enterprise Security Audit System
  *
@@ -12,9 +11,11 @@
  * Integrates with: UserActivityLog, SecurityEvent, PerformanceAlert
  */
 
+import crypto from 'crypto'
+import { gte } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { securityEvent } from '@/lib/db/schema'
-import { logAudit, AUDIT_ACTIONS } from './audit'
+import { logAudit, AUDIT_ACTIONS, type AuditMetadata } from './audit'
 
 // =============================================================================
 // Types
@@ -70,7 +71,7 @@ export async function logSecurityEvent(
   metadata?: SecurityEventMetadata
 ): Promise<void> {
   try {
-    const meta = (metadata ?? {}) as object
+    const meta: AuditMetadata = metadata ?? {}
 
     if (userId) {
       await logAudit(userId, `security_${eventType}`, meta)
@@ -172,10 +173,10 @@ export async function generateWeeklySecurityReport(): Promise<WeeklySecurityRepo
   const now = new Date()
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-  const events = await db.securityEvent.findMany({
-    where: { createdAt: { gte: weekAgo } },
-    select: { eventType: true },
-  })
+  const events = await drizzleDb
+    .select({ eventType: securityEvent.eventType })
+    .from(securityEvent)
+    .where(gte(securityEvent.createdAt, weekAgo))
 
   const byType: Record<string, number> = {}
   let criticalIncidents = 0
