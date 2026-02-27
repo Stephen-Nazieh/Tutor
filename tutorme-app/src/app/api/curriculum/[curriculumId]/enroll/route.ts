@@ -5,10 +5,20 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError, withRateLimitPreset } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum,
+  curriculumModule,
+  curriculumLesson,
+  courseBatch,
+  curriculumEnrollment,
+  curriculumProgress,
+} from '@/lib/db/schema'
+import { eq, and, inArray } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 export const POST = withCsrf(withAuth(async (req, session, context: any) => {
-  const params = await context?.params;
+  const params = await context?.params
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
   if (rateLimitResponse) return rateLimitResponse
 
@@ -18,93 +28,138 @@ export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   const rawBatchIdFromQuery = req.nextUrl.searchParams.get('batch')
   const requestedBatchId = rawBatchIdFromBody || rawBatchIdFromQuery
 
-  // Check if curriculum exists and get lesson count via modules
-  const curriculum = await db.curriculum.findUnique({
-    where: { id: curriculumId },
-    include: {
-      modules: {
-        include: {
-          _count: { select: { lessons: true } }
-        }
-      }
-    }
-  })
+  const [curriculumRow] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(eq(curriculum.id, curriculumId))
+    .limit(1)
 
-  if (!curriculum) {
+  if (!curriculumRow) {
     throw new NotFoundError('Curriculum not found')
   }
 
   let validatedBatchId: string | null = null
   if (requestedBatchId) {
-    const batch = await db.courseBatch.findFirst({
-      where: {
-        id: requestedBatchId,
-        curriculumId,
-      },
-      select: { id: true },
-    })
+    const [batch] = await drizzleDb
+      .select({ id: courseBatch.id })
+      .from(courseBatch)
+      .where(
+        and(
+          eq(courseBatch.id, requestedBatchId),
+          eq(courseBatch.curriculumId, curriculumId)
+        )
+      )
+      .limit(1)
     if (!batch) {
       throw new NotFoundError('Course variant not found')
     }
     validatedBatchId = batch.id
   }
 
-  const totalLessons = curriculum.modules.reduce(
-    (sum: number, m: { _count?: { lessons?: number } }) => sum + (m._count?.lessons ?? 0),
-    0
-  )
+  const moduleRows = await drizzleDb
+    .select({ id: curriculumModule.id })
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, curriculumId))
+  const moduleIds = moduleRows.map((m) => m.id)
+  const totalLessons =
+    moduleIds.length === 0
+      ? 0
+      : (
+          await drizzleDb
+            .select({ count: sql<number>`count(*)::int` })
+            .from(curriculumLesson)
+            .where(inArray(curriculumLesson.moduleId, moduleIds))
+        )[0]?.count ?? 0
 
-  // Check if already enrolled (CurriculumProgress or CurriculumEnrollment)
-  const existingProgress = await db.curriculumProgress.findUnique({
-    where: {
-      studentId_curriculumId: {
-        studentId: session.user.id,
-        curriculumId
-      }
-    }
-  })
+  const [existingProgress] = await drizzleDb
+    .select()
+    .from(curriculumProgress)
+    .where(
+      and(
+        eq(curriculumProgress.studentId, session.user.id),
+        eq(curriculumProgress.curriculumId, curriculumId)
+      )
+    )
+    .limit(1)
 
-  // Create/update CurriculumEnrollment so the course appears on the student dashboard (My courses)
-  const enrollment = await db.curriculumEnrollment.upsert({
-    where: {
-      studentId_curriculumId: {
-        studentId: session.user.id,
-        curriculumId
-      }
-    },
-    create: {
+  const [existingEnrollment] = await drizzleDb
+    .select()
+    .from(curriculumEnrollment)
+    .where(
+      and(
+        eq(curriculumEnrollment.studentId, session.user.id),
+        eq(curriculumEnrollment.curriculumId, curriculumId)
+      )
+    )
+    .limit(1)
+
+  if (existingEnrollment) {
+    await drizzleDb
+      .update(curriculumEnrollment)
+      .set({
+        enrollmentSource: 'signup',
+        ...(validatedBatchId ? { batchId: validatedBatchId } : {}),
+      })
+      .where(
+        and(
+          eq(curriculumEnrollment.studentId, session.user.id),
+          eq(curriculumEnrollment.curriculumId, curriculumId)
+        )
+      )
+  } else {
+    await drizzleDb.insert(curriculumEnrollment).values({
+      id: crypto.randomUUID(),
       studentId: session.user.id,
       curriculumId,
       batchId: validatedBatchId,
       lessonsCompleted: 0,
-      enrollmentSource: 'signup'
-    },
-    update: { enrollmentSource: 'signup', ...(validatedBatchId ? { batchId: validatedBatchId } : {}) }
-  })
+      enrollmentSource: 'signup',
+    })
+  }
+
+  const [enrollment] = await drizzleDb
+    .select()
+    .from(curriculumEnrollment)
+    .where(
+      and(
+        eq(curriculumEnrollment.studentId, session.user.id),
+        eq(curriculumEnrollment.curriculumId, curriculumId)
+      )
+    )
+    .limit(1)
 
   if (existingProgress) {
     return NextResponse.json({
       success: true,
       message: 'Already enrolled',
       progress: existingProgress,
-      enrollment,
+      enrollment: enrollment!,
     })
   }
 
-  // Create CurriculumProgress for lesson tracking
-  const progress = await db.curriculumProgress.create({
-    data: {
-      studentId: session.user.id,
-      curriculumId,
-      lessonsCompleted: 0,
-      totalLessons,
-      startedAt: new Date()
-    }
+  await drizzleDb.insert(curriculumProgress).values({
+    id: crypto.randomUUID(),
+    studentId: session.user.id,
+    curriculumId,
+    lessonsCompleted: 0,
+    totalLessons,
+    isCompleted: false,
   })
+
+  const [progress] = await drizzleDb
+    .select()
+    .from(curriculumProgress)
+    .where(
+      and(
+        eq(curriculumProgress.studentId, session.user.id),
+        eq(curriculumProgress.curriculumId, curriculumId)
+      )
+    )
+    .limit(1)
 
   return NextResponse.json({
     success: true,
     message: 'Enrolled successfully',
-    progress
+    progress: progress!,
   })
 }, { role: 'STUDENT' }))

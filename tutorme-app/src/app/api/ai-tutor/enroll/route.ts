@@ -5,84 +5,115 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aITutorEnrollment, curriculumEnrollment, curriculum } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
-// POST - Enroll in a subject
 export const POST = withCsrf(withAuth(async (req, session) => {
   const { subject, curriculumId } = await req.json()
-  
+
   if (!subject) {
     throw new ValidationError('Subject is required')
   }
 
-    // Check if already enrolled
-    const existing = await db.aITutorEnrollment.findUnique({
-      where: {
-        studentId_subjectCode: {
-          studentId: session.user.id,
-          subjectCode: subject
-        }
-      }
-    })
-
-    if (existing) {
-      // Reactivate if previously inactive
-      if (existing.status !== 'active') {
-        const updated = await db.aITutorEnrollment.update({
-          where: { id: existing.id },
-          data: { status: 'active' }
-        })
-        return NextResponse.json({
-          enrollment: updated,
-          message: 'Enrollment reactivated'
-        })
-      }
-      
-      return NextResponse.json(
-        { error: 'Already enrolled in this subject' },
-        { status: 400 }
+  const [existing] = await drizzleDb
+    .select()
+    .from(aITutorEnrollment)
+    .where(
+      and(
+        eq(aITutorEnrollment.studentId, session.user.id),
+        eq(aITutorEnrollment.subjectCode, subject)
       )
-    }
+    )
+    .limit(1)
 
-    // Create enrollment
-    const enrollment = await db.aITutorEnrollment.create({
-      data: {
+  if (existing) {
+    if (existing.status !== 'active') {
+      await drizzleDb
+        .update(aITutorEnrollment)
+        .set({ status: 'active' })
+        .where(eq(aITutorEnrollment.id, existing.id))
+      const [updated] = await drizzleDb
+        .select()
+        .from(aITutorEnrollment)
+        .where(eq(aITutorEnrollment.id, existing.id))
+        .limit(1)
+      return NextResponse.json({
+        enrollment: updated!,
+        message: 'Enrollment reactivated',
+      })
+    }
+    return NextResponse.json(
+      { error: 'Already enrolled in this subject' },
+      { status: 400 }
+    )
+  }
+
+  const enrollmentId = crypto.randomUUID()
+  await drizzleDb.insert(aITutorEnrollment).values({
+    id: enrollmentId,
+    studentId: session.user.id,
+    subjectCode: subject,
+    status: 'active',
+    totalSessions: 0,
+    totalMinutes: 0,
+  })
+
+  if (curriculumId) {
+    const [hasEnrollment] = await drizzleDb
+      .select()
+      .from(curriculumEnrollment)
+      .where(
+        and(
+          eq(curriculumEnrollment.studentId, session.user.id),
+          eq(curriculumEnrollment.curriculumId, curriculumId)
+        )
+      )
+      .limit(1)
+    if (!hasEnrollment) {
+      await drizzleDb.insert(curriculumEnrollment).values({
+        id: crypto.randomUUID(),
         studentId: session.user.id,
-        subjectCode: subject,
-        status: 'active'
-      }
-    })
-
-    // Create curriculum enrollment if curriculum selected
-    if (curriculumId) {
-      await db.curriculumEnrollment.create({
-        data: {
-          studentId: session.user.id,
-          curriculumId: curriculumId
-        }
+        curriculumId,
+        lessonsCompleted: 0,
+        enrollmentSource: 'ai-tutor',
       })
     }
+  }
 
-    // Get curriculum info if assigned
-    let curriculumInfo = null
-    if (curriculumId) {
-      const curriculum = await db.curriculum.findUnique({
-        where: { id: curriculumId }
-      })
-      curriculumInfo = curriculum ? {
+  let curriculumInfo = null
+  if (curriculumId) {
+    const [curriculumRow] = await drizzleDb
+      .select({
         name: curriculum.name,
         subject: curriculum.subject,
-        description: curriculum.description
-      } : null
-    }
+        description: curriculum.description,
+      })
+      .from(curriculum)
+      .where(eq(curriculum.id, curriculumId))
+      .limit(1)
+    curriculumInfo = curriculumRow
+      ? {
+          name: curriculumRow.name,
+          subject: curriculumRow.subject,
+          description: curriculumRow.description,
+        }
+      : null
+  }
+
+  const [enrollment] = await drizzleDb
+    .select()
+    .from(aITutorEnrollment)
+    .where(eq(aITutorEnrollment.id, enrollmentId))
+    .limit(1)
 
   return NextResponse.json({
     enrollment: {
-      id: enrollment.id,
-      subjectCode: enrollment.subjectCode,
-      status: enrollment.status,
-      curriculum: curriculumInfo
+      id: enrollment!.id,
+      subjectCode: enrollment!.subjectCode,
+      status: enrollment!.status,
+      curriculum: curriculumInfo,
     },
-    message: 'Successfully enrolled in AI Tutor'
+    message: 'Successfully enrolled in AI Tutor',
   })
 }, { role: 'STUDENT' }))

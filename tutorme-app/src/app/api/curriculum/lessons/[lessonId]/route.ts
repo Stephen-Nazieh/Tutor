@@ -7,29 +7,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError, ValidationError } from '@/lib/api/middleware'
 import { startLesson, getLessonContent, getNextLesson } from '@/lib/curriculum/lesson-controller'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculumLesson, curriculumModule } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 export const GET = withAuth(async (req, session, context: any) => {
-  const params = await context?.params;
+  const params = await context?.params
   const { lessonId } = await params
   const { searchParams } = new URL(req.url)
   const action = searchParams.get('action')
 
-  // Get lesson content
   const lesson = await getLessonContent(lessonId)
 
   if (action === 'next') {
-    // Get curriculum ID from lesson
-    const lessonRecord = await db.curriculumLesson.findUnique({
-      where: { id: lessonId },
-      include: { module: true }
-    })
-
+    const [lessonRecord] = await drizzleDb
+      .select()
+      .from(curriculumLesson)
+      .where(eq(curriculumLesson.id, lessonId))
+      .limit(1)
     if (!lessonRecord) {
       throw new NotFoundError('Lesson not found')
     }
-
-    const nextLesson = await getNextLesson(session.user.id, lessonRecord.module.curriculumId)
+    const [moduleRow] = await drizzleDb
+      .select({ curriculumId: curriculumModule.curriculumId })
+      .from(curriculumModule)
+      .where(eq(curriculumModule.id, lessonRecord.moduleId))
+      .limit(1)
+    if (!moduleRow) {
+      throw new NotFoundError('Module not found')
+    }
+    const nextLesson = await getNextLesson(session.user.id, moduleRow.curriculumId)
     return NextResponse.json({ nextLesson })
   }
 

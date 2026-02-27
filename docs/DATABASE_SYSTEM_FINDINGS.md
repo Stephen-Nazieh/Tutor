@@ -106,6 +106,24 @@ So most of the codebase still talks to the DB through Prisma; the rest through D
 - `app/api/ai-tutor/subscription/route.ts` – GET/POST (aITutorSubscription, aITutorDailyUsage)
 - `app/api/notifications/preferences/route.ts` – GET/PUT (notificationPreference)
 - `app/api/content/[contentId]/route.ts` – GET (contentItem, contentQuizCheckpoint)
+- `app/api/curriculums/[curriculumId]/route.ts` – GET (curriculum, modules, lessons, enrollment count, creator; enrolled via curriculumProgress)
+- `app/api/polls/[pollId]/route.ts` – GET/PATCH/DELETE (poll, pollOption, pollResponse)
+- `app/api/student/scores/route.ts` – GET (quizAttempt, taskSubmission, generatedTask, userGamification, curriculumEnrollment + curriculum)
+- `app/api/curriculum/[curriculumId]/route.ts` – GET student curriculum detail (curriculum, curriculumModule, curriculumLesson, lessonSession, curriculumLessonProgress, curriculumProgress)
+- `app/api/notifications/[id]/route.ts` – DELETE (notification by id + userId)
+- `app/api/polls/[pollId]/vote/route.ts` – POST (poll, pollResponse create, poll totalResponses increment)
+- `app/api/polls/route.ts` – GET list by sessionId (poll, pollOption, pollResponse); POST create poll + options
+- `app/api/student/enrollments/route.ts` – GET (curriculumEnrollment + curriculum + module count); POST (curriculum, payment check, curriculumProgress check, curriculumEnrollment + curriculumProgress create)
+- `app/api/curriculum/progress/route.ts` – GET (getStudentProgress + curriculum, modules, lessons, curriculumLessonProgress)
+- `app/api/user/profile/route.ts` – GET/PUT (profile find/upsert)
+- `app/api/classes/[id]/route.ts` – GET (clinic by id)
+- `app/api/student/assignments/route.ts` – GET (generatedTask, taskSubmission filtered by student)
+- `app/api/student/assignments/[taskId]/route.ts` – GET (generatedTask, taskSubmission)
+- `app/api/curriculum/[curriculumId]/enroll/route.ts` – POST (curriculum, courseBatch, curriculumProgress, curriculumEnrollment upsert/create)
+- `app/api/curriculum/lessons/[lessonId]/route.ts` – GET (curriculumLesson + curriculumModule for next lesson), POST (startLesson from lesson-controller)
+- `app/api/ai-tutor/enrollments/route.ts` – GET (aITutorEnrollment, aITutorDailyUsage), PATCH (aITutorEnrollment update)
+- `app/api/ai-tutor/enroll/route.ts` – POST (aITutorEnrollment find/create, curriculumEnrollment create, curriculum)
+- `app/api/student/subjects/route.ts` – GET (curriculumEnrollment + curriculum, modules/lessons/progress per curriculum, quizAttempt)
 
 **Still on Prisma:** Remaining API routes (~100+), `lib/performance/*`, `lib/security/*` (audit, payment-security, security-audit, api-key, pipl-compliance), `lib/admin/auth.ts`, `lib/financial/parent-financial-service.ts`, `lib/ai/orchestrator.ts` (cache only), actions, scripts, and tests. See §4.
 

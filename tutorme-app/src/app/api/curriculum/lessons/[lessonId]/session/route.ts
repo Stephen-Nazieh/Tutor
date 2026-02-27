@@ -3,38 +3,39 @@
  * POST: Get or create lesson session for a student
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculumLesson, lessonSession } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { startLesson } from '@/lib/curriculum/lesson-controller'
 
 export const POST = withCsrf(withAuth(async (req, session, context: any) => {
-  const params = await context?.params;
+  const params = await context?.params
   const { lessonId } = await params
 
-  // Verify lesson exists
-  const lesson = await db.curriculumLesson.findUnique({
-    where: { id: lessonId }
-  })
+  const [lesson] = await drizzleDb
+    .select()
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.id, lessonId))
+    .limit(1)
 
   if (!lesson) {
     throw new NotFoundError('Lesson not found')
   }
 
-  // Try to find existing session
-  let lessonSession = await db.lessonSession.findUnique({
-    where: {
-      studentId_lessonId: {
-        studentId: session.user.id,
-        lessonId
-      }
-    }
-  })
+  const [existing] = await drizzleDb
+    .select()
+    .from(lessonSession)
+    .where(
+      and(
+        eq(lessonSession.studentId, session.user.id),
+        eq(lessonSession.lessonId, lessonId)
+      )
+    )
+    .limit(1)
 
-  // Create new session if none exists
-  if (!lessonSession) {
-    lessonSession = await startLesson(session.user.id, lessonId)
-  }
+  const sessionData = existing ?? await startLesson(session.user.id, lessonId)
 
-  return NextResponse.json({ session: lessonSession })
+  return NextResponse.json({ session: sessionData })
 }, { role: 'STUDENT' }))

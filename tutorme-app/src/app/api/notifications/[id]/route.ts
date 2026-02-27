@@ -5,30 +5,31 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { notification } from '@/lib/db/schema'
+import { and, eq } from 'drizzle-orm'
 
 export const DELETE = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params;
+  const params = await context?.params
   const { id } = await params
   const userId = session.user.id
-  
+
   try {
-    // Verify notification belongs to user
-    const notification = await db.notification.findFirst({
-      where: { id, userId },
-    })
-    
-    if (!notification) {
+    const [existing] = await drizzleDb
+      .select()
+      .from(notification)
+      .where(and(eq(notification.id, id), eq(notification.userId, userId)))
+      .limit(1)
+
+    if (!existing) {
       return NextResponse.json(
         { error: 'Notification not found' },
         { status: 404 }
       )
     }
-    
-    await db.notification.delete({
-      where: { id },
-    })
-    
+
+    await drizzleDb.delete(notification).where(eq(notification.id, id))
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete notification error:', error)
@@ -37,4 +38,4 @@ export const DELETE = withAuth(async (req: NextRequest, session, context: any) =
       { status: 500 }
     )
   }
-}) // Any authenticated user can delete their own notification
+})

@@ -5,9 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumEnrollment } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
-// POST /api/student/subjects/unenroll - Unenroll from a subject
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   const { subjectCode } = await req.json()
 
@@ -15,34 +16,37 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     throw new ValidationError('Subject code required')
   }
 
-  // Find the curriculum
-  const curriculum = await db.curriculum.findFirst({
-    where: { subject: subjectCode.toLowerCase() },
-  })
+  const [curriculumRow] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(eq(curriculum.subject, subjectCode.toLowerCase()))
+    .limit(1)
 
-  if (!curriculum) {
+  if (!curriculumRow) {
     throw new NotFoundError('Subject not found')
   }
 
-  // Check if enrolled
-  const enrollment = await db.curriculumEnrollment.findFirst({
-    where: {
-      studentId: session.user.id,
-      curriculumId: curriculum.id,
-    },
-  })
+  const [enrollment] = await drizzleDb
+    .select()
+    .from(curriculumEnrollment)
+    .where(
+      and(
+        eq(curriculumEnrollment.studentId, session.user.id),
+        eq(curriculumEnrollment.curriculumId, curriculumRow.id)
+      )
+    )
+    .limit(1)
 
   if (!enrollment) {
     throw new ValidationError('Not enrolled in this subject')
   }
 
-  // Delete the enrollment
-  await db.curriculumEnrollment.delete({
-    where: { id: enrollment.id },
-  })
+  await drizzleDb
+    .delete(curriculumEnrollment)
+    .where(eq(curriculumEnrollment.id, enrollment.id))
 
   return NextResponse.json({
     success: true,
-    message: `Unenrolled from ${curriculum.name}`,
+    message: `Unenrolled from ${curriculumRow.name}`,
   })
 }, { role: 'STUDENT' }))

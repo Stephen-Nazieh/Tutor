@@ -7,7 +7,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum,
+  curriculumEnrollment,
+  generatedTask,
+  quizAttempt,
+  taskSubmission,
+  userGamification,
+} from '@/lib/db/schema'
+import { eq, desc, inArray } from 'drizzle-orm'
 
 export async function GET(_request: NextRequest) {
   try {
@@ -22,68 +31,70 @@ export async function GET(_request: NextRequest) {
 
     const studentId = session.user.id
 
-    // Quiz attempts (no Quiz model; use score/maxScore only)
-    const quizAttempts = await db.quizAttempt.findMany({
-      where: { studentId },
-      orderBy: { completedAt: 'desc' },
-    })
+    const quizAttempts = await drizzleDb
+      .select()
+      .from(quizAttempt)
+      .where(eq(quizAttempt.studentId, studentId))
+      .orderBy(desc(quizAttempt.completedAt))
 
-    // Task submissions (assignments) with task details
-    const taskSubmissions = await db.taskSubmission.findMany({
-      where: { studentId },
-      orderBy: { submittedAt: 'desc' },
-    })
-    const taskIds = [...new Set(taskSubmissions.map((t: any) => t.taskId))]
+    const taskSubmissions = await drizzleDb
+      .select()
+      .from(taskSubmission)
+      .where(eq(taskSubmission.studentId, studentId))
+      .orderBy(desc(taskSubmission.submittedAt))
+
+    const taskIds = [...new Set(taskSubmissions.map((t) => t.taskId))]
     const generatedTasks =
       taskIds.length > 0
-        ? await db.generatedTask.findMany({
-          where: { id: { in: taskIds } },
-          select: { id: true, title: true, type: true },
-        })
+        ? await drizzleDb
+            .select({ id: generatedTask.id, title: generatedTask.title, type: generatedTask.type })
+            .from(generatedTask)
+            .where(inArray(generatedTask.id, taskIds))
         : []
-    const taskById = new Map(generatedTasks.map((t: any) => [t.id, t]))
+    const taskById = new Map(generatedTasks.map((t) => [t.id, t]))
 
-    // User gamification (no skills on schema yet; derive placeholder from level/xp)
-    const gamification = await db.userGamification.findUnique({
-      where: { userId: studentId },
-    })
+    const [gamification] = await drizzleDb
+      .select()
+      .from(userGamification)
+      .where(eq(userGamification.userId, studentId))
+      .limit(1)
 
-    // Enrolled subjects from CurriculumEnrollment + Curriculum
-    const enrollments = await db.curriculumEnrollment.findMany({
-      where: { studentId },
-      include: {
-        curriculum: {
-          select: { id: true, name: true, subject: true },
-        },
-      },
-    })
+    const enrollmentsRows = await drizzleDb
+      .select({
+        id: curriculumEnrollment.id,
+        curriculumId: curriculumEnrollment.curriculumId,
+        lastActivity: curriculumEnrollment.lastActivity,
+        enrolledAt: curriculumEnrollment.enrolledAt,
+        curriculumName: curriculum.name,
+        curriculumSubject: curriculum.subject,
+      })
+      .from(curriculumEnrollment)
+      .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
+      .where(eq(curriculumEnrollment.studentId, studentId))
 
-    // Build subject-wise scores keyed by curriculum id (we use curriculum.subject for display)
-    const subjectScores = new Map<
-      string,
-      {
-        id: string
-        subject: string
-        subjectName: string
-        totalScore: number
-        maxScore: number
-        percentage: number
-        grade: string
-        assignmentsCompleted: number
-        assignmentsTotal: number
-        quizzesCompleted: number
-        quizzesTotal: number
-        lastActivity: string
-        trend: string
-      }
-    >()
+    type SubjectScore = {
+      id: string
+      subject: string
+      subjectName: string
+      totalScore: number
+      maxScore: number
+      percentage: number
+      grade: string
+      assignmentsCompleted: number
+      assignmentsTotal: number
+      quizzesCompleted: number
+      quizzesTotal: number
+      lastActivity: string
+      trend: string
+    }
 
-    enrollments.forEach((enrollment: any) => {
-      const c = enrollment.curriculum
-      subjectScores.set(c.id, {
-        id: c.id,
-        subject: c.subject,
-        subjectName: c.name,
+    const subjectScores = new Map<string, SubjectScore>()
+
+    enrollmentsRows.forEach((row) => {
+      subjectScores.set(row.curriculumId, {
+        id: row.curriculumId,
+        subject: row.curriculumSubject,
+        subjectName: row.curriculumName,
         totalScore: 0,
         maxScore: 0,
         percentage: 0,
@@ -92,42 +103,41 @@ export async function GET(_request: NextRequest) {
         assignmentsTotal: 0,
         quizzesCompleted: 0,
         quizzesTotal: 0,
-        lastActivity: enrollment.lastActivity?.toISOString() ?? enrollment.enrolledAt.toISOString(),
+        lastActivity:
+          row.lastActivity?.toISOString() ?? row.enrolledAt.toISOString(),
         trend: 'stable',
       })
     })
 
-    // QuizAttempt has no subject/quiz relation; attribute by curriculum if we had contentId - we don't.
-    // So we only add quiz totals to "overall" or first subject. Plan: aggregate quiz stats per subject
-    // by using a synthetic "General" subject if no enrollments, or attach to first subject.
-    const firstSubjectId = enrollments[0]?.curriculum?.id
+    const firstSubjectId = enrollmentsRows[0]?.curriculumId
     if (firstSubjectId && subjectScores.has(firstSubjectId)) {
-      quizAttempts.forEach((attempt: any) => {
+      quizAttempts.forEach((attempt) => {
         const score = subjectScores.get(firstSubjectId)!
         score.quizzesTotal++
         score.totalScore += attempt.score ?? 0
         score.maxScore += attempt.maxScore ?? 0
         if (attempt.completedAt) {
           score.quizzesCompleted++
-          if (new Date(attempt.completedAt) > new Date(score.lastActivity)) {
+          if (
+            new Date(attempt.completedAt) > new Date(score.lastActivity)
+          ) {
             score.lastActivity = attempt.completedAt.toISOString()
           }
         }
       })
     } else if (quizAttempts.length > 0) {
-      // No enrollments: create a single "General" subject for quiz-only data
       const generalId = 'general'
       subjectScores.set(generalId, {
         id: generalId,
         subject: 'general',
         subjectName: 'General',
-        totalScore: quizAttempts.reduce((s: number, a: any) => s + (a.score ?? 0), 0),
-        maxScore: quizAttempts.reduce((s: number, a: any) => s + a.maxScore, 0),
+        totalScore: quizAttempts.reduce((s, a) => s + (a.score ?? 0), 0),
+        maxScore: quizAttempts.reduce((s, a) => s + a.maxScore, 0),
         percentage: 0,
         grade: '-',
         assignmentsCompleted: 0,
         assignmentsTotal: 0,
-        quizzesCompleted: quizAttempts.filter((q: any) => q.completedAt).length,
+        quizzesCompleted: quizAttempts.filter((q) => q.completedAt).length,
         quizzesTotal: quizAttempts.length,
         lastActivity:
           quizAttempts[0]?.completedAt?.toISOString() ?? new Date().toISOString(),
@@ -135,8 +145,7 @@ export async function GET(_request: NextRequest) {
       })
     }
 
-    // Task submissions (assignments) - attribute to first subject or general
-    taskSubmissions.forEach((sub: any) => {
+    taskSubmissions.forEach((sub) => {
       const task = taskById.get(sub.taskId)
       const subjectId = firstSubjectId ?? 'general'
       if (!subjectScores.has(subjectId)) {
@@ -168,7 +177,6 @@ export async function GET(_request: NextRequest) {
       }
     })
 
-    // Compute percentage and grade per subject
     const scores = Array.from(subjectScores.values()).map((score) => {
       if (score.maxScore > 0) {
         score.percentage = Math.round((score.totalScore / score.maxScore) * 100)
@@ -180,46 +188,55 @@ export async function GET(_request: NextRequest) {
     const totalSubjects = scores.length
     const averageScore =
       totalSubjects > 0
-        ? Math.round(scores.reduce((sum, s) => sum + s.percentage, 0) / totalSubjects)
+        ? Math.round(
+            scores.reduce((sum, s) => sum + s.percentage, 0) / totalSubjects
+          )
         : 0
-    const totalQuizzes = quizAttempts.filter((q: any) => q.completedAt).length
+    const totalQuizzes = quizAttempts.filter((q) => q.completedAt).length
     const totalAssignments = taskSubmissions.filter(
-      (t: any) => t.status === 'graded' && t.score != null
+      (t) => t.status === 'graded' && t.score != null
     ).length
     const studyHours = Math.round(
-      quizAttempts.reduce((sum: number, q: any) => sum + (q.timeSpent ?? 0), 0) / 3600 +
-      taskSubmissions.length * 0.5
+      quizAttempts.reduce((sum, q) => sum + (q.timeSpent ?? 0), 0) / 3600 +
+        taskSubmissions.length * 0.5
     )
 
     const quizzes = quizAttempts
-      .filter((q: any) => q.completedAt)
-      .map((q: any, i: number) => ({
+      .filter((q) => q.completedAt)
+      .map((q, i) => ({
         id: q.id,
         quizTitle: `Quiz ${i + 1}`,
         subject: 'General',
         score: q.score ?? 0,
         maxScore: q.maxScore ?? 100,
-        percentage: Math.round(((q.score ?? 0) / (q.maxScore ?? 100)) * 100),
+        percentage: Math.round(
+          ((q.score ?? 0) / (q.maxScore ?? 100)) * 100
+        ),
         completedAt: q.completedAt,
         timeSpent: q.timeSpent ?? 0,
-        status: (q.score ?? 0) >= ((q.maxScore ?? 100) * 0.6) ? 'passed' : 'failed',
+        status:
+          (q.score ?? 0) >= ((q.maxScore ?? 100) * 0.6) ? 'passed' : 'failed',
       }))
 
-    const formattedAssignments = taskSubmissions.map((a: any) => {
+    const formattedAssignments = taskSubmissions.map((a) => {
       const task = taskById.get(a.taskId)
       return {
         id: a.id,
-        assignmentTitle: (task as any)?.title ?? 'Assignment',
+        assignmentTitle: task?.title ?? 'Assignment',
         subject: 'General',
         score: a.status === 'graded' ? a.score : null,
         maxScore: a.maxScore ?? 100,
-        status: (a.status?.toLowerCase() ?? 'submitted') as 'submitted' | 'graded' | 'pending',
+        status: (a.status?.toLowerCase() ?? 'submitted') as
+          | 'submitted'
+          | 'graded'
+          | 'pending',
         submittedAt: a.submittedAt,
-        dueDate: (task as any)?.id ? new Date().toISOString() : new Date().toISOString(),
+        dueDate: task?.id
+          ? new Date().toISOString()
+          : new Date().toISOString(),
       }
     })
 
-    // Skills: UserGamification has no skill fields; return placeholder from level/xp
     const level = gamification?.level ?? 1
     const xp = gamification?.xp ?? 0
     const nextLevelXp = (level + 1) * 200

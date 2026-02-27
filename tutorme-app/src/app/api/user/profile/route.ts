@@ -7,16 +7,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { profile } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { sanitizeHtml, sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 
 async function getHandler(_req: NextRequest, session: Session) {
   try {
-    const profile = await db.profile.findUnique({
-      where: { userId: session.user.id }
-    })
+    const [profileRow] = await drizzleDb
+      .select()
+      .from(profile)
+      .where(eq(profile.userId, session.user.id))
+      .limit(1)
     return NextResponse.json({
-      profile,
+      profile: profileRow ?? null,
       userId: session.user.id,
       email: session.user.email ?? null,
       role: session.user.role ?? null,
@@ -71,16 +75,42 @@ async function putHandler(req: NextRequest, session: Session) {
     if (credentials !== undefined) updateData.credentials = sanitizeHtmlWithMax(credentials, 2000)
     if (availability !== undefined) updateData.availability = availability
 
-    const profile = await db.profile.upsert({
-      where: { userId: session.user.id },
-      update: updateData,
-      create: {
-        userId: session.user.id,
-        ...updateData
-      }
-    })
+    const [existing] = await drizzleDb
+      .select()
+      .from(profile)
+      .where(eq(profile.userId, session.user.id))
+      .limit(1)
 
-    return NextResponse.json({ profile })
+    if (existing) {
+      await drizzleDb
+        .update(profile)
+        .set(updateData as any)
+        .where(eq(profile.userId, session.user.id))
+    } else {
+      await drizzleDb.insert(profile).values({
+        id: crypto.randomUUID(),
+        userId: session.user.id,
+        timezone: (updateData.timezone as string) ?? 'UTC',
+        emailNotifications: (updateData.emailNotifications as boolean) ?? true,
+        smsNotifications: (updateData.smsNotifications as boolean) ?? false,
+        tosAccepted: (updateData.tosAccepted as boolean) ?? false,
+        isOnboarded: (updateData.isOnboarded as boolean) ?? false,
+        paidClassesEnabled: (updateData.paidClassesEnabled as boolean) ?? false,
+        subjectsOfInterest: (updateData.subjectsOfInterest as string[]) ?? [],
+        preferredLanguages: (updateData.preferredLanguages as string[]) ?? [],
+        learningGoals: (updateData.learningGoals as string[]) ?? [],
+        specialties: (updateData.specialties as string[]) ?? [],
+        ...updateData,
+      } as any)
+    }
+
+    const [profileRow] = await drizzleDb
+      .select()
+      .from(profile)
+      .where(eq(profile.userId, session.user.id))
+      .limit(1)
+
+    return NextResponse.json({ profile: profileRow! })
   } catch (error) {
     console.error('Profile update error:', error)
     return NextResponse.json(
