@@ -1,8 +1,15 @@
-// @ts-nocheck
 /**
  * Parent Financial Service - fetches and aggregates payment data for family accounts.
  */
-import { db } from '@/lib/db'
+import { and, eq, inArray, gte, lte } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumEnrollment,
+  clinicBooking,
+  familyPayment,
+  familyBudget,
+  payment
+} from '@/lib/db/schema'
 import type { FamilyAccountWithMembers } from '@/lib/api/parent-helpers'
 import {
   calculateCommission,
@@ -33,45 +40,49 @@ export async function fetchFamilyPayments(
       ? [options.studentId]
       : studentIds
 
-  const dateFilter =
-    options?.startDate || options?.endDate
-      ? {
-          ...(options.startDate && { gte: options.startDate }),
-          ...(options.endDate && { lte: options.endDate }),
-        }
-      : undefined
+  const dateFilter = (table: any) => and(
+    options?.startDate ? gte(table.createdAt, options.startDate) : undefined,
+    options?.endDate ? lte(table.createdAt, options.endDate) : undefined
+  )
 
-  const [enrollments, bookings, familyPayments] = await Promise.all([
+  const [enrollments, bookings, familyPaymentsRaw] = await Promise.all([
     filterStudentIds.length > 0
-      ? db.curriculumEnrollment.findMany({
-          where: { studentId: { in: filterStudentIds } },
-          include: {
-            payments: dateFilter ? { where: { createdAt: dateFilter } } : true,
-            student: { select: { profile: { select: { name: true } } } },
-            curriculum: { select: { name: true } },
+      ? drizzleDb.query.curriculumEnrollment.findMany({
+        where: inArray(curriculumEnrollment.studentId, filterStudentIds),
+        with: {
+          payments: {
+            // Filtering nested many in Drizzle .query is limited to 'where'
+            where: (p, { and, gte, lte }) => and(
+              options?.startDate ? gte(p.createdAt, options.startDate) : undefined,
+              options?.endDate ? lte(p.createdAt, options.endDate) : undefined
+            )
           },
-        })
-      : [],
+          student: { with: { profile: { columns: { name: true } } } },
+          curriculum: { columns: { name: true } },
+        },
+      })
+      : Promise.resolve([]),
     filterStudentIds.length > 0
-      ? db.clinicBooking.findMany({
-          where: { studentId: { in: filterStudentIds } },
-          include: {
-            payment: true,
-            student: { select: { profile: { select: { name: true } } } },
-            clinic: { select: { title: true } },
-          },
-        })
-      : [],
-    db.familyPayment.findMany({
-      where: {
-        parentId: family.id,
-        ...(dateFilter && { createdAt: dateFilter }),
-      },
+      ? drizzleDb.query.clinicBooking.findMany({
+        where: inArray(clinicBooking.studentId, filterStudentIds),
+        with: {
+          payment: true,
+          student: { with: { profile: { columns: { name: true } } } },
+          clinic: { columns: { title: true } },
+        },
+      })
+      : Promise.resolve([]),
+    drizzleDb.query.familyPayment.findMany({
+      where: and(
+        eq(familyPayment.parentId, family.id),
+        options?.startDate ? gte(familyPayment.createdAt, options.startDate) : undefined,
+        options?.endDate ? lte(familyPayment.createdAt, options.endDate) : undefined
+      ),
     }),
   ])
 
-  const coursePayments: UnifiedPayment[] = enrollments.flatMap((e) =>
-    (e.payments || []).map((p) => ({
+  const coursePayments: UnifiedPayment[] = enrollments.flatMap((e: any) =>
+    (e.payments || []).map((p: any) => ({
       id: p.id,
       type: 'course' as const,
       amount: p.amount,
@@ -79,13 +90,13 @@ export async function fetchFamilyPayments(
       status: p.status,
       createdAt: p.createdAt,
       paidAt: p.paidAt,
-      description: e.curriculum.name,
-      studentName: e.student.profile?.name ?? undefined,
+      description: e.curriculum?.name,
+      studentName: e.student?.profile?.name ?? undefined,
       studentId: e.studentId,
     }))
   )
 
-  const clinicPayments: UnifiedPayment[] = bookings
+  const clinicPayments: UnifiedPayment[] = (bookings as any[])
     .filter((b) => b.payment)
     .map((b) => ({
       id: b.payment!.id,
@@ -95,12 +106,12 @@ export async function fetchFamilyPayments(
       status: b.payment!.status,
       createdAt: b.payment!.createdAt,
       paidAt: b.payment!.paidAt,
-      description: b.clinic.title,
-      studentName: b.student.profile?.name ?? undefined,
+      description: b.clinic?.title,
+      studentName: b.student?.profile?.name ?? undefined,
       studentId: b.studentId,
     }))
 
-  const budgetPayments: UnifiedPayment[] = familyPayments.map((p) => ({
+  const budgetPayments: UnifiedPayment[] = familyPaymentsRaw.map((p) => ({
     id: p.id,
     type: 'budget' as const,
     amount: p.amount,
@@ -111,16 +122,20 @@ export async function fetchFamilyPayments(
     studentId: undefined,
   }))
 
-  let all = [...coursePayments, ...clinicPayments, ...budgetPayments]
-  if (dateFilter) {
-    all = all.filter((p) => {
+  const all = [...coursePayments, ...clinicPayments, ...budgetPayments]
+  // Manual date filtering for clinicPayments if they don't support table-level dateFilter because Drizzle nested filtering on 'one' relation is implicit in 'where' if we use it, but here it's 1:1.
+  // Actually clinicBooking -> payment is 1:1.
+  let filtered = all
+  if (options?.startDate || options?.endDate) {
+    filtered = all.filter((p) => {
       const t = p.createdAt.getTime()
       if (options?.startDate && t < options.startDate.getTime()) return false
       if (options?.endDate && t > options.endDate.getTime()) return false
       return true
     })
   }
-  return all.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+
+  return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
 }
 
 export function computeFinancialSummary(
@@ -129,7 +144,7 @@ export function computeFinancialSummary(
   currency: string
 ) {
   const completed = payments.filter((p) =>
-    COMPLETED_PAYMENT_STATUSES.includes(p.status as (typeof COMPLETED_PAYMENT_STATUSES)[number])
+    COMPLETED_PAYMENT_STATUSES.includes(p.status as any)
   )
   const totalSpent = completed.reduce((s, p) => s + p.amount, 0)
   const feeRate = getPlatformFeeRate()
@@ -163,14 +178,12 @@ export async function getBudgetForCurrentMonth(
   familyId: string
 ): Promise<{ amount: number; spent: number } | null> {
   const now = new Date()
-  const budget = await db.familyBudget.findUnique({
-    where: {
-      parentId_month_year: {
-        parentId: familyId,
-        month: now.getMonth() + 1,
-        year: now.getFullYear(),
-      },
-    },
+  const budget = await drizzleDb.query.familyBudget.findFirst({
+    where: and(
+      eq(familyBudget.parentId, familyId),
+      eq(familyBudget.month, now.getMonth() + 1),
+      eq(familyBudget.year, now.getFullYear())
+    ),
   })
   if (!budget) return null
   return { amount: budget.amount, spent: budget.spent }

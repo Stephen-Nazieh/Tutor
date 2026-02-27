@@ -4,9 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculumEnrollment, curriculumProgress, userGamification } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 180
@@ -25,12 +27,12 @@ export const GET = withAuth(
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
-    const children = family.members.filter((m) =>
+    const children = family.members.filter((m: any) =>
       ['child', 'children'].includes(m.relation.toLowerCase())
     )
 
     if (family.studentIds.length === 0) {
-      const data = children.map((m) => ({
+      const data = children.map((m: any) => ({
         id: m.id,
         name: m.name,
         email: m.email,
@@ -43,25 +45,25 @@ export const GET = withAuth(
       return NextResponse.json({ success: true, data })
     }
 
-    const [enrollments, progress, gamification] = await Promise.all([
-      db.curriculumEnrollment.findMany({
-        where: { studentId: { in: family.studentIds } },
-        include: {
-          curriculum: { select: { id: true, name: true } },
+    const [enrollments, progressRecords, gamification] = await Promise.all([
+      drizzleDb.query.curriculumEnrollment.findMany({
+        where: inArray(curriculumEnrollment.studentId, family.studentIds),
+        with: {
+          curriculum: { columns: { id: true, name: true } },
         },
       }),
-      db.curriculumProgress.findMany({
-        where: { studentId: { in: family.studentIds } },
+      drizzleDb.query.curriculumProgress.findMany({
+        where: inArray(curriculumProgress.studentId, family.studentIds),
       }),
-      db.userGamification.findMany({
-        where: { userId: { in: family.studentIds } },
+      drizzleDb.query.userGamification.findMany({
+        where: inArray(userGamification.userId, family.studentIds),
       }),
     ])
 
-    const data = children.map((m) => {
+    const data = children.map((m: any) => {
       const uid = m.userId
       const enrolls = uid ? enrollments.filter((e: any) => e.studentId === uid) : []
-      const prog = uid ? progress.find((p: any) => p.studentId === uid) : null
+      const prog = uid ? progressRecords.find((p: any) => p.studentId === uid) : null
       const gam = uid ? gamification.find((g: any) => g.userId === uid) : null
       return {
         id: uid || m.id,
@@ -70,8 +72,8 @@ export const GET = withAuth(
         relation: m.relation,
         userId: uid,
         enrollments: enrolls.map((e: any) => ({
-          curriculumId: e.curriculum.id,
-          curriculumName: e.curriculum.name,
+          curriculumId: e.curriculum?.id,
+          curriculumName: e.curriculum?.name,
           enrolledAt: e.enrolledAt,
         })),
         progress: prog

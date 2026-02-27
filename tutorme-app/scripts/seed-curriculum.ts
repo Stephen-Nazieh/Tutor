@@ -115,8 +115,10 @@ async function seedCurriculum() {
         title: modData.title,
         description: modData.description,
         order: i,
-        skills: modData.skills,
-        estimatedHours: modData.estimatedHours
+        builderData: {
+          skills: modData.skills,
+          estimatedHours: modData.estimatedHours
+        }
       }
     })
 
@@ -131,14 +133,19 @@ async function seedCurriculum() {
           moduleId: module.id,
           title: lessonData.title,
           order: j,
-          content: lessonData.content,
           learningObjectives: lessonData.learningObjectives,
           keyConcepts: lessonData.keyConcepts,
-          exercises: lessonData.exercises || [],
-          materials: [],
           duration: lessonData.duration,
           difficulty: lessonData.difficulty,
-          aiConfidence: 0.95
+          teachingPoints: [],
+          commonMisconceptions: [],
+          prerequisiteLessonIds: [],
+          builderData: {
+            content: lessonData.content,
+            exercises: lessonData.exercises || [],
+            materials: [],
+            aiConfidence: 0.95
+          }
         }
       })
 

@@ -3,6 +3,7 @@
  * Budget management and alerts
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { and, eq, desc } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import {
@@ -11,7 +12,8 @@ import {
   getBudgetForCurrentMonth,
 } from '@/lib/financial/parent-financial-service'
 import { computeBudgetVsActual } from '@/lib/financial/calculations'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { familyBudget, budgetAlert } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 120
@@ -49,16 +51,16 @@ export const GET = withAuth(
         family.defaultCurrency
       )
 
-      const budgetRecords = await db.familyBudget.findMany({
-        where: { parentId: family.id },
-        orderBy: [{ year: 'desc' }, { month: 'desc' }],
-        take: 12,
+      const budgetRecords = await drizzleDb.query.familyBudget.findMany({
+        where: eq(familyBudget.parentId, family.id),
+        orderBy: [desc(familyBudget.year), desc(familyBudget.month)],
+        limit: 12,
       })
 
-      const alerts = await db.budgetAlert.findMany({
-        where: { parentId: family.id, isRead: false },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
+      const alerts = await drizzleDb.query.budgetAlert.findMany({
+        where: and(eq(budgetAlert.parentId, family.id), eq(budgetAlert.isRead, false)),
+        orderBy: [desc(budgetAlert.createdAt)],
+        limit: 10,
       })
 
       const data = {

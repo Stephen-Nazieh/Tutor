@@ -3,10 +3,11 @@
  * Run with: npx tsx src/scripts/seed-admin.ts
  */
 
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { eq, and } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { adminRole, adminAssignment, systemSetting, user, profile } from '@/lib/db/schema'
 import { hashPassword } from '@/lib/admin/auth'
+import crypto from 'crypto'
 
 async function seedAdminSystem() {
   console.log('🌱 Seeding admin system...\n')
@@ -14,7 +15,7 @@ async function seedAdminSystem() {
   try {
     // 1. Create default admin roles
     console.log('Creating admin roles...')
-    
+
     const roles = [
       {
         name: 'SUPER_ADMIN',
@@ -71,80 +72,91 @@ async function seedAdminSystem() {
     ]
 
     for (const role of roles) {
-      await prisma.adminRole.upsert({
-        where: { name: role.name },
-        update: {},
-        create: role,
-      })
+      await drizzleDb.insert(adminRole).values({
+        id: crypto.randomUUID(),
+        ...role,
+      }).onConflictDoNothing({ target: adminRole.name })
       console.log(`  ✓ Role: ${role.name}`)
     }
 
     // 2. Create default admin user if it doesn't exist
     console.log('\nChecking for admin user...')
-    
-    const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@tutorme.com'
+
+    const adminEmail = (process.env.DEFAULT_ADMIN_EMAIL || 'admin@tutorme.com').toLowerCase()
     const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123'
 
-    let adminUser = await prisma.user.findUnique({
-      where: { email: adminEmail },
-    })
+    const [existingAdmin] = await drizzleDb
+      .select()
+      .from(user)
+      .where(eq(user.email, adminEmail))
+      .limit(1)
 
     const hashedPassword = await hashPassword(adminPassword)
-    if (!adminUser) {
+    let adminUserId: string
+
+    if (!existingAdmin) {
       console.log('Creating default admin user...')
-      adminUser = await prisma.user.create({
-        data: {
+      adminUserId = crypto.randomUUID()
+      await drizzleDb.transaction(async (tx) => {
+        await tx.insert(user).values({
+          id: adminUserId,
           email: adminEmail,
           password: hashedPassword,
           role: 'ADMIN',
           emailVerified: new Date(),
-          profile: {
-            create: {
-              name: 'System Administrator',
-            },
-          },
-        },
+        })
+        await tx.insert(profile).values({
+          id: crypto.randomUUID(),
+          userId: adminUserId,
+          name: 'System Administrator',
+          timezone: 'UTC',
+          emailNotifications: true,
+          smsNotifications: false,
+          subjectsOfInterest: [],
+          preferredLanguages: ['en'],
+          learningGoals: [],
+          tosAccepted: true,
+          isOnboarded: true,
+          specialties: [],
+          paidClassesEnabled: false,
+        })
       })
       console.log(`  ✓ Created admin user: ${adminEmail}`)
     } else {
+      adminUserId = existingAdmin.id
       console.log(`  ℹ Admin user exists: ${adminEmail}`)
-      await prisma.user.update({
-        where: { id: adminUser.id },
-        data: { password: hashedPassword },
-      })
+      await drizzleDb.update(user)
+        .set({ password: hashedPassword })
+        .where(eq(user.id, adminUserId))
       console.log(`  ✓ Updated password so admin123 works for login`)
     }
 
     // 3. Assign SUPER_ADMIN role to admin user
     console.log('\nAssigning SUPER_ADMIN role...')
-    
-    const superAdminRole = await prisma.adminRole.findUnique({
-      where: { name: 'SUPER_ADMIN' },
-    })
+
+    const [superAdminRole] = await drizzleDb
+      .select()
+      .from(adminRole)
+      .where(eq(adminRole.name, 'SUPER_ADMIN'))
+      .limit(1)
 
     if (superAdminRole) {
-      await prisma.adminAssignment.upsert({
-        where: {
-          userId_roleId: {
-            userId: adminUser.id,
-            roleId: superAdminRole.id,
-          },
-        },
-        update: {
-          isActive: true,
-        },
-        create: {
-          userId: adminUser.id,
-          roleId: superAdminRole.id,
-          assignedBy: adminUser.id,
-        },
+      await drizzleDb.insert(adminAssignment).values({
+        id: crypto.randomUUID(),
+        userId: adminUserId,
+        roleId: superAdminRole.id,
+        assignedBy: adminUserId,
+        isActive: true,
+      }).onConflictDoUpdate({
+        target: [adminAssignment.userId, adminAssignment.roleId],
+        set: { isActive: true }
       })
       console.log(`  ✓ Assigned SUPER_ADMIN role`)
     }
 
     // 4. Create default system settings
     console.log('\nCreating default system settings...')
-    
+
     const defaultSettings = [
       {
         category: 'general',
@@ -152,6 +164,8 @@ async function seedAdminSystem() {
         settingValue: { value: 'TutorMe' },
         valueType: 'string',
         description: 'Name of the platform',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'general',
@@ -159,6 +173,8 @@ async function seedAdminSystem() {
         settingValue: { value: 'AI-powered tutoring platform' },
         valueType: 'string',
         description: 'Description shown in meta tags',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'general',
@@ -166,6 +182,8 @@ async function seedAdminSystem() {
         settingValue: { value: 'support@tutorme.com' },
         valueType: 'string',
         description: 'Primary support email address',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'features',
@@ -173,6 +191,8 @@ async function seedAdminSystem() {
         settingValue: { value: true },
         valueType: 'boolean',
         description: 'Allow new user registrations',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'features',
@@ -180,6 +200,8 @@ async function seedAdminSystem() {
         settingValue: { value: true },
         valueType: 'boolean',
         description: 'Require email verification for new accounts',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'ai',
@@ -187,6 +209,8 @@ async function seedAdminSystem() {
         settingValue: { value: 0.7 },
         valueType: 'number',
         description: 'Default temperature for AI responses',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'security',
@@ -194,6 +218,8 @@ async function seedAdminSystem() {
         settingValue: { value: 5 },
         valueType: 'number',
         description: 'Maximum failed login attempts before lockout',
+        isEditable: true,
+        requiresRestart: false,
       },
       {
         category: 'security',
@@ -201,23 +227,18 @@ async function seedAdminSystem() {
         settingValue: { value: 480 },
         valueType: 'number',
         description: 'Session timeout in minutes',
+        isEditable: true,
+        requiresRestart: true,
       },
     ]
 
     for (const setting of defaultSettings) {
-      await prisma.systemSetting.upsert({
-        where: {
-          category_key: {
-            category: setting.category,
-            key: setting.key,
-          },
-        },
-        update: {},
-        create: {
-          ...setting,
-          updatedBy: adminUser.id,
-        },
-      })
+      await drizzleDb.insert(systemSetting).values({
+        id: crypto.randomUUID(),
+        ...setting,
+        settingValue: setting.settingValue as object,
+        updatedBy: adminUserId,
+      }).onConflictDoNothing({ target: [systemSetting.category, systemSetting.key] })
     }
     console.log(`  ✓ Created ${defaultSettings.length} system settings`)
 
@@ -230,8 +251,6 @@ async function seedAdminSystem() {
   } catch (error) {
     console.error('\n❌ Seeding failed:', error)
     process.exit(1)
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -241,3 +260,4 @@ if (require.main === module) {
 }
 
 export { seedAdminSystem }
+

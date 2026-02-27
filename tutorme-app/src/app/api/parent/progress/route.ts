@@ -4,9 +4,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, inArray, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumEnrollment,
+  curriculumLessonProgress,
+  curriculumProgress,
+  studentPerformance,
+  userGamification,
+  achievement
+} from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 120
@@ -30,33 +39,37 @@ export const GET = withAuth(
       return NextResponse.json({ success: true, data })
     }
 
-    const [enrollments, lessonProgress, curriculumProgress, performances, gamification, achievements] = await Promise.all([
-      db.curriculumEnrollment.findMany({
-        where: { studentId: { in: family.studentIds } },
-        include: {
+    const [enrollments, lessonProgress, allCurriculumProgress, performances, gamification, achievements] = await Promise.all([
+      drizzleDb.query.curriculumEnrollment.findMany({
+        where: inArray(curriculumEnrollment.studentId, family.studentIds),
+        with: {
           curriculum: {
-            include: {
-              modules: { include: { lessons: { select: { id: true, title: true, order: true } } } },
+            with: {
+              modules: {
+                with: {
+                  lessons: { columns: { id: true, title: true, order: true } }
+                }
+              },
             },
           },
         },
       }),
-      db.curriculumLessonProgress.findMany({
-        where: { studentId: { in: family.studentIds } },
+      drizzleDb.query.curriculumLessonProgress.findMany({
+        where: inArray(curriculumLessonProgress.studentId, family.studentIds),
       }),
-      db.curriculumProgress.findMany({
-        where: { studentId: { in: family.studentIds } },
+      drizzleDb.query.curriculumProgress.findMany({
+        where: inArray(curriculumProgress.studentId, family.studentIds),
       }),
-      db.studentPerformance.findMany({
-        where: { studentId: { in: family.studentIds } },
+      drizzleDb.query.studentPerformance.findMany({
+        where: inArray(studentPerformance.studentId, family.studentIds),
       }),
-      db.userGamification.findMany({
-        where: { userId: { in: family.studentIds } },
+      drizzleDb.query.userGamification.findMany({
+        where: inArray(userGamification.userId, family.studentIds),
       }),
-      db.achievement.findMany({
-        where: { userId: { in: family.studentIds } },
-        orderBy: { unlockedAt: 'desc' },
-        take: 20,
+      drizzleDb.query.achievement.findMany({
+        where: inArray(achievement.userId, family.studentIds),
+        orderBy: [desc(achievement.unlockedAt)],
+        limit: 20,
       }),
     ])
 
@@ -67,19 +80,19 @@ export const GET = withAuth(
       .map((m: any) => {
         const uid = m.userId!
         const enrolls = enrollments.filter((e: any) => e.studentId === uid)
-        const prog = curriculumProgress.find((p: any) => p.studentId === uid)
+        const prog = allCurriculumProgress.find((p: any) => p.studentId === uid)
         const perf = performances.find((p: any) => p.studentId === uid)
         const gam = gamification.find((g: any) => g.userId === uid)
         const studentAchievements = achievements.filter((a: any) => a.userId === uid)
 
         const courses = enrolls.map((e: any) => {
-          const allLessons = e.curriculum.modules.flatMap((mod: any) => mod.lessons)
+          const allLessons = (e.curriculum?.modules || []).flatMap((mod: any) => mod.lessons || [])
           const completed = allLessons.filter(
             (l: any) => (progressMap.get(`${uid}:${l.id}`) as any)?.status === 'COMPLETED'
           ).length
           return {
-            curriculumId: e.curriculum.id,
-            name: e.curriculum.name,
+            curriculumId: e.curriculum?.id,
+            name: e.curriculum?.name,
             totalLessons: allLessons.length,
             completedLessons: completed,
             progress: allLessons.length > 0 ? Math.round((completed / allLessons.length) * 100) : 0,

@@ -8,100 +8,112 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import type { Prisma } from '@prisma/client'
+import { eq, and, desc, count, sql, inArray } from 'drizzle-orm'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { studyGroup, studyGroupMember, user, profile } from '@/lib/db/schema'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
+import crypto from 'crypto'
 
 async function getHandler(req: NextRequest, session: Session) {
   try {
     const { searchParams } = new URL(req.url)
     const myGroups = searchParams.get('myGroups') === 'true'
-    const subject = searchParams.get('subject')
+    const subjectQuery = searchParams.get('subject')
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    let groups
+    let groupsResult
 
     if (myGroups) {
       // Get groups the user is a member of
-      const memberships = await db.studyGroupMember.findMany({
-        where: { studentId: session.user.id },
-        include: {
-          group: {
-            include: {
-              creator: {
-                select: {
-                  profile: {
-                    select: {
-                      name: true,
-                      avatarUrl: true
-                    }
-                  }
-                }
-              },
-              _count: {
-                select: { members: true }
-              }
+      // We need group info, creator info, and member count
+      const memberships = await drizzleDb
+        .select({
+          group: studyGroup,
+          memberRole: studyGroupMember.role,
+          creatorName: profile.name,
+          creatorAvatar: profile.avatarUrl,
+        })
+        .from(studyGroupMember)
+        .innerJoin(studyGroup, eq(studyGroup.id, studyGroupMember.groupId))
+        .innerJoin(user, eq(user.id, studyGroup.createdBy))
+        .innerJoin(profile, eq(profile.userId, user.id))
+        .where(eq(studyGroupMember.studentId, session.user.id))
+        .orderBy(desc(studyGroup.createdAt))
+        .limit(limit)
+
+      // Fetch member counts in parallel
+      groupsResult = await Promise.all(memberships.map(async (m) => {
+        const [stats] = await drizzleDb
+          .select({ value: count() })
+          .from(studyGroupMember)
+          .where(eq(studyGroupMember.groupId, m.group.id))
+
+        return {
+          ...m.group,
+          isMember: true,
+          memberRole: m.memberRole,
+          currentMembers: Number(stats?.value || 0),
+          creator: {
+            profile: {
+              name: m.creatorName,
+              avatarUrl: m.creatorAvatar
             }
           }
-        },
-        orderBy: {
-          group: { createdAt: 'desc' }
-        },
-        take: limit
-      })
-
-      groups = memberships.map((membership: any) => ({
-        ...membership.group,
-        isMember: true,
-        memberRole: membership.role,
-        currentMembers: membership.group._count.members
+        }
       }))
     } else {
       // Get available groups
-      const where: Prisma.StudyGroupWhereInput = {
-        isActive: true
-      }
+      const filters = [eq(studyGroup.isActive, true)]
+      if (subjectQuery) filters.push(eq(studyGroup.subject, subjectQuery))
 
-      if (subject) {
-        where.subject = subject
-      }
+      const availableGroups = await drizzleDb
+        .select({
+          group: studyGroup,
+          creatorName: profile.name,
+          creatorAvatar: profile.avatarUrl,
+        })
+        .from(studyGroup)
+        .innerJoin(user, eq(user.id, studyGroup.createdBy))
+        .innerJoin(profile, eq(profile.userId, user.id))
+        .where(and(...filters))
+        .orderBy(desc(studyGroup.createdAt))
+        .limit(limit)
 
-      groups = await db.studyGroup.findMany({
-        where,
-        include: {
+      groupsResult = await Promise.all(availableGroups.map(async (g) => {
+        const [stats] = await drizzleDb
+          .select({ value: count() })
+          .from(studyGroupMember)
+          .where(eq(studyGroupMember.groupId, g.group.id))
+
+        const [myMembership] = await drizzleDb
+          .select({ role: studyGroupMember.role })
+          .from(studyGroupMember)
+          .where(and(
+            eq(studyGroupMember.groupId, g.group.id),
+            eq(studyGroupMember.studentId, session.user.id)
+          ))
+          .limit(1)
+
+        const currentMembers = Number(stats?.value || 0)
+
+        return {
+          ...g.group,
+          isMember: !!myMembership,
+          memberRole: myMembership?.role ?? null,
+          currentMembers,
+          isFull: currentMembers >= g.group.maxMembers,
           creator: {
-            select: {
-              profile: {
-                select: {
-                  name: true,
-                  avatarUrl: true
-                }
-              }
+            profile: {
+              name: g.creatorName,
+              avatarUrl: g.creatorAvatar
             }
-          },
-          _count: {
-            select: { members: true }
-          },
-          members: {
-            where: { studentId: session.user.id },
-            select: { id: true, role: true }
           }
-        },
-        orderBy: { createdAt: 'desc' },
-        take: limit
-      })
-
-      groups = groups.map((group: any) => ({
-        ...group,
-        isMember: group.members.length > 0,
-        memberRole: group.members[0]?.role ?? null,
-        currentMembers: group._count.members,
-        isFull: group._count.members >= group.maxMembers
+        }
       }))
     }
 
-    return NextResponse.json({ groups })
+    return NextResponse.json({ groups: groupsResult })
   } catch (error) {
     console.error('Failed to fetch study groups:', error)
     return NextResponse.json({ error: 'Failed to fetch study groups' }, { status: 500 })
@@ -121,14 +133,11 @@ async function postHandler(req: NextRequest, session: Session) {
     }
 
     // Check if group exists and has space
-    const group = await db.studyGroup.findUnique({
-      where: { id: groupId },
-      include: {
-        _count: {
-          select: { members: true }
-        }
-      }
-    })
+    const [group] = await drizzleDb
+      .select()
+      .from(studyGroup)
+      .where(eq(studyGroup.id, groupId))
+      .limit(1)
 
     if (!group) {
       return NextResponse.json({ error: 'Study group not found' }, { status: 404 })
@@ -138,43 +147,47 @@ async function postHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Study group is not active' }, { status: 400 })
     }
 
-    if (group._count.members >= group.maxMembers) {
+    const [stats] = await drizzleDb
+      .select({ value: count() })
+      .from(studyGroupMember)
+      .where(eq(studyGroupMember.groupId, groupId))
+
+    if (Number(stats?.value || 0) >= group.maxMembers) {
       return NextResponse.json({ error: 'Study group is full' }, { status: 400 })
     }
 
     // Check if already a member
-    const existingMembership = await db.studyGroupMember.findFirst({
-      where: {
-        groupId,
-        studentId: session.user.id
-      }
-    })
+    const [existingMembership] = await drizzleDb
+      .select()
+      .from(studyGroupMember)
+      .where(and(
+        eq(studyGroupMember.groupId, groupId),
+        eq(studyGroupMember.studentId, session.user.id)
+      ))
+      .limit(1)
 
     if (existingMembership) {
       return NextResponse.json({ error: 'Already a member of this group' }, { status: 400 })
     }
 
     // Create membership
-    const membership = await db.studyGroupMember.create({
-      data: {
-        groupId,
-        studentId: session.user.id,
-        role: 'member'
-      },
-      include: {
-        group: {
-          select: {
-            name: true,
-            subject: true
-          }
-        }
-      }
-    })
+    const [membership] = await drizzleDb.insert(studyGroupMember).values({
+      id: crypto.randomUUID(),
+      groupId,
+      studentId: session.user.id,
+      role: 'member'
+    }).returning()
 
     return NextResponse.json({
       success: true,
-      membership,
-      message: `Joined ${membership.group.name}`,
+      membership: {
+        ...membership,
+        group: {
+          name: group.name,
+          subject: group.subject
+        }
+      },
+      message: `Joined ${group.name}`,
     })
   } catch (error) {
     console.error('Failed to join study group:', error)
@@ -197,35 +210,33 @@ async function putHandler(req: NextRequest, session: Session) {
     }
 
     // Create group and add creator as admin
-    const group = await db.studyGroup.create({
-      data: {
+    const newGroupId = crypto.randomUUID()
+    const [group] = await drizzleDb.transaction(async (tx) => {
+      const [newGroup] = await tx.insert(studyGroup).values({
+        id: newGroupId,
         name: safeName,
         subject: String(subject).trim().slice(0, 50),
         description: safeDescription,
         maxMembers: maxMembers || 20,
         createdBy: session.user.id,
-        members: {
-          create: {
-            studentId: session.user.id,
-            role: 'admin'
-          }
-        }
-      },
-      include: {
-        _count: {
-          select: { members: true }
-        },
-        creator: {
-          select: {
-            profile: {
-              select: {
-                name: true
-              }
-            }
-          }
-        }
-      }
+        isActive: true,
+      }).returning()
+
+      await tx.insert(studyGroupMember).values({
+        id: crypto.randomUUID(),
+        groupId: newGroupId,
+        studentId: session.user.id,
+        role: 'admin'
+      })
+
+      return [newGroup]
     })
+
+    const [creatorProfile] = await drizzleDb
+      .select({ name: profile.name })
+      .from(profile)
+      .where(eq(profile.userId, session.user.id))
+      .limit(1)
 
     return NextResponse.json({
       success: true,
@@ -234,6 +245,11 @@ async function putHandler(req: NextRequest, session: Session) {
         isMember: true,
         memberRole: 'admin',
         currentMembers: 1,
+        creator: {
+          profile: {
+            name: creatorProfile?.name
+          }
+        }
       },
       message: `Created study group "${name}"`,
     })
@@ -256,32 +272,38 @@ async function deleteHandler(req: NextRequest, session: Session) {
     }
 
     // Find membership
-    const membership = await db.studyGroupMember.findFirst({
-      where: {
-        groupId,
-        studentId: session.user.id
-      },
-      include: { group: true }
-    })
+    const [membership] = await drizzleDb
+      .select({
+        id: studyGroupMember.id,
+        groupCreatedBy: studyGroup.createdBy,
+        groupName: studyGroup.name
+      })
+      .from(studyGroupMember)
+      .innerJoin(studyGroup, eq(studyGroup.id, studyGroupMember.groupId))
+      .where(and(
+        eq(studyGroupMember.groupId, groupId),
+        eq(studyGroupMember.studentId, session.user.id)
+      ))
+      .limit(1)
 
     if (!membership) {
       return NextResponse.json({ error: 'Not a member of this group' }, { status: 404 })
     }
 
     // Check if user is the creator (can't leave, must delete group)
-    if (membership.group.createdBy === session.user.id) {
+    if (membership.groupCreatedBy === session.user.id) {
       return NextResponse.json({
         error: 'Group creator cannot leave. Delete the group instead.'
       }, { status: 400 })
     }
 
-    await db.studyGroupMember.delete({
-      where: { id: membership.id }
-    })
+    await drizzleDb
+      .delete(studyGroupMember)
+      .where(eq(studyGroupMember.id, membership.id))
 
     return NextResponse.json({
       success: true,
-      message: `Left ${membership.group.name}`,
+      message: `Left ${membership.groupName}`,
     })
   } catch (error) {
     console.error('Failed to leave study group:', error)

@@ -1,10 +1,9 @@
-// @ts-nocheck
 /**
  * Role-based access control: granular permissions per role.
  * Use requirePermission() in admin/sensitive routes.
  */
 
-import type { Role } from '@prisma/client'
+import type { Role } from '@/lib/db/schema'
 
 export const PERMISSIONS = {
   // Admin
@@ -36,6 +35,10 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   TUTOR: [
     PERMISSIONS.TUTOR_MANAGE_CLINICS,
     PERMISSIONS.TUTOR_VIEW_REPORTS,
+    PERMISSIONS.STUDENT_VIEW_OWN,
+    PERMISSIONS.STUDENT_BOOK_CLASS
+  ],
+  PARENT: [
     PERMISSIONS.STUDENT_VIEW_OWN,
     PERMISSIONS.STUDENT_BOOK_CLASS
   ],

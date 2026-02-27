@@ -5,8 +5,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
+import { eq } from 'drizzle-orm'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { profile as profileTable } from '@/lib/db/schema'
 import { sanitizeHtmlWithMax, sanitizeHtml } from '@/lib/security/sanitize'
 
 async function postHandler(req: NextRequest, session: Session) {
@@ -21,15 +23,14 @@ async function postHandler(req: NextRequest, session: Session) {
       ? specialties.map((s: unknown) => sanitizeHtml(String(s)).trim().slice(0, 100)).filter(Boolean)
       : []
 
-    await db.profile.update({
-      where: { userId: session.user.id },
-      data: {
+    await drizzleDb.update(profileTable)
+      .set({
         ...(safeBio !== undefined && { bio: safeBio }),
         specialties: safeSpecialties,
-        hourlyRate,
+        hourlyRate: typeof hourlyRate === 'number' ? hourlyRate : null,
         isOnboarded: true,
-      },
-    })
+      })
+      .where(eq(profileTable.userId, session.user.id))
 
     return NextResponse.json({
       message: 'Onboarding completed successfully',

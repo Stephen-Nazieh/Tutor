@@ -113,8 +113,7 @@ echo ""
 
 # Run Drizzle structure and fallback Prisma generator
 echo -e "${BLUE}▶ Syncing database schemas...${NC}"
-npx drizzle-kit push || true
-npx drizzle-kit generate
+npx drizzle-kit push --force || true
 npx prisma generate
 echo -e "${GREEN}✅ Migrations complete${NC}"
 echo ""

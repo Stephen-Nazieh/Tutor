@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * POST /api/tutor/courses
  * Create a new course (curriculum) with one default module and one placeholder lesson.
@@ -8,55 +7,61 @@
  * List all courses created by the logged-in tutor.
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { eq, desc, asc, inArray } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum as curriculumTable,
+  curriculumModule,
+  curriculumLesson,
+  courseBatch,
+  profile,
+  user as userTable,
+  curriculumEnrollment
+} from '@/lib/db/schema'
+import crypto from 'crypto'
 
 /**
  * GET handler - List tutor's courses
  */
-export const GET = withAuth(async (req, session) => {
+export const GET = withAuth(async (req: NextRequest, session) => {
   const userId = session?.user?.id
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const curriculums = await db.curriculum.findMany({
-      where: { creatorId: userId },
-      include: {
-        _count: {
-          select: {
-            modules: true,
-            enrollments: true
-          }
+    const curriculums = await drizzleDb.query.curriculum.findMany({
+      where: eq(curriculumTable.creatorId, userId),
+      with: {
+        enrollments: {
+          columns: { id: true }
         },
         modules: {
-          include: {
-            _count: {
-              select: { lessons: true }
+          with: {
+            lessons: {
+              columns: { id: true }
             }
           }
         },
         batches: {
-          where: {
-            difficulty: { in: ['beginner', 'intermediate', 'advanced'] }
-          },
-          orderBy: { order: 'asc' },
-          include: {
-            _count: {
-              select: { enrollments: true }
+          where: inArray(courseBatch.difficulty, ['beginner', 'intermediate', 'advanced']),
+          orderBy: [asc(courseBatch.order)],
+          with: {
+            enrollments: {
+              columns: { id: true }
             }
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: [desc(curriculumTable.createdAt)]
     })
 
     const courses = curriculums.map((curriculum) => {
       const totalLessons = curriculum.modules.reduce(
-        (sum, m) => sum + m._count.lessons, 
+        (sum, m) => sum + m.lessons.length,
         0
       )
       return {
@@ -69,15 +74,15 @@ export const GET = withAuth(async (req, session) => {
         estimatedHours: curriculum.estimatedHours,
         isPublished: curriculum.isPublished,
         _count: {
-          modules: curriculum._count.modules,
+          modules: curriculum.modules.length,
           lessons: totalLessons,
-          enrollments: curriculum._count.enrollments
+          enrollments: curriculum.enrollments.length
         },
         variants: curriculum.batches.map((batch) => ({
           batchId: batch.id,
           name: batch.name,
           difficulty: batch.difficulty,
-          enrollmentCount: batch._count.enrollments,
+          enrollmentCount: batch.enrollments.length,
           joinLink: batch.meetingUrl ?? `${req.nextUrl.origin}/curriculum/${curriculum.id}?batch=${batch.id}`
         }))
       }
@@ -87,7 +92,7 @@ export const GET = withAuth(async (req, session) => {
   } catch (error) {
     console.error('Failed to fetch tutor courses:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch courses' }, 
+      { error: 'Failed to fetch courses' },
       { status: 500 }
     )
   }
@@ -96,7 +101,7 @@ export const GET = withAuth(async (req, session) => {
 /**
  * POST handler - Create a new course
  */
-export const POST = withCsrf(withAuth(async (req, session) => {
+export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   const body = await req.json().catch(() => ({}))
   const parsed = CreateCurriculumSchema.safeParse(body)
   if (!parsed.success) {
@@ -105,13 +110,13 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   }
   const data = parsed.data
 
-  // Verify user exists in database (session may be stale after DB reset)
   const userId = session?.user?.id
   if (userId) {
-    const userExists = await db.user.findUnique({
-      where: { id: userId },
-      select: { id: true }
-    })
+    const [userExists] = await drizzleDb
+      .select({ id: userTable.id })
+      .from(userTable)
+      .where(eq(userTable.id, userId))
+      .limit(1)
     if (!userExists) {
       return NextResponse.json(
         { error: 'User session invalid. Please log out and log in again.' },
@@ -120,15 +125,20 @@ export const POST = withCsrf(withAuth(async (req, session) => {
     }
   }
 
-  const profile = userId
-    ? await db.profile.findUnique({ where: { userId }, select: { currency: true } })
-    : null
-  const defaultCurrency = profile?.currency ?? 'SGD'
+  const [tutorProfile] = userId
+    ? await drizzleDb.select({ currency: profile.currency })
+      .from(profile)
+      .where(eq(profile.userId, userId))
+      .limit(1)
+    : []
+  const defaultCurrency = tutorProfile?.currency ?? 'SGD'
 
-  const defaultSchedule = [{ dayOfWeek: 'Monday', startTime: '09:00', durationMinutes: 45 }] as object
+  const defaultSchedule = [{ dayOfWeek: 'Monday', startTime: '09:00', durationMinutes: 45 }]
 
-  const curriculum = await db.curriculum.create({
-    data: {
+  const result = await drizzleDb.transaction(async (tx) => {
+    const curriculumId = crypto.randomUUID()
+    const [newCurriculum] = await tx.insert(curriculumTable).values({
+      id: curriculumId,
       name: data.title,
       description: data.description ?? null,
       subject: data.subject ?? 'general',
@@ -140,43 +150,44 @@ export const POST = withCsrf(withAuth(async (req, session) => {
       schedule: defaultSchedule,
       creatorId: userId ?? null,
       isLiveOnline: data.isLiveOnline ?? false,
-    },
-  })
+    }).returning()
 
-  const defaultModule = await db.curriculumModule.create({
-    data: {
-      curriculumId: curriculum.id,
+    const moduleId = crypto.randomUUID()
+    await tx.insert(curriculumModule).values({
+      id: moduleId,
+      curriculumId: newCurriculum.id,
       title: 'Module 1',
       description: 'Get started',
       order: 0,
-    },
-  })
+    })
 
-  await db.curriculumLesson.create({
-    data: {
-      moduleId: defaultModule.id,
+    await tx.insert(curriculumLesson).values({
+      id: crypto.randomUUID(),
+      moduleId: moduleId,
       title: 'Introduction',
       description: 'Introduction to this course.',
       order: 0,
       duration: 30,
-      difficulty: curriculum.difficulty,
+      difficulty: newCurriculum.difficulty,
       learningObjectives: [],
       teachingPoints: [],
       keyConcepts: [],
       commonMisconceptions: [],
       prerequisiteLessonIds: [],
-    },
+    })
+
+    return newCurriculum
   })
 
   return NextResponse.json({
     course: {
-      id: curriculum.id,
-      name: curriculum.name,
-      description: curriculum.description,
-      subject: curriculum.subject,
-      difficulty: curriculum.difficulty,
-      estimatedHours: curriculum.estimatedHours,
-      isPublished: curriculum.isPublished,
+      id: result.id,
+      name: result.name,
+      description: result.description,
+      subject: result.subject,
+      difficulty: result.difficulty,
+      estimatedHours: result.estimatedHours,
+      isPublished: result.isPublished,
     },
     message: 'Course created successfully. You can add more modules and lessons from the curriculum.',
   })

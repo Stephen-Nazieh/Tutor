@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Enterprise-grade security audit system with global compliance
  *
@@ -10,10 +9,15 @@
  * - Global deployment ready
  */
 
-import type { SecurityEvent as PrismaSecurityEvent } from '@prisma/client'
-import { db } from '@/lib/db'
+import { eq, and, gte, lte, desc } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { securityEvent } from '@/lib/db/schema'
 import { globalErrorHandler } from '@/lib/monitoring/sentry-setup'
 import { complianceAudit } from '@/lib/monitoring/compliance-audit'
+import crypto from 'crypto'
+
+// Type inferred from Drizzle schema
+export type SecurityEvent = typeof securityEvent.$inferSelect
 
 // Global security event types based on OWASP Top 10 and enterprise standards
 export const SECURITY_EVENT_TYPES = {
@@ -159,7 +163,7 @@ export class SecurityAudit {
     description: string
     context?: SecurityContext
     metadata?: Record<string, unknown>
-  }): Promise<PrismaSecurityEvent | null> {
+  }): Promise<SecurityEvent | null> {
     try {
       const locationData = this.getLocationFromIP(context?.ipAddress)
 
@@ -182,35 +186,35 @@ export class SecurityAudit {
         },
       }
 
-      const securityEvent = await db.securityEvent.create({
-        data: {
-          eventType: action,
-          action,
-          userId,
-          actorId,
-          targetType,
-          targetId,
-          severity,
-          description,
-          ip: context?.ipAddress ?? undefined,
-          originIp: context?.ipAddress,
-          userAgent: context?.userAgent,
-          countryCode: locationData?.countryCode ?? context?.countryCode,
-          region: locationData?.region ?? context?.region,
-          city: locationData?.city ?? context?.city,
-          deviceId: context?.deviceId,
-          sessionId: context?.sessionId,
-          correlationId: context?.correlationId,
-          metadata: enhancedMetadata as object,
-          occurredAt: new Date(),
-        },
-      })
+      const [event] = await drizzleDb.insert(securityEvent).values({
+        id: crypto.randomUUID(),
+        eventType: action,
+        action,
+        userId: userId || null,
+        actorId: actorId || null,
+        targetType: targetType || null,
+        targetId: targetId || null,
+        severity,
+        description,
+        ip: context?.ipAddress || null,
+        originIp: context?.ipAddress || null,
+        userAgent: context?.userAgent || null,
+        countryCode: (locationData?.countryCode ?? context?.countryCode) || null,
+        region: (locationData?.region ?? context?.region) || null,
+        city: (locationData?.city ?? context?.city) || null,
+        deviceId: context?.deviceId || null,
+        sessionId: context?.sessionId || null,
+        correlationId: context?.correlationId || null,
+        metadata: enhancedMetadata as object,
+        occurredAt: new Date(),
+        createdAt: new Date(),
+      }).returning()
 
       if (
         severity === SECURITY_SEVERITY.HIGH ||
         severity === SECURITY_SEVERITY.CRITICAL
       ) {
-        await this.notifySecurityTeam(securityEvent)
+        await this.notifySecurityTeam(event)
       }
 
       await this.handleComplianceLogging(
@@ -220,7 +224,7 @@ export class SecurityAudit {
         enhancedMetadata
       )
 
-      await this.notifyExternalSecuritySystems(securityEvent)
+      await this.notifyExternalSecuritySystems(event)
 
       globalErrorHandler.addBreadcrumb({
         category: 'security',
@@ -228,7 +232,7 @@ export class SecurityAudit {
         data: enhancedMetadata,
       })
 
-      return securityEvent
+      return event
     } catch (error) {
       console.error('Security audit logging failed:', error)
       globalErrorHandler.handleError(error as Error, {
@@ -376,7 +380,7 @@ export class SecurityAudit {
   }
 
   private async notifySecurityTeam(
-    event: PrismaSecurityEvent
+    event: SecurityEvent
   ): Promise<void> {
     try {
       const meta = event.metadata as { _security?: { riskLevel?: number; pattern?: string[] } } | null
@@ -405,7 +409,7 @@ export class SecurityAudit {
   }
 
   private async notifyExternalSecuritySystems(
-    event: PrismaSecurityEvent
+    event: SecurityEvent
   ): Promise<void> {
     // Placeholder for SIEM, WAF, fraud detection integrations
     if (process.env.NODE_ENV === 'development') {
@@ -428,21 +432,22 @@ export class SecurityAudit {
       byCountry: Record<string, number>
       riskTrends: string[]
     }
-    criticalEvents: PrismaSecurityEvent[]
-    highRiskEvents: PrismaSecurityEvent[]
+    criticalEvents: SecurityEvent[]
+    highRiskEvents: SecurityEvent[]
     complianceStatus: Record<string, string>
     recommendations: string[]
   } | null> {
     try {
-      const events = await db.securityEvent.findMany({
-        where: {
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
+      const events = await drizzleDb
+        .select()
+        .from(securityEvent)
+        .where(
+          and(
+            gte(securityEvent.createdAt, startDate),
+            lte(securityEvent.createdAt, endDate)
+          )
+        )
+        .orderBy(desc(securityEvent.createdAt))
 
       const report = {
         period: {
@@ -478,7 +483,7 @@ export class SecurityAudit {
   }
 
   private groupBySeverity(
-    events: PrismaSecurityEvent[]
+    events: SecurityEvent[]
   ): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const event of events) {
@@ -489,7 +494,7 @@ export class SecurityAudit {
   }
 
   private groupByAction(
-    events: PrismaSecurityEvent[]
+    events: SecurityEvent[]
   ): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const event of events) {
@@ -500,7 +505,7 @@ export class SecurityAudit {
   }
 
   private groupByCountry(
-    events: PrismaSecurityEvent[]
+    events: SecurityEvent[]
   ): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const event of events) {
@@ -510,7 +515,7 @@ export class SecurityAudit {
     return counts
   }
 
-  private assessRiskTrends(events: PrismaSecurityEvent[]): string[] {
+  private assessRiskTrends(events: SecurityEvent[]): string[] {
     const trends: string[] = []
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     const recentEvents = events.filter(
@@ -531,7 +536,7 @@ export class SecurityAudit {
   }
 
   private getComplianceStatus(
-    events: PrismaSecurityEvent[]
+    events: SecurityEvent[]
   ): Record<string, string> {
     const status: Record<string, string> = {}
     for (const event of events) {
@@ -545,7 +550,7 @@ export class SecurityAudit {
   }
 
   private generateRecommendations(
-    events: PrismaSecurityEvent[]
+    events: SecurityEvent[]
   ): string[] {
     const recommendations: string[] = []
 
@@ -582,3 +587,4 @@ export class SecurityAudit {
 }
 
 export const securityAudit = SecurityAudit.getInstance()
+

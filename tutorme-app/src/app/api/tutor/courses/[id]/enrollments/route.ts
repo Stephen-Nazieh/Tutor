@@ -3,50 +3,49 @@
  * List students enrolled in this course with details. Tutor-only.
  */
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { eq, desc } from 'drizzle-orm'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
-import { Prisma } from '@prisma/client'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumEnrollment, user, profile, courseBatch } from '@/lib/db/schema'
 
-export const GET = withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+export const GET = withAuth(async (req: NextRequest, session, context) => {
+  const params = await (context as any).params
+  const id = String(params?.id || '')
 
-  const curriculum = await db.curriculum.findUnique({
-    where: { id },
-    select: { id: true, creatorId: true },
-  })
-  if (!curriculum) throw new NotFoundError('Course not found')
-  // Optional: restrict to creator only: if (curriculum.creatorId && curriculum.creatorId !== session.user.id) return 403
+  const [course] = await drizzleDb
+    .select({ id: curriculum.id, creatorId: curriculum.creatorId })
+    .from(curriculum)
+    .where(eq(curriculum.id, id))
+    .limit(1)
 
-  const enrollments = await db.curriculumEnrollment.findMany({
-    where: { curriculumId: id },
-    include: {
-      student: {
-        select: { id: true, email: true, profile: { select: { name: true } } },
-      },
-      batch: { select: { id: true, name: true, startDate: true } },
-    },
-    orderBy: { enrolledAt: 'desc' },
-  })
+  if (!course) throw new NotFoundError('Course not found')
 
-  const list = enrollments.map((e: Prisma.CurriculumEnrollmentGetPayload<{
-    include: {
-      student: {
-        select: { id: true; email: true; profile: { select: { name: true } } }
-      }
-      batch: { select: { id: true; name: true; startDate: true } }
-    }
-  }>) => ({
-    id: e.id,
-    studentId: e.studentId,
-    studentName: e.student.profile?.name ?? e.student.email ?? 'Unknown',
-    studentEmail: e.student.email,
-    batchId: e.batchId,
-    batchName: e.batch?.name ?? null,
-    enrolledAt: e.enrolledAt,
-    lastActivity: e.lastActivity,
-    lessonsCompleted: e.lessonsCompleted,
-    completedAt: e.completedAt,
+  const enrollmentsData = await drizzleDb
+    .select({
+      enrollment: curriculumEnrollment,
+      studentUser: user,
+      studentProfile: profile,
+      batch: courseBatch,
+    })
+    .from(curriculumEnrollment)
+    .innerJoin(user, eq(user.id, curriculumEnrollment.studentId))
+    .leftJoin(profile, eq(profile.userId, user.id))
+    .leftJoin(courseBatch, eq(courseBatch.id, curriculumEnrollment.batchId))
+    .where(eq(curriculumEnrollment.curriculumId, id))
+    .orderBy(desc(curriculumEnrollment.enrolledAt))
+
+  const list = enrollmentsData.map((row) => ({
+    id: row.enrollment.id,
+    studentId: row.enrollment.studentId,
+    studentName: row.studentProfile?.name ?? row.studentUser.email ?? 'Unknown',
+    studentEmail: row.studentUser.email,
+    batchId: row.enrollment.batchId,
+    batchName: row.batch?.name ?? null,
+    enrolledAt: row.enrollment.enrolledAt,
+    lastActivity: row.enrollment.lastActivity,
+    lessonsCompleted: row.enrollment.lessonsCompleted,
+    completedAt: row.enrollment.completedAt,
   }))
 
   return NextResponse.json({ enrollments: list })

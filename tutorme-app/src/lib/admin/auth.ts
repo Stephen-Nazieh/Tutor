@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Admin Authentication & Authorization
  * Handles admin login, session management, and permission checking
@@ -6,10 +5,21 @@
 
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { db as prisma } from '@/lib/db'
+import { eq, and, gt, or, isNull } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  adminSession as adminSessionTable,
+  user as userTable,
+  profile as profileTable,
+  adminAssignment as adminAssignmentTable,
+  adminRole as adminRoleTable,
+  adminAuditLog as adminAuditLogTable,
+  ipWhitelist as ipWhitelistTable
+} from '@/lib/db/schema'
 import { compare, hash } from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
 import { nanoid } from 'nanoid'
+import crypto from 'crypto'
 import { hasPermission, Permission, getRolePermissions } from './permissions'
 
 // Admin session configuration (exported for setting cookie on response in route handlers)
@@ -78,14 +88,16 @@ export async function createAdminSession(
   const expiresAt = new Date(Date.now() + ADMIN_TOKEN_EXPIRY * 1000)
 
   // Store session in database
-  await prisma.adminSession.create({
-    data: {
-      adminId,
-      token,
-      ipAddress: ipAddress || null,
-      userAgent: userAgent || null,
-      expiresAt,
-    },
+  await drizzleDb.insert(adminSessionTable).values({
+    id: crypto.randomUUID(),
+    adminId,
+    token,
+    ipAddress: ipAddress || null,
+    userAgent: userAgent || null,
+    expiresAt,
+    startedAt: new Date(),
+    lastActiveAt: new Date(),
+    isRevoked: false,
   })
 
   // Create JWT token
@@ -135,52 +147,53 @@ export async function getAdminSession(req?: NextRequest): Promise<AdminSession |
     const payload = await verifyAdminToken(token)
     if (!payload) return null
 
-    // Get session from database
-    const session = await prisma.adminSession.findUnique({
-      where: { token: payload.sessionId },
-      include: {
+    // Get session from database with related data
+    const sessionData = await drizzleDb.query.adminSession.findFirst({
+      where: eq(adminSessionTable.token, payload.sessionId),
+      with: {
         admin: {
-          include: {
+          with: {
             adminAssignments: {
-              where: { isActive: true },
-              include: { role: true },
+              where: eq(adminAssignmentTable.isActive, true),
+              with: {
+                role: true
+              }
             },
-            profile: true,
-          },
-        },
-      },
+            profile: true
+          }
+        }
+      }
     })
 
-    if (!session || session.isRevoked || session.expiresAt < new Date()) {
+    if (!sessionData || sessionData.isRevoked || sessionData.expiresAt < new Date()) {
       return null
     }
 
     // Update last active
-    await prisma.adminSession.update({
-      where: { id: session.id },
-      data: { lastActiveAt: new Date() },
-    })
+    await drizzleDb.update(adminSessionTable)
+      .set({ lastActiveAt: new Date() })
+      .where(eq(adminSessionTable.id, sessionData.id))
 
     // Collect permissions from all roles
-    const roles = session.admin.adminAssignments.map(a => a.role.name)
+    const roles = sessionData.admin.adminAssignments.map(a => a.role.name)
     const permissionsSet = new Set<Permission>()
-    
-    session.admin.adminAssignments.forEach(assignment => {
+
+    sessionData.admin.adminAssignments.forEach(assignment => {
       const rolePerms = getRolePermissions(assignment.role.name)
       rolePerms.forEach(p => permissionsSet.add(p))
     })
 
     return {
-      id: session.id,
-      adminId: session.adminId,
-      email: session.admin.email,
-      name: session.admin.profile?.name || null,
+      id: sessionData.id,
+      adminId: sessionData.adminId,
+      email: sessionData.admin.email,
+      name: sessionData.admin.profile?.name || null,
       permissions: Array.from(permissionsSet),
       roles,
-      ipAddress: session.ipAddress || undefined,
-      userAgent: session.userAgent || undefined,
-      createdAt: session.startedAt,
-      expiresAt: session.expiresAt,
+      ipAddress: sessionData.ipAddress || undefined,
+      userAgent: sessionData.userAgent || undefined,
+      createdAt: sessionData.startedAt,
+      expiresAt: sessionData.expiresAt,
     }
   } catch (error) {
     console.error('Error getting admin session:', error)
@@ -254,25 +267,30 @@ export async function requireAdmin(
  * Get all admin users
  */
 export async function getAdminUsers(): Promise<AdminUser[]> {
-  const users = await prisma.user.findMany({
-    where: {
-      adminAssignments: {
-        some: { isActive: true },
-      },
-    },
-    include: {
+  const adminsData = await drizzleDb.query.user.findMany({
+    where: (users, { exists }) => exists(
+      drizzleDb.select().from(adminAssignmentTable).where(
+        and(
+          eq(adminAssignmentTable.userId, users.id),
+          eq(adminAssignmentTable.isActive, true)
+        )
+      )
+    ),
+    with: {
       profile: true,
       adminAssignments: {
-        where: { isActive: true },
-        include: { role: true },
-      },
-    },
+        where: eq(adminAssignmentTable.isActive, true),
+        with: {
+          role: true
+        }
+      }
+    }
   })
 
-  return users.map(user => {
+  return adminsData.map(user => {
     const roles = user.adminAssignments.map(a => a.role.name)
     const permissionsSet = new Set<Permission>()
-    
+
     user.adminAssignments.forEach(assignment => {
       const rolePerms = getRolePermissions(assignment.role.name)
       rolePerms.forEach(p => permissionsSet.add(p))
@@ -307,18 +325,18 @@ export async function logAdminAction(
   }
 ): Promise<void> {
   try {
-    await prisma.adminAuditLog.create({
-      data: {
-        adminId,
-        action,
-        resourceType: details.resourceType,
-        resourceId: details.resourceId,
-        previousState: details.previousState ? JSON.parse(JSON.stringify(details.previousState)) : undefined,
-        newState: details.newState ? JSON.parse(JSON.stringify(details.newState)) : undefined,
-        metadata: details.metadata ? JSON.parse(JSON.stringify(details.metadata)) : undefined,
-        ipAddress: details.ipAddress || null,
-        userAgent: details.userAgent || null,
-      },
+    await drizzleDb.insert(adminAuditLogTable).values({
+      id: crypto.randomUUID(),
+      adminId,
+      action,
+      resourceType: details.resourceType || null,
+      resourceId: details.resourceId || null,
+      previousState: details.previousState as object || null,
+      newState: details.newState as object || null,
+      metadata: details.metadata as object || null,
+      ipAddress: details.ipAddress || null,
+      userAgent: details.userAgent || null,
+      timestamp: new Date(),
     })
   } catch (error) {
     console.error('Error logging admin action:', error)
@@ -329,16 +347,20 @@ export async function logAdminAction(
  * Check if IP is whitelisted for admin access
  */
 export async function isIpWhitelisted(ipAddress: string): Promise<boolean> {
-  const whitelist = await prisma.ipWhitelist.findFirst({
-    where: {
-      ipAddress,
-      isActive: true,
-      OR: [
-        { expiresAt: null },
-        { expiresAt: { gt: new Date() } },
-      ],
-    },
-  })
+  const [whitelist] = await drizzleDb
+    .select()
+    .from(ipWhitelistTable)
+    .where(
+      and(
+        eq(ipWhitelistTable.ipAddress, ipAddress),
+        eq(ipWhitelistTable.isActive, true),
+        or(
+          isNull(ipWhitelistTable.expiresAt),
+          gt(ipWhitelistTable.expiresAt, new Date())
+        )
+      )
+    )
+    .limit(1)
 
   return !!whitelist
 }
@@ -349,14 +371,14 @@ export async function isIpWhitelisted(ipAddress: string): Promise<boolean> {
 export function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for')
   const realIp = req.headers.get('x-real-ip')
-  
+
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
-  
+
   if (realIp) {
     return realIp
   }
-  
+
   return 'unknown'
 }

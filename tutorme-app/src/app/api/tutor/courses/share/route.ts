@@ -7,9 +7,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { eq, and, desc } from 'drizzle-orm'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, user, curriculumShare, familyNotification, familyMember } from '@/lib/db/schema'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
+import crypto from 'crypto'
 
 const shareSchema = z.object({
   courseId: z.string().min(1, 'Course ID is required'),
@@ -22,7 +25,7 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
   const rateLimit = await withRateLimit(req, 20)
   if (rateLimit.response) return rateLimit.response
 
-  const body = await req.json()
+  const body = await req.json().catch(() => ({}))
   const parseResult = shareSchema.safeParse(body)
   if (!parseResult.success) {
     return NextResponse.json(
@@ -32,12 +35,12 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
   }
   const data = parseResult.data
 
-  const course = await db.curriculum.findUnique({
-    where: {
-      id: data.courseId,
-      creatorId: session.user.id,
-    },
-  })
+  const [course] = await drizzleDb.select().from(curriculum).where(
+    and(
+      eq(curriculum.id, data.courseId),
+      eq(curriculum.creatorId, session.user.id)
+    )
+  )
 
   if (!course) {
     return NextResponse.json(
@@ -50,15 +53,19 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
 
   for (const email of data.recipientEmails) {
     try {
-      const recipient = await db.user.findUnique({
-        where: { email: email.toLowerCase() },
-        include: {
-          profile: { select: { name: true } },
+      const recipient = await drizzleDb.query.user.findFirst({
+        where: eq(user.email, email.toLowerCase()),
+        with: {
+          profile: { columns: { name: true } },
           familyMembers: {
-            where: { relation: { in: ['parent', 'PARENT', 'guardian'] } },
-            select: { familyAccountId: true },
-          },
-        },
+            where: (fm, { inArray, or }) => or(
+              eq(sql`lower(${fm.relation})`, 'parent'),
+              eq(sql`lower(${fm.relation})`, 'children'),
+              eq(sql`lower(${fm.relation})`, 'guardian')
+            ),
+            columns: { familyAccountId: true }
+          }
+        }
       })
 
       if (!recipient) {
@@ -71,13 +78,11 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
         continue
       }
 
-      const existingShare = await db.curriculumShare.findUnique({
-        where: {
-          curriculumId_recipientId: {
-            curriculumId: data.courseId,
-            recipientId: recipient.id,
-          },
-        },
+      const existingShare = await drizzleDb.query.curriculumShare.findFirst({
+        where: and(
+          eq(curriculumShare.curriculumId, data.courseId),
+          eq(curriculumShare.recipientId, recipient.id)
+        )
       })
 
       if (existingShare) {
@@ -85,25 +90,24 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
         continue
       }
 
-      const shareRecord = await db.curriculumShare.create({
-        data: {
-          curriculumId: data.courseId,
-          sharedByTutorId: session.user.id,
-          recipientId: recipient.id,
-          message: data.message,
-          isPublic: false,
-        },
+      const shareId = crypto.randomUUID()
+      await drizzleDb.insert(curriculumShare).values({
+        id: shareId,
+        curriculumId: data.courseId,
+        sharedByTutorId: session.user.id,
+        recipientId: recipient.id,
+        message: data.message,
+        isPublic: false,
       })
 
       const familyAccountId = recipient.familyMembers[0]?.familyAccountId
       if (familyAccountId) {
         const tutorName = session.user.name ?? 'Your teacher'
-        await db.familyNotification.create({
-          data: {
-            parentId: familyAccountId,
-            title: 'Course Shared by Tutor',
-            message: `${tutorName} shared a course with you: "${course.name}". ${data.message} View: /parent/courses/${shareRecord.id}`,
-          },
+        await drizzleDb.insert(familyNotification).values({
+          id: crypto.randomUUID(),
+          parentId: familyAccountId,
+          title: 'Course Shared by Tutor',
+          message: `${tutorName} shared a course with you: "${course.name}". ${data.message} View: /parent/courses/${shareId}`,
         })
       }
 
@@ -134,17 +138,17 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
 }
 
 async function getHandler(_req: NextRequest, session: { user: { id: string } }) {
-  const sharedCourses = await db.curriculumShare.findMany({
-    where: { sharedByTutorId: session.user.id },
-    orderBy: { sharedAt: 'desc' },
-    include: {
+  const sharedCourses = await drizzleDb.query.curriculumShare.findMany({
+    where: eq(curriculumShare.sharedByTutorId, session.user.id),
+    orderBy: [desc(curriculumShare.sharedAt)],
+    with: {
       recipient: {
-        include: {
-          profile: { select: { name: true } },
+        with: {
+          profile: { columns: { name: true } },
         },
       },
       curriculum: {
-        select: {
+        columns: {
           id: true,
           name: true,
           subject: true,

@@ -4,8 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, or, desc, sql } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { conversation } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = 60
@@ -21,47 +23,43 @@ export const GET = withAuth(
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
-    const conversations = await db.conversation.findMany({
-      where: {
-        OR: [
-          { participant1Id: userId },
-          { participant2Id: userId },
-        ],
-      },
-      include: {
+    const conversationsResult = await drizzleDb.query.conversation.findMany({
+      where: or(
+        eq(conversation.participant1Id, userId),
+        eq(conversation.participant2Id, userId)
+      ),
+      with: {
         participant1: {
-          select: {
-            id: true,
-            email: true,
-            profile: { select: { name: true } },
+          with: {
+            profile: { columns: { name: true } }
           },
+          columns: { id: true, email: true }
         },
         participant2: {
-          select: {
-            id: true,
-            email: true,
-            profile: { select: { name: true } },
+          with: {
+            profile: { columns: { name: true } }
           },
+          columns: { id: true, email: true }
         },
         messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 20,
-          include: {
+          orderBy: [desc(sql`createdAt`)], // Using sql here because of Drizzle's nested orderBy syntax
+          limit: 20,
+          with: {
             sender: {
-              select: {
-                id: true,
-                profile: { select: { name: true } },
+              with: {
+                profile: { columns: { name: true } }
               },
-            },
-          },
+              columns: { id: true }
+            }
+          }
         },
       },
-      orderBy: { updatedAt: 'desc' },
-      take: 20,
+      orderBy: [desc(conversation.updatedAt)],
+      limit: 20,
     })
 
     const data = {
-      conversations: conversations.map((c: any) => {
+      conversations: conversationsResult.map((c: any) => {
         const other =
           c.participant1Id === userId ? c.participant2 : c.participant1
         return {
@@ -79,7 +77,7 @@ export const GET = withAuth(
             senderName: m.sender.profile?.name ?? null,
             read: m.read,
             createdAt: m.createdAt,
-          })),
+          })).reverse(), // Reversing because we took desc but usually chat shows asc
         }
       }),
     }

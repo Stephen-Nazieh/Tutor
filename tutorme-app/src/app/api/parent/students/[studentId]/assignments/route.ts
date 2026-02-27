@@ -5,14 +5,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, and, sql, inArray, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { generatedTask, taskSubmission, feedbackWorkflow } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
-    const params = await context?.params ?? {}
-    const studentId = typeof params.studentId === 'string' ? params.studentId : Array.isArray(params.studentId) ? params.studentId[0] : null
+    const params = await (context?.params as Promise<{ studentId: string }>) ?? Promise.resolve({ studentId: '' })
+    const { studentId } = await params
     if (!studentId) {
       return NextResponse.json({ error: 'Student ID required' }, { status: 400 })
     }
@@ -30,57 +32,63 @@ export const GET = withAuth(
     }
 
     // 1. Get GeneratedTask assignments where student is included
-    const generatedTasks = await db.generatedTask.findMany({
-      where: {
-        status: { in: ['assigned', 'completed', 'draft'] },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-      include: {
+    // Using jsonb key exists operator (?) to find tasks where studentId is a key in assignments object
+    const tasksResult = await drizzleDb.query.generatedTask.findMany({
+      where: and(
+        inArray(generatedTask.status, ['assigned', 'completed', 'draft']),
+        sql`${generatedTask.assignments} ?? ${studentId}`
+      ),
+      orderBy: [desc(generatedTask.createdAt)],
+      limit: 100,
+      with: {
         tutor: {
-          select: { id: true, profile: { select: { name: true } } },
+          with: { profile: { columns: { name: true } } },
+          columns: { id: true }
         },
         lesson: {
-          select: { id: true, title: true, module: { select: { curriculum: { select: { name: true } } } } },
-        },
-      },
-    })
-
-    const studentTasks = generatedTasks.filter((task: any) => {
-      const assignments = task.assignments as Record<string, unknown> | null
-      if (!assignments) return false
-      return Object.keys(assignments).includes(studentId)
-    })
-
-    const taskIds = studentTasks.map((t: any) => t.id)
-
-    // 2. Get submissions with feedback workflow
-    const [submissions, feedbackWorkflows] = await Promise.all([
-      db.taskSubmission.findMany({
-        where: {
-          studentId,
-          taskId: { in: taskIds },
-        },
-      }),
-      db.feedbackWorkflow.findMany({
-        where: {
-          studentId,
-          submission: {
-            taskId: { in: taskIds },
+          with: {
+            module: {
+              with: {
+                curriculum: { columns: { name: true } }
+              }
+            }
           },
-        },
-        include: {
-          submission: true,
-        },
-      }),
+          columns: { id: true, title: true }
+        }
+      }
+    })
+
+    const taskIds = tasksResult.map(t => t.id)
+
+    // 2. Get submissions and feedback workflows
+    const [submissions, workflows] = await Promise.all([
+      taskIds.length > 0
+        ? drizzleDb.query.taskSubmission.findMany({
+          where: and(
+            eq(taskSubmission.studentId, studentId),
+            inArray(taskSubmission.taskId, taskIds)
+          )
+        })
+        : Promise.resolve([]),
+      taskIds.length > 0
+        ? drizzleDb.query.feedbackWorkflow.findMany({
+          where: eq(feedbackWorkflow.studentId, studentId),
+          with: {
+            submission: {
+              columns: { taskId: true }
+            }
+          }
+        })
+        : Promise.resolve([])
     ])
 
-    const submissionMap = new Map(submissions.map((s: any) => [s.taskId, s]))
-    const feedbackBySubmissionId = new Map(
-      feedbackWorkflows.map((fw: any) => [fw.submissionId, fw])
-    )
+    // Filter workflows in JS to those belonging to our taskIds since Drizzle nested where on 'one' relation is limited
+    const relevantWorkflows = workflows.filter(wf => taskIds.includes(wf.submission?.taskId as string))
 
-    const assignments = studentTasks.map((task: any) => {
+    const submissionMap = new Map(submissions.map(s => [s.taskId, s]))
+    const feedbackBySubmissionId = new Map(relevantWorkflows.map(fw => [fw.submissionId, fw]))
+
+    const formattedAssignments = tasksResult.map((task: any) => {
       const submission = submissionMap.get(task.id) as any
       const isOverdue =
         task.dueDate && new Date(task.dueDate) < new Date() && !submission
@@ -129,14 +137,14 @@ export const GET = withAuth(
       }
     })
 
-    const pending = assignments.filter((a: any) => a.status === 'pending').length
-    const submitted = assignments.filter((a: any) => a.status === 'submitted').length
-    const overdue = assignments.filter((a: any) => a.status === 'overdue').length
+    const pending = formattedAssignments.filter((a: any) => a.status === 'pending').length
+    const submitted = formattedAssignments.filter((a: any) => a.status === 'submitted').length
+    const overdue = formattedAssignments.filter((a: any) => a.status === 'overdue').length
 
     return NextResponse.json({
       success: true,
-      assignments,
-      stats: { pending, submitted, overdue, total: assignments.length },
+      assignments: formattedAssignments,
+      stats: { pending, submitted, overdue, total: formattedAssignments.length },
     })
   },
   { role: 'PARENT' }

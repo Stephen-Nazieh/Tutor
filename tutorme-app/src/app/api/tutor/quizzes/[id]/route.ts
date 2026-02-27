@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Individual Quiz API Routes
  * 
@@ -8,93 +7,99 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import type { Prisma } from '@prisma/client'
+import { eq, and, desc, count } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { quiz, quizAttempt, quizAssignment, user, profile } from '@/lib/db/schema'
 import { QuizQuestion } from '@/types/quiz'
 
 // GET /api/tutor/quizzes/[id] - Get a specific quiz
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-    const params = await context.params
-    const { id } = params
-    
-    const quiz = await db.quiz.findFirst({
-        where: {
-            id,
-            tutorId: session.user.id
-        },
-        include: {
-            _count: {
-                select: {
-                    attempts: true,
-                    assignments: true
-                }
-            }
-        }
-    })
-    
-    if (!quiz) {
+    const params = await (context as any).params
+    const id = String(params?.id || '')
+
+    const [quizData] = await drizzleDb
+        .select()
+        .from(quiz)
+        .where(
+            and(
+                eq(quiz.id, id),
+                eq(quiz.tutorId, session.user.id)
+            )
+        )
+        .limit(1)
+
+    if (!quizData) {
         throw new NotFoundError('Quiz not found')
     }
-    
+
+    // Get attempts count
+    const [attemptsStats] = await drizzleDb
+        .select({ value: count() })
+        .from(quizAttempt)
+        .where(eq(quizAttempt.quizId, id))
+
+    // Get assignments count
+    const [assignmentsStats] = await drizzleDb
+        .select({ value: count() })
+        .from(quizAssignment)
+        .where(eq(quizAssignment.quizId, id))
+
     // Get recent attempts summary
-    const recentAttempts = await db.quizAttempt.findMany({
-        where: { quizId: id },
-        orderBy: { completedAt: 'desc' },
-        take: 5,
-        select: {
-            id: true,
-            score: true,
-            maxScore: true,
-            completedAt: true,
-            student: {
-                select: {
-                    id: true,
-                    profile: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
-            }
-        }
-    })
-    
+    const recentAttemptsRaw = await drizzleDb
+        .select({
+            id: quizAttempt.id,
+            score: quizAttempt.score,
+            maxScore: quizAttempt.maxScore,
+            completedAt: quizAttempt.completedAt,
+            studentName: profile.name,
+            studentId: user.id
+        })
+        .from(quizAttempt)
+        .innerJoin(user, eq(user.id, quizAttempt.studentId))
+        .leftJoin(profile, eq(profile.userId, user.id))
+        .where(eq(quizAttempt.quizId, id))
+        .orderBy(desc(quizAttempt.completedAt))
+        .limit(5)
+
     return NextResponse.json({
         quiz: {
-            ...quiz,
-            attemptCount: quiz._count.attempts,
-            assignmentCount: quiz._count.assignments,
-            _count: undefined
+            ...quizData,
+            attemptCount: Number(attemptsStats?.value || 0),
+            assignmentCount: Number(assignmentsStats?.value || 0)
         },
-        recentAttempts: recentAttempts.map(a => ({
+        recentAttempts: recentAttemptsRaw.map(a => ({
             id: a.id,
             score: a.score,
             maxScore: a.maxScore,
             percentage: Math.round((a.score / a.maxScore) * 100),
             completedAt: a.completedAt,
-            studentName: a.student.profile?.name || 'Unknown'
+            studentName: a.studentName || 'Unknown'
         }))
     })
 }, { role: 'TUTOR' })
 
 // PATCH /api/tutor/quizzes/[id] - Update a quiz
 export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await context.params
-    const { id } = params
-    
+    const params = await (context as any).params
+    const id = String(params?.id || '')
+
     // Verify ownership
-    const existing = await db.quiz.findFirst({
-        where: {
-            id,
-            tutorId: session.user.id
-        }
-    })
-    
+    const [existing] = await drizzleDb
+        .select()
+        .from(quiz)
+        .where(
+            and(
+                eq(quiz.id, id),
+                eq(quiz.tutorId, session.user.id)
+            )
+        )
+        .limit(1)
+
     if (!existing) {
         throw new NotFoundError('Quiz not found')
     }
-    
+
     const body = await req.json()
     const {
         title,
@@ -114,10 +119,10 @@ export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context
         curriculumId,
         lessonId
     } = body
-    
+
     // Build update data
-    const updateData: Prisma.QuizUpdateInput = {}
-    
+    const updateData: any = {}
+
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
     if (type !== undefined) updateData.type = type
@@ -133,13 +138,13 @@ export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context
     if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null
     if (curriculumId !== undefined) updateData.curriculumId = curriculumId
     if (lessonId !== undefined) updateData.lessonId = lessonId
-    
+
     // If questions are being updated, recalculate total points and validate
     if (questions !== undefined) {
         if (questions.length === 0) {
             throw new ValidationError('Quiz must have at least one question')
         }
-        
+
         // Validate questions
         for (let i = 0; i < questions.length; i++) {
             const q = questions[i]
@@ -147,22 +152,23 @@ export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context
                 throw new ValidationError(`Question ${i + 1} is missing text`)
             }
         }
-        
+
         // Add order to questions
         updateData.questions = questions.map((q: QuizQuestion, index: number) => ({
             ...q,
             id: q.id || `q-${Date.now()}-${index}`,
             order: index
         }))
-        
+
         updateData.totalPoints = questions.reduce((sum: number, q: QuizQuestion) => sum + (q.points || 1), 0)
     }
-    
-    const updatedQuiz = await db.quiz.update({
-        where: { id },
-        data: updateData
-    })
-    
+
+    const [updatedQuiz] = await drizzleDb
+        .update(quiz)
+        .set(updateData)
+        .where(eq(quiz.id, id))
+        .returning()
+
     return NextResponse.json({
         success: true,
         quiz: updatedQuiz
@@ -171,45 +177,53 @@ export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context
 
 // DELETE /api/tutor/quizzes/[id] - Delete a quiz
 export const DELETE = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await context.params
-    const { id } = params
-    
+    const params = await (context as any).params
+    const id = String(params?.id || '')
+
     // Verify ownership
-    const existing = await db.quiz.findFirst({
-        where: {
-            id,
-            tutorId: session.user.id
-        }
-    })
-    
+    const [existing] = await drizzleDb
+        .select()
+        .from(quiz)
+        .where(
+            and(
+                eq(quiz.id, id),
+                eq(quiz.tutorId, session.user.id)
+            )
+        )
+        .limit(1)
+
     if (!existing) {
         throw new NotFoundError('Quiz not found')
     }
-    
+
     // Check if there are any attempts
-    const attemptCount = await db.quizAttempt.count({
-        where: { quizId: id }
-    })
-    
+    const [attemptsStats] = await drizzleDb
+        .select({ value: count() })
+        .from(quizAttempt)
+        .where(eq(quizAttempt.quizId, id))
+
+    const attemptCount = Number(attemptsStats?.value || 0)
+
     if (attemptCount > 0) {
         // Instead of deleting, archive the quiz
-        await db.quiz.update({
-            where: { id },
-            data: { status: 'archived' }
-        })
-        
+        await drizzleDb
+            .update(quiz)
+            .set({ status: 'archived' })
+            .where(eq(quiz.id, id))
+
         return NextResponse.json({
             success: true,
             message: 'Quiz has attempts and was archived instead of deleted'
         })
     }
-    
-    await db.quiz.delete({
-        where: { id }
-    })
-    
+
+    await drizzleDb
+        .delete(quiz)
+        .where(eq(quiz.id, id))
+
     return NextResponse.json({
         success: true,
         message: 'Quiz deleted successfully'
     })
 }, { role: 'TUTOR' }))
+

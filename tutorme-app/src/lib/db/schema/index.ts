@@ -4,3 +4,4 @@
 export * from './enums'
 export * from './tables'
 export * from './next-auth'
+export * from './relations'

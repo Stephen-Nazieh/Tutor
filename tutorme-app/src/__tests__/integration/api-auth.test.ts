@@ -3,8 +3,10 @@
  * Requires DATABASE_URL and running DB. Use test DB in CI: e.g. tutorme_test.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { db } from '@/lib/db'
+import { describe, it, expect, afterAll } from 'vitest'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user as userTable, profile as profileTable } from '@/lib/db/schema'
 import { POST as registerPost } from '@/app/api/auth/register/route'
 
 const testEmail = `inttest-${Date.now()}@example.com`
@@ -16,13 +18,12 @@ describe('API Auth integration', () => {
   afterAll(async () => {
     if (createdUserId) {
       try {
-        await db.profile.deleteMany({ where: { userId: createdUserId } })
-        await db.user.delete({ where: { id: createdUserId } })
-      } catch {
-        // ignore cleanup errors
+        await drizzleDb.delete(profileTable).where(eq(profileTable.userId, createdUserId))
+        await drizzleDb.delete(userTable).where(eq(userTable.id, createdUserId))
+      } catch (err) {
+        console.warn('Cleanup failed:', err)
       }
     }
-    await db.$disconnect()
   })
 
   it('registers a new user and returns 201', async () => {
@@ -37,8 +38,9 @@ describe('API Auth integration', () => {
       headers: { 'Content-Type': 'application/json' },
     })
     const res = await registerPost(req as any)
-    expect(res.status).toBe(201)
     const data = await res.json()
+
+    expect(res.status).toBe(201)
     expect(data.success).toBe(true)
     expect(data.user?.email).toBe(testEmail)
     expect(data.user?.role).toBe('STUDENT')
@@ -48,13 +50,23 @@ describe('API Auth integration', () => {
 
   it('user and profile exist in database after register', async () => {
     expect(createdUserId).toBeDefined()
-    const user = await db.user.findUnique({
-      where: { id: createdUserId },
-      include: { profile: true },
-    })
-    expect(user).not.toBeNull()
+
+    const [user] = await drizzleDb
+      .select()
+      .from(userTable)
+      .where(eq(userTable.id, createdUserId))
+      .limit(1)
+
+    const [profile] = await drizzleDb
+      .select()
+      .from(profileTable)
+      .where(eq(profileTable.userId, createdUserId))
+      .limit(1)
+
+    expect(user).toBeDefined()
     expect(user?.email).toBe(testEmail)
-    expect(user?.profile?.name).toBe(testName)
+    expect(profile).toBeDefined()
+    expect(profile?.name).toBe(testName)
   })
 
   it('returns 400 when registering same email again', async () => {

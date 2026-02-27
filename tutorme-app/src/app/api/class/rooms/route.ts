@@ -4,11 +4,13 @@
  */
 
 import { NextResponse } from 'next/server'
+import { eq, and, gte, or, isNull, desc, SQL } from 'drizzle-orm'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
-import { db } from '@/lib/db'
-import { Prisma } from '@prisma/client'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, curriculum, user, profile, sessionParticipant } from '@/lib/db/schema'
+import crypto from 'crypto'
 
 // POST /api/class/rooms - Create a new class room
 export const POST = withCsrf(withAuth(async (req, session) => {
@@ -18,13 +20,17 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   const isScheduledForFuture = scheduledAt.getTime() > Date.now()
 
   if (data.curriculumId) {
-    const ownedCurriculum = await db.curriculum.findFirst({
-      where: {
-        id: data.curriculumId,
-        creatorId: session.user.id,
-      },
-      select: { id: true, subject: true },
-    })
+    const [ownedCurriculum] = await drizzleDb
+      .select({ id: curriculum.id, subject: curriculum.subject })
+      .from(curriculum)
+      .where(
+        and(
+          eq(curriculum.id, data.curriculumId),
+          eq(curriculum.creatorId, session.user.id)
+        )
+      )
+      .limit(1)
+
     if (!ownedCurriculum) {
       return NextResponse.json(
         { error: 'Invalid curriculum selection for this tutor' },
@@ -48,31 +54,30 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   )
 
   // Store class session in database
-  const classSession = await db.liveSession.create({
-    data: {
-      tutorId: session.user.id,
-      curriculumId: data.curriculumId || null,
-      title: data.title || `${data.subject} Class`,
-      subject: data.subject,
-      description: data.description || null,
-      gradeLevel: data.gradeLevel || null,
-      type: 'GROUP',
-      roomUrl: room.url,
-      roomId: room.id,
-      maxStudents: data.maxStudents,
-      scheduledAt,
-      status: isScheduledForFuture ? 'SCHEDULED' : 'ACTIVE'
-    }
-  })
+  const [classSessionResult] = await drizzleDb.insert(liveSession).values({
+    id: crypto.randomUUID(),
+    tutorId: session.user.id,
+    curriculumId: data.curriculumId || null,
+    title: data.title || `${data.subject} Class`,
+    subject: data.subject,
+    description: data.description || null,
+    gradeLevel: data.gradeLevel || null,
+    type: 'GROUP',
+    roomUrl: room.url,
+    roomId: room.id,
+    maxStudents: data.maxStudents,
+    scheduledAt,
+    status: isScheduledForFuture ? 'SCHEDULED' : 'ACTIVE'
+  }).returning()
 
   return NextResponse.json({
-    session: classSession,
+    session: classSessionResult,
     room: {
       ...room,
       token: tutorToken
     }
   })
-}, { role: 'TUTOR' })) // Only tutors can create rooms
+}, { role: 'TUTOR' }))
 
 
 // GET /api/class/rooms - List active class rooms
@@ -83,62 +88,70 @@ export const GET = withAuth(async (req, session) => {
   const gradeLevel = searchParams.get('gradeLevel')
 
   // Build filter
-  const where: Prisma.LiveSessionWhereInput = {
-    status: 'ACTIVE',
-    scheduledAt: {
-      gte: new Date(Date.now() - 4 * 60 * 60 * 1000) // Started within last 4 hours
-    }
-  }
+  const filtersOfRequest: SQL[] = [
+    eq(liveSession.status, 'ACTIVE'),
+    gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000))
+  ]
 
-  if (subject) where.subject = subject
-  if (tutorId) where.tutorId = tutorId
-  if (gradeLevel) where.gradeLevel = gradeLevel
+  if (subject) filtersOfRequest.push(eq(liveSession.subject, subject))
+  if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
+  if (gradeLevel) filtersOfRequest.push(eq(liveSession.gradeLevel, gradeLevel))
 
   // For students, also include classes that match their grade level or have no grade specified
   if (session.user.role === 'STUDENT' && !gradeLevel) {
-    // Get student's profile to find their grade
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      include: { profile: true }
-    })
+    const [studentUser] = await drizzleDb
+      .select({ gradeLevel: profile.gradeLevel })
+      .from(user)
+      .innerJoin(profile, eq(profile.userId, user.id))
+      .where(eq(user.id, session.user.id))
+      .limit(1)
 
-    const studentGrade = user?.profile?.gradeLevel
+    const studentGrade = studentUser?.gradeLevel
     if (studentGrade) {
-      where.OR = [
-        { gradeLevel: studentGrade },
-        { gradeLevel: null }
-      ]
+      const gradeFilter = or(
+        eq(liveSession.gradeLevel, studentGrade),
+        isNull(liveSession.gradeLevel)
+      )
+      if (gradeFilter) filtersOfRequest.push(gradeFilter)
     }
   }
 
-  const sessions = await db.liveSession.findMany({
-    where,
-    include: {
-      tutor: {
-        include: {
-          profile: {
-            select: {
-              name: true,
-              avatarUrl: true
+  // Fetch sessions with tutor info
+  // Since participants is a relation, and we don't have 'with' defined, 
+  // we'll fetch sessions and then participants if needed, or just sessions with tutor.
+  const sessions = await drizzleDb
+    .select({
+      session: liveSession,
+      tutorName: profile.name,
+      tutorAvatar: profile.avatarUrl,
+    })
+    .from(liveSession)
+    .innerJoin(user, eq(user.id, liveSession.tutorId))
+    .innerJoin(profile, eq(profile.userId, user.id))
+    .where(filtersOfRequest.length > 0 ? and(...filtersOfRequest) : undefined)
+    .orderBy(desc(liveSession.scheduledAt))
+
+  // Filter out expired rooms and format
+  const activeSessions = (
+    await Promise.all(
+      sessions.map(async (row) => {
+        const s = row.session
+        if (!s.roomId) return null
+        const isActive = await dailyProvider.isRoomActive(s.roomId)
+        if (!isActive) return null
+
+        return {
+          ...s,
+          tutor: {
+            profile: {
+              name: row.tutorName,
+              avatarUrl: row.tutorAvatar
             }
           }
         }
-      },
-      participants: true
-    },
-    orderBy: { scheduledAt: 'desc' }
-  })
-
-  // Filter out expired rooms
-  const activeSessions = (
-    await Promise.all(
-      sessions.map(async (s: any) => {
-        if (!s.roomId) return null
-        const isActive = await dailyProvider.isRoomActive(s.roomId)
-        return isActive ? s : null
       })
     )
-  ).filter((s): s is (typeof sessions)[number] => s !== null)
+  ).filter((s): s is any => s !== null)
 
   return NextResponse.json({ sessions: activeSessions })
 })

@@ -1,7 +1,23 @@
-// @ts-nocheck
+/**
+ * GET /api/tutor/dashboard/student-progress
+ * Returns a list of students with their overall progress, engagement rate, and risk status
+ * Only returns students associated with the current tutor (creator of curriculum, clinic tutor, or session tutor)
+ */
+
 import { NextResponse } from 'next/server'
+import { eq, inArray, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculum,
+  curriculumEnrollment,
+  clinic,
+  clinicBooking,
+  liveSession,
+  sessionParticipant,
+  quizAttempt,
+  taskSubmission,
+} from '@/lib/db/schema'
 
 function clampPercent(value: number): number {
   if (!Number.isFinite(value)) return 0
@@ -13,26 +29,46 @@ function clampPercent(value: number): number {
 export const GET = withAuth(async (_req, session) => {
   const tutorId = session.user.id
 
+  // 1. Fetch core data in parallel
+  // We need to filter by tutorId which requires joining related tables
   const [enrollments, clinicBookings, sessionParticipants] = await Promise.all([
-    db.curriculumEnrollment.findMany({
-      where: { curriculum: { creatorId: tutorId } },
-      select: {
-        studentId: true,
-        lessonsCompleted: true,
+    // Enrollments in curricula created by this tutor
+    drizzleDb.query.curriculumEnrollment.findMany({
+      where: inArray(
+        curriculumEnrollment.curriculumId,
+        drizzleDb.select({ id: curriculum.id })
+          .from(curriculum)
+          .where(eq(curriculum.creatorId, tutorId))
+      ),
+      with: {
         curriculum: {
-          select: {
-            lessons: { select: { id: true } },
-          },
-        },
-      },
+          with: {
+            modules: {
+              with: {
+                lessons: { columns: { id: true } }
+              }
+            }
+          }
+        }
+      }
     }),
-    db.clinicBooking.findMany({
-      where: { clinic: { tutorId } },
-      select: { studentId: true, attended: true },
+    // Clinic bookings for clinics hosted by this tutor
+    drizzleDb.query.clinicBooking.findMany({
+      where: inArray(
+        clinicBooking.clinicId,
+        drizzleDb.select({ id: clinic.id })
+          .from(clinic)
+          .where(eq(clinic.tutorId, tutorId))
+      ),
     }),
-    db.sessionParticipant.findMany({
-      where: { session: { tutorId } },
-      select: { studentId: true, joinedAt: true, leftAt: true },
+    // Session participants for sessions hosted by this tutor
+    drizzleDb.query.sessionParticipant.findMany({
+      where: inArray(
+        sessionParticipant.sessionId,
+        drizzleDb.select({ id: liveSession.id })
+          .from(liveSession)
+          .where(eq(liveSession.tutorId, tutorId))
+      ),
     }),
   ])
 
@@ -46,26 +82,32 @@ export const GET = withAuth(async (_req, session) => {
     return NextResponse.json({ students: [] })
   }
 
+  // 2. Fetch assessment data for these students
   const [attempts, submissions] = await Promise.all([
-    db.quizAttempt.findMany({
-      where: { studentId: { in: ids } },
-      select: { studentId: true, score: true, maxScore: true },
-      take: 5000,
-      orderBy: { completedAt: 'desc' },
+    drizzleDb.query.quizAttempt.findMany({
+      where: inArray(quizAttempt.studentId, ids),
+      orderBy: [desc(quizAttempt.completedAt)],
+      limit: 5000,
     }),
-    db.taskSubmission.findMany({
-      where: { studentId: { in: ids } },
-      select: { studentId: true, score: true, maxScore: true, status: true },
-      take: 5000,
-      orderBy: { submittedAt: 'desc' },
+    drizzleDb.query.taskSubmission.findMany({
+      where: inArray(taskSubmission.studentId, ids),
+      orderBy: [desc(taskSubmission.submittedAt)],
+      limit: 5000,
     }),
   ])
 
+  // 3. Aggregate data by student
   const enrollmentByStudent = new Map<string, { completed: number; total: number }>()
   for (const enrollment of enrollments) {
     const current = enrollmentByStudent.get(enrollment.studentId) ?? { completed: 0, total: 0 }
     current.completed += enrollment.lessonsCompleted
-    current.total += enrollment.curriculum.lessons.length
+
+    // Calculate total lessons in this curriculum across all modules
+    const totalLessons = enrollment.curriculum?.modules?.reduce(
+      (sum, m) => sum + (m.lessons?.length || 0), 0
+    ) || 0
+
+    current.total += totalLessons
     enrollmentByStudent.set(enrollment.studentId, current)
   }
 
@@ -81,7 +123,9 @@ export const GET = withAuth(async (_req, session) => {
   for (const participant of sessionParticipants) {
     const current = sessionByStudent.get(participant.studentId) ?? { quality: 0, total: 0 }
     current.total += 1
-    const durationMs = participant.leftAt ? participant.leftAt.getTime() - participant.joinedAt.getTime() : 30 * 60 * 1000
+    const durationMs = participant.leftAt && participant.joinedAt
+      ? participant.leftAt.getTime() - participant.joinedAt.getTime()
+      : 30 * 60 * 1000
     current.quality += durationMs >= 10 * 60 * 1000 ? 1 : 0.4
     sessionByStudent.set(participant.studentId, current)
   }
@@ -107,6 +151,7 @@ export const GET = withAuth(async (_req, session) => {
     submissionByStudent.set(submission.studentId, current)
   }
 
+  // 4. Calculate Final Metrics
   const students = ids.map((studentId) => {
     const enrollment = enrollmentByStudent.get(studentId)
     const clinic = clinicByStudent.get(studentId)

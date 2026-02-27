@@ -4,9 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { eq, and } from 'drizzle-orm'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user, curriculumEnrollment, userGamification } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_ANALYTICS || '45', 10)
@@ -48,42 +50,44 @@ export const GET = withAuth(
       return res
     }
 
-    const [user, enrollments, gamification] = await Promise.all([
-      db.user.findUnique({
-        where: { id: studentId },
-        select: {
+    const [userData, enrollments, gamificationData] = await Promise.all([
+      drizzleDb.query.user.findFirst({
+        where: eq(user.id, studentId),
+        with: {
+          profile: { columns: { name: true } }
+        },
+        columns: {
           id: true,
           email: true,
-          profile: { select: { name: true } },
-        },
+        }
       }),
-      db.curriculumEnrollment.findMany({
-        where: { studentId },
-        include: {
-          curriculum: { select: { id: true, name: true } },
-        },
+      drizzleDb.query.curriculumEnrollment.findMany({
+        where: eq(curriculumEnrollment.studentId, studentId),
+        with: {
+          curriculum: { columns: { id: true, name: true } }
+        }
       }),
-      db.userGamification.findUnique({
-        where: { userId: studentId },
-      }),
+      drizzleDb.query.userGamification.findFirst({
+        where: eq(userGamification.userId, studentId)
+      })
     ])
 
-    if (!user) {
+    if (!userData) {
       return NextResponse.json({ error: '学生不存在' }, { status: 404 })
     }
 
     const data = {
-      id: user.id,
-      name: user.profile?.name ?? member.name,
-      email: user.email,
+      id: userData.id,
+      name: userData.profile?.name ?? member.name,
+      email: userData.email,
       relation: member.relation,
       enrollments: enrollments.map((e: any) => ({
         curriculumId: e.curriculum.id,
         curriculumName: e.curriculum.name,
         enrolledAt: e.enrolledAt,
       })),
-      level: gamification?.level ?? null,
-      xp: gamification?.xp ?? null,
+      level: gamificationData?.level ?? null,
+      xp: gamificationData?.xp ?? null,
     }
 
     await cacheManager.set(cacheKey, data, {

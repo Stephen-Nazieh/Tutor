@@ -4,9 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { familyNotification } from '@/lib/db/schema'
 import cacheManager from '@/lib/cache-manager'
 import { z } from 'zod'
 
@@ -31,10 +33,10 @@ export const GET = withAuth(
     const cached = await cacheManager.get<object>(cacheKey)
     if (cached) return NextResponse.json({ success: true, data: cached })
 
-    const notifications = await db.familyNotification.findMany({
-      where: { parentId: family.id },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
+    const notifications = await drizzleDb.query.familyNotification.findMany({
+      where: eq(familyNotification.parentId, family.id),
+      orderBy: [desc(familyNotification.createdAt)],
+      limit: 50,
     })
 
     const data = {
@@ -66,26 +68,24 @@ export const PATCH = withAuth(
 
     let body: { ids?: string[]; all?: boolean }
     try {
-      body = markReadSchema.parse(await req.json())
+      body = markReadSchema.parse(await req.json().catch(() => ({})))
     } catch {
       return NextResponse.json({ error: '无效请求' }, { status: 400 })
     }
 
-    const where =
-      body.all === true
-        ? { parentId: family.id, isRead: false }
-        : body.ids?.length
-          ? { parentId: family.id, id: { in: body.ids } }
-          : null
+    let conditions: any[] = [eq(familyNotification.parentId, family.id)]
 
-    if (!where) {
+    if (body.all === true) {
+      conditions.push(eq(familyNotification.isRead, false))
+    } else if (body.ids?.length) {
+      conditions.push(inArray(familyNotification.id, body.ids))
+    } else {
       return NextResponse.json({ error: '请提供 ids 或 all' }, { status: 400 })
     }
 
-    await db.familyNotification.updateMany({
-      where,
-      data: { isRead: true },
-    })
+    await drizzleDb.update(familyNotification)
+      .set({ isRead: true })
+      .where(and(...conditions))
 
     await cacheManager.invalidateTag(`family:${family.id}`)
 

@@ -4,8 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculumShare } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (_req: NextRequest, session) => {
@@ -15,12 +17,13 @@ export const GET = withAuth(
         { status: 403 }
       )
     }
-    const sharedCourses = await db.curriculumShare.findMany({
-      where: { recipientId: session.user.id },
-      orderBy: { sharedAt: 'desc' },
-      include: {
+
+    const sharedCourses = await drizzleDb.query.curriculumShare.findMany({
+      where: eq(curriculumShare.recipientId, session.user.id),
+      orderBy: [desc(curriculumShare.sharedAt)],
+      with: {
         curriculum: {
-          select: {
+          columns: {
             id: true,
             name: true,
             description: true,
@@ -32,8 +35,8 @@ export const GET = withAuth(
           },
         },
         sharedBy: {
-          select: {
-            profile: { select: { name: true } },
+          with: {
+            profile: { columns: { name: true } },
           },
         },
       },

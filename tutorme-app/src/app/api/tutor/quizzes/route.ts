@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Quiz Management API Routes
  * 
@@ -7,69 +6,75 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { eq, and, or, ilike, sql, desc } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { quiz } from '@/lib/db/schema'
 import { QuizStatus, QuizType, QuizQuestion } from '@/types/quiz'
+import crypto from 'crypto'
 
 // GET /api/tutor/quizzes - List quizzes with filtering
 export const GET = withAuth(async (req: NextRequest, session) => {
     const { searchParams } = new URL(req.url)
-    
+
     // Parse filters
     const status = searchParams.get('status') as QuizStatus | null
     const type = searchParams.get('type') as QuizType | null
     const curriculumId = searchParams.get('curriculumId')
     const searchQuery = searchParams.get('q')
-    
+
     // Pagination
     const page = parseInt(searchParams.get('page') || '1')
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
-    const skip = (page - 1) * limit
-    
+    const offset = (page - 1) * limit
+
     // Build where clause
-    const where: any = {
-        tutorId: session.user.id
-    }
-    
-    if (status) where.status = status
-    if (type) where.type = type
-    if (curriculumId) where.curriculumId = curriculumId
-    
+    const conditions = [eq(quiz.tutorId, session.user.id)]
+
+    if (status) conditions.push(eq(quiz.status, status))
+    if (type) conditions.push(eq(quiz.type, type))
+    if (curriculumId) conditions.push(eq(quiz.curriculumId, curriculumId))
+
     if (searchQuery) {
-        where.OR = [
-            { title: { contains: searchQuery, mode: 'insensitive' } },
-            { description: { contains: searchQuery, mode: 'insensitive' } },
-            { tags: { has: searchQuery } }
-        ]
+        conditions.push(
+            or(
+                ilike(quiz.title, `%${searchQuery}%`),
+                ilike(quiz.description, `%${searchQuery}%`),
+                sql`${quiz.tags} @> ARRAY[${searchQuery}]::text[]`
+            )
+        )
     }
-    
-    // Fetch quizzes with attempt counts
-    const [quizzes, totalCount] = await Promise.all([
-        db.quiz.findMany({
+
+    const where = and(...conditions)
+
+    // Fetch quizzes with attempt counts using relational queries
+    const [quizzes, totalCountResult] = await Promise.all([
+        drizzleDb.query.quiz.findMany({
             where,
-            orderBy: { updatedAt: 'desc' },
-            skip,
-            take: limit,
-            include: {
-                _count: {
-                    select: {
-                        attempts: true,
-                        assignments: true
-                    }
-                }
+            orderBy: [desc(quiz.updatedAt)],
+            limit,
+            offset,
+            with: {
+                attempts: { columns: { id: true } },
+                assignments: { columns: { id: true } }
             }
         }),
-        db.quiz.count({ where })
+        drizzleDb.select({ count: sql<number>`count(*)` })
+            .from(quiz)
+            .where(where)
     ])
-    
+
+    const totalCount = Number(totalCountResult[0]?.count || 0)
+
     // Format response
-    const formattedQuizzes = quizzes.map(quiz => ({
-        ...quiz,
-        attemptCount: quiz._count.attempts,
-        assignmentCount: quiz._count.assignments,
-        _count: undefined
+    const formattedQuizzes = quizzes.map(q => ({
+        ...q,
+        attemptCount: q.attempts.length,
+        assignmentCount: q.assignments.length,
+        attempts: undefined,
+        assignments: undefined
     }))
-    
+
     return NextResponse.json({
         quizzes: formattedQuizzes,
         pagination: {
@@ -83,8 +88,8 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
 // POST /api/tutor/quizzes - Create a new quiz
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
-    const body = await req.json()
-    
+    const body = await req.json().catch(() => ({}))
+
     const {
         title,
         description,
@@ -102,19 +107,19 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
         curriculumId,
         lessonId
     } = body
-    
+
     // Validation
     if (!title) {
         throw new ValidationError('Title is required')
     }
-    
-    if (questions.length === 0) {
+
+    if (!Array.isArray(questions) || questions.length === 0) {
         throw new ValidationError('Quiz must have at least one question')
     }
-    
+
     // Calculate total points
     const totalPoints = questions.reduce((sum: number, q: QuizQuestion) => sum + (q.points || 1), 0)
-    
+
     // Validate questions
     for (let i = 0; i < questions.length; i++) {
         const q = questions[i]
@@ -125,40 +130,39 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
             throw new ValidationError(`Question ${i + 1} requires at least 2 options`)
         }
     }
-    
+
     // Add order to questions
     const orderedQuestions = questions.map((q: QuizQuestion, index: number) => ({
         ...q,
-        id: q.id || `q-${Date.now()}-${index}`,
+        id: q.id || `q-${crypto.randomUUID()}-${index}`,
         order: index
     }))
-    
+
     // Create quiz
-    const quiz = await db.quiz.create({
-        data: {
-            tutorId: session.user.id,
-            title,
-            description: description || null,
-            type,
-            status: 'draft',
-            timeLimit: timeLimit || null,
-            allowedAttempts: Math.max(1, allowedAttempts),
-            shuffleQuestions,
-            shuffleOptions,
-            showCorrectAnswers,
-            passingScore: passingScore || null,
-            questions: orderedQuestions,
-            totalPoints,
-            tags,
-            startDate: startDate ? new Date(startDate) : null,
-            dueDate: dueDate ? new Date(dueDate) : null,
-            curriculumId: curriculumId || null,
-            lessonId: lessonId || null
-        }
-    })
-    
+    const [newQuiz] = await drizzleDb.insert(quiz).values({
+        id: crypto.randomUUID(),
+        tutorId: session.user.id,
+        title,
+        description: description || null,
+        type,
+        status: 'draft',
+        timeLimit: timeLimit || null,
+        allowedAttempts: Math.max(1, allowedAttempts),
+        shuffleQuestions: !!shuffleQuestions,
+        shuffleOptions: !!shuffleOptions,
+        showCorrectAnswers,
+        passingScore: passingScore || null,
+        questions: orderedQuestions,
+        totalPoints,
+        tags: Array.isArray(tags) ? tags : [],
+        startDate: startDate ? new Date(startDate) : null,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        curriculumId: curriculumId || null,
+        lessonId: lessonId || null
+    }).returning()
+
     return NextResponse.json({
         success: true,
-        quiz
+        quiz: newQuiz
     }, { status: 201 })
 }, { role: 'TUTOR' }))
