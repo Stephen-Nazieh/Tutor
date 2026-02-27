@@ -65,12 +65,15 @@ export function useBreakoutRooms(options: UseBreakoutRoomsOptions) {
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>()
 
   useEffect(() => {
-    const socket = io({
-      path: '/api/socket',
-      transports: ['websocket', 'polling']
-    })
-
-    socketRef.current = socket
+    const connect = async () => {
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      if (!token) return
+      const socket = io({
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+        auth: { token },
+      })
+      socketRef.current = socket
 
     socket.on('connect', () => {
       console.log('Breakout socket connected:', socket.id)
@@ -143,9 +146,10 @@ export function useBreakoutRooms(options: UseBreakoutRoomsOptions) {
         setTimeRemaining(data.secondsRemaining)
       }
     })
-
+    }
+    connect()
     return () => {
-      socket.disconnect()
+      socketRef.current?.disconnect()
       socketRef.current = null
     }
   }, [options.mainRoomId, options.userId])

@@ -288,6 +288,49 @@ This review should be used as a living checklist; re-run typecheck and tests aft
 
 ---
 
+## 11. Live class multi-layer whiteboard
+
+### 11.1 Is it really multi-layered?
+
+**Data model: yes.** The hook `use-live-class-whiteboard.ts` defines a real layer model:
+
+- **Layer types:** `tutor-broadcast`, `tutor-private`, `student-personal`, `shared-group` (`LayerConfig`, `activeLayerId`).
+- **State:** `myStrokes`, `tutorStrokes`, `studentWhiteboards` (Map of student boards), visibility (private / tutor-only / public), and optional branch/snapshot concepts.
+
+**UI: partially.** The tutor view (`MultiLayerWhiteboardInterface` → `TutorWhiteboardManager`) has a “Multi-Layer Controls” sidebar (socket status, online count, broadcast/student tips) and can switch to “view student board” (one student at a time). The student view (`StudentLiveWhiteboard`) has a single main canvas with “Show/Hide tutor board” (toggle `showTutorBoard`). There is no UI that exposes a **stack of layers** (e.g. multiple overlapping canvases or a layer list) for the same view; layers are reflected in state and in who is broadcasting/viewing, not as separate visible layers in one canvas stack.
+
+**Conclusion:** Multi-layer in **state and semantics** (tutor broadcast vs tutor-private vs student-personal vs shared-group); **not** a full multi-layer canvas stack in the UI.
+
+### 11.2 Share, view, and write — design vs implementation
+
+| Capability | Intended design | Backend (socket) | Frontend |
+|------------|-----------------|------------------|----------|
+| **Tutor → students** | Tutor broadcasts; students see tutor strokes | Implemented in `socket-server.ts` (`lcwb_tutor_stroke_ops`, `lcwb_broadcast_start`, etc.) | Tutor: broadcast controls; Student: `tutorStrokes` + “Show/Hide tutor board” |
+| **Students → tutor** | Tutor sees and annotates on a student’s board | Implemented in `socket-server.ts` (`lcwb_tutor_view_student`, `lcwb_tutor_annotate`, `lcwb_student_stroke_ops`, etc.) | Tutor: “View student board”, annotate; Student: receives tutor annotations |
+| **Student → student (view)** | When a student sets visibility to “public”, others can see | Implemented in `socket-server.ts` (`lcwb_public_student_stroke`, `lcwb_student_public`) | **Tutor:** uses `studentWhiteboards` / `activeStudentBoards`. **Student:** hook exposes `studentWhiteboards` / `activeStudentBoards` but **no UI** in `StudentLiveWhiteboard` to switch to or list other students’ public boards |
+| **Student → student (write)** | — | Not implemented (no `lcwb_student_annotate`); only tutor can annotate on a student board | N/A |
+
+So: **tutor ↔ student** share/view/write is fully implemented in the **original** socket server and in the UI for tutor and (for tutor layer) student. **Student-to-student viewing** is implemented in the socket and in the hook data, but the **student UI does not expose other students’ public boards**. Student-to-student **writing** is not implemented (by design: only tutor annotates on student boards).
+
+### 11.3 Critical: socket server mismatch (live whiteboard not wired in production)
+
+The app runs with a **custom server** (`server.ts`) that initializes **only** `initEnhancedSocketServer` from `socket-server-enhanced.ts`. All **live-class whiteboard** events (`lcwb_*`) are implemented in **`socket-server.ts`** (e.g. `lcwb_student_join`, `lcwb_tutor_view_student`, `lcwb_student_stroke_ops`, `lcwb_tutor_stroke_ops`, `lcwb_public_student_stroke`, etc.). A search for `lcwb` in **`socket-server-enhanced.ts`** returns **no matches**: the enhanced server does **not** register any `lcwb_*` handlers.
+
+**Impact:** When the app runs with the custom server (normal dev/prod), tutor broadcast, student boards, “view student”, visibility, and public student strokes are **not** handled by the socket server. Clients may emit these events but nothing is processed; whiteboard sync and sharing will not work as designed.
+
+**Recommendation (P0):** Either:
+
+1. **Port or delegate** all `lcwb_*` handlers from `socket-server.ts` into `socket-server-enhanced.ts` (after connection, e.g. by calling a shared `registerLiveClassWhiteboardHandlers(io, socket)`), or  
+2. **Use** the socket server that already has those handlers (e.g. initialize from `socket-server.ts` or merge the two servers) so that the same process that serves the app also registers the live-class whiteboard logic.
+
+Until this is fixed, the multi-layer whiteboard “share, view, and write” features are **not** fully operational in the running application.
+
+### 11.4 Optional UX improvement (student view)
+
+If product requirement is that **students** can view other students’ public boards: add a minimal control in `StudentLiveWhiteboard` (or parent) to switch between “My board”, “Tutor board” (current), and “Other students’ boards” (list or dropdown from `activeStudentBoards` / `studentWhiteboards`), and render the selected board’s strokes.
+
+---
+
 ## Implementation status (post-review)
 
 | Priority | Item | Status |
@@ -311,3 +354,4 @@ This review should be used as a living checklist; re-run typecheck and tests aft
 | Executive Summary / §2.1 | Outdated “typecheck fails” | Updated: typecheck and tests pass; incremental hardening |
 | Params normalization | getParamAsync in dynamic routes | Applied: ai-assistant/insights/[id], whiteboards/[id], whiteboards/[id]/snapshots (400 when id missing) |
 | security-audit.ts | @ts-nocheck + Prisma db | Done: removed @ts-nocheck; crypto import; generateWeeklySecurityReport uses Drizzle; meta typed as AuditMetadata |
+| Live class whiteboard (§11) | lcwb_* only in socket-server.ts; enhanced server has none | **Open:** Port or delegate lcwb_* handlers into socket-server-enhanced.ts (or use server that registers them) so share/view/write work in production |

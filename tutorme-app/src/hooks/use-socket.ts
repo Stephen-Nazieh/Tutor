@@ -39,13 +39,19 @@ export function useSocket(options?: UseSocketOptions) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Initialize socket connection
-    const socket = io({
-      path: '/api/socket',
-      transports: ['websocket', 'polling']
-    })
-
-    socketRef.current = socket
+    let socket: Socket
+    const connect = async () => {
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      if (!token) {
+        setError('Authentication required')
+        return
+      }
+      socket = io({
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+        auth: { token },
+      })
+      socketRef.current = socket
 
     socket.on('connect', () => {
       console.log('Socket connected:', socket.id)
@@ -138,9 +144,13 @@ export function useSocket(options?: UseSocketOptions) {
       options?.onNotification?.(data)
     })
 
+    }
+    connect()
     return () => {
-      socket.disconnect()
-      socketRef.current = null
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+        socketRef.current = null
+      }
     }
   }, [options?.roomId, options?.userId, options?.name, options?.role, options?.tutorId])
 

@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -19,9 +20,13 @@ import { toast } from 'sonner'
 import { StudentList } from './StudentList'
 import { UnifiedBreakoutManager, UnifiedBreakoutModal } from './breakout'
 import { HandRaiseQueue } from './HandRaiseQueue'
-import { CourseDevPanel } from '@/components/class/course-dev-panel'
 import { ChatMonitor } from './ChatMonitor'
 import { LiveAnalytics } from './LiveAnalytics'
+
+const CourseDevPanel = dynamic(
+  () => import('@/components/class/course-dev-panel').then((m) => m.CourseDevPanel),
+  { ssr: false, loading: () => <div className="p-4 text-muted-foreground">Loading panel…</div> }
+)
 import { AITeachingAssistant } from './AITeachingAssistant'
 import { StudentProgressPanel } from './StudentProgressPanel'
 import { MultiLayerWhiteboardInterface } from './MultiLayerWhiteboardInterface'

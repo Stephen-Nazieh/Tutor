@@ -100,12 +100,15 @@ export function useWhiteboardSocket({
   useEffect(() => {
     if (!whiteboardId) return
 
-    const socket = io({
-      path: '/api/socket',
-      transports: ['websocket', 'polling'],
-    })
-
-    socketRef.current = socket
+    const connect = async () => {
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      if (!token) return
+      const socket = io({
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+        auth: { token },
+      })
+      socketRef.current = socket
 
     socket.on('connect', () => {
       console.log('Whiteboard socket connected:', socket.id)
@@ -181,10 +184,11 @@ export function useWhiteboardSocket({
     socket.on('wb_undone', (data) => {
       onUndo?.(data)
     })
-
+    }
+    connect()
     return () => {
-      socket.emit('wb_leave', { whiteboardId, userId })
-      socket.disconnect()
+      socketRef.current?.emit('wb_leave', { whiteboardId, userId })
+      socketRef.current?.disconnect()
       socketRef.current = null
       setIsConnected(false)
     }

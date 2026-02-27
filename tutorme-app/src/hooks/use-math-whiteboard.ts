@@ -165,16 +165,23 @@ export function useMathWhiteboard({
       fallbackTimer = null
     }
 
-    const socket = io({
-      path: '/api/socket',
-      transports: ['websocket', 'polling'],
-      timeout: 10000,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    })
-
-    socketRef.current = socket
+    const connect = async () => {
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      if (!token) {
+        setError('Authentication required')
+        setIsConnecting(false)
+        return
+      }
+      const socket = io({
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+        timeout: 10000,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        auth: { token },
+      })
+      socketRef.current = socket
 
     socket.on('connect', () => {
       console.log('[MathWhiteboard] Socket connected')
@@ -323,18 +330,23 @@ export function useMathWhiteboard({
     socket.on('math_wb_cursor_moved', handleCursorMoved)
     socket.on('math_wb_page_changed', handlePageChanged)
 
+    }
+    connect()
     return () => {
       clearFallbackTimer()
-      socket.off('math_wb_state', handleState)
-      socket.off('math_wb_presence', handlePresence)
-      socket.off('math_wb_element_created', handleElementCreated)
-      socket.off('math_wb_element_updated', handleElementUpdated)
-      socket.off('math_wb_element_deleted', handleElementDeleted)
-      socket.off('math_wb_lock_changed', handleLockChanged)
-      socket.off('math_wb_cursor_moved', handleCursorMoved)
-      socket.off('math_wb_page_changed', handlePageChanged)
-      socket.disconnect()
-      socketRef.current = null
+      const s = socketRef.current
+      if (s) {
+        s.off('math_wb_state', handleState)
+        s.off('math_wb_presence', handlePresence)
+        s.off('math_wb_element_created', handleElementCreated)
+        s.off('math_wb_element_updated', handleElementUpdated)
+        s.off('math_wb_element_deleted', handleElementDeleted)
+        s.off('math_wb_lock_changed', handleLockChanged)
+        s.off('math_wb_cursor_moved', handleCursorMoved)
+        s.off('math_wb_page_changed', handlePageChanged)
+        s.disconnect()
+        socketRef.current = null
+      }
     }
   }, [sessionId, userId, name, role, isLocalMode])
 

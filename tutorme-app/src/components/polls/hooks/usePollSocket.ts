@@ -46,12 +46,15 @@ export function usePollSocket(sessionId: string, participant?: PollSocketPartici
   useEffect(() => {
     if (!sessionId) return;
 
-    const socket = io('/api/socket', {
-      path: '/api/socket',
-      transports: ['websocket', 'polling']
-    });
-
-    socketRef.current = socket;
+    const connect = async () => {
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken());
+      if (!token) return;
+      const socket = io('/api/socket', {
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+        auth: { token },
+      });
+      socketRef.current = socket;
 
     socket.on('connect', () => {
       setIsConnected(true);
@@ -84,10 +87,12 @@ export function usePollSocket(sessionId: string, participant?: PollSocketPartici
       setError('Connection error: ' + err.message);
       setIsLoading(false);
     });
-
+    };
+    connect();
     return () => {
-      socket.emit('poll:leave', { sessionId });
-      socket.disconnect();
+      socketRef.current?.emit('poll:leave', { sessionId });
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
   }, [sessionId, participant?.name, participant?.role, participant?.userId]);
 

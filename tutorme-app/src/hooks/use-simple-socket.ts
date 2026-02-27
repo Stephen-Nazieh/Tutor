@@ -5,7 +5,7 @@
  * Used by the Live Class Whiteboard system.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 
 interface SimpleSocketOptions {
@@ -15,21 +15,26 @@ interface SimpleSocketOptions {
 }
 
 export function useSimpleSocket(roomId: string, options: SimpleSocketOptions = {}) {
+  const socketRef = useRef<Socket | null>(null)
   const [socketInstance, setSocketInstance] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
     if (!roomId) return
 
-    // Initialize socket connection
-    const socket = io({
-      path: '/api/socket',
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 500,
-    })
+    const connect = async () => {
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      if (!token) return
+      const socket = io({
+        path: '/api/socket',
+        transports: ['websocket', 'polling'],
+        timeout: 20000,
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 500,
+        auth: { token },
+      })
+      socketRef.current = socket
 
     socket.on('connect', () => {
       setIsConnected(true)
@@ -54,9 +59,11 @@ export function useSimpleSocket(roomId: string, options: SimpleSocketOptions = {
       console.warn('Socket connection error:', err?.message || err)
       setIsConnected(false)
     })
-
+    }
+    connect()
     return () => {
-      socket.disconnect()
+      socketRef.current?.disconnect()
+      socketRef.current = null
     }
   }, [roomId, options.name, options.role, options.userId])
 
