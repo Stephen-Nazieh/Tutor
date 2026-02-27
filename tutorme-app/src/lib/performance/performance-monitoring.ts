@@ -23,7 +23,9 @@
  *   reportError(new Error('API failed'), { context: 'user_dashboard' })
  */
 
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { performanceMetric, user } from '@/lib/db/schema'
+import { eq, and, gte, asc, sql } from 'drizzle-orm'
 
 // ============================================================================
 // Types
@@ -140,22 +142,20 @@ class MetricBuffer {
     this.buffer = []
 
     try {
-      // Store metrics in database
-      await db.$transaction(
-        metrics.map((metric) =>
-          db.performanceMetric.create({
-            data: {
-              name: metric.name,
-              metricValue: metric.value,
-              unit: metric.unit,
-              tags: metric.tags || {},
-              userId: metric.userId,
-              sessionId: metric.sessionId,
-              timestamp: new Date(metric.timestamp),
-            },
+      await drizzleDb.transaction(async (tx) => {
+        for (const metric of metrics) {
+          await tx.insert(performanceMetric).values({
+            id: crypto.randomUUID(),
+            name: metric.name,
+            metricValue: metric.value,
+            unit: metric.unit,
+            tags: (metric.tags as Record<string, unknown>) ?? {},
+            userId: metric.userId ?? null,
+            sessionId: metric.sessionId ?? null,
+            timestamp: new Date(metric.timestamp),
           })
-        )
-      )
+        }
+      })
     } catch (error) {
       console.error('Failed to flush metrics:', error)
       // Re-add to buffer on failure
@@ -390,10 +390,10 @@ class AlertManager {
       const { notifyMany } = await import('@/lib/notifications/notify')
       
       // Get admin user IDs (simplified - would need proper admin lookup)
-      const admins = await db.user.findMany({
-        where: { role: 'ADMIN' },
-        select: { id: true },
-      })
+      const admins = await drizzleDb
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.role, 'ADMIN'))
 
       await notifyMany({
         userIds: admins.map((a) => a.id),
@@ -667,17 +667,17 @@ class PerformanceMonitor {
       const windowMs = this.getWindowMs(budget.window)
       const cutoff = new Date(Date.now() - windowMs)
 
-      const avg = await db.performanceMetric.aggregate({
-        where: {
-          name: budget.metric,
-          timestamp: { gte: cutoff },
-        },
-        _avg: {
-          metricValue: true,
-        },
-      })
+      const [row] = await drizzleDb
+        .select({ avgValue: sql<number>`avg(metric_value)::double precision` })
+        .from(performanceMetric)
+        .where(
+          and(
+            eq(performanceMetric.name, budget.metric),
+            gte(performanceMetric.timestamp, cutoff)
+          )
+        )
 
-      const avgValue = avg._avg.metricValue
+      const avgValue = row?.avgValue ?? null
       if (avgValue && avgValue > budget.threshold && budget.alertOnBreach) {
         await this.alertManager.sendAlert({
           id: `budget-${budget.metric}-${Date.now()}`,
@@ -816,13 +816,16 @@ class PerformanceMonitor {
 
     const cutoff = new Date(Date.now() - windowMs)
 
-    const metrics = await db.performanceMetric.findMany({
-      where: {
-        name: metricName,
-        timestamp: { gte: cutoff },
-      },
-      orderBy: { metricValue: 'asc' },
-    })
+    const metrics = await drizzleDb
+      .select()
+      .from(performanceMetric)
+      .where(
+        and(
+          eq(performanceMetric.name, metricName),
+          gte(performanceMetric.timestamp, cutoff)
+        )
+      )
+      .orderBy(asc(performanceMetric.metricValue))
 
     if (metrics.length === 0) {
       return { avg: 0, min: 0, max: 0, p95: 0, p99: 0, count: 0 }

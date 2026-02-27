@@ -1205,6 +1205,83 @@ export const performanceAlert = pgTable('PerformanceAlert', {
   PerformanceAlert_timestamp_idx: index('PerformanceAlert_timestamp_idx').on(table.timestamp)
 }))
 
+// Session engagement & insights (optional feature tables)
+export const engagementSnapshot = pgTable('EngagementSnapshot', {
+  id: text('id').primaryKey().notNull(),
+  sessionId: text('sessionId').notNull(),
+  studentId: text('studentId').notNull(),
+  engagementScore: doublePrecision('engagementScore').notNull(),
+  attentionLevel: text('attentionLevel').notNull(),
+  comprehensionEstimate: doublePrecision('comprehensionEstimate'),
+  participationCount: integer('participationCount').notNull(),
+  chatMessages: integer('chatMessages').notNull(),
+  whiteboardInteractions: integer('whiteboardInteractions').notNull(),
+  struggleIndicators: integer('struggleIndicators').notNull(),
+  timestamp: timestamp('timestamp', { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  EngagementSnapshot_sessionId_idx: index('EngagementSnapshot_sessionId_idx').on(table.sessionId),
+  EngagementSnapshot_studentId_idx: index('EngagementSnapshot_studentId_idx').on(table.studentId)
+}))
+
+export const sessionEngagementSummary = pgTable('SessionEngagementSummary', {
+  sessionId: text('sessionId').primaryKey().notNull(),
+  averageEngagement: doublePrecision('averageEngagement'),
+  peakEngagement: doublePrecision('peakEngagement'),
+  lowEngagement: doublePrecision('lowEngagement'),
+  participationRate: doublePrecision('participationRate'),
+  totalChatMessages: integer('totalChatMessages'),
+  totalHandRaises: integer('totalHandRaises'),
+  timeOnTaskPercentage: doublePrecision('timeOnTaskPercentage')
+})
+
+export const postSessionReport = pgTable('PostSessionReport', {
+  id: text('id').primaryKey().notNull(),
+  sessionId: text('sessionId').notNull(),
+  tutorId: text('tutorId').notNull(),
+  status: text('status').notNull(),
+  keyConcepts: jsonb('keyConcepts').notNull(),
+  mainTopics: jsonb('mainTopics').notNull(),
+  studentQuestions: jsonb('studentQuestions').notNull(),
+  challengingConcepts: jsonb('challengingConcepts').notNull(),
+  overallAssessment: text('overallAssessment').notNull(),
+  averageEngagement: doublePrecision('averageEngagement').notNull(),
+  peakEngagement: doublePrecision('peakEngagement').notNull(),
+  lowEngagement: doublePrecision('lowEngagement').notNull(),
+  participationRate: doublePrecision('participationRate').notNull(),
+  chatActivity: integer('chatActivity').notNull(),
+  handRaises: integer('handRaises').notNull(),
+  timeOnTask: doublePrecision('timeOnTask').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  PostSessionReport_sessionId_idx: index('PostSessionReport_sessionId_idx').on(table.sessionId)
+}))
+
+export const studentSessionInsight = pgTable('StudentSessionInsight', {
+  id: text('id').primaryKey().notNull(),
+  sessionId: text('sessionId').notNull(),
+  studentId: text('studentId').notNull(),
+  engagement: doublePrecision('engagement').notNull(),
+  participation: integer('participation').notNull(),
+  questionsAsked: integer('questionsAsked').notNull(),
+  timeAwayMinutes: integer('timeAwayMinutes').notNull(),
+  flaggedForFollowUp: boolean('flaggedForFollowUp').notNull(),
+  followUpReason: text('followUpReason'),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  StudentSessionInsight_sessionId_idx: index('StudentSessionInsight_sessionId_idx').on(table.sessionId)
+}))
+
+export const sessionBookmark = pgTable('SessionBookmark', {
+  id: text('id').primaryKey().notNull(),
+  sessionId: text('sessionId').notNull(),
+  timestampSeconds: integer('timestampSeconds').notNull(),
+  label: text('label'),
+  note: text('note'),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  SessionBookmark_sessionId_idx: index('SessionBookmark_sessionId_idx').on(table.sessionId)
+}))
+
 export const resource = pgTable('Resource', {
   id: text('id').primaryKey().notNull(),
   tutorId: text('tutorId').notNull(),

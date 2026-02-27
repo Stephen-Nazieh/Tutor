@@ -1,13 +1,24 @@
 /**
  * Post-Session Insights API
- * 
+ *
  * GET /api/sessions/insights?sessionId=xxx - Get session insights report
  * POST /api/sessions/insights - Generate new insights report (triggered after session)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  postSessionReport,
+  studentSessionInsight,
+  sessionBookmark,
+  sessionEngagementSummary,
+  engagementSnapshot,
+  liveSession,
+  user,
+  profile
+} from '@/lib/db/schema'
+import { eq, desc, asc, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 const generateInsightsSchema = z.object({
@@ -18,41 +29,46 @@ const generateInsightsSchema = z.object({
 export const GET = withAuth(async (req: NextRequest) => {
   const { searchParams } = new URL(req.url)
   const sessionId = searchParams.get('sessionId')
-  
+
   if (!sessionId) {
     return NextResponse.json({ error: 'sessionId is required' }, { status: 400 })
   }
 
   try {
-    // Get the report
-    const report = await db.postSessionReport.findUnique({
-      where: { sessionId }
-    })
+    const [report] = await drizzleDb
+      .select()
+      .from(postSessionReport)
+      .where(eq(postSessionReport.sessionId, sessionId))
+      .limit(1)
 
     if (!report) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
     }
 
-    // Get student insights
-    const studentInsights = await db.studentSessionInsight.findMany({
-      where: { sessionId },
-      include: {
-        student: {
-          select: {
-            id: true,
-            profile: {
-              select: { name: true }
-            }
-          }
-        }
-      }
-    })
+    const insights = await drizzleDb
+      .select()
+      .from(studentSessionInsight)
+      .where(eq(studentSessionInsight.sessionId, sessionId))
 
-    // Get bookmarks/timeline
-    const bookmarks = await db.sessionBookmark.findMany({
-      where: { sessionId },
-      orderBy: { timestampSeconds: 'asc' }
-    })
+    const studentIds = [...new Set(insights.map((i) => i.studentId))]
+    const profiles = studentIds.length
+      ? await drizzleDb.select().from(profile).where(inArray(profile.userId, studentIds))
+      : []
+    const profileByUserId = Object.fromEntries(profiles.map((p) => [p.userId, p]))
+
+    const studentInsights = insights.map((i) => ({
+      ...i,
+      student: {
+        id: i.studentId,
+        profile: profileByUserId[i.studentId] ? { name: profileByUserId[i.studentId].name } : null
+      }
+    }))
+
+    const bookmarks = await drizzleDb
+      .select()
+      .from(sessionBookmark)
+      .where(eq(sessionBookmark.sessionId, sessionId))
+      .orderBy(asc(sessionBookmark.timestampSeconds))
 
     return NextResponse.json({
       report,
@@ -74,10 +90,11 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const body = await req.json()
     const data = generateInsightsSchema.parse(body)
 
-    // Check if report already exists
-    const existing = await db.postSessionReport.findUnique({
-      where: { sessionId: data.sessionId }
-    })
+    const [existing] = await drizzleDb
+      .select()
+      .from(postSessionReport)
+      .where(eq(postSessionReport.sessionId, data.sessionId))
+      .limit(1)
 
     if (existing) {
       return NextResponse.json(
@@ -86,75 +103,82 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
 
-    // Get session data
-    const liveSession = await db.liveSession.findUnique({
-      where: { id: data.sessionId },
-      include: {
-        tutor: {
-          select: { id: true, profile: { select: { name: true } } }
-        }
-      }
-    })
+    const [live] = await drizzleDb
+      .select()
+      .from(liveSession)
+      .where(eq(liveSession.id, data.sessionId))
+      .limit(1)
 
-    if (!liveSession) {
+    if (!live) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    // Get engagement summary
-    const engagementSummary = await db.sessionEngagementSummary.findUnique({
-      where: { sessionId: data.sessionId }
-    })
+    const [engagementSummary] = await drizzleDb
+      .select()
+      .from(sessionEngagementSummary)
+      .where(eq(sessionEngagementSummary.sessionId, data.sessionId))
+      .limit(1)
 
-    // Get engagement snapshots for all students
-    const snapshots = await db.engagementSnapshot.findMany({
-      where: { sessionId: data.sessionId },
-      orderBy: { timestamp: 'desc' },
-      distinct: ['studentId']
-    })
+    const allSnapshots = await drizzleDb
+      .select()
+      .from(engagementSnapshot)
+      .where(eq(engagementSnapshot.sessionId, data.sessionId))
+      .orderBy(desc(engagementSnapshot.timestamp))
 
-    // Create student insights
-    const studentInsightsData = snapshots.map((s: Record<string, unknown>) => ({
+    const byStudent = new Map<string, (typeof allSnapshots)[0]>()
+    for (const s of allSnapshots) {
+      if (!byStudent.has(s.studentId)) byStudent.set(s.studentId, s)
+    }
+    const snapshots = Array.from(byStudent.values())
+
+    const studentInsightsData = snapshots.map((s) => ({
+      id: crypto.randomUUID(),
       sessionId: data.sessionId,
-      studentId: s.studentId as string,
-      engagement: s.engagementScore as number,
-      participation: s.participationCount as number,
-      questionsAsked: s.chatMessages as number,
-      timeAwayMinutes: 0, // Would need more data to calculate
-      flaggedForFollowUp: (s.engagementScore as number) < 50 || (s.struggleIndicators as number) > 0,
-      followUpReason: (s.struggleIndicators as number) > 0 ? 'Showing signs of struggle' : 
-                      (s.engagementScore as number) < 50 ? 'Low engagement' : undefined
+      studentId: s.studentId,
+      engagement: s.engagementScore,
+      participation: s.participationCount,
+      questionsAsked: s.chatMessages,
+      timeAwayMinutes: 0,
+      flaggedForFollowUp: s.engagementScore < 50 || s.struggleIndicators > 0,
+      followUpReason:
+        s.struggleIndicators > 0
+          ? 'Showing signs of struggle'
+          : s.engagementScore < 50
+            ? 'Low engagement'
+            : null
     }))
 
-    await db.studentSessionInsight.createMany({
-      data: studentInsightsData
+    for (const row of studentInsightsData) {
+      await drizzleDb.insert(studentSessionInsight).values(row)
+    }
+
+    const reportId = crypto.randomUUID()
+    await drizzleDb.insert(postSessionReport).values({
+      id: reportId,
+      sessionId: data.sessionId,
+      tutorId: session.user.id,
+      status: 'processing',
+      keyConcepts: [],
+      mainTopics: [],
+      studentQuestions: [],
+      challengingConcepts: [],
+      overallAssessment: '',
+      averageEngagement: engagementSummary?.averageEngagement ?? 0,
+      peakEngagement: engagementSummary?.peakEngagement ?? 0,
+      lowEngagement: engagementSummary?.lowEngagement ?? 0,
+      participationRate: engagementSummary?.participationRate ?? 0,
+      chatActivity: engagementSummary?.totalChatMessages ?? 0,
+      handRaises: engagementSummary?.totalHandRaises ?? 0,
+      timeOnTask: engagementSummary?.timeOnTaskPercentage ?? 0
     })
 
-    // Create the report
-    const report = await db.postSessionReport.create({
-      data: {
-        sessionId: data.sessionId,
-        tutorId: session.user.id,
-        status: 'processing',
-        // These would be populated by AI service in production
-        keyConcepts: [],
-        mainTopics: [],
-        studentQuestions: [],
-        challengingConcepts: [],
-        overallAssessment: '',
-        averageEngagement: engagementSummary?.averageEngagement || 0,
-        peakEngagement: engagementSummary?.peakEngagement || 0,
-        lowEngagement: engagementSummary?.lowEngagement || 0,
-        participationRate: engagementSummary?.participationRate || 0,
-        chatActivity: engagementSummary?.totalChatMessages || 0,
-        handRaises: engagementSummary?.totalHandRaises || 0,
-        timeOnTask: engagementSummary?.timeOnTaskPercentage || 0
-      }
-    })
+    const [report] = await drizzleDb
+      .select()
+      .from(postSessionReport)
+      .where(eq(postSessionReport.id, reportId))
+      .limit(1)
 
-    // Trigger AI analysis (would be async in production)
-    // await analyzeSessionWithAI(data.sessionId)
-
-    return NextResponse.json({ success: true, report })
+    return NextResponse.json({ success: true, report: report ?? null })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

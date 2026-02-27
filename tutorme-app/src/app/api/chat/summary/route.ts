@@ -5,9 +5,11 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { and, eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
 import { generateSessionSummary, SummaryOptions } from '@/lib/chat/summary'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession, sessionParticipant } from '@/lib/db/schema'
 
 
 export async function POST(request: NextRequest) {
@@ -37,24 +39,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user has access to this session
-    const liveSession = await db.liveSession.findFirst({
-      where: {
-        id: sessionId,
-        OR: [
-          { tutorId: session.user.id },
-          {
-            participants: {
-              some: {
-                studentId: session.user.id
-              }
-            }
-          }
-        ]
-      }
-    })
+    // Verify user has access to this session (tutor or participant)
+    const [sessionRow] = await drizzleDb
+      .select()
+      .from(liveSession)
+      .where(eq(liveSession.id, sessionId))
+      .limit(1)
 
-    if (!liveSession && session.user.role !== 'ADMIN') {
+    const isTutor = sessionRow?.tutorId === session.user.id
+    let isParticipant = false
+    if (sessionRow) {
+      const [participantRow] = await drizzleDb
+        .select()
+        .from(sessionParticipant)
+        .where(
+          and(
+            eq(sessionParticipant.sessionId, sessionId),
+            eq(sessionParticipant.studentId, session.user.id)
+          )
+        )
+        .limit(1)
+      isParticipant = participantRow != null
+    }
+    const hasAccess = sessionRow && (isTutor || isParticipant)
+
+    if (!hasAccess && session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: '无权访问该会话' },
         { status: 403 }

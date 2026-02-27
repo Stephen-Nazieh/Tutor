@@ -4,10 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { and, eq } from 'drizzle-orm'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/ai/task-generator'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { liveSession } from '@/lib/db/schema'
 import { withRateLimitPreset } from '@/lib/api/middleware'
 import { z } from 'zod'
 
@@ -60,12 +62,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify tutor owns the room
-    const room = await db.liveSession.findFirst({
-      where: {
-        id: roomId,
-        tutorId: session.user.id
-      }
-    })
+    const [room] = await drizzleDb
+      .select()
+      .from(liveSession)
+      .where(
+        and(
+          eq(liveSession.id, roomId),
+          eq(liveSession.tutorId, session.user.id)
+        )
+      )
+      .limit(1)
 
     if (!room) {
       return NextResponse.json({ error: '无权访问该教室' }, { status: 403 })

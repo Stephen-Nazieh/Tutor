@@ -17,14 +17,14 @@ export async function GET(req: NextRequest) {
       .from(llmRoutingRule)
       .orderBy(desc(llmRoutingRule.isActive), asc(llmRoutingRule.priority))
 
-    const targetModelIds = [...new Set(rules.map((r) => r.targetModelId).filter(Boolean))]
-    const fallbackModelIds = [...new Set(rules.map((r) => r.fallbackModelId).filter(Boolean))]
+    const targetModelIds = [...new Set(rules.map((r) => r.targetModelId).filter((id): id is string => id != null))]
+    const fallbackModelIds = [...new Set(rules.map((r) => r.fallbackModelId).filter((id): id is string => id != null))]
     const allModelIds = [...new Set([...targetModelIds, ...fallbackModelIds])]
     const models =
       allModelIds.length > 0
         ? await drizzleDb.select().from(llmModel).where(inArray(llmModel.id, allModelIds))
         : []
-    const providerIds = [...new Set(models.map((m) => m.providerId))]
+    const providerIds = [...new Set(models.map((m) => m.providerId).filter((id): id is string => id != null))]
     const providers =
       providerIds.length > 0
         ? await drizzleDb.select({ id: llmProvider.id, name: llmProvider.name }).from(llmProvider).where(inArray(llmProvider.id, providerIds))

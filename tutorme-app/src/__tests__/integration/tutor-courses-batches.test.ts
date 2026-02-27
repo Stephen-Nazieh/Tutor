@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { db } from '@/lib/db'
+import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
 import { POST as createCourse } from '@/app/api/tutor/courses/route'
 import { GET as listBatches, POST as createBatch } from '@/app/api/tutor/courses/[id]/batches/route'
 import { PATCH as updateBatch } from '@/app/api/tutor/courses/[id]/batches/[batchId]/route'
@@ -71,7 +71,7 @@ describe('Tutor courses and batches API integration', () => {
         await db.user.delete({ where: { id: tutorId } })
       } catch {}
     }
-    await db.$disconnect()
+    if (db?.$disconnect) await db.$disconnect()
   })
 
   it('creates a course and returns 200', async () => {

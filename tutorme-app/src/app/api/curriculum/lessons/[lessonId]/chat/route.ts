@@ -3,7 +3,9 @@
  * Handles AI tutor interaction during structured lessons
  */
 
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
+import { and, eq, sql } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import {
   advanceLesson,
@@ -11,7 +13,13 @@ import {
   startLesson,
   type LessonSession
 } from '@/lib/curriculum/lesson-controller'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumLesson,
+  curriculumModule,
+  lessonSession as lessonSessionTable,
+  curriculumProgress,
+} from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 
 const SECTIONS = ['introduction', 'concept', 'example', 'practice', 'review'] as const
@@ -28,51 +36,61 @@ export const POST = withCsrf(withAuth(async (req, session, routeContext: any) =>
   }
 
   // Get lesson details
-  const lesson = await db.curriculumLesson.findUnique({
-    where: { id: lessonId },
-    include: {
-      module: {
-        include: {
-          curriculum: true
-        }
-      }
-    }
-  })
+  const [lessonRow] = await drizzleDb
+    .select()
+    .from(curriculumLesson)
+    .where(eq(curriculumLesson.id, lessonId))
+    .limit(1)
 
-  if (!lesson) {
+  if (!lessonRow) {
     throw new NotFoundError('Lesson not found')
   }
 
+  const [moduleRow] = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.id, lessonRow.moduleId))
+    .limit(1)
+
+  const lesson = {
+    ...lessonRow,
+    module: moduleRow ? { curriculumId: moduleRow.curriculumId, title: moduleRow.title } : { curriculumId: '', title: '' },
+  }
+
   // Get or create lesson session
-  let lessonSession: LessonSession | null = null
+  let lessonSessionData: LessonSession | null = null
 
   if (sessionId) {
-    const dbSession = await db.lessonSession.findUnique({
-      where: { id: sessionId }
-    })
+    const [dbSession] = await drizzleDb
+      .select()
+      .from(lessonSessionTable)
+      .where(eq(lessonSessionTable.id, sessionId))
+      .limit(1)
     if (dbSession) {
-      lessonSession = dbSession as any
+      lessonSessionData = dbSession as unknown as LessonSession
     }
   }
 
-  if (!lessonSession) {
-    // Try to find existing active session
-    const dbSession = await db.lessonSession.findUnique({
-      where: {
-        studentId_lessonId: {
-          studentId: session.user.id,
-          lessonId
-        }
-      }
-    })
+  if (!lessonSessionData) {
+    const [dbSession] = await drizzleDb
+      .select()
+      .from(lessonSessionTable)
+      .where(
+        and(
+          eq(lessonSessionTable.studentId, session.user.id),
+          eq(lessonSessionTable.lessonId, lessonId)
+        )
+      )
+      .limit(1)
 
     if (dbSession) {
-      lessonSession = dbSession as any
+      lessonSessionData = dbSession as unknown as LessonSession
     } else {
-      // Create new session using the lesson controller
-      lessonSession = await startLesson(session.user.id, lessonId)
+      lessonSessionData = await startLesson(session.user.id, lessonId)
     }
   }
+
+  const lessonSession = lessonSessionData
 
   if (!lessonSession) {
     throw new Error('Failed to create lesson session')
@@ -146,83 +164,93 @@ export const POST = withCsrf(withAuth(async (req, session, routeContext: any) =>
   const currentSectionIndex = SECTIONS.indexOf(lessonSession.currentSection as LessonSection)
   const nextSectionIndex = SECTIONS.indexOf(nextSection as LessonSection)
 
-  let updatedSession = lessonSession
-  if (nextSectionIndex > currentSectionIndex || understandingLevel >= 80) {
-    // Advance to next section
-    const advanceResult = await advanceLesson(lessonSession, message)
+  const newSessionContext = {
+    ...context,
+    messages: history,
+    lastMessage: message,
+    lastResponse: parsedResponse,
+  }
+  const newWhiteboardItems =
+    whiteboardItems.length > 0
+      ? [...(lessonSession.whiteboardItems || []), ...whiteboardItems]
+      : lessonSession.whiteboardItems
 
-    // Update session in database
-    updatedSession = await db.lessonSession.update({
-      where: { id: lessonSession.id },
-      data: {
+  let updatedSession: LessonSession & { currentSection: string; conceptMastery: Record<string, number> }
+  if (nextSectionIndex > currentSectionIndex || understandingLevel >= 80) {
+    const advanceResult = await advanceLesson(lessonSession, message)
+    const [updated] = await drizzleDb
+      .update(lessonSessionTable)
+      .set({
         currentSection: advanceResult.newSection,
-        conceptMastery,
-        sessionContext: {
-          ...context,
-          messages: history,
-          lastMessage: message,
-          lastResponse: parsedResponse
-        },
-        whiteboardItems: whiteboardItems.length > 0
-          ? [...(lessonSession.whiteboardItems || []), ...whiteboardItems]
-          : lessonSession.whiteboardItems
-      }
-    }) as any
+        conceptMastery: conceptMastery as any,
+        sessionContext: newSessionContext as any,
+        whiteboardItems: newWhiteboardItems as any,
+      })
+      .where(eq(lessonSessionTable.id, lessonSession.id))
+      .returning()
+    updatedSession = (updated ?? lessonSession) as any
   } else {
-    // Just update context
-    updatedSession = await db.lessonSession.update({
-      where: { id: lessonSession.id },
-      data: {
-        conceptMastery,
-        sessionContext: {
-          ...context,
-          messages: history,
-          lastMessage: message,
-          lastResponse: parsedResponse
-        },
-        whiteboardItems: whiteboardItems.length > 0
-          ? [...(lessonSession.whiteboardItems || []), ...whiteboardItems]
-          : lessonSession.whiteboardItems
-      }
-    }) as any
+    const [updated] = await drizzleDb
+      .update(lessonSessionTable)
+      .set({
+        conceptMastery: conceptMastery as any,
+        sessionContext: newSessionContext as any,
+        whiteboardItems: newWhiteboardItems as any,
+      })
+      .where(eq(lessonSessionTable.id, lessonSession.id))
+      .returning()
+    updatedSession = (updated ?? lessonSession) as any
   }
 
-  // Check if lesson is complete
   const isComplete = updatedSession.currentSection === 'review' && understandingLevel >= 80
   if (isComplete) {
-    await db.lessonSession.update({
-      where: { id: lessonSession.id },
-      data: {
-        status: 'completed',
-        completedAt: new Date()
-      }
-    })
+    await drizzleDb
+      .update(lessonSessionTable)
+      .set({ status: 'completed', completedAt: new Date() })
+      .where(eq(lessonSessionTable.id, lessonSession.id))
 
-    // Update curriculum progress
-    await db.curriculumProgress.upsert({
-      where: {
-        studentId_curriculumId: {
+    const curriculumId = lesson.module?.curriculumId ?? moduleRow?.curriculumId
+    if (curriculumId) {
+      const [{ count: totalLessons }] = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(curriculumLesson)
+        .innerJoin(curriculumModule, eq(curriculumModule.id, curriculumLesson.moduleId))
+        .where(eq(curriculumModule.curriculumId, curriculumId))
+
+      const [existing] = await drizzleDb
+        .select()
+        .from(curriculumProgress)
+        .where(
+          and(
+            eq(curriculumProgress.studentId, session.user.id),
+            eq(curriculumProgress.curriculumId, curriculumId)
+          )
+        )
+        .limit(1)
+
+      if (existing) {
+        await drizzleDb
+          .update(curriculumProgress)
+          .set({
+            lessonsCompleted: existing.lessonsCompleted + 1,
+            currentLessonId: lessonId,
+            averageScore: understandingLevel,
+          })
+          .where(eq(curriculumProgress.id, existing.id))
+      } else {
+        await drizzleDb.insert(curriculumProgress).values({
+          id: crypto.randomUUID(),
           studentId: session.user.id,
-          curriculumId: lesson.module.curriculumId
-        }
-      },
-      create: {
-        studentId: session.user.id,
-        curriculumId: lesson.module.curriculumId,
-        lessonsCompleted: 1,
-        totalLessons: await db.curriculumLesson.count({
-          where: { module: { curriculumId: lesson.module.curriculumId } }
-        }),
-        currentLessonId: lessonId,
-        averageScore: understandingLevel,
-        startedAt: new Date()
-      },
-      update: {
-        lessonsCompleted: { increment: 1 },
-        currentLessonId: lessonId,
-        averageScore: understandingLevel
+          curriculumId,
+          lessonsCompleted: 1,
+          totalLessons: totalLessons ?? 0,
+          currentLessonId: lessonId,
+          averageScore: understandingLevel,
+          isCompleted: false,
+          startedAt: new Date(),
+        })
       }
-    })
+    }
   }
 
   return NextResponse.json({
@@ -242,28 +270,30 @@ export const GET = withAuth(async (req, session, routeContext: any) => {
   const { lessonId } = await params
 
   // Get current session
-  const lessonSession = await db.lessonSession.findUnique({
-    where: {
-      studentId_lessonId: {
-        studentId: session.user.id,
-        lessonId
-      }
-    }
-  })
+  const [sessionRow] = await drizzleDb
+    .select()
+    .from(lessonSessionTable)
+    .where(
+      and(
+        eq(lessonSessionTable.studentId, session.user.id),
+        eq(lessonSessionTable.lessonId, lessonId)
+      )
+    )
+    .limit(1)
 
-  if (!lessonSession) {
+  if (!sessionRow) {
     return NextResponse.json({ session: null })
   }
 
-  const context = (lessonSession.sessionContext as any) || {}
+  const context = (sessionRow.sessionContext as any) || {}
 
   return NextResponse.json({
     session: {
-      id: lessonSession.id,
-      currentSection: lessonSession.currentSection,
-      conceptMastery: lessonSession.conceptMastery,
-      status: lessonSession.status,
-      messages: context.messages || []
-    }
+      id: sessionRow.id,
+      currentSection: sessionRow.currentSection,
+      conceptMastery: sessionRow.conceptMastery,
+      status: sessionRow.status,
+      messages: context.messages || [],
+    },
   })
 }, { role: 'STUDENT' })

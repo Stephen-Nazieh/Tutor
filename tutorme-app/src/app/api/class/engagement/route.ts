@@ -1,14 +1,16 @@
 /**
  * GET /api/class/engagement?roomId=xxx
  * Get real-time engagement metrics for a class session
- * 
+ *
  * POST /api/class/engagement
  * Record engagement snapshot for a student
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { engagementSnapshot, sessionEngagementSummary, user, profile } from '@/lib/db/schema'
+import { eq, desc, and, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const engagementSnapshotSchema = z.object({
@@ -27,32 +29,51 @@ const engagementSnapshotSchema = z.object({
 export const GET = withAuth(async (req: NextRequest) => {
   const { searchParams } = new URL(req.url)
   const roomId = searchParams.get('roomId')
-  
+
   if (!roomId) {
     return NextResponse.json({ error: 'roomId is required' }, { status: 400 })
   }
 
   try {
-    // Get latest engagement snapshots for all students in the session
-    const snapshots = await db.$queryRaw`
-      SELECT DISTINCT ON (student_id) 
-        es.*,
-        u.name as student_name,
-        u.email as student_email
-      FROM engagement_snapshots es
-      JOIN users u ON es.student_id = u.id
-      WHERE es.session_id = ${roomId}
-      ORDER BY student_id, es.timestamp DESC
-    `
+    const snapshots = await drizzleDb
+      .select({
+        id: engagementSnapshot.id,
+        sessionId: engagementSnapshot.sessionId,
+        studentId: engagementSnapshot.studentId,
+        engagementScore: engagementSnapshot.engagementScore,
+        attentionLevel: engagementSnapshot.attentionLevel,
+        comprehensionEstimate: engagementSnapshot.comprehensionEstimate,
+        participationCount: engagementSnapshot.participationCount,
+        chatMessages: engagementSnapshot.chatMessages,
+        whiteboardInteractions: engagementSnapshot.whiteboardInteractions,
+        struggleIndicators: engagementSnapshot.struggleIndicators,
+        timestamp: engagementSnapshot.timestamp,
+        studentName: profile.name,
+        studentEmail: user.email
+      })
+      .from(engagementSnapshot)
+      .innerJoin(user, eq(engagementSnapshot.studentId, user.id))
+      .leftJoin(profile, eq(user.id, profile.userId))
+      .where(eq(engagementSnapshot.sessionId, roomId))
+      .orderBy(desc(engagementSnapshot.timestamp))
 
-    // Get session summary if available
-    const summary = await db.sessionEngagementSummary.findUnique({
-      where: { sessionId: roomId }
-    })
+    const distinctByStudent = new Map<string, (typeof snapshots)[0]>()
+    for (const row of snapshots) {
+      if (!distinctByStudent.has(row.studentId)) {
+        distinctByStudent.set(row.studentId, row)
+      }
+    }
+    const latestSnapshots = Array.from(distinctByStudent.values())
 
-    return NextResponse.json({ 
-      snapshots: snapshots || [],
-      summary: summary || null
+    const [summary] = await drizzleDb
+      .select()
+      .from(sessionEngagementSummary)
+      .where(eq(sessionEngagementSummary.sessionId, roomId))
+      .limit(1)
+
+    return NextResponse.json({
+      snapshots: latestSnapshots,
+      summary: summary ?? null
     })
   } catch (error) {
     console.error('Error fetching engagement data:', error)
@@ -69,20 +90,21 @@ export const POST = withAuth(async (req: NextRequest) => {
     const body = await req.json()
     const data = engagementSnapshotSchema.parse(body)
 
-    const snapshot = await db.engagementSnapshot.create({
-      data: {
-        sessionId: data.roomId,
-        studentId: data.studentId,
-        engagementScore: data.engagementScore,
-        attentionLevel: data.attentionLevel,
-        comprehensionEstimate: data.comprehensionEstimate,
-        participationCount: data.participationCount,
-        chatMessages: data.chatMessages,
-        whiteboardInteractions: data.whiteboardInteractions,
-        struggleIndicators: data.struggleIndicators
-      }
+    const id = crypto.randomUUID()
+    await drizzleDb.insert(engagementSnapshot).values({
+      id,
+      sessionId: data.roomId,
+      studentId: data.studentId,
+      engagementScore: data.engagementScore,
+      attentionLevel: data.attentionLevel,
+      comprehensionEstimate: data.comprehensionEstimate ?? null,
+      participationCount: data.participationCount,
+      chatMessages: data.chatMessages,
+      whiteboardInteractions: data.whiteboardInteractions,
+      struggleIndicators: data.struggleIndicators
     })
 
+    const [snapshot] = await drizzleDb.select().from(engagementSnapshot).where(eq(engagementSnapshot.id, id))
     return NextResponse.json({ success: true, snapshot })
   } catch (error) {
     if (error instanceof z.ZodError) {

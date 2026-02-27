@@ -5,57 +5,58 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { and, eq } from 'drizzle-orm'
 import { withAuth, withCsrf, NotFoundError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { lessonSession } from '@/lib/db/schema'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 
 export const GET = withAuth(async (req, session, routeContext: any) => {
-  const params = await routeContext?.params;
+  const params = await routeContext?.params
   const { lessonId } = await params
 
-  // Get session
-  const lessonSession = await db.lessonSession.findUnique({
-    where: {
-      studentId_lessonId: {
-        studentId: session.user.id,
-        lessonId
-      }
-    }
-  })
+  const [sessionRow] = await drizzleDb
+    .select()
+    .from(lessonSession)
+    .where(
+      and(
+        eq(lessonSession.studentId, session.user.id),
+        eq(lessonSession.lessonId, lessonId)
+      )
+    )
+    .limit(1)
 
-  if (!lessonSession) {
+  if (!sessionRow) {
     return NextResponse.json({ messages: [] })
   }
 
-  // Get messages from context
-  const messages = (lessonSession.sessionContext as any)?.messages || []
-
+  const messages = (sessionRow.sessionContext as any)?.messages || []
   return NextResponse.json({ messages })
 }, { role: 'STUDENT' })
 
 export const POST = withCsrf(withAuth(async (req, session, routeContext: any) => {
-  const params = await routeContext?.params;
+  const params = await routeContext?.params
   const { lessonId } = await params
   const body = await req.json()
   const { role, content, section, whiteboardItems } = body
   const safeContent = typeof content === 'string' ? sanitizeHtmlWithMax(content, 10000) : ''
 
-  // Get session
-  const lessonSession = await db.lessonSession.findUnique({
-    where: {
-      studentId_lessonId: {
-        studentId: session.user.id,
-        lessonId
-      }
-    }
-  })
+  const [sessionRow] = await drizzleDb
+    .select()
+    .from(lessonSession)
+    .where(
+      and(
+        eq(lessonSession.studentId, session.user.id),
+        eq(lessonSession.lessonId, lessonId)
+      )
+    )
+    .limit(1)
 
-  if (!lessonSession) {
+  if (!sessionRow) {
     throw new NotFoundError('Session not found')
   }
 
-  // Add message to context
-  const context = (lessonSession.sessionContext as any) || {}
+  const context = (sessionRow.sessionContext as any) || {}
   const messages = context.messages || []
 
   messages.push({
@@ -64,23 +65,19 @@ export const POST = withCsrf(withAuth(async (req, session, routeContext: any) =>
     content: safeContent,
     section,
     whiteboardItems,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   })
 
-  // Keep only last 50 messages
   if (messages.length > 50) {
     messages.splice(0, messages.length - 50)
   }
 
   context.messages = messages
 
-  // Update session
-  await db.lessonSession.update({
-    where: { id: lessonSession.id },
-    data: {
-      sessionContext: context
-    }
-  })
+  await drizzleDb
+    .update(lessonSession)
+    .set({ sessionContext: context as any })
+    .where(eq(lessonSession.id, sessionRow.id))
 
   return NextResponse.json({ success: true })
 }, { role: 'STUDENT' }))

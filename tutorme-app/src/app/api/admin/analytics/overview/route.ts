@@ -125,9 +125,9 @@ export async function GET(req: NextRequest) {
         .from(quizAttempt)
         .where(gte(quizAttempt.startedAt, startDate)),
       drizzleDb
-        .select({ id: videoWatchEvent.id, studentId: videoWatchEvent.studentId, watchedAt: videoWatchEvent.watchedAt, completed: videoWatchEvent.completed })
+        .select({ id: videoWatchEvent.id, studentId: videoWatchEvent.studentId, createdAt: videoWatchEvent.createdAt })
         .from(videoWatchEvent)
-        .where(gte(videoWatchEvent.watchedAt, startDate)),
+        .where(gte(videoWatchEvent.createdAt, startDate)),
       drizzleDb
         .select({
           id: curriculumLessonProgress.id,

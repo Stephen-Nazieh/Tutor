@@ -71,12 +71,12 @@ export async function GET(request: NextRequest) {
     .select()
     .from(curriculum)
     .where(
-    and(
-      eq(curriculum.isPublished, true),
-      sql`${curriculum.creatorId} IS NOT NULL`,
-      inArray(curriculum.creatorId, tutorIds)
+      and(
+        eq(curriculum.isPublished, true),
+        sql`${curriculum.creatorId} IS NOT NULL`,
+        inArray(curriculum.creatorId, tutorIds)
+      )
     )
-  )
     .orderBy(desc(curriculum.updatedAt))
 
   const curriculumIds = publishedCurricula.map((c) => c.id)

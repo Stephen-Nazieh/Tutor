@@ -9,7 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { mkdir } from 'fs/promises'
@@ -74,19 +73,8 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const buffer = Buffer.from(bytes)
     await writeFile(filePath, buffer)
 
-    // Create file record
-    const fileRecord = await db.messageAttachment?.create({
-      data: {
-        userId,
-        fileName: file.name,
-        fileUrl: `/uploads/messages/${userId}/${fileName}`,
-        fileType: file.type,
-        fileSize: file.size,
-      },
-    }).catch(() => {
-      // If table doesn't exist, return URL only
-      return null
-    })
+    // File record: MessageAttachment not in Drizzle schema; return URL only
+    const fileRecord = null
 
     // Return public URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST } from './route'
-import { db } from '@/lib/db'
 
+// Route uses drizzleDb from @/lib/db/drizzle. When re-enabling tests, mock '@/lib/db/drizzle' and '@/lib/db/schema'.
 const mockUser = {
   id: 'user-1',
   email: 'new@example.com',
@@ -20,11 +20,13 @@ vi.mock('nanoid', () => ({
   nanoid: vi.fn().mockReturnValue('mocknanoid12'),
 }))
 
-vi.mock('@/lib/db', () => ({
-  db: {
-    user: { findUnique: vi.fn() },
-    profile: { findUnique: vi.fn() },
-    $transaction: vi.fn(),
+vi.mock('@/lib/db/drizzle', () => ({
+  drizzleDb: {
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]),
+    transaction: vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn({})),
   },
 }))
 vi.mock('bcryptjs', () => ({
@@ -58,9 +60,14 @@ vi.mock('@/lib/security/parent-child-queries', () => ({
 }))
 
 describe.skip('POST /api/auth/register', () => {
+  const _db = {
+    user: { findUnique: vi.fn() },
+    profile: { findUnique: vi.fn() },
+    $transaction: vi.fn(),
+  }
   beforeEach(() => {
-    vi.mocked(db.user.findUnique).mockResolvedValue(null)
-    vi.mocked(db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
+    vi.mocked(_db.user.findUnique).mockResolvedValue(null)
+    vi.mocked(_db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
       const tx = {
         user: { create: vi.fn().mockResolvedValue(mockUser) },
         profile: { create: vi.fn().mockResolvedValue({}) },
@@ -130,7 +137,7 @@ describe.skip('POST /api/auth/register', () => {
     })
     vi.mocked(isStudentAlreadyLinked).mockResolvedValue(false)
 
-    vi.mocked(db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
+    vi.mocked(_db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
       const tx = {
         user: { create: vi.fn().mockResolvedValue(mockParentUser) },
         profile: { create: vi.fn().mockResolvedValue({}) },
@@ -208,7 +215,7 @@ describe.skip('POST /api/auth/register', () => {
       createdAt: new Date(),
     }
 
-    vi.mocked(db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
+    vi.mocked(_db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
       const tx = {
         user: { create: vi.fn().mockResolvedValue(mockParentUserNoChildren) },
         profile: { create: vi.fn().mockResolvedValue({}) },
@@ -272,7 +279,7 @@ describe.skip('POST /api/auth/register', () => {
   })
 
   it('returns 201 for TUTOR registration with additional data', async () => {
-    vi.mocked(db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
+    vi.mocked(_db.$transaction).mockImplementation(async (fn: (tx: any) => Promise<any>) => {
       const tx = {
         user: {
           create: vi.fn().mockResolvedValue({
@@ -344,7 +351,7 @@ describe.skip('POST /api/auth/register', () => {
   })
 
   it('returns 400 when email already registered', async () => {
-    vi.mocked(db.user.findUnique).mockResolvedValue({ id: 'existing' } as any)
+    vi.mocked(_db.user.findUnique).mockResolvedValue({ id: 'existing' } as any)
 
     const req = new Request('http://localhost/api/auth/register', {
       method: 'POST',

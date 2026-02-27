@@ -11,9 +11,12 @@
  * 6. Tier Controls
  */
 
+import crypto from 'crypto'
 import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { aITutorEnrollment, aITutorSubscription, aIInteractionSession, mission } from '@/lib/db/schema'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { buildCompletePrompt, type PromptConfig } from '@/lib/ai/teaching-prompts/prompt-builder'
@@ -55,40 +58,39 @@ export const POST = withCsrf(withAuth(async (req, session) => {
     const gamification = await getGamificationSummary(session.user.id)
 
     // Get user's enrollment for personality preference
-    const enrollment = await db.aITutorEnrollment.findFirst({
-      where: { studentId: session.user.id },
-    })
+    const [enrollment] = await drizzleDb
+      .select()
+      .from(aITutorEnrollment)
+      .where(eq(aITutorEnrollment.studentId, session.user.id))
+      .limit(1)
 
-    const selectedPersonality = personality || enrollment?.avatarPersonality || 'friendly_mentor'
+    const selectedPersonality = personality || 'friendly_mentor'
 
     // Get mission context if provided
     let missionContext = undefined
     if (missionId) {
-      const mission = await db.mission.findUnique({
-        where: { id: missionId },
-        include: { world: true },
-      })
-      if (mission) {
+      const [missionRow] = await drizzleDb
+        .select()
+        .from(mission)
+        .where(eq(mission.id, missionId))
+        .limit(1)
+      if (missionRow) {
         missionContext = {
-          worldId: mission.worldId,
-          worldName: mission.world.name,
-          worldEmoji: mission.world.emoji,
-          missionId: mission.id,
-          missionTitle: mission.title,
-          missionObjective: mission.objective,
-          missionType: mission.missionType as any,
-          vocabulary: mission.vocabulary as string[] | undefined,
-          grammarFocus: mission.grammarFocus || undefined,
-          difficulty: mission.difficulty,
+          missionId: missionRow.id,
+          missionTitle: missionRow.title,
+          missionObjective: missionRow.description,
+          missionType: missionRow.type as any,
         }
       }
     }
 
-    // Get subscription tier
-    const subscription = await db.aITutorSubscription.findUnique({
-      where: { studentId: session.user.id },
-    })
-    const tier = subscription?.tier || 'FREE'
+    // Get subscription tier (AITutorSubscription uses userId)
+    const [subscription] = await drizzleDb
+      .select()
+      .from(aITutorSubscription)
+      .where(eq(aITutorSubscription.userId, session.user.id))
+      .limit(1)
+    const tier = (subscription?.tier as string) ?? 'FREE'
 
     // Build complete prompt with all layers
     const promptConfig: PromptConfig = {
@@ -131,18 +133,13 @@ export const POST = withCsrf(withAuth(async (req, session) => {
     // Update daily quest progress for AI conversation
     await updateQuestProgress(session.user.id, 'speaking', 1)
 
-    // Store interaction in database
-    await db.aIInteractionSession.create({
-      data: {
-        userId: session.user.id,
-        missionId: missionId || null,
-        avatarPersonality: selectedPersonality,
-        // Metrics will be updated after analysis
-        speakingDurationSeconds: 0,
-        hesitationCount: 0,
-        correctionCount: 0,
-        confidenceDelta: 0,
-      },
+    // Store interaction in database (Drizzle schema: studentId, subjectCode, messageCount, topicsCovered, summary)
+    await drizzleDb.insert(aIInteractionSession).values({
+      id: crypto.randomUUID(),
+      studentId: session.user.id,
+      subjectCode: 'chat',
+      messageCount: 0,
+      topicsCovered: [],
     })
 
   return NextResponse.json({

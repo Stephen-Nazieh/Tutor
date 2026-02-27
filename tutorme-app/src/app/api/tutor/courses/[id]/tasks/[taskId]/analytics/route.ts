@@ -100,7 +100,8 @@ export async function GET(req: NextRequest) {
         else distribution[4].count++
     }
 
-    const questions = Array.isArray(task.questions) ? (task.questions as { id?: string; question?: string; type?: string; points?: number; rubric?: { points?: number }[] })[] : []
+    type TaskQuestion = { id?: string; question?: string; type?: string; points?: number; rubric?: { points?: number }[] }
+    const questions: TaskQuestion[] = Array.isArray(task.questions) ? (task.questions as TaskQuestion[]) : []
     const questionStatsMap = new Map<
         string,
         {

@@ -85,72 +85,24 @@ async function initRedis() {
   }
 }
 
-// Initialize Prisma Client with connection pooling (server-side only)
+// Use Drizzle as the default database (server-side only)
 if (isServer) {
   try {
-    const { PrismaClient } = require('@prisma/client')
-    
-    const globalForPrisma = globalThis as unknown as {
-      prisma: typeof PrismaClient | undefined
-      redis: any | null
-      redisInitialized: boolean
-    }
-    
-    // Initialize Redis on first use (lazy initialization)
-    if (globalForPrisma.redisInitialized) {
-      redis = globalForPrisma.redis
-      redisInitialized = true
-    }
-    
-    if (process.env.NODE_ENV !== 'production') {
-      globalForPrisma.redis = redis
-      globalForPrisma.redisInitialized = redisInitialized
-    }
-    
-    // Initialize Prisma with connection pooling
-    if (globalForPrisma.prisma) {
-      db = globalForPrisma.prisma
-    } else {
-      db = new PrismaClient({
-        log: process.env.NODE_ENV === 'development' 
-          ? ['query', 'error', 'warn'] 
-          : ['error'],
-        
-        // Connection pooling configuration
-        datasources: {
-          db: {
-            url: process.env.DATABASE_URL,
-          },
-        },
-      })
-      
-      // Add connection pool monitoring
-      db.$on('query', (e: any) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Prisma Query]', e.query, `${e.duration}ms`)
-        }
-      })
-      
-      if (process.env.NODE_ENV !== 'production') {
-        globalForPrisma.prisma = db
-      }
-    }
-    
-    console.log('[DB] Prisma Client initialized with connection pooling')
+    const { drizzleDb } = require('./drizzle')
+    db = drizzleDb
+    console.log('[DB] Drizzle client (default db) initialized')
   } catch (e) {
-    console.error('[DB] Failed to initialize Prisma:', e)
-    // Fallback for build time
+    console.error('[DB] Failed to initialize Drizzle:', e)
     db = {
       $connect: async () => {},
       $disconnect: async () => {},
-    }
+    } as any
   }
 } else {
-  // Client-side mock
   db = {
     $connect: async () => {},
     $disconnect: async () => {},
-  }
+  } as any
 }
 
 /**
@@ -380,11 +332,8 @@ export const readReplica = {
 }
 
 export { db }
-/** Alias for code that imports prisma from @/lib/db */
+/** Alias for code that imports prisma from @/lib/db — now points to Drizzle */
 export const prisma = db
 
-// Drizzle is NOT re-exported here so that @/lib/db is safe for client/instrumentation (pg is Node-only).
 // Server-only code that needs Drizzle: import { drizzleDb } from '@/lib/db/drizzle'
-
-// Re-export Prisma types (will be empty on client)
-export * from '@prisma/client'
+// Legacy Prisma (scripts, pipl-compliance): import { prismaLegacyClient } from '@/lib/db/prisma-legacy'

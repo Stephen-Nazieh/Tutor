@@ -4,7 +4,7 @@
  * Run with: npx ts-node src/scripts/seed-gamification.ts
  */
 
-import { db } from '@/lib/db'
+import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
 
 const DEFAULT_WORLDS = [
   {
@@ -191,7 +191,7 @@ async function main() {
     console.error('❌ Seed failed:', error)
     process.exit(1)
   } finally {
-    await db.$disconnect()
+    if (db?.$disconnect) await db.$disconnect()
   }
 }
 

@@ -5,7 +5,9 @@
  * For all payment gateways including WeChat Pay, Alipay, Airwallex, Hitpay
  */
 
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { payment, clinicBooking } from '@/lib/db/schema'
+import { eq, and, gte, desc, sql, inArray, or } from 'drizzle-orm'
 import { ValidationError, ForbiddenError } from '@/lib/api/middleware'
 import { securityLogger } from '@/lib/security/logging'
 import crypto from 'crypto'
@@ -305,17 +307,24 @@ export class PaymentSecurityValidator {
     let fraudLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW'
 
     try {
-      // Recent transactions check
-      const recentCount = await db.payment.count({
-        where: {
-          studentId,
-          ipAddress,
-          createdAt: {
-            gte: new Date(Date.now() - this.FRAUD_THRESHOLDS.SUSPICIOUS_TIME_WINDOW)
-          },
-          status: 'COMPLETED'
-        }
-      })
+      const cutoffRecent = new Date(Date.now() - this.FRAUD_THRESHOLDS.SUSPICIOUS_TIME_WINDOW)
+      const bookingRows = await drizzleDb
+        .select({ id: clinicBooking.id })
+        .from(clinicBooking)
+        .where(eq(clinicBooking.studentId, studentId))
+      const ids = bookingRows.map((b) => b.id)
+      const conditions =
+        ids.length > 0
+          ? or(
+              sql`(metadata->>'studentId') = ${studentId}`,
+              inArray(payment.bookingId, ids)
+            )
+          : sql`(metadata->>'studentId') = ${studentId}`
+      const [recentRow] = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(payment)
+        .where(and(conditions, gte(payment.createdAt, cutoffRecent), eq(payment.status, 'COMPLETED')))
+      const recentCount = recentRow?.count ?? 0
 
       if (recentCount >= 3) {
         issues.push('High transaction velocity detected')
@@ -323,15 +332,16 @@ export class PaymentSecurityValidator {
         fraudLevel = 'HIGH'
       }
 
-      // Hourly limit check
-      const hourlyCount = await db.payment.count({
-        where: {
-          studentId,
-          createdAt: {
-            gte: new Date(Date.now() - 60 * 60 * 1000)
-          }
-        }
-      })
+      const hourCutoff = new Date(Date.now() - 60 * 60 * 1000)
+      const hourConditions =
+        ids.length > 0
+          ? or(sql`(metadata->>'studentId') = ${studentId}`, inArray(payment.bookingId, ids))
+          : sql`(metadata->>'studentId') = ${studentId}`
+      const [hourRow] = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(payment)
+        .where(and(hourConditions, gte(payment.createdAt, hourCutoff)))
+      const hourlyCount = hourRow?.count ?? 0
 
       if (hourlyCount >= this.FRAUD_THRESHOLDS.MAX_TRANSACTIONS_PER_HOUR) {
         issues.push('Hourly transaction limit exceeded')
@@ -339,15 +349,16 @@ export class PaymentSecurityValidator {
         fraudLevel = 'CRITICAL'
       }
 
-      // Daily limit check
-      const dailyCount = await db.payment.count({
-        where: {
-          studentId,
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-          }
-        }
-      })
+      const dayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      const dayConditions =
+        ids.length > 0
+          ? or(sql`(metadata->>'studentId') = ${studentId}`, inArray(payment.bookingId, ids))
+          : sql`(metadata->>'studentId') = ${studentId}`
+      const [dayRow] = await drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(payment)
+        .where(and(dayConditions, gte(payment.createdAt, dayCutoff)))
+      const dailyCount = dayRow?.count ?? 0
 
       if (dailyCount >= this.FRAUD_THRESHOLDS.MAX_TRANSACTIONS_PER_DAY) {
         issues.push('Daily transaction limit exceeded')
@@ -394,39 +405,46 @@ export class PaymentSecurityValidator {
         fraudLevel = 'HIGH'
       }
 
-      // Check device fingerprint consistency
-      const payment = await db.payment.findFirst({
-        where: {
-          studentId: data.studentId,
-          status: 'COMPLETED',
-          createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      })
+      const weekCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      const studentBookingIds = (
+        await drizzleDb
+          .select({ id: clinicBooking.id })
+          .from(clinicBooking)
+          .where(eq(clinicBooking.studentId, data.studentId))
+      ).map((b) => b.id)
+      const payCondition =
+        studentBookingIds.length > 0
+          ? or(
+              sql`(metadata->>'studentId') = ${data.studentId}`,
+              inArray(payment.bookingId, studentBookingIds)
+            )
+          : sql`(metadata->>'studentId') = ${data.studentId}`
+      const recentPayments = await drizzleDb
+        .select()
+        .from(payment)
+        .where(and(payCondition, eq(payment.status, 'COMPLETED'), gte(payment.createdAt, weekCutoff)))
+        .orderBy(desc(payment.createdAt))
+        .limit(1)
+      const paymentRow = recentPayments[0]
 
-      if (payment && payment.ipAddress !== data.ipAddress) {
+      if (paymentRow && (paymentRow.metadata as Record<string, unknown>)?.ipAddress !== data.ipAddress) {
         issues.push('Different IP address detected from recent transaction')
         isSuspicious = true
         fraudLevel = 'MEDIUM'
       }
 
       if (data.userAgent) {
-        const recentPayments = await db.payment.findMany({
-          where: {
-            studentId: data.studentId,
-            status: 'COMPLETED',
-            createdAt: {
-              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            }
-          },
-          select: { userAgent: true },
-          take: 5
-        })
+        const recentPaymentsForDevice = await drizzleDb
+          .select({ metadata: payment.metadata })
+          .from(payment)
+          .where(and(payCondition, eq(payment.status, 'COMPLETED'), gte(payment.createdAt, weekCutoff)))
+          .orderBy(desc(payment.createdAt))
+          .limit(5)
 
-        const consistentDevice = recentPayments.every(p => p.userAgent === data.userAgent)
-        if (!consistentDevice && recentPayments.length >= 3) {
+        const consistentDevice = recentPaymentsForDevice.every(
+          (p) => (p.metadata as Record<string, unknown>)?.userAgent === data.userAgent
+        )
+        if (!consistentDevice && recentPaymentsForDevice.length >= 3) {
           issues.push('Inconsistent device fingerprint detected')
           isSuspicious = true
           fraudLevel = 'MEDIUM'

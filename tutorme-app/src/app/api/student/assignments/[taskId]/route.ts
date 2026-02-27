@@ -62,6 +62,7 @@ export async function GET(_request: NextRequest, context: any) {
         and(
           eq(taskSubmission.taskId, taskId),
           eq(taskSubmission.studentId, session.user.id)
+        )
       )
       .limit(1)
 

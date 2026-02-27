@@ -5,7 +5,7 @@
  * Run with: npx ts-node src/scripts/generate-missions.ts
  */
 
-import { db } from '@/lib/db'
+import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
 
 // World to curriculum mapping
 const WORLD_CURRICULUM_MAP: Record<string, string> = {
@@ -157,7 +157,7 @@ async function main() {
     console.error('❌ Error generating missions:', error)
     process.exit(1)
   } finally {
-    await db.$disconnect()
+    if (db?.$disconnect) await db.$disconnect()
   }
 }
 

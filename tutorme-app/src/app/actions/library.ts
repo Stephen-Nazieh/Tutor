@@ -5,7 +5,9 @@
 
 'use server';
 
-import { db } from '@/lib/db';
+import { drizzleDb } from '@/lib/db/drizzle';
+import { libraryTask } from '@/lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export interface LibraryTask {
@@ -41,13 +43,18 @@ export interface CreateLibraryTaskInput {
  */
 export async function getLibraryTasks(userId: string): Promise<LibraryTask[]> {
   try {
-    const tasks = await db.libraryTask.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' }
-    });
-    return tasks.map((task: any) => ({
+    const tasks = await drizzleDb
+      .select()
+      .from(libraryTask)
+      .where(eq(libraryTask.userId, userId))
+      .orderBy(desc(libraryTask.createdAt));
+    return tasks.map((task) => ({
       ...task,
-      topics: task.topics as string[],
+      correctAnswer: task.correctAnswer ?? undefined,
+      explanation: task.explanation ?? undefined,
+      lastUsedAt: task.lastUsedAt ?? undefined,
+      type: task.type as 'multiple_choice' | 'short_answer',
+      topics: (task.topics as string[]) ?? [],
       options: task.options as string[] | undefined
     }));
   } catch (error) {
@@ -64,28 +71,34 @@ export async function saveLibraryTask(
   input: CreateLibraryTaskInput
 ): Promise<LibraryTask | null> {
   try {
-    const task = await db.libraryTask.create({
-      data: {
-        userId,
-        question: input.question,
-        type: input.type,
-        options: input.options || [],
-        correctAnswer: input.correctAnswer,
-        explanation: input.explanation,
-        difficulty: input.difficulty,
-        subject: input.subject,
-        topics: input.topics,
-        isFavorite: false,
-        usageCount: 0
-      }
+    const id = crypto.randomUUID();
+    await drizzleDb.insert(libraryTask).values({
+      id,
+      userId,
+      question: input.question,
+      type: input.type,
+      options: input.options ?? [],
+      correctAnswer: input.correctAnswer ?? null,
+      explanation: input.explanation ?? null,
+      difficulty: input.difficulty,
+      subject: input.subject,
+      topics: input.topics,
+      isFavorite: false,
+      usageCount: 0
     });
-
+    const [task] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, id));
     revalidatePath('/tutor/library');
-    return {
-      ...task,
-      topics: task.topics as string[],
-      options: task.options as string[] | undefined
-    };
+    return task
+      ? {
+          ...task,
+          correctAnswer: task.correctAnswer ?? undefined,
+          explanation: task.explanation ?? undefined,
+          lastUsedAt: task.lastUsedAt ?? undefined,
+          type: task.type as 'multiple_choice' | 'short_answer',
+          topics: (task.topics as string[]) ?? [],
+          options: task.options as string[] | undefined
+        }
+      : null;
   } catch (error) {
     console.error('Failed to save library task:', error);
     return null;
@@ -100,19 +113,12 @@ export async function toggleFavoriteTask(
   userId: string
 ): Promise<boolean> {
   try {
-    const task = await db.libraryTask.findUnique({
-      where: { id: taskId }
-    });
-
-    if (!task || task.userId !== userId) {
-      return false;
-    }
-
-    await db.libraryTask.update({
-      where: { id: taskId },
-      data: { isFavorite: !task.isFavorite }
-    });
-
+    const [task] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, taskId)).limit(1);
+    if (!task || task.userId !== userId) return false;
+    await drizzleDb
+      .update(libraryTask)
+      .set({ isFavorite: !task.isFavorite })
+      .where(eq(libraryTask.id, taskId));
     revalidatePath('/tutor/library');
     return true;
   } catch (error) {
@@ -129,18 +135,9 @@ export async function deleteLibraryTask(
   userId: string
 ): Promise<boolean> {
   try {
-    const task = await db.libraryTask.findUnique({
-      where: { id: taskId }
-    });
-
-    if (!task || task.userId !== userId) {
-      return false;
-    }
-
-    await db.libraryTask.delete({
-      where: { id: taskId }
-    });
-
+    const [task] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, taskId)).limit(1);
+    if (!task || task.userId !== userId) return false;
+    await drizzleDb.delete(libraryTask).where(eq(libraryTask.id, taskId));
     revalidatePath('/tutor/library');
     return true;
   } catch (error) {
@@ -154,14 +151,12 @@ export async function deleteLibraryTask(
  */
 export async function incrementTaskUsage(taskId: string): Promise<boolean> {
   try {
-    await db.libraryTask.update({
-      where: { id: taskId },
-      data: {
-        usageCount: { increment: 1 },
-        lastUsedAt: new Date()
-      }
-    });
-
+    const [task] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, taskId)).limit(1);
+    if (!task) return false;
+    await drizzleDb
+      .update(libraryTask)
+      .set({ usageCount: task.usageCount + 1, lastUsedAt: new Date() })
+      .where(eq(libraryTask.id, taskId));
     return true;
   } catch (error) {
     console.error('Failed to increment task usage:', error);

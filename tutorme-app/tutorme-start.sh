@@ -111,7 +111,9 @@ else
 fi
 echo ""
 
-# Run Drizzle structure and fallback Prisma generator
+# Run Drizzle SQL migrations (drizzle/*.sql), then sync schema and Prisma
+echo -e "${BLUE}▶ Running database migrations...${NC}"
+npm run drizzle:migrate || true
 echo -e "${BLUE}▶ Syncing database schemas...${NC}"
 npx drizzle-kit push --force || true
 npx prisma generate

@@ -6,8 +6,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
+import { and, asc, eq } from 'drizzle-orm'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  aITutorEnrollment,
+  curriculumEnrollment,
+  curriculum,
+  curriculumModule,
+  curriculumLesson,
+  curriculumLessonProgress,
+  aIInteractionSession,
+} from '@/lib/db/schema'
 
 async function getHandler(req: NextRequest, session: Session) {
   try {
@@ -15,12 +25,16 @@ async function getHandler(req: NextRequest, session: Session) {
     const lessonId = searchParams.get('lessonId')
 
     // Get student's AI tutor enrollment
-    const aiEnrollment = await db.aITutorEnrollment.findFirst({
-      where: {
-        studentId: session.user.id,
-        subjectCode: 'english'
-      }
-    })
+    const [aiEnrollment] = await drizzleDb
+      .select()
+      .from(aITutorEnrollment)
+      .where(
+        and(
+          eq(aITutorEnrollment.studentId, session.user.id),
+          eq(aITutorEnrollment.subjectCode, 'english')
+        )
+      )
+      .limit(1)
 
     if (!aiEnrollment) {
       return NextResponse.json(
@@ -30,122 +44,152 @@ async function getHandler(req: NextRequest, session: Session) {
     }
 
     // Get student's curriculum enrollment
-    const curriculumEnrollment = await db.curriculumEnrollment.findFirst({
-      where: {
-        studentId: session.user.id
-      },
-      include: {
-        curriculum: {
-          include: {
-            modules: {
-              include: {
-                lessons: {
-                  orderBy: { order: 'asc' }
-                }
-              },
-              orderBy: { order: 'asc' }
-            }
-          }
-        }
-      }
-    })
+    const [enrollmentRow] = await drizzleDb
+      .select()
+      .from(curriculumEnrollment)
+      .where(eq(curriculumEnrollment.studentId, session.user.id))
+      .limit(1)
 
-    if (!curriculumEnrollment?.curriculum) {
+    if (!enrollmentRow) {
       return NextResponse.json(
         { error: 'No curriculum assigned' },
         { status: 404 }
       )
     }
 
-    const curriculum = curriculumEnrollment.curriculum
+    const [curriculumRow] = await drizzleDb
+      .select()
+      .from(curriculum)
+      .where(eq(curriculum.id, enrollmentRow.curriculumId))
+      .limit(1)
+
+    if (!curriculumRow) {
+      return NextResponse.json(
+        { error: 'No curriculum assigned' },
+        { status: 404 }
+      )
+    }
+
+    const modulesList = await drizzleDb
+      .select()
+      .from(curriculumModule)
+      .where(eq(curriculumModule.curriculumId, curriculumRow.id))
+      .orderBy(asc(curriculumModule.order))
+
+    const lessonsByModule = new Map<string, { id: string; title: string; order: number; learningObjectives: string[]; keyConcepts: string[] }[]>()
+    for (const mod of modulesList) {
+      const lessons = await drizzleDb
+        .select({
+          id: curriculumLesson.id,
+          title: curriculumLesson.title,
+          order: curriculumLesson.order,
+          learningObjectives: curriculumLesson.learningObjectives,
+          keyConcepts: curriculumLesson.keyConcepts,
+        })
+        .from(curriculumLesson)
+        .where(eq(curriculumLesson.moduleId, mod.id))
+        .orderBy(asc(curriculumLesson.order))
+      lessonsByModule.set(mod.id, lessons)
+    }
 
     // If specific lesson requested, return that
     if (lessonId) {
-      const lesson = await db.curriculumLesson.findUnique({
-        where: { id: lessonId },
-        include: { module: true }
-      })
+      const [lessonRow] = await drizzleDb
+        .select()
+        .from(curriculumLesson)
+        .where(eq(curriculumLesson.id, lessonId))
+        .limit(1)
 
-      if (!lesson) {
+      if (!lessonRow) {
         return NextResponse.json(
           { error: 'Lesson not found' },
           { status: 404 }
         )
       }
 
-      // Get progress for this lesson
-      const progress = await db.curriculumLessonProgress.findUnique({
-        where: {
-          lessonId_studentId: {
-            lessonId: lessonId,
-            studentId: session.user.id
-          }
-        }
-      })
+      const [moduleRow] = await drizzleDb
+        .select()
+        .from(curriculumModule)
+        .where(eq(curriculumModule.id, lessonRow.moduleId))
+        .limit(1)
+
+      const [progress] = await drizzleDb
+        .select()
+        .from(curriculumLessonProgress)
+        .where(
+          and(
+            eq(curriculumLessonProgress.lessonId, lessonId),
+            eq(curriculumLessonProgress.studentId, session.user.id)
+          )
+        )
+        .limit(1)
 
       return NextResponse.json({
         context: 'specific_lesson',
         lesson: {
-          id: lesson.id,
-          title: lesson.title,
-          moduleTitle: lesson.module.title,
-          learningObjectives: lesson.learningObjectives,
-          keyConcepts: lesson.keyConcepts
+          id: lessonRow.id,
+          title: lessonRow.title,
+          moduleTitle: moduleRow?.title ?? '',
+          learningObjectives: lessonRow.learningObjectives,
+          keyConcepts: lessonRow.keyConcepts,
         },
-        progress: progress || { status: 'NOT_STARTED' }
+        progress: progress ?? { status: 'NOT_STARTED' },
       })
     }
 
     // Otherwise, recommend lessons based on progress
-    // Find first incomplete lesson
-    let currentLesson = null
-    let currentModule = null
+    let currentLesson: { id: string; title: string; order: number; learningObjectives: string[]; keyConcepts: string[] } | null = null
+    let currentModule: typeof modulesList[0] | null = null
 
-    for (const module of curriculum.modules) {
-      for (const lesson of module.lessons) {
-        const progress = await db.curriculumLessonProgress.findUnique({
-          where: {
-            lessonId_studentId: {
-              lessonId: lesson.id,
-              studentId: session.user.id
-            }
-          }
-        })
-
+    for (const mod of modulesList) {
+      const lessons = lessonsByModule.get(mod.id) ?? []
+      for (const lesson of lessons) {
+        const [progress] = await drizzleDb
+          .select()
+          .from(curriculumLessonProgress)
+          .where(
+            and(
+              eq(curriculumLessonProgress.lessonId, lesson.id),
+              eq(curriculumLessonProgress.studentId, session.user.id)
+            )
+          )
+          .limit(1)
         if (!progress || progress.status !== 'COMPLETED') {
           currentLesson = lesson
-          currentModule = module
+          currentModule = mod
           break
         }
       }
       if (currentLesson) break
     }
 
-    // If all completed, suggest review of last module
-    if (!currentLesson && curriculum.modules.length > 0) {
-      const lastModule = curriculum.modules[curriculum.modules.length - 1]
+    if (!currentLesson && modulesList.length > 0) {
+      const lastModule = modulesList[modulesList.length - 1]
       currentModule = lastModule
-      currentLesson = lastModule.lessons[0]
+      const lastLessons = lessonsByModule.get(lastModule.id) ?? []
+      currentLesson = lastLessons[0] ?? null
     }
+
+    const totalLessons = modulesList.reduce((acc, m) => acc + (lessonsByModule.get(m.id)?.length ?? 0), 0)
 
     return NextResponse.json({
       context: 'recommended_lesson',
       curriculum: {
-        id: curriculum.id,
-        name: curriculum.name,
-        subject: curriculum.subject,
-        description: curriculum.description
+        id: curriculumRow.id,
+        name: curriculumRow.name,
+        subject: curriculumRow.subject,
+        description: curriculumRow.description,
       },
-      currentLesson: currentLesson ? {
+      currentLesson: currentLesson && currentModule ? {
         id: currentLesson.id,
         title: currentLesson.title,
-        moduleTitle: currentModule?.title,
+        moduleTitle: currentModule.title,
         learningObjectives: currentLesson.learningObjectives,
-        keyConcepts: currentLesson.keyConcepts
+        keyConcepts: currentLesson.keyConcepts,
       } : null,
-      modulesCount: curriculum.modules.length,
-      totalLessons: curriculum.modules.reduce((acc: number, m: any) => acc + m.lessons.length, 0)
-    }    )
+      modulesCount: modulesList.length,
+      totalLessons,
+    })
   } catch (error) {
     console.error('Get lesson context error:', error)
     return NextResponse.json(
@@ -170,15 +214,14 @@ async function postHandler(req: NextRequest, session: Session) {
       )
     }
 
-    // Create or update AI interaction session with lesson context
-    const tutoringSession = await db.aIInteractionSession.update({
-      where: { id: String(sessionId) },
-      data: {
-        subjectCode: lessonId // Using subjectCode field to store lesson reference
-      }
-    })
+    // Create or update AI interaction session with lesson context (subjectCode stores lesson reference)
+    const [tutoringSession] = await drizzleDb
+      .update(aIInteractionSession)
+      .set({ subjectCode: lessonId })
+      .where(eq(aIInteractionSession.id, String(sessionId)))
+      .returning()
 
-    return NextResponse.json({ success: true, session: tutoringSession })
+    return NextResponse.json({ success: true, session: tutoringSession ?? null })
   } catch (error) {
     console.error('Link session to lesson error:', error)
     return NextResponse.json(

@@ -58,7 +58,7 @@ So most of the codebase still talks to the DB through Prisma; the rest through D
 
 - **Prisma**: 100+ models in `prisma/schema.prisma`; migrations in `prisma/migrations/`. Prisma is the source of truth for the DB shape.
 - **Drizzle**: Schema in `src/lib/db/schema/`: `tables.ts`, `enums.ts`, `relations.ts`, `next-auth.ts`, `index.ts`. Intended to stay aligned with Prisma until migration is complete.
-- **Migrations**: Today, schema changes are done via Prisma; Drizzle schema is updated to match. Post-migration, Drizzle would become the single migration path.
+- **Migrations**: Drizzle SQL migrations live in `tutorme-app/drizzle/` and are applied with `npm run drizzle:migrate` (from `tutorme-app/`). **How to apply:** see [tutorme-app/docs/MIGRATIONS.md](tutorme-app/docs/MIGRATIONS.md).
 
 ---
 
@@ -155,14 +155,26 @@ So most of the codebase still talks to the DB through Prisma; the rest through D
 - `app/api/content/[contentId]/upload-complete/route.ts` – POST (contentItem update url, uploadStatus, duration, transcript)
 - `app/api/content/[contentId]/watch-events/route.ts` – POST (contentItem check, videoWatchEvent createMany)
 - `app/api/content/[contentId]/analytics/route.ts` – GET (contentItem, videoWatchEvent by studentId; watch time/completion/heatmap)
+- **Student:** reviews, reviews/session, missed-classes, calendar/events, learning-path, quizzes (list, [id], attempt, submit), assignments [taskId]/submit (all Drizzle).
+- **Classes:** route.ts (clinic/clinicBooking/payment) – Drizzle.
+- **Conversations:** route, [id]/messages, upload, [id]/messages/search – Drizzle (upload has no DB write if MessageAttachment not in schema).
+- **Whiteboards:** route, [id], [id]/pages, [id]/pages/[pageId], [id]/snapshots, [id]/export – Drizzle.
+- **Sessions:** [sessionId]/whiteboard, whiteboard/save, whiteboard/students, whiteboard/[studentId] – Drizzle.
+- **Payments:** create, refund, webhooks/hitpay, webhooks/airwallex – Drizzle.
+- **Reports:** class/[classId]/export, engagement/[classId], students/[studentId]/export – Drizzle.
+- **Tutor:** calendar (availability, exceptions, events, events/[id], check, export, sync), courses (all under [id]: route, curriculum, tasks, tasks/[taskId], tasks/analytics, tasks/publish-from-builder, batches/[batchId], enrollments/[enrollmentId], materials, materials/upload, outline, convert-and-outline, schedule/populate-*, builder-generate), ai-assistant (route, insights, insights/[id], sessions, lesson-plan, quiz, analyze, generate), resources (route, [id], [id]/download, [id]/share), question-bank (route, tags, [id]), quizzes/[id]/analytics, quizzes/[id]/assign, revenue/balance, students-needing-attention, classes/[id], live-sessions/[sessionId]/recording, live-sessions/[sessionId]/replay-artifact/generate – all Drizzle.
+- **Public:** tutors, tutors/[username] – Drizzle.
+- **Other:** ai-tutor/chat, ai-tutor/lesson-context, curriculum/lessons/[lessonId]/chat, curriculum/lessons/[lessonId]/messages, chat/summary, tasks/generate, quiz/attempt, parent/courses/[id] – Drizzle.
 
-**Still on Prisma:** class/engagement (raw SQL engagement_snapshots, sessionEngagementSummary); remaining API routes (tutor/*, classes, conversations, whiteboards, sessions, payments create/refund/webhooks, reports, student missed-classes, learning-path, calendar, quizzes attempt/submit, assignments submit, reviews, etc.); `lib/performance/*`, `lib/security/*`, `lib/financial/*`, actions, scripts, tests. See §4.
+- **Engagement/insights:** `app/api/class/engagement/route.ts`, `app/api/sessions/insights/route.ts` – migrated to Drizzle; schema extended with `engagementSnapshot`, `sessionEngagementSummary`, `postSessionReport`, `studentSessionInsight`, `sessionBookmark` in `src/lib/db/schema/tables.ts`.
+
+**Default db is now Drizzle:** `src/lib/db/index.ts` exports `db` and `prisma` as the Drizzle client (`drizzleDb`). Prisma is no longer the default. **pipl-compliance** now uses Drizzle. Legacy Prisma client (`prismaLegacyClient` from `@/lib/db/prisma-legacy`) is used only by: `scripts/seed-gamification.ts`, `scripts/generate-missions.ts`, and `__tests__/integration/tutor-courses-batches.test.ts` (they rely on World/DailyQuest or Prisma-shaped APIs).
 
 ---
 
 ## 9. Recommendations
 
-1. **Finish Drizzle migration**: Move remaining libs and API routes to Drizzle; then switch `db` in `index.ts` to `drizzleDb`, remove Prisma, and use Drizzle for seeds and migrations.
+1. **Optional:** Migrate the gamification/missions scripts from `prismaLegacyClient` to Drizzle (add World/DailyQuest to Drizzle schema if needed); then remove `prisma-legacy.ts` and the Prisma dependency. pipl-compliance is already on Drizzle.
 2. **Fix db healthcheck**: In `docker-compose.yml`, use `pg_isready -U tutorme -d tutorme` for the `db` service. (Done.)
 3. **Single schema source**: After Prisma removal, maintain only Drizzle schema and migrations; document any conventions for schema changes and backfills.
 4. **Read replicas**: When needed, implement read-replica support in the Drizzle layer and expose it via a dedicated client (and optionally keep using PgBouncer for the primary).

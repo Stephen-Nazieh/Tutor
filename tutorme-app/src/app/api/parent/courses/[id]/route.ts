@@ -5,13 +5,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { asc, eq } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  curriculumShare,
+  curriculum,
+  curriculumModule,
+  curriculumLesson,
+  profile,
+} from '@/lib/db/schema'
 
-export async function GET(
-  req: NextRequest,
-  context: any
-) {
+export async function GET(req: NextRequest, context: any) {
   const session = await (await import('next-auth')).getServerSession(
     (await import('@/lib/auth')).authOptions
   )
@@ -32,37 +37,11 @@ export async function GET(
     return NextResponse.json({ error: 'Share ID required' }, { status: 400 })
   }
 
-  const shareRecord = await db.curriculumShare.findUnique({
-    where: { id: shareId },
-    include: {
-      curriculum: {
-        include: {
-          modules: {
-            orderBy: { order: 'asc' },
-            include: {
-              lessons: {
-                orderBy: { order: 'asc' },
-                select: {
-                  id: true,
-                  title: true,
-                  description: true,
-                  duration: true,
-                  order: true,
-                  learningObjectives: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      sharedBy: {
-        select: {
-          id: true,
-          profile: { select: { name: true } },
-        },
-      },
-    },
-  })
+  const [shareRecord] = await drizzleDb
+    .select()
+    .from(curriculumShare)
+    .where(eq(curriculumShare.id, shareId))
+    .limit(1)
 
   if (!shareRecord) {
     return NextResponse.json({ error: 'Course share not found' }, { status: 404 })
@@ -75,31 +54,70 @@ export async function GET(
     )
   }
 
-  const course = shareRecord.curriculum
-  const tutorName = shareRecord.sharedBy?.profile?.name ?? 'Tutor'
+  const [courseRow] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(eq(curriculum.id, shareRecord.curriculumId))
+    .limit(1)
+
+  if (!courseRow) {
+    return NextResponse.json({ error: 'Course share not found' }, { status: 404 })
+  }
+
+  const [tutorProfile] = await drizzleDb
+    .select({ name: profile.name })
+    .from(profile)
+    .where(eq(profile.userId, shareRecord.sharedByTutorId))
+    .limit(1)
+
+  const tutorName = tutorProfile?.name ?? 'Tutor'
+
+  const modulesList = await drizzleDb
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, courseRow.id))
+    .orderBy(asc(curriculumModule.order))
+
+  const modulesWithLessons = await Promise.all(
+    modulesList.map(async (m) => {
+      const lessons = await drizzleDb
+        .select({
+          id: curriculumLesson.id,
+          title: curriculumLesson.title,
+          description: curriculumLesson.description,
+          duration: curriculumLesson.duration,
+          order: curriculumLesson.order,
+          learningObjectives: curriculumLesson.learningObjectives,
+        })
+        .from(curriculumLesson)
+        .where(eq(curriculumLesson.moduleId, m.id))
+        .orderBy(asc(curriculumLesson.order))
+      return {
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        order: m.order,
+        lessons,
+      }
+    })
+  )
 
   const courseData = {
     shareId: shareRecord.id,
-    courseId: course.id,
-    name: course.name,
-    description: course.description,
-    subject: course.subject,
-    gradeLevel: course.gradeLevel,
-    difficulty: course.difficulty,
-    estimatedHours: course.estimatedHours,
-    price: course.price,
-    currency: course.currency ?? 'SGD',
-    languageOfInstruction: course.languageOfInstruction,
+    courseId: courseRow.id,
+    name: courseRow.name,
+    description: courseRow.description,
+    subject: courseRow.subject,
+    gradeLevel: courseRow.gradeLevel,
+    difficulty: courseRow.difficulty,
+    estimatedHours: courseRow.estimatedHours,
+    price: courseRow.price,
+    currency: courseRow.currency ?? 'SGD',
+    languageOfInstruction: courseRow.languageOfInstruction,
     tutorName,
     sharedMessage: shareRecord.message,
     sharedAt: shareRecord.sharedAt,
-    modules: course.modules.map((m: any) => ({
-      id: m.id,
-      title: m.title,
-      description: m.description,
-      order: m.order,
-      lessons: m.lessons,
-    })),
+    modules: modulesWithLessons,
   }
 
   return NextResponse.json({

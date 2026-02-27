@@ -17,8 +17,32 @@
  * - Cross-border documentation: <200ms
  */
 
-import { db } from '@/lib/db'
+import { drizzleDb } from '@/lib/db/drizzle'
+import {
+  userActivityLog,
+  user,
+  profile,
+  account,
+  clinicBooking,
+  clinic,
+  curriculumEnrollment,
+  curriculum,
+  message,
+  aITutorEnrollment,
+  quizAttempt,
+  payment,
+} from '@/lib/db/schema'
+import { eq, and, inArray, desc } from 'drizzle-orm'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
+
+async function logUserActivity(userId: string, action: string, metadata: Record<string, unknown>) {
+  await drizzleDb.insert(userActivityLog).values({
+    id: crypto.randomUUID(),
+    userId,
+    action,
+    metadata: metadata as Record<string, unknown>,
+  })
+}
 
 // =============================================================================
 // CONSTANTS & TYPES
@@ -100,18 +124,12 @@ export const PIPL_ARTICLE_6 = {
       expiresAt: options?.expiresAt
     }
 
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action: PIPL_ACTIONS.CONSENT_CREATED,
-        metadata: {
-          consentId: record.id,
-          dataTypes,
-          purpose,
-          legalBasis: record.legalBasis,
-          expiresAt: record.expiresAt?.toISOString()
-        } as object
-      }
+    await logUserActivity(userId, PIPL_ACTIONS.CONSENT_CREATED, {
+      consentId: record.id,
+      dataTypes,
+      purpose,
+      legalBasis: record.legalBasis,
+      expiresAt: record.expiresAt?.toISOString()
     })
 
     const elapsed = performance.now() - start
@@ -156,75 +174,83 @@ export const PIPL_ARTICLE_15 = {
   async generateDataSubjectReport(userId: string): Promise<DataSubjectReport> {
     const start = performance.now()
 
-    const [
-      user,
-      profile,
-      accounts,
-      clinicBookings,
-      curriculumEnrollments,
-      messages,
-      aiEnrollments,
-      quizAttempts,
-      activityLogs
-    ] = await Promise.all([
-      db.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-          emailVerified: true,
-          image: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      }),
-      db.profile.findUnique({ where: { userId } }),
-      db.account.findMany({
-        where: { userId },
-        select: { provider: true, type: true }
-      }),
-      db.clinicBooking.findMany({
-        where: { studentId: userId },
-        include: { clinic: { select: { title: true, startTime: true } } }
-      }),
-      db.curriculumEnrollment.findMany({
-        where: { userId },
-        include: { curriculum: { select: { name: true, subject: true } } }
-      }),
-      db.message.findMany({
-        where: { userId },
-        take: 500,
-        select: { id: true, content: true, source: true, createdAt: true }
-      }),
-      db.aITutorEnrollment.findMany({
-        where: { userId },
-        select: { subjectCode: true, tier: true, enrolledAt: true }
-      }),
-      db.quizAttempt.findMany({
-        where: { userId },
-        take: 200,
-        select: { id: true, score: true, submittedAt: true }
-      }),
-      db.userActivityLog.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 100,
-        select: { action: true, createdAt: true }
+    const [userRow] = await drizzleDb
+      .select({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        image: user.image,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
       })
-    ])
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1)
 
-    const bookingIds = clinicBookings.map((b) => b.id)
+    const [profileRow] = await drizzleDb.select().from(profile).where(eq(profile.userId, userId)).limit(1)
+    const accounts = await drizzleDb
+      .select({ provider: account.provider, type: account.type })
+      .from(account)
+      .where(eq(account.userId, userId))
+
+    const clinicBookingsRaw = await drizzleDb
+      .select()
+      .from(clinicBooking)
+      .where(eq(clinicBooking.studentId, userId))
+    const clinicIds = [...new Set(clinicBookingsRaw.map((b) => b.clinicId))]
+    const clinics =
+      clinicIds.length > 0
+        ? await drizzleDb.select({ id: clinic.id, title: clinic.title, startTime: clinic.startTime }).from(clinic).where(inArray(clinic.id, clinicIds))
+        : []
+    const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]))
+    const clinicBookings = clinicBookingsRaw.map((b) => ({ ...b, clinic: clinicById[b.clinicId] ?? null }))
+
+    const curriculumEnrollmentsRaw = await drizzleDb.select().from(curriculumEnrollment).where(eq(curriculumEnrollment.userId, userId))
+    const currIds = [...new Set(curriculumEnrollmentsRaw.map((e) => e.curriculumId))]
+    const curricula =
+      currIds.length > 0
+        ? await drizzleDb.select({ id: curriculum.id, name: curriculum.name, subject: curriculum.subject }).from(curriculum).where(inArray(curriculum.id, currIds))
+        : []
+    const curriculumById = Object.fromEntries(curricula.map((c) => [c.id, c]))
+    const curriculumEnrollments = curriculumEnrollmentsRaw.map((e) => ({ ...e, curriculum: curriculumById[e.curriculumId] ?? null }))
+
+    const messages = await drizzleDb
+      .select({ id: message.id, content: message.content, source: message.source, timestamp: message.timestamp })
+      .from(message)
+      .where(eq(message.userId, userId))
+      .orderBy(desc(message.timestamp))
+      .limit(500)
+
+    const aiEnrollments = await drizzleDb
+      .select({ subjectCode: aITutorEnrollment.subjectCode, status: aITutorEnrollment.status, enrolledAt: aITutorEnrollment.enrolledAt })
+      .from(aITutorEnrollment)
+      .where(eq(aITutorEnrollment.studentId, userId))
+
+    const quizAttempts = await drizzleDb
+      .select({ id: quizAttempt.id, score: quizAttempt.score, completedAt: quizAttempt.completedAt })
+      .from(quizAttempt)
+      .where(eq(quizAttempt.studentId, userId))
+      .limit(200)
+
+    const activityLogs = await drizzleDb
+      .select({ action: userActivityLog.action, createdAt: userActivityLog.createdAt })
+      .from(userActivityLog)
+      .where(eq(userActivityLog.userId, userId))
+      .orderBy(desc(userActivityLog.createdAt))
+      .limit(100)
+
+    const bookingIds = clinicBookingsRaw.map((b) => b.id)
     const payments =
       bookingIds.length > 0
-        ? await db.payment.findMany({
-            where: { bookingId: { in: bookingIds } },
-            select: { id: true, amount: true, status: true, createdAt: true }
-          })
+        ? await drizzleDb
+            .select({ id: payment.id, amount: payment.amount, status: payment.status, createdAt: payment.createdAt })
+            .from(payment)
+            .where(inArray(payment.bookingId, bookingIds))
         : []
 
-    const userData = user ?? { id: userId }
-    const profileData = profile ?? {}
+    const userData = userRow ?? { id: userId }
+    const profileData = profileRow ?? {}
     const piiClassification = classifyPII({ user: userData, profile: profileData })
 
     const report: DataSubjectReport = {
@@ -248,15 +274,9 @@ export const PIPL_ARTICLE_15 = {
       piiClassification
     }
 
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action: PIPL_ACTIONS.ACCESS_REQUEST,
-        metadata: {
-          requestType: 'data_subject_report',
-          fulfilledAt: new Date().toISOString()
-        } as object
-      }
+    await logUserActivity(userId, PIPL_ACTIONS.ACCESS_REQUEST, {
+      requestType: 'data_subject_report',
+      fulfilledAt: new Date().toISOString()
     })
 
     const elapsed = performance.now() - start
@@ -281,16 +301,10 @@ export const PIPL_ARTICLE_15 = {
       fulfilledAt: new Date()
     }
 
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action: PIPL_ACTIONS.ACCESS_REQUEST,
-        metadata: {
-          requestId,
-          requestedData,
-          fulfilledAt: record.fulfilledAt.toISOString()
-        } as object
-      }
+    await logUserActivity(userId, PIPL_ACTIONS.ACCESS_REQUEST, {
+      requestId,
+      requestedData,
+      fulfilledAt: record.fulfilledAt.toISOString()
     })
     return record
   }
@@ -328,17 +342,11 @@ export const PIPL_ARTICLE_16 = {
       timestamp: new Date()
     }
 
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action: PIPL_ACTIONS.RECTIFICATION,
-        metadata: {
-          rectificationId: record.id,
-          field,
-          oldValue: record.oldValue,
-          newValue: record.newValue
-        } as object
-      }
+    await logUserActivity(userId, PIPL_ACTIONS.RECTIFICATION, {
+      rectificationId: record.id,
+      field,
+      oldValue: record.oldValue,
+      newValue: record.newValue
     })
     return record
   }
@@ -382,18 +390,12 @@ export const PIPL_ARTICLE_29 = {
       timestamp: new Date()
     }
 
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action: PIPL_ACTIONS.CROSS_BORDER,
-        metadata: {
-          crossBorderId: record.id,
-          region,
-          transferType,
-          dataCategories: record.dataCategories,
-          legalBasis: record.legalBasis
-        } as object
-      }
+    await logUserActivity(userId, PIPL_ACTIONS.CROSS_BORDER, {
+      crossBorderId: record.id,
+      region,
+      transferType,
+      dataCategories: record.dataCategories,
+      legalBasis: record.legalBasis
     })
 
     const elapsed = performance.now() - start
@@ -441,15 +443,9 @@ export const PIPL_ARTICLE_41 = {
       timestamp: new Date()
     }
 
-    await db.userActivityLog.create({
-      data: {
-        userId,
-        action: PIPL_ACTIONS.AI_EXPLANATION,
-        metadata: {
-          algorithmDecision,
-          explanation
-        } as object
-      }
+    await logUserActivity(userId, PIPL_ACTIONS.AI_EXPLANATION, {
+      algorithmDecision,
+      explanation
     })
     return record
   },
@@ -635,16 +631,10 @@ export async function logPrivacyPolicyChange(
   version: string,
   changeSummary: string
 ): Promise<void> {
-  await db.userActivityLog.create({
-    data: {
-      userId,
-      action: PIPL_ACTIONS.PRIVACY_POLICY_CHANGE,
-      metadata: {
-        version,
-        changeSummary,
-        notifiedAt: new Date().toISOString()
-      } as object
-    }
+  await logUserActivity(userId, PIPL_ACTIONS.PRIVACY_POLICY_CHANGE, {
+    version,
+    changeSummary,
+    notifiedAt: new Date().toISOString()
   })
 }
 
