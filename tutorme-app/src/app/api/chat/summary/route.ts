@@ -4,9 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { and, eq } from 'drizzle-orm'
-import { authOptions } from '@/lib/auth'
 import { generateSessionSummary, SummaryOptions } from '@/lib/chat/summary'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, sessionParticipant } from '@/lib/db/schema'
@@ -14,7 +13,7 @@ import { liveSession, sessionParticipant } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }

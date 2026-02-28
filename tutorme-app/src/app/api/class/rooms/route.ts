@@ -14,6 +14,10 @@ import crypto from 'crypto'
 
 // POST /api/class/rooms - Create a new class room
 export const POST = withCsrf(withAuth(async (req, session) => {
+  const userId = session?.user?.id
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized - Please log in' }, { status: 401 })
+  }
   // Validate request body
   const data = await validateRequest(req, CreateRoomSchema)
   const scheduledAt = data.scheduledAt ? new Date(data.scheduledAt) : new Date()
@@ -26,7 +30,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
       .where(
         and(
           eq(curriculum.id, data.curriculumId),
-          eq(curriculum.creatorId, session.user.id)
+          eq(curriculum.creatorId, userId)
         )
       )
       .limit(1)
@@ -40,7 +44,7 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   }
 
   // Create video room via Daily.co
-  const room = await dailyProvider.createRoom(session.user.id, {
+  const room = await dailyProvider.createRoom(userId, {
     maxParticipants: data.maxStudents + 1, // +1 for tutor
     durationMinutes: data.durationMinutes,
     enableRecording: data.enableRecording
@@ -49,14 +53,14 @@ export const POST = withCsrf(withAuth(async (req, session) => {
   // Create meeting token for tutor (as owner)
   const tutorToken = await dailyProvider.createMeetingToken(
     room.id,
-    session.user.id,
+    userId,
     { isOwner: true, durationMinutes: data.durationMinutes }
   )
 
   // Store class session in database
   const [classSessionResult] = await drizzleDb.insert(liveSession).values({
     id: crypto.randomUUID(),
-    tutorId: session.user.id,
+    tutorId: userId,
     curriculumId: data.curriculumId || null,
     title: data.title || `${data.subject} Class`,
     subject: data.subject,
@@ -98,7 +102,7 @@ export const GET = withAuth(async (req, session) => {
   if (gradeLevel) filtersOfRequest.push(eq(liveSession.gradeLevel, gradeLevel))
 
   // For students, also include classes that match their grade level or have no grade specified
-  if (session.user.role === 'STUDENT' && !gradeLevel) {
+  if (session?.user?.role === 'STUDENT' && !gradeLevel) {
     const [studentUser] = await drizzleDb
       .select({ gradeLevel: profile.gradeLevel })
       .from(user)

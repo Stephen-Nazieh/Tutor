@@ -165,7 +165,7 @@ export class TutorOrchestrationManager {
     description?: string
   ): ExemplarPush {
     const exemplar: ExemplarPush = {
-      id: `exemplar-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `exemplar-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name,
       description,
       strokes,
@@ -196,7 +196,7 @@ export class TutorOrchestrationManager {
     const targets = targetStudentIds || Array.from(this.students.keys())
 
     const operation: BulkOperation = {
-      id: `op-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'push_exemplar',
       targetStudentIds: targets,
       payload: {
@@ -296,7 +296,7 @@ export class TutorOrchestrationManager {
     if (!this.spotlight.enabled || !this.spotlight.studentId) return null
 
     const operation: BulkOperation = {
-      id: `op-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'promote',
       targetStudentIds: Array.from(this.students.keys()),
       payload: {
@@ -330,7 +330,7 @@ export class TutorOrchestrationManager {
     layerIds.forEach((id) => this.lockedLayers.add(id))
 
     const operation: BulkOperation = {
-      id: `op-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'lock',
       targetStudentIds: Array.from(this.students.keys()),
       payload: { layerIds },
@@ -353,7 +353,7 @@ export class TutorOrchestrationManager {
     layerIds.forEach((id) => this.lockedLayers.delete(id))
 
     const operation: BulkOperation = {
-      id: `op-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'unlock',
       targetStudentIds: Array.from(this.students.keys()),
       payload: { layerIds },
@@ -408,7 +408,7 @@ export class TutorOrchestrationManager {
     const targets = targetStudentIds || Array.from(this.students.keys())
 
     const operation: BulkOperation = {
-      id: `op-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'clear',
       targetStudentIds: targets,
       initiatedBy: 'tutor',
@@ -486,7 +486,7 @@ export class TutorOrchestrationManager {
    */
   createGroup(name: string, studentIds: string[], color: string): StudentGroup {
     const group: StudentGroup = {
-      id: `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `group-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name,
       studentIds,
       color,

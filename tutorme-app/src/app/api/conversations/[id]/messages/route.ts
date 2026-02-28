@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, parseBoundedInt } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { conversation, directMessage, user, profile, notification } from '@/lib/db/schema'
 import { or, eq, and, desc, ne, lt, inArray } from 'drizzle-orm'
@@ -15,8 +16,10 @@ type AppRole = 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'
 
 // GET - Get messages in conversation
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = (await params)?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Conversation ID required' }, { status: 400 })
+  }
   const userId = session.user.id
   const { searchParams } = new URL(req.url)
   const cursor = searchParams.get('cursor')
@@ -128,8 +131,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
 // POST - Send message
 export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = (await params)?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Conversation ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {
@@ -218,4 +223,3 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     )
   }
 })
-

@@ -1,6 +1,5 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -22,11 +21,7 @@ import { UnifiedBreakoutManager, UnifiedBreakoutModal } from './breakout'
 import { HandRaiseQueue } from './HandRaiseQueue'
 import { ChatMonitor } from './ChatMonitor'
 import { LiveAnalytics } from './LiveAnalytics'
-
-const CourseDevPanel = dynamic(
-  () => import('@/components/class/course-dev-panel').then((m) => m.CourseDevPanel),
-  { ssr: false, loading: () => <div className="p-4 text-muted-foreground">Loading panel…</div> }
-)
+import { CourseDevPanel } from '@/components/class/course-dev-panel'
 import { AITeachingAssistant } from './AITeachingAssistant'
 import { StudentProgressPanel } from './StudentProgressPanel'
 import { MultiLayerWhiteboardInterface } from './MultiLayerWhiteboardInterface'
@@ -120,12 +115,38 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const router = useRouter()
   const { data: session } = useSession()
   const [renderNow] = useState(() => Date.now())
+  // When a student joins via socket, add/update local state so the tutor UI updates without a full reload
+  const handleStudentJoined = useCallback((state: { userId: string; name: string; status: string; engagement: number; lastActivity: number; joinedAt: number }) => {
+    setStudents((prev) => {
+      if (prev.some((s) => s.id === state.userId)) return prev
+      const live: LiveStudent = {
+        id: state.userId,
+        name: state.name,
+        status: 'online',
+        engagementScore: state.engagement ?? 80,
+        handRaised: false,
+        attentionLevel: state.engagement >= 70 ? 'high' : state.engagement >= 40 ? 'medium' : 'low',
+        lastActive: new Date(state.lastActivity ?? Date.now()).toISOString(),
+        joinedAt: new Date(state.joinedAt ?? Date.now()).toISOString(),
+        reactions: 0,
+        chatMessages: 0,
+      }
+      return [...prev, live]
+    })
+  }, [])
+  const handleStudentLeft = useCallback((userId: string) => {
+    setStudents((prev) => prev.filter((s) => s.id !== userId))
+  }, [])
+
   const socketOptions = session?.user?.id
     ? {
         roomId: sessionId,
         userId: session.user.id,
-        name: session.user.name || 'Tutor',
+        name: session.user?.name || 'Tutor',
         role: 'tutor' as const,
+        tutorId: session.user.id,
+        onStudentJoined: handleStudentJoined,
+        onStudentLeft: handleStudentLeft,
       }
     : undefined
   const { socket } = useSocket(socketOptions)
@@ -159,6 +180,8 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [isBreakoutModalOpen, setIsBreakoutModalOpen] = useState(false)
   const autoRecordingStartedRef = useRef(false)
   const recordingNoticeStorageKey = `live-class-recording-notice:${sessionId}`
+  // Prevent full reload when session object reference changes (e.g. refetch); only load once per sessionId + userId.
+  const loadedForRef = useRef<{ sessionId: string; userId: string } | null>(null)
 
   useEffect(() => {
     if (!isRecording) {
@@ -174,11 +197,15 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   // Command Palette
   const { isOpen: isCommandPaletteOpen, setIsOpen: setCommandPaletteOpen } = useCommandPalette('cmd+k')
 
-  // Load and start class session
+  // Load and start class session — only once per (sessionId, userId) to avoid refresh when session reference flickers or student joins
   useEffect(() => {
     if (!session?.user?.id) return
+    const userId = session.user.id
+    const alreadyLoaded = loadedForRef.current?.sessionId === sessionId && loadedForRef.current?.userId === userId
+    if (alreadyLoaded) return
 
     let cancelled = false
+    loadedForRef.current = { sessionId, userId }
     const load = async () => {
       setIsLoading(true)
       try {
@@ -216,6 +243,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         setMetrics(data.metrics || buildFallbackMetrics(data.students || []))
         setAlerts(data.alerts || [])
       } catch (error) {
+        loadedForRef.current = null
         if (!cancelled) {
           toast.error(error instanceof Error ? error.message : 'Failed to load live class session')
           router.push('/tutor/live-class')

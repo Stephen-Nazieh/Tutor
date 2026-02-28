@@ -197,7 +197,7 @@ export class PresenceManager {
       .map((u) => ({ userId: u.userId, name: u.name, color: u.color }))
 
     const hint: ConflictHint = {
-      id: `conflict-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `conflict-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       elementId,
       users,
       severity: users.length > 2 ? 'high' : 'medium',

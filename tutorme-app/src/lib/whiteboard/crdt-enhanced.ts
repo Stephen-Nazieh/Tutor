@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Enhanced CRDT (Conflict-free Replicated Data Type) System
  * 
@@ -63,8 +62,8 @@ export const OperationSchema = z.object({
   vectorClock: VectorClockSchema,
   userId: z.string(),
   sessionId: z.string(),
-  data: z.record(z.unknown()).optional(),
-  previousData: z.record(z.unknown()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+  previousData: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type ValidatedStroke = z.infer<typeof StrokeSchema>
@@ -226,7 +225,7 @@ export class SchemaValidator {
       return {
         success: false,
         errors: result.error,
-        errorMessage: result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        errorMessage: result.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
       }
     }
 
@@ -262,7 +261,7 @@ export class SchemaValidator {
       return {
         success: false,
         errors: result.error,
-        errorMessage: result.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        errorMessage: result.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
       }
     }
 
@@ -829,7 +828,7 @@ export class EnhancedCRDTManager {
     const newClock = this.vectorClockManager.increment(currentClock, this.userId)
 
     const op: ValidatedOperation = {
-      id: `${this.userId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `${this.userId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type,
       elementId,
       timestamp: Date.now(),

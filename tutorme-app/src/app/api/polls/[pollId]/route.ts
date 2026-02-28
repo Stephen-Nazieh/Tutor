@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
 import { eq, asc } from 'drizzle-orm'
@@ -14,16 +14,18 @@ import { z } from 'zod'
 // GET /api/polls/[pollId] - Get a specific poll
 export async function GET(
   request: NextRequest,
-  context: any
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const params = await context?.params
-    const { pollId } = params || {}
+    const pollId = await getParamAsync(context?.params, 'pollId')
+    if (!pollId) {
+      return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
+    }
 
     const [pollRow] = await drizzleDb
       .select()
@@ -78,16 +80,18 @@ const UpdatePollSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  context: any
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user || session.user.role !== 'TUTOR') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const params = await context?.params
-    const { pollId } = params || {}
+    const pollId = await getParamAsync(context?.params, 'pollId')
+    if (!pollId) {
+      return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
+    }
     const body = await request.json()
     const validated = UpdatePollSchema.parse(body)
 
@@ -163,16 +167,18 @@ export async function PATCH(
 // DELETE /api/polls/[pollId] - Delete a poll
 export async function DELETE(
   request: NextRequest,
-  context: any
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user || session.user.role !== 'TUTOR') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const params = await context?.params
-    const { pollId } = params || {}
+    const pollId = await getParamAsync(context?.params, 'pollId')
+    if (!pollId) {
+      return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
+    }
 
     await drizzleDb.delete(pollResponse).where(eq(pollResponse.pollId, pollId))
     await drizzleDb.delete(pollOption).where(eq(pollOption.pollId, pollId))

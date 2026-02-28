@@ -7,8 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, taskSubmission, profile } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
@@ -30,7 +29,7 @@ async function verifyTaskOwnership(taskId: string, userId: string) {
 // ---- GET — Full task with questions ----
 
 export async function GET(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -90,7 +89,7 @@ export async function GET(req: NextRequest) {
 // ---- PATCH — Update task ----
 
 export async function PATCH(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -141,7 +140,7 @@ export async function PATCH(req: NextRequest) {
 // ---- DELETE — Remove task ----
 
 export async function DELETE(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

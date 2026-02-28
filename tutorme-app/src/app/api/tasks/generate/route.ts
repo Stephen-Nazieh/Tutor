@@ -5,8 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { and, eq } from 'drizzle-orm'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/ai/task-generator'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession } from '@/lib/db/schema'
@@ -29,7 +28,7 @@ export async function POST(request: NextRequest) {
     const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
     if (rateLimitResponse) return rateLimitResponse
 
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }

@@ -6,7 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { asc, eq } from 'drizzle-orm'
-import { withAuth } from '@/lib/api/middleware'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculumShare,
@@ -16,10 +17,8 @@ import {
   profile,
 } from '@/lib/db/schema'
 
-export async function GET(req: NextRequest, context: any) {
-  const session = await (await import('next-auth')).getServerSession(
-    (await import('@/lib/auth')).authOptions
-  )
+export async function GET(req: NextRequest, context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }) {
+  const session = await getServerSession(authOptions, req)
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -32,7 +31,7 @@ export async function GET(req: NextRequest, context: any) {
     )
   }
 
-  const { id: shareId } = await context.params
+  const shareId = await getParamAsync(context?.params, 'id')
   if (!shareId) {
     return NextResponse.json({ error: 'Share ID required' }, { status: 400 })
   }

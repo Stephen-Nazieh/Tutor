@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -19,7 +18,7 @@ function getTaskId(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

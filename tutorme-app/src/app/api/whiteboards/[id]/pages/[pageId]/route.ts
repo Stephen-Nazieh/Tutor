@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
 import { eq, and, isNull, asc } from 'drizzle-orm'
@@ -32,9 +33,11 @@ const UpdatePageSchema = z.object({
 
 // GET - Get page content
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const whiteboardId = params?.id as string
-  const pageId = params?.pageId as string
+  const whiteboardId = await getParamAsync(context?.params, 'id')
+  const pageId = await getParamAsync(context?.params, 'pageId')
+  if (!whiteboardId || !pageId) {
+    return NextResponse.json({ error: 'Whiteboard ID and page ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {
@@ -87,9 +90,11 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
 // PUT - Update page content
 export const PUT = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const whiteboardId = params?.id as string
-  const pageId = params?.pageId as string
+  const whiteboardId = await getParamAsync(context?.params, 'id')
+  const pageId = await getParamAsync(context?.params, 'pageId')
+  if (!whiteboardId || !pageId) {
+    return NextResponse.json({ error: 'Whiteboard ID and page ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {
@@ -166,9 +171,11 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
 
 // DELETE - Delete page
 export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const whiteboardId = params?.id as string
-  const pageId = params?.pageId as string
+  const whiteboardId = await getParamAsync(context?.params, 'id')
+  const pageId = await getParamAsync(context?.params, 'pageId')
+  if (!whiteboardId || !pageId) {
+    return NextResponse.json({ error: 'Whiteboard ID and page ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {

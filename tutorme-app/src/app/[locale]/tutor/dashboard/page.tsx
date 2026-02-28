@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import { Plus, Settings, BookOpen, Library, ChevronRight, Sparkles, Video } from 'lucide-react'
+import { Plus, Settings, BookOpen, Library, ChevronRight, Sparkles, Video, Info, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
@@ -73,6 +73,21 @@ function TutorDashboardContent() {
   const [allStudents, setAllStudents] = useState<Array<{ id: string; name: string; email: string; courseCount: number; classCount: number }>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
+  useEffect(() => {
+    try {
+      setOneAccountTipDismissed(localStorage.getItem('tutor-dashboard-one-account-tip-dismissed') === '1')
+    } catch {
+      setOneAccountTipDismissed(false)
+    }
+  }, [])
+  const showOneAccountTip = !oneAccountTipDismissed
+  const dismissOneAccountTip = () => {
+    setOneAccountTipDismissed(true)
+    try {
+      localStorage.setItem('tutor-dashboard-one-account-tip-dismissed', '1')
+    } catch {}
+  }
 
   const fetchData = useCallback(async () => {
     if (!session?.user?.id) return
@@ -205,6 +220,17 @@ function TutorDashboardContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {showOneAccountTip && (
+          <div className="mb-4 p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-start gap-2">
+            <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-slate-600 flex-1">
+              Only one account is logged in per browser. Logging in as a different user in another tab will switch the account in all tabs. To use a student account at the same time, use another browser or an incognito window.
+            </p>
+            <button type="button" onClick={dismissOneAccountTip} className="p-1 rounded hover:bg-slate-200 text-slate-500" aria-label="Dismiss">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         {/* Modern Hero Section */}
         <div className="mb-8">
           <ModernHeroSection 

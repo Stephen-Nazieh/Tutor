@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, taskSubmission, user, profile } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
@@ -28,7 +27,7 @@ interface QuestionResult {
 }
 
 export async function GET(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

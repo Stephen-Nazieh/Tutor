@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarEvent, curriculum, courseBatch } from '@/lib/db/schema'
 import { eq, and, or, isNull, lt, gt, ne } from 'drizzle-orm'
@@ -43,8 +44,10 @@ const UpdateEventSchema = z.object({
 })
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
+  }
   const tutorId = session.user.id
 
   try {
@@ -89,8 +92,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 }, { role: 'TUTOR' })
 
 export const PUT = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
+  }
   const tutorId = session.user.id
 
   try {
@@ -216,8 +221,10 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
 }, { role: 'TUTOR' })
 
 export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Event ID required' }, { status: 400 })
+  }
   const tutorId = session.user.id
   const { searchParams } = new URL(req.url)
   const deleteSeries = searchParams.get('series') === 'true'

@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
 import { eq, and, isNull, asc } from 'drizzle-orm'
@@ -58,8 +59,10 @@ function generateSVG(
 }
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const whiteboardId = params?.id as string
+  const whiteboardId = await getParamAsync(context?.params, 'id')
+  if (!whiteboardId) {
+    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+  }
   const userId = session.user.id
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'json'

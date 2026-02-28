@@ -48,12 +48,23 @@ function addSecurityHeaders(res: NextResponse): NextResponse {
   return res
 }
 
+function stripLocalePrefix(pathname: string): string {
+  const segments = pathname.split('/').filter(Boolean)
+  const locale = segments[0]
+  if (locale && routing.locales.includes(locale as (typeof routing.locales)[number])) {
+    if (segments.length === 1) return '/'
+    return `/${segments.slice(1).join('/')}`
+  }
+  return pathname
+}
+
 export default withAuth(
   async function middleware(req) {
     const path = req.nextUrl.pathname
+    const normalizedPath = path.startsWith('/api') ? path : stripLocalePrefix(path)
     const token = req.nextauth.token
     const method = req.method ?? 'GET'
-    const handleMatch = path.match(/^\/@([a-zA-Z0-9._]{3,30})$/)
+    const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9._]{3,30})$/)
 
     if (handleMatch) {
       const username = handleMatch[1].toLowerCase()
@@ -104,24 +115,24 @@ export default withAuth(
     }
 
     // Allow access to onboarding pages
-    if (path.startsWith('/onboarding')) {
+    if (normalizedPath.startsWith('/onboarding')) {
       const res = NextResponse.next()
       addSecurityHeaders(res)
       return res
     }
 
     // Protect student routes
-    if (path.startsWith('/student') && token?.role !== 'STUDENT' && token?.role !== 'ADMIN') {
+    if (normalizedPath.startsWith('/student') && token?.role !== 'STUDENT' && token?.role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
     // Protect tutor routes
-    if (path.startsWith('/tutor') && token?.role !== 'TUTOR' && token?.role !== 'ADMIN') {
+    if (normalizedPath.startsWith('/tutor') && token?.role !== 'TUTOR' && token?.role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/login', req.url))
     }
 
     // Protect parent routes - only PARENT and ADMIN roles allowed
-    if (path.startsWith('/parent')) {
+    if (normalizedPath.startsWith('/parent')) {
       const allowedRoles = ['PARENT', 'ADMIN']
       if (!token?.role || !allowedRoles.includes(token.role)) {
         // Redirect to role-appropriate dashboard or login
@@ -136,7 +147,7 @@ export default withAuth(
     }
 
     // Enforce TOS acceptance
-    if (token && !token.tosAccepted && !path.startsWith('/student/agreement') && !path.startsWith('/api')) {
+    if (token && !token.tosAccepted && !normalizedPath.startsWith('/student/agreement') && !path.startsWith('/api')) {
       return NextResponse.redirect(new URL('/student/agreement', req.url))
     }
 
@@ -155,33 +166,30 @@ export default withAuth(
     callbacks: {
       authorized({ req, token }) {
         const pathname = req.nextUrl.pathname
-        const publicPaths = [
-          '/',
+        const normalizedPath = pathname.startsWith('/api') ? pathname : stripLocalePrefix(pathname)
+        const publicExactPaths = [
           '/login',
           '/register',
+          '/',
+        ]
+        const publicPrefixPaths = [
           '/api/auth',
           '/api/health',
           '/api/csrf',
           '/api/public',
           '/onboarding',
           '/u/',
+          '/admin',
+          '/api/admin/',
+          '/api/admin/auth',
         ]
-        const isLocaleAdminLogin = /^\/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)\/admin\/login$/.test(pathname)
-        const isLocaleAdminRoute = /^\/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)\/admin(\/.*)?$/.test(pathname)
-        const isLocalePublicTutorPage = /^\/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)\/u\/[a-zA-Z0-9._]{3,30}$/.test(pathname)
-        const isAdminLogin = pathname === '/admin/login'
-        const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/')
-        const isAdminApiRoute = pathname.startsWith('/api/admin/')
-        const isAdminAuthApi = pathname.startsWith('/api/admin/auth')
+        const isPublicExact = publicExactPaths.includes(normalizedPath)
+        const isPublicPrefix = publicPrefixPaths.some((p) => {
+          if (p.endsWith('/')) return normalizedPath.startsWith(p)
+          return normalizedPath === p || normalizedPath.startsWith(`${p}/`)
+        })
         const isPublicPath =
-          publicPaths.some((p) => pathname.startsWith(p)) ||
-          isLocaleAdminLogin ||
-          isLocaleAdminRoute ||
-          isLocalePublicTutorPage ||
-          isAdminLogin ||
-          isAdminRoute ||
-          isAdminApiRoute ||
-          isAdminAuthApi
+          isPublicExact || isPublicPrefix
         if (isPublicPath) return true
         return token !== null
       }

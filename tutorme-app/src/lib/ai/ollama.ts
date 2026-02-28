@@ -6,9 +6,11 @@
 
 import { Ollama } from 'ollama'
 
-const ollama = new Ollama({ 
-  host: process.env.OLLAMA_URL || 'http://localhost:11434' 
+const ollama = new Ollama({
+  host: process.env.OLLAMA_URL || 'http://localhost:11434'
 })
+
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'llama3.1'
 
 /**
  * Generate text using local Ollama model
@@ -22,7 +24,7 @@ export async function generateWithOllama(
 ): Promise<string> {
   try {
     const response = await ollama.generate({
-      model: options.model || 'llama3.1',
+      model: options.model || DEFAULT_MODEL,
       prompt,
       stream: false,
       options: {
@@ -30,8 +32,13 @@ export async function generateWithOllama(
       },
     })
     return response.response
-  } catch (error) {
-    console.error('Ollama generation error:', error)
+  } catch (error: unknown) {
+    const msg = error && typeof error === 'object' && 'message' in error ? String((error as { message?: string }).message) : ''
+    if (msg.includes('not found') || msg.includes('404')) {
+      console.warn('Ollama model not found. Set OLLAMA_MODEL or run: ollama pull', process.env.OLLAMA_MODEL || 'llama3.1')
+    } else {
+      console.error('Ollama generation error:', error)
+    }
     throw error
   }
 }
@@ -48,7 +55,7 @@ export async function chatWithOllama(
 ): Promise<string> {
   try {
     const response = await ollama.chat({
-      model: options.model || 'llama3.1',
+      model: options.model || DEFAULT_MODEL,
       messages: messages.map(m => ({
         role: m.role as 'user' | 'assistant' | 'system',
         content: m.content,
@@ -59,8 +66,11 @@ export async function chatWithOllama(
       },
     })
     return response.message.content
-  } catch (error) {
-    console.error('Ollama chat error:', error)
+  } catch (error: unknown) {
+    const msg = error && typeof error === 'object' && 'message' in error ? String((error as { message?: string }).message) : ''
+    if (!msg.includes('not found') && !msg.includes('404')) {
+      console.error('Ollama chat error:', error)
+    }
     throw error
   }
 }
@@ -77,7 +87,7 @@ export async function* streamOllama(
 ): AsyncGenerator<string, void, unknown> {
   try {
     const stream = await ollama.chat({
-      model: options.model || 'llama3.1',
+      model: options.model || DEFAULT_MODEL,
       messages: messages.map(m => ({
         role: m.role as 'user' | 'assistant' | 'system',
         content: m.content,
@@ -93,8 +103,11 @@ export async function* streamOllama(
         yield chunk.message.content
       }
     }
-  } catch (error) {
-    console.error('Ollama streaming error:', error)
+  } catch (error: unknown) {
+    const msg = error && typeof error === 'object' && 'message' in error ? String((error as { message?: string }).message) : ''
+    if (!msg.includes('not found') && !msg.includes('404')) {
+      console.error('Ollama streaming error:', error)
+    }
     throw error
   }
 }
@@ -102,7 +115,7 @@ export async function* streamOllama(
 /**
  * Pull a model from Ollama registry
  */
-export async function pullModel(model: string = 'llama3.1'): Promise<void> {
+export async function pullModel(model: string = DEFAULT_MODEL): Promise<void> {
   try {
     await ollama.pull({ model })
     console.log(`Model ${model} pulled successfully`)

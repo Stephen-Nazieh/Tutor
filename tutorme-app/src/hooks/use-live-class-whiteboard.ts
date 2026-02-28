@@ -625,6 +625,35 @@ export function useLiveClassWhiteboard(
         setTutorStrokes((prev) => [...prev, ...data.strokes])
       }
     })
+
+    // AI region hint error
+    socket.on('lcwb_ai_region_error', (data: { message?: string }) => {
+      toast.error(data.message || 'Failed to get AI hint')
+    })
+
+    // Export attached by tutor
+    socket.on('lcwb_export_attached', (data: { exportId: string; name: string; url: string; attachedBy: string }) => {
+      toast.success(`Export "${data.name}" attached by tutor`)
+    })
+
+    // Student cleared their own board
+    socket.on('lcwb_student_cleared_own', (data: { studentId: string }) => {
+      if (role === 'tutor') {
+        setStudentWhiteboards(prev => {
+          const next = new Map(prev)
+          const wb = next.get(data.studentId)
+          if (wb) {
+            wb.strokes = []
+            next.set(data.studentId, wb)
+          }
+          return next
+        })
+      }
+      if (role === 'student' && session?.user?.id === data.studentId) {
+        setMyStrokes([])
+        toast.info('Your board was cleared')
+      }
+    })
     
     // Cleanup
     return () => {
@@ -665,6 +694,9 @@ export function useLiveClassWhiteboard(
       socket.off('lcwb_snapshot_created')
       socket.off('lcwb_snapshot_timeline')
       socket.off('lcwb_breakout_promoted')
+      socket.off('lcwb_ai_region_error')
+      socket.off('lcwb_export_attached')
+      socket.off('lcwb_student_cleared_own')
     }
   }, [applyStrokeOps, role, session?.user?.id, socket])
 

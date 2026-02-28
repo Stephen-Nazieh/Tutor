@@ -5,13 +5,16 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { notification } from '@/lib/db/schema'
 import { and, eq } from 'drizzle-orm'
 
-export const DELETE = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params
-  const { id } = await params
+export const DELETE = withAuth(async (_req: NextRequest, session, context) => {
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Notification ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   try {

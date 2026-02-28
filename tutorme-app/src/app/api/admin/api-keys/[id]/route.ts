@@ -3,18 +3,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, requireAdminIp, requirePermission } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
+import { requireAdminIp, requirePermission } from '@/lib/api/middleware'
 import { PERMISSIONS } from '@/lib/security/rbac'
 import { revokeApiKey } from '@/lib/security/api-key'
 
 export async function DELETE(
   req: NextRequest,
-  context: any
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
   // We need to run auth and permission checks inside the handler for dynamic route
-  const { getServerSession } = await import('next-auth')
-  const { authOptions } = await import('@/lib/auth')
-  const session = await getServerSession(authOptions)
+  const { getServerSession, authOptions } = await import('@/lib/auth')
+  const session = await getServerSession(authOptions, req)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -26,8 +26,10 @@ export async function DELETE(
   const permErr = requirePermission(session, PERMISSIONS.ADMIN_MANAGE_API_KEYS)
   if (permErr) return permErr
 
-  const params = await context?.params;
-  const { id } = params || {};
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'API key ID required' }, { status: 400 })
+  }
   const ok = await revokeApiKey(id)
   if (!ok) {
     return NextResponse.json({ error: 'Key not found' }, { status: 404 })

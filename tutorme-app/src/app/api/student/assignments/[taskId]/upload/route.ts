@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
@@ -23,16 +23,18 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function POST(
     request: NextRequest,
-    context: any
+    context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const studentId = session.user.id
-    const params = await context?.params;
-  const { taskId } = params || {};
+    const taskId = await getParamAsync(context?.params, 'taskId')
+    if (!taskId) {
+        return NextResponse.json({ error: 'Task ID required' }, { status: 400 })
+    }
 
     try {
         const formData = await request.formData()

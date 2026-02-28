@@ -16,8 +16,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   generatedTask,
@@ -42,16 +42,18 @@ interface QuestionResult {
   timeSpentSec?: number
 }
 
-export async function POST(request: NextRequest, context: { params?: Promise<{ taskId?: string }> }) {
+export async function POST(
+  request: NextRequest,
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const studentId = session.user.id
-    const params = await context?.params
-    const taskId = params?.taskId
+    const taskId = await getParamAsync(context?.params, 'taskId')
     const body = await request.json()
     const {
       answers,

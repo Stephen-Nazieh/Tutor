@@ -46,7 +46,7 @@ export interface ChatMessage {
 
 // Environment validation
 function validateEnv() {
-  const required = ['NEXTAUTH_SECRET', 'REDIS_URL']
+  const required = ['NEXTAUTH_SECRET']
   const missing = required.filter(key => !process.env[key])
   if (missing.length > 0) {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
@@ -144,6 +144,19 @@ const activeRooms = new Map<string, ClassRoom>()
 const directMessageRooms = new Map<string, DirectMessageRoom>()
 const activeWhiteboards = new Map<string, WhiteboardState>()
 const userSocketMap = new Map<string, string>()
+
+function setUserSocket(userId: string | undefined, socketId: string) {
+  if (!userId) return
+  userSocketMap.set(userId, socketId)
+}
+
+function clearUserSocketIfCurrent(userId: string | undefined, socketId: string) {
+  if (!userId) return
+  const mappedSocketId = userSocketMap.get(userId)
+  if (mappedSocketId === socketId) {
+    userSocketMap.delete(userId)
+  }
+}
 
 // Authentication functions (use jose to match NextAuth and avoid jsonwebtoken dependency)
 async function validateJWT(token: string): Promise<{ userId: string; role: string; email: string; name: string } | null> {
@@ -329,7 +342,7 @@ async function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void)
   }
 }
 
-// Rate limiting middleware
+// Per-event rate limiting middleware
 function rateLimitMiddleware(socket: Socket, next: (err?: Error) => void) {
   const connectionId = socket.id
 
@@ -379,6 +392,7 @@ async function initRedis() {
 export async function initEnhancedSocketServer(server: NetServer) {
   validateEnv()
   await initRedis()
+  const intervalHandles: Array<ReturnType<typeof setInterval>> = []
 
   const io = new SocketIOServer(server, {
     path: '/api/socket',
@@ -390,13 +404,10 @@ export async function initEnhancedSocketServer(server: NetServer) {
       methods: ['GET', 'POST'],
       credentials: true
     },
-    // Redis adapter configuration
-    adapter: redisClient ? undefined : undefined, // Will set later if Redis available
   })
 
   // Apply middleware
   io.use(socketAuthMiddleware)
-  io.use(rateLimitMiddleware)
 
   // Apply Redis adapter if available
   if (redisClient) {
@@ -410,10 +421,10 @@ export async function initEnhancedSocketServer(server: NetServer) {
   }
 
   // Start cleanup intervals
-  setInterval(cleanupInactiveClassRooms, ROOM_CLEANUP_INTERVAL)
-  setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL)
-  setInterval(cleanupInactiveWhiteboards, WHITEBOARD_CLEANUP_INTERVAL)
-  setInterval(() => {
+  intervalHandles.push(setInterval(cleanupInactiveClassRooms, ROOM_CLEANUP_INTERVAL))
+  intervalHandles.push(setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL))
+  intervalHandles.push(setInterval(cleanupInactiveWhiteboards, WHITEBOARD_CLEANUP_INTERVAL))
+  intervalHandles.push(setInterval(() => {
     // Clean up old rate limit states
     const now = Date.now()
     connectionRateLimits.forEach((state, connectionId) => {
@@ -421,10 +432,14 @@ export async function initEnhancedSocketServer(server: NetServer) {
         connectionRateLimits.delete(connectionId)
       }
     })
-  }, 5 * 60 * 1000)
+  }, 5 * 60 * 1000))
 
   io.on('connection', (socket) => {
     console.log(`Authenticated client connected: ${socket.id} (user: ${socket.data.userId})`)
+    setUserSocket(socket.data.userId, socket.id)
+
+    // Apply token-bucket limiting to every incoming event packet.
+    socket.use((_packet, next) => rateLimitMiddleware(socket, next))
 
     // Live-class whiteboard (lcwb_*) handlers — shared with socket-server.ts
     registerLiveClassWhiteboardHandlers(io, socket)
@@ -439,6 +454,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         socket.emit('error', { message: 'Authentication required' })
         return
       }
+      setUserSocket(userId, socket.id)
 
       if (name !== undefined) socket.data.name = name
       socket.join(roomId)
@@ -478,9 +494,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
       const userId = socket.data.userId
       const roomId = socket.data.roomId
 
-      if (userId) {
-        userSocketMap.delete(userId)
-      }
+      clearUserSocketIfCurrent(userId, socket.id)
 
       if (roomId && userId) {
         const room = activeRooms.get(roomId)
@@ -497,6 +511,31 @@ export async function initEnhancedSocketServer(server: NetServer) {
       connectionRateLimits.delete(socket.id)
     })
   })
+
+  const originalClose = io.close.bind(io)
+  io.close = ((cb?: (err?: Error) => void) => {
+    intervalHandles.forEach((handle) => clearInterval(handle))
+    intervalHandles.length = 0
+
+    const closeRedis = async () => {
+      try {
+        await Promise.allSettled([
+          redisClient?.quit?.() ?? Promise.resolve(),
+          redisPubClient?.quit?.() ?? Promise.resolve(),
+          redisSubClient?.quit?.() ?? Promise.resolve(),
+        ])
+      } catch {
+        // best-effort cleanup
+      } finally {
+        redisClient = null
+        redisPubClient = null
+        redisSubClient = null
+      }
+    }
+
+    void closeRedis()
+    return originalClose(cb)
+  }) as SocketIOServer['close']
 
   return io
 }
@@ -555,4 +594,26 @@ export function isUserOnline(userId: string): boolean {
 
 export function getUserSocketId(userId: string): string | undefined {
   return userSocketMap.get(userId)
+}
+
+/**
+ * Internal hooks for deterministic unit tests.
+ * Not used by runtime code.
+ */
+export const socketRateLimitTesting = {
+  isRateLimited,
+  reset() {
+    connectionRateLimits.clear()
+  },
+  limits: RATE_LIMITS,
+  presence: {
+    set: setUserSocket,
+    clearIfCurrent: clearUserSocketIfCurrent,
+    get(userId: string) {
+      return userSocketMap.get(userId)
+    },
+    reset() {
+      userSocketMap.clear()
+    },
+  },
 }

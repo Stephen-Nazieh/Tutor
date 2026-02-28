@@ -5,14 +5,17 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, sessionParticipant, user, profile } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params
-  const { id } = params || {}
+export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    throw new ValidationError('Session ID required')
+  }
 
   const [classSessionRow] = await drizzleDb
     .select()

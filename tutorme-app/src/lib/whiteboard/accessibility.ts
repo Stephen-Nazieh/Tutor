@@ -109,7 +109,7 @@ export class AccessibilityManager {
    */
   announce(message: string, priority: ScreenReaderAnnouncement['priority'] = 'polite'): void {
     const announcement: ScreenReaderAnnouncement = {
-      id: `announce-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `announce-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       message,
       priority,
       timestamp: Date.now(),

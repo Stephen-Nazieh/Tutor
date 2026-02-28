@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { AlertCircle, Info, Loader2 } from 'lucide-react'
 
 function LoginForm() {
   const router = useRouter()
@@ -50,6 +50,17 @@ function LoginForm() {
         if (!userRole) {
           setError('Login succeeded but session could not be established. Please retry.')
           return
+        }
+
+        // Set realm-scoped cookie so tutor/student can stay logged in in separate tabs
+        const realm = userRole === 'TUTOR' ? 'tutor' : userRole === 'STUDENT' ? 'student' : null
+        if (realm) {
+          await fetch('/api/auth/set-realm-cookie', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ realm }),
+            credentials: 'include',
+          })
         }
 
         // Redirect based on role
@@ -144,6 +155,13 @@ function LoginForm() {
           >
             Sign up
           </Link>
+        </div>
+
+        <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 flex gap-2 text-left">
+          <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-600">
+            Only one account is logged in per browser. Logging in as a different user in another tab will switch the account in all tabs. To use both a tutor and a student account at the same time, use two different browsers or an incognito/private window.
+          </p>
         </div>
 
         <div className="mt-4 pt-4 border-t text-center">

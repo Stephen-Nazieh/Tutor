@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * TutorMe Whiteboard System - Feature Complete
  * 
@@ -254,7 +253,7 @@ export class UnifiedWhiteboardManager {
    */
   addStroke(stroke: WhiteboardStroke, viewport?: { x: number; y: number; width: number; height: number; scale: number }): void {
     // Validate via CRDT
-    const op = this.crdt.createOperation('create', stroke.id, stroke)
+    const op = this.crdt.createOperation('create', stroke.id, stroke as unknown as Record<string, unknown>)
     this.applyOperation(op)
 
     // Update spatial index if viewport provided

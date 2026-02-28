@@ -23,6 +23,7 @@ export function useShapeDrawing() {
     const [shapes, setShapes] = useState<ShapeElement[]>([])
     const [isDrawingShape, setIsDrawingShape] = useState(false)
     const [tempShape, setTempShape] = useState<ShapeElement | null>(null)
+    const tempShapeRef = useRef<ShapeElement | null>(null)
     const shapeStartRef = useRef<Point | null>(null)
     const currentShapeTypeRef = useRef<ShapeType>('rectangle')
     const currentColorRef = useRef<string>('#000000')
@@ -46,49 +47,59 @@ export function useShapeDrawing() {
             lineWidth
         }
 
+        tempShapeRef.current = newShape
         setTempShape(newShape)
     }, [])
 
     const continueShape = useCallback((point: Point) => {
-        if (!isDrawingShape || !shapeStartRef.current || !tempShape) return
+        if (!isDrawingShape || !shapeStartRef.current || !tempShapeRef.current) return
 
         const start = shapeStartRef.current
         const width = point.x - start.x
         const height = point.y - start.y
 
-        setTempShape(prev => prev ? {
-            ...prev,
+        const nextShape = {
+            ...tempShapeRef.current,
             x: width < 0 ? point.x : start.x,
             y: height < 0 ? point.y : start.y,
             width: Math.abs(width),
             height: Math.abs(height)
+        }
+        tempShapeRef.current = nextShape
+        setTempShape(prev => prev ? {
+            ...prev,
+            ...nextShape
         } : null)
-    }, [isDrawingShape, tempShape])
+    }, [isDrawingShape])
 
     const finishShape = useCallback(() => {
-        if (!tempShape || tempShape.width < 5 || tempShape.height < 5) {
+        const currentShape = tempShapeRef.current
+        if (!currentShape || currentShape.width < 5 || currentShape.height < 5) {
             setIsDrawingShape(false)
             setTempShape(null)
+            tempShapeRef.current = null
             shapeStartRef.current = null
             return null
         }
 
         const finalShape: ShapeElement = {
-            ...tempShape,
-            id: `shape-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            ...currentShape,
+            id: `shape-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
         }
 
         setShapes(prev => [...prev, finalShape])
         setIsDrawingShape(false)
         setTempShape(null)
+        tempShapeRef.current = null
         shapeStartRef.current = null
         
         return finalShape
-    }, [tempShape])
+    }, [])
 
     const cancelShape = useCallback(() => {
         setIsDrawingShape(false)
         setTempShape(null)
+        tempShapeRef.current = null
         shapeStartRef.current = null
     }, [])
 

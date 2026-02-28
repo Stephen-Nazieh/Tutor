@@ -2,48 +2,62 @@
  * Unit tests for GET /api/curriculums/catalog (reference data for course creation).
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { GET } from './route'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { NextRequest } from 'next/server'
 
-const mockCatalog = [
-  { id: 'cat1', subject: 'english', name: 'IELTS', code: 'ielts', createdAt: new Date() },
-  { id: 'cat2', subject: 'english', name: 'TOEFL', code: 'toefl', createdAt: new Date() },
-]
+const mocks = vi.hoisted(() => ({
+  selectItems: [] as Array<{ id: string; subject: string; name: string; code: string; createdAt: Date }>,
+  handleApiError: vi.fn((error: unknown) => {
+    throw error
+  }),
+}))
 
-vi.mock('@/lib/db', () => ({
-  db: {
-    curriculumCatalog: {
-      findMany: vi.fn(),
-    },
+vi.mock('@/lib/api/middleware', () => ({
+  handleApiError: mocks.handleApiError,
+}))
+
+vi.mock('@/lib/db/drizzle', () => ({
+  drizzleDb: {
+    select: vi.fn().mockImplementation(() => ({
+      from: () => ({
+        where: () => ({
+          orderBy: () => Promise.resolve(mocks.selectItems),
+        }),
+        orderBy: () => Promise.resolve(mocks.selectItems),
+      }),
+    })),
   },
 }))
 
-describe.skip('GET /api/curriculums/catalog', () => {
-  beforeEach(async () => {
+import { GET } from './route'
+
+describe('GET /api/curriculums/catalog', () => {
+  beforeEach(() => {
     vi.clearAllMocks()
-    const { db } = await import('@/lib/db')
-    vi.mocked(db.curriculumCatalog.findMany).mockResolvedValue(mockCatalog as never)
+    mocks.selectItems = [
+      { id: 'cat1', subject: 'english', name: 'IELTS', code: 'ielts', createdAt: new Date('2026-01-01') },
+      { id: 'cat2', subject: 'english', name: 'TOEFL', code: 'toefl', createdAt: new Date('2026-01-02') },
+    ]
   })
 
   it('returns 200 and catalog entries', async () => {
-    const req = new Request('http://localhost/api/curriculums/catalog') as any
-    const res = await GET(req)
+    const req = new Request('http://localhost/api/curriculums/catalog')
+    const res = await GET(req as NextRequest)
+
     expect(res.status).toBe(200)
     const data = await res.json()
-    expect(data.curriculums).toBeDefined()
     expect(Array.isArray(data.curriculums)).toBe(true)
     expect(data.curriculums).toHaveLength(2)
     expect(data.curriculums[0]).toMatchObject({ subject: 'english', name: 'IELTS' })
   })
 
-  it('filters by subject when query param present', async () => {
-    const req = new Request('http://localhost/api/curriculums/catalog?subject=english') as any
-    await GET(req)
-    const { db } = await import('@/lib/db')
-    expect(db.curriculumCatalog.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { subject: 'english' },
-      })
-    )
+  it('supports subject filter query param', async () => {
+    const req = new Request('http://localhost/api/curriculums/catalog?subject=english')
+    const res = await GET(req as NextRequest)
+
+    expect(res.status).toBe(200)
+    const data = await res.json()
+    expect(data.curriculums).toHaveLength(2)
   })
 })
+

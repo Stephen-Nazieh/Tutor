@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Performance Optimization System
  * 
@@ -126,7 +125,7 @@ export class ViewportCulling {
 // =============================================================================
 
 export class StrokeSimplifier {
-  private readonly epsilon: number
+  private epsilon: number
 
   constructor(epsilon: number = 1.0) {
     this.epsilon = epsilon
@@ -592,7 +591,8 @@ export class PerformanceManager {
     if (options.enableSimplification && this.simplificationEnabled) {
       const fps = this.monitor.getFPS()
       
-      if (fps < this.targetFPS || visibleStrokes.length > options.simplificationThreshold || 500) {
+      const threshold = options.simplificationThreshold ?? 500
+      if (fps < this.targetFPS || visibleStrokes.length > threshold) {
         const simplified = visibleStrokes.map((stroke) => {
           if (stroke.points.length > 50) {
             simplifiedCount++

@@ -7,12 +7,15 @@ import { eq, asc, count, max } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, courseBatch, curriculumEnrollment } from '@/lib/db/schema'
+import { getParamAsync } from '@/lib/api/params'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 import crypto from 'crypto'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await (context as any).params
-  const id = String(params?.id || '')
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+  }
 
   const [course] = await drizzleDb
     .select()
@@ -50,8 +53,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 }, { role: 'TUTOR' })
 
 export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-  const params = await (context as any).params
-  const id = String(params?.id || '')
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+  }
 
   const [course] = await drizzleDb
     .select({ id: curriculum.id })

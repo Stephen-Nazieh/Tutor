@@ -6,12 +6,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { reviewFeedback } from '@/lib/feedback/workflow'
 
 async function postHandler(
   request: NextRequest,
   session: Session,
-  context?: any
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
   const csrfError = await requireCsrf(request)
   if (csrfError) return csrfError
@@ -21,7 +22,10 @@ async function postHandler(
       return NextResponse.json({ error: '无权审核反馈' }, { status: 403 })
     }
 
-    const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: '反馈ID不能为空' }, { status: 400 })
+    }
     const body = await request.json().catch(() => ({}))
     const { decision, modifications } = body as {
       decision: 'approve' | 'reject' | 'modify'

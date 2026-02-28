@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -18,9 +19,9 @@ const updatePollSchema = z.object({
 })
 
 // PATCH - Update poll (start/end)
-export const PATCH = withAuth(async (req: NextRequest, session) => {
+export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   try {
-    const pollId = req.url.split('/').pop()
+    const pollId = await getParamAsync(context?.params, 'pollId')
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID is required' }, { status: 400 })
     }
@@ -69,9 +70,9 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
 }, { role: 'TUTOR' })
 
 // DELETE - Delete a poll
-export const DELETE = withAuth(async (req: NextRequest, session) => {
+export const DELETE = withAuth(async (req: NextRequest, session, context) => {
   try {
-    const pollId = req.url.split('/').pop()
+    const pollId = await getParamAsync(context?.params, 'pollId')
     if (!pollId) {
       return NextResponse.json({ error: 'Poll ID is required' }, { status: 400 })
     }

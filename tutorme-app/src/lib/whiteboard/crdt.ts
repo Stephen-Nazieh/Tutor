@@ -565,7 +565,7 @@ export class CRDTManager {
    * Generate a unique operation ID
    */
   private generateOpId(): string {
-    return `${this.userId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    return `${this.userId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
   }
 }
 

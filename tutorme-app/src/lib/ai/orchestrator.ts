@@ -95,8 +95,13 @@ export async function generateWithFallback(
       if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
       return result
     }
-  } catch (error) {
-    console.log('Ollama failed, trying Kimi:', error)
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    if (msg.includes('not found') || msg.includes('404')) {
+      console.log('Ollama model not available, trying Kimi')
+    } else {
+      console.log('Ollama failed, trying Kimi:', error)
+    }
   }
 
   // Try Kimi K2.5 (Fallback 1)
@@ -193,8 +198,13 @@ export async function chatWithFallback(
       if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
       return result
     }
-  } catch (error) {
-    console.log('Ollama failed, trying Kimi:', error)
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    if (msg.includes('not found') || msg.includes('404')) {
+      console.log('Ollama model not available, trying Kimi')
+    } else {
+      console.log('Ollama failed, trying Kimi:', error)
+    }
   }
 
   // Try Kimi K2.5

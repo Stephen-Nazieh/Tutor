@@ -9,6 +9,7 @@
  * - Cross-border transfers (PIPL Art 29)
  */
 
+import { randomUUID } from 'crypto'
 import { and, gte, like, sql, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { securityEvent } from '@/lib/db/schema'
@@ -43,7 +44,7 @@ export async function logComplianceAudit(
       await logAudit(userId, `compliance_${action}`, rest)
     }
     await drizzleDb.insert(securityEvent).values({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       eventType: `compliance_${action}`,
       metadata: metadata as object,
     })

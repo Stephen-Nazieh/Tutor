@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Branching Versions System
  * 
@@ -105,7 +104,7 @@ export class BranchingManager {
     const parentBranch = parentBranchId ? this.branches.get(parentBranchId) : null
     
     const branch: Branch = {
-      id: `branch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `branch-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name,
       description,
       parentBranchId: parentBranchId,
@@ -450,13 +449,13 @@ export class BranchingManager {
    */
   getBranchLineage(branchId: string): Branch[] {
     const lineage: Branch[] = []
-    let current = this.branches.get(branchId)
+    let current: Branch | undefined = this.branches.get(branchId)
 
     while (current) {
       lineage.unshift(current)
       current = current.parentBranchId
         ? this.branches.get(current.parentBranchId)
-        : null
+        : undefined
     }
 
     return lineage

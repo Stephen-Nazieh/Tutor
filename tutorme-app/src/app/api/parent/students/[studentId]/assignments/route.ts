@@ -7,14 +7,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, and, sql, inArray, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, taskSubmission, feedbackWorkflow } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
-    const params = await (context?.params as Promise<{ studentId: string }>) ?? Promise.resolve({ studentId: '' })
-    const { studentId } = await params
+    const studentId = await getParamAsync(context?.params, 'studentId')
     if (!studentId) {
       return NextResponse.json({ error: 'Student ID required' }, { status: 400 })
     }

@@ -5,15 +5,21 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { user, profile, curriculum } from '@/lib/db/schema'
 import { generateStudentReportPDF, generateCSV } from '@/lib/reports/export-service'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
 import { eq } from 'drizzle-orm'
 
-export const GET = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params;
-  const { studentId } = await params
+export const GET = withAuth(async (req: NextRequest, session, context) => {
+  const studentId = await getParamAsync(context?.params, 'studentId')
+  if (!studentId) {
+    return NextResponse.json(
+      { success: false, error: 'Student ID required' },
+      { status: 400 }
+    )
+  }
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'
   const classId = searchParams.get('classId')

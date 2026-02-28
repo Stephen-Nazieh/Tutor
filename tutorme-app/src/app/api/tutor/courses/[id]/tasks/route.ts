@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumModule, curriculumLesson, courseBatch, generatedTask, taskSubmission } from '@/lib/db/schema'
 import { eq, and, or, inArray, desc, sql } from 'drizzle-orm'
@@ -22,7 +21,7 @@ function getCourseId(req: NextRequest): string {
 // ---- GET — List all tasks for a course ----
 
 export async function GET(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -110,7 +109,7 @@ export async function GET(req: NextRequest) {
 // ---- POST — Create a new task ----
 
 export async function POST(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

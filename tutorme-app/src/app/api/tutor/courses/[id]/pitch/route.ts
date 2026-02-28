@@ -5,7 +5,9 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { prismaLegacyClient } from '@/lib/db/prisma-legacy'
 
 const COURSE_PITCH_PROMPT = `You are an expert course marketing copywriter. Create a compelling, persuasive course pitch that will excite students and convince them to enroll.
 
@@ -52,11 +54,17 @@ A compelling call-to-action (2-3 sentences) encouraging enrollment.
 Use markdown formatting. Be enthusiastic but professional. Focus on benefits, not just features. Make it feel personal and exciting.`
 
 export const POST = withCsrf(withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+  const id = await getParamAsync(context?.params, 'id')
 
   try {
+    if (!id) {
+      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+    }
     // Fetch course data with modules and lessons
-    const { db } = await import('@/lib/db')
+    const db = prismaLegacyClient as any
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
+    }
     const course = await db.curriculum.findUnique({
       where: { id },
       include: {
@@ -160,10 +168,16 @@ Generate a compelling, persuasive course pitch based on this information.`
 }, { role: 'TUTOR' }))
 
 export const GET = withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+  const id = await getParamAsync(context?.params, 'id')
 
   try {
-    const { db } = await import('@/lib/db')
+    if (!id) {
+      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+    }
+    const db = prismaLegacyClient as any
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
+    }
     const course = await db.curriculum.findUnique({
       where: { id },
       select: { coursePitch: true }
@@ -184,9 +198,12 @@ export const GET = withAuth(async (req, session, context) => {
 }, { role: 'TUTOR' })
 
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+  const id = await getParamAsync(context?.params, 'id')
 
   try {
+    if (!id) {
+      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+    }
     const body = await req.json()
     const { pitch } = body
 
@@ -197,7 +214,10 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
       )
     }
 
-    const { db } = await import('@/lib/db')
+    const db = prismaLegacyClient as any
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
+    }
     await db.curriculum.update({
       where: { id },
       data: { coursePitch: pitch }
@@ -214,10 +234,16 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
 }, { role: 'TUTOR' }))
 
 export const DELETE = withCsrf(withAuth(async (req, session, context) => {
-  const { id } = await (context?.params ?? Promise.resolve({ id: '' }))
+  const id = await getParamAsync(context?.params, 'id')
 
   try {
-    const { db } = await import('@/lib/db')
+    if (!id) {
+      return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+    }
+    const db = prismaLegacyClient as any
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
+    }
     await db.curriculum.update({
       where: { id },
       data: { coursePitch: null }

@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, and } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { getFamilyAccountForParent } from '@/lib/api/parent-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { user, curriculumEnrollment, userGamification } from '@/lib/db/schema'
@@ -16,8 +17,7 @@ const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_ANALYTICS || '45', 10)
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
     const startTime = Date.now()
-    const params = await (context?.params as Promise<{ studentId: string }>) ?? Promise.resolve({ studentId: '' })
-    const { studentId } = await params
+    const studentId = await getParamAsync(context?.params, 'studentId')
     if (!studentId) {
       return NextResponse.json({ error: 'Student ID required' }, { status: 400 })
     }

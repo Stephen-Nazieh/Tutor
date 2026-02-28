@@ -35,23 +35,26 @@ export function useCanvasDrawing({
 }: UseCanvasDrawingProps) {
     const [strokes, setStrokes] = useState<Stroke[]>([])
     const [isDrawing, setIsDrawing] = useState(false)
+    const isDrawingRef = useRef(false)
     const currentStrokeRef = useRef<Point[]>([])
 
     const startDrawing = useCallback((point: Point) => {
         if (tool !== 'pen' && tool !== 'eraser') return
 
+        isDrawingRef.current = true
         setIsDrawing(true)
         currentStrokeRef.current = [point]
     }, [tool])
 
     const continueDrawing = useCallback((point: Point) => {
-        if (!isDrawing) return
+        if (!isDrawingRef.current) return
 
         currentStrokeRef.current.push(point)
-    }, [isDrawing])
+    }, [])
 
     const endDrawing = useCallback(() => {
-        if (!isDrawing || currentStrokeRef.current.length === 0) {
+        if (!isDrawingRef.current || currentStrokeRef.current.length === 0) {
+            isDrawingRef.current = false
             setIsDrawing(false)
             return
         }
@@ -71,8 +74,9 @@ export function useCanvasDrawing({
         })
 
         currentStrokeRef.current = []
+        isDrawingRef.current = false
         setIsDrawing(false)
-    }, [isDrawing, color, lineWidth, tool, onUpdate])
+    }, [color, lineWidth, tool, onUpdate])
 
     const clearStrokes = useCallback(() => {
         setStrokes([])

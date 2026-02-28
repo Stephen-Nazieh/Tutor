@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { resource } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -14,8 +15,10 @@ import { deleteObject, isS3Configured } from '@/lib/storage/s3'
 
 // GET - Resource details
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Resource ID required' }, { status: 400 })
+  }
   const tutorId = session.user.id
 
   const rows = await drizzleDb
@@ -37,8 +40,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
 // PATCH - Update resource
 export const PATCH = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Resource ID required' }, { status: 400 })
+  }
   const tutorId = session.user.id
 
   try {
@@ -83,8 +88,10 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
 
 // DELETE - Delete resource
 export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Resource ID required' }, { status: 400 })
+  }
   const tutorId = session.user.id
 
   try {

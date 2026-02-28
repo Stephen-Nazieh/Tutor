@@ -5,15 +5,21 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum } from '@/lib/db/schema'
 import { calculateClassEngagement } from '@/lib/reports/engagement-analytics'
 import { generateEngagementReportExcel } from '@/lib/reports/export-service'
 import { eq } from 'drizzle-orm'
 
-export const GET = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params;
-  const { classId } = await params
+export const GET = withAuth(async (req: NextRequest, _session, context) => {
+  const classId = await getParamAsync(context?.params, 'classId')
+  if (!classId) {
+    return NextResponse.json(
+      { success: false, error: 'Class ID required' },
+      { status: 400 }
+    )
+  }
   const { searchParams } = new URL(req.url)
   const days = parseInt(searchParams.get('days') || '30')
 

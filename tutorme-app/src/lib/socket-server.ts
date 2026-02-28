@@ -1,722 +1,102 @@
 /**
  * Socket.io Server for Live Class System
- * Handles real-time communication between students, tutors, and AI
+ * Orchestrates real-time handlers; state, types, auth, constants in @/lib/socket.
  */
 
 import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import * as Y from 'yjs'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
+import {
+  CHAT_HISTORY_MAX,
+  CHAT_HISTORY_SLICE_TO_STUDENT,
+  LIVE_CLASS_EXPORTS_MAX,
+  LIVE_CLASS_SNAPSHOTS_MAX,
+  MATH_WB_EMPTY_ROOM_CLEANUP_MS,
+  MAX_CHAT_MESSAGE_LENGTH,
+  MAX_DM_MESSAGE_LENGTH,
+  NAME_MAX_LENGTH,
+  PDF_EVENTS_MAX,
+  ROOM_CLEANUP_INTERVAL_MS,
+  DM_CLEANUP_INTERVAL_MS,
+  DM_ROOM_IDLE_CLEANUP_MS,
+  LIVE_DOC_CLEANUP_INTERVAL_MS,
+  PDF_CLEANUP_INTERVAL_MS,
+  ROOM_IDLE_CLEANUP_MS,
+  ROOM_ID_MAX_LENGTH,
+  USER_ID_MAX_LENGTH,
+  LCWB_AI_REGION_RATE_LIMIT_PER_MIN,
+  LCWB_AI_REGION_RATE_WINDOW_MS,
+  WHITEBOARD_OP_SEEN_MAX,
+  WHITEBOARD_OP_SEEN_TRIM,
+  WHITEBOARD_DEAD_LETTER_MAX,
+  WHITEBOARD_OP_LOG_MAX,
+  getSocketCorsOrigin,
+  socketAuthMiddleware,
+  activeRooms,
+  directMessageRooms,
+  userSocketMap,
+  getConversationParticipantIds,
+  getPdfCollabRoom,
+  getLiveDocumentShareMap,
+  expandLiveShareForStudents,
+  activeWhiteboards,
+  whiteboardOpMetrics,
+  whiteboardSelectionPresence,
+  lcwbAiRegionRateLimit,
+  whiteboardOpSeenIds,
+  whiteboardDeadLetters,
+  whiteboardOpLog,
+  whiteboardOpSeq,
+  whiteboardBranches,
+  liveClassModeration,
+  liveClassSnapshots,
+  liveClassExports,
+  mathWhiteboardRooms,
+  mathSyncMetrics,
+  breakoutRooms,
+  mainRoomBreakouts,
+  getWhiteboardOpMetric,
+  trimWhiteboardOpTimestamps,
+  applyStrokeOps,
+  isValidStroke,
+  sanitizeWhiteboardOps,
+  pushWhiteboardDeadLetters,
+  appendWhiteboardOpLog,
+  getLiveClassModerationState,
+  appendLiveClassSnapshot,
+  getMathSyncMetric,
+  trimRecentUpdates,
+  getMathWhiteboardRoom,
+  trimPdfEvents,
+  pdfCollabRooms,
+  liveDocumentShares,
+  activePolls,
+  sessionPolls,
+} from '@/lib/socket'
+import type {
+  StudentState,
+  ChatMessage,
+  ClassRoom,
+  DirectMessageRoom,
+  WhiteboardStroke,
+  WhiteboardStrokeOp,
+  WhiteboardShape,
+  WhiteboardText,
+  WhiteboardState,
+  WhiteboardSelectionPresence,
+  LiveClassModerationState,
+  LiveClassSnapshot,
+  MathWhiteboardRoomState,
+  BreakoutRoom,
+  PollState,
+  PdfCollabRoomState,
+  LiveDocumentShare,
+} from '@/lib/socket'
 
-export type StudentStatus = 'on_track' | 'needs_help' | 'struggling' | 'idle'
-
-export interface StudentState {
-  userId: string
-  name: string
-  status: StudentStatus
-  engagement: number // 0-100
-  understanding: number // 0-100
-  frustration: number // 0-100
-  lastActivity: number
-  currentActivity?: string
-  joinedAt: number // timestamp when student joined
-}
-
-export interface ClassRoom {
-  id: string
-  tutorId: string
-  students: Map<string, StudentState>
-  whiteboardData?: unknown[]
-  chatHistory: ChatMessage[]
-  createdAt: Date
-}
-
-export interface ChatMessage {
-  id: string
-  userId: string
-  name: string
-  text: string
-  timestamp: number
-  isAI?: boolean
-}
-
-// In-memory store for active class rooms
-const activeRooms = new Map<string, ClassRoom>()
-
-// ============================================
-// DIRECT MESSAGING STATE
-// ============================================
-
-interface DirectMessageRoom {
-  conversationId: string
-  participant1Id: string
-  participant2Id: string
-  typingUsers: Set<string>
-  lastActivity: number
-}
-
-const directMessageRooms = new Map<string, DirectMessageRoom>()
-const userSocketMap = new Map<string, string>() // userId -> socketId
-
-// ============================================
-// PDF TUTORING COLLAB STATE
-// ============================================
-
-interface PdfCollabRoomState {
-  roomId: string
-  locked: boolean
-  ownerId?: string
-  lastActivity: number
-  participants: Map<string, { userId?: string; name: string; role: 'student' | 'tutor'; joinedAt: number }>
-  events: Array<{
-    page: number
-    action: 'created' | 'modified' | 'removed' | 'sync-request'
-    object?: Record<string, unknown>
-    objectId?: string
-    actorId?: string
-    sentAt: number
-  }>
-}
-
-const pdfCollabRooms = new Map<string, PdfCollabRoomState>()
-
-interface LiveDocumentShare {
-  shareId: string
-  classRoomId: string
-  ownerId: string
-  ownerName: string
-  assignedStudentId?: string
-  templateShareId?: string
-  title: string
-  description?: string
-  fileUrl: string
-  mimeType?: string
-  pdfRoomId: string
-  visibleToAll: boolean
-  allowCollaborativeWrite: boolean
-  collaborationPolicy?: {
-    allowDrawing: boolean
-    allowTyping: boolean
-    allowShapes: boolean
-  }
-  active: boolean
-  submissions?: Array<{ userId: string; userName: string; submittedAt: number }>
-  updatedAt: number
-}
-
-const liveDocumentShares = new Map<string, Map<string, LiveDocumentShare>>()
-
-const getPdfCollabRoom = (roomId: string): PdfCollabRoomState => {
-  const key = `pdf:${roomId}`
-  let room = pdfCollabRooms.get(key)
-  if (!room) {
-    room = {
-      roomId: key,
-      locked: false,
-      ownerId: undefined,
-      lastActivity: Date.now(),
-      participants: new Map(),
-      events: [],
-    }
-    pdfCollabRooms.set(key, room)
-  }
-  return room
-}
-
-const getLiveDocumentShareMap = (classRoomId: string): Map<string, LiveDocumentShare> => {
-  let shareMap = liveDocumentShares.get(classRoomId)
-  if (!shareMap) {
-    shareMap = new Map<string, LiveDocumentShare>()
-    liveDocumentShares.set(classRoomId, shareMap)
-  }
-  return shareMap
-}
-
-const expandLiveShareForStudents = (
-  classRoomId: string,
-  template: LiveDocumentShare
-): LiveDocumentShare[] => {
-  const room = activeRooms.get(classRoomId)
-  if (!room) return []
-
-  const now = Date.now()
-  const clones: LiveDocumentShare[] = []
-  room.students.forEach((studentState, studentId) => {
-    clones.push({
-      ...template,
-      shareId: `${template.shareId}::${studentId}`,
-      ownerId: studentId,
-      ownerName: studentState.name,
-      assignedStudentId: studentId,
-      templateShareId: template.shareId,
-      visibleToAll: false,
-      active: true,
-      pdfRoomId: `${template.pdfRoomId}:student:${studentId}`,
-      updatedAt: now,
-    })
-  })
-  return clones
-}
-
-// ============================================
-// WHITEBOARD STATE
-// ============================================
-
-interface WhiteboardStroke {
-  id: string
-  points: Array<{ x: number; y: number; pressure?: number }>
-  color: string
-  width: number
-  type: 'pen' | 'eraser' | 'pencil' | 'marker' | 'highlighter' | 'calligraphy' | 'shape' | 'text'
-  userId: string
-  opacity?: number
-  shapeType?: 'line' | 'arrow' | 'rectangle' | 'circle' | 'triangle' | 'connector'
-  text?: string
-  fontSize?: number
-  fontFamily?: string
-  textStyle?: {
-    bold?: boolean
-    italic?: boolean
-    align?: 'left' | 'center' | 'right'
-  }
-  layerId?: 'tutor-broadcast' | 'tutor-private' | 'student-personal' | 'shared-group'
-  roomScope?: 'main' | 'breakout'
-  groupId?: string
-  zIndex?: number
-  locked?: boolean
-  rotation?: number
-  createdAt?: number
-  updatedAt?: number
-  sourceStrokeId?: string
-  targetStrokeId?: string
-  sourcePort?: 'top' | 'right' | 'bottom' | 'left' | 'center'
-  targetPort?: 'top' | 'right' | 'bottom' | 'left' | 'center'
-}
-
-interface WhiteboardStrokeOp {
-  kind: 'upsert' | 'delete'
-  stroke?: WhiteboardStroke
-  strokeId?: string
-  opId?: string
-  sentAt?: number
-  baseVersion?: number
-}
-
-interface WhiteboardSelectionPresence {
-  userId: string
-  name: string
-  role: 'tutor' | 'student'
-  strokeIds: string[]
-  pageId?: string
-  color: string
-  updatedAt: number
-}
-
-interface WhiteboardShape {
-  id: string
-  type: 'rectangle' | 'circle' | 'line' | 'triangle'
-  x: number
-  y: number
-  width: number
-  height: number
-  color: string
-  lineWidth: number
-  userId: string
-}
-
-interface WhiteboardText {
-  id: string
-  text: string
-  x: number
-  y: number
-  color: string
-  fontSize: number
-  userId: string
-}
-
-interface WhiteboardState {
-  whiteboardId: string
-  roomId: string
-  strokes: WhiteboardStroke[]
-  shapes: WhiteboardShape[]
-  texts: WhiteboardText[]
-  cursors: Map<string, { x: number; y: number; color: string; name: string }>
-  activeUsers: Set<string>
-  backgroundColor: string
-  backgroundStyle: string
-}
-
-const activeWhiteboards = new Map<string, WhiteboardState>()
-
-interface WhiteboardOpMetricsState {
-  key: string
-  roomId: string
-  boardScope: 'tutor' | 'student'
-  studentId?: string
-  lastActivity: number
-  receivedOps: number
-  appliedOps: number
-  conflictDrops: number
-  duplicateDrops: number
-  malformedDrops: number
-  queueDepth: number
-  maxQueueDepth: number
-  replayRequests: number
-  recentAppliedTimestamps: number[]
-}
-
-export interface WhiteboardOpObservabilitySnapshot {
-  key: string
-  roomId: string
-  boardScope: 'tutor' | 'student'
-  studentId?: string
-  lastActivity: number
-  receivedOps: number
-  appliedOps: number
-  conflictDrops: number
-  duplicateDrops: number
-  malformedDrops: number
-  queueDepth: number
-  maxQueueDepth: number
-  replayRequests: number
-  opsPerSecond: number
-  activeStrokeCount: number
-  deadLetterDepth: number
-}
-
-const whiteboardOpMetrics = new Map<string, WhiteboardOpMetricsState>()
-const whiteboardSelectionPresence = new Map<string, Map<string, WhiteboardSelectionPresence>>()
-const whiteboardOpSeenIds = new Map<string, Set<string>>()
-const whiteboardDeadLetters = new Map<string, Array<{
-  at: number
-  reason: 'malformed' | 'duplicate' | 'causal'
-  op: WhiteboardStrokeOp
-}>>()
-const whiteboardOpLog = new Map<string, Array<{
-  seq: number
-  at: number
-  op: WhiteboardStrokeOp
-}>>()
-const whiteboardOpSeq = new Map<string, number>()
-const whiteboardBranches = new Map<string, Map<string, WhiteboardStroke[]>>()
-
-const parseWhiteboardMetricKey = (key: string): {
-  roomId: string
-  boardScope: 'tutor' | 'student'
-  studentId?: string
-} => {
-  if (key.startsWith('lcwb:tutor:')) {
-    return { roomId: key.replace('lcwb:tutor:', ''), boardScope: 'tutor' }
-  }
-  if (key.startsWith('lcwb:')) {
-    const parts = key.split(':')
-    return {
-      roomId: parts[1] || 'unknown',
-      boardScope: 'student',
-      studentId: parts[2],
-    }
-  }
-  return { roomId: key, boardScope: 'student' }
-}
-
-const getWhiteboardOpMetric = (key: string): WhiteboardOpMetricsState => {
-  let metric = whiteboardOpMetrics.get(key)
-  if (!metric) {
-    const parsed = parseWhiteboardMetricKey(key)
-    metric = {
-      key,
-      roomId: parsed.roomId,
-      boardScope: parsed.boardScope,
-      studentId: parsed.studentId,
-      lastActivity: Date.now(),
-      receivedOps: 0,
-      appliedOps: 0,
-      conflictDrops: 0,
-      duplicateDrops: 0,
-      malformedDrops: 0,
-      queueDepth: 0,
-      maxQueueDepth: 0,
-      replayRequests: 0,
-      recentAppliedTimestamps: [],
-    }
-    whiteboardOpMetrics.set(key, metric)
-  }
-  return metric
-}
-
-const trimWhiteboardOpTimestamps = (metric: WhiteboardOpMetricsState) => {
-  const cutoff = Date.now() - 60_000
-  metric.recentAppliedTimestamps = metric.recentAppliedTimestamps.filter((ts) => ts >= cutoff)
-}
-
-export function getWhiteboardOpObservability(roomId?: string): WhiteboardOpObservabilitySnapshot[] {
-  const rows: WhiteboardOpObservabilitySnapshot[] = []
-  whiteboardOpMetrics.forEach((metric) => {
-    if (roomId && metric.roomId !== roomId) return
-    trimWhiteboardOpTimestamps(metric)
-    const recent10s = metric.recentAppliedTimestamps.filter((ts) => ts >= Date.now() - 10_000).length
-    rows.push({
-      key: metric.key,
-      roomId: metric.roomId,
-      boardScope: metric.boardScope,
-      studentId: metric.studentId,
-      lastActivity: metric.lastActivity,
-      receivedOps: metric.receivedOps,
-      appliedOps: metric.appliedOps,
-      conflictDrops: metric.conflictDrops,
-      duplicateDrops: metric.duplicateDrops,
-      malformedDrops: metric.malformedDrops,
-      queueDepth: metric.queueDepth,
-      maxQueueDepth: metric.maxQueueDepth,
-      replayRequests: metric.replayRequests,
-      opsPerSecond: Number((recent10s / 10).toFixed(2)),
-      activeStrokeCount: activeWhiteboards.get(metric.key)?.strokes.length || 0,
-      deadLetterDepth: (whiteboardDeadLetters.get(metric.key) || []).length,
-    })
-  })
-  return rows.sort((a, b) => b.lastActivity - a.lastActivity)
-}
-
-const applyStrokeOps = (current: WhiteboardStroke[], ops: WhiteboardStrokeOp[]): {
-  next: WhiteboardStroke[]
-  appliedCount: number
-  conflictDrops: number
-  causalDrops: WhiteboardStrokeOp[]
-} => {
-  if (!ops.length) {
-    return { next: current, appliedCount: 0, conflictDrops: 0, causalDrops: [] }
-  }
-  const byId = new Map(current.map((stroke) => [stroke.id, stroke]))
-  let appliedCount = 0
-  let conflictDrops = 0
-  const causalDrops: WhiteboardStrokeOp[] = []
-  ops.forEach((op) => {
-    if (op.kind === 'delete') {
-      if (op.strokeId && byId.has(op.strokeId)) {
-        byId.delete(op.strokeId)
-        appliedCount += 1
-      }
-      return
-    }
-    if (op.stroke) {
-      const existing = byId.get(op.stroke.id)
-      const incomingVersion = op.stroke.updatedAt || op.stroke.createdAt || 0
-      const currentVersion = existing?.updatedAt || existing?.createdAt || 0
-      if (!existing || incomingVersion >= currentVersion) {
-        byId.set(op.stroke.id, op.stroke)
-        appliedCount += 1
-      } else {
-        conflictDrops += 1
-        causalDrops.push(op)
-      }
-    }
-  })
-  return {
-    next: Array.from(byId.values()),
-    appliedCount,
-    conflictDrops,
-    causalDrops,
-  }
-}
-
-const isValidStrokePoint = (p: unknown): p is { x: number; y: number; pressure?: number } => {
-  if (!p || typeof p !== 'object') return false
-  const item = p as { x?: unknown; y?: unknown; pressure?: unknown }
-  return typeof item.x === 'number' && Number.isFinite(item.x) && typeof item.y === 'number' && Number.isFinite(item.y)
-}
-
-const isValidStroke = (stroke: WhiteboardStroke | undefined): stroke is WhiteboardStroke => {
-  if (!stroke || typeof stroke !== 'object') return false
-  if (!stroke.id || typeof stroke.id !== 'string') return false
-  if (!Array.isArray(stroke.points) || stroke.points.some((p) => !isValidStrokePoint(p))) return false
-  return true
-}
-
-const sanitizeWhiteboardOps = (wbKey: string, ops: WhiteboardStrokeOp[]): {
-  valid: WhiteboardStrokeOp[]
-  malformed: WhiteboardStrokeOp[]
-  duplicates: WhiteboardStrokeOp[]
-} => {
-  const valid: WhiteboardStrokeOp[] = []
-  const malformed: WhiteboardStrokeOp[] = []
-  const duplicates: WhiteboardStrokeOp[] = []
-  const seen = whiteboardOpSeenIds.get(wbKey) || new Set<string>()
-
-  ops.forEach((op) => {
-    if (!op || typeof op !== 'object' || (op.kind !== 'upsert' && op.kind !== 'delete')) {
-      malformed.push(op)
-      return
-    }
-    if (op.opId) {
-      if (seen.has(op.opId)) {
-        duplicates.push(op)
-        return
-      }
-      seen.add(op.opId)
-      if (seen.size > 20000) {
-        const items = Array.from(seen)
-        seen.clear()
-        items.slice(-10000).forEach((id) => seen.add(id))
-      }
-    }
-    if (op.kind === 'upsert') {
-      if (!isValidStroke(op.stroke)) {
-        malformed.push(op)
-        return
-      }
-    } else if (!op.strokeId || typeof op.strokeId !== 'string') {
-      malformed.push(op)
-      return
-    }
-    valid.push(op)
-  })
-
-  whiteboardOpSeenIds.set(wbKey, seen)
-  return { valid, malformed, duplicates }
-}
-
-const pushWhiteboardDeadLetters = (wbKey: string, reason: 'malformed' | 'duplicate' | 'causal', ops: WhiteboardStrokeOp[]) => {
-  if (!ops.length) return
-  const queue = whiteboardDeadLetters.get(wbKey) || []
-  ops.forEach((op) => queue.push({ at: Date.now(), reason, op }))
-  whiteboardDeadLetters.set(wbKey, queue.slice(-500))
-}
-
-const appendWhiteboardOpLog = (wbKey: string, ops: WhiteboardStrokeOp[]) => {
-  if (!ops.length) return
-  const queue = whiteboardOpLog.get(wbKey) || []
-  let seq = whiteboardOpSeq.get(wbKey) || 0
-  ops.forEach((op) => {
-    seq += 1
-    queue.push({
-      seq,
-      at: Date.now(),
-      op,
-    })
-  })
-  whiteboardOpSeq.set(wbKey, seq)
-  whiteboardOpLog.set(wbKey, queue.slice(-4000))
-}
-
-interface LiveClassModerationState {
-  mutedStudents: Set<string>
-  studentStrokeWindowLimit: number
-  strokeWindowMs: number
-  strokeCounters: Map<string, { count: number; startedAt: number }>
-  lockedLayers: Set<string>
-  assignmentOverlay: 'none' | 'graph-paper' | 'geometry-grid' | 'coordinate-plane' | 'chemistry-structure'
-  spotlight: {
-    enabled: boolean
-    x: number
-    y: number
-    width: number
-    height: number
-    mode: 'rectangle' | 'pen'
-  }
-}
-
-interface LiveClassSnapshot {
-  id: string
-  createdAt: number
-  roomId: string
-  createdBy: string
-  strokes: WhiteboardStroke[]
-}
-
-const liveClassModeration = new Map<string, LiveClassModerationState>()
-const liveClassSnapshots = new Map<string, LiveClassSnapshot[]>()
-const liveClassExports = new Map<string, Array<{
-  id: string
-  roomId: string
-  sessionId?: string
-  studentId?: string
-  format: 'png' | 'pdf'
-  fileName: string
-  dataUrl: string
-  createdAt: number
-  createdBy: string
-}>>()
-
-interface MathWhiteboardRoomState {
-  roomId: string
-  sessionId: string
-  locked: boolean
-  ownerId?: string
-  lastActivity: number
-  currentPage: number
-  participants: Map<string, {
-    userId?: string
-    name: string
-    role: 'student' | 'tutor'
-    color: string
-    cursor?: { x: number; y: number }
-    joinedAt: number
-  }>
-  elements: Map<string, Record<string, unknown> & {
-    id: string
-    type: string
-    version: number
-    lastModified: number
-    modifiedBy: string
-  }>
-  pages: Array<{
-    index: number
-    backgroundType: string
-    elementIds: string[]
-  }>
-  tldrawSnapshot?: Record<string, unknown> | null
-  yDoc: Y.Doc
-}
-
-const mathWhiteboardRooms = new Map<string, MathWhiteboardRoomState>()
-
-interface MathSyncMetricsState {
-  sessionId: string
-  roomId: string
-  lastActivity: number
-  joins: number
-  leaves: number
-  syncRequests: number
-  yjsUpdates: number
-  yjsBytes: number
-  snapshotBroadcasts: number
-  lockToggles: number
-  recentUpdateTimestamps: number[]
-}
-
-export interface MathSyncObservabilitySnapshot {
-  sessionId: string
-  roomId: string
-  lastActivity: number
-  locked: boolean
-  participants: number
-  joins: number
-  leaves: number
-  syncRequests: number
-  yjsUpdates: number
-  yjsBytes: number
-  snapshotBroadcasts: number
-  lockToggles: number
-  updatesPerMinute: number
-  averageYjsUpdateBytes: number
-}
-
-const mathSyncMetrics = new Map<string, MathSyncMetricsState>()
-
-const getMathSyncMetric = (sessionId: string): MathSyncMetricsState => {
-  const key = `math:${sessionId}`
-  let metric = mathSyncMetrics.get(key)
-  if (!metric) {
-    metric = {
-      sessionId,
-      roomId: key,
-      lastActivity: Date.now(),
-      joins: 0,
-      leaves: 0,
-      syncRequests: 0,
-      yjsUpdates: 0,
-      yjsBytes: 0,
-      snapshotBroadcasts: 0,
-      lockToggles: 0,
-      recentUpdateTimestamps: [],
-    }
-    mathSyncMetrics.set(key, metric)
-  }
-  return metric
-}
-
-const trimRecentUpdates = (metric: MathSyncMetricsState): void => {
-  const cutoff = Date.now() - 60_000
-  metric.recentUpdateTimestamps = metric.recentUpdateTimestamps.filter((ts) => ts >= cutoff)
-}
-
-export function getMathSyncObservability(sessionId?: string): MathSyncObservabilitySnapshot[] {
-  const snapshots: MathSyncObservabilitySnapshot[] = []
-  const rooms = sessionId
-    ? [[`math:${sessionId}`, mathWhiteboardRooms.get(`math:${sessionId}`)] as const]
-    : Array.from(mathWhiteboardRooms.entries())
-
-  for (const [key, room] of rooms) {
-    if (!room) continue
-    const metric = mathSyncMetrics.get(key) || getMathSyncMetric(room.sessionId)
-    trimRecentUpdates(metric)
-    snapshots.push({
-      sessionId: room.sessionId,
-      roomId: room.roomId,
-      lastActivity: Math.max(room.lastActivity, metric.lastActivity),
-      locked: room.locked,
-      participants: room.participants.size,
-      joins: metric.joins,
-      leaves: metric.leaves,
-      syncRequests: metric.syncRequests,
-      yjsUpdates: metric.yjsUpdates,
-      yjsBytes: metric.yjsBytes,
-      snapshotBroadcasts: metric.snapshotBroadcasts,
-      lockToggles: metric.lockToggles,
-      updatesPerMinute: metric.recentUpdateTimestamps.length,
-      averageYjsUpdateBytes: metric.yjsUpdates > 0 ? Math.round(metric.yjsBytes / metric.yjsUpdates) : 0,
-    })
-  }
-
-  return snapshots.sort((a, b) => b.lastActivity - a.lastActivity)
-}
-
-const getMathWhiteboardRoom = (sessionId: string): MathWhiteboardRoomState => {
-  const key = `math:${sessionId}`
-  let room = mathWhiteboardRooms.get(key)
-  if (!room) {
-    room = {
-      roomId: key,
-      sessionId,
-      locked: false,
-      ownerId: undefined,
-      lastActivity: Date.now(),
-      currentPage: 0,
-      participants: new Map(),
-      elements: new Map(),
-      pages: [{
-        index: 0,
-        backgroundType: 'grid',
-        elementIds: [],
-      }],
-      tldrawSnapshot: null,
-      yDoc: new Y.Doc(),
-    }
-    mathWhiteboardRooms.set(key, room)
-  }
-  getMathSyncMetric(sessionId)
-  return room
-}
-
-const getLiveClassModerationState = (roomId: string): LiveClassModerationState => {
-  let state = liveClassModeration.get(roomId)
-  if (!state) {
-    state = {
-      mutedStudents: new Set(),
-      studentStrokeWindowLimit: 80,
-      strokeWindowMs: 5000,
-      strokeCounters: new Map(),
-      lockedLayers: new Set(),
-      assignmentOverlay: 'none',
-      spotlight: {
-        enabled: false,
-        x: 160,
-        y: 120,
-        width: 420,
-        height: 220,
-        mode: 'rectangle',
-      },
-    }
-    liveClassModeration.set(roomId, state)
-  }
-  return state
-}
-
-const appendLiveClassSnapshot = (roomId: string, snapshot: LiveClassSnapshot) => {
-  const existing = liveClassSnapshots.get(roomId) || []
-  existing.push(snapshot)
-  liveClassSnapshots.set(roomId, existing.slice(-80))
-}
+// Re-export for consumers
+export type { StudentStatus, StudentState, ClassRoom, ChatMessage, BreakoutRoom, WhiteboardOpObservabilitySnapshot, MathSyncObservabilitySnapshot, PollState, DirectMessageRoom, WhiteboardState, WhiteboardStroke, WhiteboardShape, WhiteboardText } from '@/lib/socket'
+export { getRoomState, getBreakoutRoomState, getDMRoomState, getUserSocketId, isUserOnline, broadcastToUser, getWhiteboardState, clearWhiteboard, exportWhiteboard, getWhiteboardOpObservability, getMathSyncObservability, getPollState, getSessionPolls } from '@/lib/socket'
 
 async function generateWhiteboardRegionHint(payload: {
   region: { x: number; y: number; width: number; height: number }
@@ -1002,10 +382,13 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
     const current = activeWhiteboards.get(wbKey)?.strokes || []
     const currentIds = new Set(current.map((s) => s.id))
     const nextIds = new Set((data.strokes || []).map((s) => s.id))
-    const ops: WhiteboardStrokeOp[] = [
-      ...(data.strokes || []).map((stroke) => ({ kind: 'upsert' as const, stroke })),
-      ...Array.from(currentIds).filter((id) => !nextIds.has(id)).map((id) => ({ kind: 'delete' as const, strokeId: id })),
+    const base = Date.now()
+    const rawOps: WhiteboardStrokeOp[] = [
+      ...(data.strokes || []).map((stroke, i) => ({ kind: 'upsert' as const, stroke, opId: `${wbKey}:replace:${base}-u${i}` })),
+      ...Array.from(currentIds).filter((id) => !nextIds.has(id)).map((id, i) => ({ kind: 'delete' as const, strokeId: id, opId: `${wbKey}:replace:${base}-d${i}` })),
     ]
+    const sanitized = sanitizeWhiteboardOps(wbKey, rawOps)
+    const ops = sanitized.valid
     let studentWB = activeWhiteboards.get(wbKey)
     if (!studentWB) {
       studentWB = {
@@ -1025,7 +408,11 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
     metric.lastActivity = Date.now()
     metric.queueDepth += ops.length
     metric.maxQueueDepth = Math.max(metric.maxQueueDepth, metric.queueDepth)
-    metric.receivedOps += ops.length
+    metric.receivedOps += rawOps.length
+    metric.malformedDrops += sanitized.malformed.length
+    metric.duplicateDrops += sanitized.duplicates.length
+    pushWhiteboardDeadLetters(wbKey, 'malformed', sanitized.malformed)
+    pushWhiteboardDeadLetters(wbKey, 'duplicate', sanitized.duplicates)
     const result = applyStrokeOps(studentWB.strokes, ops)
     studentWB.strokes = result.next
     metric.appliedOps += result.appliedCount
@@ -1047,10 +434,13 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
     const current = activeWhiteboards.get(roomWBKey)?.strokes || []
     const currentIds = new Set(current.map((s) => s.id))
     const nextIds = new Set((data.strokes || []).map((s) => s.id))
-    const ops: WhiteboardStrokeOp[] = [
-      ...(data.strokes || []).map((stroke) => ({ kind: 'upsert' as const, stroke })),
-      ...Array.from(currentIds).filter((id) => !nextIds.has(id)).map((id) => ({ kind: 'delete' as const, strokeId: id })),
+    const base = Date.now()
+    const rawOps: WhiteboardStrokeOp[] = [
+      ...(data.strokes || []).map((stroke, i) => ({ kind: 'upsert' as const, stroke, opId: `${roomWBKey}:replace:${base}-u${i}` })),
+      ...Array.from(currentIds).filter((id) => !nextIds.has(id)).map((id, i) => ({ kind: 'delete' as const, strokeId: id, opId: `${roomWBKey}:replace:${base}-d${i}` })),
     ]
+    const sanitized = sanitizeWhiteboardOps(roomWBKey, rawOps)
+    const ops = sanitized.valid
     let roomWB = activeWhiteboards.get(roomWBKey)
     if (!roomWB) {
       roomWB = {
@@ -1070,7 +460,11 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
     metric.lastActivity = Date.now()
     metric.queueDepth += ops.length
     metric.maxQueueDepth = Math.max(metric.maxQueueDepth, metric.queueDepth)
-    metric.receivedOps += ops.length
+    metric.receivedOps += rawOps.length
+    metric.malformedDrops += sanitized.malformed.length
+    metric.duplicateDrops += sanitized.duplicates.length
+    pushWhiteboardDeadLetters(roomWBKey, 'malformed', sanitized.malformed)
+    pushWhiteboardDeadLetters(roomWBKey, 'duplicate', sanitized.duplicates)
     const result = applyStrokeOps(roomWB.strokes, ops)
     roomWB.strokes = result.next
     metric.appliedOps += result.appliedCount
@@ -1279,6 +673,19 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
     region: { x: number; y: number; width: number; height: number }
     context?: string
   }) => {
+    const key = `ai_region:${data.roomId}:${socket.data.userId ?? socket.id}`
+    const now = Date.now()
+    let state = lcwbAiRegionRateLimit.get(key)
+    if (!state || now >= state.resetAt) {
+      state = { count: 0, resetAt: now + LCWB_AI_REGION_RATE_WINDOW_MS }
+      lcwbAiRegionRateLimit.set(key, state)
+    }
+    state.count += 1
+    if (state.count > LCWB_AI_REGION_RATE_LIMIT_PER_MIN) {
+      socket.emit('lcwb_ai_region_error', { code: 'RATE_LIMITED', message: 'Too many AI hint requests. Please wait.' })
+      return
+    }
+
     const ai = await generateWhiteboardRegionHint({ region: data.region, context: data.context })
     io.to(data.roomId).emit('lcwb_ai_region_hint', {
       requestedBy: socket.data.userId,
@@ -1339,7 +746,7 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
     }
     const exportsForRoom = liveClassExports.get(data.roomId) || []
     exportsForRoom.push(exportItem)
-    liveClassExports.set(data.roomId, exportsForRoom.slice(-150))
+    liveClassExports.set(data.roomId, exportsForRoom.slice(-LIVE_CLASS_EXPORTS_MAX))
     io.to(`lcwb:tutor:${data.roomId}`).emit('lcwb_export_attached', exportItem)
   })
 
@@ -1365,10 +772,13 @@ export function initSocketServer(server: NetServer) {
   const io = new SocketIOServer(server, {
     path: '/api/socket',
     cors: {
-      origin: '*',
-      methods: ['GET', 'POST']
-    }
+      origin: getSocketCorsOrigin(),
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
   })
+
+  io.use(socketAuthMiddleware)
 
   const broadcastPdfPresenceState = (room: PdfCollabRoomState) => {
     io.to(room.roomId).emit('pdf_presence_state', {
@@ -1381,20 +791,33 @@ export function initSocketServer(server: NetServer) {
     console.warn('Client connected:', socket.id)
 
     // Join class room
-    socket.on('join_class', async (data: { 
+    socket.on('join_class', async (data: {
       roomId: string
-      userId: string
-      name: string
-      role: 'student' | 'tutor'
+      userId?: string
+      name?: string
+      role?: 'student' | 'tutor'
       tutorId?: string
     }) => {
-      const { roomId, userId, name, role, tutorId } = data
-      
+      const roomId = typeof data?.roomId === 'string' ? data.roomId.trim().slice(0, ROOM_ID_MAX_LENGTH) : ''
+      if (!roomId) return
+
+      const authUserId = socket.data.userId as string | undefined
+      const authRole = socket.data.role as string | undefined
+      const useAuth = Boolean(authUserId)
+
+      const userId = useAuth ? authUserId : (typeof data.userId === 'string' ? data.userId.trim().slice(0, USER_ID_MAX_LENGTH) : '')
+      const name = useAuth ? (socket.data.name as string) ?? '' : (typeof data.name === 'string' ? data.name.trim().slice(0, NAME_MAX_LENGTH) : 'Unknown')
+      const role = useAuth ? (authRole === 'tutor' || authRole === 'student' ? authRole : 'student') : (data.role === 'tutor' || data.role === 'student' ? data.role : 'student')
+
+      if (!userId) return
+
       socket.join(roomId)
       socket.data.userId = userId
       socket.data.roomId = roomId
       socket.data.role = role
-      socket.data.name = name
+      socket.data.name = name || 'Unknown'
+
+      const tutorId = data.tutorId
 
       // Get or create room
       let room = activeRooms.get(roomId)
@@ -1429,7 +852,7 @@ export function initSocketServer(server: NetServer) {
         // Send current room state to joining student
         socket.emit('room_state', {
           students: Array.from(room.students.values()),
-          chatHistory: room.chatHistory.slice(-50), // Last 50 messages
+          chatHistory: room.chatHistory.slice(-CHAT_HISTORY_SLICE_TO_STUDENT),
           whiteboardData: room.whiteboardData
         })
       } else if (role === 'tutor') {
@@ -1505,8 +928,8 @@ export function initSocketServer(server: NetServer) {
         actorId: payload.actorId,
         sentAt: payload.sentAt,
       })
-      if (room.events.length > 500) {
-        room.events = room.events.slice(-500)
+      if (room.events.length > PDF_EVENTS_MAX) {
+        room.events = room.events.slice(-PDF_EVENTS_MAX)
       }
       socket.to(room.roomId).emit('pdf_canvas_event', payload)
     })
@@ -1836,7 +1259,7 @@ export function initSocketServer(server: NetServer) {
       metric.lastActivity = Date.now()
       metric.snapshotBroadcasts += 1
       room.tldrawSnapshot = payload.snapshot
-      io.emit('math_tl_snapshot', {
+      io.to(room.roomId).emit('math_tl_snapshot', {
         sessionId: payload.sessionId,
         snapshot: payload.snapshot,
         actorId: participant?.userId,
@@ -1860,36 +1283,10 @@ export function initSocketServer(server: NetServer) {
       metric.recentUpdateTimestamps.push(Date.now())
       trimRecentUpdates(metric)
       Y.applyUpdate(room.yDoc, update, 'remote')
-      io.emit('math_yjs_update', {
+      io.to(room.roomId).emit('math_yjs_update', {
         sessionId: payload.sessionId,
         update: payload.update,
         actorId: participant?.userId,
-      })
-    })
-
-    // Cleanup on disconnect
-    socket.on('disconnect', () => {
-      // Clean up math whiteboard participation
-      mathWhiteboardRooms.forEach((room, key) => {
-        if (room.participants.has(socket.id)) {
-          room.participants.delete(socket.id)
-          const metric = mathSyncMetrics.get(key)
-          if (metric) {
-            metric.lastActivity = Date.now()
-            metric.leaves += 1
-          }
-          broadcastMathPresence(room)
-          
-          // Clean up empty rooms after 1 hour
-          if (room.participants.size === 0) {
-            setTimeout(() => {
-              if (room.participants.size === 0) {
-                mathWhiteboardRooms.delete(key)
-                console.warn(`[MathWB] Cleaned up empty room ${key}`)
-              }
-            }, 3600000) // 1 hour
-          }
-        }
       })
     })
 
@@ -2027,19 +1424,22 @@ export function initSocketServer(server: NetServer) {
       const room = activeRooms.get(roomId)
       if (!room) return
 
+      const rawText = typeof data.text === 'string' ? data.text : ''
+      const text = rawText.slice(0, MAX_CHAT_MESSAGE_LENGTH)
+      if (!text.trim()) return
+
       const message: ChatMessage = {
         id: `${Date.now()}-${socket.data.userId}`,
         userId: socket.data.userId,
         name: socket.data.name || 'Unknown',
-        text: data.text,
+        text,
         timestamp: Date.now()
       }
 
       room.chatHistory.push(message)
       
-      // Keep only last 100 messages
-      if (room.chatHistory.length > 100) {
-        room.chatHistory = room.chatHistory.slice(-100)
+      if (room.chatHistory.length > CHAT_HISTORY_MAX) {
+        room.chatHistory = room.chatHistory.slice(-CHAT_HISTORY_MAX)
       }
 
       // Broadcast to all in room
@@ -2047,7 +1447,7 @@ export function initSocketServer(server: NetServer) {
 
       // Check for distress signals
       const distressKeywords = ['stuck', 'don\'t get it', 'confused', 'help', '???', 'lost']
-      const lowerText = data.text.toLowerCase()
+      const lowerText = text.toLowerCase()
       if (distressKeywords.some(kw => lowerText.includes(kw))) {
         const student = room.students.get(socket.data.userId)
         if (student) {
@@ -2058,7 +1458,7 @@ export function initSocketServer(server: NetServer) {
           socket.to(roomId).emit('student_distress', {
             userId: socket.data.userId,
             name: student.name,
-            message: data.text,
+            message: text,
             status: student.status
           })
         }
@@ -2182,25 +1582,26 @@ export function initSocketServer(server: NetServer) {
     })
 
     // Join a conversation room
-    socket.on('dm_join_conversation', (data: { conversationId: string; userId: string }) => {
+    socket.on('dm_join_conversation', async (data: { conversationId: string; userId: string }) => {
       const { conversationId, userId } = data
-      
+      if (!conversationId || !userId) return
+
       socket.join(`conversation:${conversationId}`)
       socket.data.currentConversation = conversationId
-      
-      // Track room state
+
       let room = directMessageRooms.get(conversationId)
       if (!room) {
+        const ids = await getConversationParticipantIds(conversationId)
         room = {
           conversationId,
-          participant1Id: '', // Will be set from DB lookup
-          participant2Id: '',
+          participant1Id: ids?.participant1Id ?? '',
+          participant2Id: ids?.participant2Id ?? '',
           typingUsers: new Set(),
-          lastActivity: Date.now()
+          lastActivity: Date.now(),
         }
         directMessageRooms.set(conversationId, room)
       }
-      
+
       room.lastActivity = Date.now()
       console.warn(`User ${userId} joined conversation ${conversationId}`)
     })
@@ -2234,23 +1635,24 @@ export function initSocketServer(server: NetServer) {
       attachmentUrl?: string
       timestamp: number
     }) => {
+      const content = typeof data.content === 'string' ? data.content.slice(0, MAX_DM_MESSAGE_LENGTH) : ''
       const room = directMessageRooms.get(data.conversationId)
       if (room) {
         room.lastActivity = Date.now()
         room.typingUsers.delete(data.senderId)
       }
 
-      // Broadcast to conversation room
+      const payload = { ...data, content }
       io.to(`conversation:${data.conversationId}`).emit('dm_message', {
-        ...data,
+        ...payload,
         sender: {
           id: data.senderId,
           name: socket.data.name || 'Unknown'
         }
       })
 
-      // Notify recipient if not in conversation
-      const recipientSocketId = userSocketMap.get(data.senderId === room?.participant1Id ? room.participant2Id : room?.participant1Id || '')
+      const otherId = room && (data.senderId === room.participant1Id ? room.participant2Id : room.participant1Id)
+      const recipientSocketId = otherId ? userSocketMap.get(otherId) : undefined
       if (recipientSocketId) {
         const recipientSocket = io.sockets.sockets.get(recipientSocketId)
         if (recipientSocket && recipientSocket.data.currentConversation !== data.conversationId) {
@@ -2258,7 +1660,7 @@ export function initSocketServer(server: NetServer) {
             conversationId: data.conversationId,
             senderId: data.senderId,
             senderName: socket.data.name || 'Unknown',
-            preview: data.content.slice(0, 100),
+            preview: content.slice(0, 100),
             timestamp: data.timestamp
           })
         }
@@ -2417,17 +1819,23 @@ export function initSocketServer(server: NetServer) {
       }
     })
 
-    // Clear whiteboard
+    // Clear whiteboard (tutor or same user only; socket must be in room)
     socket.on('wb_clear', (data: {
       whiteboardId: string
       userId: string
     }) => {
+      const wbRoom = `wb:${data.whiteboardId}`
+      if (!socket.rooms.has(wbRoom)) return
+      const isTutor = socket.data.role === 'tutor'
+      const isSameUser = data.userId === socket.data.userId
+      if (!isTutor && !isSameUser) return
+
       const wb = activeWhiteboards.get(data.whiteboardId)
       if (wb) {
         wb.strokes = []
         wb.shapes = []
         wb.texts = []
-        io.to(`wb:${data.whiteboardId}`).emit('wb_cleared', { userId: data.userId })
+        io.to(wbRoom).emit('wb_cleared', { userId: data.userId })
       }
     })
 
@@ -2485,8 +1893,7 @@ export function initSocketServer(server: NetServer) {
 
     registerLiveClassWhiteboardHandlers(io, socket)
 
-    // Disconnect handling
-    // Disconnect handling
+    // Single disconnect handler: math WB, class room, DM, whiteboard, PDF, lcwb
     socket.on('disconnect', () => {
       const roomId = socket.data.roomId
       const userId = socket.data.userId
@@ -2494,7 +1901,28 @@ export function initSocketServer(server: NetServer) {
       const wbId = socket.data.whiteboardId
       const wbUserId = socket.data.whiteboardUserId
       const pdfRoomId = socket.data.pdfRoomId as string | undefined
-      
+
+      // Clean up math whiteboard participation
+      mathWhiteboardRooms.forEach((room, key) => {
+        if (room.participants.has(socket.id)) {
+          room.participants.delete(socket.id)
+          const metric = mathSyncMetrics.get(key)
+          if (metric) {
+            metric.lastActivity = Date.now()
+            metric.leaves += 1
+          }
+          broadcastMathPresence(room)
+          if (room.participants.size === 0) {
+            setTimeout(() => {
+              if (room.participants.size === 0) {
+                mathWhiteboardRooms.delete(key)
+                console.warn(`[MathWB] Cleaned up empty room ${key}`)
+              }
+            }, MATH_WB_EMPTY_ROOM_CLEANUP_MS)
+          }
+        }
+      })
+
       if (roomId && userId) {
         const room = activeRooms.get(roomId)
         if (room && socket.data.role === 'student') {
@@ -2549,40 +1977,37 @@ export function initSocketServer(server: NetServer) {
   setInterval(() => {
     const now = Date.now()
     activeRooms.forEach((room, roomId) => {
-      // Remove rooms inactive for > 4 hours
-      if (now - room.createdAt.getTime() > 4 * 60 * 60 * 1000) {
+      if (now - room.createdAt.getTime() > ROOM_IDLE_CLEANUP_MS) {
         activeRooms.delete(roomId)
         console.warn('Cleaned up inactive room:', roomId)
       }
     })
-  }, 60 * 60 * 1000) // Every hour
+  }, ROOM_CLEANUP_INTERVAL_MS)
 
-  // Cleanup inactive DM rooms periodically
   setInterval(() => {
     const now = Date.now()
     directMessageRooms.forEach((room, roomId) => {
-      // Remove rooms inactive for > 1 hour
-      if (now - room.lastActivity > 60 * 60 * 1000) {
+      if (now - room.lastActivity > DM_ROOM_IDLE_CLEANUP_MS) {
         directMessageRooms.delete(roomId)
         console.warn('Cleaned up inactive DM room:', roomId)
       }
     })
-  }, 30 * 60 * 1000) // Every 30 minutes
+  }, DM_CLEANUP_INTERVAL_MS)
 
   setInterval(() => {
     const now = Date.now()
     pdfCollabRooms.forEach((room, roomId) => {
-      if (now - room.lastActivity > 4 * 60 * 60 * 1000) {
+      if (now - room.lastActivity > ROOM_IDLE_CLEANUP_MS) {
         pdfCollabRooms.delete(roomId)
       }
     })
-  }, 30 * 60 * 1000)
+  }, PDF_CLEANUP_INTERVAL_MS)
 
   setInterval(() => {
     const now = Date.now()
     liveDocumentShares.forEach((shares, classRoomId) => {
       shares.forEach((share, shareId) => {
-        if (now - share.updatedAt > 4 * 60 * 60 * 1000) {
+        if (now - share.updatedAt > ROOM_IDLE_CLEANUP_MS) {
           shares.delete(shareId)
         }
       })
@@ -2590,7 +2015,7 @@ export function initSocketServer(server: NetServer) {
         liveDocumentShares.delete(classRoomId)
       }
     })
-  }, 30 * 60 * 1000)
+  }, LIVE_DOC_CLEANUP_INTERVAL_MS)
 
   return io
 }
@@ -2611,51 +2036,6 @@ function updateStudentStatus(student: StudentState) {
 // ============================================
 // BREAKOUT ROOM MANAGEMENT
 // ============================================
-
-export interface BreakoutRoom {
-  id: string
-  name: string
-  mainRoomId: string
-  participants: Map<string, { id: string; name: string; joinedAt: number; engagementScore?: number }>
-  status: 'forming' | 'active' | 'paused' | 'closed'
-  aiEnabled: boolean
-  timeLimit: number
-  timeRemaining?: number
-  startedAt?: Date
-  task?: {
-    id: string
-    title: string
-    description: string
-    type: 'discussion' | 'problem' | 'project' | 'quiz'
-  }
-  alerts: {
-    type: 'confusion' | 'conflict' | 'off_topic' | 'need_help' | 'quiet'
-    message: string
-    timestamp: number
-    severity: 'low' | 'medium' | 'high'
-  }[]
-  // Enhanced metrics for monitoring
-  metrics?: {
-    messagesExchanged: number
-    avgEngagement: number
-    participationRate: number
-    topicAdherence: number
-  }
-  chatHistory: {
-    id: string
-    senderId: string
-    senderName: string
-    message: string
-    timestamp: number
-  }[]
-  timers?: {
-    countdown?: NodeJS.Timeout
-    closingWarning?: NodeJS.Timeout
-  }
-}
-
-const breakoutRooms = new Map<string, BreakoutRoom>()
-const mainRoomBreakouts = new Map<string, Set<string>>() // mainRoomId -> Set<breakoutRoomId>
 
 export function initBreakoutHandlers(io: SocketIOServer, socket: Socket) {
   const emitBreakoutEvent = (roomId: string, colonEvent: string, underscoreEvent: string, payload: unknown) => {
@@ -2690,10 +2070,11 @@ export function initBreakoutHandlers(io: SocketIOServer, socket: Socket) {
       aiAssistantEnabled: boolean
     }
   }) => {
+    if (socket.data.role !== 'tutor') return
     const mainRoomId = data.mainRoomId || data.sessionId
     const { config } = data
     if (!mainRoomId) return
-    
+
     // Get main room participants
     const mainRoom = activeRooms.get(mainRoomId)
     if (!mainRoom) return
@@ -2883,8 +2264,8 @@ export function initBreakoutHandlers(io: SocketIOServer, socket: Socket) {
     }
 
     room.chatHistory.push(message)
-    if (room.chatHistory.length > 100) {
-      room.chatHistory = room.chatHistory.slice(-100)
+    if (room.chatHistory.length > CHAT_HISTORY_MAX) {
+      room.chatHistory = room.chatHistory.slice(-CHAT_HISTORY_MAX)
     }
 
     emitBreakoutEvent(data.roomId, 'breakout:message', 'breakout_message', message)
@@ -3000,132 +2381,6 @@ function closeBreakoutRoom(io: SocketIOServer, roomId: string) {
     breakoutRooms.delete(roomId)
   }, 5000)
 }
-
-export function getRoomState(roomId: string): ClassRoom | undefined {
-  return activeRooms.get(roomId)
-}
-
-export function getBreakoutRoomState(roomId: string): BreakoutRoom | undefined {
-  return breakoutRooms.get(roomId)
-}
-
-// ============================================
-// DIRECT MESSAGING HELPERS
-// ============================================
-
-export function getDMRoomState(conversationId: string): DirectMessageRoom | undefined {
-  return directMessageRooms.get(conversationId)
-}
-
-export function getUserSocketId(userId: string): string | undefined {
-  return userSocketMap.get(userId)
-}
-
-export function isUserOnline(userId: string): boolean {
-  return userSocketMap.has(userId)
-}
-
-export function broadcastToUser(io: SocketIOServer, userId: string, event: string, data: unknown) {
-  const socketId = userSocketMap.get(userId)
-  if (socketId) {
-    io.to(socketId).emit(event, data)
-  }
-}
-
-// ============================================
-// WHITEBOARD HELPERS
-// ============================================
-
-export function getWhiteboardState(whiteboardId: string): WhiteboardState | undefined {
-  return activeWhiteboards.get(whiteboardId)
-}
-
-export function clearWhiteboard(whiteboardId: string): boolean {
-  const wb = activeWhiteboards.get(whiteboardId)
-  if (wb) {
-    wb.strokes = []
-    wb.shapes = []
-    wb.texts = []
-    return true
-  }
-  return false
-}
-
-export function exportWhiteboard(whiteboardId: string): {
-  whiteboardId: string
-  roomId: string
-  strokes: WhiteboardStroke[]
-  shapes: WhiteboardShape[]
-  texts: WhiteboardText[]
-  backgroundColor: string
-  backgroundStyle: string
-  exportedAt: string
-} | null {
-  const wb = activeWhiteboards.get(whiteboardId)
-  if (!wb) return null
-  
-  return {
-    whiteboardId: wb.whiteboardId,
-    roomId: wb.roomId,
-    strokes: wb.strokes,
-    shapes: wb.shapes,
-    texts: wb.texts,
-    backgroundColor: wb.backgroundColor,
-    backgroundStyle: wb.backgroundStyle,
-    exportedAt: new Date().toISOString(),
-  }
-}
-
-// Cleanup inactive whiteboards periodically
-setInterval(() => {
-  activeWhiteboards.forEach((wb) => {
-    // Remove whiteboards with no active users for > 2 hours
-    if (wb.activeUsers.size === 0) {
-      // Check if we have a last activity timestamp
-      // For now, we'll keep them since we don't track last activity per whiteboard
-      // In production, add lastActivity timestamp and clean up accordingly
-    }
-  })
-}, 60 * 60 * 1000) // Every hour
-
-// ============================================
-// POLL SYSTEM
-// ============================================
-
-interface PollState {
-  id: string
-  sessionId: string
-  tutorId: string
-  question: string
-  type: 'multiple_choice' | 'true_false' | 'rating' | 'short_answer' | 'word_cloud'
-  options: {
-    id: string
-    label: string
-    text: string
-    color?: string
-  }[]
-  isAnonymous: boolean
-  allowMultiple: boolean
-  showResults: boolean
-  timeLimit?: number
-  status: 'draft' | 'active' | 'closed'
-  startedAt?: number
-  endedAt?: number
-  responses: {
-    id: string
-    respondentHash?: string
-    optionIds?: string[]
-    rating?: number
-    textAnswer?: string
-    studentId?: string
-    createdAt: number
-  }[]
-  timer?: NodeJS.Timeout
-}
-
-// In-memory poll storage (per session)
-const activePolls = new Map<string, PollState>() // pollId -> PollState
-const sessionPolls = new Map<string, Set<string>>() // sessionId -> Set<pollId>
 
 type PollListCallback = (result: {
   success: boolean
@@ -3321,7 +2576,7 @@ export function initPollHandlers(io: SocketIOServer, socket: Socket) {
     }
 
     const response = {
-      id: `resp-${data.pollId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `resp-${data.pollId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       respondentHash: poll.isAnonymous ? await hashString(`${userId}:${data.pollId}`) : undefined,
       optionIds: data.optionIds,
       rating: data.rating,
@@ -3403,16 +2658,4 @@ async function hashString(input: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-export function getPollState(pollId: string): PollState | undefined {
-  return activePolls.get(pollId)
-}
-
-export function getSessionPolls(sessionId: string): PollState[] {
-  const pollIds = sessionPolls.get(sessionId)
-  if (!pollIds) return []
-  return Array.from(pollIds)
-    .map(id => activePolls.get(id))
-    .filter((p): p is PollState => p !== undefined)
 }

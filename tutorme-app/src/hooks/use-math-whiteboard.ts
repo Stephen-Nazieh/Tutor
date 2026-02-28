@@ -85,7 +85,7 @@ interface UseMathWhiteboardReturn {
 }
 
 // Generate unique ID
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 
 export function useMathWhiteboard({
   sessionId,

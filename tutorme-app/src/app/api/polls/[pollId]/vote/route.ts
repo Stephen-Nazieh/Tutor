@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -26,15 +26,20 @@ async function hashString(input: string): Promise<string> {
 }
 
 // POST /api/polls/[pollId]/vote - Submit a vote
-export async function POST(request: NextRequest, context: any) {
+export async function POST(
+  request: NextRequest,
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const params = await context?.params
-    const { pollId } = params || {}
+    const pollId = await getParamAsync(context?.params, 'pollId')
+    if (!pollId) {
+      return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
+    }
     const body = await request.json()
     const validated = VoteSchema.parse(body)
 

@@ -38,15 +38,33 @@ fi
 echo -e "${GREEN}✅ Docker is running${NC}"
 echo ""
 
+# Wait for a host port to accept TCP (so Node/Prisma/Drizzle can connect). Works on macOS and Linux.
+wait_for_port() {
+    local port=$1
+    local retries=0
+    local max=40
+    while [ $retries -lt $max ]; do
+        if command -v nc >/dev/null 2>&1; then
+            nc -z 127.0.0.1 "$port" 2>/dev/null && return 0
+        elif command -v timeout >/dev/null 2>&1 && ( bash -c "echo >/dev/tcp/127.0.0.1/$port" 2>/dev/null ); then
+            return 0
+        fi
+        retries=$((retries + 1))
+        [ $retries -eq $max ] && return 1
+        sleep 1
+    done
+    return 1
+}
+
 # Start database stack via docker-compose (Postgres :5432 + PgBouncer :5433 + Redis)
 echo -e "${BLUE}▶ Starting database (Postgres + PgBouncer + Redis)...${NC}"
 if [ -f "docker-compose.yml" ]; then
     docker-compose up -d db pgbouncer redis
-    echo "   Waiting for Postgres to be healthy..."
+    echo "   Waiting for Postgres inside container..."
     RETRY_COUNT=0
     MAX_RETRIES=30
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-        if docker exec tutorme-db pg_isready -U postgres -d tutorme > /dev/null 2>&1; then
+        if docker exec tutorme-db pg_isready -U tutorme -d tutorme > /dev/null 2>&1; then
             echo -e "${GREEN}✅ PostgreSQL is ready (port 5432)${NC}"
             break
         fi
@@ -58,30 +76,49 @@ if [ -f "docker-compose.yml" ]; then
         fi
         sleep 1
     done
-    echo -e "${GREEN}✅ PgBouncer (port $DB_PORT) and Redis ready${NC}"
+    echo "   Waiting for PgBouncer on host port $DB_PORT (so migrations can connect)..."
+    if wait_for_port $DB_PORT "PgBouncer"; then
+        echo -e "${GREEN}✅ PgBouncer (port $DB_PORT) ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  PgBouncer port $DB_PORT not yet open; continuing anyway (migrations may retry)${NC}"
+    fi
+    echo "   Waiting for Redis on port $REDIS_PORT..."
+    if wait_for_port $REDIS_PORT "Redis"; then
+        echo -e "${GREEN}✅ Redis ready${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Redis port $REDIS_PORT not yet open${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠️  docker-compose.yml not found; starting standalone containers...${NC}"
     docker run -d --name tutorme-db \
       -e POSTGRES_USER=postgres \
       -e POSTGRES_PASSWORD=postgres_password \
       -e POSTGRES_DB=tutorme \
-      -p 5432:5432 \
+      -p 5433:5432 \
       postgres:16-alpine
-    sleep 3
+    echo "   Waiting for Postgres on host port 5433..."
+    if ! wait_for_port 5433 "Postgres"; then
+        echo -e "${RED}❌ Postgres did not become reachable on 5433${NC}"
+        docker logs tutorme-db --tail 15
+        exit 1
+    fi
+    echo -e "${GREEN}✅ PostgreSQL ready on port 5433${NC}"
     if docker ps -a | grep -q tutorme-redis; then
         docker start tutorme-redis 2>/dev/null || true
     else
         docker run -d --name tutorme-redis -p $REDIS_PORT:6379 redis:7-alpine
     fi
-    echo -e "${GREEN}✅ Standalone Postgres (5432) and Redis started${NC}"
+    if wait_for_port $REDIS_PORT "Redis"; then
+        echo -e "${GREEN}✅ Redis ready${NC}"
+    fi
 fi
 echo ""
 
 # Update .env.local for docker-compose (Option B: Postgres 5432 + PgBouncer 5433)
 echo -e "${BLUE}▶ Configuring environment...${NC}"
 if [ -f "docker-compose.yml" ]; then
-    ENV_DATABASE="DATABASE_URL=\"postgresql://postgres:postgres_password@localhost:$DB_PORT/tutorme\""
-    ENV_DIRECT="DIRECT_URL=\"postgresql://postgres:postgres_password@localhost:5432/tutorme\""
+    ENV_DATABASE="DATABASE_URL=\"postgresql://tutorme:tutorme_password@localhost:$DB_PORT/tutorme\""
+    ENV_DIRECT="DIRECT_URL=\"postgresql://tutorme:tutorme_password@localhost:5432/tutorme\""
     if [ -f ".env.local" ]; then
         (grep -q "DATABASE_URL=" .env.local && sed -i '' "s|DATABASE_URL=.*|$ENV_DATABASE|" .env.local) || echo "$ENV_DATABASE" >> .env.local
         (grep -q "DIRECT_URL=" .env.local && sed -i '' "s|DIRECT_URL=.*|$ENV_DIRECT|" .env.local) || echo "$ENV_DIRECT" >> .env.local

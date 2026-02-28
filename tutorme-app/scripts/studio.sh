@@ -25,6 +25,26 @@ fi
 if [ -f .env.local ]; then set -a; . ./.env.local; set +a; fi
 if [ -f .env ]; then set -a; . ./.env; set +a; fi
 
+# Workaround: drizzle-kit may require localhost-key.pem / localhost.pem in app support (see drizzle-orm#3455)
+STUDIO_DIR=""
+if [ -n "$HOME" ]; then
+  case "$(uname -s)" in
+    Darwin)  STUDIO_DIR="$HOME/Library/Application Support/drizzle-studio" ;;
+    MINGW*|MSYS*) STUDIO_DIR="$HOME/AppData/Local/drizzle-studio" ;;
+    *)       STUDIO_DIR="$HOME/.local/share/drizzle-studio" ;;
+  esac
+fi
+if [ -n "$STUDIO_DIR" ] && [ ! -d "$STUDIO_DIR" ]; then
+  mkdir -p "$STUDIO_DIR"
+fi
+if [ -n "$STUDIO_DIR" ]; then
+  for f in localhost-key.pem localhost.pem; do
+    if [ ! -f "$STUDIO_DIR/$f" ]; then
+      touch "$STUDIO_DIR/$f"
+    fi
+  done
+fi
+
 # Check if Postgres is running (tutorme-db = start script OR docker-compose)
 if ! docker ps 2>/dev/null | grep -q tutorme-db; then
     echo "⚠️  Postgres container 'tutorme-db' is not running."
@@ -40,7 +60,9 @@ fi
 echo "🚀 Starting Drizzle Studio on port $STUDIO_PORT..."
 echo ""
 echo "   Open in browser: https://local.drizzle.studio"
-echo "   (Studio server listens on port $STUDIO_PORT)"
+echo "   (Backend listens on port $STUDIO_PORT; use Chrome/Firefox if Safari/Brave show an error)"
+echo ""
+echo "   If you see 'Unexpected error' on that page, see docs/DRIZZLE_STUDIO.md or use: npx prisma studio → http://localhost:5555"
 echo ""
 echo "   Press Ctrl+C to stop"
 echo ""

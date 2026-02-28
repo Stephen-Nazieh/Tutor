@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Rich Annotations System
  * 
@@ -18,7 +17,7 @@ import { z } from 'zod'
 
 export const MentionSchema = z.object({
   userId: z.string(),
-  userName: string,
+  userName: z.string(),
   startIndex: z.number(),
   endIndex: z.number(),
 })
@@ -97,7 +96,7 @@ export class MentionParser {
   parseMentions(content: string): Mention[] {
     const mentions: Mention[] = []
     const mentionRegex = /@([^\s]+)/g
-    let match
+    let match: RegExpExecArray | null
 
     while ((match = mentionRegex.exec(content)) !== null) {
       const mentionText = match[1]
@@ -107,12 +106,13 @@ export class MentionParser {
       // Try to find matching user
       for (const [userId, user] of this.users) {
         if (user.name.toLowerCase().includes(mentionText.toLowerCase())) {
-          mentions.push({
+          const mention: Mention = {
             userId,
             userName: user.name,
             startIndex,
             endIndex,
-          })
+          }
+          mentions.push(mention)
           break
         }
       }
@@ -198,7 +198,7 @@ export class AnnotationManager {
     const mentions = this.mentionParser.parseMentions(content)
 
     const thread: AnnotationThread = {
-      id: `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `thread-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type,
       position,
       authorId: author.id,
@@ -246,7 +246,7 @@ export class AnnotationManager {
     const mentions = this.mentionParser.parseMentions(content)
 
     const reply: Comment = {
-      id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       authorId: author.id,
       authorName: author.name,
       authorColor: author.color,
@@ -533,7 +533,7 @@ export class AnnotationNotificationSystem {
     if (userId !== mention.userId) return
 
     const notification: Notification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'mention',
       userId,
       threadId: thread.id,
@@ -554,7 +554,7 @@ export class AnnotationNotificationSystem {
     if (userId === replyAuthor) return
 
     const notification: Notification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       type: 'reply',
       userId,
       threadId: thread.id,

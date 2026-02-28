@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
 import { eq, asc, desc } from 'drizzle-orm'
@@ -45,7 +44,7 @@ function getOptionColor(index: number): string {
 // GET /api/polls - List polls for a session
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -107,7 +106,7 @@ export async function GET(request: NextRequest) {
 // POST /api/polls - Create a new poll
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     if (!session?.user || session.user.role !== 'TUTOR') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

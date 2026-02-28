@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Operation Durability System
  * 
@@ -257,7 +256,7 @@ export class OperationDurabilityManager {
     const positionKey = `${this.positionPrefix}:${roomId}`
 
     const snapshot: OperationSnapshot = {
-      id: `snap-${roomId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `snap-${roomId}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       roomId,
       seq,
       timestamp: Date.now(),
@@ -347,14 +346,17 @@ export class OperationDurabilityManager {
     let cursor = '0'
 
     while (true) {
-      const [newCursor, entries] = await this.redis.xread(
+      const result = (await this.redis.xread(
         'COUNT',
         100,
         'STREAMS',
         streamKey,
         cursor
-      ) as [string, [string, string[]][]]
+      ) as unknown) as [string, [string, string[]][]] | null
 
+      if (!result) break
+      
+      const [newCursor, entries] = result
       cursor = newCursor
 
       if (!entries || entries.length === 0) break
@@ -538,7 +540,7 @@ export class OperationDurabilityManager {
       dlqLen,
       positionData,
     ] = await Promise.all([
-      this.redis.xinfo('STREAM', streamKey).catch(() => null),
+      this.redis.xinfo('STREAM', streamKey).catch(() => null) as Promise<Record<string, string> | null>,
       this.redis.hgetall(snapshotKey),
       this.redis.llen(dlqKey),
       this.redis.hgetall(positionKey),

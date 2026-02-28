@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentProgress, contentItem, reviewSchedule, quizAttempt } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
@@ -41,9 +40,9 @@ function calculateReviewDueDate(
   return dueDate
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -368,7 +367,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
       return NextResponse.json(

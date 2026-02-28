@@ -4,10 +4,13 @@
 */
 
 import { NextRequest, NextResponse } from "next/server"
+import { eq } from "drizzle-orm"
 import { withAuth, ValidationError, withRateLimitPreset } from "@/lib/api/middleware"
 import { WeChatPayClient } from "@/lib/payments/wechat-pay-client"
 import { AlipayClient } from "@/lib/payments/alipay-client"
 import { CHINESE_CURRENCY, getChineseErrorMessage, isValidChineseAmount } from "@/lib/payments/chinese-gateways"
+import { drizzleDb } from "@/lib/db/drizzle"
+import { user } from "@/lib/db/schema"
 
 const GATEWAYS = ["WECHAT_PAY", "ALIPAY"] as const
 type GatewayParam = (typeof GATEWAYS)[number]
@@ -42,8 +45,12 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 
   const desc = typeof description === "string" && description.trim() ? description.trim() : "课程/服务支付"
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-  const user = await import("@/lib/db").then(m => m.db.user.findUnique({ where: { id: session.user.id }, select: { email: true } }))
-  const studentEmail = user?.email ?? ""
+  const [student] = await drizzleDb
+    .select({ email: user.email })
+    .from(user)
+    .where(eq(user.id, session.user.id))
+    .limit(1)
+  const studentEmail = student?.email ?? ""
 
   const startTime = Date.now()
   try {

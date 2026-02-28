@@ -1,0 +1,71 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
+const mocks = vi.hoisted(() => ({
+  requireAdmin: vi.fn(),
+}))
+
+vi.mock('@/lib/admin/auth', () => ({
+  requireAdmin: mocks.requireAdmin,
+  logAdminAction: vi.fn(),
+  getClientIp: vi.fn(),
+}))
+
+vi.mock('@/lib/admin/feature-flags', () => ({
+  getAllFeatureFlags: vi.fn(),
+  createFeatureFlag: vi.fn(),
+  deleteFeatureFlag: vi.fn(),
+  updateFeatureFlag: vi.fn(),
+}))
+
+import { GET, POST, DELETE } from './route'
+
+describe('/api/admin/feature-flags guards', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('GET returns requireAdmin response when unauthorized', async () => {
+    mocks.requireAdmin.mockResolvedValue({
+      session: null,
+      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+    })
+    const req = new Request('http://localhost/api/admin/feature-flags')
+
+    const res = await GET(req as NextRequest)
+
+    expect(res.status).toBe(401)
+    expect(await res.json()).toEqual({ error: 'Unauthorized' })
+  })
+
+  it('POST returns 400 when key/name are missing', async () => {
+    mocks.requireAdmin.mockResolvedValue({
+      session: { adminId: 'admin-1' },
+      response: undefined,
+    })
+    const req = new Request('http://localhost/api/admin/feature-flags', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+
+    const res = await POST(req as NextRequest)
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Key and name are required' })
+  })
+
+  it('DELETE returns 400 when id query param is missing', async () => {
+    mocks.requireAdmin.mockResolvedValue({
+      session: { adminId: 'admin-1' },
+      response: undefined,
+    })
+    const req = new Request('http://localhost/api/admin/feature-flags', { method: 'DELETE' })
+
+    const res = await DELETE(req as NextRequest)
+
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Flag ID is required' })
+  })
+})

@@ -1,5 +1,25 @@
 # Drizzle Studio – Fixes and Setup
 
+## "Unexpected error happened" on https://local.drizzle.studio
+
+The UI at **https://local.drizzle.studio** is a cloud page that connects to a **local** backend (the process started by `npm run db:studio` on port 4983). If you see a generic "Unexpected error happened" with an error ID:
+
+1. **Ensure the backend is running**  
+   Run `npm run db:studio` from `tutorme-app` and wait until it prints "Starting Drizzle Studio on port 4983". Only then open https://local.drizzle.studio.
+
+2. **Use Chrome or Firefox**  
+   Safari and Brave often block the cloud page from talking to localhost. Chrome/Firefox usually work. For Safari/Brave, Drizzle suggest [mkcert](https://github.com/FiloSottile/mkcert): run `mkcert -install`, then restart `npm run db:studio`.
+
+3. **Missing PEM files (macOS/Windows)**  
+   If the backend fails to start with `ENOENT ... localhost-key.pem`, the script now creates empty `localhost-key.pem` and `localhost.pem` in the drizzle-studio app data folder. If you run studio by hand, create that folder and touch those files (see [drizzle-orm#3455](https://github.com/drizzle-team/drizzle-orm/issues/3455)).
+
+4. **Fallback: Prisma Studio**  
+   This project still has Prisma. If Drizzle Studio keeps failing, you can use the local-only DB UI:
+   ```bash
+   npx prisma studio
+   ```
+   Then open **http://localhost:5555** (no cloud, no PEM). It uses the same Postgres; point it at `DATABASE_URL` or `DIRECT_URL` via `.env.local` if needed.
+
 ## Port 4983 already in use (EADDRINUSE)
 
 If you see `Error: listen EADDRINUSE: address already in use 127.0.0.1:4983`:

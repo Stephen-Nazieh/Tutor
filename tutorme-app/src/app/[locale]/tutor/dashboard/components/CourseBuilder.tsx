@@ -4584,14 +4584,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     Array.from(files).forEach(file => {
       if (type === 'video') {
         newModules[moduleIndex].lessons[lessonIndex].media.videos.push({
-          id: `video-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `video-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
           title: file.name,
           url: trackObjectUrl(URL.createObjectURL(file)),
           duration: 0
         })
       } else {
         newModules[moduleIndex].lessons[lessonIndex].media.images.push({
-          id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `image-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
           title: file.name,
           url: trackObjectUrl(URL.createObjectURL(file))
         })
@@ -4616,7 +4616,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       const docType = ext === 'pdf' ? 'pdf' : ext === 'doc' || ext === 'docx' ? 'doc' : ext === 'ppt' || ext === 'pptx' ? 'ppt' : 'other'
 
       newModules[moduleIndex].lessons[lessonIndex].docs.push({
-        id: `doc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         title: file.name,
         url: trackObjectUrl(URL.createObjectURL(file)),
         type: docType

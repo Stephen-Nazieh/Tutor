@@ -50,7 +50,7 @@ export async function startWhiteboardSession(
   createdBy: string
 ): Promise<{ success: boolean; sessionId: string; error?: string }> {
   try {
-    const id = `wb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const id = `wb_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`
 
     activeSessions.set(id, {
       elements: [],
@@ -116,7 +116,7 @@ export async function createSnapshot(
     const duration = (now.getTime() - session.startTime.getTime()) / 1000
 
     const snapshot: WhiteboardSnapshot = {
-      id: `snap_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `snap_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
       sessionId,
       timestamp: now,
       duration: Math.round(duration),

@@ -57,7 +57,7 @@ describe('Whiteboard Hooks', () => {
             expect(result.current.strokes).toEqual([])
         })
 
-        it.skip('should undo last stroke', () => {
+        it('should undo last stroke', () => {
             const { result } = renderHook(() =>
                 useCanvasDrawing({ color: '#000000', lineWidth: 2, tool: 'pen' })
             )
@@ -208,7 +208,7 @@ describe('Whiteboard Hooks', () => {
             expect(result.current.textOverlays).toEqual([])
         })
 
-        it.skip('should create and confirm text overlay', () => {
+        it('should create and confirm text overlay', () => {
             const { result } = renderHook(() => useTextEditor(24, '#000000'))
 
             let overlayId: string
@@ -255,7 +255,7 @@ describe('Whiteboard Hooks', () => {
             expect(result.current.isDrawingShape).toBe(false)
         })
 
-        it.skip('should draw and finish shape', () => {
+        it('should draw and finish shape', () => {
             const { result } = renderHook(() => useShapeDrawing())
 
             act(() => {

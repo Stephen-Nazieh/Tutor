@@ -5,21 +5,26 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, taskSubmission } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 
-export async function GET(_request: NextRequest, context: any) {
+export async function GET(
+  _request: NextRequest,
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, _request)
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const params = await context?.params
-    const { taskId } = params || {}
+    const taskId = await getParamAsync(context?.params, 'taskId')
+    if (!taskId) {
+      return NextResponse.json({ error: 'Task ID required' }, { status: 400 })
+    }
 
     const [task] = await drizzleDb
       .select()

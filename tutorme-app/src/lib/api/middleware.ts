@@ -4,9 +4,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import type { Session } from 'next-auth'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user as userTable } from '@/lib/db/schema'
 import { verifyCsrfToken } from '@/lib/security/csrf'
 import { checkRateLimit, checkRateLimitPreset, getClientIdentifier } from '@/lib/security/rate-limit'
 import { hasPermission, type Permission } from '@/lib/security/rbac'
@@ -99,10 +101,10 @@ export function withAuth(
 ) {
     return async (req: NextRequest, context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }) => {
         try {
-            const session = await getServerSession(authOptions)
+            const session = await getServerSession(authOptions, req)
 
-            // Check if user is authenticated
-            if (!session?.user?.id) {
+            // Check if user is authenticated (session and session.user must exist to avoid "reading 'user'" in handlers)
+            if (!session || !session.user || !session.user.id) {
                 if (options?.optional) {
                     // Allow unauthenticated access
                     return handler(req, session as Session, context)
@@ -113,11 +115,11 @@ export function withAuth(
             // Check role requirements
             if (options?.role && normalizeRole(session.user.role) !== normalizeRole(options.role)) {
                 // Fallback: session role can be stale after account updates or seed resets.
-                const { db } = await import('@/lib/db')
-                const freshUser = await db.user.findUnique({
-                    where: { id: session.user.id },
-                    select: { role: true },
-                })
+                const [freshUser] = await drizzleDb
+                    .select({ role: userTable.role })
+                    .from(userTable)
+                    .where(eq(userTable.id, session.user.id))
+                    .limit(1)
                 if (normalizeRole(freshUser?.role) !== normalizeRole(options.role)) {
                     throw new ForbiddenError(`This endpoint requires ${options.role} role`)
                 }
@@ -175,11 +177,12 @@ export function withAuth(
 
 /**
  * Get the current user session without throwing errors
- * Useful for optional authentication scenarios
+ * Useful for optional authentication scenarios.
+ * Pass the request when in a route handler so realm (tutor/student) is respected.
  */
-export async function getCurrentSession(): Promise<Session | null> {
+export async function getCurrentSession(req?: NextRequest): Promise<Session | null> {
     try {
-        return await getServerSession(authOptions)
+        return await getServerSession(authOptions, req ?? undefined)
     } catch (error) {
         console.error('Error getting session:', error)
         return null
@@ -188,10 +191,11 @@ export async function getCurrentSession(): Promise<Session | null> {
 
 /**
  * Require authentication - throws if not authenticated
- * Useful when you need the session inside a try/catch block
+ * Useful when you need the session inside a try/catch block.
+ * Pass the request when in a route handler so realm (tutor/student) is respected.
  */
-export async function requireAuth(): Promise<Session> {
-    const session = await getServerSession(authOptions)
+export async function requireAuth(req?: NextRequest): Promise<Session> {
+    const session = await getServerSession(authOptions, req ?? undefined)
     if (!session?.user?.id) {
         throw new UnauthorizedError()
     }
@@ -328,7 +332,7 @@ export async function getSessionOrApiKey(req: NextRequest): Promise<
             if (key) return { type: 'apiKey', keyId: key.id }
         }
     }
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (session?.user?.id) return { type: 'session', session }
     return null
 }

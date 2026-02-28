@@ -5,9 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession, authOptions } from '@/lib/auth'
+import { getParamAsync } from '@/lib/api/params'
 import { and, eq, sql } from 'drizzle-orm'
-import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculum,
@@ -20,11 +20,10 @@ import {
 } from '@/lib/db/schema'
 
 export async function GET(
-  _req: NextRequest,
-  context: { params?: Promise<{ curriculumId?: string }> }
+  req: NextRequest,
+  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
-  const params = await context?.params
-  const curriculumId = params?.curriculumId
+  const curriculumId = await getParamAsync(context?.params, 'curriculumId')
 
   if (!curriculumId) {
     return NextResponse.json({ error: 'Curriculum ID required' }, { status: 400 })
@@ -93,7 +92,7 @@ export async function GET(
   }
 
   let enrolled = false
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions, req)
   if (session?.user?.id) {
     const [progress] = await drizzleDb
       .select()

@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { quiz, quizAttempt } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -14,8 +15,10 @@ import { gradeQuiz } from '@/lib/quiz/auto-grading'
 export const POST = withCsrf(
   withAuth(
     async (req: NextRequest, session, context) => {
-      const params = (await context?.params) ?? {}
-      const id = Array.isArray(params.id) ? params.id[0] : params.id
+      const id = await getParamAsync(context?.params, 'id')
+      if (!id) {
+        throw new ValidationError('Quiz ID required')
+      }
       const studentId = session.user.id
 
       const body = await req.json()

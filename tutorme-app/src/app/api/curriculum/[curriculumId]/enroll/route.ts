@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError, withRateLimitPreset } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculum,
@@ -17,12 +18,14 @@ import {
 import { eq, and, inArray } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 
-export const POST = withCsrf(withAuth(async (req, session, context: any) => {
-  const params = await context?.params
+export const POST = withCsrf(withAuth(async (req, session, context) => {
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
   if (rateLimitResponse) return rateLimitResponse
 
-  const { curriculumId } = await params
+  const curriculumId = await getParamAsync(context?.params, 'curriculumId')
+  if (!curriculumId) {
+    return NextResponse.json({ error: 'Curriculum ID required' }, { status: 400 })
+  }
   const body = await req.json().catch(() => ({}))
   const rawBatchIdFromBody = typeof body?.batchId === 'string' ? body.batchId : null
   const rawBatchIdFromQuery = req.nextUrl.searchParams.get('batch')

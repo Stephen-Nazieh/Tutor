@@ -3,7 +3,7 @@
  * Manages text overlays and editing on the whiteboard
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 export interface TextFormat {
     bold?: boolean
@@ -39,6 +39,7 @@ export interface TextOverlay {
 export function useTextEditor(defaultFontSize = 24, defaultColor = '#000000') {
     const [textElements, setTextElements] = useState<TextElement[]>([])
     const [textOverlays, setTextOverlays] = useState<TextOverlay[]>([])
+    const overlaysRef = useRef<TextOverlay[]>([])
     const [selectedTextId, setSelectedTextId] = useState<string | null>(null)
     const [fontSize, setFontSize] = useState(defaultFontSize)
     const [textFormat, setTextFormat] = useState<TextFormat>({
@@ -48,6 +49,10 @@ export function useTextEditor(defaultFontSize = 24, defaultColor = '#000000') {
         align: 'left',
         color: defaultColor
     })
+    const setOverlays = useCallback((next: TextOverlay[]) => {
+        overlaysRef.current = next
+        setTextOverlays(next)
+    }, [])
 
     const startTextEditing = useCallback((x: number, y: number) => {
         const overlay: TextOverlay = {
@@ -60,27 +65,29 @@ export function useTextEditor(defaultFontSize = 24, defaultColor = '#000000') {
             width: 200,
             height: 100
         }
-        setTextOverlays(prev => [...prev, overlay])
+        const next = [...overlaysRef.current, overlay]
+        setOverlays(next)
         setSelectedTextId(overlay.id)
         return overlay.id
-    }, [fontSize, textFormat])
+    }, [fontSize, setOverlays, textFormat])
 
     const updateText = useCallback((id: string, updates: Partial<TextOverlay>) => {
-        setTextOverlays(prev =>
-            prev.map(overlay => overlay.id === id ? { ...overlay, ...updates } : overlay)
+        const next = overlaysRef.current.map(overlay =>
+            overlay.id === id ? { ...overlay, ...updates } : overlay
         )
-    }, [])
+        setOverlays(next)
+    }, [setOverlays])
 
     const confirmText = useCallback((id: string) => {
-        const overlay = textOverlays.find(o => o.id === id)
+        const overlay = overlaysRef.current.find(o => o.id === id)
         if (!overlay || !overlay.text.trim()) {
-            setTextOverlays(prev => prev.filter(o => o.id !== id))
+            setOverlays(overlaysRef.current.filter(o => o.id !== id))
             setSelectedTextId(null)
             return
         }
 
         const newTextElement: TextElement = {
-            id: `text-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `text-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             text: overlay.text,
             x: overlay.x,
             y: overlay.y,
@@ -92,15 +99,15 @@ export function useTextEditor(defaultFontSize = 24, defaultColor = '#000000') {
         }
 
         setTextElements(prev => [...prev, newTextElement])
-        setTextOverlays(prev => prev.filter(o => o.id !== id))
+        setOverlays(overlaysRef.current.filter(o => o.id !== id))
         setSelectedTextId(null)
-    }, [textOverlays, defaultColor])
+    }, [defaultColor, setOverlays])
 
     const deleteText = useCallback((id: string) => {
         setTextElements(prev => prev.filter(t => t.id !== id))
-        setTextOverlays(prev => prev.filter(o => o.id !== id))
+        setOverlays(overlaysRef.current.filter(o => o.id !== id))
         if (selectedTextId === id) setSelectedTextId(null)
-    }, [selectedTextId])
+    }, [selectedTextId, setOverlays])
 
     const updateTextFormat = useCallback((format: Partial<TextFormat>) => {
         setTextFormat(prev => ({ ...prev, ...format }))

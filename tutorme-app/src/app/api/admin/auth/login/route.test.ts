@@ -195,6 +195,28 @@ describe('POST /api/admin/auth/login', () => {
     expect(setCookie).toContain('admin_session=')
   })
 
+  it('returns 403 when user has no admin role or assignment', async () => {
+    mocks.userByEmail = {
+      id: 'student-1',
+      email: 'student@example.com',
+      password: 'hashed-password',
+      role: 'STUDENT',
+    }
+    mocks.assignmentRoles = []
+    mocks.verifyPassword.mockResolvedValue(true)
+
+    const req = new Request('http://localhost/api/admin/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'student@example.com', password: 'Password1' }),
+    })
+
+    const res = await POST(req as unknown as NextRequest)
+    expect(res.status).toBe(403)
+    expect(await res.json()).toEqual({ error: 'Admin access required' })
+    expect(mocks.createAdminSession).not.toHaveBeenCalled()
+  })
+
   it('migrates legacy plaintext admin password on successful login', async () => {
     mocks.userByEmail = {
       id: 'admin-legacy',

@@ -5,11 +5,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { calculateClassEngagement, EngagementCalculationOptions } from '@/lib/reports/engagement-analytics'
 
-export const GET = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params
-  const classId = params?.classId
+export const GET = withAuth(async (req: NextRequest, _session, context) => {
+  const classId = await getParamAsync(context?.params, 'classId')
+  if (!classId) {
+    return NextResponse.json({ success: false, error: 'Class ID required' }, { status: 400 })
+  }
 
   // Parse query parameters
   const { searchParams } = new URL(req.url)

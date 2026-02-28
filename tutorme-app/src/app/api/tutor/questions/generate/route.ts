@@ -13,8 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { generateUniformTasks, TaskConfiguration } from '@/lib/ai/task-generator'
 import { withRateLimitPreset } from '@/lib/api/middleware'
 import { z } from 'zod'
@@ -30,7 +29,7 @@ export async function POST(req: NextRequest) {
     const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
     if (rateLimitResponse) return rateLimitResponse
 
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

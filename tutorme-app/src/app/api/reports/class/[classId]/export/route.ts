@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumEnrollment, user, profile } from '@/lib/db/schema'
 import {
@@ -135,9 +136,14 @@ async function getClassExportData(classId: string): Promise<ClassExportData | nu
   }
 }
 
-export const GET = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params;
-  const { classId } = await params
+export const GET = withAuth(async (req: NextRequest, _session, context) => {
+  const classId = await getParamAsync(context?.params, 'classId')
+  if (!classId) {
+    return NextResponse.json(
+      { success: false, error: 'Class ID required' },
+      { status: 400 }
+    )
+  }
   const { searchParams } = new URL(req.url)
   const format = searchParams.get('format') || 'pdf'
 

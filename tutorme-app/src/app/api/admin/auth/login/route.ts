@@ -114,6 +114,14 @@ export async function POST(req: NextRequest) {
       .from(adminAssignment)
       .innerJoin(adminRole, eq(adminAssignment.roleId, adminRole.id))
       .where(and(eq(adminAssignment.userId, foundUser.id), eq(adminAssignment.isActive, true)))
+    const hasAdminEntitlement = assignments.length > 0 || foundUser.role === 'ADMIN'
+    if (!hasAdminEntitlement) {
+      await logFailedLogin(clientIp, email || undefined)
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      )
+    }
     const roles = assignments.length > 0 ? assignments.map((a) => a.roleName) : [foundUser.role]
 
     const userAgent = req.headers.get('user-agent') || undefined

@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import { withAuth, parseBoundedInt } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { conversation, directMessage, user, profile } from '@/lib/db/schema'
 import { isConversationAllowedByRoles } from '@/lib/messaging/permissions'
@@ -15,8 +16,10 @@ import { isConversationAllowedByRoles } from '@/lib/messaging/permissions'
 type AppRole = 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Conversation ID required' }, { status: 400 })
+  }
   const userId = session.user.id
   const { searchParams } = new URL(req.url)
   const query = searchParams.get('q')

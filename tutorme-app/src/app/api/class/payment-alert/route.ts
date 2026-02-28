@@ -5,10 +5,9 @@
  * Global compliance: English messages, role-based security, audit logging.
  */
 
-import { getServerSession } from 'next-auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { familyMember, curriculum, payment, curriculumEnrollment, familyNotification } from '@/lib/db/schema'
 import { eq, and, inArray, sql } from 'drizzle-orm'
@@ -21,7 +20,7 @@ const bodySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions, request)
 
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

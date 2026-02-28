@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { eq, and } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { reviewSchedule } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
       return NextResponse.json(

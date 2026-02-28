@@ -8,14 +8,17 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { resource, resourceShare } from '@/lib/db/schema'
 import { eq, or, and } from 'drizzle-orm'
 import { createPresignedDownloadUrl, isS3Configured } from '@/lib/storage/s3'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await context?.params
-  const id = params?.id as string
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Resource ID required' }, { status: 400 })
+  }
   const userId = session.user.id
 
   let resourceRow: (typeof resource.$inferSelect) | null = null

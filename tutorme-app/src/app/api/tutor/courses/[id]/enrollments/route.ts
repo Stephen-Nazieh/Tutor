@@ -6,12 +6,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, desc } from 'drizzle-orm'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumEnrollment, user, profile, courseBatch } from '@/lib/db/schema'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const params = await (context as any).params
-  const id = String(params?.id || '')
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) {
+    return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+  }
 
   const [course] = await drizzleDb
     .select({ id: curriculum.id, creatorId: curriculum.creatorId })

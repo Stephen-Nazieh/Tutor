@@ -5,12 +5,15 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
 
 
-export const GET = withAuth(async (req, session, context: any) => {
-  const params = await context?.params;
-  const { studentId } = await params
+export const GET = withAuth(async (req, session, context) => {
+  const studentId = await getParamAsync(context?.params, 'studentId')
+  if (!studentId) {
+    return NextResponse.json({ error: 'Student ID required' }, { status: 400 })
+  }
   const { searchParams } = new URL(req.url)
   const curriculumId = searchParams.get('curriculumId') || undefined
 

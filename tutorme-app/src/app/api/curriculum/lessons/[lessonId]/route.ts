@@ -6,14 +6,17 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf, NotFoundError, ValidationError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { startLesson, getLessonContent, getNextLesson } from '@/lib/curriculum/lesson-controller'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculumLesson, curriculumModule } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
-export const GET = withAuth(async (req, session, context: any) => {
-  const params = await context?.params
-  const { lessonId } = await params
+export const GET = withAuth(async (req, session, context) => {
+  const lessonId = await getParamAsync(context?.params, 'lessonId')
+  if (!lessonId) {
+    return NextResponse.json({ error: 'Lesson ID required' }, { status: 400 })
+  }
   const { searchParams } = new URL(req.url)
   const action = searchParams.get('action')
 
@@ -43,9 +46,11 @@ export const GET = withAuth(async (req, session, context: any) => {
   return NextResponse.json({ lesson })
 }, { role: 'STUDENT' })
 
-export const POST = withCsrf(withAuth(async (req, session, context: any) => {
-  const params = await context?.params;
-  const { lessonId } = await params
+export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
+  const lessonId = await getParamAsync(context?.params, 'lessonId')
+  if (!lessonId) {
+    return NextResponse.json({ error: 'Lesson ID required' }, { status: 400 })
+  }
   const body = await req.json()
   const { action = 'start' } = body
 

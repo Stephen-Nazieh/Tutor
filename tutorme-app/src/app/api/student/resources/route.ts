@@ -7,9 +7,8 @@
  *  - Marked as public (isPublic = true) by a tutor they're enrolled with
  */
 
-import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculumEnrollment,
@@ -20,8 +19,8 @@ import {
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc, or, isNull } from 'drizzle-orm'
 
-export async function GET() {
-  const session = await getServerSession(authOptions)
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions, request)
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

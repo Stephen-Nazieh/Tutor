@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculumEnrollment,
@@ -17,9 +18,11 @@ import {
 } from '@/lib/db/schema'
 import { eq, and, desc, inArray } from 'drizzle-orm'
 
-export const GET = withAuth(async (req: NextRequest, session, context: any) => {
-  const params = await context?.params
-  const { subjectCode } = params || {}
+export const GET = withAuth(async (_req: NextRequest, session, context) => {
+  const subjectCode = await getParamAsync(context?.params, 'subjectCode')
+  if (!subjectCode) {
+    return NextResponse.json({ error: 'Subject code required' }, { status: 400 })
+  }
 
   const [curriculumRow] = await drizzleDb
     .select()

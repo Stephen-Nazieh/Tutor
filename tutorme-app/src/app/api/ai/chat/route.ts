@@ -8,8 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { generateTutorResponse, TutorMessage } from '@/lib/ai/tutor-service'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { withRateLimitPreset } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
@@ -30,7 +29,7 @@ export async function POST(request: NextRequest) {
     const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
     if (rateLimitResponse) return rateLimitResponse
 
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
     const body = await request.json().catch(() => null)
     const parsed = AIChatRequestSchema.safeParse(body)
     if (!parsed.success) {

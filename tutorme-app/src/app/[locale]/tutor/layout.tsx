@@ -1,7 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useEffect } from 'react'
+import { useRealmSession } from '@/hooks/use-realm-session'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import {
@@ -121,7 +124,28 @@ export default function TutorLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session, status } = useSession()
+  const { data: realmSession, status: realmStatus } = useRealmSession('tutor')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Use realm session (tutor tab) first; only redirect if we don't have a tutor session and default session is another role
+  useEffect(() => {
+    const realmRole = (realmSession?.user as { role?: string })?.role ?? ''
+    const defaultRole = (session?.user as { role?: string })?.role ?? ''
+    const isTutorRealm = realmRole.toUpperCase() === 'TUTOR'
+    const isTutorDefault = defaultRole.toUpperCase() === 'TUTOR'
+    if (realmStatus === 'loading' && status === 'loading') return
+    if (isTutorRealm) return
+    if (!isTutorRealm && isTutorDefault) return
+    const role = defaultRole || realmRole
+    if (role && role.toUpperCase() !== 'TUTOR') {
+      if (role.toUpperCase() === 'STUDENT') router.replace('/student/dashboard')
+      else if (role.toUpperCase() === 'PARENT') router.replace('/parent/dashboard')
+      else if (role.toUpperCase() === 'ADMIN') router.replace('/admin')
+      else router.replace('/')
+    }
+  }, [realmStatus, realmSession?.user, status, session?.user, router])
 
   // Check if we're on the Course Builder page - if so, don't render the tutor nav
   // The Course Builder has its own layout

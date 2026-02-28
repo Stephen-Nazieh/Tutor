@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 
 export interface GeoCoordinates {
   lat: number
@@ -23,7 +22,7 @@ const geoCache = new Map<string, GeoCoordinates>()
  * Fetch geolocation for a single IP
  */
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions, request)
   
   if (!session?.user?.role || !['ADMIN', 'TUTOR'].includes(session.user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -99,7 +98,7 @@ export async function GET(request: NextRequest) {
  * Batch fetch geolocation for multiple IPs
  */
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions, request)
   
   if (!session?.user?.role || !['ADMIN', 'TUTOR'].includes(session.user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

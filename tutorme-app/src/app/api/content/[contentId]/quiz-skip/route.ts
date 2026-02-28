@@ -6,13 +6,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem, videoWatchEvent } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { randomUUID } from 'crypto'
 
-export const POST = withCsrf(withAuth(async (req, session, context: any) => {
-  const params = context?.params ? await context.params : null
-  const contentId = params?.contentId
+export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
+  const contentId = await getParamAsync(context?.params, 'contentId')
   if (!contentId) {
     return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
   }
@@ -47,7 +48,7 @@ export const POST = withCsrf(withAuth(async (req, session, context: any) => {
   }
 
   await drizzleDb.insert(videoWatchEvent).values({
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     contentId,
     studentId: session.user.id,
     eventType: 'quiz_skip',

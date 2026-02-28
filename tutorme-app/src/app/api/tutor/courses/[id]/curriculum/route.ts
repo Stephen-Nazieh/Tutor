@@ -12,8 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculum,
@@ -168,7 +167,7 @@ function getCourseId(req: NextRequest): string {
 // ---- GET — Load builder tree from DB ----
 
 export async function GET(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -244,7 +243,7 @@ export async function GET(req: NextRequest) {
 // ---- PUT — Save builder tree to DB (upsert) ----
 
 export async function PUT(req: NextRequest) {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     if (!session?.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 
 // Available subjects (English only for launch)
 const AVAILABLE_SUBJECTS = [
@@ -66,7 +65,7 @@ const HIDDEN_SUBJECTS = [
 // GET - List available subjects
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, req)
     
     // Check if user wants to see all subjects (including hidden)
     const { searchParams } = new URL(req.url)

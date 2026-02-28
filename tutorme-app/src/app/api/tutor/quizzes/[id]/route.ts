@@ -9,14 +9,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, and, desc, count } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { quiz, quizAttempt, quizAssignment, user, profile } from '@/lib/db/schema'
 import { QuizQuestion } from '@/types/quiz'
 
 // GET /api/tutor/quizzes/[id] - Get a specific quiz
 export const GET = withAuth(async (req: NextRequest, session, context) => {
-    const params = await (context as any).params
-    const id = String(params?.id || '')
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+        throw new ValidationError('Quiz ID required')
+    }
 
     const [quizData] = await drizzleDb
         .select()
@@ -81,8 +84,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
 
 // PATCH /api/tutor/quizzes/[id] - Update a quiz
 export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await (context as any).params
-    const id = String(params?.id || '')
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+        throw new ValidationError('Quiz ID required')
+    }
 
     // Verify ownership
     const [existing] = await drizzleDb
@@ -177,8 +182,10 @@ export const PATCH = withCsrf(withAuth(async (req: NextRequest, session, context
 
 // DELETE /api/tutor/quizzes/[id] - Delete a quiz
 export const DELETE = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-    const params = await (context as any).params
-    const id = String(params?.id || '')
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+        throw new ValidationError('Quiz ID required')
+    }
 
     // Verify ownership
     const [existing] = await drizzleDb
@@ -226,4 +233,3 @@ export const DELETE = withCsrf(withAuth(async (req: NextRequest, session, contex
         message: 'Quiz deleted successfully'
     })
 }, { role: 'TUTOR' }))
-

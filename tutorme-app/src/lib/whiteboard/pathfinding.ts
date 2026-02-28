@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Connector Pathfinding v2 - A* Grid Routing with Crossing Minimization
  * 
@@ -254,7 +253,7 @@ export function findOrthogonalPath(
     }
 
     // Generate neighbors (only horizontal and vertical moves)
-    const neighbors: PathNode[] = [
+    const neighbors: Point[] = [
       { x: current.x + gridSize, y: current.y }, // Right
       { x: current.x - gridSize, y: current.y }, // Left
       { x: current.x, y: current.y + gridSize }, // Down
