@@ -144,7 +144,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         backgroundStyle: data.backgroundStyle,
         visibility: 'private',
         isBroadcasting: false,
-        ownerType: 'TUTOR',
+        ownerType: 'tutor',
       })
       await tx.insert(whiteboardPage).values({
         id: pageId,

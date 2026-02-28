@@ -46,12 +46,6 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       )
     }
   } else {
-    if (whiteboardRow.visibility !== 'public') {
-      return NextResponse.json(
-        { error: 'Whiteboard is not public' },
-        { status: 403 }
-      )
-    }
     if (studentId === userId) {
       const pages = await drizzleDb
         .select()
@@ -61,6 +55,12 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       return NextResponse.json({
         whiteboard: { ...whiteboardRow, pages },
       })
+    }
+    if (whiteboardRow.visibility !== 'public') {
+      return NextResponse.json(
+        { error: 'Whiteboard is not public' },
+        { status: 403 }
+      )
     }
   }
 

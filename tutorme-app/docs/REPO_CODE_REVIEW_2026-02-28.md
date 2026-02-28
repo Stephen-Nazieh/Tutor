@@ -317,6 +317,102 @@ I reviewed the repository with a backend-first focus (auth, API wiring, socket l
 
 ---
 
+## Progress update (Batch: 2026-02-28, collaborative whiteboard backend hardening)
+
+### Completed in this batch
+
+1. **Closed cross-whiteboard page mutation gaps**
+   - Updated `src/app/api/whiteboards/[id]/pages/[pageId]/route.ts`:
+     - PUT now verifies `pageId` belongs to `whiteboardId` before update.
+     - DELETE now verifies `pageId` belongs to `whiteboardId` before delete.
+     - Update/delete/select operations now scope by both `pageId` and `whiteboardId`.
+   - Impact:
+     - Prevents unauthorized updates/deletes of pages from a different whiteboard when an ID is guessed.
+
+2. **Hardened page reorder endpoint against foreign page IDs**
+   - Updated `src/app/api/whiteboards/[id]/pages/route.ts`:
+     - Validates each `pageOrders` entry (`id` + finite numeric `order`).
+     - Rejects duplicate IDs.
+     - Confirms all supplied page IDs belong to target whiteboard before transaction.
+     - Reorder updates now use scoped where clause (`id` + `whiteboardId`).
+   - Impact:
+     - Blocks cross-board reorder writes and malformed payload abuse.
+
+3. **Fixed student self-access regression for private boards**
+   - Updated `src/app/api/sessions/[sessionId]/whiteboard/[studentId]/route.ts`:
+     - Students can now fetch their own whiteboard even when visibility is `private`.
+     - Non-owner students are still blocked unless board visibility is `public`.
+
+4. **Normalized collaborative whiteboard metadata wiring**
+   - Updated `src/app/api/whiteboards/route.ts`:
+     - `ownerType` now writes as `tutor` (lowercase), matching live-class routes and frontend expectations.
+   - Updated `src/app/api/sessions/[sessionId]/whiteboard/route.ts`:
+     - PATCH visibility schema now accepts `tutor-only` to align with collaborative visibility model.
+
+5. **Narrowed whiteboard save parent update scope**
+   - Updated `src/app/api/sessions/[sessionId]/whiteboard/save/route.ts`:
+     - Parent whiteboard `updatedAt` touch now targets the resolved board by `wb.id` (not every board matching `sessionId + tutorId`).
+
+6. **Added regression tests for collaborative whiteboard boundaries**
+   - New files:
+     - `src/app/api/whiteboards/[id]/pages/route.test.ts`
+     - `src/app/api/whiteboards/[id]/pages/[pageId]/route.test.ts`
+     - `src/app/api/sessions/[sessionId]/whiteboard/[studentId]/route.test.ts`
+   - Covered behavior:
+     - reorder rejects foreign page IDs (`400`) and skips transaction.
+     - page PUT/DELETE reject page IDs outside target whiteboard (`404`).
+     - student can access own private board (`200`) but cannot access another student's private board (`403`).
+
+### Validation after this batch
+
+- Focused tests:
+  - `npm run test -- src/app/api/whiteboards/[id]/pages/route.test.ts src/app/api/whiteboards/[id]/pages/[pageId]/route.test.ts src/app/api/sessions/[sessionId]/whiteboard/[studentId]/route.test.ts --reporter=dot` -> passed
+- Full checks:
+  - `npm run test -- --reporter=dot` -> passed (50 files, 195 tests)
+  - `npm run typecheck` -> passed
+  - `npm run lint` -> passed with one existing warning in `src/lib/performance/optimization.tsx:70`
+
+---
+
+## Progress update (Batch: 2026-02-28, LLM admin wiring hardening)
+
+### Completed in this batch
+
+1. **Prevented default-provider reset on invalid provider PATCH**
+   - Updated `src/app/api/admin/llm/providers/route.ts`:
+     - PATCH now verifies provider existence before any default-reset mutation.
+     - If provider ID does not exist, returns `404` early and avoids touching existing defaults.
+     - Response/log payload now safely falls back to the preloaded provider when post-update reload is empty.
+
+2. **Hardened LLM routing rule model validation**
+   - Updated `src/app/api/admin/llm/routing/route.ts`:
+     - POST now returns `400` when `targetModelId` is invalid (instead of creating a rule with empty `providerId`).
+     - POST now validates `fallbackModelId` when provided.
+     - PATCH now validates `targetModelId` when changed and updates `providerId` to match the new target model.
+     - PATCH now validates `fallbackModelId` when provided.
+
+3. **Added behavior tests for backend wiring paths (not just guards)**
+   - New files:
+     - `src/app/api/admin/llm/providers/route.behavior.test.ts`
+     - `src/app/api/admin/llm/routing/route.behavior.test.ts`
+   - Covered behavior:
+     - provider PATCH returns `404` and does not mutate defaults for unknown provider IDs.
+     - provider PATCH success path returns masked API key and logs action.
+     - routing POST rejects unknown target models.
+     - routing PATCH rejects unknown target models.
+     - routing PATCH rewires `providerId` when `targetModelId` changes.
+
+### Validation after this batch
+
+- Focused tests:
+  - `npm run test -- src/app/api/admin/llm/providers/route.behavior.test.ts src/app/api/admin/llm/routing/route.behavior.test.ts --reporter=dot` -> passed
+- Full checks:
+  - `npm run test -- --reporter=dot` -> passed (47 files, 190 tests)
+  - `npm run typecheck` -> passed
+  - `npm run lint` -> passed with one existing warning in `src/lib/performance/optimization.tsx:70`
+
+---
+
 ## Progress update (Batch: 2026-02-28, admin guard coverage expansion)
 
 ### Completed in this batch
@@ -388,6 +484,40 @@ I reviewed the repository with a backend-first focus (auth, API wiring, socket l
   - `npm run test -- src/app/api/admin/settings/route.test.ts src/app/api/admin/feature-flags/route.test.ts src/app/api/admin/llm/providers/route.test.ts src/app/api/admin/llm/routing/route.test.ts src/app/api/admin/analytics/overview/route.test.ts src/app/api/admin/analytics/topology/route.test.ts --reporter=dot` -> passed
 - Full checks:
   - `npm run test -- --reporter=dot` -> passed (45 files, 182 tests)
+  - `npm run typecheck` -> passed
+  - `npm run lint` -> passed with one existing warning in `src/lib/performance/optimization.tsx:70`
+
+---
+
+## Progress update (Batch: 2026-02-28, geolocation validation hardening)
+
+### Completed in this batch
+
+1. **Hardened IP validation and private-range detection**
+   - Updated `src/app/api/admin/geolocation/route.ts`:
+     - Added strict IPv4 parsing (`0-255` octets) instead of loose regex.
+     - Corrected private-range handling to RFC1918 (`10/8`, `172.16/12`, `192.168/16`) + loopback.
+     - Prevented false private classification for public ranges like `172.15.x.x`.
+
+2. **Improved batch API input safety**
+   - Batch POST now validates all IPs before processing.
+   - Returns `400` with `invalidIps` list when malformed IPs are supplied.
+
+3. **Added cache safety guard**
+   - Added bounded in-memory geolocation cache (`MAX_GEO_CACHE_ENTRIES`) with oldest-entry eviction to avoid unbounded growth.
+
+4. **Expanded geolocation tests**
+   - Updated `src/app/api/admin/geolocation/route.test.ts` to cover:
+     - invalid octet rejection (`999.1.1.1`).
+     - RFC1918 boundary behavior (`172.20` private vs `172.15` public/fetch path).
+     - batch invalid-ip response payload with `invalidIps`.
+
+### Validation after this batch
+
+- Focused tests:
+  - `npm run test -- src/app/api/admin/geolocation/route.test.ts --reporter=dot` -> passed
+- Full checks:
+  - `npm run test -- --reporter=dot` -> passed (45 files, 185 tests)
   - `npm run typecheck` -> passed
   - `npm run lint` -> passed with one existing warning in `src/lib/performance/optimization.tsx:70`
 

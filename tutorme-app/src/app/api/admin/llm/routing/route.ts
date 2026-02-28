@@ -70,8 +70,31 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const [model] = await drizzleDb.select({ providerId: llmModel.providerId }).from(llmModel).where(eq(llmModel.id, targetModelId)).limit(1)
-    const providerId = model?.providerId ?? ''
+    const [model] = await drizzleDb
+      .select({ providerId: llmModel.providerId })
+      .from(llmModel)
+      .where(eq(llmModel.id, targetModelId))
+      .limit(1)
+    if (!model) {
+      return NextResponse.json(
+        { error: 'Target model not found' },
+        { status: 400 }
+      )
+    }
+
+    if (fallbackModelId) {
+      const [fallbackModel] = await drizzleDb
+        .select({ id: llmModel.id })
+        .from(llmModel)
+        .where(eq(llmModel.id, fallbackModelId))
+        .limit(1)
+      if (!fallbackModel) {
+        return NextResponse.json(
+          { error: 'Fallback model not found' },
+          { status: 400 }
+        )
+      }
+    }
 
     const id = crypto.randomUUID()
     await drizzleDb.insert(llmRoutingRule).values({
@@ -83,7 +106,7 @@ export async function POST(req: NextRequest) {
       targetModelId,
       fallbackModelId: fallbackModelId ?? null,
       isActive: true,
-      providerId,
+      providerId: model.providerId,
     })
     const [rule] = await drizzleDb.select().from(llmRoutingRule).where(eq(llmRoutingRule.id, id))
 
@@ -126,6 +149,36 @@ export async function PATCH(req: NextRequest) {
     for (const k of allowed) {
       if (updates[k] !== undefined) set[k] = updates[k]
     }
+
+    if (updates.targetModelId !== undefined) {
+      const [targetModel] = await drizzleDb
+        .select({ providerId: llmModel.providerId })
+        .from(llmModel)
+        .where(eq(llmModel.id, updates.targetModelId))
+        .limit(1)
+      if (!targetModel) {
+        return NextResponse.json(
+          { error: 'Target model not found' },
+          { status: 400 }
+        )
+      }
+      set.providerId = targetModel.providerId
+    }
+
+    if (updates.fallbackModelId) {
+      const [fallbackModel] = await drizzleDb
+        .select({ id: llmModel.id })
+        .from(llmModel)
+        .where(eq(llmModel.id, updates.fallbackModelId))
+        .limit(1)
+      if (!fallbackModel) {
+        return NextResponse.json(
+          { error: 'Fallback model not found' },
+          { status: 400 }
+        )
+      }
+    }
+
     if (Object.keys(set).length > 0) {
       await drizzleDb.update(llmRoutingRule).set(set as Partial<typeof llmRoutingRule.$inferInsert>).where(eq(llmRoutingRule.id, id))
     }

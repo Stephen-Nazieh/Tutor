@@ -90,12 +90,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   await drizzleDb
     .update(whiteboard)
     .set({ updatedAt: new Date() })
-    .where(
-      and(
-        eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.tutorId, userId)
-      )
-    )
+    .where(eq(whiteboard.id, wb.id))
 
   const [updatedPage] = await drizzleDb
     .select()

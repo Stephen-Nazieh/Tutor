@@ -27,7 +27,7 @@ const WhiteboardCreateSchema = z.object({
 })
 
 const WhiteboardPatchSchema = z.object({
-  visibility: z.enum(['public', 'private']).optional(),
+  visibility: z.enum(['public', 'private', 'tutor-only']).optional(),
   isBroadcasting: z.boolean().optional(),
   title: z.string().min(1).max(120).optional(),
   backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),

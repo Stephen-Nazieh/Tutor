@@ -9,7 +9,7 @@ import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
-import { eq, and, isNull, asc, desc } from 'drizzle-orm'
+import { eq, and, isNull, asc, desc, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import crypto from 'crypto'
 
@@ -161,6 +161,28 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
         { status: 400 }
       )
     }
+    if (
+      pageOrders.some(
+        (po) =>
+          typeof po?.id !== 'string' ||
+          !po.id ||
+          typeof po.order !== 'number' ||
+          !Number.isFinite(po.order)
+      )
+    ) {
+      return NextResponse.json(
+        { error: 'Each page order entry must include a valid id and numeric order' },
+        { status: 400 }
+      )
+    }
+    const pageIds = pageOrders.map((po) => po.id)
+    const uniquePageIds = new Set(pageIds)
+    if (uniquePageIds.size !== pageIds.length) {
+      return NextResponse.json(
+        { error: 'Duplicate page IDs are not allowed' },
+        { status: 400 }
+      )
+    }
 
     const [wb] = await drizzleDb
       .select()
@@ -181,12 +203,33 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
+    const ownedPages = await drizzleDb
+      .select({ id: whiteboardPage.id })
+      .from(whiteboardPage)
+      .where(
+        and(
+          eq(whiteboardPage.whiteboardId, whiteboardId),
+          inArray(whiteboardPage.id, pageIds)
+        )
+      )
+    if (ownedPages.length !== pageOrders.length) {
+      return NextResponse.json(
+        { error: 'One or more pages do not belong to this whiteboard' },
+        { status: 400 }
+      )
+    }
+
     await drizzleDb.transaction(async (tx) => {
       for (const po of pageOrders) {
         await tx
           .update(whiteboardPage)
           .set({ order: po.order })
-          .where(eq(whiteboardPage.id, po.id))
+          .where(
+            and(
+              eq(whiteboardPage.id, po.id),
+              eq(whiteboardPage.whiteboardId, whiteboardId)
+            )
+          )
       }
     })
 

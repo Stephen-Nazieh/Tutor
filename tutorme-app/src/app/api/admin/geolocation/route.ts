@@ -16,6 +16,37 @@ export interface GeoCoordinates {
 
 // Simple in-memory cache (per-request only - use Redis for production)
 const geoCache = new Map<string, GeoCoordinates>()
+const MAX_GEO_CACHE_ENTRIES = 5000
+
+function parseIPv4(ip: string): number[] | null {
+  const parts = ip.trim().split('.')
+  if (parts.length !== 4) return null
+  const octets: number[] = []
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null
+    const value = Number(part)
+    if (!Number.isInteger(value) || value < 0 || value > 255) return null
+    octets.push(value)
+  }
+  return octets
+}
+
+function isPrivateOrLoopbackIPv4(octets: number[]): boolean {
+  const [a, b] = octets
+  if (a === 10) return true
+  if (a === 127) return true
+  if (a === 192 && b === 168) return true
+  if (a === 172 && b >= 16 && b <= 31) return true
+  return false
+}
+
+function setGeoCache(ip: string, coords: GeoCoordinates) {
+  if (geoCache.size >= MAX_GEO_CACHE_ENTRIES) {
+    const oldestKey = geoCache.keys().next().value as string | undefined
+    if (oldestKey) geoCache.delete(oldestKey)
+  }
+  geoCache.set(ip, coords)
+}
 
 /**
  * GET /api/admin/geolocation?ip=x.x.x.x
@@ -34,9 +65,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'IP address required' }, { status: 400 })
   }
 
-  // Validate IP format
-  const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/
-  if (!ipRegex.test(ip)) {
+  const parsedIp = parseIPv4(ip)
+  if (!parsedIp) {
     return NextResponse.json({ error: 'Invalid IP format' }, { status: 400 })
   }
 
@@ -46,9 +76,9 @@ export async function GET(request: NextRequest) {
   }
 
   // Handle private IPs with mock data
-  if (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+  if (isPrivateOrLoopbackIPv4(parsedIp)) {
     const mockCoords = getRandomMockCoordinates()
-    geoCache.set(ip, mockCoords)
+    setGeoCache(ip, mockCoords)
     return NextResponse.json(mockCoords)
   }
 
@@ -70,7 +100,7 @@ export async function GET(request: NextRequest) {
     if (data.status !== 'success') {
       // Return mock coordinates for failed lookups
       const mockCoords = getRandomMockCoordinates()
-      geoCache.set(ip, mockCoords)
+      setGeoCache(ip, mockCoords)
       return NextResponse.json(mockCoords)
     }
 
@@ -82,13 +112,13 @@ export async function GET(request: NextRequest) {
       region: data.regionName,
     }
 
-    geoCache.set(ip, coords)
+    setGeoCache(ip, coords)
     return NextResponse.json(coords)
   } catch (error) {
     console.warn(`Geolocation fetch failed for ${ip}:`, error)
     // Return mock coordinates on error
     const mockCoords = getRandomMockCoordinates()
-    geoCache.set(ip, mockCoords)
+    setGeoCache(ip, mockCoords)
     return NextResponse.json(mockCoords)
   }
 }
@@ -116,10 +146,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Maximum 50 IPs per request' }, { status: 400 })
     }
 
+    const parsedIps = ips.map((ip) => ({ ip, parsed: parseIPv4(ip) }))
+    const invalidIps = parsedIps.filter((p) => !p.parsed).map((p) => p.ip)
+    if (invalidIps.length > 0) {
+      return NextResponse.json(
+        { error: 'Invalid IP format', invalidIps },
+        { status: 400 }
+      )
+    }
+
     const results = new Map<string, GeoCoordinates>()
     
     // Process sequentially to respect rate limits
-    for (const ip of ips) {
+    for (const { ip, parsed } of parsedIps) {
       // Check cache first
       if (geoCache.has(ip)) {
         results.set(ip, geoCache.get(ip)!)
@@ -127,9 +166,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Handle private IPs
-      if (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+      if (parsed && isPrivateOrLoopbackIPv4(parsed)) {
         const mockCoords = getRandomMockCoordinates()
-        geoCache.set(ip, mockCoords)
+        setGeoCache(ip, mockCoords)
         results.set(ip, mockCoords)
         continue
       }
@@ -157,18 +196,18 @@ export async function POST(request: NextRequest) {
             country: data.country,
             region: data.regionName,
           }
-          geoCache.set(ip, coords)
+          setGeoCache(ip, coords)
           results.set(ip, coords)
         } else {
           // Use mock for failed lookups
           const mockCoords = getRandomMockCoordinates()
-          geoCache.set(ip, mockCoords)
+          setGeoCache(ip, mockCoords)
           results.set(ip, mockCoords)
         }
       } catch (error) {
         // Use mock on error
         const mockCoords = getRandomMockCoordinates()
-        geoCache.set(ip, mockCoords)
+        setGeoCache(ip, mockCoords)
         results.set(ip, mockCoords)
       }
 

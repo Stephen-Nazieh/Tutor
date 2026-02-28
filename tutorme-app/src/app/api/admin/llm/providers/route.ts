@@ -130,6 +130,15 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
+    const [existingProvider] = await drizzleDb
+      .select()
+      .from(llmProvider)
+      .where(eq(llmProvider.id, id))
+      .limit(1)
+    if (!existingProvider) {
+      return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
+    }
+
     if (updates.isDefault) {
       await drizzleDb.update(llmProvider).set({ isDefault: false }).where(eq(llmProvider.isDefault, true))
     }
@@ -143,19 +152,17 @@ export async function PATCH(req: NextRequest) {
       await drizzleDb.update(llmProvider).set(set as Partial<typeof llmProvider.$inferInsert>).where(eq(llmProvider.id, id))
     }
     const [provider] = await drizzleDb.select().from(llmProvider).where(eq(llmProvider.id, id))
-    if (!provider) {
-      return NextResponse.json({ error: 'Provider not found' }, { status: 404 })
-    }
+    const providerForResponse = provider ?? existingProvider
 
     await logAdminAction(session.adminId, 'llm_provider.update', {
       resourceType: 'llm_provider',
-      resourceId: provider.id,
-      newState: { ...provider, apiKeyEncrypted: '***' },
+      resourceId: providerForResponse.id,
+      newState: { ...providerForResponse, apiKeyEncrypted: '***' },
       ipAddress: getClientIp(req),
       userAgent: req.headers.get('user-agent') || undefined,
     })
 
-    return NextResponse.json({ provider: { ...provider, apiKeyEncrypted: '***' } })
+    return NextResponse.json({ provider: { ...providerForResponse, apiKeyEncrypted: '***' } })
   } catch (error) {
     console.error('Error updating LLM provider:', error)
     return NextResponse.json(

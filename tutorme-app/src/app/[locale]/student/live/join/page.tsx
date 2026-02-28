@@ -37,6 +37,15 @@ interface JoinByCodeResponse {
   token?: string
 }
 
+class JoinRequestError extends Error {
+  status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
+
 export default function StudentJoinLiveClassPage() {
   const router = useRouter()
   const [classCode, setClassCode] = useState('')
@@ -82,8 +91,9 @@ export default function StudentJoinLiveClassPage() {
     })
 
     if (!res.ok) {
-      const text = await res.text().catch(() => '')
-      throw new Error(text || `Join failed (${res.status})`)
+      const payload = await res.json().catch(() => ({}))
+      const message = typeof payload?.error === 'string' ? payload.error : `Join failed (${res.status})`
+      throw new JoinRequestError(message, res.status)
     }
 
     const data = (await res.json()) as (JoinByIdResponse & { session?: { id?: string } })
@@ -102,8 +112,9 @@ export default function StudentJoinLiveClassPage() {
     })
 
     if (!res.ok) {
-      const text = await res.text().catch(() => '')
-      throw new Error(text || `Join failed (${res.status})`)
+      const payload = await res.json().catch(() => ({}))
+      const message = typeof payload?.error === 'string' ? payload.error : `Join failed (${res.status})`
+      throw new JoinRequestError(message, res.status)
     }
 
     const data = (await res.json()) as JoinByCodeResponse
@@ -128,7 +139,10 @@ export default function StudentJoinLiveClassPage() {
         }
         router.push(`/student/live/${joined.sessionId}`)
         return
-      } catch {
+      } catch (error) {
+        if (!(error instanceof JoinRequestError) || error.status !== 404) {
+          throw error
+        }
         const joined = await joinByCode(cleaned, csrfToken)
         if (!joined.sessionId) {
           throw new Error('Session not found for this class')

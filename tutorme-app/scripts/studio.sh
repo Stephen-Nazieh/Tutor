@@ -5,6 +5,8 @@
 # Or: bash scripts/studio.sh
 
 STUDIO_PORT=4983
+STUDIO_URL="https://local.drizzle.studio/?port=${STUDIO_PORT}"
+AUTO_OPEN_STUDIO="${AUTO_OPEN_STUDIO:-1}"
 
 echo "╔════════════════════════════════════════════════════════╗"
 echo "║         Drizzle Studio — Database UI                  ║"
@@ -59,12 +61,29 @@ fi
 
 echo "🚀 Starting Drizzle Studio on port $STUDIO_PORT..."
 echo ""
-echo "   Open in browser: https://local.drizzle.studio"
+echo "   Open in browser: ${STUDIO_URL}"
+echo "   (If needed, fallback URL: https://local.drizzle.studio)"
 echo "   (Backend listens on port $STUDIO_PORT; use Chrome/Firefox if Safari/Brave show an error)"
 echo ""
 echo "   If you see 'Unexpected error' on that page, see docs/DRIZZLE_STUDIO.md or use: npx prisma studio → http://localhost:5555"
 echo ""
 echo "   Press Ctrl+C to stop"
 echo ""
+
+if [ "$AUTO_OPEN_STUDIO" = "1" ] && [ "$(uname -s)" = "Darwin" ] && command -v open >/dev/null 2>&1; then
+    echo "▶ Opening ${STUDIO_URL}..."
+    OPEN_STATUS=0
+    if [ -d "/Applications/Google Chrome.app" ]; then
+        open -a "Google Chrome" "${STUDIO_URL}" >/dev/null 2>&1 || OPEN_STATUS=$?
+    elif [ -d "/Applications/Firefox.app" ]; then
+        open -a "Firefox" "${STUDIO_URL}" >/dev/null 2>&1 || OPEN_STATUS=$?
+    else
+        open "${STUDIO_URL}" >/dev/null 2>&1 || OPEN_STATUS=$?
+    fi
+    if [ "$OPEN_STATUS" -ne 0 ]; then
+        echo "⚠️  Could not auto-open browser. Open manually: ${STUDIO_URL}"
+    fi
+    echo ""
+fi
 
 npx drizzle-kit studio --port $STUDIO_PORT

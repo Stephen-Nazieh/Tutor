@@ -129,6 +129,23 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
+    const [existingPage] = await drizzleDb
+      .select({ id: whiteboardPage.id })
+      .from(whiteboardPage)
+      .where(
+        and(
+          eq(whiteboardPage.id, pageId),
+          eq(whiteboardPage.whiteboardId, whiteboardId)
+        )
+      )
+      .limit(1)
+    if (!existingPage) {
+      return NextResponse.json(
+        { error: 'Page not found' },
+        { status: 404 }
+      )
+    }
+
     const updateData: Record<string, unknown> = {}
     if (data.name !== undefined) updateData.name = data.name
     if (data.strokes !== undefined) updateData.strokes = data.strokes
@@ -146,7 +163,12 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     await drizzleDb
       .update(whiteboardPage)
       .set(updateData)
-      .where(eq(whiteboardPage.id, pageId))
+      .where(
+        and(
+          eq(whiteboardPage.id, pageId),
+          eq(whiteboardPage.whiteboardId, whiteboardId)
+        )
+      )
 
     await drizzleDb
       .update(whiteboard)
@@ -156,7 +178,12 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     const [page] = await drizzleDb
       .select()
       .from(whiteboardPage)
-      .where(eq(whiteboardPage.id, pageId))
+      .where(
+        and(
+          eq(whiteboardPage.id, pageId),
+          eq(whiteboardPage.whiteboardId, whiteboardId)
+        )
+      )
       .limit(1)
 
     return NextResponse.json({ page: page! })
@@ -198,6 +225,23 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
+    const [existingPage] = await drizzleDb
+      .select({ id: whiteboardPage.id })
+      .from(whiteboardPage)
+      .where(
+        and(
+          eq(whiteboardPage.id, pageId),
+          eq(whiteboardPage.whiteboardId, whiteboardId)
+        )
+      )
+      .limit(1)
+    if (!existingPage) {
+      return NextResponse.json(
+        { error: 'Page not found' },
+        { status: 404 }
+      )
+    }
+
     const pageRows = await drizzleDb
       .select()
       .from(whiteboardPage)
@@ -212,7 +256,12 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
 
     await drizzleDb
       .delete(whiteboardPage)
-      .where(eq(whiteboardPage.id, pageId))
+      .where(
+        and(
+          eq(whiteboardPage.id, pageId),
+          eq(whiteboardPage.whiteboardId, whiteboardId)
+        )
+      )
 
     const remainingPages = await drizzleDb
       .select()
