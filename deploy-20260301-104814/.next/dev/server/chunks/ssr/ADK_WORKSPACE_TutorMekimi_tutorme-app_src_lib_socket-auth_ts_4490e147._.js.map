@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "20e925f9-7cd0-4a94-4792-0b57f6c2d630",
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/socket-auth.ts"],"sourcesContent":["/**\n * Client-side helper to obtain a JWT for Socket.io authentication.\n * Used by use-socket, use-simple-socket, use-whiteboard-socket, etc.\n */\n\nexport async function getSocketToken(): Promise<string | null> {\n  try {\n    const res = await fetch('/api/socket-token', { credentials: 'include' })\n    if (!res.ok) return null\n    const data = await res.json()\n    return data.token ?? null\n  } catch {\n    return null\n  }\n}\n"],"names":[],"mappings":"AAAA;;;CAGC;;;;AAEM,eAAe;IACpB,IAAI;QACF,MAAM,MAAM,MAAM,MAAM,qBAAqB;YAAE,aAAa;QAAU;QACtE,IAAI,CAAC,IAAI,EAAE,EAAE,OAAO;QACpB,MAAM,OAAO,MAAM,IAAI,IAAI;QAC3B,OAAO,KAAK,KAAK,IAAI;IACvB,EAAE,OAAM;QACN,OAAO;IACT;AACF"}}]
+}

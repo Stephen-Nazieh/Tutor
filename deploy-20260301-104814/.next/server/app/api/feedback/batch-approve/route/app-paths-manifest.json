@@ -1,0 +1,3 @@
+{
+  "/api/feedback/batch-approve/route": "app/api/feedback/batch-approve/route.js"
+}

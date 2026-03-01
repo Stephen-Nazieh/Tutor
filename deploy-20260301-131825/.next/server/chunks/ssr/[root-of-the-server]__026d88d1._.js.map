@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "6b957c5a-b728-2712-b7a9-aef5b877b5dc",
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../../../../ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/%5Blocale%5D/tutor/courses/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation'\n\nexport default function CoursesPage() {\n  redirect('/tutor/my-page')\n}\n"],"names":[],"mappings":"wYAAA,EAAA,CAAA,CAAA,QAAA,IAAA,EAAA,EAAA,CAAA,CAAA,QAEe,SAAS,IACtB,CAAA,EAAA,EAAA,QAAA,AAAQ,EAAC,iBACX"}}]
+}

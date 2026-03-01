@@ -1,0 +1,3 @@
+{
+  "/api/content/[contentId]/quiz-skip/route": "app/api/content/[contentId]/quiz-skip/route.js"
+}

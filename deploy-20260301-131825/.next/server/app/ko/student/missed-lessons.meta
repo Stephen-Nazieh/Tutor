@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/student/layout,_N_T_/[locale]/student/missed-lessons/layout,_N_T_/[locale]/student/missed-lessons/page,_N_T_/ko/student/missed-lessons"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/$d$locale/student/missed-lessons/__PAGE__",
+    "/$d$locale/student/missed-lessons",
+    "/$d$locale/student",
+    "/$d$locale",
+    "/_index",
+    "/_head"
+  ]
+}

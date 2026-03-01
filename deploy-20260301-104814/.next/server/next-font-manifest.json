@@ -1,0 +1,487 @@
+{
+  "app": {
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/(student)/curriculum/[curriculumId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/(student)/curriculum/lessons/[lessonId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/(student)/curriculum/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/analytics/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/audit-log/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/content/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/feature-flags/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/llm/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/login/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/payments/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/security/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/settings/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/topology/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/admin/users/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/api-docs/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/legal/code-of-conduct/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/legal/privacy/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/legal/terms/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/login/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/onboarding/student/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/onboarding/tutor/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/assignments/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/children/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/classes/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/courses/[id]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/courses/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/dashboard/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/invoices/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/messages/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/notifications/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/payments/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/profile/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/progress/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/settings/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/students/[studentId]/ai-tutor/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/students/[studentId]/assignments/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/students/[studentId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/parent/teachers/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/payment/cancel/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/payment/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/payment/success/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/register/admin/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/register/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/register/parent/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/register/student/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/register/tutor/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/agreement/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/ai-tutor/browse/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/ai-tutor/english/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/ai-tutor/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/ai-tutor/schedule/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/assignments/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/courses/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/dashboard/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/favorites/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/gamification/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/help/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/learn/[contentId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/lesson-replays/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/live/[sessionId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/live/join/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/messages/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/missed-classes/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/missed-lessons/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/missions/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/notifications/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/onboarding/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/pdf-tutoring/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/progress/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/quizzes/[id]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/quizzes/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/resources/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/review/[contentId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/scores/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/settings/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/skills/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/study-groups/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/subjects/[subjectCode]/chat/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/subjects/[subjectCode]/courses/[curriculumId]/details/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/subjects/[subjectCode]/courses/[curriculumId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/subjects/[subjectCode]/courses/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/subjects/[subjectCode]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/subjects/[subjectCode]/signup/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/tutors/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/student/worlds/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/ai-assistant/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/calendar/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/classes/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/courses/[id]/builder/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/courses/[id]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/courses/[id]/tasks/[taskId]/analytics/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/courses/[id]/tasks/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/courses/new/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/courses/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/curriculum/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/dashboard/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/group-builder/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/groups/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/help/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/live-class/[sessionId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/live-class/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/messages/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/my-page/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/notifications/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/pdf-tutoring/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/question-bank/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/quizzes/[id]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/quizzes/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/reports/[studentId]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/reports/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/resources/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/revenue/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/settings/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/students/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/whiteboards/[id]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/tutor/whiteboards/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/[locale]/u/[username]/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ],
+    "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/_not-found/page": [
+      "static/media/1bffadaabf893a1e.p.7cd81963.woff2",
+      "static/media/83afe278b6a6bb3c.p.3a6ba036.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": false,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

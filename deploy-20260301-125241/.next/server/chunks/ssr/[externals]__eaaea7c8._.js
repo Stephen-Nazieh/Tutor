@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="a4eac29e-a35c-8131-d32f-7df1d78c2e6e")}catch(e){}}();
+module.exports=[224361,(a,b,c)=>{b.exports=a.x("util",()=>require("util"))},792509,(a,b,c)=>{b.exports=a.x("url",()=>require("url"))},921517,(a,b,c)=>{b.exports=a.x("http",()=>require("http"))},524836,(a,b,c)=>{b.exports=a.x("https",()=>require("https"))},406461,(a,b,c)=>{b.exports=a.x("zlib",()=>require("zlib"))},814747,(a,b,c)=>{b.exports=a.x("path",()=>require("path"))},522734,(a,b,c)=>{b.exports=a.x("fs",()=>require("fs"))},37702,(a,b,c)=>{b.exports=a.x("worker_threads",()=>require("worker_threads"))},688947,(a,b,c)=>{b.exports=a.x("stream",()=>require("stream"))}];
+
+//# debugId=a4eac29e-a35c-8131-d32f-7df1d78c2e6e
+//# sourceMappingURL=%5Bexternals%5D__eaaea7c8._.js.map

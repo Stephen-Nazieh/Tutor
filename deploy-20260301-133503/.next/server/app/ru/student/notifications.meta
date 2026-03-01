@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/student/layout,_N_T_/[locale]/student/notifications/layout,_N_T_/[locale]/student/notifications/page,_N_T_/ru/student/notifications"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/$d$locale/student/notifications/__PAGE__",
+    "/$d$locale/student/notifications",
+    "/$d$locale/student",
+    "/$d$locale",
+    "/_index",
+    "/_head"
+  ]
+}

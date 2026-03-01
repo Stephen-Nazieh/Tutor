@@ -1,0 +1,3 @@
+{
+  "/api/sessions/[sessionId]/whiteboard/save/route": "app/api/sessions/[sessionId]/whiteboard/save/route.js"
+}

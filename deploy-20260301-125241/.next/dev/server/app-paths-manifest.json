@@ -1,0 +1,16 @@
+{
+  "/[locale]/login/page": "app/[locale]/login/page.js",
+  "/[locale]/page": "app/[locale]/page.js",
+  "/[locale]/register/page": "app/[locale]/register/page.js",
+  "/[locale]/register/tutor/page": "app/[locale]/register/tutor/page.js",
+  "/[locale]/tutor/dashboard/page": "app/[locale]/tutor/dashboard/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/api/auth/register/route": "app/api/auth/register/route.js",
+  "/api/auth/session-realm/route": "app/api/auth/session-realm/route.js",
+  "/api/auth/set-realm-cookie/route": "app/api/auth/set-realm-cookie/route.js",
+  "/api/tutor/classes/route": "app/api/tutor/classes/route.js",
+  "/api/tutor/stats/route": "app/api/tutor/stats/route.js",
+  "/api/tutor/students-needing-attention/route": "app/api/tutor/students-needing-attention/route.js",
+  "/api/tutor/students/route": "app/api/tutor/students/route.js"
+}

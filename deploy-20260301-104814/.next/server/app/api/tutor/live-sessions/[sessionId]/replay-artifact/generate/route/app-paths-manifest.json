@@ -1,0 +1,3 @@
+{
+  "/api/tutor/live-sessions/[sessionId]/replay-artifact/generate/route": "app/api/tutor/live-sessions/[sessionId]/replay-artifact/generate/route.js"
+}

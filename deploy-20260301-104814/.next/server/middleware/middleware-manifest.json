@@ -1,0 +1,52 @@
+{
+  "sorted_middleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/[root-of-the-server]__73c292d4._.js",
+        "server/edge/chunks/[root-of-the-server]__8da9e49b._.js",
+        "server/edge/chunks/[root-of-the-server]__cbd153a3._.js",
+        "server/edge/chunks/1890b_next_dist_esm_build_templates_edge-wrapper_147fcb00.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/((?!api|_next|_vercel|.*\\..*).*){(\\\\.json)}?",
+          "originalSource": "/((?!api|_next|_vercel|.*\\..*).*)"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)/:path*{(\\\\.json)}?",
+          "originalSource": "/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)/:path*"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/(/?index|/?index\\\\.json)?",
+          "originalSource": "/"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/auth/signin{(\\\\.json)}?",
+          "originalSource": "/api/auth/signin"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/auth/signin/credentials{(\\\\.json)}?",
+          "originalSource": "/api/auth/signin/credentials"
+        },
+        {
+          "regexp": "/:nextData(_next/data/[^/]{1,})?/api/((?!auth|health).*){(\\\\.json)}?",
+          "originalSource": "/api/((?!auth|health).*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "XvYrsqFB54H_dgolJamxR",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "Of1QoM/4oeId7GQH0hhM2sEmxEZDu0B213Z6QBWhVP8=",
+        "__NEXT_PREVIEW_MODE_ID": "fc2d9543a6c3e1780a63893dd36dc712",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f8e40e350ef6357f1db9ebe64983cb210af85a2cec79fabb90e3ad44951394ee",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "2393c929a7415ce363942ff05013e4df6749668174e8863747851bfb7ac13e83"
+      }
+    }
+  },
+  "instrumentation": null,
+  "functions": {}
+}

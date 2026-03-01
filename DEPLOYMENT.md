@@ -2,26 +2,147 @@
 
 This guide will walk you through deploying TutorMe to AWS using the provided scripts.
 
+> **Beginner-friendly:** No prior AWS knowledge required. Each step includes detailed instructions.
+
+## 📚 Quick Navigation
+
+| Topic | Section |
+|-------|---------|
+| First-time AWS setup (credentials) | [Prerequisites](#-prerequisites) |
+| Already have AWS credentials? | [Quick Start](#-quick-start-recommended) |
+| Deploy to existing EC2 instance | [Existing EC2](#-deploying-to-existing-ec2-instance) |
+| Troubleshooting errors | [Troubleshooting](#-troubleshooting) |
+| Security best practices | [Security](#-security-best-practices) |
+| Cost information | [Cost Breakdown](#-cost-breakdown) |
+
 ## 📋 Prerequisites
 
 Before starting, ensure you have:
 
-1. **AWS CLI** installed and configured
-   ```bash
-   aws configure
-   # AWS Access Key ID: [your-access-key]
-   # AWS Secret Access Key: [your-secret-key]
-   # Default region: us-east-2
-   # Default output: json
-   ```
+### 1. AWS Account and Credentials
 
-2. **Node.js** (v18 or higher) and **npm**
+You need an AWS account and credentials to deploy resources.
 
-3. **Docker** installed locally (for building images)
+#### Step 1.1: Create AWS Account (if you don't have one)
+1. Go to https://aws.amazon.com/free/
+2. Click **"Create a Free Account"**
+3. Follow the signup process (requires credit card for verification)
+4. Choose the **Basic (Free)** support plan
 
-4. **Domain registered** in Route 53 (solocorn.co is already set up!)
+#### Step 1.2: Get Your AWS Access Keys
+
+You need to create an Access Key ID and Secret Access Key.
+
+**Navigate to Security Credentials:**
+1. Log into AWS Console: https://console.aws.amazon.com/
+2. Make sure you're in the **"Ohio (us-east-2)"** region (top right corner)
+3. Click your **name** in the top-right corner
+4. Select **"Security credentials"** from the dropdown
+
+![Security Credentials Menu](https://docs.aws.amazon.com/images/IAM/latest/UserGuide/images/security-credentials.png)
+
+**Create Access Key:**
+1. Scroll down to **"Access keys"** section
+2. Click **"Create access key"**
+3. Select **"Command Line Interface (CLI)"**
+4. Check the acknowledgment box
+5. Click **"Next"**
+6. (Optional) Add a description like "TutorMe Deployment"
+7. Click **"Create access key"**
+
+**Save Your Keys (IMPORTANT!):**
+```
+Access key ID:     AKIAIOSFODNN7EXAMPLE     (20 characters)
+Secret access key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY     (40 characters)
+```
+
+⚠️ **WARNING:** This is the ONLY time you can see the Secret Access Key. Copy both keys and save them securely (password manager, secure notes). Never share them or commit them to Git.
+
+#### Step 1.3: Install AWS CLI
+
+**Mac (using Homebrew):**
+```bash
+# Check if already installed
+aws --version
+
+# If not installed:
+brew install awscli
+```
+
+**Windows:**
+1. Download: https://awscli.amazonaws.com/AWSCLIV2.msi
+2. Run installer
+3. Open Command Prompt or PowerShell
+4. Verify: `aws --version`
+
+**Linux:**
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+aws --version
+```
+
+#### Step 1.4: Configure AWS CLI
+
+Open terminal and run:
+
+```bash
+aws configure
+```
+
+Enter these values when prompted:
+```
+AWS Access Key ID [None]: AKIA...        (paste your Access Key ID)
+AWS Secret Access Key [None]: wJal...    (paste your Secret Access Key)
+Default region name [None]: us-east-2
+Default output format [None]: json
+```
+
+**Verify it works:**
+```bash
+aws sts get-caller-identity
+```
+
+Expected output:
+```json
+{
+    "UserId": "AIDACKCEVSQ6C2EXAMPLE",
+    "Account": "445875721173",
+    "Arn": "arn:aws:iam::445875721173:user/your-username"
+}
+```
+
+### 2. Node.js (v18 or higher) and npm
+
+**Check if installed:**
+```bash
+node --version  # Should show v18.x.x or higher
+npm --version
+```
+
+**Install if needed:**
+- Mac: `brew install node`
+- Windows: https://nodejs.org/ (download LTS version)
+- Linux: Use your package manager (apt, yum, etc.)
+
+### 3. Docker (for local building)
+
+**Check if installed:**
+```bash
+docker --version
+```
+
+**Install if needed:**
+- Mac/Windows: https://www.docker.com/products/docker-desktop
+- Linux: Use your package manager
+
+### 4. Domain in Route 53 (Already Set Up!)
+
+Your domain `solocorn.co` is already registered in Route 53. No action needed here.
 
 ## 🚀 Quick Start (Recommended)
+
 
 ### Option 1: Full Automated Deployment (Linux/Mac) - **Recommended for Production**
 
@@ -40,6 +161,7 @@ This script will:
 4. Deploy infrastructure via CDK
 5. Transfer files to EC2
 6. Start the application
+
 
 ### Option 2: Deploy to Existing EC2 Instance (Faster)
 
@@ -268,6 +390,60 @@ sudo docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deplo
 
 ## 🛠️ Troubleshooting
 
+### Issue: "AWS credentials not configured!"
+
+**Symptoms:** Script says AWS credentials are not configured.
+
+**Solution:**
+
+1. **Check if AWS CLI is installed:**
+   ```bash
+   aws --version
+   # Should show something like: aws-cli/2.x.x
+   ```
+
+2. **Check if credentials are configured:**
+   ```bash
+   aws sts get-caller-identity
+   ```
+   - If it shows your account info, credentials are working
+   - If it says "Unable to locate credentials", you need to configure
+
+3. **Configure credentials:**
+   ```bash
+   aws configure
+   # Enter your Access Key ID and Secret Access Key from Step 1.2
+   ```
+
+4. **Check credentials file location:**
+   - Mac/Linux: `cat ~/.aws/credentials`
+   - Windows: `type %UserProfile%\.aws\credentials`
+   
+   Should contain:
+   ```
+   [default]
+   aws_access_key_id = AKIA...
+   aws_secret_access_key = wJal...
+   ```
+
+### Issue: "Access Denied" or "Not Authorized"
+
+**Symptoms:** You get permission errors when running the script.
+
+**Solution:** Your AWS user needs more permissions.
+
+1. Go to AWS Console → IAM → Users → [Your Username]
+2. Click **"Add permissions"**
+3. Select **"Attach existing policies directly"**
+4. Add these policies:
+   - `AmazonEC2FullAccess` - For creating EC2 instances
+   - `AmazonRoute53FullAccess` - For DNS management
+   - `AWSCloudFormationFullAccess` - For CDK deployments
+   - `IAMFullAccess` - For creating IAM roles
+5. Click **"Next"** → **"Add permissions"**
+
+**Alternative:** If you can't add permissions, ask your AWS account administrator to add them for you.
+
 ### Issue: CDK deployment fails
 
 ```bash
@@ -319,6 +495,31 @@ sudo docker-compose -f docker-compose.prod.yml logs db
 # Run migrations manually
 sudo docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
 ```
+
+## 🔐 Security Best Practices
+
+### Protecting Your AWS Credentials
+
+1. **Never commit credentials to Git:**
+   ```bash
+   # These files should be in .gitignore:
+   ~/.aws/credentials
+   ~/.aws/config
+   .env.production
+   ```
+
+2. **Use IAM roles when possible:** Instead of access keys, use IAM roles for EC2 instances.
+
+3. **Rotate credentials regularly:** Create new access keys every 90 days.
+
+4. **Delete unused access keys:** If you lose a key, delete it and create a new one.
+
+### To Delete/Rotate Access Keys:
+
+1. AWS Console → IAM → Users → [Your Username] → Security credentials
+2. Find the access key you want to delete
+3. Click **"Actions"** → **"Delete"**
+4. Create a new key if needed
 
 ## 🗑️ Cleanup / Destroy
 

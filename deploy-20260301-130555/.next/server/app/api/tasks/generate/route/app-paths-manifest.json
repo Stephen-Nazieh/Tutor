@@ -1,0 +1,3 @@
+{
+  "/api/tasks/generate/route": "app/api/tasks/generate/route.js"
+}

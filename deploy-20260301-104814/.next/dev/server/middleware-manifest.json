@@ -1,0 +1,70 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/04567_@sentry_core_build_esm_685d3a58._.js",
+        "server/edge/chunks/d6232_@sentry_core_build_esm_083c50b5._.js",
+        "server/edge/chunks/36318_@sentry_core_build_esm_utils_ca16711e._.js",
+        "server/edge/chunks/36318_@sentry_core_build_esm_tracing_88dffb07._.js",
+        "server/edge/chunks/36318_@sentry_core_build_esm_integrations_4620c811._.js",
+        "server/edge/chunks/36318_@sentry_core_build_esm_6d56adee._.js",
+        "server/edge/chunks/c427b_@sentry_nextjs_build_esm_e2b84d95._.js",
+        "server/edge/chunks/c427b_@sentry_opentelemetry_build_esm_index_e71ef012.js",
+        "server/edge/chunks/c427b_@sentry_vercel-edge_build_esm_index_8922b9af.js",
+        "server/edge/chunks/c427b_6753c0a8._.js",
+        "server/edge/chunks/[root-of-the-server]__0bf94ff3._.js",
+        "server/edge/chunks/1890b_next_dist_esm_build_templates_edge-wrapper_0d6e57d8.js",
+        "server/edge/chunks/c427b_next_dist_b6a433a0._.js",
+        "server/edge/chunks/c427b_@opentelemetry_api_build_esm_ba7da4b6._.js",
+        "server/edge/chunks/c427b_@formatjs_intl-localematcher_0a78489b._.js",
+        "server/edge/chunks/a9537_jose_dist_browser_bc6672a1._.js",
+        "server/edge/chunks/c427b_ioredis_built_77830b15._.js",
+        "server/edge/chunks/c427b_211564a9._.js",
+        "server/edge/chunks/[root-of-the-server]__295e7d20._.js",
+        "server/edge/chunks/1890b_next_dist_esm_build_templates_edge-wrapper_f535aca0.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!api|_next|_vercel|.*\\..*).*))(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/((?!api|_next|_vercel|.*\\..*).*)"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar))(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)/:path*"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(\\/?index|\\/?index\\\\.json))?[\\/#\\?]?$",
+          "originalSource": "/"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/auth\\/signin(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/api/auth/signin"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/auth\\/signin\\/credentials(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/api/auth/signin/credentials"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api(?:\\/((?!auth|health).*))(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/api/((?!auth|health).*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "EVDcDPQcSGQoGn6E5oVNRBEVgW+f1UO/LIbZGuvEcIA=",
+        "__NEXT_PREVIEW_MODE_ID": "5f170676960c6121eaf98485f787873f",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "a69da8f6d739112387f1ac88bb2b9c495d6fb0a5d91fab3d3f54c76cb0a37ea7",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "67cd01880e2dede416a7ec26808413b7e26a46c68430fe8f347f9e8daef382d5"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
+  "functions": {}
+}

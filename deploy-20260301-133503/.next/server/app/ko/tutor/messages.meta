@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/tutor/layout,_N_T_/[locale]/tutor/messages/layout,_N_T_/[locale]/tutor/messages/page,_N_T_/ko/tutor/messages"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/$d$locale/tutor/messages/__PAGE__",
+    "/$d$locale/tutor/messages",
+    "/$d$locale/tutor",
+    "/$d$locale",
+    "/_index",
+    "/_head"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/register/layout,_N_T_/[locale]/register/parent/layout,_N_T_/[locale]/register/parent/page,_N_T_/zh-CN/register/parent"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/$d$locale/register/parent/__PAGE__",
+    "/$d$locale/register/parent",
+    "/$d$locale/register",
+    "/$d$locale",
+    "/_index",
+    "/_head"
+  ]
+}

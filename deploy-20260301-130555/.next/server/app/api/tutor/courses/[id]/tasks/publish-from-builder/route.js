@@ -1,0 +1,13 @@
+var R=require("../../../../../../../chunks/[turbopack]_runtime.js")("server/app/api/tutor/courses/[id]/tasks/publish-from-builder/route.js")
+R.c("server/chunks/[root-of-the-server]__186ef8eb._.js")
+R.c("server/chunks/c427b_bcryptjs_index_98159974.js")
+R.c("server/chunks/c427b_next_13fcaaee._.js")
+R.c("server/chunks/c427b_next_498da44d._.js")
+R.c("server/chunks/c427b_next_dist_526357c5._.js")
+R.c("server/chunks/ADK_WORKSPACE_TutorMekimi_tutorme-app_6787d7f6._.js")
+R.c("server/chunks/[root-of-the-server]__36ac0691._.js")
+R.c("server/chunks/[root-of-the-server]__cac59fc5._.js")
+R.c("server/chunks/c427b_drizzle-orm_42580420._.js")
+R.c("server/chunks/c8cee_app_api_tutor_courses_[id]_tasks_publish-from-builder_route_actions_2cfcd83f.js")
+R.m(388585)
+module.exports=R.m(388585).exports

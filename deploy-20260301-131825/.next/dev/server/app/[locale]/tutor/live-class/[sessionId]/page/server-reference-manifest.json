@@ -1,0 +1,65 @@
+{
+  "node": {
+    "6009bcdb02492149cdb86c1a44f52568c1ada59c5a": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/.next-internal/server/app/[locale]/tutor/live-class/[sessionId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "saveLibraryTask",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "exportedName": "saveLibraryTask",
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+    },
+    "60aba0fbba875f1bc96d01d89adf48a35e9c287c37": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/.next-internal/server/app/[locale]/tutor/live-class/[sessionId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "toggleFavoriteTask",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "exportedName": "toggleFavoriteTask",
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+    },
+    "60b917022f6b954028b4850fe764b85358e24946d6": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/.next-internal/server/app/[locale]/tutor/live-class/[sessionId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "deleteLibraryTask",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "exportedName": "deleteLibraryTask",
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+    },
+    "407392e53992ce83160f6e2dd4637aefa8ccdf49e6": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": "[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/.next-internal/server/app/[locale]/tutor/live-class/[sessionId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": true,
+          "exportedName": "incrementTaskUsage",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "exportedName": "incrementTaskUsage",
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+    }
+  },
+  "edge": {}
+}

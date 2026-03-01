@@ -1,0 +1,326 @@
+[00:00:04.860] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:05.835] Server  LOG     Redis clients initialized successfully
+[00:00:05.883] Server  LOG     Redis adapter configured for Socket.io
+[00:00:05.883] Server  LOG     ✅ Socket.io server initialized
+[00:00:05.885] Server  LOG     > Ready on http://localhost:3003
+[00:00:05.885] Server  LOG     > Socket.io ready on ws://localhost:3003/api/socket
+[00:00:10.498] Browser LOG     [Web Vitals] {"delta":1856,"entries":[{"connectEnd":1,"connectStart":1,"decodedBodySize":66480,"domComplete":2547,"domContentLoadedEventEnd":2305,"domContentLoadedEventStart":2305,"domInteractive":2305,"domainLookupEnd":1,"domainLookupStart":1,"duration":2547,"encodedBodySize":19216,"entryType":"navigation","fetchStart":1,"initiatorType":"navigation","loadEventEnd":2547,"loadEventStart":2547,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":5,"responseEnd":1885,"responseStart":1856,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":19516,"type":"reload","unloadEventEnd":1897,"unloadEventStart":1897,"workerStart":1}],"id":"v4-1772292463930-5834352078078","name":"TTFB","navigationType":"reload","rating":"poor","value":1856}
+[00:00:15.612] Browser LOG     [Web Vitals] {"delta":123,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":123}],"id":"v4-1772292469039-7684246880584","name":"FCP","navigationType":"reload","rating":"good","value":123}
+[00:00:15.613] Browser LOG     [Web Vitals] {"delta":90,"entries":[{"connectEnd":1,"connectStart":1,"decodedBodySize":66459,"domComplete":216,"domContentLoadedEventEnd":126,"domContentLoadedEventStart":126,"domInteractive":126,"domainLookupEnd":1,"domainLookupStart":1,"duration":216,"encodedBodySize":19228,"entryType":"navigation","fetchStart":1,"initiatorType":"navigation","loadEventEnd":216,"loadEventStart":216,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":2,"responseEnd":102.00000000000001,"responseStart":90,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":19528,"type":"reload","unloadEventEnd":97,"unloadEventStart":97,"workerStart":0}],"id":"v4-1772292469039-8597683372500","name":"TTFB","navigationType":"reload","rating":"good","value":90}
+[00:00:16.258] Browser LOG     [Web Vitals] {"delta":123,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":123,"presentationTime":null,"renderTime":123,"size":7145,"startTime":123,"url":""}],"id":"v4-1772292469039-6806378154052","name":"LCP","navigationType":"reload","rating":"good","value":123}
+[00:00:52.271] Browser LOG     [Web Vitals] {"delta":959.0000000000001,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":959.0000000000001}],"id":"v4-1772292505706-2730406674593","name":"FCP","navigationType":"navigate","rating":"good","value":959.0000000000001}
+[00:00:52.272] Browser LOG     [Web Vitals] {"delta":917,"entries":[{"connectEnd":1,"connectStart":1,"decodedBodySize":52054,"domComplete":1055,"domContentLoadedEventEnd":962,"domContentLoadedEventStart":962,"domInteractive":962,"domainLookupEnd":1,"domainLookupStart":1,"duration":1055,"encodedBodySize":14336,"entryType":"navigation","fetchStart":1,"initiatorType":"navigation","loadEventEnd":1055,"loadEventStart":1055,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":2,"responseEnd":927,"responseStart":917,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":14636,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":0}],"id":"v4-1772292505706-9184730968484","name":"TTFB","navigationType":"navigate","rating":"needs-improvement","value":917}
+[00:00:53.971] Browser LOG     [Web Vitals] {"delta":959.0000000000001,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":959.0000000000001,"presentationTime":null,"renderTime":959.0000000000001,"size":9020,"startTime":959.0000000000001,"url":""}],"id":"v4-1772292505706-6393378383849","name":"LCP","navigationType":"navigate","rating":"good","value":959.0000000000001}
+[00:00:54.376] Browser LOG     [Web Vitals] {"delta":15,"entries":[{"cancelable":true,"duration":432,"entryType":"first-input","interactionId":1796,"name":"pointerdown","processingEnd":2789,"processingStart":2789,"startTime":2774}],"id":"v4-1772292505706-1638401051361","name":"FID","navigationType":"navigate","rating":"good","value":15}
+[00:01:55.579] Browser LOG     [Web Vitals] {"delta":15,"entries":[{"cancelable":true,"duration":432,"entryType":"first-input","interactionId":1796,"name":"pointerdown","processingEnd":2789,"processingStart":2789,"startTime":2774}],"id":"v4-1772292568762-7442209881167","name":"FID","navigationType":"navigate","rating":"good","value":15}
+[00:01:55.579] Browser LOG     [Web Vitals] {"delta":959.0000000000001,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":959.0000000000001}],"id":"v4-1772292568762-9696288174203","name":"FCP","navigationType":"navigate","rating":"good","value":959.0000000000001}
+[00:01:55.579] Browser LOG     [Web Vitals] {"delta":917,"entries":[{"connectEnd":1,"connectStart":1,"decodedBodySize":52054,"domComplete":1055,"domContentLoadedEventEnd":962,"domContentLoadedEventStart":962,"domInteractive":962,"domainLookupEnd":1,"domainLookupStart":1,"duration":1055,"encodedBodySize":14336,"entryType":"navigation","fetchStart":1,"initiatorType":"navigation","loadEventEnd":1055,"loadEventStart":1055,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":2,"responseEnd":927,"responseStart":917,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":14636,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":0}],"id":"v4-1772292568762-4962175702328","name":"TTFB","navigationType":"navigate","rating":"needs-improvement","value":917}
+[00:02:07.718] Browser LOG     [Web Vitals] {"delta":456,"entries":[{"cancelable":true,"duration":456,"entryType":"event","interactionId":1957,"name":"keyup","processingEnd":19510,"processingStart":19510,"startTime":19506},{"cancelable":true,"duration":456,"entryType":"event","interactionId":1957,"name":"keyup","processingEnd":19510,"processingStart":19510,"startTime":19506}],"id":"v4-1772292505706-7140176546560","name":"INP","navigationType":"navigate","rating":"needs-improvement","value":456}
+[00:02:07.718] Browser LOG     [Web Vitals] {"delta":959.0000000000001,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":959.0000000000001,"presentationTime":null,"renderTime":959.0000000000001,"size":9020,"startTime":959.0000000000001,"url":""}],"id":"v4-1772292568762-3975406650001","name":"LCP","navigationType":"navigate","rating":"good","value":959.0000000000001}
+[00:02:07.718] Browser LOG     [Web Vitals] {"delta":456,"entries":[{"cancelable":true,"duration":456,"entryType":"event","interactionId":1957,"name":"keyup","processingEnd":19510,"processingStart":19510,"startTime":19506},{"cancelable":true,"duration":456,"entryType":"event","interactionId":1957,"name":"keyup","processingEnd":19510,"processingStart":19510,"startTime":19506}],"id":"v4-1772292568762-3704345866894","name":"INP","navigationType":"navigate","rating":"needs-improvement","value":456}
+[00:02:09.743] Browser LOG     [Web Vitals] {"delta":327,"entries":[{"connectEnd":2,"connectStart":2,"decodedBodySize":81346,"domComplete":718,"domContentLoadedEventEnd":351.00000000000006,"domContentLoadedEventStart":351.00000000000006,"domInteractive":351.00000000000006,"domainLookupEnd":2,"domainLookupStart":2,"duration":718,"encodedBodySize":18838,"entryType":"navigation","fetchStart":2,"initiatorType":"navigation","loadEventEnd":718,"loadEventStart":718,"name":"http://localhost:3003/tutor/dashboard","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":3,"responseEnd":337,"responseStart":327,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":19138,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":1}],"id":"v4-1772292583099-4839516437158","name":"TTFB","navigationType":"navigate","rating":"good","value":327}
+[00:02:09.882] Browser LOG     [LCP] {"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":996,"presentationTime":null,"renderTime":996,"size":9873,"startTime":996,"url":""}
+[00:02:09.882] Browser LOG     [LCP] {"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":996,"presentationTime":null,"renderTime":996,"size":9873,"startTime":996,"url":""}
+[00:02:11.891] Browser LOG     [Web Vitals] {"delta":85,"entries":[{"connectEnd":6,"connectStart":6,"decodedBodySize":66460,"domComplete":426,"domContentLoadedEventEnd":118.00000000000001,"domContentLoadedEventStart":118.00000000000001,"domInteractive":118.00000000000001,"domainLookupEnd":6,"domainLookupStart":6,"duration":426,"encodedBodySize":19287,"entryType":"navigation","fetchStart":6,"initiatorType":"navigation","loadEventEnd":426,"loadEventStart":426,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":8,"responseEnd":95,"responseStart":85,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":19587,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":5}],"id":"v4-1772292585327-6420674469368","name":"TTFB","navigationType":"navigate","rating":"good","value":85}
+[00:02:12.323] Browser LOG     [Web Vitals] {"delta":131,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":131}],"id":"v4-1772292585759-7789070094507","name":"FCP","navigationType":"navigate","rating":"good","value":131}
+[00:02:12.323] Browser LOG     [Web Vitals] {"delta":95,"entries":[{"connectEnd":4,"connectStart":4,"decodedBodySize":66486,"domComplete":234,"domContentLoadedEventEnd":124,"domContentLoadedEventStart":124,"domInteractive":124,"domainLookupEnd":4,"domainLookupStart":4,"duration":234,"encodedBodySize":19285,"entryType":"navigation","fetchStart":4,"initiatorType":"navigation","loadEventEnd":234,"loadEventStart":234,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":5,"responseEnd":108,"responseStart":95,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":19585,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":2}],"id":"v4-1772292585759-8146454796690","name":"TTFB","navigationType":"navigate","rating":"good","value":95}
+[00:02:23.924] Browser LOG     [Web Vitals] {"delta":131,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":131,"presentationTime":null,"renderTime":131,"size":7145,"startTime":131,"url":""}],"id":"v4-1772292585759-9314813198021","name":"LCP","navigationType":"navigate","rating":"good","value":131}
+[00:02:24.293] Browser LOG     [Web Vitals] {"delta":126,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":126}],"id":"v4-1772292597728-4850353363150","name":"FCP","navigationType":"navigate","rating":"good","value":126}
+[00:02:24.293] Browser LOG     [Web Vitals] {"delta":88,"entries":[{"connectEnd":1,"connectStart":1,"decodedBodySize":52050,"domComplete":227,"domContentLoadedEventEnd":129,"domContentLoadedEventStart":129,"domInteractive":129,"domainLookupEnd":1,"domainLookupStart":1,"duration":227,"encodedBodySize":14360,"entryType":"navigation","fetchStart":1,"initiatorType":"navigation","loadEventEnd":227,"loadEventStart":227,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":2,"responseEnd":98,"responseStart":88,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":14660,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":0}],"id":"v4-1772292597728-3793050787174","name":"TTFB","navigationType":"navigate","rating":"good","value":88}
+[00:02:26.221] Browser LOG     [Web Vitals] {"delta":126,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":126,"presentationTime":null,"renderTime":126,"size":9020,"startTime":126,"url":""}],"id":"v4-1772292597728-8179319608663","name":"LCP","navigationType":"navigate","rating":"good","value":126}
+[00:02:26.221] Browser LOG     [Web Vitals] {"delta":14,"entries":[{"cancelable":true,"duration":104,"entryType":"first-input","interactionId":121,"name":"pointerdown","processingEnd":2102,"processingStart":2102,"startTime":2088}],"id":"v4-1772292597727-3363180169570","name":"FID","navigationType":"navigate","rating":"good","value":14}
+[00:03:43.229] Browser LOG     [Web Vitals] {"delta":14,"entries":[{"cancelable":true,"duration":104,"entryType":"first-input","interactionId":121,"name":"pointerdown","processingEnd":2102,"processingStart":2102,"startTime":2088}],"id":"v4-1772292676620-5116815899332","name":"FID","navigationType":"navigate","rating":"good","value":14}
+[00:03:43.229] Browser LOG     [Web Vitals] {"delta":126,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":126}],"id":"v4-1772292676620-5635394718737","name":"FCP","navigationType":"navigate","rating":"good","value":126}
+[00:03:43.229] Browser LOG     [Web Vitals] {"delta":88,"entries":[{"connectEnd":1,"connectStart":1,"decodedBodySize":52050,"domComplete":227,"domContentLoadedEventEnd":129,"domContentLoadedEventStart":129,"domInteractive":129,"domainLookupEnd":1,"domainLookupStart":1,"duration":227,"encodedBodySize":14360,"entryType":"navigation","fetchStart":1,"initiatorType":"navigation","loadEventEnd":227,"loadEventStart":227,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","redirectCount":0,"redirectEnd":0,"redirectStart":0,"requestStart":2,"responseEnd":98,"responseStart":88,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":14660,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerStart":0}],"id":"v4-1772292676620-4793087632776","name":"TTFB","navigationType":"navigate","rating":"good","value":88}
+[00:04:37.518] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:37.783] Browser LOG     [Web Vitals] {"delta":200,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":200}],"id":"v4-1772292731129-5381061598795","name":"FCP","navigationType":"navigate","rating":"good","value":200}
+[00:04:37.783] Browser LOG     [Web Vitals] {"delta":106.20000000298023,"entries":[{"activationStart":0,"connectEnd":15.700000002980232,"connectStart":15.700000002980232,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":66478,"deliveryType":"","domComplete":516.2999999970198,"domContentLoadedEventEnd":208.60000000149012,"domContentLoadedEventStart":208.60000000149012,"domInteractive":208.5,"domainLookupEnd":15.700000002980232,"domainLookupStart":15.700000002980232,"duration":516.3999999985099,"encodedBodySize":66478,"entryType":"navigation","fetchStart":15.700000002980232,"finalResponseHeadersStart":0,"firstInterimResponseStart":106.20000000298023,"initiatorType":"navigation","loadEventEnd":516.3999999985099,"loadEventStart":516.3999999985099,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":15.700000002980232,"responseEnd":142.89999999850988,"responseStart":106.20000000298023,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":66778,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":9.200000002980232}],"id":"v4-1772292731129-4299318861198","name":"TTFB","navigationType":"navigate","rating":"good","value":106.20000000298023}
+[00:04:39.314] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:39.478] Browser LOG     [Web Vitals] {"delta":152,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":152}],"id":"v4-1772292732859-4395772281255","name":"FCP","navigationType":"navigate","rating":"good","value":152}
+[00:04:39.478] Browser LOG     [Web Vitals] {"delta":85.60000000149012,"entries":[{"activationStart":0,"connectEnd":4.200000002980232,"connectStart":4.200000002980232,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":52054,"deliveryType":"","domComplete":279.1000000014901,"domContentLoadedEventEnd":111.5,"domContentLoadedEventStart":111.40000000596046,"domInteractive":111.40000000596046,"domainLookupEnd":4.200000002980232,"domainLookupStart":4.200000002980232,"duration":279.20000000298023,"encodedBodySize":52054,"entryType":"navigation","fetchStart":4.200000002980232,"finalResponseHeadersStart":0,"firstInterimResponseStart":85.60000000149012,"initiatorType":"navigation","loadEventEnd":279.20000000298023,"loadEventStart":279.20000000298023,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":4.200000002980232,"responseEnd":92,"responseStart":85.60000000149012,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":52354,"type":"navigate","unloadEventEnd":92.5,"unloadEventStart":92.5,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":4.100000001490116}],"id":"v4-1772292732859-1986004301262","name":"TTFB","navigationType":"navigate","rating":"good","value":85.60000000149012}
+[00:04:41.500] Browser LOG     [Web Vitals] {"delta":12.5,"entries":[{"cancelable":true,"duration":16,"entryType":"first-input","interactionId":306,"name":"pointerdown","processingEnd":2340.7000000029802,"processingStart":2340.7000000029802,"startTime":2328.2000000029802}],"id":"v4-1772292732859-9778321325767","name":"FID","navigationType":"navigate","rating":"good","value":12.5}
+[00:04:41.501] Browser LOG     [Web Vitals] {"delta":152,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","renderTime":152,"size":16060,"startTime":152,"url":""}],"id":"v4-1772292732859-6949336149927","name":"LCP","navigationType":"navigate","rating":"good","value":152}
+[00:05:05.883] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:05:18.474] Browser LOG     [Web Vitals] {"delta":12.5,"entries":[{"cancelable":true,"duration":16,"entryType":"first-input","interactionId":306,"name":"pointerdown","processingEnd":2340.7000000029802,"processingStart":2340.7000000029802,"startTime":2328.2000000029802}],"id":"v4-1772292771874-7646939018235","name":"FID","navigationType":"navigate","rating":"good","value":12.5}
+[00:05:18.474] Browser LOG     [Web Vitals] {"delta":152,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","startTime":152}],"id":"v4-1772292771874-3982043251434","name":"FCP","navigationType":"navigate","rating":"good","value":152}
+[00:05:18.474] Browser LOG     [Web Vitals] {"delta":85.60000000149012,"entries":[{"activationStart":0,"connectEnd":4.200000002980232,"connectStart":4.200000002980232,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":52054,"deliveryType":"","domComplete":279.1000000014901,"domContentLoadedEventEnd":111.5,"domContentLoadedEventStart":111.40000000596046,"domInteractive":111.40000000596046,"domainLookupEnd":4.200000002980232,"domainLookupStart":4.200000002980232,"duration":279.20000000298023,"encodedBodySize":52054,"entryType":"navigation","fetchStart":4.200000002980232,"finalResponseHeadersStart":0,"firstInterimResponseStart":85.60000000149012,"initiatorType":"navigation","loadEventEnd":279.20000000298023,"loadEventStart":279.20000000298023,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":4.200000002980232,"responseEnd":92,"responseStart":85.60000000149012,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":52354,"type":"navigate","unloadEventEnd":92.5,"unloadEventStart":92.5,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":4.100000001490116}],"id":"v4-1772292771874-4075216224435","name":"TTFB","navigationType":"navigate","rating":"good","value":85.60000000149012}
+[00:06:04.407] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:04.542] Server  ERROR   [next-auth][error][JWT_SESSION_ERROR] "\nhttps://next-auth.js.org/errors#jwt_session_error" "decryption operation failed" {}
+[00:06:04.587] Server  ERROR   [next-auth][error][JWT_SESSION_ERROR] "\nhttps://next-auth.js.org/errors#jwt_session_error" "decryption operation failed" {}
+[00:06:04.594] Browser LOG     [Web Vitals] {"delta":98.20000000298023,"entries":[{"activationStart":0,"confidence":{"randomizedTriggerRate":0.4994798,"value":"low"},"connectEnd":8.5,"connectStart":8.399999998509884,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":66468,"deliveryType":"","domComplete":429.80000000447035,"domContentLoadedEventEnd":181.89999999850988,"domContentLoadedEventStart":181.80000000447035,"domInteractive":181.70000000298023,"domainLookupEnd":8.399999998509884,"domainLookupStart":8.399999998509884,"duration":429.8999999985099,"encodedBodySize":19139,"entryType":"navigation","fetchStart":0.7000000029802322,"finalResponseHeadersStart":98.20000000298023,"firstInterimResponseStart":0,"initiatorType":"navigation","loadEventEnd":429.8999999985099,"loadEventStart":429.8999999985099,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":8.600000001490116,"responseEnd":119.80000000447035,"responseStart":98.20000000298023,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":19439,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":0}],"id":"v4-1772292818008-8442375047098","name":"TTFB","navigationType":"navigate","rating":"good","value":98.20000000298023}
+[00:06:04.697] Browser LOG     [Web Vitals] {"delta":604,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","paintTime":175.39999999850988,"presentationTime":604,"startTime":604}],"id":"v4-1772292818008-7693861479306","name":"FCP","navigationType":"navigate","rating":"good","value":604}
+[00:06:04.697] Browser LOG     [LCP] {"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":175.39999999850988,"presentationTime":604,"renderTime":604,"size":13514,"startTime":604,"url":""}
+[00:06:04.697] Browser LOG     [LCP] {"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":175.39999999850988,"presentationTime":604,"renderTime":604,"size":13514,"startTime":604,"url":""}
+[00:06:05.937] Browser LOG     [Web Vitals] {"delta":24.399999998509884,"entries":[{"cancelable":true,"duration":32,"entryType":"first-input","interactionId":2965,"name":"pointerdown","processingEnd":1829.8999999985099,"processingStart":1829.7000000029802,"startTime":1805.3000000044703}],"id":"v4-1772292818008-5972916041475","name":"FID","navigationType":"navigate","rating":"good","value":24.399999998509884}
+[00:06:05.937] Browser LOG     [Web Vitals] {"delta":604,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":175.39999999850988,"presentationTime":604,"renderTime":604,"size":13514,"startTime":604,"url":""}],"id":"v4-1772292818008-5679630441515","name":"LCP","navigationType":"navigate","rating":"good","value":604}
+[00:06:06.212] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:06.368] Browser LOG     [Web Vitals] {"delta":208,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","paintTime":176.10000000149012,"presentationTime":208,"startTime":208}],"id":"v4-1772292819791-8268543437078","name":"FCP","navigationType":"navigate","rating":"good","value":208}
+[00:06:06.368] Browser LOG     [Web Vitals] {"delta":103.30000000447035,"entries":[{"activationStart":0,"confidence":{"randomizedTriggerRate":0.4994798,"value":"high"},"connectEnd":5.300000004470348,"connectStart":5.300000004470348,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":52052,"deliveryType":"","domComplete":411.5,"domContentLoadedEventEnd":181.70000000298023,"domContentLoadedEventStart":181.70000000298023,"domInteractive":181.70000000298023,"domainLookupEnd":5.300000004470348,"domainLookupStart":5.300000004470348,"duration":411.6000000014901,"encodedBodySize":52052,"entryType":"navigation","fetchStart":5.300000004470348,"finalResponseHeadersStart":0,"firstInterimResponseStart":103.30000000447035,"initiatorType":"navigation","loadEventEnd":411.6000000014901,"loadEventStart":411.6000000014901,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":5.300000004470348,"responseEnd":135.70000000298023,"responseStart":103.30000000447035,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":52352,"type":"navigate","unloadEventEnd":107.5,"unloadEventStart":107.5,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":4.800000004470348}],"id":"v4-1772292819791-9694450527834","name":"TTFB","navigationType":"navigate","rating":"good","value":103.30000000447035}
+[00:06:08.289] Browser LOG     [Web Vitals] {"delta":19.69999999552965,"entries":[{"cancelable":true,"duration":32,"entryType":"first-input","interactionId":6108,"name":"pointerdown","processingEnd":2346.10000000149,"processingStart":2346,"startTime":2326.3000000044703}],"id":"v4-1772292819791-4144294382110","name":"FID","navigationType":"navigate","rating":"good","value":19.69999999552965}
+[00:06:08.289] Browser LOG     [Web Vitals] {"delta":208,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":176.10000000149012,"presentationTime":208,"renderTime":208,"size":16060,"startTime":208,"url":""}],"id":"v4-1772292819791-7920861273465","name":"LCP","navigationType":"navigate","rating":"good","value":208}
+[00:06:37.278] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:37.412] Browser LOG     [Web Vitals] {"delta":140,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","paintTime":110.10000000149012,"presentationTime":140,"startTime":140}],"id":"v4-1772292850846-8734611489122","name":"FCP","navigationType":"navigate","rating":"good","value":140}
+[00:06:37.412] Browser LOG     [Web Vitals] {"delta":80.70000000298023,"entries":[{"activationStart":0,"confidence":{"randomizedTriggerRate":0.4994798,"value":"high"},"connectEnd":4.9000000059604645,"connectStart":4.9000000059604645,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":52103,"deliveryType":"","domComplete":275.70000000298023,"domContentLoadedEventEnd":275.5,"domContentLoadedEventStart":275.30000000447035,"domInteractive":275.30000000447035,"domainLookupEnd":4.9000000059604645,"domainLookupStart":4.9000000059604645,"duration":275.70000000298023,"encodedBodySize":52103,"entryType":"navigation","fetchStart":4.9000000059604645,"finalResponseHeadersStart":0,"firstInterimResponseStart":80.70000000298023,"initiatorType":"navigation","loadEventEnd":275.70000000298023,"loadEventStart":275.70000000298023,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":4.9000000059604645,"responseEnd":201.70000000298023,"responseStart":80.70000000298023,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":52403,"type":"navigate","unloadEventEnd":84,"unloadEventStart":84,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":4.700000002980232}],"id":"v4-1772292850846-2248305231517","name":"TTFB","navigationType":"navigate","rating":"good","value":80.70000000298023}
+[00:06:39.126] Browser LOG     [Web Vitals] {"delta":18.799999997019768,"entries":[{"cancelable":true,"duration":24,"entryType":"first-input","interactionId":3467,"name":"pointerdown","processingEnd":2007.6000000014901,"processingStart":2007.6000000014901,"startTime":1988.8000000044703}],"id":"v4-1772292850846-3602282427141","name":"FID","navigationType":"navigate","rating":"good","value":18.799999997019768}
+[00:06:39.126] Browser LOG     [Web Vitals] {"delta":140,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":110.10000000149012,"presentationTime":140,"renderTime":140,"size":16060,"startTime":140,"url":""}],"id":"v4-1772292850846-4260835282512","name":"LCP","navigationType":"navigate","rating":"good","value":140}
+[00:07:02.053] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:02.251] Browser LOG     [Web Vitals] {"delta":156,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","paintTime":126.10000000149012,"presentationTime":156,"startTime":156}],"id":"v4-1772292875616-5684347492166","name":"FCP","navigationType":"navigate","rating":"good","value":156}
+[00:07:02.251] Browser LOG     [Web Vitals] {"delta":95.80000000447035,"entries":[{"activationStart":0,"confidence":{"randomizedTriggerRate":0.4994798,"value":"low"},"connectEnd":1.8999999985098839,"connectStart":1.8999999985098839,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":66481,"deliveryType":"","domComplete":274.3999999985099,"domContentLoadedEventEnd":269.8999999985099,"domContentLoadedEventStart":269.70000000298023,"domInteractive":269.70000000298023,"domainLookupEnd":1.8999999985098839,"domainLookupStart":1.8999999985098839,"duration":274.3999999985099,"encodedBodySize":66481,"entryType":"navigation","fetchStart":1.8999999985098839,"finalResponseHeadersStart":0,"firstInterimResponseStart":95.80000000447035,"initiatorType":"navigation","loadEventEnd":274.3999999985099,"loadEventStart":274.3999999985099,"name":"http://localhost:3003/","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":1.8999999985098839,"responseEnd":195.39999999850988,"responseStart":95.80000000447035,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":66781,"type":"navigate","unloadEventEnd":0,"unloadEventStart":0,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":1.1000000014901161}],"id":"v4-1772292875616-3892570335598","name":"TTFB","navigationType":"navigate","rating":"good","value":95.80000000447035}
+[00:07:03.679] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:03.796] Browser LOG     [Web Vitals] {"delta":160,"entries":[{"duration":0,"entryType":"paint","name":"first-contentful-paint","paintTime":120.29999999701977,"presentationTime":160,"startTime":160}],"id":"v4-1772292877222-1564148777902","name":"FCP","navigationType":"navigate","rating":"good","value":160}
+[00:07:03.796] Browser LOG     [Web Vitals] {"delta":86.89999999850988,"entries":[{"activationStart":0,"confidence":{"randomizedTriggerRate":0.4994798,"value":"high"},"connectEnd":5.0999999940395355,"connectStart":5.0999999940395355,"contentEncoding":"gzip","criticalCHRestart":0,"decodedBodySize":52051,"deliveryType":"","domComplete":260.09999999403954,"domContentLoadedEventEnd":108.79999999701977,"domContentLoadedEventStart":108.69999999552965,"domInteractive":108.59999999403954,"domainLookupEnd":5.0999999940395355,"domainLookupStart":5.0999999940395355,"duration":260.09999999403954,"encodedBodySize":52051,"entryType":"navigation","fetchStart":5.0999999940395355,"finalResponseHeadersStart":0,"firstInterimResponseStart":86.89999999850988,"initiatorType":"navigation","loadEventEnd":260.09999999403954,"loadEventStart":260.09999999403954,"name":"http://localhost:3003/register","nextHopProtocol":"http/1.1","notRestoredReasons":null,"redirectCount":0,"redirectEnd":0,"redirectStart":0,"renderBlockingStatus":"non-blocking","requestStart":5.0999999940395355,"responseEnd":108.5,"responseStart":86.89999999850988,"responseStatus":200,"secureConnectionStart":0,"serverTiming":[],"startTime":0,"transferSize":52351,"type":"navigate","unloadEventEnd":90.89999999850988,"unloadEventStart":90.89999999850988,"workerCacheLookupStart":0,"workerFinalSourceType":"","workerMatchedSourceType":"","workerRouterEvaluationStart":0,"workerStart":4.799999997019768}],"id":"v4-1772292877222-7565020543573","name":"TTFB","navigationType":"navigate","rating":"good","value":86.89999999850988}
+[00:07:05.008] Browser LOG     [Web Vitals] {"delta":21.5,"entries":[{"cancelable":true,"duration":24,"entryType":"first-input","interactionId":9785,"name":"pointerdown","processingEnd":1483.1999999955297,"processingStart":1483.0999999940395,"startTime":1461.5999999940395}],"id":"v4-1772292877222-4649952130784","name":"FID","navigationType":"navigate","rating":"good","value":21.5}
+[00:07:05.008] Browser LOG     [Web Vitals] {"delta":160,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","paintTime":120.29999999701977,"presentationTime":160,"renderTime":160,"size":16060,"startTime":160,"url":""}],"id":"v4-1772292877222-2054983443597","name":"LCP","navigationType":"navigate","rating":"good","value":160}
+[00:10:05.883] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[00:10:05.884] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:12:41.588] Browser LOG     [Web Vitals] {"delta":96,"entries":[{"cancelable":true,"duration":96,"entryType":"event","interactionId":474,"name":"keydown","processingEnd":31406.80000000447,"processingStart":31406.60000000149,"startTime":31311.70000000298}],"id":"v4-1772292732859-8978335532463","name":"INP","navigationType":"navigate","rating":"good","value":96}
+[00:12:41.588] Browser LOG     [Web Vitals] {"delta":0.336700478367762,"entries":[{"duration":0,"entryType":"layout-shift","hadRecentInput":false,"lastInputTime":38507.10000000149,"name":"","sources":[{"currentRect":"[Object]","previousRect":"[Object]"},{"currentRect":"[Object]","previousRect":"[Object]"}],"startTime":39766.10000000149,"value":0.336700478367762}],"id":"v4-1772292732864-6003494565037","name":"CLS","navigationType":"navigate","rating":"poor","value":0.336700478367762}
+[00:12:41.588] Browser LOG     [Web Vitals] {"delta":152,"entries":[{"duration":0,"entryType":"largest-contentful-paint","id":"","loadTime":0,"name":"","renderTime":152,"size":16060,"startTime":152,"url":""}],"id":"v4-1772292771874-8314330376785","name":"LCP","navigationType":"navigate","rating":"good","value":152}
+[00:12:41.588] Browser LOG     [Web Vitals] {"delta":96,"entries":[{"cancelable":true,"duration":96,"entryType":"event","interactionId":474,"name":"keydown","processingEnd":31406.80000000447,"processingStart":31406.60000000149,"startTime":31311.70000000298}],"id":"v4-1772292771874-3506963311203","name":"INP","navigationType":"navigate","rating":"good","value":96}
+[00:12:41.588] Browser LOG     [Web Vitals] {"delta":0.336700478367762,"entries":[{"duration":0,"entryType":"layout-shift","hadRecentInput":false,"lastInputTime":38507.10000000149,"name":"","sources":[{"currentRect":"[Object]","previousRect":"[Object]"},{"currentRect":"[Object]","previousRect":"[Object]"}],"startTime":39766.10000000149,"value":0.336700478367762}],"id":"v4-1772292771904-6327446559921","name":"CLS","navigationType":"navigate","rating":"poor","value":0.336700478367762}
+[00:15:05.883] Server  LOG     Cleanup: Removed 0 inactive rooms
+[00:15:05.884] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:20:05.885] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[00:20:05.886] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:25:05.886] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:30:05.883] Server  LOG     Cleanup: Removed 0 inactive rooms
+[00:30:05.885] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[00:30:05.886] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:35:05.887] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:40:05.886] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[00:40:05.886] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:45:05.884] Server  LOG     Cleanup: Removed 0 inactive rooms
+[00:45:05.886] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:50:05.887] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[00:50:05.887] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[00:55:05.887] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:00:05.884] Server  LOG     Cleanup: Removed 0 inactive rooms
+[01:00:05.887] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[01:00:05.888] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:05:05.890] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:10:05.887] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[01:10:05.890] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:15:05.884] Server  LOG     Cleanup: Removed 0 inactive rooms
+[01:15:05.891] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:20:05.888] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[01:20:05.890] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:25:05.892] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:30:05.885] Server  LOG     Cleanup: Removed 0 inactive rooms
+[01:30:05.888] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[01:30:05.892] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:35:05.892] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:40:05.889] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[01:40:05.892] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:45:05.885] Server  LOG     Cleanup: Removed 0 inactive rooms
+[01:45:05.893] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:50:05.891] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[01:50:05.894] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[01:55:05.896] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:00:05.887] Server  LOG     Cleanup: Removed 0 inactive rooms
+[02:00:05.891] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[02:00:05.897] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:05:05.897] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:10:05.892] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[02:10:05.898] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:15:05.887] Server  LOG     Cleanup: Removed 0 inactive rooms
+[02:15:05.899] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:20:05.894] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[02:20:05.900] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:25:05.901] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:30:05.888] Server  LOG     Cleanup: Removed 0 inactive rooms
+[02:30:05.894] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[02:30:05.903] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:35:05.906] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:40:05.895] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[02:40:05.907] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:45:05.889] Server  LOG     Cleanup: Removed 0 inactive rooms
+[02:45:05.910] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:50:05.895] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[02:50:05.912] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[02:55:05.913] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:00:05.889] Server  LOG     Cleanup: Removed 0 inactive rooms
+[03:00:05.896] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[03:00:05.915] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:05:05.917] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:10:05.896] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[03:10:05.919] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:15:05.889] Server  LOG     Cleanup: Removed 0 inactive rooms
+[03:15:05.920] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:20:05.897] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[03:20:05.922] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:25:05.922] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:30:05.889] Server  LOG     Cleanup: Removed 0 inactive rooms
+[03:30:05.898] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[03:30:05.923] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:35:05.924] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:40:05.899] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[03:40:05.926] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:45:05.889] Server  LOG     Cleanup: Removed 0 inactive rooms
+[03:45:05.928] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:50:05.899] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[03:50:05.930] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[03:55:05.930] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:00:05.890] Server  LOG     Cleanup: Removed 0 inactive rooms
+[04:00:05.899] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[04:00:05.932] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:05:05.933] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:10:05.900] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[04:10:05.934] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:15:05.893] Server  LOG     Cleanup: Removed 0 inactive rooms
+[04:15:05.934] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:20:05.901] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[04:20:05.936] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:25:05.936] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:30:05.894] Server  LOG     Cleanup: Removed 0 inactive rooms
+[04:30:05.903] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[04:30:05.936] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:35:05.938] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:40:05.905] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[04:40:05.938] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:45:05.894] Server  LOG     Cleanup: Removed 0 inactive rooms
+[04:45:05.949] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:50:05.907] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[04:50:05.940] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[04:55:05.942] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:00:05.895] Server  LOG     Cleanup: Removed 0 inactive rooms
+[05:00:05.909] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[05:00:05.942] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:05:05.943] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:10:05.910] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[05:10:05.944] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:15:05.897] Server  LOG     Cleanup: Removed 0 inactive rooms
+[05:15:05.945] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:20:05.910] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[05:20:05.945] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:25:05.946] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:30:05.897] Server  LOG     Cleanup: Removed 0 inactive rooms
+[05:30:05.911] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[05:30:05.947] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:35:05.947] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:40:05.914] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[05:40:05.948] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:45:05.898] Server  LOG     Cleanup: Removed 0 inactive rooms
+[05:45:05.949] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:50:05.915] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[05:50:05.949] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[05:55:05.950] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:00:05.900] Server  LOG     Cleanup: Removed 0 inactive rooms
+[06:00:05.918] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[06:00:05.951] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:05:05.953] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:10:05.920] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[06:10:05.955] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:15:05.900] Server  LOG     Cleanup: Removed 0 inactive rooms
+[06:15:05.956] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:20:05.920] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[06:20:05.956] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:25:05.957] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:30:05.903] Server  LOG     Cleanup: Removed 0 inactive rooms
+[06:30:05.920] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[06:30:05.958] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:35:05.960] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:40:05.922] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[06:40:05.960] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:45:05.904] Server  LOG     Cleanup: Removed 0 inactive rooms
+[06:45:05.961] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:50:05.923] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[06:50:05.962] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[06:55:05.962] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:00:05.905] Server  LOG     Cleanup: Removed 0 inactive rooms
+[07:00:05.923] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[07:00:05.964] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:05:05.964] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:10:05.924] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[07:10:05.965] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:15:05.908] Server  LOG     Cleanup: Removed 0 inactive rooms
+[07:15:05.966] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:20:05.925] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[07:20:05.968] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:25:05.969] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:30:05.909] Server  LOG     Cleanup: Removed 0 inactive rooms
+[07:30:05.926] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[07:30:05.971] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:35:05.971] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:40:05.928] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[07:40:05.972] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:45:05.912] Server  LOG     Cleanup: Removed 0 inactive rooms
+[07:45:05.974] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:50:05.928] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[07:50:05.976] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[07:55:05.977] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:00:05.912] Server  LOG     Cleanup: Removed 0 inactive rooms
+[08:00:05.930] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[08:00:05.978] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:05:05.979] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:10:05.931] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[08:10:05.980] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:15:05.913] Server  LOG     Cleanup: Removed 0 inactive rooms
+[08:15:05.981] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:20:05.932] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[08:20:05.981] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:25:05.982] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:30:05.914] Server  LOG     Cleanup: Removed 0 inactive rooms
+[08:30:05.932] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[08:30:05.985] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:35:05.985] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:40:05.934] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[08:40:05.987] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:45:05.913] Server  LOG     Cleanup: Removed 0 inactive rooms
+[08:45:05.987] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:50:05.935] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[08:50:05.990] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[08:55:05.991] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:00:05.914] Server  LOG     Cleanup: Removed 0 inactive rooms
+[09:00:05.937] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[09:00:05.993] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:05:05.994] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:10:05.939] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[09:10:05.994] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:15:05.914] Server  LOG     Cleanup: Removed 0 inactive rooms
+[09:15:05.995] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:20:05.939] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[09:20:05.998] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:25:06.000] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:30:05.916] Server  LOG     Cleanup: Removed 0 inactive rooms
+[09:30:05.940] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[09:30:06.001] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:35:06.002] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:40:05.941] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[09:40:06.004] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:45:05.917] Server  LOG     Cleanup: Removed 0 inactive rooms
+[09:45:06.004] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:50:05.943] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[09:50:06.007] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[09:55:06.008] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:00:05.919] Server  LOG     Cleanup: Removed 0 inactive rooms
+[10:00:05.943] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[10:00:06.009] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:05:06.012] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:10:05.943] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[10:10:06.012] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:15:05.920] Server  LOG     Cleanup: Removed 0 inactive rooms
+[10:15:06.015] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:20:05.944] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[10:20:06.016] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:25:06.017] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:30:05.921] Server  LOG     Cleanup: Removed 0 inactive rooms
+[10:30:05.944] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[10:30:06.017] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:35:06.018] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:40:05.945] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[10:40:06.019] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:45:05.921] Server  LOG     Cleanup: Removed 0 inactive rooms
+[10:45:06.019] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:50:05.945] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[10:50:06.019] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[10:55:06.018] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[11:00:05.922] Server  LOG     Cleanup: Removed 0 inactive rooms
+[11:00:05.945] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[11:00:06.019] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[11:05:06.020] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[11:10:05.946] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[11:10:06.021] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[11:15:05.923] Server  LOG     Cleanup: Removed 0 inactive rooms
+[11:15:06.021] Server  LOG     Cleanup: Removed 0 inactive DM rooms
+[11:20:05.947] Server  LOG     Cleanup: Removed 0 inactive whiteboards
+[11:20:06.023] Server  LOG     Cleanup: Removed 0 inactive DM rooms

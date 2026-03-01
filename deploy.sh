@@ -362,8 +362,10 @@ deploy_infrastructure() {
     print_info "Bootstrapping CDK..."
     npx cdk bootstrap "aws://${ACCOUNT_ID}/${AWS_REGION}" || true
     
-    print_info "Deploying stack..."
-    npx cdk deploy --require-approval never
+    print_info "Deploying stack to ${AWS_REGION}..."
+    # Clear cached context and deploy to correct region
+    rm -f cdk.context.json
+    npx cdk deploy --require-approval never --region ${AWS_REGION}
     
     # Get outputs
     print_info "Getting deployment outputs..."

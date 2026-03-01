@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "f7108db7-2760-2cca-cb82-64fe3833054f",
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../../../ADK_WORKSPACE/TutorMekimi/tutorme-app/src/lib/api/params.ts"],"sourcesContent":["/**\n * Normalize Next.js dynamic route params to a single string.\n * Next.js 15+ may expose params as Record<string, string | string[]> or Promise<...>.\n * Use this so Drizzle eq(column, id) receives string, not string | string[].\n */\nexport function getParam(\n  params: Record<string, string | string[] | undefined> | undefined,\n  key: string\n): string | undefined {\n  if (!params || typeof params !== 'object') return undefined\n  const value = params[key]\n  if (value == null) return undefined\n  return Array.isArray(value) ? value[0] : value\n}\n\n/**\n * Await params if it's a Promise, then get a single string param.\n */\nexport async function getParamAsync(\n  params: Promise<Record<string, string | string[]>> | Record<string, string | string[]> | undefined,\n  key: string\n): Promise<string | undefined> {\n  const resolved = params instanceof Promise ? await params : params\n  return getParam(resolved as Record<string, string | string[] | undefined>, key)\n}\n"],"names":[],"mappings":"wCAkBO,eAAe,EACpB,CAAkG,CAClG,CAAW,MAdX,EAgBiB,IAhBgD,EACjE,GAAW,IAewB,QAAU,MAAM,EAAS,EAb5D,GAAI,CAAC,GAA4B,UAAlB,OAAO,EAAqB,OAAO,AAClD,IAAM,EAAQ,CAAM,CAAC,AAasD,EAblD,QACzB,AAAa,MAAT,AAAe,EACZ,KADmB,CACb,OAAO,CAAC,GAAS,CAAK,CAAC,EAAE,CAAG,QAY3C"}}]
+}

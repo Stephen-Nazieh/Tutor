@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "5df73633-dc99-5692-902a-3a4775dc5c3b",
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["../../../../../../../ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/%5Blocale%5D/tutor/live-class/page.tsx"],"sourcesContent":["'use client'\n\nimport { useEffect } from 'react'\nimport { useRouter } from 'next/navigation'\n\n// This page now redirects to the combined My Classes page\nexport default function LiveClassRedirectPage() {\n  const router = useRouter()\n\n  useEffect(() => {\n    router.replace('/tutor/classes')\n  }, [router])\n\n  return (\n    <div className=\"min-h-screen bg-gray-50 flex items-center justify-center\">\n      <div className=\"text-center\">\n        <div className=\"animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4\" />\n        <p className=\"text-gray-600\">Redirecting to My Classes...</p>\n      </div>\n    </div>\n  )\n}\n"],"names":[],"mappings":"0DAEA,EAAA,EAAA,CAAA,CAAA,QACA,EAAA,EAAA,CAAA,CAAA,QAGe,SAAS,IACtB,IAAM,EAAS,CAAA,EAAA,EAAA,SAAA,AAAS,IAMxB,MAJA,CAAA,EAAA,EAAA,SAAA,AAAS,EAAC,KACR,EAAO,OAAO,CAAC,iBACjB,EAAG,CAAC,EAAO,EAGT,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,oEACb,CAAA,EAAA,EAAA,IAAA,EAAC,MAAA,CAAI,UAAU,wBACb,CAAA,EAAA,EAAA,GAAA,EAAC,MAAA,CAAI,UAAU,iGACf,CAAA,EAAA,EAAA,GAAA,EAAC,IAAA,CAAE,UAAU,yBAAgB,qCAIrC"}}]
+}

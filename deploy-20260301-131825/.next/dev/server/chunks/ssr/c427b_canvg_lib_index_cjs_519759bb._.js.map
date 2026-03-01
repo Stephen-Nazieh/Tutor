@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "65d36e7b-73b4-a0ff-6578-5bcb35b41a87",
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"file":"turbopack:///[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/node_modules/canvg/lib/index.cjs","sources":[],"sourcesContent":[],"names":[],"mappings":""}}]
+}

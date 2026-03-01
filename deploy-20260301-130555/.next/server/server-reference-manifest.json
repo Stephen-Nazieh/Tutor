@@ -1,0 +1,66 @@
+{
+  "node": {
+    "6075ea928940b65dcbc7525ac536b6af51f44c2ca9": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": 314969,
+          "async": true,
+          "exportedName": "saveLibraryTask",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts",
+      "exportedName": "saveLibraryTask"
+    },
+    "6017248195ec7c3ab658cb291969eb1d7204b818d2": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": 314969,
+          "async": true,
+          "exportedName": "toggleFavoriteTask",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts",
+      "exportedName": "toggleFavoriteTask"
+    },
+    "605cbe0e97c422211686962a28abdc3076feaf4335": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": 314969,
+          "async": true,
+          "exportedName": "deleteLibraryTask",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts",
+      "exportedName": "deleteLibraryTask"
+    },
+    "40f91213c9db900c19d33be7a667f471dacdd61736": {
+      "workers": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": {
+          "moduleId": 314969,
+          "async": true,
+          "exportedName": "incrementTaskUsage",
+          "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/tutor/live-class/[sessionId]/page": "action-browser"
+      },
+      "filename": "ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/actions/library.ts",
+      "exportedName": "incrementTaskUsage"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "Of1QoM/4oeId7GQH0hhM2sEmxEZDu0B213Z6QBWhVP8="
+}

@@ -1,0 +1,3 @@
+{
+  "/api/tutor/live-sessions/[sessionId]/recording/route": "app/api/tutor/live-sessions/[sessionId]/recording/route.js"
+}

@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="f4ab446f-e65b-f61e-4ffb-89341f6c56e6")}catch(e){}}();
+module.exports=[909595,e=>{"use strict";var i=e.i(233405);let t=e.i(224361).promisify(i.exec);e.s(["execAsync",0,t])},782974,e=>{"use strict";var i=e.i(605365),t=e.i(909595),r=e.i(654884);async function c(){let e="%windir%\\System32\\REG.exe";"ia32"===i.arch&&"PROCESSOR_ARCHITEW6432"in i.env&&(e="%windir%\\sysnative\\cmd.exe /c "+e);try{let i=(await (0,t.execAsync)(`${e} QUERY HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography /v MachineGuid`)).stdout.split("REG_SZ");if(2===i.length)return i[1].trim()}catch(e){r.diag.debug(`error reading machine id: ${e}`)}}e.s(["getMachineId",()=>c])}];
+
+//# debugId=f4ab446f-e65b-f61e-4ffb-89341f6c56e6
+//# sourceMappingURL=c427b_%40opentelemetry_resources_build_esm_detectors_platform_node_machine-id_4b7659e4._.js.map

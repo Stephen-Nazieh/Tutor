@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="6b957c5a-b728-2712-b7a9-aef5b877b5dc")}catch(e){}}();
+module.exports=[193695,(a,b,c)=>{b.exports=a.x("next/dist/shared/lib/no-fallback-error.external.js",()=>require("next/dist/shared/lib/no-fallback-error.external.js"))},940764,a=>{a.n(a.i(793019))},431390,a=>{a.n(a.i(867959))},970434,a=>{a.n(a.i(694361))},481114,a=>{a.n(a.i(88197))},785943,a=>{a.n(a.i(928715))},8025,a=>{a.n(a.i(901213))},717303,a=>{a.n(a.i(122223))},248762,a=>{"use strict";a.i(430938);var b=a.i(192498);function c(){(0,b.redirect)("/tutor/my-page")}a.s(["default",()=>c])}];
+
+//# debugId=6b957c5a-b728-2712-b7a9-aef5b877b5dc
+//# sourceMappingURL=%5Broot-of-the-server%5D__026d88d1._.js.map

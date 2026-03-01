@@ -1,25 +1,134 @@
 # 🚀 TutorMe AWS Deployment - Quick Start
 
-## ⚡ Fastest Way to Deploy (3 Steps)
+> **New to AWS?** This guide assumes no prior knowledge. Follow each step carefully.
 
-### Step 1: Run the Deployment Script
+## 📚 Quick Navigation
 
-**Option A: Create New Infrastructure (Recommended for Production)**
+| If you want to... | Go to... |
+|-------------------|----------|
+| Set up AWS credentials for the first time | [AWS Credentials Setup](#-prerequisites-aws-credentials-setup-one-time) |
+| Deploy to your existing EC2 (solocorn-server) | [Option B](#step-1-run-the-deployment-script) |
+| Create new EC2 instance (recommended) | [Option A](#step-1-run-the-deployment-script) |
+| Fix "AWS credentials not configured" error | [Troubleshooting](#-troubleshooting) |
+
+---
+
+## 📋 Prerequisites: AWS Credentials Setup (One-time)
+
+Before deploying, you need to configure AWS credentials. This is a **one-time setup**.
+
+### Step 1: Get Your AWS Access Keys
+
+Follow these steps carefully:
+
+#### 1.1 Log into AWS Console
+1. Go to https://aws.amazon.com/console/
+2. Click **"Sign In to the Console"** (orange button)
+3. Enter your email/username and password
+4. Make sure you're in the **"Ohio (us-east-2)"** region (check top right corner of the page)
+
+#### 1.2 Navigate to Security Credentials
+1. Click on your **name** in the top-right corner of the screen
+2. From the dropdown menu, click **"Security credentials"**
+
+![AWS Console Menu](https://docs.aws.amazon.com/images/IAM/latest/UserGuide/images/security-credentials.png)
+
+#### 1.3 Create Access Key
+1. Scroll down to the **"Access keys"** section
+2. Click the **"Create access key"** button (blue button)
+3. You'll see a popup asking "Which use case?"
+   - Select **"Command Line Interface (CLI)"**
+   - Check the box that says "I understand..."
+   - Click **"Next"**
+4. (Optional) Add a description tag like "TutorMe Deployment"
+5. Click **"Create access key"**
+
+#### 1.4 Save Your Credentials (IMPORTANT!)
+⚠️ **This is your ONLY chance to see the Secret Access Key!**
+
+You will see:
+- **Access key ID**: Looks like `AKIAIOSFODNN7EXAMPLE` (20 characters)
+- **Secret access key**: Looks like `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` (40 characters)
+
+**Do this NOW:**
+1. Click the **"Copy"** button next to each key
+2. Paste them into a secure password manager or text file
+3. **Never share these keys or commit them to Git!**
+
+---
+
+### Step 2: Configure AWS CLI on Your Computer
+
+#### 2.1 Install AWS CLI (if not installed)
+
+**Mac:**
 ```bash
-# Creates new t3.medium EC2 instance with Elastic IP
-./deploy.sh
+# Check if already installed
+aws --version
+
+# If not installed, install with Homebrew:
+brew install awscli
 ```
 
-**Option B: Use Existing EC2 Instance (Faster)**
+**Windows:**
+1. Download from: https://awscli.amazonaws.com/AWSCLIV2.msi
+2. Run the installer
+3. Open PowerShell and verify: `aws --version`
+
+**Linux:**
 ```bash
-# Deploys to your existing 'solocorn-server' (t2.micro)
-./deploy-existing.sh
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
 ```
 
-**Option C: Windows (PowerShell as Admin)**
-```powershell
-.\deploy.ps1
+#### 2.2 Configure AWS Credentials
+
+Open your terminal and run:
+
+```bash
+aws configure
 ```
+
+You'll be prompted for 4 values:
+
+```
+AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
+AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+Default region name [None]: us-east-2
+Default output format [None]: json
+```
+
+**Where to get these values:**
+- **AWS Access Key ID**: From Step 1.4 above
+- **AWS Secret Access Key**: From Step 1.4 above
+- **Default region name**: Type `us-east-2` (Ohio region)
+- **Default output format**: Type `json`
+
+#### 2.3 Verify Configuration
+
+Test that it works:
+
+```bash
+aws sts get-caller-identity
+```
+
+You should see output like:
+```json
+{
+    "UserId": "AIDACKCEVSQ6C2EXAMPLE",
+    "Account": "445875721173",
+    "Arn": "arn:aws:iam::445875721173:user/your-username"
+}
+```
+
+If you see this, you're ready to deploy! ✅
+
+---
+
+## ⚡ Deploy TutorMe (3 Steps)
+
+Now that AWS is configured, you can deploy:
 
 ### Step 2: Update DNS (Manual - 2 minutes)
 
@@ -44,21 +153,21 @@ curl https://solocorn.co/api/health
 
 ### Scripts Provided
 
-| Script | Purpose | When to Use |
-|--------|---------|-------------|
-| `deploy.sh` | Full automated deployment | **Recommended for first deploy** |
-| `deploy-existing.sh` | Deploy to existing EC2 | Use your current `solocorn-server` |
-| `deploy-simple.sh` | Infra only + manual steps | If you want more control |
-| `deploy.ps1` | Windows PowerShell version | Windows users |
-| `check-status.sh` | Check deployment status | After deployment |
-| `view-logs.sh` | View application logs | Debugging |
-| `ssh-to-server.sh` | SSH into EC2 | Server management |
-| `update-app.sh` | Update application | After code changes |
+| Script               | Purpose | When to Use |
+|--------              |---------|-------------|
+| `deploy.sh`          | Full automated deployment  | **Recommended for first deploy** |
+| `deploy-existing.sh` | Deploy to existing EC2     | Use your current `solocorn-server` |
+| `deploy-simple.sh`   | Infra only + manual steps  | If you want more control |
+| `deploy.ps1`         | Windows PowerShell version | Windows users |
+| `check-status.sh`    | Check deployment status    | After deployment |
+| `view-logs.sh`       | View application logs      | Debugging |
+| `ssh-to-server.sh`   | SSH into EC2               | Server management |
+| `update-app.sh`      | Update application         | After code changes |
 
 ### Files Created in `tutorme-app/`
 
-- `.env.production` - Production environment variables
-- `Dockerfile.production` - Docker image definition
+- `.env.production`         - Production environment variables
+- `Dockerfile.production`   - Docker image definition
 - `docker-compose.prod.yml` - Docker services configuration
 
 ### Files Created in Project Root
@@ -156,6 +265,37 @@ User → Route 53 (DNS) → EC2 (Nginx + SSL) → Docker (Next.js + DB + Redis +
 
 ## 🆘 Troubleshooting
 
+### "AWS credentials not configured!" Error
+
+If you see this error, your AWS CLI isn't set up:
+
+```bash
+# Check if AWS CLI is installed
+aws --version
+
+# If not installed, see Step 2.1 above
+
+# Check if credentials are configured
+aws sts get-caller-identity
+
+# If it says "Unable to locate credentials", run:
+aws configure
+```
+
+### "Access denied" or "Unauthorized" Error
+
+Your AWS user doesn't have enough permissions. You need:
+- AmazonEC2FullAccess
+- AmazonRoute53FullAccess
+- AWSCloudFormationFullAccess
+- IAMFullAccess (for CDK)
+
+**To add permissions:**
+1. AWS Console → IAM → Users → [Your Username]
+2. Click **"Add permissions"** → **"Attach existing policies directly"**
+3. Search for and add the policies above
+4. Click **"Next"** → **"Add permissions"**
+
 ### Script fails at CDK deployment
 ```bash
 # Check AWS credentials (should show Account: 445875721173)
@@ -216,8 +356,27 @@ sudo certbot --nginx -d solocorn.co -d www.solocorn.co
 
 ---
 
+## 🔐 Security Reminder
+
+**Never commit AWS credentials to Git!** Your credentials files are automatically ignored by `.gitignore`, but always double-check:
+
+```bash
+# These files contain secrets - NEVER commit them:
+~/.aws/credentials
+~/.aws/config
+tutorme-app/.env.production
+```
+
+If you accidentally commit credentials:
+1. Delete the access key immediately in AWS Console
+2. Create a new access key
+3. Run `aws configure` with the new key
+
+---
+
 ## ✅ Post-Deployment Checklist
 
+- [ ] AWS credentials configured (`aws sts get-caller-identity` works)
 - [ ] App loads at https://solocorn.co
 - [ ] SSL certificate is valid (green lock)
 - [ ] API keys added to .env.production

@@ -1,0 +1,12 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/payments/webhooks/airwallex/route.js")
+R.c("server/chunks/[root-of-the-server]__42f990a6._.js")
+R.c("server/chunks/ADK_WORKSPACE_TutorMekimi_tutorme-app_e439b78a._.js")
+R.c("server/chunks/ADK_WORKSPACE_TutorMekimi_tutorme-app_src_lib_payments_04c98a59._.js")
+R.c("server/chunks/c427b_next_dist_526357c5._.js")
+R.c("server/chunks/c427b_next_13fcaaee._.js")
+R.c("server/chunks/ADK_WORKSPACE_TutorMekimi_tutorme-app_6787d7f6._.js")
+R.c("server/chunks/c427b_drizzle-orm_c081eb11._.js")
+R.c("server/chunks/[root-of-the-server]__cac59fc5._.js")
+R.c("server/chunks/167c5_next-internal_server_app_api_payments_webhooks_airwallex_route_actions_396a784d.js")
+R.m(214546)
+module.exports=R.m(214546).exports

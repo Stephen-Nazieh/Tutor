@@ -1,0 +1,3 @@
+{
+  "/api/tutor/questions/generate/route": "app/api/tutor/questions/generate/route.js"
+}

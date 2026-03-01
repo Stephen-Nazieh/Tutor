@@ -1,0 +1,18 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/student/layout,_N_T_/[locale]/student/ai-tutor/layout,_N_T_/[locale]/student/ai-tutor/browse/layout,_N_T_/[locale]/student/ai-tutor/browse/page,_N_T_/ja/student/ai-tutor/browse"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/$d$locale/student/ai-tutor/browse/__PAGE__",
+    "/$d$locale/student/ai-tutor/browse",
+    "/$d$locale/student/ai-tutor",
+    "/$d$locale/student",
+    "/$d$locale",
+    "/_index",
+    "/_head"
+  ]
+}

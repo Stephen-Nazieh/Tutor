@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="5df73633-dc99-5692-902a-3a4775dc5c3b")}catch(e){}}();
+module.exports=[361756,a=>{"use strict";var b=a.i(260576),c=a.i(741510),d=a.i(454069);function e(){let a=(0,d.useRouter)();return(0,c.useEffect)(()=>{a.replace("/tutor/classes")},[a]),(0,b.jsx)("div",{className:"min-h-screen bg-gray-50 flex items-center justify-center",children:(0,b.jsxs)("div",{className:"text-center",children:[(0,b.jsx)("div",{className:"animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"}),(0,b.jsx)("p",{className:"text-gray-600",children:"Redirecting to My Classes..."})]})})}a.s(["default",()=>e])}];
+
+//# debugId=5df73633-dc99-5692-902a-3a4775dc5c3b
+//# sourceMappingURL=b1c00_TutorMekimi_tutorme-app_src_app_%5Blocale%5D_tutor_live-class_page_tsx_d22b8652._.js.map

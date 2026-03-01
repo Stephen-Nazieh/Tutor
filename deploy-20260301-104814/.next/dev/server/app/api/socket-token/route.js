@@ -1,0 +1,13 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/socket-token/route.js")
+R.c("server/chunks/b1c00_TutorMekimi_tutorme-app_src_lib_security_suspicious-activity_ts_8c5d4b4f._.js")
+R.c("server/chunks/[root-of-the-server]__23af1397._.js")
+R.c("server/chunks/c427b_next_7bd09468._.js")
+R.c("server/chunks/c427b_@opentelemetry_api_build_esm_6b7fdc6f._.js")
+R.c("server/chunks/c427b_next-auth_628e3ba0._.js")
+R.c("server/chunks/c427b_openid-client_0ed55cb2._.js")
+R.c("server/chunks/c427b_7bc6381d._.js")
+R.c("server/chunks/c427b_drizzle-orm_7c8e67bd._.js")
+R.c("server/chunks/[root-of-the-server]__28fee16c._.js")
+R.c("server/chunks/286d7_tutorme-app__next-internal_server_app_api_socket-token_route_actions_cab60212.js")
+R.m("[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/socket-token/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/ADK_WORKSPACE/TutorMekimi/tutorme-app/src/app/api/socket-token/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

@@ -1,0 +1,3 @@
+{
+  "/api/tutor/courses/[id]/builder-generate/route": "app/api/tutor/courses/[id]/builder-generate/route.js"
+}

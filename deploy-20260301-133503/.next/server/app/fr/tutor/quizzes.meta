@@ -1,0 +1,17 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/[locale]/layout,_N_T_/[locale]/tutor/layout,_N_T_/[locale]/tutor/quizzes/layout,_N_T_/[locale]/tutor/quizzes/page,_N_T_/fr/tutor/quizzes"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/$d$locale/tutor/quizzes/__PAGE__",
+    "/$d$locale/tutor/quizzes",
+    "/$d$locale/tutor",
+    "/$d$locale",
+    "/_index",
+    "/_head"
+  ]
+}

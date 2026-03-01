@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="b1bb88c6-dad7-69d3-d0c2-e0b464bb612d")}catch(e){}}();
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,113136,e=>{"use strict";var s=e.i(251474),t=e.i(800592),r=e.i(536105);function a(){let e=(0,r.useRouter)();return(0,t.useEffect)(()=>{e.replace("/tutor/classes")},[e]),(0,s.jsx)("div",{className:"min-h-screen bg-gray-50 flex items-center justify-center",children:(0,s.jsxs)("div",{className:"text-center",children:[(0,s.jsx)("div",{className:"animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"}),(0,s.jsx)("p",{className:"text-gray-600",children:"Redirecting to My Classes..."})]})})}e.s(["default",()=>a])}]);
+
+//# debugId=b1bb88c6-dad7-69d3-d0c2-e0b464bb612d
+//# sourceMappingURL=10fa7f116d0f7f31.js.map

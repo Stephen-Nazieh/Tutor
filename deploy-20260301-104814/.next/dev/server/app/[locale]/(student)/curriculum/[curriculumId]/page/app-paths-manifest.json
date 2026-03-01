@@ -1,0 +1,3 @@
+{
+  "/[locale]/(student)/curriculum/[curriculumId]/page": "app/[locale]/(student)/curriculum/[curriculumId]/page.js"
+}

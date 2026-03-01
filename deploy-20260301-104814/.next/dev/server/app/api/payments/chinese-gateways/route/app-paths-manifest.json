@@ -1,0 +1,3 @@
+{
+  "/api/payments/chinese-gateways/route": "app/api/payments/chinese-gateways/route.js"
+}

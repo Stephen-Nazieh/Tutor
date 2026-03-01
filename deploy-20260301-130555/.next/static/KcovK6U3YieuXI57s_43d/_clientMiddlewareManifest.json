@@ -1,0 +1,26 @@
+[
+  {
+    "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!api|_next|_vercel|.*\\..*).*))(\\\\.json)?[\\/#\\?]?$",
+    "originalSource": "/((?!api|_next|_vercel|.*\\..*).*)"
+  },
+  {
+    "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar))(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?(\\\\.json)?[\\/#\\?]?$",
+    "originalSource": "/(en|zh-CN|es|fr|de|ja|ko|pt|ru|ar)/:path*"
+  },
+  {
+    "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(\\/?index|\\/?index\\\\.json))?[\\/#\\?]?$",
+    "originalSource": "/"
+  },
+  {
+    "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/auth\\/signin(\\\\.json)?[\\/#\\?]?$",
+    "originalSource": "/api/auth/signin"
+  },
+  {
+    "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api\\/auth\\/signin\\/credentials(\\\\.json)?[\\/#\\?]?$",
+    "originalSource": "/api/auth/signin/credentials"
+  },
+  {
+    "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?\\/api(?:\\/((?!auth|health).*))(\\\\.json)?[\\/#\\?]?$",
+    "originalSource": "/api/((?!auth|health).*)"
+  }
+]

@@ -1,0 +1,3 @@
+{
+  "/api/payments/webhooks/hitpay/route": "app/api/payments/webhooks/hitpay/route.js"
+}

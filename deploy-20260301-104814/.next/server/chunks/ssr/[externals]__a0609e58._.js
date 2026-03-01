@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="965b70fa-77b4-0574-0267-4a80fd907ada")}catch(e){}}();
+module.exports=[224361,(a,b,c)=>{b.exports=a.x("util",()=>require("util"))},792509,(a,b,c)=>{b.exports=a.x("url",()=>require("url"))},427699,(a,b,c)=>{b.exports=a.x("events",()=>require("events"))},500874,(a,b,c)=>{b.exports=a.x("buffer",()=>require("buffer"))},814747,(a,b,c)=>{b.exports=a.x("path",()=>require("path"))},522734,(a,b,c)=>{b.exports=a.x("fs",()=>require("fs"))},446786,(a,b,c)=>{b.exports=a.x("os",()=>require("os"))},688947,(a,b,c)=>{b.exports=a.x("stream",()=>require("stream"))}];
+
+//# debugId=965b70fa-77b4-0574-0267-4a80fd907ada
+//# sourceMappingURL=%5Bexternals%5D__a0609e58._.js.map

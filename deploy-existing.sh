@@ -378,14 +378,19 @@ success "Deployment package created: $DEPLOY_DIR"
 # =============================================================================
 header "Step 6: Deploying to EC2 Instance ($INSTANCE_IP)"
 
+# Pre-configured SSH settings for solocorn-server
+DEFAULT_SSH_KEY="/Users/nazy/ADK_WORKSPACE/sshkeyfolder/solocorn-key.pem"
+DEFAULT_SSH_USER="ec2-user"
+
 echo "This will deploy to your existing EC2 instance."
-echo "You'll need to provide the SSH key for the instance."
 echo ""
-echo "Typical SSH key location: ~/.ssh/solocorn-server.pem or ~/.ssh/id_rsa"
-echo ""
-read -p "Enter path to your SSH private key: " SSH_KEY_PATH
-read -p "Enter SSH username [ec2-user]: " SSH_USER
-SSH_USER=${SSH_USER:-ec2-user}
+echo "Pre-configured SSH key: $DEFAULT_SSH_KEY"
+read -p "Press Enter to use the default key, or enter a different path: " SSH_KEY_PATH
+SSH_KEY_PATH=${SSH_KEY_PATH:-$DEFAULT_SSH_KEY}
+
+echo "Pre-configured SSH user: $DEFAULT_SSH_USER"
+read -p "Press Enter to use the default user, or enter a different username: " SSH_USER
+SSH_USER=${SSH_USER:-$DEFAULT_SSH_USER}
 
 if [ ! -f "$SSH_KEY_PATH" ]; then
     error "SSH key not found: $SSH_KEY_PATH"
@@ -414,7 +419,8 @@ ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$INSTANCE_IP" "bas
 # Copy deployment files
 echo "Copying deployment files..."
 ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USER@$INSTANCE_IP" "mkdir -p /home/$SSH_USER/tutorme"
-scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -r "$DEPLOY_DIR"/* "$SSH_USER@$INSTANCE_IP:/home/$SSH_USER/tutorme/"
+# Copy all files including hidden ones (like .env.production)
+scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -r "$DEPLOY_DIR"/.[!.]* "$DEPLOY_DIR"/* "$SSH_USER@$INSTANCE_IP:/home/$SSH_USER/tutorme/" 2>/dev/null || scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -r "$DEPLOY_DIR"/* "$SSH_USER@$INSTANCE_IP:/home/$SSH_USER/tutorme/"
 
 # Deploy
 echo "Starting services..."

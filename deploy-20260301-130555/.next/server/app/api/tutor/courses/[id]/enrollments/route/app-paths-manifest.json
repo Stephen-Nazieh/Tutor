@@ -1,0 +1,3 @@
+{
+  "/api/tutor/courses/[id]/enrollments/route": "app/api/tutor/courses/[id]/enrollments/route.js"
+}

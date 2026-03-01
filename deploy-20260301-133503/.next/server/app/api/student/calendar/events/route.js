@@ -1,0 +1,13 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/student/calendar/events/route.js")
+R.c("server/chunks/[root-of-the-server]__6d54521e._.js")
+R.c("server/chunks/c427b_bcryptjs_index_98159974.js")
+R.c("server/chunks/c427b_next_13fcaaee._.js")
+R.c("server/chunks/c427b_next_498da44d._.js")
+R.c("server/chunks/c427b_next_dist_526357c5._.js")
+R.c("server/chunks/ADK_WORKSPACE_TutorMekimi_tutorme-app_6787d7f6._.js")
+R.c("server/chunks/[root-of-the-server]__36ac0691._.js")
+R.c("server/chunks/[root-of-the-server]__cac59fc5._.js")
+R.c("server/chunks/c427b_drizzle-orm_42580420._.js")
+R.c("server/chunks/e127f__next-internal_server_app_api_student_calendar_events_route_actions_41df2731.js")
+R.m(826283)
+module.exports=R.m(826283).exports

@@ -1,0 +1,3 @@
+{
+  "/api/whiteboards/[id]/route": "app/api/whiteboards/[id]/route.js"
+}

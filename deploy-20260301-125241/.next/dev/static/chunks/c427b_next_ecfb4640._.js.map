@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "sources": [],
+  "debugId": "f45c5281-0cab-5636-90fc-64221540c72a",
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/node_modules/next/router.js"],"sourcesContent":["module.exports = require('./dist/client/router')\n"],"names":[],"mappings":"AAAA,OAAO,OAAO","ignoreList":[0]}},
+    {"offset": {"line": 8, "column": 0}, "map": {"version":3,"sources":["file:///Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app/node_modules/next/constants.js"],"sourcesContent":["module.exports = require('./dist/shared/lib/constants')\n"],"names":[],"mappings":"AAAA,OAAO,OAAO","ignoreList":[0]}}]
+}

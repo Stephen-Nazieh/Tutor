@@ -1,0 +1,3 @@
+{
+  "/api/payments/webhooks/airwallex/route": "app/api/payments/webhooks/airwallex/route.js"
+}
