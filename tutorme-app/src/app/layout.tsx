@@ -6,11 +6,9 @@ import { PerformanceProviders } from './components/PerformanceProviders'
 import './globals.css'
 
 const inter = Inter({ 
-  subsets: ['latin', 'latin-ext'], 
+  subsets: ['latin'], 
   display: 'swap',
-  variable: '--font-inter',
-  preload: true,
-  fallback: ['sans-serif', 'system-ui']
+  variable: '--font-inter'
 })
 
 export const metadata = {
