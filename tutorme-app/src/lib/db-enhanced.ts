@@ -286,7 +286,7 @@ class EnhancedDatabaseClient {
     if (!this.redis) return 0
     
     try {
-      const keys = await this.redis.keys(pattern)
+      const keys = await this.scanKeys(pattern)
       if (keys.length > 0) {
         return await this.redis.del(keys)
       }
@@ -295,6 +295,20 @@ class EnhancedDatabaseClient {
       console.error('Cache invalidation failed:', error)
       return 0
     }
+  }
+
+  private async scanKeys(pattern: string, count = 500): Promise<string[]> {
+    if (!this.redis) return []
+    const keys: string[] = []
+    let cursor = '0'
+    do {
+      const [nextCursor, batch] = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', count)
+      cursor = nextCursor
+      if (Array.isArray(batch) && batch.length > 0) {
+        keys.push(...batch)
+      }
+    } while (cursor !== '0')
+    return keys
   }
 
   // Health metrics getter

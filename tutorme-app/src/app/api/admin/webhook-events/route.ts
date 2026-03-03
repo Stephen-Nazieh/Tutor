@@ -4,20 +4,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, ForbiddenError, requireAdminIp, requirePermission } from '@/lib/api/middleware'
-import { PERMISSIONS } from '@/lib/security/rbac'
+import { requireAdminIp } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { webhookEvent } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
+import { requireAdmin } from '@/lib/admin/auth'
+import { Permissions } from '@/lib/admin/permissions'
 
-export const GET = withAuth(async (req: NextRequest, session) => {
+export const GET = async (req: NextRequest) => {
+  const { response } = await requireAdmin(req, Permissions.WEBHOOKS_READ)
+  if (response) return response
   const ipErr = requireAdminIp(req)
   if (ipErr) return ipErr
-  const permErr = requirePermission(session, PERMISSIONS.ADMIN_VIEW_WEBHOOKS)
-  if (permErr) return permErr
-  if (session.user.role !== 'ADMIN') {
-    throw new ForbiddenError('Admin only')
-  }
 
   const { searchParams } = new URL(req.url)
   const gateway = searchParams.get('gateway')
@@ -39,4 +37,4 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     .limit(limit)
 
   return NextResponse.json({ events })
-}, { role: 'ADMIN' })
+}

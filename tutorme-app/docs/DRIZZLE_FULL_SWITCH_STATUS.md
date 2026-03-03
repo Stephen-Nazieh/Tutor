@@ -12,7 +12,7 @@
 - Full generated schema (13 enums, 110 tables) + `next-auth.ts` (Session, VerificationToken).
 
 ### Phase 2: NextAuth on Drizzle
-- **`src/lib/auth.ts`** uses `DrizzleAdapter(drizzleDb, ...)` and Drizzle for credentials lookup.
+- **`src/lib/auth.ts`** uses Drizzle for credentials lookup and JWT sessions (no adapter configured yet).
 
 ### Phase 3: Core libs on Drizzle
 - **`src/lib/db/queries.ts`** – fully migrated to `drizzleDb` (getUserById, getTutorDashboardStats, getStudentDashboardData, getClassDetails, getLeaderboard, getContentLibrary, cache invalidation).

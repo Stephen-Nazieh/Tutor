@@ -1,3 +1,0 @@
-{
-  "/api/class/polls/[pollId]/vote/route": "app/api/class/polls/[pollId]/vote/route.js"
-}

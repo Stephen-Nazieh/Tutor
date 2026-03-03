@@ -1,3 +1,0 @@
-{
-  "/api/curriculum/lessons/[lessonId]/route": "app/api/curriculum/lessons/[lessonId]/route.js"
-}

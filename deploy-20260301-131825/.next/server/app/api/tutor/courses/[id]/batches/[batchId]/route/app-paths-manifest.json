@@ -1,3 +1,0 @@
-{
-  "/api/tutor/courses/[id]/batches/[batchId]/route": "app/api/tutor/courses/[id]/batches/[batchId]/route.js"
-}

@@ -8,7 +8,17 @@ import crypto from 'crypto'
 
 const CSRF_COOKIE_NAME = 'tutorme_csrf'
 const CSRF_HEADER_NAME = 'x-csrf-token'
-const SECRET = process.env.NEXTAUTH_SECRET || process.env.CSRF_SECRET || 'csrf-secret-change-in-production'
+function getCsrfSecret(): string {
+  const configured = process.env.CSRF_SECRET || process.env.NEXTAUTH_SECRET || ''
+  if (process.env.NODE_ENV === 'production') {
+    if (!configured || configured === 'csrf-secret-change-in-production') {
+      throw new Error('Missing secure CSRF_SECRET or NEXTAUTH_SECRET in production')
+    }
+  }
+  return configured || 'dev-csrf-secret'
+}
+
+const SECRET = getCsrfSecret()
 
 function hash(value: string): string {
   return crypto.createHmac('sha256', SECRET).update(value).digest('hex')

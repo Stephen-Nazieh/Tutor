@@ -392,6 +392,9 @@ export async function saveGeneratedTasks(
   }
 ): Promise<{ success: boolean; taskIds?: string[]; error?: string }> {
   try {
+    if (!db) {
+      return { success: false, error: 'Database unavailable' }
+    }
     const taskIds: string[] = []
 
     // Group all tasks by their type/topic for batch creation
@@ -455,6 +458,7 @@ export async function getStudentTasks(
     roomId?: string
   }
 ): Promise<GeneratedTask[]> {
+  if (!db) return []
   const tasks = await db.generatedTask.findMany({
     where: {
       ...(options?.roomId && { roomId: options.roomId }),
@@ -508,6 +512,9 @@ export async function submitTask(
   }
 ): Promise<{ success: boolean; score?: number; feedback?: string; error?: string }> {
   try {
+    if (!db) {
+      return { success: false, error: 'Database unavailable' }
+    }
     // Get the task
     const task = await db.generatedTask.findUnique({
       where: { id: generatedTaskId }
@@ -554,9 +561,16 @@ export async function submitTask(
 }`
 
     const gradingResult = await generateWithFallback(gradingPrompt, { temperature: 0.3 })
-    const gradingData = JSON.parse(gradingResult.content.match(/\{[\s\S]*\}/)?.[0] || '{}')
+    let gradingData: { score?: number; feedback?: string; suggestions?: string[] } = {}
+    try {
+      const rawJson = gradingResult.content.match(/\{[\s\S]*\}/)?.[0]
+      gradingData = rawJson ? JSON.parse(rawJson) : {}
+    } catch (parseError) {
+      console.error('Failed to parse task grading response:', parseError)
+      gradingData = { score: 0, feedback: '评分解析失败，请稍后重试。', suggestions: [] }
+    }
 
-    const score = gradingData.score || 0
+    const score = gradingData.score ?? 0
     const questionId = (question as { id?: string }).id ?? `q-${questionIndex}`
     const questionResults = submission.questionResults ?? [{
       questionId,
@@ -586,7 +600,7 @@ export async function submitTask(
 
     return {
       success: true,
-      score: gradingData.score,
+      score,
       feedback: gradingData.feedback
     }
   } catch (error) {

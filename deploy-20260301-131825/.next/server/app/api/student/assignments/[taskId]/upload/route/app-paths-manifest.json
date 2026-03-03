@@ -1,3 +1,0 @@
-{
-  "/api/student/assignments/[taskId]/upload/route": "app/api/student/assignments/[taskId]/upload/route.js"
-}

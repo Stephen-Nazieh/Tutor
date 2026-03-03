@@ -4,27 +4,19 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getParamAsync } from '@/lib/api/params'
-import { requireAdminIp, requirePermission } from '@/lib/api/middleware'
-import { PERMISSIONS } from '@/lib/security/rbac'
+import { requireAdminIp } from '@/lib/api/middleware'
 import { revokeApiKey } from '@/lib/security/api-key'
+import { requireAdmin } from '@/lib/admin/auth'
+import { Permissions } from '@/lib/admin/permissions'
 
 export async function DELETE(
   req: NextRequest,
   context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
 ) {
-  // We need to run auth and permission checks inside the handler for dynamic route
-  const { getServerSession, authOptions } = await import('@/lib/auth')
-  const session = await getServerSession(authOptions, req)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  if (session.user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Admin only' }, { status: 403 })
-  }
+  const { response } = await requireAdmin(req, Permissions.API_KEYS_MANAGE)
+  if (response) return response
   const ipErr = requireAdminIp(req)
   if (ipErr) return ipErr
-  const permErr = requirePermission(session, PERMISSIONS.ADMIN_MANAGE_API_KEYS)
-  if (permErr) return permErr
 
   const id = await getParamAsync(context?.params, 'id')
   if (!id) {

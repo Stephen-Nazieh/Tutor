@@ -110,6 +110,23 @@ if (isServer) {
  */
 export const cache = {
   /**
+   * Scan Redis keys safely (avoids KEYS in production).
+   */
+  async scanKeys(client: any, pattern: string, count = 500): Promise<string[]> {
+    const keys: string[] = []
+    let cursor = '0'
+    do {
+      // ioredis: scan(cursor, 'MATCH', pattern, 'COUNT', count)
+      // returns [nextCursor, keys[]]
+      const [nextCursor, batch] = await client.scan(cursor, 'MATCH', pattern, 'COUNT', count)
+      cursor = nextCursor
+      if (Array.isArray(batch) && batch.length > 0) {
+        keys.push(...batch)
+      }
+    } while (cursor !== '0')
+    return keys
+  },
+  /**
    * Ensure Redis is initialized
    */
   async ensureRedis() {
@@ -211,7 +228,7 @@ export const cache = {
     const client = await this.ensureRedis()
     if (client) {
       try {
-        const keys = await client.keys(CACHE_CONFIG.prefix + '*')
+        const keys = await this.scanKeys(client, CACHE_CONFIG.prefix + '*')
         if (keys.length > 0) {
           await client.del(...keys)
         }
@@ -249,7 +266,7 @@ export const cache = {
     const client = await this.ensureRedis()
     if (client) {
       try {
-        const keys = await client.keys(CACHE_CONFIG.prefix + pattern)
+        const keys = await this.scanKeys(client, CACHE_CONFIG.prefix + pattern)
         if (keys.length > 0) {
           await client.del(...keys)
         }

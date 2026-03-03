@@ -1,3 +1,0 @@
-{
-  "/api/tutor/courses/[id]/enrollments/[enrollmentId]/route": "app/api/tutor/courses/[id]/enrollments/[enrollmentId]/route.js"
-}

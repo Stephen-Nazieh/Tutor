@@ -41,6 +41,13 @@ export const Permissions = {
   // Security
   SECURITY_READ: 'security:read',
   SECURITY_WRITE: 'security:write',
+
+  // Payments & Webhooks
+  PAYMENTS_READ: 'payments:read',
+  WEBHOOKS_READ: 'webhooks:read',
+
+  // API keys
+  API_KEYS_MANAGE: 'api-keys:manage',
   
   // Admin management
   ADMINS_READ: 'admins:read',
@@ -78,6 +85,9 @@ export const RolePermissions: Record<string, Permission[]> = {
     Permissions.CONTENT_MODERATE,
     Permissions.SECURITY_READ,
     Permissions.SECURITY_WRITE,
+    Permissions.PAYMENTS_READ,
+    Permissions.WEBHOOKS_READ,
+    Permissions.API_KEYS_MANAGE,
     Permissions.ADMINS_READ,
     Permissions.SYSTEM_READ,
   ],
@@ -201,6 +211,14 @@ export const PermissionGroups = [
     permissions: [
       { value: Permissions.SECURITY_READ, label: 'View Security', description: 'View security settings' },
       { value: Permissions.SECURITY_WRITE, label: 'Edit Security', description: 'Modify security configuration' },
+    ],
+  },
+  {
+    name: 'Payments & Webhooks',
+    permissions: [
+      { value: Permissions.PAYMENTS_READ, label: 'View Payments', description: 'View payment transactions' },
+      { value: Permissions.WEBHOOKS_READ, label: 'View Webhooks', description: 'View webhook event logs' },
+      { value: Permissions.API_KEYS_MANAGE, label: 'Manage API Keys', description: 'Create and revoke admin API keys' },
     ],
   },
   {
