@@ -49,7 +49,10 @@ Note: the Drizzle migrator records which migrations have run. If you run the SQL
 ## Troubleshooting
 
 - **“Migration failed”**  
-  Check that Postgres is reachable and `DIRECT_URL` or `DATABASE_URL` is correct. For Docker, use the host port (e.g. `localhost:5432` or `5433`).
+  Check that Postgres is reachable and `DIRECT_URL` or `DATABASE_URL` is correct. For Docker, use the host port (e.g. `localhost:5432` or `5433`). If port 5432 is already in use, run a standalone Postgres on 5433:
+  ```bash
+  docker run -d --name tutorme-db -e POSTGRES_USER=tutorme -e POSTGRES_PASSWORD=tutorme_password -e POSTGRES_DB=tutorme -p 5433:5432 postgres:16-alpine
+  ```
 
 - **New SQL file not running**  
   Ensure it is listed in `drizzle/meta/_journal.json` with a `tag` that matches the filename (without `.sql`), e.g. `"tag": "0002_engagement_insights"` for `0002_engagement_insights.sql`.

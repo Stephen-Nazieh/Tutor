@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -26,6 +28,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lint.log
+ts_errors.log
 
 # local env files
 .env*.local

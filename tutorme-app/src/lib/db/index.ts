@@ -349,7 +349,5 @@ export const readReplica = {
 }
 
 export { db }
-/** Alias for code that imports prisma from @/lib/db — now points to Drizzle */
-export const prisma = db
 
 // Server-only code that needs Drizzle: import { drizzleDb } from '@/lib/db/drizzle'
