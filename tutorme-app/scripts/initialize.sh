@@ -149,24 +149,9 @@ ENVFILE
 fi
 echo ""
 
-# Run Prisma migrations
-echo -e "${BLUE}▶ Running database migrations...${NC}"
-MIGRATE_OUTPUT=$(npx prisma migrate dev --name init 2>&1)
-MIGRATE_STATUS=$?
-
-if [ $MIGRATE_STATUS -eq 0 ]; then
-    echo -e "${GREEN}✅ Prisma migrations complete${NC}"
-else
-    echo -e "${YELLOW}⚠️  Migration output:${NC}"
-    echo "$MIGRATE_OUTPUT" | tail -20
-    echo ""
-    echo "   Trying to generate Prisma client..."
-    npx prisma generate
-fi
-
-# Run Drizzle SQL migrations (drizzle/*.sql)
-echo -e "${BLUE}▶ Running Drizzle migrations...${NC}"
-npm run drizzle:migrate || true
+# Run Drizzle migrations
+echo -e "${BLUE}▶ Running database migrations (Drizzle)...${NC}"
+npm run db:migrate
 echo -e "${GREEN}✅ Migrations complete${NC}"
 echo ""
 

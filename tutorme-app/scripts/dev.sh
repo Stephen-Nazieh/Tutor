@@ -46,26 +46,13 @@ if ! docker ps | grep -q tutorme-db; then
         echo -n "."
     done
     
-    # Run migrations if needed
-    echo -e "${YELLOW}[→] Checking database migrations...${NC}"
-    if [ ! -d "prisma/migrations" ] || [ -z "$(ls -A prisma/migrations 2>/dev/null)" ]; then
-        echo -e "${YELLOW}[→] Running initial migration...${NC}"
-        npx prisma migrate dev --name init --skip-generate
-    else
-        npx prisma migrate deploy
-    fi
-    
-    # Generate Prisma client
-    echo -e "${YELLOW}[→] Generating Prisma client...${NC}"
-    npx prisma generate
-    
-    # Seed database if it's empty
-    echo -e "${YELLOW}[→] Checking if seed data is needed...${NC}"
-    CONTENT_COUNT=$(npx prisma content count 2>/dev/null || echo "0")
-    if [ "$CONTENT_COUNT" = "0" ]; then
-        echo -e "${YELLOW}[→] Seeding database with sample data...${NC}"
-        npx prisma db seed
-    fi
+    # Run migrations
+    echo -e "${YELLOW}[→] Running database migrations (Drizzle)...${NC}"
+    npm run db:migrate
+
+    # Seed database (safe to re-run; failures are ignored)
+    echo -e "${YELLOW}[→] Seeding database with sample data...${NC}"
+    npm run db:seed || true
     
     # Seed admin system
     echo -e "${YELLOW}[→] Initializing admin dashboard...${NC}"

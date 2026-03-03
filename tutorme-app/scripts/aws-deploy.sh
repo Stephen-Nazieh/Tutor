@@ -39,7 +39,7 @@ for i in $(seq 1 60); do
 done
 
 echo "[deploy] Running migrations..."
-$COMPOSE exec -T app npx prisma migrate deploy || true
+$COMPOSE exec -T app npm run db:migrate || true
 
 echo "[deploy] Done."
 $COMPOSE --profile prod ps

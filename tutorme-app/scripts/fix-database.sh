@@ -41,9 +41,9 @@ else
 fi
 echo ""
 
-# Show migration status
-echo "▶ Checking Prisma migration status:"
-npx prisma migrate status 2>&1 | head -20
+# Show migration status (Drizzle)
+echo "▶ Drizzle migrations:"
+echo "   Run: npm run db:migrate"
 echo ""
 
 # Recommendations
@@ -101,7 +101,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     fi
     
     echo "▶ Running migrations..."
-    npx prisma migrate dev --name init
+    npm run db:migrate
     
     echo "▶ Seeding curriculum..."
     npx tsx scripts/seed-curriculum.ts

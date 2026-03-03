@@ -29,7 +29,7 @@
 - **`src/app/api/tutor/public-profile/route.ts`** – GET/PATCH use `drizzleDb` + `user`, `profile`, `curriculum` (tutor courses by creatorId, isPublished).
 
 ### Important paths
-- **Prisma (still used by most API routes and many libs):** `src/lib/db/index.ts` → `db` / `prisma` (PrismaClient).
+- **Prisma:** Legacy clients removed; runtime code uses Drizzle.
 - **Drizzle:** `src/lib/db/drizzle.ts` → `drizzleDb`; schema in `src/lib/db/schema/`. Migrated code imports `drizzleDb` from `@/lib/db/drizzle` and tables from `@/lib/db/schema`.
 
 ---
@@ -41,7 +41,7 @@
 
 To complete the full switch, migrate remaining API routes and libs to Drizzle, then switch `db` to `drizzleDb` and remove Prisma (Phase 5).
 
-**Start script:** `~/tutorme-start.sh` starts the app and the database. Docker: Postgres on **localhost:5433** (this is the DB connection port—no web UI here), Redis on 6379. The script runs `prisma db push` / `prisma generate` and `npm run dev`, and opens only the **app** (http://localhost:3003). **Database UI:** Use **Drizzle Studio** (no Prisma): run `npm run db:studio` or `npm run studio`, then open **https://local.drizzle.studio** (connects to local server on port 4983). The script no longer starts Prisma Studio. **Docker:** Ensure **tutorme-db** is running (green); if stopped, start it so the app can connect.
+**Start script:** `~/tutorme-start.sh` starts the app and the database. Docker: Postgres on **localhost:5433** (this is the DB connection port—no web UI here), Redis on 6379. The script runs `npm run db:migrate` and `npm run dev`, and opens only the **app** (http://localhost:3003). **Database UI:** Use **Drizzle Studio**: run `npm run db:studio` or `npm run studio`, then open **https://local.drizzle.studio** (connects to local server on port 4983). **Docker:** Ensure **tutorme-db** is running (green); if stopped, start it so the app can connect.
 
 ---
 
@@ -64,27 +64,20 @@ To complete the full switch, migrate remaining API routes and libs to Drizzle, t
 
 ### Phase 5: Seeds, tests, remove Prisma
 1. **Seeds**  
-   Rewrite `prisma/seed.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, etc., to use `drizzleDb` and Drizzle schema.
+   Rewrite seed scripts (`prisma/seed.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, etc.) to use `drizzleDb` and Drizzle schema.
 
 2. **Tests**  
    Update any test that mocks or uses `db` (Prisma) to use Drizzle or a test DB with Drizzle.
 
 3. **Remove Prisma**  
-   - In `src/lib/db/index.ts`: set `db = drizzleDb` (and re-export from `drizzle.ts` if desired), remove Prisma client init and `export * from '@prisma/client'`.
-   - Uninstall: `npm uninstall prisma @prisma/client @next-auth/prisma-adapter`.
-   - Delete `prisma/` (schema and migrations).
+   - In `src/lib/db/index.ts`: set `db = drizzleDb` (and re-export from `drizzle.ts` if desired), remove legacy client init.
+   - Remove legacy ORM dependencies and schema folders (completed).
    - Remove Prisma scripts from `package.json` (`db:migrate`, `db:generate`, `db:studio`, etc.) or point them to Drizzle equivalents.
    - Update AGENTS.md and any other docs that reference Prisma.
 
 ---
 
 ## Regenerating the Drizzle schema
-
-If you change `prisma/schema.prisma` and want to refresh Drizzle schema without touching the DB:
-
-```bash
-node scripts/prisma-to-drizzle-schema.mjs
-```
 
 If you prefer to pull from the current database (DB must be up and migrated):
 

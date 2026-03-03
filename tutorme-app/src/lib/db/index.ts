@@ -353,4 +353,3 @@ export { db }
 export const prisma = db
 
 // Server-only code that needs Drizzle: import { drizzleDb } from '@/lib/db/drizzle'
-// Legacy Prisma (scripts, pipl-compliance): import { prismaLegacyClient } from '@/lib/db/prisma-legacy'

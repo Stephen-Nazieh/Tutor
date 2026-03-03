@@ -23,6 +23,7 @@ export const GET = async (req: NextRequest) => {
 export const POST = async (req: NextRequest) => {
   const { session, response } = await requireAdmin(req, Permissions.API_KEYS_MANAGE)
   if (response) return response
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const ipErr = requireAdminIp(req)
   if (ipErr) return ipErr
   const body = await req.json().catch(() => ({}))

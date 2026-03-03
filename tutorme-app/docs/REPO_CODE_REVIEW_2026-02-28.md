@@ -113,7 +113,7 @@ I reviewed the repository with a backend-first focus (auth, API wiring, socket l
 - Affected flows include role fallback checks, Chinese payments, and tutor course pitch generation/editing.
 
 **Recommendation**
-- For Prisma-style code, explicitly import `prismaLegacyClient`.
+- Prisma legacy client removed; use Drizzle exclusively.
 - For Drizzle paths, rewrite queries to Drizzle syntax.
 - Do not use ambiguous `db` for mixed ORM shapes.
 
@@ -202,7 +202,7 @@ I reviewed the repository with a backend-first focus (auth, API wiring, socket l
    - Fix `src/lib/auth.ts` callback and session helper typings.
    - Drive `npm run typecheck` to zero.
 2. Resolve ORM mismatches in runtime code:
-   - Convert affected routes/middleware to Drizzle or explicit `prismaLegacyClient` usage.
+   - Convert affected routes/middleware to Drizzle.
 3. Add CI gate:
    - Block merges on `typecheck` failure.
 

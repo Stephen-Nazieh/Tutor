@@ -3,11 +3,11 @@
  * Generates personalized tasks with multiple distribution modes
  */
 
-import { eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
-import { studentPerformance } from '@/lib/db/schema'
+import { generatedTask, studentPerformance, taskSubmission } from '@/lib/db/schema'
 import { generateWithFallback } from './orchestrator'
+import crypto from 'crypto'
 
 export type DistributionMode = 'uniform' | 'personalized' | 'clustered' | 'peer_group'
 
@@ -392,9 +392,6 @@ export async function saveGeneratedTasks(
   }
 ): Promise<{ success: boolean; taskIds?: string[]; error?: string }> {
   try {
-    if (!db) {
-      return { success: false, error: 'Database unavailable' }
-    }
     const taskIds: string[] = []
 
     // Group all tasks by their type/topic for batch creation
@@ -410,15 +407,17 @@ export async function saveGeneratedTasks(
         rubric: t.rubric
       }))
 
-      const savedTask = await db.generatedTask.create({
-        data: {
+      const [savedTask] = await drizzleDb
+        .insert(generatedTask)
+        .values({
+          id: crypto.randomUUID(),
           tutorId: options.tutorId,
           roomId: options.roomId,
           title: options.title,
           description: options.description || `${options.title} - 共${tasks.length}道题目`,
           type: options.type || 'assignment',
           difficulty: tasks[0]?.difficulty <= 3 ? 'easy' : tasks[0]?.difficulty <= 7 ? 'medium' : 'hard',
-          questions: tasks.map(t => ({
+          questions: tasks.map((t) => ({
             id: t.id,
             question: t.question,
             type: t.type,
@@ -431,10 +430,15 @@ export async function saveGeneratedTasks(
           })),
           distributionMode: options.distributionMode,
           assignments: assignments,
-          status: 'draft'
-        }
-      })
-      taskIds.push(savedTask.id)
+          status: 'draft',
+          maxScore: 100,
+          enforceTimeLimit: false,
+          enforceDueDate: false,
+          maxAttempts: 1,
+          createdAt: new Date()
+        })
+        .returning({ id: generatedTask.id })
+      if (savedTask?.id) taskIds.push(savedTask.id)
     }
 
     return { success: true, taskIds }
@@ -458,19 +462,20 @@ export async function getStudentTasks(
     roomId?: string
   }
 ): Promise<GeneratedTask[]> {
-  if (!db) return []
-  const tasks = await db.generatedTask.findMany({
-    where: {
-      ...(options?.roomId && { roomId: options.roomId }),
-      ...(options?.status && { status: options.status })
-    },
-    orderBy: { createdAt: 'desc' }
-  })
+  const conditions = []
+  if (options?.roomId) conditions.push(eq(generatedTask.roomId, options.roomId))
+  if (options?.status) conditions.push(eq(generatedTask.status, options.status))
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+  const tasks = await drizzleDb
+    .select()
+    .from(generatedTask)
+    .where(whereClause)
+    .orderBy(desc(generatedTask.createdAt))
 
   // Filter tasks that have assignments for this student
   const studentTasks: GeneratedTask[] = []
   for (const task of tasks) {
-    const assignments = task.assignments as Record<string, any> || {}
+    const assignments = (task.assignments as Record<string, any>) || {}
     if (assignments[studentId]) {
       const taskVariants = assignments[studentId]
       studentTasks.push(...taskVariants.map((t: any) => ({
@@ -512,26 +517,25 @@ export async function submitTask(
   }
 ): Promise<{ success: boolean; score?: number; feedback?: string; error?: string }> {
   try {
-    if (!db) {
-      return { success: false, error: 'Database unavailable' }
-    }
     // Get the task
-    const task = await db.generatedTask.findUnique({
-      where: { id: generatedTaskId }
-    })
+    const [task] = await drizzleDb
+      .select()
+      .from(generatedTask)
+      .where(eq(generatedTask.id, generatedTaskId))
+      .limit(1)
 
     if (!task) {
       return { success: false, error: '任务不存在' }
     }
 
     // Check if student has assignment for this task
-    const assignments = task.assignments as Record<string, any> || {}
+    const assignments = (task.assignments as Record<string, any>) || {}
     if (!assignments[studentId]) {
       return { success: false, error: '无权提交此任务' }
     }
 
     // Get the specific question
-    const questions = task.questions as any[] || []
+    const questions = (task.questions as any[]) || []
     const questionIndex = submission.questionIndex || 0
     const question = questions[questionIndex]
 
@@ -582,20 +586,23 @@ export async function submitTask(
     }]
 
     // Create submission record
-    await db.taskSubmission.create({
-      data: {
-        taskId: generatedTaskId,
-        studentId,
-        answers: submission.answers,
-        score,
-        maxScore: 100,
-        timeSpent: submission.timeSpent,
-        questionResults: questionResults as unknown as object,
-        aiFeedback: {
-          feedback: gradingData.feedback,
-          suggestions: gradingData.suggestions
-        }
-      }
+    await drizzleDb.insert(taskSubmission).values({
+      id: crypto.randomUUID(),
+      taskId: generatedTaskId,
+      studentId,
+      answers: submission.answers as unknown as object,
+      timeSpent: submission.timeSpent,
+      attempts: 1,
+      questionResults: questionResults as unknown as object,
+      score,
+      maxScore: 100,
+      status: 'submitted',
+      aiFeedback: {
+        feedback: gradingData.feedback,
+        suggestions: gradingData.suggestions
+      },
+      tutorApproved: false,
+      submittedAt: new Date()
     })
 
     return {

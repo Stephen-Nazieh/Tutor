@@ -113,7 +113,7 @@ sudo certbot --nginx -d your-domain.com -d www.your-domain.com
   1. Workflow checks out the repo and configures AWS with the credentials above.
   2. It reads the EC2 Instance ID from the CloudFormation stack output `TutormeAppInstanceId`.
   3. It sends an SSM “RunShellScript” command to that instance to run `tutorme-app/scripts/aws-deploy.sh` with `REPO_ROOT=/opt/tutorme`.
-  4. On the EC2, the script: `git pull`, then `docker-compose --profile prod build --pull` and `up -d`, then `prisma migrate deploy` inside the app container.
+4. On the EC2, the script: `git pull`, then `docker-compose --profile prod build --pull` and `up -d`, then `npm run db:migrate` inside the app container.
 
 ## Manual deploy on the EC2
 

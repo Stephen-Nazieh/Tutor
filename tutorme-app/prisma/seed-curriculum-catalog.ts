@@ -3,9 +3,10 @@
  * Run: npx tsx prisma/seed-curriculum-catalog.ts (or npm run db:seed after adding to package.json)
  */
 
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import crypto from 'crypto'
+import { and, eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculumCatalog } from '@/lib/db/schema'
 
 const ENGLISH_CURRICULUMS = [
   { subject: 'english', name: 'English', code: 'english' },
@@ -35,13 +36,24 @@ const MATH_CURRICULUMS = [
 async function main() {
   console.log('Seeding CurriculumCatalog (Math & English)...')
   for (const item of [...ENGLISH_CURRICULUMS, ...MATH_CURRICULUMS]) {
-    await prisma.curriculumCatalog.upsert({
-      where: {
-        subject_name: { subject: item.subject, name: item.name },
-      },
-      create: item,
-      update: { code: item.code },
-    })
+    const [existing] = await drizzleDb
+      .select({ id: curriculumCatalog.id })
+      .from(curriculumCatalog)
+      .where(and(eq(curriculumCatalog.subject, item.subject), eq(curriculumCatalog.name, item.name)))
+      .limit(1)
+    if (existing) {
+      await drizzleDb
+        .update(curriculumCatalog)
+        .set({ code: item.code })
+        .where(eq(curriculumCatalog.id, existing.id))
+    } else {
+      await drizzleDb.insert(curriculumCatalog).values({
+        id: crypto.randomUUID(),
+        subject: item.subject,
+        name: item.name,
+        code: item.code,
+      })
+    }
   }
   console.log(`Seeded ${ENGLISH_CURRICULUMS.length + MATH_CURRICULUMS.length} curriculum catalog entries.`)
 }
@@ -51,4 +63,3 @@ main()
     console.error(e)
     process.exit(1)
   })
-  .finally(() => prisma.$disconnect())

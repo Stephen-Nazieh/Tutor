@@ -9,7 +9,7 @@
 
 | Area | Detail |
 |------|--------|
-| **ORM** | Prisma 5.22, 100+ models in `prisma/schema.prisma` |
+| **ORM** | Legacy ORM removed; Drizzle is the default |
 | **DB** | PostgreSQL (direct on 5433 or via PgBouncer) |
 | **Entry point** | `src/lib/db/index.ts` – singleton `db` (PrismaClient) + Redis cache |
 | **Usage** | ~150+ files: API routes, lib services, auth, gamification, payments, curriculum, etc. |
@@ -52,7 +52,7 @@ npm install -D drizzle-kit
 ```
 
 - Use `postgres` (postgres.js) as the driver for Drizzle (good pooling and Node compatibility).
-- Optional: keep `@prisma/client` and `prisma` until Phase 5.
+- Optional: keep Prisma until Phase 5 (now completed in this repo).
 
 ### 4.2 Config and folder layout
 
@@ -66,7 +66,7 @@ npm install -D drizzle-kit
 
   - One file per domain is fine (e.g. `users.ts`, `curriculum.ts`, `payments.ts`) or a single `index.ts` that re-exports.
 
-- **Migrations directory:** e.g. `drizzle/` or `src/lib/db/migrations/` (do not overwrite Prisma’s `prisma/migrations`; keep that history until Prisma is removed).
+- **Migrations directory:** e.g. `drizzle/` or `src/lib/db/migrations/`.
 
 ### 4.3 Scripts in `package.json`
 
@@ -99,7 +99,7 @@ npm install -D drizzle-kit
 
 **Option B – Mirror from Prisma schema**
 
-1. Manually create Drizzle table definitions and relations from `prisma/schema.prisma`.
+1. Manually create Drizzle table definitions and relations from your database or existing schema.
 2. Use Drizzle’s `pgTable`, enums, and `relations()` so that the shape is close to current Prisma usage.
 3. Run a first migration with Drizzle in a throwaway DB or a copy to ensure it matches; then align production DB (either by applying Drizzle migrations or by marking “already applied” and continuing from current state).
 
@@ -116,7 +116,7 @@ npm install -D drizzle-kit
 
 ### 5.3 Keep Prisma temporarily (parallel run)
 
-- In `src/lib/db/index.ts`, keep exporting the existing Prisma `db` as e.g. `prismaDb` or leave as `db` and introduce a new export `drizzleDb` from `drizzle.ts`.
+- In `src/lib/db/index.ts`, export Drizzle as the default `db` (Prisma legacy no longer used).
 - Plan: once Phase 4 is done per domain, switch `db` to Drizzle and remove Prisma from this file in Phase 5.
 
 ### 5.4 Deliverables
@@ -163,7 +163,7 @@ npm install -D drizzle-kit
 
 - Make `db` in `src/lib/db/index.ts` the Drizzle client (re-export from `drizzle.ts`).
 - Keep Redis caching in this file if you use it: cache layer can sit in front of Drizzle (e.g. wrapper that checks cache then calls `db`).
-- Remove Prisma client initialization from this file (or leave it as `prismaDb` for a short transition and delete in Phase 5).
+- Remove Prisma client initialization from this file (done).
 
 ### 7.2 Migrate shared DB modules
 
@@ -190,7 +190,7 @@ Migrate these to use `db` (Drizzle) only; keep the same exported functions and t
 5. **Security & audit:** `lib/security/audit.ts`, `api-key.ts`, `parent-child-queries.ts`, `security-audit.ts`, `pipl-compliance.ts`, `suspicious-activity.ts`, `comprehensive-audit.ts`.
 6. **Other:** `lib/notifications/notify.ts`, `lib/admin/feature-flags.ts`, `lib/chat/summary.ts`, `lib/ai/task-generator.ts`, `lib/performance/performance-monitoring.ts`, `lib/performance/student-analytics.ts`, `lib/reports/engagement-analytics.ts`, `lib/monitoring/compliance-audit.ts`, `lib/api/parent-helpers.ts`, `lib/api/middleware.ts`.
 
-For each file: replace `db.*` / `prisma.*` with Drizzle queries; adjust imports; run tests if any.
+For each file: replace legacy ORM calls with Drizzle queries; adjust imports; run tests if any.
 
 ### 7.4 Deliverables
 
@@ -254,7 +254,7 @@ For each route/action: replace `db` usage with Drizzle (same `db` import from `@
 
 ### 9.1 Seeds
 
-- **Prisma seeds:** `prisma/seed.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, `scripts/seed-gamification.ts`, etc.
+- **Seeds:** `prisma/seed.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, `scripts/seed-gamification.ts`, etc.
   - Rewrite to use Drizzle `db`: `db.insert(...).values(...)` (and relations as needed).
   - Run seeds via a script that uses your Drizzle connection (e.g. `tsx scripts/seed.ts` or existing script with DB import switched to Drizzle).
 
@@ -266,13 +266,13 @@ For each route/action: replace `db` usage with Drizzle (same `db` import from `@
 ### 9.3 Migrations and schema ownership
 
 - **Going forward:** All new schema changes are done in Drizzle (edit `src/lib/db/schema/*`, run `drizzle-kit generate`, then apply with `drizzle-kit migrate` or your script).
-- **History:** Keep `prisma/migrations` in git for history; no need to replay them if the DB is already in the desired state. New migrations are only Drizzle.
+- **History:** Prisma migrations are deprecated; new migrations are only Drizzle.
 
 ### 9.4 Remove Prisma
 
-- Uninstall: `npm uninstall prisma @prisma/client @next-auth/prisma-adapter` (or keep a thin NextAuth adapter if it was Prisma-specific and you replaced it).
-- Delete or stop using: `prisma/schema.prisma`, `prisma/migrations` (or keep read-only), and any `prisma generate` / `prisma migrate` / `prisma studio` scripts.
-- Remove Prisma from `src/lib/db/index.ts` (and any leftover `prismaDb` or fallbacks).
+- Uninstall legacy ORM deps (completed).
+- Delete or stop using: Prisma schema/migrations and any Prisma scripts.
+- Remove Prisma from `src/lib/db/index.ts`.
 - Update docs (e.g. AGENTS.md, README, QUICKSTART) to describe Drizzle commands (`drizzle:generate`, `drizzle:migrate`, `drizzle:studio`) and env (e.g. `DATABASE_URL`).
 
 ### 9.5 Deliverables

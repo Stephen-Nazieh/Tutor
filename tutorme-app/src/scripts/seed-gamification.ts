@@ -1,13 +1,9 @@
 /**
  * Seed Gamification Data
- * 
+ *
  * Run with: npx ts-node src/scripts/seed-gamification.ts
  */
-
-import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
-
-// World and DailyQuest may not exist in current Prisma schema; skip those seeds if missing
-const dbAny = db as unknown as Record<string, unknown>
+import { initializeDailyQuests } from '@/lib/gamification/daily-quests'
 
 const DEFAULT_WORLDS = [
   {
@@ -142,44 +138,13 @@ const DEFAULT_DAILY_QUESTS = [
 ]
 
 async function seedWorlds() {
-  const worldModel = dbAny.world as { findUnique: (a: { where: { id: string } }) => Promise<unknown>; create: (a: { data: typeof DEFAULT_WORLDS[0] }) => Promise<unknown> } | undefined
-  if (!worldModel) {
-    console.log('⏭️ World model not in schema, skipping worlds seed')
-    return
-  }
-  console.log('🌍 Seeding worlds...')
-  for (const world of DEFAULT_WORLDS) {
-    const existing = await worldModel.findUnique({ where: { id: world.id } })
-
-    if (!existing) {
-      await worldModel.create({ data: world })
-      console.log(`  ✅ Created world: ${world.name}`)
-    } else {
-      console.log(`  ⚡ World exists: ${world.name}`)
-    }
-  }
-  
-  console.log(`✅ Worlds seeded: ${DEFAULT_WORLDS.length}\n`)
+  console.log('🌍 Worlds are in-memory (DEFAULT_WORLDS); no DB seeding required.')
+  console.log(`✅ Worlds available: ${DEFAULT_WORLDS.length}\n`)
 }
 
 async function seedDailyQuests() {
-  const questModel = dbAny.dailyQuest as { findFirst: (a: { where: { title: string; type: string } }) => Promise<unknown>; create: (a: { data: typeof DEFAULT_DAILY_QUESTS[0] }) => Promise<unknown> } | undefined
-  if (!questModel) {
-    console.log('⏭️ DailyQuest model not in schema, skipping daily quests seed')
-    return
-  }
-  console.log('📋 Seeding daily quests...')
-  for (const quest of DEFAULT_DAILY_QUESTS) {
-    const existing = await questModel.findFirst({ where: { title: quest.title, type: quest.type } })
-
-    if (!existing) {
-      await questModel.create({ data: quest })
-      console.log(`  ✅ Created quest: ${quest.title}`)
-    } else {
-      console.log(`  ⚡ Quest exists: ${quest.title}`)
-    }
-  }
-  
+  console.log('📋 Seeding daily quests (Mission type "daily")...')
+  await initializeDailyQuests()
   console.log(`✅ Daily quests seeded: ${DEFAULT_DAILY_QUESTS.length}\n`)
 }
 
@@ -194,8 +159,6 @@ async function main() {
   } catch (error) {
     console.error('❌ Seed failed:', error)
     process.exit(1)
-  } finally {
-    if (db?.$disconnect) await db.$disconnect()
   }
 }
 

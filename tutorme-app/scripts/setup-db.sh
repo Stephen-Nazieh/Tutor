@@ -19,7 +19,6 @@ npx drizzle-kit push
 
 echo "Generating schemas..."
 npx drizzle-kit generate
-npx prisma generate # Required temporarily until Phase 3 query migration is complete
 
 echo "Initializing admin system..."
 npx tsx src/scripts/seed-admin.ts

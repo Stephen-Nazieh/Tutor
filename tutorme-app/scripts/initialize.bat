@@ -67,11 +67,10 @@ echo.
 
 REM Run migrations
 echo ▶ Running database migrations...
-npx prisma migrate dev --name init
+npm run db:migrate
 if errorlevel 1 (
     echo ⚠️  Migration may have failed, continuing...
 )
-npx prisma generate
 echo ✅ Database ready
 echo.
 

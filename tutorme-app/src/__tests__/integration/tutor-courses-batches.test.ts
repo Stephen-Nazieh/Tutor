@@ -4,7 +4,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
+import crypto from 'crypto'
+import { eq, inArray } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { courseBatch, curriculum, curriculumLesson, curriculumModule, profile, user } from '@/lib/db/schema'
 import { POST as createCourse } from '@/app/api/tutor/courses/route'
 import { GET as listBatches, POST as createBatch } from '@/app/api/tutor/courses/[id]/batches/route'
 import { PATCH as updateBatch } from '@/app/api/tutor/courses/[id]/batches/[batchId]/route'
@@ -40,38 +43,56 @@ function request(url: string, init: RequestInit = {}): Request {
 
 describe('Tutor courses and batches API integration', () => {
   beforeAll(async () => {
-    const user = await db.user.create({
-      data: {
-        email: testTutorEmail,
-        role: 'TUTOR',
-        password: 'hashed',
-      },
+    tutorId = crypto.randomUUID()
+    await drizzleDb.insert(user).values({
+      id: tutorId,
+      email: testTutorEmail,
+      role: 'TUTOR',
+      password: 'hashed',
     })
-    tutorId = user.id
     mockSession.user.id = tutorId
-    await db.profile.create({
-      data: { userId: tutorId, name: 'Tutor Test' },
+    await drizzleDb.insert(profile).values({
+      id: crypto.randomUUID(),
+      userId: tutorId,
+      name: 'Tutor Test',
+      tosAccepted: true,
+      tosAcceptedAt: new Date(),
+      timezone: 'Asia/Shanghai',
+      emailNotifications: true,
+      smsNotifications: false,
+      subjectsOfInterest: [],
+      preferredLanguages: [],
+      learningGoals: [],
+      isOnboarded: true,
+      specialties: [],
+      paidClassesEnabled: false,
     })
   })
 
   afterAll(async () => {
     if (batchId) {
-      try { await db.courseBatch.delete({ where: { id: batchId } }).catch(() => {}) } catch {}
+      try { await drizzleDb.delete(courseBatch).where(eq(courseBatch.id, batchId)) } catch {}
     }
     if (courseId) {
       try {
-        await db.curriculumLesson.deleteMany({ where: { module: { curriculumId: courseId } } })
-        await db.curriculumModule.deleteMany({ where: { curriculumId: courseId } })
-        await db.curriculum.delete({ where: { id: courseId } }).catch(() => {})
+        const modules = await drizzleDb
+          .select({ id: curriculumModule.id })
+          .from(curriculumModule)
+          .where(eq(curriculumModule.curriculumId, courseId))
+        const moduleIds = modules.map((m) => m.id)
+        if (moduleIds.length > 0) {
+          await drizzleDb.delete(curriculumLesson).where(inArray(curriculumLesson.moduleId, moduleIds))
+        }
+        await drizzleDb.delete(curriculumModule).where(eq(curriculumModule.curriculumId, courseId))
+        await drizzleDb.delete(curriculum).where(eq(curriculum.id, courseId))
       } catch {}
     }
     if (tutorId) {
       try {
-        await db.profile.deleteMany({ where: { userId: tutorId } })
-        await db.user.delete({ where: { id: tutorId } })
+        await drizzleDb.delete(profile).where(eq(profile.userId, tutorId))
+        await drizzleDb.delete(user).where(eq(user.id, tutorId))
       } catch {}
     }
-    if (db?.$disconnect) await db.$disconnect()
   })
 
   it('creates a course and returns 200', async () => {

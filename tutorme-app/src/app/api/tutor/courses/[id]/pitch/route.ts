@@ -7,7 +7,9 @@ import { NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
-import { prismaLegacyClient } from '@/lib/db/prisma-legacy'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumLesson, curriculumModule, profile } from '@/lib/db/schema'
+import { asc, eq, inArray } from 'drizzle-orm'
 
 const COURSE_PITCH_PROMPT = `You are an expert course marketing copywriter. Create a compelling, persuasive course pitch that will excite students and convince them to enroll.
 
@@ -60,60 +62,69 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
     if (!id) {
       return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
     }
-    // Fetch course data with modules and lessons
-    const db = prismaLegacyClient as any
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
-    }
-    const course = await db.curriculum.findUnique({
-      where: { id },
-      include: {
-        modules: {
-          orderBy: { order: 'asc' },
-          include: {
-            lessons: {
-              orderBy: { order: 'asc' },
-              select: {
-                title: true,
-                description: true,
-                duration: true,
-                difficulty: true,
-                learningObjectives: true,
-              }
-            }
-          }
-        },
-        creator: {
-          include: {
-            profile: {
-              select: {
-                name: true,
-                bio: true,
-                specialties: true,
-                credentials: true,
-              }
-            }
-          }
-        }
-      }
-    })
+    const [course] = await drizzleDb
+      .select()
+      .from(curriculum)
+      .where(eq(curriculum.id, id))
+      .limit(1)
 
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
     }
 
+    const modules = await drizzleDb
+      .select()
+      .from(curriculumModule)
+      .where(eq(curriculumModule.curriculumId, id))
+      .orderBy(asc(curriculumModule.order))
+
+    const moduleIds = modules.map((m) => m.id)
+    const lessons = moduleIds.length
+      ? await drizzleDb
+          .select({
+            moduleId: curriculumLesson.moduleId,
+            title: curriculumLesson.title,
+            description: curriculumLesson.description,
+            duration: curriculumLesson.duration,
+            difficulty: curriculumLesson.difficulty,
+            learningObjectives: curriculumLesson.learningObjectives,
+            order: curriculumLesson.order,
+          })
+          .from(curriculumLesson)
+          .where(inArray(curriculumLesson.moduleId, moduleIds))
+          .orderBy(asc(curriculumLesson.order))
+      : []
+
+    const lessonsByModuleId = new Map<string, typeof lessons>()
+    for (const lesson of lessons) {
+      const list = lessonsByModuleId.get(lesson.moduleId) ?? []
+      list.push(lesson)
+      lessonsByModuleId.set(lesson.moduleId, list)
+    }
+
+    const tutorProfile = course.creatorId
+      ? (await drizzleDb
+          .select({
+            name: profile.name,
+            bio: profile.bio,
+            specialties: profile.specialties,
+            credentials: profile.credentials,
+          })
+          .from(profile)
+          .where(eq(profile.userId, course.creatorId))
+          .limit(1))[0]
+      : null
+
     // Build context for AI
-    const modulesContext = course.modules.map((m: { title: string; description: string | null; lessons: { title: string; duration: number; learningObjectives: string[] }[] }) => ({
+    const modulesContext = modules.map((m) => ({
       title: m.title,
       description: m.description,
-      lessons: m.lessons.map((l: { title: string; duration: number; learningObjectives: string[] }) => ({
+      lessons: (lessonsByModuleId.get(m.id) ?? []).map((l) => ({
         title: l.title,
         duration: l.duration,
         objectives: l.learningObjectives
       }))
     }))
-
-    const tutorProfile = course.creator?.profile
     const tutorContext = tutorProfile ? {
       name: tutorProfile.name,
       bio: tutorProfile.bio,
@@ -148,10 +159,10 @@ Generate a compelling, persuasive course pitch based on this information.`
     })
 
     // Save the generated pitch
-    await db.curriculum.update({
-      where: { id },
-      data: { coursePitch: result.content }
-    })
+    await drizzleDb
+      .update(curriculum)
+      .set({ coursePitch: result.content })
+      .where(eq(curriculum.id, id))
 
     return NextResponse.json({ 
       pitch: result.content,
@@ -174,14 +185,11 @@ export const GET = withAuth(async (req, session, context) => {
     if (!id) {
       return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
     }
-    const db = prismaLegacyClient as any
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
-    }
-    const course = await db.curriculum.findUnique({
-      where: { id },
-      select: { coursePitch: true }
-    })
+    const [course] = await drizzleDb
+      .select({ coursePitch: curriculum.coursePitch })
+      .from(curriculum)
+      .where(eq(curriculum.id, id))
+      .limit(1)
 
     if (!course) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 })
@@ -214,14 +222,10 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
       )
     }
 
-    const db = prismaLegacyClient as any
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
-    }
-    await db.curriculum.update({
-      where: { id },
-      data: { coursePitch: pitch }
-    })
+    await drizzleDb
+      .update(curriculum)
+      .set({ coursePitch: pitch })
+      .where(eq(curriculum.id, id))
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -240,14 +244,10 @@ export const DELETE = withCsrf(withAuth(async (req, session, context) => {
     if (!id) {
       return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
     }
-    const db = prismaLegacyClient as any
-    if (!db) {
-      return NextResponse.json({ error: 'Database unavailable' }, { status: 500 })
-    }
-    await db.curriculum.update({
-      where: { id },
-      data: { coursePitch: null }
-    })
+    await drizzleDb
+      .update(curriculum)
+      .set({ coursePitch: null })
+      .where(eq(curriculum.id, id))
 
     return NextResponse.json({ success: true })
   } catch (error) {

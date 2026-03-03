@@ -1,10 +1,10 @@
 /**
- * Seed test curriculum directly via Prisma
+ * Seed test curriculum via Drizzle
  */
-
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import crypto from 'crypto'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumLesson, curriculumModule } from '@/lib/db/schema'
 
 const IELTS_STRUCTURE = {
   code: 'ielts-academic',
@@ -84,9 +84,11 @@ async function seedCurriculum() {
   console.log('Seeding IELTS Academic curriculum...')
 
   // Check if already exists
-  const existing = await prisma.curriculum.findFirst({
-    where: { name: IELTS_STRUCTURE.name }
-  })
+  const [existing] = await drizzleDb
+    .select({ id: curriculum.id })
+    .from(curriculum)
+    .where(eq(curriculum.name, IELTS_STRUCTURE.name))
+    .limit(1)
 
   if (existing) {
     console.log('Curriculum already exists:', existing.id)
@@ -94,62 +96,66 @@ async function seedCurriculum() {
   }
 
   // Create curriculum
-  const curriculum = await prisma.curriculum.create({
-    data: {
-      name: IELTS_STRUCTURE.name,
-      subject: IELTS_STRUCTURE.category,
-      description: IELTS_STRUCTURE.description,
-      creatorId: 'system'
-    }
+  const curriculumId = crypto.randomUUID()
+  await drizzleDb.insert(curriculum).values({
+    id: curriculumId,
+    name: IELTS_STRUCTURE.name,
+    subject: IELTS_STRUCTURE.category,
+    description: IELTS_STRUCTURE.description,
+    creatorId: 'system',
+    difficulty: 'intermediate',
+    estimatedHours: 18,
+    isPublished: false,
+    isLiveOnline: false,
   })
 
-  console.log('Created curriculum:', curriculum.id)
+  console.log('Created curriculum:', curriculumId)
 
   // Create modules and lessons
   for (let i = 0; i < IELTS_STRUCTURE.modules.length; i++) {
     const modData = IELTS_STRUCTURE.modules[i]
 
-    const module = await prisma.curriculumModule.create({
-      data: {
-        curriculumId: curriculum.id,
-        title: modData.title,
-        description: modData.description,
-        order: i,
-        builderData: {
-          skills: modData.skills,
-          estimatedHours: modData.estimatedHours
-        }
+    const moduleId = crypto.randomUUID()
+    await drizzleDb.insert(curriculumModule).values({
+      id: moduleId,
+      curriculumId,
+      title: modData.title,
+      description: modData.description,
+      order: i,
+      builderData: {
+        skills: modData.skills,
+        estimatedHours: modData.estimatedHours
       }
     })
 
-    console.log('Created module:', module.title)
+    console.log('Created module:', modData.title)
 
     // Create lessons
     for (let j = 0; j < modData.lessons.length; j++) {
       const lessonData = modData.lessons[j]
 
-      const lesson = await prisma.curriculumLesson.create({
-        data: {
-          moduleId: module.id,
-          title: lessonData.title,
-          order: j,
-          learningObjectives: lessonData.learningObjectives,
-          keyConcepts: lessonData.keyConcepts,
-          duration: lessonData.duration,
-          difficulty: lessonData.difficulty,
-          teachingPoints: [],
-          commonMisconceptions: [],
-          prerequisiteLessonIds: [],
-          builderData: {
-            content: lessonData.content,
-            exercises: lessonData.exercises || [],
-            materials: [],
-            aiConfidence: 0.95
-          }
+      await drizzleDb.insert(curriculumLesson).values({
+        id: crypto.randomUUID(),
+        moduleId,
+        title: lessonData.title,
+        description: null,
+        order: j,
+        learningObjectives: lessonData.learningObjectives,
+        keyConcepts: lessonData.keyConcepts || [],
+        duration: lessonData.duration,
+        difficulty: lessonData.difficulty,
+        teachingPoints: [],
+        commonMisconceptions: [],
+        prerequisiteLessonIds: [],
+        builderData: {
+          content: lessonData.content,
+          exercises: lessonData.exercises || [],
+          materials: [],
+          aiConfidence: 0.95
         }
       })
 
-      console.log('  Created lesson:', lesson.title)
+      console.log('  Created lesson:', lessonData.title)
     }
   }
 
@@ -157,6 +163,4 @@ async function seedCurriculum() {
   console.log(`URL: /student/ai-tutor/browse`)
 }
 
-seedCurriculum()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect())
+seedCurriculum().catch(console.error)

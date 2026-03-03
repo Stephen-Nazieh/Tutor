@@ -55,4 +55,4 @@ Note: the Drizzle migrator records which migrations have run. If you run the SQL
   Ensure it is listed in `drizzle/meta/_journal.json` with a `tag` that matches the filename (without `.sql`), e.g. `"tag": "0002_engagement_insights"` for `0002_engagement_insights.sql`.
 
 - **Prisma migrations**  
-  Prisma migrations in `prisma/migrations/` are still applied with `npx prisma migrate deploy` (or `prisma migrate dev` in development). Drizzle migrations are independent and live in `drizzle/`.
+  Drizzle migrations are applied with `npm run db:migrate` (or `drizzle-kit push` directly). Prisma migrations are deprecated.

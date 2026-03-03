@@ -101,15 +101,15 @@ echo ╠════════════════════════
 docker ps --format "║  {{.Names}} - {{.Status}}" | findstr "tutorme"
 echo ║                                                        ║
 echo ║  Database URL: postgresql://tutorme:tutorme_password   ║
-echo ║                @localhost:5432/tutorme                 ║
+echo ║                @localhost:5433/tutorme                 ║
 echo ║                                                        ║
-echo ║  Prisma Studio: http://localhost:5555                  ║
+echo ║  Drizzle Studio: https://local.drizzle.studio          ║
 echo ╚════════════════════════════════════════════════════════╝
 echo.
 
-REM Open Prisma Studio option
-set /p openstudio="🚀 Open Prisma Studio now? (y/n): "
+REM Open Drizzle Studio option
+set /p openstudio="🚀 Open Drizzle Studio now? (y/n): "
 if /i "%openstudio%"=="y" (
-    echo Opening Prisma Studio...
-    npx prisma studio
+    echo Opening Drizzle Studio...
+    npm run db:studio
 )

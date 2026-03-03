@@ -4,6 +4,9 @@
  */
 
 import * as Y from 'yjs'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { conversation } from '@/lib/db/schema'
 import type {
   ClassRoom,
   DirectMessageRoom,
@@ -47,13 +50,11 @@ export async function getConversationParticipantIds(
   conversationId: string
 ): Promise<{ participant1Id: string; participant2Id: string } | null> {
   try {
-    const { prismaLegacyClient } = await import('@/lib/db/prisma-legacy')
-    const db = prismaLegacyClient
-    if (!db) return null
-    const conv = await db.conversation.findUnique({
-      where: { id: conversationId },
-      select: { participant1Id: true, participant2Id: true },
-    })
+    const [conv] = await drizzleDb
+      .select({ participant1Id: conversation.participant1Id, participant2Id: conversation.participant2Id })
+      .from(conversation)
+      .where(eq(conversation.id, conversationId))
+      .limit(1)
     return conv ? { participant1Id: conv.participant1Id, participant2Id: conv.participant2Id } : null
   } catch {
     return null

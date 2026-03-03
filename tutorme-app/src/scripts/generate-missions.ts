@@ -1,12 +1,12 @@
 /**
  * Generate Missions from Curriculum
- * Requires Prisma schema with World model and Mission model (worldId, lessonId, etc.).
+ * Creates Mission records for lessons (type: 'lesson') using Drizzle.
  * Run with: npx ts-node src/scripts/generate-missions.ts
  */
-
-import { prismaLegacyClient as db } from '@/lib/db/prisma-legacy'
-
-const dbAny = db as unknown as Record<string, unknown>
+import crypto from 'crypto'
+import { and, asc, eq, inArray } from 'drizzle-orm'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { curriculum, curriculumLesson, curriculumModule, mission } from '@/lib/db/schema'
 
 // World to curriculum mapping
 const WORLD_CURRICULUM_MAP: Record<string, string> = {
@@ -42,112 +42,70 @@ const GRAMMAR_FOCUS: Record<number, string[]> = {
 }
 
 async function generateMissionsFromCurriculum() {
-  if (!dbAny.world || !dbAny.mission) {
-    console.log('⏭️ World or Mission model not in schema; skipping mission generation.')
-    return
-  }
-  const worldModel = dbAny.world as { findMany: () => Promise<{ id: string; name: string; curriculumId?: string }[]>; update: (a: { where: { id: string }; data: { curriculumId: string } }) => Promise<unknown> }
-  const missionModel = dbAny.mission as { findFirst: (a: { where: { worldId: string; lessonId: string } }) => Promise<unknown>; create: (a: { data: Record<string, unknown> }) => Promise<unknown> }
-
   console.log('🎮 Generating missions from curriculum...\n')
 
-  const curriculums = await db.curriculum.findMany({
-    include: {
-      modules: {
-        include: {
-          lessons: true,
-        },
-      },
-    },
-  })
-
+  const curriculums = await drizzleDb.select().from(curriculum)
   console.log(`Found ${curriculums.length} curriculums`)
-
-  const worlds = await worldModel.findMany()
-  console.log(`Found ${worlds.length} worlds\n`)
 
   let totalMissions = 0
 
-  for (const world of worlds) {
-    console.log(`🌍 Processing world: ${world.name}`)
+  for (const cur of curriculums) {
+    console.log(`📚 Processing curriculum: ${cur.name}`)
+    const modules = await drizzleDb
+      .select()
+      .from(curriculumModule)
+      .where(eq(curriculumModule.curriculumId, cur.id))
+      .orderBy(asc(curriculumModule.order))
+    const moduleIds = modules.map((m) => m.id)
+    const lessons = moduleIds.length
+      ? await drizzleDb
+          .select()
+          .from(curriculumLesson)
+          .where(inArray(curriculumLesson.moduleId, moduleIds))
+          .orderBy(asc(curriculumLesson.order))
+      : []
 
-    // Find matching curriculum or use first one
-    const curriculum = curriculums.find(
-      (c: any) => c.id === world.curriculumId || 
-           c.code === WORLD_CURRICULUM_MAP[world.id]
-    ) || curriculums[0]
-
-    if (!curriculum) {
-      console.log(`  ⚠️ No curriculum found for ${world.name}`)
-      continue
-    }
-
-    if (!world.curriculumId) {
-      await worldModel.update({
-        where: { id: world.id },
-        data: { curriculumId: curriculum.id },
-      })
-      console.log(`  ✅ Linked to curriculum: ${curriculum.name}`)
-    }
-
-    // Generate missions from lessons
     let missionCount = 0
-    const vocabularySet = WORLD_VOCABULARY[world.id] || []
+    for (const lesson of lessons) {
+      const [existing] = await drizzleDb
+        .select({ id: mission.id })
+        .from(mission)
+        .where(and(eq(mission.type, 'lesson'), eq(mission.title, lesson.title)))
+        .limit(1)
 
-    for (const module of curriculum.modules) {
-      for (const lesson of module.lessons) {
-        const existing = await missionModel.findFirst({
-          where: {
-            worldId: world.id,
-            lessonId: lesson.id,
-          },
-        })
-
-        if (existing) {
-          console.log(`  ⚡ Mission exists for: ${lesson.title}`)
-          continue
-        }
-
-        // Determine difficulty based on lesson order and module
-        const difficulty = Math.min(4, Math.max(1, 
-          module.order + Math.floor(lesson.order / 3)
-        ))
-
-        // Select mission type
-        const missionType = MISSION_TYPES[missionCount % MISSION_TYPES.length]
-
-        // Select vocabulary subset
-        const vocab = vocabularySet.slice(
-          (missionCount * 2) % vocabularySet.length,
-          ((missionCount * 2) % vocabularySet.length) + 3
-        )
-
-        // Select grammar focus
-        const grammarOptions = GRAMMAR_FOCUS[difficulty] || GRAMMAR_FOCUS[1]
-        const grammarFocus = grammarOptions[missionCount % grammarOptions.length]
-
-        await missionModel.create({
-          data: {
-            worldId: world.id,
-            lessonId: lesson.id,
-            title: lesson.title,
-            objective: lesson.learningObjectives?.[0] || `Learn ${lesson.title}`,
-            vocabulary: vocab.length > 0 ? vocab : undefined,
-            grammarFocus,
-            difficulty,
-            xpReward: 40 + (difficulty * 10),
-            missionType,
-            estimatedTime: lesson.duration || 15,
-          },
-        })
-
-        console.log(`  ✅ Created mission: ${lesson.title} (Level ${difficulty})`)
-        missionCount++
-        totalMissions++
+      if (existing) {
+        console.log(`  ⚡ Mission exists for: ${lesson.title}`)
+        continue
       }
-    }
 
-    console.log(`  📊 Created ${missionCount} missions for ${world.name}\n`)
+      const difficulty = Math.min(4, Math.max(1, Math.ceil(lesson.order / 3)))
+      const missionType = MISSION_TYPES[missionCount % MISSION_TYPES.length]
+      const grammarOptions = GRAMMAR_FOCUS[difficulty] || GRAMMAR_FOCUS[1]
+      const grammarFocus = grammarOptions[missionCount % grammarOptions.length]
+
+      await drizzleDb.insert(mission).values({
+        id: crypto.randomUUID(),
+        title: lesson.title,
+        description: lesson.learningObjectives?.[0] || lesson.description || `Learn ${lesson.title}`,
+        type: 'lesson',
+        xpReward: 40 + (difficulty * 10),
+        requirement: {
+          missionType,
+          grammarFocus,
+          difficulty,
+          curriculumId: cur.id,
+          moduleId: lesson.moduleId,
+          lessonId: lesson.id,
+          estimatedTime: lesson.duration || 15,
+        },
+        isActive: true,
+      })
+
+      console.log(`  ✅ Created mission: ${lesson.title} (Level ${difficulty})`)
+      missionCount++
+      totalMissions++
+    }
+    console.log(`  📊 Created ${missionCount} missions for ${cur.name}\n`)
   }
 
   console.log(`🎉 Total missions created: ${totalMissions}`)
@@ -159,8 +117,6 @@ async function main() {
   } catch (error) {
     console.error('❌ Error generating missions:', error)
     process.exit(1)
-  } finally {
-    if (db?.$disconnect) await db.$disconnect()
   }
 }
 

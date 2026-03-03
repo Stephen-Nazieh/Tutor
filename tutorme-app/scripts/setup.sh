@@ -34,13 +34,8 @@ else
     echo -e "${GREEN}[OK] Dependencies already installed${NC}"
 fi
 
-# Step 3: Generate Prisma client
-echo -e "${YELLOW}[3/7] Generating Prisma client...${NC}"
-npx prisma generate
-echo -e "${GREEN}[OK] Prisma client generated${NC}"
-
-# Step 4: Start Docker
-echo -e "${YELLOW}[4/7] Starting Docker containers...${NC}"
+# Step 3: Start Docker
+echo -e "${YELLOW}[3/7] Starting Docker containers...${NC}"
 if ! docker ps | grep -q tutorme-db; then
     docker-compose down -v 2>/dev/null || true
     docker-compose up -d db redis
@@ -58,18 +53,18 @@ else
     echo -e "${GREEN}[OK] Docker containers already running${NC}"
 fi
 
-# Step 5: Run migrations
-echo -e "${YELLOW}[5/7] Running database migrations...${NC}"
-npx prisma migrate dev --name init --skip-generate
+# Step 4: Run migrations
+echo -e "${YELLOW}[4/7] Running database migrations...${NC}"
+npm run db:migrate
 echo -e "${GREEN}[OK] Migrations complete${NC}"
 
-# Step 6: Seed data
-echo -e "${YELLOW}[6/7] Seeding database...${NC}"
-npx prisma db seed
+# Step 5: Seed data
+echo -e "${YELLOW}[5/7] Seeding database...${NC}"
+npm run db:seed
 echo -e "${GREEN}[OK] Database seeded${NC}"
 
-# Step 7: Build
-echo -e "${YELLOW}[7/7] Building application...${NC}"
+# Step 6: Build
+echo -e "${YELLOW}[6/7] Building application...${NC}"
 npm run build
 echo -e "${GREEN}[OK] Build complete${NC}"
 

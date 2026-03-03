@@ -123,7 +123,7 @@ test -d infrastructure && echo "infrastructure present" || echo "MISSING infrast
 # App and config
 test -d tutorme-app/src && echo "tutorme-app/src present" || echo "MISSING"
 test -f tutorme-app/package.json && echo "package.json present" || echo "MISSING"
-test -f tutorme-app/prisma/schema.prisma && echo "prisma schema present" || echo "MISSING"
+test -d tutorme-app/drizzle && echo "drizzle schema present" || echo "MISSING"
 ```
 
 Add similar lines for any folder or file you know should have come from Tutor, Tutor-1, or TutorMekimi.

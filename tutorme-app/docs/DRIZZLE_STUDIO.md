@@ -13,12 +13,8 @@ The UI at **https://local.drizzle.studio** is a cloud page that connects to a **
 3. **Missing PEM files (macOS/Windows)**  
    If the backend fails to start with `ENOENT ... localhost-key.pem`, the script now creates empty `localhost-key.pem` and `localhost.pem` in the drizzle-studio app data folder. If you run studio by hand, create that folder and touch those files (see [drizzle-orm#3455](https://github.com/drizzle-team/drizzle-orm/issues/3455)).
 
-4. **Fallback: Prisma Studio**  
-   This project still has Prisma. If Drizzle Studio keeps failing, you can use the local-only DB UI:
-   ```bash
-   npx prisma studio
-   ```
-   Then open **http://localhost:5555** (no cloud, no PEM). It uses the same Postgres; point it at `DATABASE_URL` or `DIRECT_URL` via `.env.local` if needed.
+4. **Fallback: local DB UI**  
+   Prisma Studio is no longer used. If Drizzle Studio keeps failing, use `psql` or a local SQL client pointed at `DATABASE_URL` or `DIRECT_URL`.
 
 ## Port 4983 already in use (EADDRINUSE)
 

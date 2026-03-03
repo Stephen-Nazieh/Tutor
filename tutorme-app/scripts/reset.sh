@@ -18,7 +18,6 @@ echo ""
 echo "This will:"
 echo "  - Stop all Docker containers"
 echo "  - DELETE all database data"
-echo "  - DELETE all migration files"
 echo "  - Reset to clean state"
 echo ""
 read -p "Are you sure? Type 'yes' to continue: " confirm
@@ -32,9 +31,6 @@ echo ""
 echo "[→] Stopping Docker containers..."
 docker-compose down -v
 
-echo "[→] Removing migration files..."
-rm -rf prisma/migrations
-
 echo "[→] Starting fresh containers..."
 docker-compose up -d
 
@@ -42,13 +38,10 @@ echo "[→] Waiting for database..."
 sleep 5
 
 echo "[→] Running initial migration..."
-npx prisma migrate dev --name init
-
-echo "[→] Generating Prisma client..."
-npx prisma generate
+npm run db:migrate
 
 echo "[→] Seeding database..."
-npx prisma db seed
+npm run db:seed
 
 echo ""
 echo "Reset complete! Run 'bash scripts/dev.sh' to start the app."
