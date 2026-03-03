@@ -12,9 +12,8 @@ import {
   saveLibraryTask,
   toggleFavoriteTask,
   deleteLibraryTask,
-  incrementTaskUsage,
-  migrateLegacyTasks
-} from '@/app/actions/library'
+  incrementTaskUsage
+} from '@/lib/api/library-client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Dialog,
@@ -220,6 +219,23 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
       }
     }
     loadSmartDefaults()
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    const loadLibrary = async () => {
+      try {
+        const tasks = await getLibraryTasks()
+        if (!isMounted) return
+        setLibrary({ tasks, version: 1 })
+      } catch (error) {
+        console.error('Failed to load library tasks:', error)
+      }
+    }
+    loadLibrary()
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   // Save preferences when generating
