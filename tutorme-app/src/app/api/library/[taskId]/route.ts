@@ -23,7 +23,7 @@ function mapTask(task: typeof libraryTask.$inferSelect) {
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { taskId: string } }) {
+export async function PATCH(request: Request, context: { params: Promise<{ taskId: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,7 +36,7 @@ export async function PATCH(request: Request, { params }: { params: { taskId: st
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const taskId = params.taskId
+  const { taskId } = await context.params
   if (!taskId) {
     return NextResponse.json({ error: 'Missing taskId' }, { status: 400 })
   }
@@ -80,13 +80,13 @@ export async function PATCH(request: Request, { params }: { params: { taskId: st
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { taskId: string } }) {
+export async function DELETE(_: Request, context: { params: Promise<{ taskId: string }> }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const taskId = params.taskId
+  const { taskId } = await context.params
   if (!taskId) {
     return NextResponse.json({ error: 'Missing taskId' }, { status: 400 })
   }
