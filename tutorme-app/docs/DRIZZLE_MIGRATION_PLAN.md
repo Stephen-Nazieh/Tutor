@@ -254,7 +254,7 @@ For each route/action: replace `db` usage with Drizzle (same `db` import from `@
 
 ### 9.1 Seeds
 
-- **Seeds:** `prisma/seed.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, `scripts/seed-gamification.ts`, etc.
+- **Seeds:** `src/scripts/seed-db.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, `scripts/seed-gamification.ts`, etc.
   - Rewrite to use Drizzle `db`: `db.insert(...).values(...)` (and relations as needed).
   - Run seeds via a script that uses your Drizzle connection (e.g. `tsx scripts/seed.ts` or existing script with DB import switched to Drizzle).
 

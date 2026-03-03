@@ -906,7 +906,7 @@ export function reportError(error: Error, context?: Record<string, any>): void {
 // ============================================================================
 
 // Note: These types should match your Prisma schema
-// You may need to add these models to your schema.prisma:
+// You may need to add these models to your database schema:
 /*
 model PerformanceMetric {
   id        String   @id @default(cuid())

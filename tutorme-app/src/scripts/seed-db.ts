@@ -1,8 +1,8 @@
 /**
  * Database Seed Script
  * Creates sample data for testing
- * 
- * Run with: npx tsx prisma/seed.ts
+ *
+ * Run with: npm run db:seed
  */
 import crypto from 'crypto'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -188,7 +188,7 @@ async function main() {
   console.log('Created gamification record')
 
   // Seed admin system (admin@tutorme.com with SUPER_ADMIN role)
-  const { seedAdminSystem } = await import('../src/scripts/seed-admin')
+  const { seedAdminSystem } = await import('@/scripts/seed-admin')
   await seedAdminSystem()
 
   console.log('\n✅ Seeding completed!')
@@ -203,8 +203,7 @@ async function main() {
   console.log('  - Admin user (see above for credentials)')
 }
 
-main()
-  .catch((e) => {
-    console.error('Seed error:', e)
-    process.exit(1)
-  })
+main().catch((e) => {
+  console.error('Seed error:', e)
+  process.exit(1)
+})

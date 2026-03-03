@@ -1,6 +1,6 @@
 /**
- * Drizzle table definitions (generated from Prisma schema).
- * Do not edit by hand; re-run: node scripts/prisma-to-drizzle-schema.mjs
+ * Drizzle table definitions.
+ * Do not edit by hand; regenerate via Drizzle tooling when schema changes.
  */
 import { pgTable, text, integer, boolean, timestamp, jsonb, doublePrecision, uniqueIndex, index } from 'drizzle-orm/pg-core'
 import * as enums from './enums'

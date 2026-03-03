@@ -40,7 +40,7 @@
     "drizzle:studio": "drizzle-kit studio",
     "drizzle:push": "drizzle-kit push",
     "drizzle:migrate": "tsx src/lib/db/drizzle-migrate.ts",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "tsx src/scripts/seed-db.ts",
     "db:seed:admin": "tsx src/scripts/seed-admin.ts",
     "data-retention": "tsx scripts/data-retention.ts",
     "initialize": "bash scripts/initialize.sh",
@@ -135,9 +135,6 @@
     "yjs": "^13.6.29",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",

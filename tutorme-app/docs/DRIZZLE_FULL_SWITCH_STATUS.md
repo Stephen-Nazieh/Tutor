@@ -64,7 +64,7 @@ To complete the full switch, migrate remaining API routes and libs to Drizzle, t
 
 ### Phase 5: Seeds, tests, remove Prisma
 1. **Seeds**  
-   Rewrite seed scripts (`prisma/seed.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, etc.) to use `drizzleDb` and Drizzle schema.
+   Rewrite seed scripts (`src/scripts/seed-db.ts`, `scripts/seed-curriculum.ts`, `src/scripts/seed-admin.ts`, etc.) to use `drizzleDb` and Drizzle schema.
 
 2. **Tests**  
    Update any test that mocks or uses `db` (Prisma) to use Drizzle or a test DB with Drizzle.
