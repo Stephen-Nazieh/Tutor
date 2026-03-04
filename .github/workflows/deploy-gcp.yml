@@ -11,7 +11,7 @@ env:
   # GCP configurations 👇
   REGION: asia-southeast1
   SERVICE_NAME: tutorme-app
-  GAR_LOCATION: asia-southeast1
+  GAR_LOCATION: asia
   GAR_REPO: tutorme-repo
 
 jobs:
