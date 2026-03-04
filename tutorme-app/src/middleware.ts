@@ -168,8 +168,6 @@ export default withAuth(
         const pathname = req.nextUrl.pathname
         const normalizedPath = pathname.startsWith('/api') ? pathname : stripLocalePrefix(pathname)
         const publicExactPaths = [
-          '/login',
-          '/register',
           '/',
         ]
         const publicPrefixPaths = [
@@ -182,6 +180,8 @@ export default withAuth(
           '/admin',
           '/api/admin/',
           '/api/admin/auth',
+          '/login',
+          '/register',
         ]
         const isPublicExact = publicExactPaths.includes(normalizedPath)
         const isPublicPrefix = publicPrefixPaths.some((p) => {
