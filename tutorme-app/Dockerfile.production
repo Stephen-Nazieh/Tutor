@@ -1,32 +1,30 @@
-# Multi-stage build for production
-FROM node:20-alpine AS base
+# Multi-stage build for production (switched to Debian slim to avoid Alpine musl binding errors natively)
+FROM node:20-slim AS base
+WORKDIR /app
+# We install certificates and openssl just in case
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json* ./
+# We force install the precise platform bindings for linux glibc
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
-WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-
-# Build the application
 ENV NEXT_TELEMETRY_DISABLED=1
+# Fix for Next.js and Parcel Watcher - explicitly install the linux-x64-glibc version if missing
+RUN npm install @parcel/watcher-linux-x64-glibc --no-save
 RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-WORKDIR /app
-
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3003
+ENV HOSTNAME="0.0.0.0"
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -36,16 +34,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-
 USER nextjs
 
 EXPOSE 3003
 
-ENV PORT=3003
-ENV HOSTNAME="0.0.0.0"
-
-# Health check
+# Safe Health check via curl
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -qO- http://localhost:3003/api/health || exit 1
+  CMD curl -f http://localhost:3003/api/health || exit 1
 
 CMD ["node", "server.js"]
