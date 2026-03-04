@@ -78,6 +78,7 @@ jobs:
             --memory=1Gi
             --min-instances=0
             --max-instances=10
+            --port=3003
 
       - name: Show Output
         run: echo "Deployed Service URL -> ${{ steps.deploy.outputs.url }}"
