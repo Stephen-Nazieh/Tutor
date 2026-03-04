@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib
 # Install dependencies only when needed
 FROM base AS deps
 COPY package.json package-lock.json* ./
-# We force install the precise platform bindings for linux glibc
+# We force install the precise platform bindings using standard npm ci
 RUN npm ci
 
 # Rebuild the source code only when needed
@@ -15,8 +15,13 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-# Fix for Next.js and Parcel Watcher - explicitly install the linux-x64-glibc version if missing
-RUN npm install @parcel/watcher-linux-x64-glibc --no-save
+# Explicitly inject the OS-specific native bindings that the macOS-generated package-lock.json omits
+RUN npm install --no-save @parcel/watcher-linux-x64-glibc @swc/core-linux-x64-gnu @next/swc-linux-x64-gnu esbuild
+# Provide dummy credentials for Next.js static page prerendering (which requires DB instantiation)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV DIRECT_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+ENV NEXTAUTH_SECRET="dummy_secret_for_build_phase_only"
+ENV ADMIN_JWT_SECRET="dummy_secret_for_build_phase_only"
 RUN npm run build
 
 # Production image, copy all the files and run next
