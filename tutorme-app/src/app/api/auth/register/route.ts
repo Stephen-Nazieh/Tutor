@@ -277,7 +277,7 @@ export async function POST(request: NextRequest) {
     const message =
       process.env.NODE_ENV === 'development'
         ? err.message || 'Internal server error. Please try again.'
-        : 'Internal server error. Please try again.'
+        : err.message || 'Internal server error. Please try again.'
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
