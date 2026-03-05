@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -13,10 +13,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound } from 'lucide-react'
 import {
-  COUNTRY_OPTIONS,
   GLOBAL_EXAM_CATEGORIES,
   subjectsForCountry,
 } from '@/lib/tutoring/categories'
+import { ALL_COUNTRIES, findCountryByName } from '@/lib/geo/countries'
 
 type GlobalExamState = {
   standardizedEnglish: string[]
@@ -32,6 +32,36 @@ type SocialLinks = {
   facebook: string
 }
 
+const CERTIFICATE_OPTIONS = [
+  'PGCE',
+  'QTS',
+  'TEFL',
+  'TESOL',
+  'CELTA',
+  'DELTA',
+  'State Teaching License',
+  'IB Educator Certificate',
+  'Cambridge Teaching Knowledge Test (TKT)',
+  'Cambridge ICELT',
+  'Cambridge DELTA Module 1',
+  'Cambridge DELTA Module 2',
+  'Cambridge DELTA Module 3',
+  'ESL Endorsement',
+  'Special Education Certification',
+  'STEM Teaching Certification',
+  'AP Teacher Training',
+  'GCSE Teaching Certification',
+  'A-Level Teaching Certification',
+  'SAT/ACT Tutor Certification',
+  'Montessori Certification',
+  'Waldorf Certification',
+  'EdD',
+  'MEd',
+  'Instructional Coaching Certificate',
+  'Professional Teaching License',
+  'National Board Certification (NBCT)',
+]
+
 export default function TutorRegistrationPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -41,6 +71,11 @@ export default function TutorRegistrationPage() {
   const [usernameStatus, setUsernameStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken'; message?: string; suggestion?: string }>({
     status: 'idle',
   })
+  const [emailStatus, setEmailStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid'; message?: string }>({
+    status: 'idle',
+  })
+  const [usernameTouched, setUsernameTouched] = useState(false)
+  const [customCertificate, setCustomCertificate] = useState('')
 
   const [formData, setFormData] = useState({
     email: '',
@@ -55,7 +90,7 @@ export default function TutorRegistrationPage() {
     phoneNumber: '',
     educationLevel: '',
     hasTeachingCertificate: false,
-    certificateName: '',
+    teachingCertificates: [] as string[],
     certificateSubjects: '',
     tutoringExperienceRange: '',
     globalExams: {
@@ -155,14 +190,55 @@ export default function TutorRegistrationPage() {
     })
   }
 
-  const handleUsernameCheck = async () => {
-    if (!formData.username.trim()) {
-      toast.error('Enter a username to verify')
+  const toggleCertificate = (certificate: string) => {
+    setFormData((prev) => {
+      const exists = prev.teachingCertificates.includes(certificate)
+      return {
+        ...prev,
+        teachingCertificates: exists
+          ? prev.teachingCertificates.filter((c) => c !== certificate)
+          : [...prev.teachingCertificates, certificate],
+      }
+    })
+  }
+
+  const addCustomCertificate = () => {
+    const trimmed = customCertificate.trim()
+    if (!trimmed) return
+    setFormData((prev) => {
+      const next = prev.teachingCertificates.includes(trimmed)
+        ? prev.teachingCertificates
+        : [...prev.teachingCertificates, trimmed]
+      return { ...prev, teachingCertificates: next }
+    })
+    setCustomCertificate('')
+  }
+
+  const normalizeUsernameInput = (value: string) =>
+    value
+      .trim()
+      .replace(/^@+/, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9._]/g, '')
+      .replace(/\.+/g, '.')
+      .replace(/^\\.|\\.$/g, '')
+      .slice(0, 30)
+
+  const suggestUsername = () => {
+    const base = `${formData.firstName}.${formData.lastName}`.replace(/\\s+/g, '.').toLowerCase()
+    const candidate = normalizeUsernameInput(base || formData.email.split('@')[0] || 'tutor')
+    return candidate || 'solocorn'
+  }
+
+  const checkUsernameAvailability = async (value: string) => {
+    const normalized = normalizeUsernameInput(value)
+    if (!normalized.trim()) {
+      setUsernameStatus({ status: 'idle' })
       return
     }
     setUsernameStatus({ status: 'checking' })
     try {
-      const res = await fetch(`/api/public/username-availability?username=${encodeURIComponent(formData.username)}`)
+      const res = await fetch(`/api/public/username-availability?username=${encodeURIComponent(normalized)}`)
       const data = await res.json()
       if (data.available) {
         setUsernameStatus({ status: 'available', message: 'Username is available' })
@@ -174,13 +250,72 @@ export default function TutorRegistrationPage() {
     }
   }
 
+  const checkEmailAvailability = async (value: string) => {
+    if (!value.trim()) {
+      setEmailStatus({ status: 'idle' })
+      return false
+    }
+    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+    if (!emailPattern.test(value)) {
+      setEmailStatus({ status: 'invalid', message: 'Enter a valid email address' })
+      return false
+    }
+    setEmailStatus({ status: 'checking' })
+    try {
+      const res = await fetch(`/api/public/email-availability?email=${encodeURIComponent(value)}`)
+      const data = await res.json()
+      if (data.available) {
+        setEmailStatus({ status: 'available', message: 'Email is available' })
+        return true
+      }
+      setEmailStatus({ status: 'taken', message: 'Email is already registered' })
+      return false
+    } catch {
+      setEmailStatus({ status: 'taken', message: 'Unable to verify right now' })
+      return false
+    }
+  }
+
   const applySuggestion = () => {
     if (!usernameStatus.suggestion) return
     setFormData((prev) => ({ ...prev, username: usernameStatus.suggestion ?? prev.username }))
+    setUsernameTouched(true)
     setUsernameStatus({ status: 'idle' })
   }
 
-  const validateStepOne = () => {
+  useEffect(() => {
+    if (usernameTouched) return
+    const suggested = suggestUsername()
+    if (suggested && suggested !== formData.username) {
+      setFormData((prev) => ({ ...prev, username: suggested }))
+    }
+  }, [formData.firstName, formData.lastName, formData.email, usernameTouched])
+
+  useEffect(() => {
+    const email = formData.email.trim()
+    if (!email) {
+      setEmailStatus({ status: 'idle' })
+      return
+    }
+    const handle = setTimeout(() => {
+      void checkEmailAvailability(email)
+    }, 500)
+    return () => clearTimeout(handle)
+  }, [formData.email])
+
+  useEffect(() => {
+    const normalized = normalizeUsernameInput(formData.username)
+    if (!normalized) {
+      setUsernameStatus({ status: 'idle' })
+      return
+    }
+    const handle = setTimeout(() => {
+      void checkUsernameAvailability(normalized)
+    }, 500)
+    return () => clearTimeout(handle)
+  }, [formData.username])
+
+  const validateStepOne = async () => {
     if (!formData.firstName || !formData.lastName) {
       toast.error('First and last name are required')
       return false
@@ -188,6 +323,33 @@ export default function TutorRegistrationPage() {
     if (!formData.email || !formData.password) {
       toast.error('Email and password are required')
       return false
+    }
+    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+    if (!emailPattern.test(formData.email)) {
+      toast.error('Enter a valid email address')
+      return false
+    }
+    if (emailStatus.status === 'invalid') {
+      toast.error('Enter a valid email address')
+      return false
+    }
+    if (emailStatus.status === 'taken') {
+      toast.error('Email already exists')
+      return false
+    }
+    if (emailStatus.status === 'idle') {
+      const ok = await checkEmailAvailability(formData.email)
+      if (!ok) {
+        toast.error('Email already exists')
+        return false
+      }
+    }
+    if (emailStatus.status === 'checking') {
+      const ok = await checkEmailAvailability(formData.email)
+      if (!ok) {
+        toast.error('Email already exists')
+        return false
+      }
     }
     if (passwordMismatch) {
       toast.error('Passwords do not match')
@@ -217,14 +379,18 @@ export default function TutorRegistrationPage() {
       toast.error('Tutoring experience is required')
       return false
     }
-    if (formData.hasTeachingCertificate && !formData.certificateName) {
-      toast.error('Please enter your teaching certificate')
+    return true
+  }
+
+  const validateStepThree = () => {
+    if (formData.hasTeachingCertificate && formData.teachingCertificates.length === 0) {
+      toast.error('Select at least one teaching certificate')
       return false
     }
     return true
   }
 
-  const validateStepThree = () => {
+  const validateStepFour = () => {
     if (categorySelections.length === 0) {
       toast.error('Select at least one tutoring category')
       return false
@@ -236,9 +402,18 @@ export default function TutorRegistrationPage() {
     return true
   }
 
-  const validateStepFour = () => {
+  const validateStepFive = () => {
     if (!formData.username) {
       toast.error('Username is required')
+      return false
+    }
+    if (usernameStatus.status === 'idle' || usernameStatus.status === 'checking') {
+      void checkUsernameAvailability(normalizeUsernameInput(formData.username))
+      toast.error('Checking username availability')
+      return false
+    }
+    if (usernameStatus.status === 'taken') {
+      toast.error('Username is already taken')
       return false
     }
     if (!formData.legalName) {
@@ -260,6 +435,9 @@ export default function TutorRegistrationPage() {
 
     setIsLoading(true)
     try {
+      const certificateName = formData.hasTeachingCertificate
+        ? formData.teachingCertificates.join(', ')
+        : undefined
       const payload = {
         role: 'TUTOR',
         email: formData.email,
@@ -280,7 +458,7 @@ export default function TutorRegistrationPage() {
           phoneNumber: formData.phoneNumber,
           educationLevel: formData.educationLevel,
           hasTeachingCertificate: formData.hasTeachingCertificate,
-          certificateName: formData.certificateName,
+          certificateName,
           certificateSubjects: formData.certificateSubjects,
           tutoringExperienceRange: formData.tutoringExperienceRange,
           globalExams: formData.globalExams,
@@ -322,10 +500,11 @@ export default function TutorRegistrationPage() {
   const steps = [
     { number: 1, title: 'Account' },
     { number: 2, title: 'Credentials' },
-    { number: 3, title: 'Tutoring' },
-    { number: 4, title: 'Profile' },
-    { number: 5, title: 'Review' },
-    { number: 6, title: 'Terms' },
+    { number: 3, title: 'Certifications' },
+    { number: 4, title: 'Tutoring' },
+    { number: 5, title: 'Profile' },
+    { number: 6, title: 'Review' },
+    { number: 7, title: 'Terms' },
   ]
 
   return (
@@ -360,18 +539,20 @@ export default function TutorRegistrationPage() {
             <CardTitle>
               {step === 1 && 'Become a Solocorn Tutor'}
               {step === 2 && 'Teaching Expertise – Credentials'}
-              {step === 3 && 'Tutoring'}
-              {step === 4 && 'Your Profile'}
-              {step === 5 && 'Review'}
-              {step === 6 && 'Terms and Agreements'}
+              {step === 3 && 'Teaching Expertise – Certifications'}
+              {step === 4 && 'Tutoring'}
+              {step === 5 && 'Your Profile'}
+              {step === 6 && 'Review'}
+              {step === 7 && 'Terms and Agreements'}
             </CardTitle>
             <CardDescription>
               {step === 1 && 'Tell us who you are'}
               {step === 2 && 'This information will not be made public'}
-              {step === 3 && 'Select the exams, subjects, and countries you tutor'}
-              {step === 4 && 'Set up your Solocorn presence'}
-              {step === 5 && 'Review your application before registering'}
-              {step === 6 && 'Accept the terms to finalize your application'}
+              {step === 3 && 'Select the teaching certificates you hold'}
+              {step === 4 && 'Select the exams, subjects, and countries you tutor'}
+              {step === 5 && 'Set up your Solocorn presence'}
+              {step === 6 && 'Review your application before registering'}
+              {step === 7 && 'Accept the terms to finalize your application'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -411,40 +592,52 @@ export default function TutorRegistrationPage() {
 
                 <div className="space-y-2">
                   <Label>Country of Residence</Label>
-                  <Select value={formData.countryOfResidence} onValueChange={(value) => setFormData({ ...formData, countryOfResidence: value })}>
+                  <Select
+                    value={formData.countryOfResidence}
+                    onValueChange={(value) => {
+                      const match = findCountryByName(value)
+                      setFormData((prev) => ({
+                        ...prev,
+                        countryOfResidence: value,
+                        phoneCountryCode: match?.dialCode ?? prev.phoneCountryCode,
+                      }))
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {COUNTRY_OPTIONS.map((country) => (
-                        <SelectItem key={country} value={country}>{country}</SelectItem>
+                      {ALL_COUNTRIES.map((country) => (
+                        <SelectItem key={country.code} value={country.name}>
+                          {country.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-[140px_1fr] gap-4 items-end">
                   <div className="space-y-2">
                     <Label>Area Code</Label>
-                    <Select value={formData.phoneCountryCode} onValueChange={(value) => setFormData({ ...formData, phoneCountryCode: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="+1" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {['+1', '+44', '+61', '+65', '+86', '+91', '+81', '+82'].map((code) => (
-                          <SelectItem key={code} value={code}>{code}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input value={formData.phoneCountryCode} readOnly />
                   </div>
-                  <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-2">
                     <Label>Phone Number</Label>
-                    <Input value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="(555) 123-4567" />
+                    <Input
+                      value={formData.phoneNumber}
+                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                      placeholder="(555) 123-4567"
+                    />
                   </div>
                 </div>
 
                 <div className="flex gap-3">
-                  <Button className="flex-1" onClick={() => validateStepOne() && setStep(2)}>
+                  <Button
+                    className="flex-1"
+                    onClick={async () => {
+                      if (await validateStepOne()) setStep(2)
+                    }}
+                  >
                     Next
                   </Button>
                 </div>
@@ -466,35 +659,6 @@ export default function TutorRegistrationPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Do you have a teaching certificate?</Label>
-                  <Select
-                    value={formData.hasTeachingCertificate ? 'yes' : 'no'}
-                    onValueChange={(value) => setFormData({ ...formData, hasTeachingCertificate: value === 'yes' })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.hasTeachingCertificate && (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Certification (e.g. PGCE)</Label>
-                      <Input value={formData.certificateName} onChange={(e) => setFormData({ ...formData, certificateName: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>What are you qualified to teach?</Label>
-                      <Input value={formData.certificateSubjects} onChange={(e) => setFormData({ ...formData, certificateSubjects: e.target.value })} />
-                    </div>
-                  </>
-                )}
 
                 <div className="space-y-2">
                   <Label>How long have you tutored?</Label>
@@ -522,6 +686,83 @@ export default function TutorRegistrationPage() {
             )}
 
             {step === 3 && (
+              <>
+                <div className="space-y-2">
+                  <Label>Do you have a teaching certificate?</Label>
+                  <Select
+                    value={formData.hasTeachingCertificate ? 'yes' : 'no'}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        hasTeachingCertificate: value === 'yes',
+                        teachingCertificates: value === 'yes' ? prev.teachingCertificates : [],
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes</SelectItem>
+                      <SelectItem value="no">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.hasTeachingCertificate && (
+                  <>
+                    <div className="space-y-3">
+                      <Label>Teaching Certificates (select all that apply)</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {CERTIFICATE_OPTIONS.map((certificate) => (
+                          <label key={certificate} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={formData.teachingCertificates.includes(certificate)}
+                              onCheckedChange={() => toggleCertificate(certificate)}
+                            />
+                            {certificate}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Add a new certificate</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={customCertificate}
+                          onChange={(e) => setCustomCertificate(e.target.value)}
+                          placeholder="e.g. TESL Diploma"
+                        />
+                        <Button type="button" variant="outline" onClick={addCustomCertificate}>
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>What are you qualified to teach?</Label>
+                      <Input
+                        value={formData.certificateSubjects}
+                        onChange={(e) => setFormData({ ...formData, certificateSubjects: e.target.value })}
+                        placeholder="e.g. GCSE Maths, IELTS, AP Physics"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="flex gap-3">
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
+                    Back
+                  </Button>
+                  <Button className="flex-1" onClick={() => validateStepThree() && setStep(4)}>
+                    Next
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {step === 4 && (
               <>
                 <div className="space-y-4">
                   <Label>Categories (aggregated for search)</Label>
@@ -579,13 +820,13 @@ export default function TutorRegistrationPage() {
                 <div className="space-y-3">
                   <Label>What countries do you want to offer your tutoring to?</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {COUNTRY_OPTIONS.map((country) => (
+                    {ALL_COUNTRIES.map((country) => (
                       <label key={country} className="flex items-center gap-2 text-sm">
                         <Checkbox
-                          checked={formData.tutoringCountries.includes(country)}
-                          onCheckedChange={() => toggleCountry(country)}
+                          checked={formData.tutoringCountries.includes(country.name)}
+                          onCheckedChange={() => toggleCountry(country.name)}
                         />
-                        {country}
+                        {country.name}
                       </label>
                     ))}
                   </div>
@@ -623,32 +864,34 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={() => validateStepThree() && setStep(4)}>
+                  <Button className="flex-1" onClick={() => validateStepFour() && setStep(5)}>
                     Next
                   </Button>
                 </div>
               </>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <>
                 <div className="space-y-2">
                   <Label>Solocorn Username</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={formData.username}
-                      onChange={(e) => {
-                        setFormData({ ...formData, username: e.target.value })
-                        setUsernameStatus({ status: 'idle' })
-                      }}
-                      placeholder="@MrKimTutoring"
-                    />
-                    <Button variant="outline" onClick={handleUsernameCheck}>
-                      Verify
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 border rounded-md px-3 py-2 bg-white w-full">
+                      <span className="text-gray-500">@</span>
+                      <Input
+                        className="border-0 p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0"
+                        value={formData.username}
+                        onChange={(e) => {
+                          setFormData({ ...formData, username: normalizeUsernameInput(e.target.value) })
+                          setUsernameTouched(true)
+                          setUsernameStatus({ status: 'idle' })
+                        }}
+                        placeholder="solocorn.tutor"
+                      />
+                    </div>
                   </div>
                   {usernameStatus.status === 'checking' && (
                     <p className="text-xs text-gray-500">Checking availability...</p>
@@ -724,17 +967,17 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={() => validateStepFour() && setStep(5)}>
-                    Submit
+                  <Button className="flex-1" onClick={() => validateStepFive() && setStep(6)}>
+                    Next
                   </Button>
                 </div>
               </>
             )}
 
-            {step === 5 && (
+            {step === 6 && (
               <>
                 <div className="space-y-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
@@ -781,17 +1024,17 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(5)}>
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={() => setStep(6)}>
+                  <Button className="flex-1" onClick={() => setStep(7)}>
                     Register
                   </Button>
                 </div>
               </>
             )}
 
-            {step === 6 && (
+            {step === 7 && (
               <>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
@@ -807,7 +1050,7 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(5)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(6)}>
                     Back
                   </Button>
                   <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={handleSubmit} disabled={isLoading || !formData.agreeToTerms}>

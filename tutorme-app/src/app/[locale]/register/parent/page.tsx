@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -31,6 +31,9 @@ export default function ParentRegistrationPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [emailStatus, setEmailStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid'; message?: string }>({
+    status: 'idle',
+  })
   
   // Form data
   const [formData, setFormData] = useState({
@@ -176,13 +179,148 @@ export default function ParentRegistrationPage() {
     }
   }
 
-  const validateStepOne = () => {
+  const checkEmailAvailability = async (value: string) => {
+    if (!value.trim()) {
+      setEmailStatus({ status: 'idle' })
+      return false
+    }
+    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+    if (!emailPattern.test(value)) {
+      setEmailStatus({ status: 'invalid', message: 'Enter a valid email address' })
+      return false
+    }
+    setEmailStatus({ status: 'checking' })
+    try {
+      const res = await fetch(`/api/public/email-availability?email=${encodeURIComponent(value)}`)
+      const data = await res.json()
+      if (data.available) {
+        setEmailStatus({ status: 'available', message: 'Email is available' })
+        return true
+      }
+      setEmailStatus({ status: 'taken', message: 'Email is already registered' })
+      return false
+    } catch {
+      setEmailStatus({ status: 'taken', message: 'Unable to verify right now' })
+      return false
+    }
+  }
+
+  useEffect(() => {
+    const email = formData.email.trim()
+    if (!email) {
+      setEmailStatus({ status: 'idle' })
+      return
+    }
+    const handle = setTimeout(() => {
+      void checkEmailAvailability(email)
+    }, 500)
+    return () => clearTimeout(handle)
+  }, [formData.email])
+
+  const validateStepOne = async () => {
+    if (!formData.firstName || !formData.lastName) {
+      toast.error('First and last name are required')
+      return false
+    }
+    if (!formData.email) {
+      toast.error('Email is required')
+      return false
+    }
+    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+    if (!emailPattern.test(formData.email)) {
+      toast.error('Enter a valid email address')
+      return false
+    }
+    if (emailStatus.status === 'invalid') {
+      toast.error('Enter a valid email address')
+      return false
+    }
+    if (emailStatus.status === 'taken') {
+      toast.error('Email already exists')
+      return false
+    }
+    if (emailStatus.status === 'idle') {
+      const ok = await checkEmailAvailability(formData.email)
+      if (!ok) {
+        toast.error('Email already exists')
+        return false
+      }
+    }
+    if (emailStatus.status === 'checking') {
+      const ok = await checkEmailAvailability(formData.email)
+      if (!ok) {
+        toast.error('Email already exists')
+        return false
+      }
+    }
+    if (!formData.password || !formData.confirmPassword) {
+      toast.error('Password and confirmation are required')
+      return false
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match')
+      return false
+    }
     if (!formData.phoneNumber?.trim()) {
       toast.error('Phone number is required')
       return false
     }
     if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) {
       toast.error('Valid phone number required')
+      return false
+    }
+    return true
+  }
+
+  const validateStepTwo = () => {
+    if (!formData.students.length) {
+      toast.error('Please add at least one student')
+      return false
+    }
+    for (const student of formData.students) {
+      const hasAny = Boolean(student.name || student.childEmail || student.childUniqueId || student.grade || student.subjects.length)
+      if (!hasAny) {
+        toast.error('Please complete the student details or remove the empty entry')
+        return false
+      }
+      if (!student.childEmail && !student.childUniqueId) {
+        toast.error('Provide a child email or unique ID for each student')
+        return false
+      }
+      if (student.childEmail) {
+        const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+        if (!emailPattern.test(student.childEmail)) {
+          toast.error('Enter a valid child email address')
+          return false
+        }
+      }
+      if (student.childUniqueId && student.childUniqueId.trim().length < 8) {
+        toast.error('Child unique ID must be at least 8 characters')
+        return false
+      }
+    }
+    return true
+  }
+
+  const validateStepThree = () => {
+    for (const contact of formData.emergencyContacts) {
+      const hasAny = Boolean(contact.name || contact.relationship || contact.phone)
+      if (!hasAny) continue
+      if (!contact.name || !contact.relationship || !contact.phone) {
+        toast.error('Complete all emergency contact fields or remove the entry')
+        return false
+      }
+      if (!/^\+?[\\d\\s\\-\\(\\)]{10,}$/.test(contact.phone)) {
+        toast.error('Enter a valid emergency contact phone number')
+        return false
+      }
+    }
+    return true
+  }
+
+  const validateStepFour = () => {
+    if (!formData.tosAccepted) {
+      toast.error('You must accept the Terms of Service')
       return false
     }
     return true
@@ -278,6 +416,15 @@ export default function ParentRegistrationPage() {
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="parent@example.com"
                   />
+                  {emailStatus.status === 'checking' && (
+                    <p className="text-xs text-gray-500">Checking availability...</p>
+                  )}
+                  {emailStatus.status === 'available' && (
+                    <p className="text-xs text-green-600">{emailStatus.message}</p>
+                  )}
+                  {emailStatus.status === 'taken' && (
+                    <p className="text-xs text-red-600">{emailStatus.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -582,8 +729,13 @@ export default function ParentRegistrationPage() {
               
               {step < 4 ? (
                 <Button
-                  onClick={() => {
-                    if (step === 1 && !validateStepOne()) return
+                  onClick={async () => {
+                    if (step === 1) {
+                      const ok = await validateStepOne()
+                      if (!ok) return
+                    }
+                    if (step === 2 && !validateStepTwo()) return
+                    if (step === 3 && !validateStepThree()) return
                     setStep(step + 1)
                   }}
                   disabled={isLoading}
@@ -592,7 +744,10 @@ export default function ParentRegistrationPage() {
                 </Button>
               ) : (
                 <Button
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    if (!validateStepFour()) return
+                    void handleSubmit()
+                  }}
                   disabled={isLoading}
                   className="bg-green-600 hover:bg-green-700"
                 >
