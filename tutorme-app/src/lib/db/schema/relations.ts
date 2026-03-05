@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm'
 import {
     user,
     profile,
+    tutorApplication,
     adminSession,
     adminAssignment,
     adminRole,
@@ -50,6 +51,10 @@ export const userRelations = relations(user, ({ one, many }) => ({
         fields: [user.id],
         references: [profile.userId],
     }),
+    tutorApplication: one(tutorApplication, {
+        fields: [user.id],
+        references: [tutorApplication.userId],
+    }),
     adminAssignments: many(adminAssignment),
     adminSessions: many(adminSession),
     curriculumEnrollments: many(curriculumEnrollment),
@@ -70,6 +75,13 @@ export const userRelations = relations(user, ({ one, many }) => ({
 export const profileRelations = relations(profile, ({ one }) => ({
     user: one(user, {
         fields: [profile.userId],
+        references: [user.id],
+    }),
+}))
+
+export const tutorApplicationRelations = relations(tutorApplication, ({ one }) => ({
+    user: one(user, {
+        fields: [tutorApplication.userId],
         references: [user.id],
     }),
 }))

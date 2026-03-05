@@ -65,6 +65,35 @@ export const profile = pgTable('Profile', {
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().$onUpdate(() => new Date())
 })
 
+export const tutorApplication = pgTable('TutorApplication', {
+  id: text('id').primaryKey().notNull(),
+  userId: text('userId').notNull().unique(),
+  firstName: text('firstName').notNull(),
+  middleName: text('middleName'),
+  lastName: text('lastName').notNull(),
+  legalName: text('legalName').notNull(),
+  countryOfResidence: text('countryOfResidence').notNull(),
+  phoneCountryCode: text('phoneCountryCode').notNull(),
+  phoneNumber: text('phoneNumber').notNull(),
+  educationLevel: text('educationLevel').notNull(),
+  hasTeachingCertificate: boolean('hasTeachingCertificate').notNull(),
+  certificateName: text('certificateName'),
+  certificateSubjects: text('certificateSubjects'),
+  tutoringExperienceRange: text('tutoringExperienceRange').notNull(),
+  globalExams: jsonb('globalExams').notNull(),
+  tutoringCountries: text('tutoringCountries').array().notNull(),
+  countrySubjectSelections: jsonb('countrySubjectSelections').notNull(),
+  categories: text('categories').array().notNull(),
+  username: text('username').notNull(),
+  socialLinks: jsonb('socialLinks'),
+  serviceDescription: text('serviceDescription').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => ({
+  TutorApplication_userId_idx: index('TutorApplication_userId_idx').on(table.userId),
+  TutorApplication_username_idx: index('TutorApplication_username_idx').on(table.username),
+}))
+
 export const curriculumCatalog = pgTable('CurriculumCatalog', {
   id: text('id').primaryKey().notNull(),
   subject: text('subject').notNull(),

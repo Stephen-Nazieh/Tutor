@@ -12,8 +12,7 @@ const roles = [
     description: 'I want to learn and improve my skills',
     icon: BookOpen,
     href: '/register/student',
-    color: 'bg-blue-600',
-    features: ['Access to AI Tutor', 'Join live classes', 'Track your progress', 'Earn achievements']
+    color: 'bg-blue-600'
   },
   {
     id: 'parent',
@@ -21,8 +20,7 @@ const roles = [
     description: 'I want to manage my child\'s education',
     icon: Users,
     href: '/register/parent',
-    color: 'bg-green-600',
-    features: ['Monitor progress', 'Manage payments', 'Book classes', 'Communicate with tutors']
+    color: 'bg-green-600'
   },
   {
     id: 'tutor',
@@ -30,8 +28,7 @@ const roles = [
     description: 'I want to teach and help students learn',
     icon: GraduationCap,
     href: '/register/tutor',
-    color: 'bg-purple-600',
-    features: ['Create courses', 'Host live classes', 'Track student progress', 'Earn income']
+    color: 'bg-purple-600'
   },
   {
     id: 'admin',
@@ -39,8 +36,7 @@ const roles = [
     description: 'I want to manage the platform',
     icon: Shield,
     href: '/register/admin',
-    color: 'bg-orange-600',
-    features: ['Manage users', 'Platform analytics', 'System settings', 'Content moderation']
+    color: 'bg-orange-600'
   }
 ]
 
@@ -75,17 +71,6 @@ export default function RoleSelectionPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">What you can do:</p>
-                    <ul className="space-y-2">
-                      {role.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
-                          <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                   <Button className="w-full mt-6" variant={role.id === 'parent' ? 'default' : 'outline'}>
                     Register as {role.title}
                   </Button>

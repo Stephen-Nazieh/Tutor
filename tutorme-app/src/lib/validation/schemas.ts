@@ -9,6 +9,7 @@ import { ValidationError } from '@/lib/api/middleware'
 import {
   parentAdditionalDataSchema,
   tutorAdditionalDataSchema,
+  tutorProfileDataSchema,
 } from '@/lib/validation/user-registration'
 
 // ============================================
@@ -35,6 +36,31 @@ const baseRegisterSchema = z.object({
 export const RegisterUserSchema = baseRegisterSchema.superRefine((data, ctx) => {
   // Validate tutor-specific fields for TUTOR role
   if (data.role === 'TUTOR') {
+    if (data.tosAccepted !== true) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'You must accept the Terms and Agreements',
+        path: ['tosAccepted'],
+      })
+    }
+    if (!data.profileData) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'profileData is required for tutor registration',
+        path: ['profileData'],
+      })
+    } else {
+      const result = tutorProfileDataSchema.safeParse(data.profileData)
+      if (!result.success) {
+        result.error.issues.forEach((issue) => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: issue.message,
+            path: issue.path,
+          })
+        })
+      }
+    }
     if (!data.additionalData) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

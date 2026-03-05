@@ -10,19 +10,58 @@ import { studentLinkingSchema } from './parent-child-security'
 // Tutor Registration Schemas
 // ============================================
 
+const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/
+
 export const tutorAdditionalDataSchema = z.object({
-  education: z.string().max(500, 'Education must be less than 500 characters').optional(),
-  experience: z.string().max(50, 'Experience must be less than 50 characters').optional(),
-  subjects: z.array(z.string()).min(1, 'Please select at least one subject'),
-  gradeLevels: z.array(z.string()).optional(),
+  firstName: z.string().min(1, 'First name is required').max(50),
+  middleName: z.string().max(50).optional(),
+  lastName: z.string().min(1, 'Last name is required').max(50),
+  legalName: z.string().min(2, 'Legal name is required').max(120),
+  countryOfResidence: z.string().min(2, 'Country of residence is required').max(100),
+  phoneCountryCode: z.string().min(1, 'Phone country code is required').max(10),
+  phoneNumber: z.string().regex(phoneRegex, 'Valid phone number required'),
+  educationLevel: z.enum(['High School Diploma', 'Bachelor', 'Masters', 'PhD']),
+  hasTeachingCertificate: z.boolean(),
+  certificateName: z.string().max(200).optional(),
+  certificateSubjects: z.string().max(500).optional(),
+  tutoringExperienceRange: z.enum(['0-2', '3-5', '6-10', '10+']),
+  globalExams: z.object({
+    standardizedEnglish: z.array(z.string()).optional().default([]),
+    undergradAdmissions: z.array(z.string()).optional().default([]),
+    apAdvancedPlacement: z.array(z.string()).optional().default([]),
+    internationalAS: z.array(z.string()).optional().default([]),
+  }).optional().default({
+    standardizedEnglish: [],
+    undergradAdmissions: [],
+    apAdvancedPlacement: [],
+    internationalAS: [],
+  }),
+  tutoringCountries: z.array(z.string()).optional().default([]),
+  countrySubjectSelections: z.record(z.string(), z.array(z.string())).optional().default({}),
+  categories: z.array(z.string()).min(1, 'Select at least one tutoring category'),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(30),
+  socialLinks: z.object({
+    instagram: z.string().max(100).optional(),
+    tiktok: z.string().max(100).optional(),
+    youtube: z.string().max(100).optional(),
+    facebook: z.string().max(100).optional(),
+  }).optional(),
+  serviceDescription: z.string().min(10, 'Describe your service').max(500),
   hourlyRate: z.number().min(0).max(10000).optional(),
+}).superRefine((data, ctx) => {
+  if (data.hasTeachingCertificate && !data.certificateName) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Teaching certificate is required when you select Yes',
+      path: ['certificateName'],
+    })
+  }
 })
 
 export const tutorProfileDataSchema = z.object({
-  phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, 'Valid phone number required').optional(),
-  bio: z.string().max(2000, 'Bio must be less than 2000 characters').optional(),
   timezone: z.string().default('Asia/Shanghai'),
-  preferredLanguage: z.enum(['zh-CN', 'en']).default('zh-CN'),
+  preferredLanguage: z.enum(['en', 'zh-CN', 'es', 'fr', 'de', 'ja', 'ko', 'pt', 'ru', 'ar']).default('en'),
+  bio: z.string().max(2000, 'Bio must be less than 2000 characters').optional(),
 })
 
 // Legacy student schema (for backward compatibility in non-parent flows)
