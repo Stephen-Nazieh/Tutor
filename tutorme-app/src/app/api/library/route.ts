@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { libraryTask } from '@/lib/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -23,12 +22,7 @@ function mapTask(task: typeof libraryTask.$inferSelect) {
   }
 }
 
-export async function GET() {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ tasks: [] }, { status: 200 })
-  }
-
+export const GET = withAuth(async (_req, session) => {
   try {
     const tasks = await drizzleDb
       .select()
@@ -41,14 +35,9 @@ export async function GET() {
     console.error('Error fetching library tasks:', error)
     return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
   }
-}
+})
 
-export async function POST(request: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const POST = withCsrf(withAuth(async (request, session) => {
   let data: any
   try {
     data = await request.json()
@@ -87,4 +76,4 @@ export async function POST(request: Request) {
     console.error('Error saving task:', error)
     return NextResponse.json({ error: 'Failed to save task' }, { status: 500 })
   }
-}
+}))

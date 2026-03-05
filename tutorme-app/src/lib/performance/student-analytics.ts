@@ -595,6 +595,7 @@ export async function getClassPerformanceSummary(
   totalStudents: number
   averageScore: number
   clusterDistribution: Record<PerformanceCluster, number>
+  scoreDistribution: { range: string; count: number }[]
   topStudents: { id: string; name: string; score: number }[]
   studentsNeedingAttention: { id: string; name: string; reason: string }[]
 }> {
@@ -628,13 +629,26 @@ export async function getClassPerformanceSummary(
     intermediate: 0,
     struggling: 0
   }
+  const scoreDistribution = [
+    { range: '0-59', count: 0 },
+    { range: '60-69', count: 0 },
+    { range: '70-79', count: 0 },
+    { range: '80-89', count: 0 },
+    { range: '90-100', count: 0 },
+  ]
 
   let totalScore = 0
   const studentsNeedingAttention: { id: string; name: string; reason: string }[] = []
 
   for (const sp of studentPerformances) {
     clusterDistribution[sp.performance.performanceCluster]++
-    totalScore += sp.performance.overallMetrics.averageScore
+    const score = sp.performance.overallMetrics.averageScore
+    totalScore += score
+    if (score < 60) scoreDistribution[0].count += 1
+    else if (score < 70) scoreDistribution[1].count += 1
+    else if (score < 80) scoreDistribution[2].count += 1
+    else if (score < 90) scoreDistribution[3].count += 1
+    else scoreDistribution[4].count += 1
 
     if (sp.performance.performanceCluster === 'struggling') {
       studentsNeedingAttention.push({
@@ -659,6 +673,7 @@ export async function getClassPerformanceSummary(
     totalStudents: enrollments.length,
     averageScore: enrollments.length > 0 ? totalScore / enrollments.length : 0,
     clusterDistribution,
+    scoreDistribution,
     topStudents: sortedStudents,
     studentsNeedingAttention
   }

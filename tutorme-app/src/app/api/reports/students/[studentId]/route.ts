@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { getStudentPerformance, getQuestionLevelBreakdown } from '@/lib/performance/student-analytics'
+import { tutorHasStudent } from '@/lib/security/tutor-student-access'
 
 
 export const GET = withAuth(async (req, session, context) => {
@@ -25,6 +26,12 @@ export const GET = withAuth(async (req, session, context) => {
 
   if (!isOwnRecord && !isTutor && !isAdmin) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  if (isTutor) {
+    const hasRelation = await tutorHasStudent(session.user.id, studentId)
+    if (!hasRelation) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
   }
 
   const performance = await getStudentPerformance(studentId, curriculumId)

@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { whiteboard, whiteboardPage, profile } from '@/lib/db/schema'
+import { whiteboard, whiteboardPage, profile, liveSession, sessionParticipant } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
@@ -18,6 +18,29 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   if (!sessionId || !studentId) return NextResponse.json({ error: 'Session and student ID required' }, { status: 400 })
   const userId = session.user.id
   const userRole = session.user.role
+
+  const [sessionRow] = await drizzleDb
+    .select({ tutorId: liveSession.tutorId })
+    .from(liveSession)
+    .where(eq(liveSession.id, sessionId))
+    .limit(1)
+  if (!sessionRow) {
+    return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  }
+
+  if (userRole === 'TUTOR' && sessionRow.tutorId !== userId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  if (userRole === 'STUDENT') {
+    const [participant] = await drizzleDb
+      .select({ id: sessionParticipant.id })
+      .from(sessionParticipant)
+      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .limit(1)
+    if (!participant) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
 
   const [whiteboardRow] = await drizzleDb
     .select()

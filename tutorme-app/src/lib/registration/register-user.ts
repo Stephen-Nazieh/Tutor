@@ -208,7 +208,7 @@ export async function performRegistration(
 
     if (role === 'TUTOR') {
       const tutorData = tutorAdditionalDataSchema.parse(data.additionalData)
-      const credentialParts = [tutorData.educationLevel]
+      const credentialParts: string[] = [tutorData.educationLevel]
       if (tutorData.hasTeachingCertificate && tutorData.certificateName) {
         credentialParts.push(`Certificate: ${tutorData.certificateName}`)
       }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { libraryTask } from '@/lib/db/schema'
 import { and, eq } from 'drizzle-orm'
@@ -23,12 +23,7 @@ function mapTask(task: typeof libraryTask.$inferSelect) {
   }
 }
 
-export async function PATCH(request: Request, context: { params: Promise<{ taskId: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const PATCH = withCsrf(withAuth(async (request, session, context) => {
   let data: any
   try {
     data = await request.json()
@@ -36,7 +31,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ taskI
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const { taskId } = await context.params
+  const taskId = await getParamAsync(context?.params, 'taskId')
   if (!taskId) {
     return NextResponse.json({ error: 'Missing taskId' }, { status: 400 })
   }
@@ -78,15 +73,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ taskI
     console.error('Error updating task:', error)
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
   }
-}
+}))
 
-export async function DELETE(_: Request, context: { params: Promise<{ taskId: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { taskId } = await context.params
+export const DELETE = withCsrf(withAuth(async (_req, session, context) => {
+  const taskId = await getParamAsync(context?.params, 'taskId')
   if (!taskId) {
     return NextResponse.json({ error: 'Missing taskId' }, { status: 400 })
   }
@@ -101,4 +91,4 @@ export async function DELETE(_: Request, context: { params: Promise<{ taskId: st
     console.error('Error deleting task:', error)
     return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
   }
-}
+}))

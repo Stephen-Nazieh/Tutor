@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { getStudentPerformance } from '@/lib/performance/student-analytics'
+import { tutorHasStudent } from '@/lib/security/tutor-student-access'
 
 
 export const GET = withAuth(async (req, session, context) => {
@@ -17,17 +18,19 @@ export const GET = withAuth(async (req, session, context) => {
   const { searchParams } = new URL(req.url)
   const curriculumId = searchParams.get('curriculumId') || undefined
 
-  // Check permissions - only the student themselves, their tutor, or admin can view
-  const isOwnRecord = session.user.id === studentId
+  const isOwnRecord = session.user.role === 'STUDENT' && session.user.id === studentId
   const isAdmin = session.user.role === 'ADMIN'
+  const isTutor = session.user.role === 'TUTOR'
 
-  if (!isOwnRecord && !isAdmin) {
-    // If not own record and not admin, still allow (tutor role is already checked by middleware)
-    // If tutor, verify they have a relationship with this student
-    // Note: This check is simplified as Curriculum doesn't have tutorId
-    // In production, add proper tutor-curriculum relationship
-    // For now, allow all tutors to view student analytics
-    // TODO: Add proper relationship check when Curriculum model has tutorId
+  if (!isOwnRecord && !isAdmin && !isTutor) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  if (isTutor) {
+    const hasRelation = await tutorHasStudent(session.user.id, studentId)
+    if (!hasRelation) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
   }
 
   const performance = await getStudentPerformance(studentId, curriculumId)
@@ -36,4 +39,4 @@ export const GET = withAuth(async (req, session, context) => {
     success: true,
     data: performance
   })
-}, { role: 'TUTOR' })
+})

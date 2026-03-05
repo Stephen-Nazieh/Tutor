@@ -14,6 +14,7 @@ import {
   whiteboard,
   whiteboardPage,
   liveSession,
+  sessionParticipant,
 } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 import { z } from 'zod'
@@ -39,6 +40,32 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const sessionId = await getParamAsync(context?.params, 'sessionId')
   if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
   const userId = session.user.id
+  const userRole = session.user.role
+
+  const [liveSessionRow] = await drizzleDb
+    .select()
+    .from(liveSession)
+    .where(eq(liveSession.id, sessionId))
+    .limit(1)
+  if (!liveSessionRow) {
+    return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  }
+
+  const isAdmin = userRole === 'ADMIN'
+  const isTutor = userRole === 'TUTOR' && liveSessionRow.tutorId === userId
+  let isStudent = false
+  if (userRole === 'STUDENT') {
+    const [participant] = await drizzleDb
+      .select({ id: sessionParticipant.id })
+      .from(sessionParticipant)
+      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .limit(1)
+    isStudent = !!participant
+  }
+
+  if (!isAdmin && !isTutor && !isStudent) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const [whiteboardRow] = await drizzleDb
     .select()
@@ -81,6 +108,21 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
 
   if (!liveSessionRow) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  }
+  const isAdmin = userRole === 'ADMIN'
+  const isTutor = userRole === 'TUTOR' && liveSessionRow.tutorId === userId
+  let isStudent = false
+  if (userRole === 'STUDENT') {
+    const [participant] = await drizzleDb
+      .select({ id: sessionParticipant.id })
+      .from(sessionParticipant)
+      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .limit(1)
+    isStudent = !!participant
+  }
+
+  if (!isAdmin && !isTutor && !isStudent) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const [existingWhiteboard] = await drizzleDb
@@ -130,7 +172,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     description: body.description ?? null,
     backgroundColor,
     backgroundStyle,
-    visibility: userRole === 'TUTOR' ? 'public' : 'private',
+    visibility: userRole === 'TUTOR' ? 'public' : 'tutor-only',
     isBroadcasting: false,
     ownerType: userRole === 'TUTOR' ? 'tutor' : 'student',
     isTemplate: false,
@@ -174,6 +216,32 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   const sessionId = await getParamAsync(context?.params, 'sessionId')
   if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
   const userId = session.user.id
+  const userRole = session.user.role
+
+  const [liveSessionRow] = await drizzleDb
+    .select()
+    .from(liveSession)
+    .where(eq(liveSession.id, sessionId))
+    .limit(1)
+  if (!liveSessionRow) {
+    return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  }
+
+  const isAdmin = userRole === 'ADMIN'
+  const isTutor = userRole === 'TUTOR' && liveSessionRow.tutorId === userId
+  let isStudent = false
+  if (userRole === 'STUDENT') {
+    const [participant] = await drizzleDb
+      .select({ id: sessionParticipant.id })
+      .from(sessionParticipant)
+      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .limit(1)
+    isStudent = !!participant
+  }
+
+  if (!isAdmin && !isTutor && !isStudent) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const { response: rateLimitResponse } = await withRateLimit(req, 30)
   if (rateLimitResponse) return rateLimitResponse

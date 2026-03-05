@@ -9,14 +9,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { whiteboard, whiteboardPage, profile } from '@/lib/db/schema'
+import { whiteboard, whiteboardPage, profile, liveSession } from '@/lib/db/schema'
 import { eq, and, inArray, asc, desc } from 'drizzle-orm'
 
 export const GET = withAuth(async (req: NextRequest, session, context) => {
   const sessionId = await getParamAsync(context?.params, 'sessionId')
   if (!sessionId) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
 
-  if (session.user.role !== 'TUTOR') {
+  if (session.user.role !== 'TUTOR' && session.user.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const [sessionRow] = await drizzleDb
+    .select({ tutorId: liveSession.tutorId })
+    .from(liveSession)
+    .where(eq(liveSession.id, sessionId))
+    .limit(1)
+  if (!sessionRow) {
+    return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  }
+  if (session.user.role === 'TUTOR' && sessionRow.tutorId !== session.user.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
