@@ -82,6 +82,7 @@ interface Page {
   strokes: Stroke[]
   backgroundColor: string
   backgroundStyle: string
+  version: number
 }
 
 const COLORS = [
@@ -351,17 +352,38 @@ export default function WhiteboardEditorPage() {
     setSaving(true)
 
     try {
+      const ifMatch = currentPage.version ? `W/\"v${currentPage.version}\"` : undefined
       const res = await fetch(`/api/whiteboards/${whiteboardId}/pages/${currentPage.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(ifMatch ? { 'If-Match': ifMatch } : {}),
+        },
         credentials: 'include',
         body: JSON.stringify({
           strokes: currentPage.strokes,
           viewState: { scale, panX: pan.x, panY: pan.y },
+          version: currentPage.version,
         }),
       })
 
+      if (res.status === 412) {
+        toast.error('This page was updated elsewhere. Reloading latest version.')
+        await fetchWhiteboard()
+        return
+      }
+
       if (!res.ok) throw new Error('Failed to save')
+
+      const data = await res.json()
+      if (data?.page) {
+        const updatedPages = [...pages]
+        updatedPages[currentPageIndex] = {
+          ...updatedPages[currentPageIndex],
+          ...data.page,
+        }
+        setPages(updatedPages)
+      }
     } catch (error) {
       console.error('Save error:', error)
     } finally {

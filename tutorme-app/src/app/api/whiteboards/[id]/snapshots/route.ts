@@ -33,7 +33,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       .where(
         and(
           eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.tutorId, userId),
+          eq(whiteboard.ownerId, userId),
           isNull(whiteboard.deletedAt)
         )
       )
@@ -89,7 +89,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       .where(
         and(
           eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.tutorId, userId),
+          eq(whiteboard.ownerId, userId),
           isNull(whiteboard.deletedAt)
         )
       )

@@ -44,7 +44,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     )
     .orderBy(desc(whiteboard.updatedAt))
 
-  const studentIds = whiteboards.map((wb) => wb.tutorId)
+  const studentIds = whiteboards.map((wb) => wb.ownerId)
   if (studentIds.length === 0) {
     return NextResponse.json({ whiteboards: [] })
   }
@@ -68,8 +68,8 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
         .limit(1)
       return {
         id: wb.id,
-        studentId: wb.tutorId,
-        studentName: studentMap.get(wb.tutorId) ?? 'Unknown',
+        studentId: wb.ownerId,
+        studentName: studentMap.get(wb.ownerId) ?? 'Unknown',
         visibility: wb.visibility,
         title: wb.title,
         pages,

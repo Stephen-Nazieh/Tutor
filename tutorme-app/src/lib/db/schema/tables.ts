@@ -1642,6 +1642,7 @@ export const calendarException = pgTable('CalendarException', {
 export const whiteboard = pgTable('Whiteboard', {
   id: text('id').primaryKey().notNull(),
   tutorId: text('tutorId').notNull(),
+  ownerId: text('ownerId').notNull(),
   sessionId: text('sessionId'),
   roomId: text('roomId'),
   curriculumId: text('curriculumId'),
@@ -1664,6 +1665,7 @@ export const whiteboard = pgTable('Whiteboard', {
   deletedAt: timestamp('deletedAt', { withTimezone: true })
 }, (table) => ({
   Whiteboard_tutorId_idx: index('Whiteboard_tutorId_idx').on(table.tutorId),
+  Whiteboard_ownerId_idx: index('Whiteboard_ownerId_idx').on(table.ownerId),
   Whiteboard_sessionId_idx: index('Whiteboard_sessionId_idx').on(table.sessionId),
   Whiteboard_roomId_idx: index('Whiteboard_roomId_idx').on(table.roomId),
   Whiteboard_curriculumId_idx: index('Whiteboard_curriculumId_idx').on(table.curriculumId),
@@ -1673,7 +1675,8 @@ export const whiteboard = pgTable('Whiteboard', {
   Whiteboard_visibility_idx: index('Whiteboard_visibility_idx').on(table.visibility),
   Whiteboard_isBroadcasting_idx: index('Whiteboard_isBroadcasting_idx').on(table.isBroadcasting),
   Whiteboard_sessionId_visibility_idx: index('Whiteboard_sessionId_visibility_idx').on(table.sessionId, table.visibility),
-  Whiteboard_sessionId_ownerType_idx: index('Whiteboard_sessionId_ownerType_idx').on(table.sessionId, table.ownerType)
+  Whiteboard_sessionId_ownerType_idx: index('Whiteboard_sessionId_ownerType_idx').on(table.sessionId, table.ownerType),
+  Whiteboard_sessionId_ownerId_idx: index('Whiteboard_sessionId_ownerId_idx').on(table.sessionId, table.ownerId)
 }))
 
 export const whiteboardPage = pgTable('WhiteboardPage', {
@@ -1681,6 +1684,7 @@ export const whiteboardPage = pgTable('WhiteboardPage', {
   whiteboardId: text('whiteboardId').notNull(),
   name: text('name').notNull(),
   order: integer('order').notNull(),
+  version: integer('version').notNull().default(1),
   backgroundColor: text('backgroundColor'),
   backgroundStyle: text('backgroundStyle'),
   backgroundImage: text('backgroundImage'),

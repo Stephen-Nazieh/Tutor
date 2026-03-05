@@ -10,7 +10,7 @@ import { withAuth, withRateLimit } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const MAX_ITEMS_PER_LAYER = 5000
@@ -22,7 +22,21 @@ const SaveWhiteboardSchema = z.object({
   shapes: z.array(z.unknown()).max(MAX_ITEMS_PER_LAYER).optional(),
   texts: z.array(z.unknown()).max(MAX_ITEMS_PER_LAYER).optional(),
   viewState: z.record(z.string(), z.unknown()).optional(),
+  version: z.number().int().positive().optional(),
 })
+
+function getExpectedVersion(req: NextRequest, fallback?: number) {
+  const ifMatch = req.headers.get('if-match')
+  if (ifMatch) {
+    const match = ifMatch.match(/v(\d+)/i) ?? ifMatch.match(/(\d+)/)
+    if (match?.[1]) return Number(match[1])
+  }
+  return fallback
+}
+
+function makeEtag(version: number) {
+  return `W/"v${version}"`
+}
 
 export const POST = withAuth(async (req: NextRequest, session, context) => {
   const sessionId = await getParamAsync(context?.params, 'sessionId')
@@ -40,7 +54,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       { status: 400 }
     )
   }
-  const { pageId, strokes, shapes, texts, viewState } = parsed.data
+  const { pageId, strokes, shapes, texts, viewState, version } = parsed.data
 
   const payloadSize = Buffer.byteLength(JSON.stringify(parsed.data), 'utf8')
   if (payloadSize > MAX_PAYLOAD_BYTES) {
@@ -67,7 +81,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       and(
         eq(whiteboard.id, page.whiteboardId),
         eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.tutorId, userId)
+        eq(whiteboard.ownerId, userId)
       )
     )
     .limit(1)
@@ -76,30 +90,71 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ error: 'Page not found' }, { status: 404 })
   }
 
+  const expectedVersion = getExpectedVersion(req, version)
+  if (!expectedVersion) {
+    return NextResponse.json(
+      { error: 'Missing If-Match version' },
+      { status: 428 }
+    )
+  }
+  if (page.version !== expectedVersion) {
+    return NextResponse.json(
+      { error: 'Whiteboard page has changed', currentVersion: page.version },
+      {
+        status: 412,
+        headers: { ETag: makeEtag(page.version) },
+      }
+    )
+  }
+
   const updateData: Record<string, unknown> = {}
   if (strokes !== undefined) updateData.strokes = strokes
   if (shapes !== undefined) updateData.shapes = shapes
   if (texts !== undefined) updateData.texts = texts
   if (viewState !== undefined) updateData.viewState = viewState
 
-  await drizzleDb
+  const updatedRows = await drizzleDb
     .update(whiteboardPage)
-    .set(updateData)
-    .where(eq(whiteboardPage.id, pageId))
+    .set({
+      ...updateData,
+      version: sql<number>`${whiteboardPage.version} + 1`,
+    })
+    .where(
+      and(
+        eq(whiteboardPage.id, pageId),
+        eq(whiteboardPage.version, expectedVersion)
+      )
+    )
+    .returning()
+
+  if (updatedRows.length === 0) {
+    const [latest] = await drizzleDb
+      .select({ version: whiteboardPage.version })
+      .from(whiteboardPage)
+      .where(eq(whiteboardPage.id, pageId))
+      .limit(1)
+    const latestVersion = latest?.version ?? expectedVersion
+    return NextResponse.json(
+      { error: 'Whiteboard page has changed', currentVersion: latestVersion },
+      {
+        status: 412,
+        headers: { ETag: makeEtag(latestVersion) },
+      }
+    )
+  }
 
   await drizzleDb
     .update(whiteboard)
     .set({ updatedAt: new Date() })
     .where(eq(whiteboard.id, wb.id))
 
-  const [updatedPage] = await drizzleDb
-    .select()
-    .from(whiteboardPage)
-    .where(eq(whiteboardPage.id, pageId))
-    .limit(1)
+  const updatedPage = updatedRows[0]
 
-  return NextResponse.json({
-    success: true,
-    page: updatedPage!,
-  })
+  return NextResponse.json(
+    {
+      success: true,
+      page: updatedPage!,
+    },
+    { headers: { ETag: makeEtag(updatedPage!.version) } }
+  )
 })

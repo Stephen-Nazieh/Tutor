@@ -6,7 +6,9 @@ const mocks = vi.hoisted(() => ({
     user: { id: 'tutor-1', role: 'TUTOR', name: 'Tutor One' },
   },
   selectResults: [] as unknown[][],
-  updateWhere: vi.fn().mockResolvedValue(undefined),
+  updateWhere: vi.fn().mockReturnValue({
+    returning: vi.fn().mockResolvedValue([]),
+  }),
   deleteWhere: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -58,12 +60,12 @@ describe('/api/whiteboards/[id]/pages/[pageId] ownership guards', () => {
 
   it('PUT returns 404 when page does not belong to the whiteboard', async () => {
     mocks.selectResults = [
-      [{ id: 'wb-1', tutorId: 'tutor-1' }],
+      [{ id: 'wb-1', ownerId: 'tutor-1' }],
       [],
     ]
     const req = new Request('http://localhost/api/whiteboards/wb-1/pages/page-x', {
       method: 'PUT',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'if-match': 'W/"v1"' },
       body: JSON.stringify({ name: 'Updated Page' }),
     })
 
@@ -78,7 +80,7 @@ describe('/api/whiteboards/[id]/pages/[pageId] ownership guards', () => {
 
   it('DELETE returns 404 when page does not belong to the whiteboard', async () => {
     mocks.selectResults = [
-      [{ id: 'wb-1', tutorId: 'tutor-1' }],
+      [{ id: 'wb-1', ownerId: 'tutor-1' }],
       [],
     ]
     const req = new Request('http://localhost/api/whiteboards/wb-1/pages/page-x', {

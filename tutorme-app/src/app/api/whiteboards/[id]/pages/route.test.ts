@@ -50,7 +50,7 @@ describe('PUT /api/whiteboards/[id]/pages reorder guards', () => {
 
   it('returns 400 when a page id is outside the target whiteboard', async () => {
     mocks.selectResults = [
-      [{ id: 'wb-1', tutorId: 'tutor-1' }],
+      [{ id: 'wb-1', ownerId: 'tutor-1' }],
       [{ id: 'page-1' }],
     ]
     const req = new Request('http://localhost/api/whiteboards/wb-1/pages', {

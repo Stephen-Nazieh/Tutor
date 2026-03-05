@@ -10,7 +10,7 @@ import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
-import { eq, and, isNull, asc } from 'drizzle-orm'
+import { eq, and, isNull, asc, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const UpdatePageSchema = z.object({
@@ -19,6 +19,7 @@ const UpdatePageSchema = z.object({
   shapes: z.array(z.any()).optional(),
   texts: z.array(z.any()).optional(),
   images: z.array(z.any()).optional(),
+  version: z.number().int().positive().optional(),
   viewState: z
     .object({
       scale: z.number().optional(),
@@ -30,6 +31,19 @@ const UpdatePageSchema = z.object({
   backgroundStyle: z.enum(['solid', 'grid', 'dots', 'lines']).optional(),
   backgroundImage: z.string().optional(),
 })
+
+function getExpectedVersion(req: NextRequest, fallback?: number) {
+  const ifMatch = req.headers.get('if-match')
+  if (ifMatch) {
+    const match = ifMatch.match(/v(\d+)/i) ?? ifMatch.match(/(\d+)/)
+    if (match?.[1]) return Number(match[1])
+  }
+  return fallback
+}
+
+function makeEtag(version: number) {
+  return `W/"v${version}"`
+}
 
 // GET - Get page content
 export const GET = withAuth(async (req: NextRequest, session, context) => {
@@ -47,7 +61,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       .where(
         and(
           eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.tutorId, userId),
+          eq(whiteboard.ownerId, userId),
           isNull(whiteboard.deletedAt)
         )
       )
@@ -78,7 +92,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
-    return NextResponse.json({ page })
+    return NextResponse.json(
+      { page },
+      { headers: { ETag: makeEtag(page.version) } }
+    )
   } catch (error) {
     console.error('Fetch page error:', error)
     return NextResponse.json(
@@ -116,7 +133,7 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
       .where(
         and(
           eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.tutorId, userId),
+          eq(whiteboard.ownerId, userId),
           isNull(whiteboard.deletedAt)
         )
       )
@@ -129,8 +146,16 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
       )
     }
 
-    const [existingPage] = await drizzleDb
-      .select({ id: whiteboardPage.id })
+    const expectedVersion = getExpectedVersion(req, data.version)
+    if (!expectedVersion) {
+      return NextResponse.json(
+        { error: 'Missing If-Match version' },
+        { status: 428 }
+      )
+    }
+
+    const [pageRow] = await drizzleDb
+      .select({ version: whiteboardPage.version })
       .from(whiteboardPage)
       .where(
         and(
@@ -139,10 +164,19 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
         )
       )
       .limit(1)
-    if (!existingPage) {
+    if (!pageRow) {
       return NextResponse.json(
         { error: 'Page not found' },
         { status: 404 }
+      )
+    }
+    if (pageRow.version !== expectedVersion) {
+      return NextResponse.json(
+        { error: 'Whiteboard page has changed', currentVersion: pageRow.version },
+        {
+          status: 412,
+          headers: { ETag: makeEtag(pageRow.version) },
+        }
       )
     }
 
@@ -160,33 +194,52 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     if (data.backgroundImage !== undefined)
       updateData.backgroundImage = data.backgroundImage
 
-    await drizzleDb
+    const updatedRows = await drizzleDb
       .update(whiteboardPage)
-      .set(updateData)
+      .set({
+        ...updateData,
+        version: sql<number>`${whiteboardPage.version} + 1`,
+      })
       .where(
         and(
           eq(whiteboardPage.id, pageId),
-          eq(whiteboardPage.whiteboardId, whiteboardId)
+          eq(whiteboardPage.whiteboardId, whiteboardId),
+          eq(whiteboardPage.version, expectedVersion)
         )
       )
+      .returning()
 
     await drizzleDb
       .update(whiteboard)
       .set({ updatedAt: new Date() })
       .where(eq(whiteboard.id, whiteboardId))
 
-    const [page] = await drizzleDb
-      .select()
-      .from(whiteboardPage)
-      .where(
-        and(
-          eq(whiteboardPage.id, pageId),
-          eq(whiteboardPage.whiteboardId, whiteboardId)
+    if (updatedRows.length === 0) {
+      const [latest] = await drizzleDb
+        .select({ version: whiteboardPage.version })
+        .from(whiteboardPage)
+        .where(
+          and(
+            eq(whiteboardPage.id, pageId),
+            eq(whiteboardPage.whiteboardId, whiteboardId)
+          )
         )
+        .limit(1)
+      const latestVersion = latest?.version ?? expectedVersion
+      return NextResponse.json(
+        { error: 'Whiteboard page has changed', currentVersion: latestVersion },
+        {
+          status: 412,
+          headers: { ETag: makeEtag(latestVersion) },
+        }
       )
-      .limit(1)
+    }
 
-    return NextResponse.json({ page: page! })
+    const page = updatedRows[0]
+    return NextResponse.json(
+      { page: page! },
+      { headers: { ETag: makeEtag(page!.version) } }
+    )
   } catch (error) {
     console.error('Update page error:', error)
     return NextResponse.json(
@@ -212,7 +265,7 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
       .where(
         and(
           eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.tutorId, userId),
+          eq(whiteboard.ownerId, userId),
           isNull(whiteboard.deletedAt)
         )
       )

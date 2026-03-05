@@ -48,7 +48,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .where(
       and(
         eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.tutorId, studentId),
+        eq(whiteboard.ownerId, studentId),
         eq(whiteboard.ownerType, 'student')
       )
     )

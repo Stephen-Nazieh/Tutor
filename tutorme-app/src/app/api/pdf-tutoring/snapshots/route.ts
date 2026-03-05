@@ -29,7 +29,7 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
     .from(whiteboard)
     .where(
       and(
-        eq(whiteboard.tutorId, userId),
+        eq(whiteboard.ownerId, userId),
         eq(whiteboard.roomId, roomId),
         eq(whiteboard.title, title),
         isNull(whiteboard.deletedAt)
@@ -63,6 +63,7 @@ async function ensurePdfWhiteboard(userId: string, roomId: string) {
   await drizzleDb.insert(whiteboard).values({
     id: whiteboardId,
     tutorId: userId,
+    ownerId: userId,
     roomId,
     title,
     description: 'Persisted PDF tutoring collaboration snapshots',

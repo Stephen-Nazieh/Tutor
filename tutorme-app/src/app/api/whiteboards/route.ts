@@ -38,7 +38,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
 
   try {
     const conditions = [
-      eq(whiteboard.tutorId, userId),
+      eq(whiteboard.ownerId, userId),
       isNull(whiteboard.deletedAt),
       ...(sessionId ? [eq(whiteboard.sessionId, sessionId)] : []),
       ...(roomId ? [eq(whiteboard.roomId, roomId)] : []),
@@ -130,6 +130,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       await tx.insert(whiteboard).values({
         id: whiteboardId,
         tutorId: userId,
+        ownerId: userId,
         title: data.title,
         description: data.description ?? null,
         sessionId: data.sessionId ?? null,

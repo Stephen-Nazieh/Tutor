@@ -73,7 +73,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .where(
       and(
         eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.tutorId, userId)
+        eq(whiteboard.ownerId, userId)
       )
     )
     .limit(1)
@@ -131,7 +131,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     .where(
       and(
         eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.tutorId, userId)
+        eq(whiteboard.ownerId, userId)
       )
     )
     .limit(1)
@@ -166,7 +166,8 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
 
   await drizzleDb.insert(whiteboard).values({
     id: whiteboardId,
-    tutorId: userId,
+    tutorId: liveSessionRow.tutorId,
+    ownerId: userId,
     sessionId,
     title: body.title ?? `${session.user.name || 'My'} Whiteboard`,
     description: body.description ?? null,
@@ -262,7 +263,7 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
     .where(
       and(
         eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.tutorId, userId)
+        eq(whiteboard.ownerId, userId)
       )
     )
     .limit(1)

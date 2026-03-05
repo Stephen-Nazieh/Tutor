@@ -45,7 +45,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     const [wb] = await drizzleDb
       .select()
       .from(whiteboard)
-      .where(and(eq(whiteboard.id, id), eq(whiteboard.tutorId, userId), isNull(whiteboard.deletedAt)))
+      .where(and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt)))
       .limit(1)
 
     if (!wb) {
@@ -103,7 +103,7 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     const [existing] = await drizzleDb
       .select()
       .from(whiteboard)
-      .where(and(eq(whiteboard.id, id), eq(whiteboard.tutorId, userId), isNull(whiteboard.deletedAt)))
+      .where(and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt)))
       .limit(1)
 
     if (!existing) {
@@ -151,7 +151,7 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     const [existing] = await drizzleDb
       .select()
       .from(whiteboard)
-      .where(and(eq(whiteboard.id, id), eq(whiteboard.tutorId, userId), isNull(whiteboard.deletedAt)))
+      .where(and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt)))
       .limit(1)
 
     if (!existing) {
