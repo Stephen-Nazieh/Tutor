@@ -134,6 +134,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
   const defaultCurrency = tutorProfile?.currency ?? 'SGD'
 
   const defaultSchedule = [{ dayOfWeek: 'Monday', startTime: '09:00', durationMinutes: 45 }]
+  const schedule = Array.isArray(data.schedule) && data.schedule.length > 0 ? data.schedule : defaultSchedule
 
   const result = await drizzleDb.transaction(async (tx) => {
     const curriculumId = crypto.randomUUID()
@@ -142,12 +143,13 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
       name: data.title,
       description: data.description ?? null,
       subject: data.subject ?? 'general',
+      categories: data.categories ?? [],
       gradeLevel: data.gradeLevel ?? null,
       difficulty: data.difficulty ?? 'intermediate',
       estimatedHours: data.estimatedHours ?? 0,
       isPublished: false,
       currency: defaultCurrency,
-      schedule: defaultSchedule,
+      schedule,
       creatorId: userId ?? null,
       isLiveOnline: data.isLiveOnline ?? false,
     }).returning()

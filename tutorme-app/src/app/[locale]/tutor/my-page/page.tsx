@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { Copy, ExternalLink, Edit, DollarSign, LayoutGrid, List } from 'lucide-react'
-import { CreateCourseDialog } from '../dashboard/components/CreateCourseDialog'
 
 interface PublicCourse {
   id: string
@@ -38,6 +37,7 @@ interface DraftCourse {
 
 export default function TutorMyPage() {
   const params = useParams<{ locale?: string }>()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const initialTab = searchParams.get('tab') === 'drafts' ? 'drafts' : 'public'
@@ -49,7 +49,6 @@ export default function TutorMyPage() {
   const [draftCourses, setDraftCourses] = useState<DraftCourse[]>([])
   const [activeTab, setActiveTab] = useState(initialTab)
   const [draftViewMode, setDraftViewMode] = useState<'grid' | 'list'>('list')
-  const [showCreateCourseDialog, setShowCreateCourseDialog] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -164,7 +163,7 @@ export default function TutorMyPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Button onClick={() => setShowCreateCourseDialog(true)}>
+          <Button onClick={() => router.push('/tutor/courses/new')}>
             Create New Course
           </Button>
           {publicPath && (
@@ -295,7 +294,7 @@ export default function TutorMyPage() {
                   <CardTitle>Published Courses ({publishedCourses.length})</CardTitle>
                   <CardDescription>These courses are visible on your public page.</CardDescription>
                 </div>
-                <Button onClick={() => setShowCreateCourseDialog(true)} className="w-fit">
+                <Button onClick={() => router.push('/tutor/courses/new')} className="w-fit">
                   Create New Course
                 </Button>
               </div>
@@ -351,7 +350,7 @@ export default function TutorMyPage() {
                     </Button>
                   </div>
                   <Button asChild>
-                    <Link href="/tutor/curriculum">+ New Course</Link>
+                    <Link href="/tutor/courses/new">+ New Course</Link>
                   </Button>
                 </div>
               </div>
@@ -362,7 +361,7 @@ export default function TutorMyPage() {
                   <p className="text-muted-foreground mb-4">
                     No courses in progress. Start building your first course!
                   </p>
-                  <Button onClick={() => setShowCreateCourseDialog(true)}>
+                  <Button onClick={() => router.push('/tutor/courses/new')}>
                     Create New Course
                   </Button>
                 </div>
@@ -453,21 +452,6 @@ export default function TutorMyPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Create Course Dialog */}
-      <CreateCourseDialog
-        open={showCreateCourseDialog}
-        onOpenChange={setShowCreateCourseDialog}
-        onCourseCreated={() => {
-          // Refresh the draft courses list
-          fetch('/api/tutor/courses', { credentials: 'include' })
-            .then(res => res.ok ? res.json() : { courses: [] })
-            .then(data => {
-              const drafts = (data.courses || []).filter((c: DraftCourse) => !c.isPublished)
-              setDraftCourses(drafts)
-            })
-            .catch(() => {})
-        }}
-      />
     </div>
   )
 }

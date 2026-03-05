@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ValidationError } from '@/lib/api/middleware'
 import { performRegistration } from '@/lib/registration/register-user'
 import type { RegisterUserInput } from '@/lib/validation/schemas'
 
@@ -30,6 +31,25 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error('Tutor registration error:', err.message, err.stack)
+    if (error && typeof error === 'object' && 'issues' in error) {
+      const zodError = error as { issues: Array<{ message: string }> }
+      return NextResponse.json(
+        { error: zodError.issues.map((i) => i.message).join(', ') },
+        { status: 400 }
+      )
+    }
+    if (error instanceof ValidationError || (error as Error)?.name === 'ValidationError') {
+      return NextResponse.json(
+        { error: (error as Error).message || 'Validation error' },
+        { status: 400 }
+      )
+    }
+    if (error && typeof error === 'object' && 'code' in error) {
+      const e = error as { code: string }
+      if (e.code === '23505') {
+        return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
+      }
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

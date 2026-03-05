@@ -153,3 +153,12 @@ export function subjectsForCountry(country: string): string[] {
   const match = COUNTRY_SUBJECTS.find((item) => item.country === country)
   return match ? match.subjectsAndExams : []
 }
+
+export const AGGREGATED_CATEGORIES: string[] = Array.from(
+  new Set([
+    ...GLOBAL_EXAM_CATEGORIES.flatMap((category) => category.exams),
+    ...COUNTRY_SUBJECTS.flatMap((entry) =>
+      entry.subjectsAndExams.map((subject) => `${entry.country}: ${subject}`)
+    ),
+  ])
+).sort()

@@ -176,6 +176,18 @@ export default function ParentRegistrationPage() {
     }
   }
 
+  const validateStepOne = () => {
+    if (!formData.phoneNumber?.trim()) {
+      toast.error('Phone number is required')
+      return false
+    }
+    if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) {
+      toast.error('Valid phone number required')
+      return false
+    }
+    return true
+  }
+
   const steps = [
     { number: 1, title: 'Account', icon: UserPlus },
     { number: 2, title: 'Children', icon: Users },
@@ -570,7 +582,10 @@ export default function ParentRegistrationPage() {
               
               {step < 4 ? (
                 <Button
-                  onClick={() => setStep(step + 1)}
+                  onClick={() => {
+                    if (step === 1 && !validateStepOne()) return
+                    setStep(step + 1)
+                  }}
                   disabled={isLoading}
                 >
                   Next

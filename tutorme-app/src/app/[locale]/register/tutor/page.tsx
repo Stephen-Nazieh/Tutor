@@ -201,6 +201,10 @@ export default function TutorRegistrationPage() {
       toast.error('Phone number is required')
       return false
     }
+    if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) {
+      toast.error('Valid phone number required')
+      return false
+    }
     return true
   }
 

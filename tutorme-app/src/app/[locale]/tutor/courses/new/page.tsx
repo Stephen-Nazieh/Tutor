@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -13,8 +15,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Calendar } from '@/components/ui/calendar'
 import { toast } from 'sonner'
-import { Loader2, ArrowLeft, BookOpen } from 'lucide-react'
+import { ArrowLeft, BookOpen, CalendarDays, Loader2, Plus, X } from 'lucide-react'
+import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
+import type { ScheduleItem } from '../[id]/constants'
+import { DAYS, GRADE_LEVELS } from '../[id]/constants'
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
@@ -26,38 +40,125 @@ const SUBJECTS = [
   { value: 'cs', label: 'Computer Science' },
 ]
 
-const GRADE_LEVELS = [
-  { value: 'Grade 1', label: 'Grade 1' },
-  { value: 'Grade 2', label: 'Grade 2' },
-  { value: 'Grade 3', label: 'Grade 3' },
-  { value: 'Grade 4', label: 'Grade 4' },
-  { value: 'Grade 5', label: 'Grade 5' },
-  { value: 'Grade 6', label: 'Grade 6' },
-  { value: 'Grade 7', label: 'Grade 7' },
-  { value: 'Grade 8', label: 'Grade 8' },
-  { value: 'Grade 9', label: 'Grade 9' },
-  { value: 'Grade 10', label: 'Grade 10' },
-  { value: 'Grade 11', label: 'Grade 11' },
-  { value: 'Grade 12', label: 'Grade 12' },
-  { value: 'College', label: 'College' },
-  { value: 'Adult Education', label: 'Adult Education' },
-]
+const DESCRIPTION_LIMIT = 500
 
 export default function CreateCoursePage() {
   const router = useRouter()
+  const [step, setStep] = useState<1 | 2>(1)
   const [creating, setCreating] = useState(false)
+  const [loadingProfile, setLoadingProfile] = useState(true)
   const [subject, setSubject] = useState('')
+  const [courseName, setCourseName] = useState('')
   const [gradeLevel, setGradeLevel] = useState('')
+  const [description, setDescription] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [categoryDraft, setCategoryDraft] = useState<string[]>([])
 
-  const subjectLabel = SUBJECTS.find((s) => s.value === subject)?.label ?? subject
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [startTime, setStartTime] = useState('09:00')
+  const [durationMinutes, setDurationMinutes] = useState(60)
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([])
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    let mounted = true
+    const loadProfile = async () => {
+      try {
+        const res = await fetch('/api/user/profile', { credentials: 'include' })
+        const data = await res.json().catch(() => ({}))
+        if (!mounted) return
+        const specialties = Array.isArray(data?.profile?.specialties)
+          ? data.profile.specialties
+          : []
+        setSelectedCategories(specialties)
+      } catch {
+        // ignore profile fetch errors; still allow manual category selection
+      } finally {
+        if (mounted) setLoadingProfile(false)
+      }
+    }
+    loadProfile()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const descriptionCount = useMemo(() => description.length, [description])
+
+  const openCategoryDialog = () => {
+    setCategoryDraft(selectedCategories)
+    setCategoryDialogOpen(true)
+  }
+
+  const toggleDraftCategory = (category: string) => {
+    setCategoryDraft((prev) =>
+      prev.includes(category)
+        ? prev.filter((item) => item !== category)
+        : [...prev, category]
+    )
+  }
+
+  const applyCategories = () => {
+    setSelectedCategories(Array.from(new Set(categoryDraft)))
+    setCategoryDialogOpen(false)
+  }
+
+  const removeCategory = (category: string) => {
+    setSelectedCategories((prev) => prev.filter((item) => item !== category))
+  }
+
+  const validateDetailsStep = () => {
+    if (!courseName.trim()) {
+      toast.error('Course name is required')
+      return false
+    }
     if (!subject) {
       toast.error('Please select a subject')
+      return false
+    }
+    if (selectedCategories.length === 0) {
+      toast.error('Select at least one category')
+      return false
+    }
+    if (descriptionCount > DESCRIPTION_LIMIT) {
+      toast.error('Description exceeds 500 characters')
+      return false
+    }
+    return true
+  }
+
+  const getDayOfWeek = (date: Date) => {
+    const dayIndex = (date.getDay() + 6) % 7 // shift so Monday=0
+    return DAYS[dayIndex] ?? 'Monday'
+  }
+
+  const addScheduleSlot = () => {
+    if (!selectedDate) {
+      toast.error('Select a date on the calendar')
       return
     }
+    if (!startTime) {
+      toast.error('Start time is required')
+      return
+    }
+    const dayOfWeek = getDayOfWeek(selectedDate)
+    const next: ScheduleItem = {
+      dayOfWeek,
+      startTime,
+      durationMinutes: Math.max(15, Math.min(480, durationMinutes || 60)),
+    }
+    setSchedule((prev) => [...prev, next])
+  }
 
-    const title = subjectLabel
+  const removeScheduleSlot = (index: number) => {
+    setSchedule((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleConfirm = async () => {
+    if (!schedule.length) {
+      toast.error('Add at least one schedule slot')
+      return
+    }
     setCreating(true)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
@@ -72,32 +173,34 @@ export default function CreateCoursePage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          title,
+          title: courseName.trim(),
+          description: description.trim() || undefined,
           subject,
           gradeLevel: gradeLevel || undefined,
+          categories: selectedCategories,
+          schedule,
           isLiveOnline: false,
         }),
       })
 
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (res.ok && data.course?.id) {
         toast.success('Course created! Opening builder...')
         router.push(`/tutor/courses/${data.course.id}/builder`)
       } else {
         const message = data.error || 'Failed to create course. Please try again.'
         toast.error(message)
-        setCreating(false)
       }
     } catch {
       toast.error('An error occurred. Please check your connection and try again.')
+    } finally {
       setCreating(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Back Button */}
+      <div className="max-w-3xl mx-auto">
         <Button variant="ghost" className="mb-4" asChild>
           <Link href="/tutor/my-page">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -112,78 +215,232 @@ export default function CreateCoursePage() {
               Create New Course
             </CardTitle>
             <CardDescription>
-              Select a subject to create your course. You&apos;ll be taken to the Course Builder to add modules and lessons.
+              {step === 1
+                ? 'Set course details before scheduling lessons.'
+                : 'Schedule lessons before entering the Course Builder.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Subject Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject *</Label>
-              <Select value={subject} onValueChange={setSubject} disabled={creating}>
-                <SelectTrigger id="subject">
-                  <SelectValue placeholder="Select a subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECTS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {step === 1 && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="courseName">Course Name *</Label>
+                  <Input
+                    id="courseName"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    placeholder="e.g. AP Calculus Mastery"
+                    disabled={creating}
+                  />
+                </div>
 
-            {/* Grade Level Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="gradeLevel">Grade Level (Optional)</Label>
-              <Select value={gradeLevel} onValueChange={setGradeLevel} disabled={creating}>
-                <SelectTrigger id="gradeLevel">
-                  <SelectValue placeholder="Select a grade level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GRADE_LEVELS.map((g) => (
-                    <SelectItem key={g.value} value={g.value}>
-                      {g.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Select Subject *</Label>
+                  <Select value={subject} onValueChange={setSubject} disabled={creating}>
+                    <SelectTrigger id="subject">
+                      <SelectValue placeholder="Select a subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUBJECTS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Preview */}
-            {subject && (
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <p className="text-sm text-blue-600 font-medium">Course will be created as:</p>
-                <p className="text-lg font-semibold text-blue-900 mt-1">{subjectLabel}</p>
-                {gradeLevel && (
-                  <p className="text-sm text-blue-700 mt-1">Grade: {gradeLevel}</p>
-                )}
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gradeLevel">Grade Level (Optional)</Label>
+                  <Select value={gradeLevel} onValueChange={setGradeLevel} disabled={creating}>
+                    <SelectTrigger id="gradeLevel">
+                      <SelectValue placeholder="Select a grade level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GRADE_LEVELS.map((g) => (
+                        <SelectItem key={g.value} value={g.value}>
+                          {g.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Subject Categories *</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={openCategoryDialog} disabled={creating || loadingProfile}>
+                      <Plus className="w-4 h-4 mr-1" />
+                      New
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCategories.length === 0 && (
+                      <p className="text-sm text-gray-500">No categories selected yet.</p>
+                    )}
+                    {selectedCategories.map((category) => (
+                      <span key={category} className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700">
+                        {category}
+                        <button type="button" onClick={() => removeCategory(category)} className="text-blue-400 hover:text-blue-700">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description">Description (no AI generation)</Label>
+                    <span className={`text-xs ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-500'}`}>
+                      {descriptionCount}/{DESCRIPTION_LIMIT}
+                    </span>
+                  </div>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value.slice(0, DESCRIPTION_LIMIT))}
+                    placeholder="Describe the course focus, expected outcomes, and who it is for."
+                    rows={5}
+                    disabled={creating}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" className="flex-1" asChild disabled={creating}>
+                    <Link href="/tutor/my-page">Cancel</Link>
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => validateDetailsStep() && setStep(2)}
+                    disabled={creating}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" className="flex-1" asChild disabled={creating}>
-                <Link href="/tutor/my-page">Cancel</Link>
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={handleSubmit}
-                disabled={creating || !subject}
-              >
-                {creating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  'Create & Open Builder'
-                )}
-              </Button>
-            </div>
+            {step === 2 && (
+              <>
+                <div className="rounded-lg border border-dashed border-gray-200 p-4 bg-white">
+                  <div className="flex items-center gap-2 mb-4 text-sm font-medium text-gray-700">
+                    <CalendarDays className="w-4 h-4" />
+                    Schedule lessons
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      className="rounded-md border"
+                    />
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label htmlFor="startTime">Start Time</Label>
+                          <Input
+                            id="startTime"
+                            type="time"
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            disabled={creating}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label htmlFor="duration">Duration (minutes)</Label>
+                          <Input
+                            id="duration"
+                            type="number"
+                            min={15}
+                            max={480}
+                            value={durationMinutes}
+                            onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                            disabled={creating}
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <Button type="button" variant="outline" onClick={addScheduleSlot} disabled={creating}>
+                            Add Slot
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Schedule</Label>
+                        {schedule.length === 0 ? (
+                          <p className="text-sm text-gray-500">No lessons scheduled yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {schedule.map((slot, index) => (
+                              <div key={`${slot.dayOfWeek}-${slot.startTime}-${index}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                                <div>
+                                  <span className="font-medium">{slot.dayOfWeek}</span>
+                                  <span className="text-gray-500"> · {slot.startTime} · {slot.durationMinutes} mins</span>
+                                </div>
+                                <Button type="button" size="sm" variant="ghost" onClick={() => removeScheduleSlot(index)}>
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)} disabled={creating}>
+                    Back
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={handleConfirm}
+                    disabled={creating}
+                  >
+                    {creating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Select Categories</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto space-y-3">
+            {AGGREGATED_CATEGORIES.map((category) => (
+              <label key={category} className="flex items-center gap-3 text-sm">
+                <Checkbox
+                  checked={categoryDraft.includes(category)}
+                  onCheckedChange={() => toggleDraftCategory(category)}
+                />
+                <span>{category}</span>
+              </label>
+            ))}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-3">
+            <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" onClick={applyCategories}>
+              Ok
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

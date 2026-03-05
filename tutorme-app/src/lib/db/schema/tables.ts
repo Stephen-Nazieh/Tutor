@@ -110,6 +110,7 @@ export const curriculum = pgTable('Curriculum', {
   name: text('name').notNull(),
   description: text('description'),
   subject: text('subject').notNull(),
+  categories: text('categories').array(),
   gradeLevel: text('gradeLevel'),
   difficulty: text('difficulty').notNull(),
   estimatedHours: integer('estimatedHours').notNull(),

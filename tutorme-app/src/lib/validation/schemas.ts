@@ -188,6 +188,12 @@ export const SubmitTaskSchema = z.object({
 // Curriculum & Learning Schemas
 // ============================================
 
+const ScheduleItemSchema = z.object({
+    dayOfWeek: z.string().min(1),
+    startTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM format'),
+    durationMinutes: z.number().int().min(5).max(480)
+})
+
 export const CreateCurriculumSchema = z.object({
     title: z.string().min(1).max(200),
     description: z.string().max(2000).optional(),
@@ -195,19 +201,14 @@ export const CreateCurriculumSchema = z.object({
     gradeLevel: z.string().max(50).optional(),
     difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
     estimatedHours: z.number().min(0).max(1000).optional(),
-    isLiveOnline: z.boolean().optional()
+    isLiveOnline: z.boolean().optional(),
+    categories: z.array(z.string()).optional(),
+    schedule: z.array(ScheduleItemSchema).optional()
 })
 
 export const EnrollCurriculumSchema = z.object({
     curriculumId: z.string().cuid('Invalid curriculum ID'),
     studentId: z.string().cuid('Invalid student ID')
-})
-
-// Tutor course settings (curriculum page)
-const ScheduleItemSchema = z.object({
-    dayOfWeek: z.string().min(1),
-    startTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Use HH:MM format'),
-    durationMinutes: z.number().int().min(5).max(480)
 })
 
 export const UpdateCourseSettingsSchema = z.object({

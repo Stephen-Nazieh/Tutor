@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,6 @@ import { toast } from 'sonner'
 
 import {
   CreateClassDialog,
-  CreateCourseDialog,
   StatsCards,
   UpcomingClassesCard,
   StudentsNeedingAttentionCard,
@@ -59,14 +58,14 @@ const defaultStats = {
 // Inner component that uses searchParams
 function TutorDashboardContent() {
   const { data: session } = useSession()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showCreateCourseDialog, setShowCreateCourseDialog] = useState(false)
   
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateDialog(true)
-    if (searchParams.get('course') === '1') setShowCreateCourseDialog(true)
-  }, [searchParams])
+    if (searchParams.get('course') === '1') router.push('/tutor/courses/new')
+  }, [searchParams, router])
   const [stats, setStats] = useState(defaultStats)
   const [classes, setClasses] = useState<UpcomingClass[]>([])
   const [students, setStudents] = useState<StudentNeedingAttention[]>([])
@@ -237,7 +236,7 @@ function TutorDashboardContent() {
             stats={stats} 
             loading={loading} 
             onScheduleClass={() => setShowCreateDialog(true)}
-            onCreateCourse={() => setShowCreateCourseDialog(true)}
+            onCreateCourse={() => router.push('/tutor/courses/new')}
           />
         </div>
 
@@ -310,11 +309,6 @@ function TutorDashboardContent() {
           redirectToClass={false}
         />
 
-        {/* Create Course Dialog */}
-        <CreateCourseDialog
-          open={showCreateCourseDialog}
-          onOpenChange={setShowCreateCourseDialog}
-        />
       </div>
     </div>
   )
