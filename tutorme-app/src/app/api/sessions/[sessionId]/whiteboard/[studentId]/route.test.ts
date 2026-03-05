@@ -44,11 +44,13 @@ describe('GET /api/sessions/[sessionId]/whiteboard/[studentId]', () => {
 
   it('allows a student to read their own private whiteboard', async () => {
     mocks.selectResults = [
+      [{ tutorId: 'tutor-1' }],
+      [{ id: 'participant-1' }],
       [
         {
           id: 'wb-private',
           sessionId: 'session-1',
-          tutorId: 'student-1',
+          ownerId: 'student-1',
           ownerType: 'student',
           visibility: 'private',
           title: 'My Work',
@@ -73,11 +75,13 @@ describe('GET /api/sessions/[sessionId]/whiteboard/[studentId]', () => {
 
   it('blocks a student from reading another student private whiteboard', async () => {
     mocks.selectResults = [
+      [{ tutorId: 'tutor-1' }],
+      [{ id: 'participant-1' }],
       [
         {
           id: 'wb-private',
           sessionId: 'session-1',
-          tutorId: 'student-2',
+          ownerId: 'student-2',
           ownerType: 'student',
           visibility: 'private',
           title: 'Other Work',
