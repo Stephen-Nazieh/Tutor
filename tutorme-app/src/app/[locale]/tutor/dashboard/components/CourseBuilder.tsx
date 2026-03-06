@@ -469,11 +469,11 @@ const DEFAULT_MODULE_QUIZ = (order: number): ModuleQuiz => ({
 
 const DEFAULT_MODULE = (order: number): Module => ({
   id: `module-${generateId()}`,
-  title: `Module ${order + 1}`,
+  title: `Lesson ${order + 1}`,
   description: '',
   order,
   isPublished: false,
-  lessons: [],
+  lessons: [DEFAULT_LESSON(0)],
   moduleQuizzes: [],
   difficultyMode: 'all',
   variants: {}
@@ -509,7 +509,7 @@ function convertQuizToAssessment(quiz: Quiz): Assessment {
 function normalizeModulesForAssessments(rawModules: Module[]): Module[] {
   return rawModules.map((module) => ({
     ...module,
-    lessons: (module.lessons || []).map((lesson) => {
+    lessons: ((module.lessons && module.lessons.length > 0) ? module.lessons : [DEFAULT_LESSON(0)]).map((lesson) => {
       const existingAssessments = lesson.homework || []
       const migratedAssessments = (lesson.quizzes || []).map(convertQuizToAssessment)
       return {
@@ -542,7 +542,7 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
 
     return {
       ...DEFAULT_MODULE(moduleIdx),
-      title: String(moduleObj.title || `Module ${moduleIdx + 1}`),
+      title: String(moduleObj.title || `Lesson ${moduleIdx + 1}`),
       description: String(moduleObj.description || ''),
       lessons: rawLessons.map((rawLesson: Record<string, any>, lessonIdx: number) => {
         const tasks = Array.isArray(rawLesson.tasks) ? rawLesson.tasks : []
@@ -609,7 +609,7 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
       moduleQuizzes: rawExam
         ? [{
           ...DEFAULT_MODULE_QUIZ(0),
-          title: String(rawExam.title || `Module ${moduleIdx + 1} Exam`),
+          title: String(rawExam.title || `Lesson ${moduleIdx + 1} Exam`),
           description: String(rawExam.description || ''),
           questions: (Array.isArray(rawExam.questions) ? rawExam.questions : []).map((rawQuestion: unknown, questionIdx: number) => {
             const questionObj = (rawQuestion ?? {}) as Record<string, any>
@@ -1244,12 +1244,12 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
-            Module Builder
+            Lesson Builder
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Module Title *</Label>
+            <Label>Lesson Title *</Label>
             <Input
               value={data.title}
               onChange={(e) => setData({ ...data, title: e.target.value })}
@@ -1275,7 +1275,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onSave(data)}>Save Module</Button>
+          <Button onClick={() => onSave(data)}>Save Lesson</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -2680,7 +2680,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                 <Input
                   value={data.title}
                   onChange={(e) => setData({ ...data, title: e.target.value })}
-                  placeholder={isModuleQuiz ? "e.g., Module 1 Comprehensive Exam" : "e.g., Lesson 1 Assessment"}
+                  placeholder={isModuleQuiz ? "e.g., Lesson 1 Comprehensive Exam" : "e.g., Lesson 1 Assessment"}
                 />
               </div>
               <div className="space-y-2">
@@ -3536,11 +3536,10 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </Button>
         </div>
         {lesson.description && <p className="text-sm text-muted-foreground">{lesson.description}</p>}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
           <div><span className="text-muted-foreground">Duration:</span> {lesson.duration} min</div>
           <div><span className="text-muted-foreground">Tasks:</span> {lesson.tasks.length}</div>
           <div><span className="text-muted-foreground">Assessment:</span> {lesson.homework.length}</div>
-          <div><span className="text-muted-foreground">Worksheets:</span> {lesson.worksheets?.length || 0}</div>
           <div><span className="text-muted-foreground">Exams:</span> 0</div>
         </div>
         {lesson.content.length > 0 && (
@@ -3565,16 +3564,18 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
     )
   }
 
-  // Module preview
+  // Lesson (formerly module) preview
   if (type === 'module') {
     const mod = item as Module
+    const totalTasks = mod.lessons.reduce((sum, l) => sum + l.tasks.length, 0)
+    const totalAssessments = mod.lessons.reduce((sum, l) => sum + l.homework.length, 0)
     return (
       <div className="space-y-4 text-left">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
             <div>
-              <Badge variant="outline" className="text-xs">Module</Badge>
+              <Badge variant="outline" className="text-xs">Lesson</Badge>
               <h3 className="font-semibold text-lg mt-1">{mod.title}</h3>
             </div>
           </div>
@@ -3584,9 +3585,9 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
         </div>
         {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
         <div className="grid grid-cols-3 gap-2 text-sm">
-          <div><span className="text-muted-foreground">Lessons:</span> {mod.lessons.length}</div>
+          <div><span className="text-muted-foreground">Tasks:</span> {totalTasks}</div>
+          <div><span className="text-muted-foreground">Assessments:</span> {totalAssessments}</div>
           <div><span className="text-muted-foreground">Exams:</span> {mod.moduleQuizzes.length}</div>
-          <div><span className="text-muted-foreground">Total items:</span> {mod.lessons.reduce((s, l) => s + l.tasks.length + l.homework.length + (l.worksheets?.length || 0), 0)}</div>
         </div>
       </div>
     )
@@ -3853,7 +3854,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 ) {
   const [modules, setModules] = useState<Module[]>(() => normalizeModulesForAssessments(initialModules))
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
-  const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
   const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
 
@@ -4023,16 +4023,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     setExpandedModules(newSet)
   }
 
-  const toggleLesson = (lessonId: string) => {
-    const newSet = new Set(expandedLessons)
-    if (newSet.has(lessonId)) {
-      newSet.delete(lessonId)
-    } else {
-      newSet.add(lessonId)
-    }
-    setExpandedLessons(newSet)
-  }
-
   // Add handlers
   const addModule = () => {
     const newModule = DEFAULT_MODULE(modules.length)
@@ -4042,24 +4032,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     setActiveModal({ type: 'module', isOpen: true })
   }
 
-  const addLesson = (moduleId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-
-    const newLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons.push(newLesson)
-    setModules(newModules)
-    setExpandedLessons(new Set([...expandedLessons, newLesson.id]))
-    setEditingData(newLesson)
-    setActiveModal({ type: 'lesson', isOpen: true, moduleId })
-  }
 
   const addTask = (moduleId: string, lessonId: string) => {
     const moduleIndex = modules.findIndex(m => m.id === moduleId)
     if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
+    let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+    if (lessonIndex === -1) {
+      const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons.push(fallbackLesson)
+      setModules(newModules)
+      lessonIndex = newModules[moduleIndex].lessons.length - 1
+    }
 
     const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
     const newModules = [...modules]
@@ -4089,8 +4073,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const addAssessment = (moduleId: string, lessonId: string) => {
     const moduleIndex = modules.findIndex(m => m.id === moduleId)
     if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
+    let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+    if (lessonIndex === -1) {
+      const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons.push(fallbackLesson)
+      setModules(newModules)
+      lessonIndex = newModules[moduleIndex].lessons.length - 1
+    }
 
     const newAssessment = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length)
     const newModules = [...modules]
@@ -4098,35 +4088,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     setModules(newModules)
     setEditingData(newAssessment)
     setActiveModal({ type: 'homework', isOpen: true, moduleId, lessonId })
-  }
-
-  const addWorksheet = (moduleId: string, lessonId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
-
-    const newWorksheet = DEFAULT_WORKSHEET(modules[moduleIndex].lessons[lessonIndex].worksheets?.length || 0)
-    const newModules = [...modules]
-    if (!newModules[moduleIndex].lessons[lessonIndex].worksheets) {
-      newModules[moduleIndex].lessons[lessonIndex].worksheets = []
-    }
-    newModules[moduleIndex].lessons[lessonIndex].worksheets.push(newWorksheet)
-    setModules(newModules)
-    setEditingData(newWorksheet)
-    setActiveModal({ type: 'worksheet', isOpen: true, moduleId, lessonId })
-  }
-
-  const addModuleQuiz = (moduleId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-
-    const newQuiz = DEFAULT_MODULE_QUIZ(modules[moduleIndex].moduleQuizzes.length)
-    const newModules = [...modules]
-    newModules[moduleIndex].moduleQuizzes.push(newQuiz)
-    setModules(newModules)
-    setEditingData(newQuiz)
-    setActiveModal({ type: 'moduleQuiz', isOpen: true, moduleId })
   }
 
   const addCourseExam = () => {
@@ -4162,12 +4123,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }
     setModules(nextModules)
     setExpandedModules(new Set([...expandedModules, nextModules[0].id]))
-    setExpandedLessons(new Set([...expandedLessons, nextModules[0].lessons[0].id]))
     return {
       moduleId: nextModules[0].id,
       lessonId: nextModules[0].lessons[0].id,
     }
-  }, [expandedLessons, expandedModules, modules])
+  }, [expandedModules, modules])
 
   const applyAiSuggestion = useCallback((suggestion: (typeof AI_SUGGESTIONS)[number]) => {
     setAiPrompt(`Suggestion: ${suggestion.title}. ${suggestion.description}`)
@@ -4175,12 +4135,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   }, [])
 
   const applyTemplate = useCallback((template: (typeof CONTENT_TEMPLATES)[number]) => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
     if (template.category === 'lesson') {
-      addLesson(moduleId)
+      addModule()
       toast.success(`Template applied: ${template.name}`)
       return
     }
+    const { moduleId, lessonId } = ensureFirstLessonContext()
     if (template.category === 'quiz') {
       addAssessment(moduleId, lessonId)
       toast.success(`Template applied: ${template.name}`)
@@ -4192,7 +4152,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       return
     }
     toast.success(`Template selected: ${template.name}`)
-  }, [addAssessment, addLesson, addTask, ensureFirstLessonContext])
+  }, [addAssessment, addModule, addTask, ensureFirstLessonContext])
 
   // Drag & Drop handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -4306,7 +4266,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       ))
     }
     setActiveModal({ type: 'module', isOpen: false })
-    toast.success('Module saved')
+    toast.success('Lesson saved')
   }
 
   const handleSaveLesson = (data: any) => {
@@ -4409,7 +4369,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   const deleteModule = (moduleId: string) => {
     setModules(modules.filter(m => m.id !== moduleId))
-    toast.success('Module deleted')
+    toast.success('Lesson deleted')
   }
 
   const deleteLesson = (moduleId: string, lessonId: string) => {
@@ -4852,7 +4812,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                 </div>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  AI will generate modules, lessons, and assessments based on your description
+                  AI will generate lessons, tasks, and assessments based on your description
                 </p>
               </div>
 
@@ -4877,17 +4837,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         </Button>
                         <Button size="sm" onClick={addModule} className="gap-1 h-6 text-xs">
                           <Plus className="h-3 w-3" />
-                          Module
+                          Lesson
                         </Button>
                       </div>
                     </div>
 
-                    {/* Modules - with drag sorting */}
+                    {/* Lessons (formerly modules) - with drag sorting */}
                     <SortableContext
                       items={modules.map(m => m.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                      {modules.map((module, moduleIdx) => (
+                    {modules.map((module, moduleIdx) => {
+                      const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
+                      const taskCount = primaryLesson.tasks?.length || 0
+                      const assessmentCount = primaryLesson.homework?.length || 0
+                      const totalItems = taskCount + assessmentCount
+                      return (
                         <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1}>
                           <div className="group">
                             <div
@@ -4905,7 +4870,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               <Layers className="h-3 w-3 text-blue-600" />
                               <span className="text-sm font-medium flex-1 truncate">{module.title}</span>
                               <Badge variant="secondary" className="text-[10px] h-4">
-                                {module.lessons.length}
+                                {totalItems}
                               </Badge>
 
                               {/* Difficulty Badge */}
@@ -4944,339 +4909,206 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
                             {expandedModules.has(module.id) && (
                               <div className="mt-1 space-y-1">
+                                {/* Assets */}
                                 <TreeItem depth={2} isLast={false}>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 text-[10px] gap-1 text-muted-foreground hover:text-foreground px-2"
-                                    onClick={() => addLesson(module.id)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                    Add Lesson
-                                  </Button>
+                                  <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200">
+                                    <div className="flex items-center gap-1.5">
+                                      <Paperclip className="h-3 w-3 text-gray-500" />
+                                      <span className="text-[10px] text-muted-foreground">Assets</span>
+                                    </div>
+                                  </div>
+                                </TreeItem>
+                                <TreeItem depth={3} isLast={false}>
+                                  <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/media">
+                                    <div className="flex items-center gap-1.5">
+                                      <Video className="h-3 w-3 text-gray-500" />
+                                      <span className="text-[10px] text-muted-foreground">Media</span>
+                                      <span className="text-[10px] text-muted-foreground">
+                                        ({primaryLesson.media?.videos?.length || 0}v, {primaryLesson.media?.images?.length || 0}i)
+                                      </span>
+                                      <div className="flex items-center gap-1 ml-auto opacity-0 group-hover/media:opacity-100">
+                                        <label className="cursor-pointer">
+                                          <input
+                                            type="file"
+                                            accept="video/*"
+                                            multiple
+                                            className="hidden"
+                                            onChange={(e) => handleMediaUpload(module.id, primaryLesson.id, e.target.files, 'video')}
+                                          />
+                                          <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
+                                            <Upload className="h-3 w-3" /> Vid
+                                          </span>
+                                        </label>
+                                        <label className="cursor-pointer">
+                                          <input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            className="hidden"
+                                            onChange={(e) => handleMediaUpload(module.id, primaryLesson.id, e.target.files, 'image')}
+                                          />
+                                          <span className="flex items-center gap-1 text-[10px] text-green-600 hover:text-green-700">
+                                            <ImageIcon className="h-3 w-3" /> Img
+                                          </span>
+                                        </label>
+                                      </div>
+                                    </div>
+                                    {(primaryLesson.media?.videos?.length > 0 || primaryLesson.media?.images?.length > 0) && (
+                                      <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
+                                        {primaryLesson.media?.videos?.map((video) => (
+                                          <div key={video.id} className="flex items-center gap-1 text-[10px] text-gray-600">
+                                            <Play className="h-3 w-3" />
+                                            <span className="truncate flex-1">{video.title}</span>
+                                            <span className="text-gray-400">{video.duration > 0 ? `${Math.floor(video.duration / 60)}m` : '—'}</span>
+                                          </div>
+                                        ))}
+                                        {primaryLesson.media?.images?.map((img) => (
+                                          <div key={img.id} className="flex items-center gap-1 text-[10px] text-gray-600">
+                                            <ImageIcon className="h-3 w-3" />
+                                            <span className="truncate flex-1">{img.title}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </TreeItem>
+                                <TreeItem depth={3} isLast={false}>
+                                  <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/docs">
+                                    <div className="flex items-center gap-1.5">
+                                      <FileText className="h-3 w-3 text-gray-500" />
+                                      <span className="text-[10px] text-muted-foreground">Docs ({primaryLesson.docs?.length || 0})</span>
+                                      <label className="cursor-pointer ml-auto opacity-0 group-hover/docs:opacity-100">
+                                        <input
+                                          type="file"
+                                          accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                                          multiple
+                                          className="hidden"
+                                          onChange={(e) => handleDocUpload(module.id, primaryLesson.id, e.target.files)}
+                                        />
+                                        <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
+                                          <Upload className="h-3 w-3" /> Upload
+                                        </span>
+                                      </label>
+                                    </div>
+                                    {primaryLesson.docs?.length > 0 && (
+                                      <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
+                                        {primaryLesson.docs?.map((doc) => (
+                                          <div key={doc.id} className="flex items-center gap-1 text-[10px] text-gray-600">
+                                            <FileText className="h-3 w-3" />
+                                            <span className="truncate flex-1">{doc.title}</span>
+                                            <span className="text-gray-400 uppercase">{doc.type}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
                                 </TreeItem>
 
-                                {/* Lessons - with drag sorting */}
+                                {/* Tasks - with drag sorting */}
                                 <SortableContext
-                                  items={module.lessons.map(l => l.id)}
+                                  items={primaryLesson.tasks?.map(t => t.id) || []}
                                   strategy={verticalListSortingStrategy}
                                 >
-                                  {module.lessons.map((lesson, lessonIdx) => (
-                                    <SortableTreeItem
-                                      key={lesson.id}
-                                      id={lesson.id}
-                                      depth={2}
-                                      isLast={lessonIdx === module.lessons.length - 1 && (module.moduleQuizzes?.length || 0) === 0}
-                                    >
-                                      <div className="group">
-                                        <div
-                                          className={cn(
-                                            "flex items-center gap-1.5 py-1 px-2 rounded cursor-pointer transition-colors",
-                                            "bg-green-50 hover:bg-green-100 border border-green-200"
-                                          )}
-                                          onClick={() => toggleLesson(lesson.id)}
+                                  {(primaryLesson.tasks || []).map((task, idx) => (
+                                    <SortableTreeItem key={task.id} id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
+                                      <div
+                                        className="flex items-center gap-1.5 py-1 px-2 rounded bg-orange-50 border border-orange-200 group/item cursor-pointer hover:bg-orange-100"
+                                        onClick={() => setSelectedItem({ type: 'task', id: task.id })}
+                                      >
+                                        <ListTodo className="h-3 w-3 text-orange-500" />
+                                        <span className="text-[10px] flex-1 truncate">{task.title}</span>
+                                        <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setEditingData(task)
+                                            setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
+                                          }}
                                         >
-                                          {expandedLessons.has(lesson.id) ? (
-                                            <ChevronDown className="h-3 w-3 text-green-600" />
-                                          ) : (
-                                            <ChevronRight className="h-3 w-3 text-green-600" />
-                                          )}
-                                          <BookOpen className="h-3 w-3 text-green-600" />
-                                          <span className="text-xs flex-1 truncate">{lesson.title}</span>
-                                          <span className="text-[10px] text-muted-foreground">{lesson.duration}m</span>
-
-                                          {/* Difficulty Badge */}
-                                          <DifficultyBadge
-                                            mode={lesson.difficultyMode}
-                                            fixedDifficulty={lesson.fixedDifficulty}
-                                            size="xs"
-                                          />
-
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1.5"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingData(lesson)
-                                              setActiveModal({ type: 'lesson', isOpen: true, moduleId: module.id, itemId: lesson.id })
-                                            }}
-                                          >
-                                            <Wand2 className="h-3 w-3" />
-                                            Builder
-                                          </Button>
-
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              deleteLesson(module.id, lesson.id)
-                                            }}
-                                          >
-                                            <Trash2 className="h-3 w-3 text-red-500" />
-                                          </Button>
-                                        </div>
-
-                                        {expandedLessons.has(lesson.id) && (
-                                          <div className="mt-1 space-y-1">
-                                            {/* Media */}
-                                            <TreeItem depth={3} isLast={false}>
-                                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/media">
-                                                <div className="flex items-center gap-1.5">
-                                                  <Video className="h-3 w-3 text-gray-500" />
-                                                  <span className="text-[10px] text-muted-foreground">Media</span>
-                                                  <span className="text-[10px] text-muted-foreground">
-                                                    ({lesson.media?.videos?.length || 0}v, {lesson.media?.images?.length || 0}i)
-                                                  </span>
-                                                  <div className="flex items-center gap-1 ml-auto opacity-0 group-hover/media:opacity-100">
-                                                    <label className="cursor-pointer">
-                                                      <input
-                                                        type="file"
-                                                        accept="video/*"
-                                                        multiple
-                                                        className="hidden"
-                                                        onChange={(e) => handleMediaUpload(module.id, lesson.id, e.target.files, 'video')}
-                                                      />
-                                                      <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
-                                                        <Upload className="h-3 w-3" /> Vid
-                                                      </span>
-                                                    </label>
-                                                    <label className="cursor-pointer">
-                                                      <input
-                                                        type="file"
-                                                        accept="image/*"
-                                                        multiple
-                                                        className="hidden"
-                                                        onChange={(e) => handleMediaUpload(module.id, lesson.id, e.target.files, 'image')}
-                                                      />
-                                                      <span className="flex items-center gap-1 text-[10px] text-green-600 hover:text-green-700">
-                                                        <ImageIcon className="h-3 w-3" /> Img
-                                                      </span>
-                                                    </label>
-                                                  </div>
-                                                </div>
-                                                {/* List uploaded media */}
-                                                {(lesson.media?.videos?.length > 0 || lesson.media?.images?.length > 0) && (
-                                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
-                                                    {lesson.media?.videos?.map((video, vIdx) => (
-                                                      <div key={video.id} className="flex items-center gap-1 text-[10px] text-gray-600">
-                                                        <Play className="h-3 w-3" />
-                                                        <span className="truncate flex-1">{video.title}</span>
-                                                        <span className="text-gray-400">{video.duration > 0 ? `${Math.floor(video.duration / 60)}m` : '—'}</span>
-                                                      </div>
-                                                    ))}
-                                                    {lesson.media?.images?.map((img, iIdx) => (
-                                                      <div key={img.id} className="flex items-center gap-1 text-[10px] text-gray-600">
-                                                        <ImageIcon className="h-3 w-3" />
-                                                        <span className="truncate flex-1">{img.title}</span>
-                                                      </div>
-                                                    ))}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </TreeItem>
-
-                                            {/* Docs */}
-                                            <TreeItem depth={3} isLast={false}>
-                                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/docs">
-                                                <div className="flex items-center gap-1.5">
-                                                  <FileText className="h-3 w-3 text-gray-500" />
-                                                  <span className="text-[10px] text-muted-foreground">Docs ({lesson.docs?.length || 0})</span>
-                                                  <label className="cursor-pointer ml-auto opacity-0 group-hover/docs:opacity-100">
-                                                    <input
-                                                      type="file"
-                                                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
-                                                      multiple
-                                                      className="hidden"
-                                                      onChange={(e) => handleDocUpload(module.id, lesson.id, e.target.files)}
-                                                    />
-                                                    <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
-                                                      <Upload className="h-3 w-3" /> Upload
-                                                    </span>
-                                                  </label>
-                                                </div>
-                                                {/* List uploaded docs */}
-                                                {lesson.docs?.length > 0 && (
-                                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
-                                                    {lesson.docs?.map((doc, dIdx) => (
-                                                      <div key={doc.id} className="flex items-center gap-1 text-[10px] text-gray-600">
-                                                        <FileText className="h-3 w-3" />
-                                                        <span className="truncate flex-1">{doc.title}</span>
-                                                        <span className="text-gray-400 uppercase">{doc.type}</span>
-                                                      </div>
-                                                    ))}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </TreeItem>
-
-                                            {/* Worksheets - with drag sorting */}
-                                            <SortableContext
-                                              items={lesson.worksheets?.map(w => w.id) || []}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {(lesson.worksheets || []).map((worksheet, idx) => (
-                                                <SortableTreeItem key={worksheet.id} id={worksheet.id} depth={3} isLast={idx === (lesson.worksheets?.length || 0) - 1}>
-                                                  <div
-                                                    className="flex items-center gap-1.5 py-1 px-2 rounded bg-cyan-50 border border-cyan-200 group/item cursor-pointer hover:bg-cyan-100"
-                                                    onClick={() => setSelectedItem({ type: 'worksheet', id: worksheet.id })}
-                                                  >
-                                                    <FileText className="h-3 w-3 text-cyan-500" />
-                                                    <span className="text-[10px] flex-1 truncate">{worksheet.title}</span>
-                                                    <span className="text-[10px] text-muted-foreground">{worksheet.points}pts</span>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        setEditingData(worksheet)
-                                                        setActiveModal({ type: 'worksheet', isOpen: true, moduleId: module.id, lessonId: lesson.id, itemId: worksheet.id })
-                                                      }}
-                                                    >
-                                                      Edit
-                                                    </Button>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        deleteWorksheet(module.id, lesson.id, worksheet.id)
-                                                      }}
-                                                    >
-                                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                                    </Button>
-                                                  </div>
-                                                </SortableTreeItem>
-                                              ))}
-                                            </SortableContext>
-                                            <TreeItem depth={3} isLast={false}>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 text-[10px] gap-1 text-cyan-600 px-2"
-                                                onClick={() => addWorksheet(module.id, lesson.id)}
-                                              >
-                                                <Plus className="h-3 w-3" />
-                                                Worksheet
-                                              </Button>
-                                            </TreeItem>
-
-                                            {/* Tasks - with drag sorting */}
-                                            <SortableContext
-                                              items={lesson.tasks?.map(t => t.id) || []}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {(lesson.tasks || []).map((task, idx) => (
-                                                <SortableTreeItem key={task.id} id={task.id} depth={3} isLast={idx === (lesson.tasks?.length || 0) - 1}>
-                                                  <div
-                                                    className="flex items-center gap-1.5 py-1 px-2 rounded bg-orange-50 border border-orange-200 group/item cursor-pointer hover:bg-orange-100"
-                                                    onClick={() => setSelectedItem({ type: 'task', id: task.id })}
-                                                  >
-                                                    <ListTodo className="h-3 w-3 text-orange-500" />
-                                                    <span className="text-[10px] flex-1 truncate">{task.title}</span>
-                                                    <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        setEditingData(task)
-                                                        setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: lesson.id, itemId: task.id })
-                                                      }}
-                                                    >
-                                                      Edit
-                                                    </Button>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        deleteTask(module.id, lesson.id, task.id)
-                                                      }}
-                                                    >
-                                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                                    </Button>
-                                                  </div>
-                                                </SortableTreeItem>
-                                              ))}
-                                            </SortableContext>
-                                            <TreeItem depth={3} isLast={false}>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 text-[10px] gap-1 text-orange-600 px-2"
-                                                onClick={() => addTask(module.id, lesson.id)}
-                                              >
-                                                <Plus className="h-3 w-3" />
-                                                Task
-                                              </Button>
-                                            </TreeItem>
-
-                                            {/* Assessment - with drag sorting */}
-                                            <SortableContext
-                                              items={lesson.homework?.map(h => h.id) || []}
-                                              strategy={verticalListSortingStrategy}
-                                            >
-                                              {(lesson.homework || []).map((hw, idx) => (
-                                                <SortableTreeItem key={hw.id} id={hw.id} depth={3} isLast={idx === (lesson.homework?.length || 0) - 1}>
-                                                  <div
-                                                    className="flex items-center gap-1.5 py-1 px-2 rounded bg-purple-50 border border-purple-200 group/item cursor-pointer hover:bg-purple-100"
-                                                    onClick={() => setSelectedItem({ type: 'homework', id: hw.id })}
-                                                  >
-                                                    <Home className="h-3 w-3 text-purple-500" />
-                                                    <span className="text-[10px] flex-1 truncate">{hw.title}</span>
-                                                    <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        setEditingData(hw)
-                                                        setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: lesson.id, itemId: hw.id })
-                                                      }}
-                                                    >
-                                                      Edit
-                                                    </Button>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        deleteAssessment(module.id, lesson.id, hw.id)
-                                                      }}
-                                                    >
-                                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                                    </Button>
-                                                  </div>
-                                                </SortableTreeItem>
-                                              ))}
-                                            </SortableContext>
-                                            <TreeItem depth={3} isLast={false}>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 text-[10px] gap-1 text-purple-600 px-2"
-                                                onClick={() => addAssessment(module.id, lesson.id)}
-                                              >
-                                                <Plus className="h-3 w-3" />
-                                                Assessment
-                                              </Button>
-                                            </TreeItem>
-
-                                          </div>
-                                        )}
+                                          Edit
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            deleteTask(module.id, primaryLesson.id, task.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
                                       </div>
                                     </SortableTreeItem>
                                   ))}
                                 </SortableContext>
+                                <TreeItem depth={2} isLast={false}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 text-[10px] gap-1 text-orange-600 px-2"
+                                    onClick={() => addTask(module.id, primaryLesson.id)}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    Task
+                                  </Button>
+                                </TreeItem>
+
+                                {/* Assessment - with drag sorting */}
+                                <SortableContext
+                                  items={primaryLesson.homework?.map(h => h.id) || []}
+                                  strategy={verticalListSortingStrategy}
+                                >
+                                  {(primaryLesson.homework || []).map((hw, idx) => (
+                                    <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === (primaryLesson.homework?.length || 0) - 1}>
+                                      <div
+                                        className="flex items-center gap-1.5 py-1 px-2 rounded bg-purple-50 border border-purple-200 group/item cursor-pointer hover:bg-purple-100"
+                                        onClick={() => setSelectedItem({ type: 'homework', id: hw.id })}
+                                      >
+                                        <Home className="h-3 w-3 text-purple-500" />
+                                        <span className="text-[10px] flex-1 truncate">{hw.title}</span>
+                                        <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setEditingData(hw)
+                                            setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                          }}
+                                        >
+                                          Edit
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            deleteAssessment(module.id, primaryLesson.id, hw.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    </SortableTreeItem>
+                                  ))}
+                                </SortableContext>
+                                <TreeItem depth={2} isLast={false}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 text-[10px] gap-1 text-purple-600 px-2"
+                                    onClick={() => addAssessment(module.id, primaryLesson.id)}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                    Assessment
+                                  </Button>
+                                </TreeItem>
 
                                 {/* End of Module Quizzes */}
                                 {(module.moduleQuizzes || []).map((quiz, quizIdx) => (
@@ -5314,28 +5146,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                     </div>
                                   </TreeItem>
                                 ))}
-                                <TreeItem depth={2} isLast={true}>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 text-[10px] gap-1 text-red-700 font-medium px-2"
-                                    onClick={() => addModuleQuiz(module.id)}
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                    Exam
-                                  </Button>
-                                </TreeItem>
                               </div>
                             )}
                           </div>
                         </SortableTreeItem>
-                      ))}
+                      )
+                    })}
                     </SortableContext>
 
                     {modules.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
                         <Layers className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                        <p className="text-sm">No modules yet. Click "Module" to add one.</p>
+                        <p className="text-sm">No lessons yet. Click "Lesson" to add one.</p>
                       </div>
                     )}
                   </div>
@@ -5360,7 +5182,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <div className="text-center">
                         <BookOpen className="h-16 w-16 mx-auto mb-4 opacity-20" />
                         <p>Select an item from the left to preview</p>
-                        <p className="text-sm mt-2">Click a lesson, task, assessment, worksheet, or exam</p>
+                        <p className="text-sm mt-2">Click a lesson, task, assessment, or exam</p>
                       </div>
                     </div>
                   )
@@ -5501,13 +5323,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="p-2 bg-gray-50 rounded">
                   <p className="text-lg font-bold">{modules.length}</p>
-                  <p className="text-xs text-muted-foreground">Modules</p>
+                  <p className="text-xs text-muted-foreground">Lessons</p>
                 </div>
                 <div className="p-2 bg-gray-50 rounded">
                   <p className="text-lg font-bold">
                     {modules.reduce((acc, m) => acc + m.lessons.length, 0)}
                   </p>
-                  <p className="text-xs text-muted-foreground">Lessons</p>
+                  <p className="text-xs text-muted-foreground">Sections</p>
                 </div>
                 <div className="p-2 bg-gray-50 rounded">
                   <p className="text-lg font-bold">
