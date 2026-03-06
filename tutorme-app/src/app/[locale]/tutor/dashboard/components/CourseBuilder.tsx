@@ -1538,6 +1538,7 @@ function AssessmentBuilderModal({
   const isTask = builderType === 'task'
   const isHomework = builderType === 'homework'
   const titleLabel = isTask ? 'Task' : isHomework ? 'Homework' : 'Assessment'
+  const assessmentData = data as Assessment
 
   const addQuestion = (type: QuizQuestion['type']) => {
     const newQuestion: QuizQuestion = {
@@ -1866,9 +1867,6 @@ function AssessmentBuilderModal({
               )}
               {!isTask && (
                 <div className="space-y-3 rounded-lg border bg-white p-3">
-                  {(() => {
-                    const assessmentData = data as Assessment
-                    return (
                   <h4 className="text-sm font-medium">Settings</h4>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1">
@@ -1937,8 +1935,6 @@ function AssessmentBuilderModal({
                       <Label className="text-sm">Enable AI grading assistance</Label>
                     </div>
                   </div>
-                    )
-                  })()}
                 </div>
               )}
               <p className="text-xs text-muted-foreground">{data.estimatedMinutes} min · {data.points} pts · {data.submissionType}</p>
