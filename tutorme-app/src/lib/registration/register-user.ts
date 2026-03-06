@@ -185,6 +185,10 @@ export async function performRegistration(
     }
   }
 
+  if (role === 'TUTOR') {
+    await ensureTutorApplicationTable(drizzleDb)
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10)
 
   const newUser = await drizzleDb.transaction(async (tx) => {
@@ -282,17 +286,7 @@ export async function performRegistration(
         serviceDescription: tutorData.serviceDescription,
       }
 
-      try {
-        await tx.insert(tutorApplication).values(tutorApplicationValues)
-      } catch (error) {
-        const err = error as { code?: string; message?: string }
-        if (err.code === '42P01' || (err.message ?? '').includes('TutorApplication')) {
-          await ensureTutorApplicationTable(tx)
-          await tx.insert(tutorApplication).values(tutorApplicationValues)
-        } else {
-          throw error
-        }
-      }
+      await tx.insert(tutorApplication).values(tutorApplicationValues)
     }
 
     if (role === 'PARENT') {
