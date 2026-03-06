@@ -184,7 +184,7 @@ export default function ParentRegistrationPage() {
       setEmailStatus({ status: 'idle' })
       return false
     }
-    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailPattern.test(value)) {
       setEmailStatus({ status: 'invalid', message: 'Enter a valid email address' })
       return false
@@ -226,7 +226,7 @@ export default function ParentRegistrationPage() {
       toast.error('Email is required')
       return false
     }
-    const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailPattern.test(formData.email)) {
       toast.error('Enter a valid email address')
       return false
@@ -288,7 +288,7 @@ export default function ParentRegistrationPage() {
         return false
       }
       if (student.childEmail) {
-        const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailPattern.test(student.childEmail)) {
           toast.error('Enter a valid child email address')
           return false
