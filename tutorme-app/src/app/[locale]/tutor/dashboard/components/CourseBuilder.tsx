@@ -900,10 +900,12 @@ function QuestionBankQuickImport({
   onImport,
   className,
   showOpenButton = true,
+  triggerClassName,
 }: {
   onImport: (questions: QuizQuestion[]) => void
   className?: string
   showOpenButton?: boolean
+  triggerClassName?: string
 }) {
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<QuestionBankItemLite[]>([])
@@ -931,11 +933,20 @@ function QuestionBankQuickImport({
     }
   }, [])
 
+  const handleSelect = (value: string) => {
+    setSelectedId(value)
+    const selected = items.find((item) => item.id === value)
+    if (!selected) return
+    onImport([mapQuestionBankToBuilderQuestion(selected)])
+    toast.success('Question imported from question bank')
+    setSelectedId('')
+  }
+
   return (
     <div className={cn("rounded border border-dashed p-2.5 bg-background/80", className)}>
       <div className="flex flex-wrap gap-2 items-center">
-        <Select value={selectedId} onValueChange={setSelectedId}>
-          <SelectTrigger className="min-w-[260px] h-8">
+        <Select value={selectedId} onValueChange={handleSelect}>
+          <SelectTrigger className={cn("min-w-[260px] h-8", triggerClassName)}>
             <SelectValue placeholder={loading ? 'Loading question bank...' : 'Import from question bank'} />
           </SelectTrigger>
           <SelectContent>
@@ -946,21 +957,6 @@ function QuestionBankQuickImport({
             ))}
           </SelectContent>
         </Select>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!selectedId}
-          onClick={() => {
-            const selected = items.find((item) => item.id === selectedId)
-            if (!selected) return
-            onImport([mapQuestionBankToBuilderQuestion(selected)])
-            toast.success('Question imported from question bank')
-            setSelectedId('')
-          }}
-        >
-          Upload from Question Bank
-        </Button>
         {showOpenButton && (
           <Button type="button" variant="ghost" size="sm" asChild>
             <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
@@ -1218,21 +1214,22 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
             Open Question Bank
           </a>
         </Button>
+        <QuestionBankQuickImport
+          className="border-0 p-0 bg-transparent"
+          triggerClassName="min-w-[220px]"
+          showOpenButton={false}
+          onImport={(incomingQuestions) => {
+            const next = {
+              ...data,
+              questions: [...(data.questions || []), ...incomingQuestions],
+            } as T
+            if ('submissionType' in next) {
+              ;(next as T & Record<'submissionType', unknown>).submissionType = 'questions'
+            }
+            setData(next)
+          }}
+        />
       </div>
-      <QuestionBankQuickImport
-        className="border-0 p-0 bg-transparent"
-        showOpenButton={false}
-        onImport={(incomingQuestions) => {
-          const next = {
-            ...data,
-            questions: [...(data.questions || []), ...incomingQuestions],
-          } as T
-          if ('submissionType' in next) {
-            ;(next as T & Record<'submissionType', unknown>).submissionType = 'questions'
-          }
-          setData(next)
-        }}
-      />
       {source && (
         <div className="space-y-2 rounded border bg-muted/20 p-3">
           <div className="text-xs text-muted-foreground">
@@ -3352,6 +3349,8 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   }
   const sourceDocument = normalizedItem.sourceDocument
   const questions = normalizedItem.questions ?? []
+  const totalQuestionPoints = questions.reduce((sum, question) => sum + (question.points || 0), 0)
+  const showPreviewBadges = !showLiveShareAction
   const isDraft = normalizedItem.isPublished === false
 
   const addPreviewQuestion = (type: QuizQuestion['type']) => {
@@ -3385,6 +3384,13 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   useEffect(() => {
     setResourceText(sourceDocument?.extractedText || '')
   }, [sourceDocument?.extractedText, sourceDocument?.fileName])
+
+  useEffect(() => {
+    if (!onUpdateItem) return
+    if ((normalizedItem.points || 0) !== totalQuestionPoints) {
+      onUpdateItem({ points: totalQuestionPoints } as PreviewUpdatePayload)
+    }
+  }, [normalizedItem.points, onUpdateItem, totalQuestionPoints])
 
   // Lesson preview
   if (type === 'lesson') {
@@ -3566,10 +3572,12 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {type === 'worksheet' && <FileText className="h-5 w-5 text-cyan-500" />}
           {type === 'moduleQuiz' && <FileQuestion className="h-5 w-5 text-red-500" />}
           <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-xs">{label}</Badge>
-              {isDraft && <Badge variant="secondary" className="text-xs">Draft</Badge>}
-            </div>
+            {showPreviewBadges && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className="text-xs">{label}</Badge>
+                {isDraft && <Badge variant="secondary" className="text-xs">Draft</Badge>}
+              </div>
+            )}
             <h3 className="font-semibold text-lg mt-1">{item.title}</h3>
           </div>
         </div>
@@ -3591,7 +3599,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {courseId && (
             <Button size="sm" onClick={handleGenerateAndPreviewPDF} disabled={publishing || questions.length === 0} className="gap-1">
               {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-              {showLiveShareAction ? 'Assign Individual Copies to Students' : 'Publish & Assign'}
+              {showLiveShareAction ? 'Assign' : 'Publish & Assign'}
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={onRemove} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -3622,7 +3630,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               targetField="instructions"
             />
           )}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1">
               <Label className="text-xs">Time (min)</Label>
               <Input
@@ -3635,42 +3643,17 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               <Label className="text-xs">Points</Label>
               <Input
                 type="number"
-                value={normalizedItem.points || 0}
-                onChange={(e) => onUpdateItem?.({ points: parseInt(e.target.value) || 0 })}
+                value={totalQuestionPoints}
+                readOnly
               />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Submission</Label>
-              <Select
-                value={normalizedItem.submissionType || 'text'}
-                onValueChange={(v) => {
-                  const next = type === 'task' ? (v as Task['submissionType']) : (v as Assessment['submissionType'])
-                  onUpdateItem?.({ submissionType: next } as PreviewUpdatePayload)
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="text">Text</SelectItem>
-                  <SelectItem value="file">File</SelectItem>
-                  <SelectItem value="link">Link</SelectItem>
-                  <SelectItem value="questions">Questions</SelectItem>
-                  {type === 'task' ? (
-                    <SelectItem value="none">None</SelectItem>
-                  ) : (
-                    <SelectItem value="multiple">Multiple</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2 pb-1">
+              <Switch
+                checked={(item as Task | Assessment).isAiGraded ?? false}
+                onCheckedChange={(checked) => onUpdateItem?.({ isAiGraded: checked })}
+              />
+              <Label className="text-sm">Enable AI grading assistance</Label>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={(item as Task | Assessment).isAiGraded ?? false}
-              onCheckedChange={(checked) => onUpdateItem?.({ isAiGraded: checked })}
-            />
-            <Label className="text-sm">Enable AI grading assistance</Label>
           </div>
         </div>
       )}
