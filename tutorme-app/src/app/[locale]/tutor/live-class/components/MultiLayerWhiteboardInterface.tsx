@@ -68,7 +68,8 @@ export function MultiLayerWhiteboardInterface({
   }, [socket])
 
   const handleShareRequestFromBuilder = useCallback((payload: VisibleDocumentPayload) => {
-    if (!userId || !payload.sourceDocument) return
+    if (!userId) return
+    const isQuestionShare = Array.isArray(payload.questions) && payload.questions.length > 0
     const shareId = `share-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const share: LiveSharedDocument = {
       shareId,
@@ -77,19 +78,20 @@ export function MultiLayerWhiteboardInterface({
       ownerName: userName,
       title: payload.title,
       description: payload.description,
-      fileUrl: payload.sourceDocument.fileUrl,
-      mimeType: payload.sourceDocument.mimeType,
+      fileUrl: payload.sourceDocument?.fileUrl,
+      mimeType: payload.sourceDocument?.mimeType,
       pdfRoomId: `${roomId}:pdf-share:${userId}:${shareId}`,
       visibleToAll: true,
-      allowCollaborativeWrite: true,
+      allowCollaborativeWrite: !isQuestionShare,
       collaborationPolicy: {
-        allowDrawing: true,
-        allowTyping: true,
-        allowShapes: true,
+        allowDrawing: !isQuestionShare,
+        allowTyping: !isQuestionShare,
+        allowShapes: !isQuestionShare,
       },
       active: true,
       submissions: [],
       updatedAt: Date.now(),
+      questions: payload.questions,
     }
     setShares((prev) => ({ ...prev, [shareId]: share }))
     publishShare(share)

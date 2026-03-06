@@ -131,6 +131,7 @@ export interface VisibleDocumentPayload {
   description?: string
   itemType: 'task' | 'homework' | 'worksheet' | 'moduleQuiz'
   sourceDocument?: ImportedLearningResource
+  questions?: QuizQuestion[]
 }
 
 export interface Task extends WithDifficultyVariants {
@@ -196,6 +197,8 @@ export interface QuizQuestion {
   correctAnswer?: string | string[]
   points: number
   explanation?: string
+  matchingPairs?: Array<{ left: string; right: string }>
+  extendEnabled?: boolean
 }
 
 export interface Quiz extends WithDifficultyVariants {
@@ -896,6 +899,68 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
   return { blob: pdfBlob, url: pdfUrl, fileName }
 }
 
+function formatMatchingExplanation(pairs: Array<{ left: string; right: string }>) {
+  if (pairs.length === 0) return ''
+  return ['Column A | Column B', ...pairs.map((pair) => `${pair.left} | ${pair.right}`)].join('\n')
+}
+
+function MatchingPairsEditor({
+  pairs,
+  onChange,
+}: {
+  pairs: Array<{ left: string; right: string }>
+  onChange: (next: Array<{ left: string; right: string }>) => void
+}) {
+  const updatePair = (index: number, field: 'left' | 'right', value: string) => {
+    const next = pairs.map((pair, idx) => (idx === index ? { ...pair, [field]: value } : pair))
+    onChange(next)
+  }
+
+  const addPair = () => onChange([...pairs, { left: '', right: '' }])
+  const removePair = (index: number) => onChange(pairs.filter((_, idx) => idx !== index))
+
+  return (
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-3 text-xs font-medium text-muted-foreground">
+        <span>Column A</span>
+        <span>Column B</span>
+      </div>
+      <div className="space-y-2">
+        {pairs.map((pair, idx) => (
+          <div key={`pair-${idx}`} className="grid grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
+            <Input
+              value={pair.left}
+              onChange={(e) => updatePair(idx, 'left', e.target.value)}
+              placeholder={`Left ${idx + 1}`}
+            />
+            <div className="text-xs text-muted-foreground">↔</div>
+            <Input
+              value={pair.right}
+              onChange={(e) => updatePair(idx, 'right', e.target.value)}
+              placeholder={`Right ${idx + 1}`}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => removePair(idx)}
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          </div>
+        ))}
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={addPair}>
+        <Plus className="h-3 w-3 mr-1" /> Add pair
+      </Button>
+      <div className="text-xs text-muted-foreground">
+        Use the arrow as a visual cue for linking pairs. Students will match Column A to Column B.
+      </div>
+    </div>
+  )
+}
+
 function QuestionBankQuickImport({
   onImport,
   className,
@@ -1553,12 +1618,20 @@ function AssessmentBuilderModal({
   const assessmentData = data as Assessment
 
   const addQuestion = (type: QuizQuestion['type']) => {
+    const matchingPairs = type === 'matching'
+      ? [
+          { left: '', right: '' },
+          { left: '', right: '' },
+        ]
+      : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
       type,
       question: '',
       points: 1,
-      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined
+      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      matchingPairs,
+      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
     }
     setData({ ...data, questions: [...(data.questions || []), newQuestion] })
   }
@@ -1717,7 +1790,17 @@ function AssessmentBuilderModal({
                     {(data.questions || []).map((q, idx) => (
                       <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
                         <div className="flex items-center justify-between">
-                          <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                          <div className="flex items-center gap-3">
+                            <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <input
+                                type="checkbox"
+                                checked={q.extendEnabled ?? false}
+                                onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                              />
+                              Extend
+                            </label>
+                          </div>
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
@@ -1814,6 +1897,18 @@ function AssessmentBuilderModal({
                               <span>False</span>
                             </label>
                           </div>
+                        )}
+                        {q.type === 'matching' && (
+                          <MatchingPairsEditor
+                            pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
+                            onChange={(nextPairs) =>
+                              updateQuestion(idx, {
+                                matchingPairs: nextPairs,
+                                correctAnswer: nextPairs.map((pair) => pair.right),
+                                explanation: formatMatchingExplanation(nextPairs),
+                              })
+                            }
+                          />
                         )}
                         <Textarea
                           value={q.explanation || ''}
@@ -2039,12 +2134,20 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
   const [showAnswerKey, setShowAnswerKey] = useState(false)
 
   const addQuestion = (type: QuizQuestion['type']) => {
+    const matchingPairs = type === 'matching'
+      ? [
+          { left: '', right: '' },
+          { left: '', right: '' },
+        ]
+      : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
       type,
       question: '',
       points: 1,
-      options: type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined
+      options: type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      matchingPairs,
+      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
     }
     setData({ ...data, questions: [...data.questions, newQuestion] })
   }
@@ -2201,7 +2304,17 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   {(data.questions || []).map((q, idx) => (
                     <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                          <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <input
+                              type="checkbox"
+                              checked={q.extendEnabled ?? false}
+                              onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                            />
+                            Extend
+                          </label>
+                        </div>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
@@ -2266,6 +2379,18 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                             <span>False</span>
                           </label>
                         </div>
+                      )}
+                      {q.type === 'matching' && (
+                        <MatchingPairsEditor
+                          pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
+                          onChange={(nextPairs) =>
+                            updateQuestion(idx, {
+                              matchingPairs: nextPairs,
+                              correctAnswer: nextPairs.map((pair) => pair.right),
+                              explanation: formatMatchingExplanation(nextPairs),
+                            })
+                          }
+                        />
                       )}
                       <Textarea
                         value={q.explanation || ''}
@@ -2432,12 +2557,20 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
 
   const addQuestion = async (type: QuizQuestion['type']) => {
+    const matchingPairs = type === 'matching'
+      ? [
+          { left: '', right: '' },
+          { left: '', right: '' },
+        ]
+      : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
       type,
       question: '',
       points: 1,
-      options: type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined
+      options: type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      matchingPairs,
+      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
     }
     setData({ ...data, questions: [...data.questions, newQuestion] })
     
@@ -2609,7 +2742,17 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                   {data.questions.map((q, idx) => (
                     <div key={q.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                          <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <input
+                              type="checkbox"
+                              checked={q.extendEnabled ?? false}
+                              onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                            />
+                            Extend
+                          </label>
+                        </div>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
@@ -2674,6 +2817,18 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                             <span>False</span>
                           </label>
                         </div>
+                      )}
+                      {q.type === 'matching' && (
+                        <MatchingPairsEditor
+                          pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
+                          onChange={(nextPairs) =>
+                            updateQuestion(idx, {
+                              matchingPairs: nextPairs,
+                              correctAnswer: nextPairs.map((pair) => pair.right),
+                              explanation: formatMatchingExplanation(nextPairs),
+                            })
+                          }
+                        />
                       )}
                       <Textarea
                         value={q.explanation || ''}
@@ -3338,15 +3493,24 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const totalQuestionPoints = questions.reduce((sum, question) => sum + (question.points || 0), 0)
   const showPreviewBadges = !showLiveShareAction
   const isDraft = normalizedItem.isPublished === false
+  const allExtendEnabled = questions.length > 0 && questions.every((q) => q.extendEnabled)
 
   const addPreviewQuestion = (type: QuizQuestion['type']) => {
     if (!onUpdateItem) return
+    const matchingPairs = type === 'matching'
+      ? [
+          { left: '', right: '' },
+          { left: '', right: '' },
+        ]
+      : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${generateId()}`,
       type,
       question: '',
       points: 1,
-      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined
+      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      matchingPairs,
+      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
     }
     onUpdateItem({
       questions: [...(normalizedItem.questions || []), newQuestion],
@@ -3477,6 +3641,27 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
     }
   }
 
+  const handleAssignToLiveClass = () => {
+    if (!showLiveShareAction || !onMakeVisibleToStudents) return
+    if (questions.length === 0) {
+      toast.error('No questions to assign')
+      return
+    }
+    onMakeVisibleToStudents({
+      title: item.title,
+      description: normalizedItem.description,
+      itemType: type,
+      questions,
+    })
+    toast.success('Assigned to live class')
+  }
+
+  const toggleAllExtend = (checked: boolean) => {
+    if (!onUpdateItem) return
+    const nextQuestions = questions.map((q) => ({ ...q, extendEnabled: checked }))
+    onUpdateItem({ questions: nextQuestions } as PreviewUpdatePayload)
+  }
+
   const handleConfirmPublish = async () => {
     if (!courseId) { toast.error('Course ID not available'); return }
     if (!generatedPdf) return
@@ -3572,6 +3757,12 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             <PenTool className="h-3 w-3" />
             Edit
           </Button>
+          {isActivity && (
+            <div className="flex items-center gap-2 rounded-md border px-2 py-1">
+              <Switch checked={allExtendEnabled} onCheckedChange={toggleAllExtend} />
+              <Label className="text-xs">Extend</Label>
+            </div>
+          )}
           <Button variant="outline" size="sm" onClick={onDuplicate} className="gap-1">
             <Copy className="h-3 w-3" />
             Duplicate
@@ -3579,11 +3770,16 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {questions.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setStudentPreviewOpen(true)} className="gap-1">
               <Eye className="h-3 w-3" />
-              Preview as Student
+              Student View
             </Button>
           )}
           {courseId && (
-            <Button size="sm" onClick={handleGenerateAndPreviewPDF} disabled={publishing || questions.length === 0} className="gap-1">
+            <Button
+              size="sm"
+              onClick={showLiveShareAction ? handleAssignToLiveClass : handleGenerateAndPreviewPDF}
+              disabled={publishing || questions.length === 0}
+              className="gap-1"
+            >
               {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
               {showLiveShareAction ? 'Assign' : 'Publish & Assign'}
             </Button>
@@ -3712,7 +3908,17 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             {(questions || []).map((q, idx) => (
               <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                    <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={q.extendEnabled ?? false}
+                        onChange={(e) => updatePreviewQuestion(idx, { extendEnabled: e.target.checked })}
+                      />
+                      Extend
+                    </label>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
@@ -3803,6 +4009,18 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                       <span>False</span>
                     </label>
                   </div>
+                )}
+                {q.type === 'matching' && (
+                  <MatchingPairsEditor
+                    pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
+                    onChange={(nextPairs) =>
+                      updatePreviewQuestion(idx, {
+                        matchingPairs: nextPairs,
+                        correctAnswer: nextPairs.map((pair) => pair.right),
+                        explanation: formatMatchingExplanation(nextPairs),
+                      })
+                    }
+                  />
                 )}
                 <Textarea
                   value={q.explanation || ''}
