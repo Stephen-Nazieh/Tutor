@@ -3,7 +3,7 @@ import path from 'path'
 import { mkdir, writeFile } from 'fs/promises'
 import bcrypt from 'bcryptjs'
 import { nanoid } from 'nanoid'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   user,
@@ -56,6 +56,38 @@ async function generateUniqueUsername(
     if (!exists) return candidate
   }
   return `tutor${nanoid(8).toLowerCase()}`
+}
+
+async function ensureTutorApplicationTable(tx: { execute: (query: any) => Promise<unknown> }) {
+  await tx.execute(sql`
+    CREATE TABLE IF NOT EXISTS "TutorApplication" (
+      "id" text PRIMARY KEY NOT NULL,
+      "userId" text NOT NULL UNIQUE,
+      "firstName" text NOT NULL,
+      "middleName" text,
+      "lastName" text NOT NULL,
+      "legalName" text NOT NULL,
+      "countryOfResidence" text NOT NULL,
+      "phoneCountryCode" text NOT NULL,
+      "phoneNumber" text NOT NULL,
+      "educationLevel" text NOT NULL,
+      "hasTeachingCertificate" boolean NOT NULL,
+      "certificateName" text,
+      "certificateSubjects" text,
+      "tutoringExperienceRange" text NOT NULL,
+      "globalExams" jsonb NOT NULL,
+      "tutoringCountries" text[] NOT NULL,
+      "countrySubjectSelections" jsonb NOT NULL,
+      "categories" text[] NOT NULL,
+      "username" text NOT NULL,
+      "socialLinks" jsonb,
+      "serviceDescription" text NOT NULL,
+      "createdAt" timestamptz NOT NULL DEFAULT now(),
+      "updatedAt" timestamptz NOT NULL DEFAULT now()
+    );
+  `)
+  await tx.execute(sql`CREATE INDEX IF NOT EXISTS "TutorApplication_userId_idx" ON "TutorApplication" ("userId");`)
+  await tx.execute(sql`CREATE INDEX IF NOT EXISTS "TutorApplication_username_idx" ON "TutorApplication" ("username");`)
 }
 
 async function saveAvatar(userId: string, avatarFile: File): Promise<string> {
@@ -226,7 +258,7 @@ export async function performRegistration(
         })
         .where(eq(profile.userId, userId))
 
-      await tx.insert(tutorApplication).values({
+      const tutorApplicationValues = {
         id: crypto.randomUUID(),
         userId,
         firstName: tutorData.firstName,
@@ -248,7 +280,19 @@ export async function performRegistration(
         username: defaultUsername ?? tutorData.username,
         socialLinks: tutorData.socialLinks ?? null,
         serviceDescription: tutorData.serviceDescription,
-      })
+      }
+
+      try {
+        await tx.insert(tutorApplication).values(tutorApplicationValues)
+      } catch (error) {
+        const err = error as { code?: string; message?: string }
+        if (err.code === '42P01' || (err.message ?? '').includes('TutorApplication')) {
+          await ensureTutorApplicationTable(tx)
+          await tx.insert(tutorApplication).values(tutorApplicationValues)
+        } else {
+          throw error
+        }
+      }
     }
 
     if (role === 'PARENT') {
