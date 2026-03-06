@@ -3334,7 +3334,10 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   }
 
   const isQuiz = type === 'moduleQuiz'
-  const label = type === 'moduleQuiz' ? 'Exam' : type === 'task' ? 'Task' : type === 'homework' ? 'Assessment' : type === 'worksheet' ? 'Worksheet' : 'Assessment'
+  const homeworkLabel = type === 'homework' && (item as Assessment).category === 'homework' ? 'Homework' : 'Assessment'
+  const label = type === 'moduleQuiz' ? 'Exam' : type === 'task' ? 'Task' : type === 'homework' ? homeworkLabel : type === 'worksheet' ? 'Worksheet' : 'Assessment'
+  const isActivity = type === 'task' || type === 'homework'
+  const activityLabel = type === 'task' ? 'Task' : homeworkLabel
 
   const handleGenerateAndPreviewPDF = () => {
     if (questions.length === 0) {
@@ -3480,14 +3483,23 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           <p className="text-sm whitespace-pre-wrap">{normalizedItem.instructions}</p>
         </div>
       )}
-      {type === 'task' && (
+      {isActivity && (
         <div className="space-y-3 rounded-lg border p-3">
-          <h4 className="text-sm font-medium">Task Settings</h4>
+          <h4 className="text-sm font-medium">{activityLabel} Settings</h4>
           {onUpdateItem && (
             <ResourceImportPanel
               data={item as Task}
-              setData={(next) => onUpdateItem(next as Task)}
+              setData={(next) => onUpdateItem(next as PreviewUpdatePayload)}
               targetField="instructions"
+            />
+          )}
+          {onUpdateItem && (
+            <QuestionBankQuickImport
+              onImport={(incomingQuestions) =>
+                onUpdateItem({
+                  questions: [...(normalizedItem.questions || []), ...incomingQuestions],
+                } as PreviewUpdatePayload)
+              }
             />
           )}
           <div className="grid grid-cols-3 gap-3">
@@ -3495,23 +3507,25 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               <Label className="text-xs">Time (min)</Label>
               <Input
                 type="number"
-                value={(item as Task).estimatedMinutes}
-                onChange={(e) => onUpdateItem?.({ estimatedMinutes: parseInt(e.target.value) || 15 })}
+                value={normalizedItem.estimatedMinutes || 0}
+                onChange={(e) => onUpdateItem?.({ estimatedMinutes: parseInt(e.target.value) || 0 })}
               />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Points</Label>
               <Input
                 type="number"
-                value={(item as Task).points}
-                onChange={(e) => onUpdateItem?.({ points: parseInt(e.target.value) || 10 })}
+                value={normalizedItem.points || 0}
+                onChange={(e) => onUpdateItem?.({ points: parseInt(e.target.value) || 0 })}
               />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Submission</Label>
               <Select
-                value={(item as Task).submissionType}
-                onValueChange={(v: Task['submissionType']) => onUpdateItem?.({ submissionType: v })}
+                value={normalizedItem.submissionType || 'text'}
+                onValueChange={(v) =>
+                  onUpdateItem?.({ submissionType: v } as PreviewUpdatePayload)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -3521,14 +3535,18 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                   <SelectItem value="file">File</SelectItem>
                   <SelectItem value="link">Link</SelectItem>
                   <SelectItem value="questions">Questions</SelectItem>
-                  <SelectItem value="none">None</SelectItem>
+                  {type === 'task' ? (
+                    <SelectItem value="none">None</SelectItem>
+                  ) : (
+                    <SelectItem value="multiple">Multiple</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Switch
-              checked={(item as Task).isAiGraded}
+              checked={(item as Task | Assessment).isAiGraded ?? false}
               onCheckedChange={(checked) => onUpdateItem?.({ isAiGraded: checked })}
             />
             <Label className="text-sm">Enable AI grading assistance</Label>
