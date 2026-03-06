@@ -2567,7 +2567,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               )}
               <div className="space-y-3 rounded-lg border bg-white p-3">
                 <h4 className="text-sm font-medium">Settings</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-4 gap-3">
                   <div className="space-y-1">
                     <Label className="text-xs">Time (min)</Label>
                     <Input
@@ -2585,39 +2585,40 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Submission</Label>
-                    <Select
-                      value={data.submissionType}
-                      onValueChange={(v: Assessment['submissionType']) => setData({ ...data, submissionType: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="file">File</SelectItem>
-                        <SelectItem value="link">Link</SelectItem>
-                        <SelectItem value="multiple">Multiple</SelectItem>
-                        <SelectItem value="questions">Questions</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-xs">Passing Score (%)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={data.passingScore}
+                      onChange={(e) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Max Attempts</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={data.maxAttempts}
+                      onChange={(e) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
+                      disabled={!data.allowMultipleAttempts}
+                    />
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <Switch
-                      checked={data.showCorrectAnswers ?? true}
-                      onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
-                      disabled={data.answersNeverVisible}
+                      checked={data.allowMultipleAttempts}
+                      onCheckedChange={(checked) => setData({ ...data, allowMultipleAttempts: checked })}
                     />
-                    <Label className="text-sm">Show correct answers</Label>
+                    <Label className="text-sm">Allow multiple attempts</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
-                      checked={data.answersNeverVisible ?? false}
-                      onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
+                      checked={data.showCorrectAnswers}
+                      onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
                     />
-                    <Label className="text-sm">Never show answers</Label>
+                    <Label className="text-sm">Show correct answers after submission</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
@@ -2625,13 +2626,6 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
                     />
                     <Label className="text-sm">Randomize question order</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={data.isAiGraded ?? false}
-                      onCheckedChange={(checked) => setData({ ...data, isAiGraded: checked })}
-                    />
-                    <Label className="text-sm">Enable AI grading assistance</Label>
                   </div>
                 </div>
               </div>
