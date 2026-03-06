@@ -896,7 +896,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
   return { blob: pdfBlob, url: pdfUrl, fileName }
 }
 
-function QuestionBankQuickImport({ onImport }: { onImport: (questions: QuizQuestion[]) => void }) {
+function QuestionBankQuickImport({ onImport, className }: { onImport: (questions: QuizQuestion[]) => void; className?: string }) {
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<QuestionBankItemLite[]>([])
   const [selectedId, setSelectedId] = useState('')
@@ -924,7 +924,7 @@ function QuestionBankQuickImport({ onImport }: { onImport: (questions: QuizQuest
   }, [])
 
   return (
-    <div className="rounded border border-dashed p-2.5 bg-background/80">
+    <div className={cn("rounded border border-dashed p-2.5 bg-background/80", className)}>
       <div className="flex flex-wrap gap-2 items-center">
         <Select value={selectedId} onValueChange={setSelectedId}>
           <SelectTrigger className="min-w-[260px] h-8">
@@ -1182,7 +1182,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
 
   return (
     <div className="space-y-3 rounded-lg border border-dashed p-3">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" size="sm" disabled={extracting} asChild>
           <label className="cursor-pointer">
             {extracting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Upload className="mr-1 h-3 w-3" />}
@@ -1203,6 +1203,16 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
             Open Resources
           </a>
         </Button>
+        <QuestionBankQuickImport
+          className="border-0 p-0 bg-transparent"
+          onImport={(incomingQuestions) =>
+            setData({
+              ...data,
+              questions: [...(data.questions || []), ...incomingQuestions],
+              submissionType: 'questions' as T extends Task ? Task['submissionType'] : Assessment['submissionType'],
+            } as T)
+          }
+        />
       </div>
       {source && (
         <div className="space-y-2 rounded border bg-muted/20 p-3">
@@ -3532,6 +3542,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               onImport={(incomingQuestions) =>
                 onUpdateItem({
                   questions: [...(normalizedItem.questions || []), ...incomingQuestions],
+                  submissionType: 'questions',
                 } as PreviewUpdatePayload)
               }
             />
@@ -3557,9 +3568,10 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               <Label className="text-xs">Submission</Label>
               <Select
                 value={normalizedItem.submissionType || 'text'}
-                onValueChange={(v) =>
-                  onUpdateItem?.({ submissionType: v } as PreviewUpdatePayload)
-                }
+                onValueChange={(v) => {
+                  const next = type === 'task' ? (v as Task['submissionType']) : (v as Assessment['submissionType'])
+                  onUpdateItem?.({ submissionType: next } as PreviewUpdatePayload)
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
