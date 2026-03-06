@@ -1040,7 +1040,7 @@ function ManualQuestionComposer({
   )
 }
 
-function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResource }>({
+function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResource; questions?: QuizQuestion[]; submissionType?: string }>({
   data,
   setData,
   targetField,
@@ -1126,7 +1126,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
       if (!String(currentTarget || '').trim() && extractedText) {
         setData({ ...data, sourceDocument, [targetField]: extractedText.slice(0, 4000) } as T)
       } else {
-        setData({ ...data, sourceDocument })
+        setData({ ...data, sourceDocument } as T)
       }
       toast.success('Document imported. You can edit it in preview.')
     } catch {
@@ -1211,7 +1211,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
               questions: [...(data.questions || []), ...incomingQuestions],
             } as T
             if ('submissionType' in next) {
-              ;(next as Task).submissionType = 'questions'
+              ;(next as T & Record<'submissionType', unknown>).submissionType = 'questions'
             }
             setData(next)
           }}
@@ -1625,35 +1625,49 @@ function AssessmentBuilderModal({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Submission</Label>
-                  <Select
-                    value={data.submissionType}
-                    onValueChange={(v) =>
-                      setData({
-                        ...data,
-                        submissionType: (isTask ? (v as Task['submissionType']) : (v as Assessment['submissionType'])),
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="text">Text</SelectItem>
-                      <SelectItem value="file">File</SelectItem>
-                      <SelectItem value="link">Link</SelectItem>
-                      {isTask ? (
-                        <>
-                          <SelectItem value="questions">Questions</SelectItem>
-                          <SelectItem value="none">None</SelectItem>
-                        </>
-                      ) : (
-                        <>
-                          <SelectItem value="multiple">Multiple</SelectItem>
-                          <SelectItem value="questions">Questions</SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
+                  {isTask ? (
+                    <Select
+                      value={data.submissionType as Task['submissionType']}
+                      onValueChange={(v) =>
+                        setData({
+                          ...(data as Task),
+                          submissionType: v as Task['submissionType'],
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="file">File</SelectItem>
+                        <SelectItem value="link">Link</SelectItem>
+                        <SelectItem value="questions">Questions</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select
+                      value={data.submissionType as Assessment['submissionType']}
+                      onValueChange={(v) =>
+                        setData({
+                          ...(data as Assessment),
+                          submissionType: v as Assessment['submissionType'],
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="file">File</SelectItem>
+                        <SelectItem value="link">Link</SelectItem>
+                        <SelectItem value="multiple">Multiple</SelectItem>
+                        <SelectItem value="questions">Questions</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
