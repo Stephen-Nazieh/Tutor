@@ -3216,13 +3216,15 @@ function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]
   )
 }
 
+type PreviewUpdatePayload = Partial<Task> | Partial<Assessment> | Partial<Worksheet>
+
 interface PreviewCardProps {
   type: 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'lesson' | 'module'
   item: Task | Assessment | Worksheet | Quiz | Lesson | Module
   onEdit: () => void
   onDuplicate: () => void
   onRemove: () => void
-  onUpdateItem?: (updates: Partial<Task | Assessment | Worksheet>) => void
+  onUpdateItem?: (updates: PreviewUpdatePayload) => void
   courseId?: string
   lessonId?: string
   showLiveShareAction?: boolean
@@ -4474,7 +4476,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     )
   }
 
-  const updateSelectedItem = (updates: Partial<Task | Assessment | Worksheet>) => {
+  const updateSelectedItem = (updates: PreviewUpdatePayload) => {
     if (!selectedItem) return
     const target = resolveSelectedItem(selectedItem, modules)
     if (!target?.lessonId) return
@@ -4487,21 +4489,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           lessons: mod.lessons.map((lesson) => {
             if (lesson.id !== target.lessonId) return lesson
             if (selectedItem.type === 'task') {
+              const taskUpdates = updates as Partial<Task>
               return {
                 ...lesson,
-                tasks: lesson.tasks.map((task) => task.id === selectedItem.id ? { ...task, ...updates } : task),
+                tasks: lesson.tasks.map((task) => task.id === selectedItem.id ? { ...task, ...taskUpdates } : task),
               }
             }
             if (selectedItem.type === 'homework') {
+              const homeworkUpdates = updates as Partial<Assessment>
               return {
                 ...lesson,
-                homework: lesson.homework.map((hw) => hw.id === selectedItem.id ? { ...hw, ...updates } : hw),
+                homework: lesson.homework.map((hw) => hw.id === selectedItem.id ? { ...hw, ...homeworkUpdates } : hw),
               }
             }
             if (selectedItem.type === 'worksheet') {
+              const worksheetUpdates = updates as Partial<Worksheet>
               return {
                 ...lesson,
-                worksheets: (lesson.worksheets || []).map((ws) => ws.id === selectedItem.id ? { ...ws, ...updates } : ws),
+                worksheets: (lesson.worksheets || []).map((ws) => ws.id === selectedItem.id ? { ...ws, ...worksheetUpdates } : ws),
               }
             }
             return lesson
