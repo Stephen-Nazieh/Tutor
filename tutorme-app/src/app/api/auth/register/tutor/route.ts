@@ -50,6 +50,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
       }
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const message =
+      process.env.NODE_ENV === 'development'
+        ? err.message || 'Internal server error. Please try again.'
+        : err.message || 'Internal server error. Please try again.'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

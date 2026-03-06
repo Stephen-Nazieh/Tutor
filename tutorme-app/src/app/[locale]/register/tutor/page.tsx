@@ -11,12 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound } from 'lucide-react'
+import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound, ChevronDown } from 'lucide-react'
 import {
   GLOBAL_EXAM_CATEGORIES,
-  subjectsForCountry,
 } from '@/lib/tutoring/categories'
 import { ALL_COUNTRIES, findCountryByName } from '@/lib/geo/countries'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 type GlobalExamState = {
   standardizedEnglish: string[]
@@ -62,12 +62,258 @@ const CERTIFICATE_OPTIONS = [
   'National Board Certification (NBCT)',
 ]
 
+const REGION_OPTIONS = [
+  'Worldwide',
+  'Africa',
+  'Asia',
+  'Europe',
+  'North America',
+  'South America',
+  'Oceania',
+  'Middle East',
+  'Other',
+]
+
+const REGION_COUNTRY_MAP: Record<string, string[]> = {
+  Africa: [
+    'Algeria',
+    'Angola',
+    'Benin',
+    'Botswana',
+    'Burkina Faso',
+    'Burundi',
+    'Cabo Verde',
+    'Cameroon',
+    'Central African Republic',
+    'Chad',
+    'Comoros',
+    'Congo (Congo-Brazzaville)',
+    'Congo (DRC)',
+    "Côte d’Ivoire",
+    'Djibouti',
+    'Egypt',
+    'Equatorial Guinea',
+    'Eritrea',
+    'Eswatini',
+    'Ethiopia',
+    'Gabon',
+    'Gambia',
+    'Ghana',
+    'Guinea',
+    'Guinea-Bissau',
+    'Kenya',
+    'Lesotho',
+    'Liberia',
+    'Libya',
+    'Madagascar',
+    'Malawi',
+    'Mali',
+    'Mauritania',
+    'Mauritius',
+    'Morocco',
+    'Mozambique',
+    'Namibia',
+    'Niger',
+    'Nigeria',
+    'Rwanda',
+    'Sao Tome and Principe',
+    'Senegal',
+    'Seychelles',
+    'Sierra Leone',
+    'Somalia',
+    'South Africa',
+    'South Sudan',
+    'Sudan',
+    'Tanzania',
+    'Togo',
+    'Tunisia',
+    'Uganda',
+    'Zambia',
+    'Zimbabwe',
+    'Western Sahara',
+  ],
+  Asia: [
+    'Afghanistan',
+    'Armenia',
+    'Azerbaijan',
+    'Bahrain',
+    'Bangladesh',
+    'Bhutan',
+    'Brunei',
+    'Cambodia',
+    'China',
+    'Georgia',
+    'India',
+    'Indonesia',
+    'Japan',
+    'Kazakhstan',
+    'Kyrgyzstan',
+    'Laos',
+    'Malaysia',
+    'Maldives',
+    'Mongolia',
+    'Myanmar (Burma)',
+    'Nepal',
+    'North Korea',
+    'Pakistan',
+    'Philippines',
+    'Singapore',
+    'South Korea',
+    'Sri Lanka',
+    'Taiwan',
+    'Tajikistan',
+    'Thailand',
+    'Timor-Leste',
+    'Turkmenistan',
+    'Uzbekistan',
+    'Vietnam',
+  ],
+  Europe: [
+    'Albania',
+    'Andorra',
+    'Austria',
+    'Belarus',
+    'Belgium',
+    'Bosnia and Herzegovina',
+    'Bulgaria',
+    'Croatia',
+    'Cyprus',
+    'Czechia',
+    'Denmark',
+    'Estonia',
+    'Finland',
+    'France',
+    'Germany',
+    'Greece',
+    'Hungary',
+    'Iceland',
+    'Ireland',
+    'Italy',
+    'Kosovo',
+    'Latvia',
+    'Liechtenstein',
+    'Lithuania',
+    'Luxembourg',
+    'Malta',
+    'Moldova',
+    'Monaco',
+    'Montenegro',
+    'Netherlands',
+    'North Macedonia',
+    'Norway',
+    'Poland',
+    'Portugal',
+    'Romania',
+    'Russia',
+    'San Marino',
+    'Serbia',
+    'Slovakia',
+    'Slovenia',
+    'Spain',
+    'Sweden',
+    'Switzerland',
+    'Ukraine',
+    'United Kingdom',
+    'Vatican City',
+  ],
+  'North America': [
+    'Antigua and Barbuda',
+    'Bahamas',
+    'Barbados',
+    'Belize',
+    'Canada',
+    'Costa Rica',
+    'Cuba',
+    'Dominica',
+    'Dominican Republic',
+    'El Salvador',
+    'Grenada',
+    'Guatemala',
+    'Haiti',
+    'Honduras',
+    'Jamaica',
+    'Mexico',
+    'Nicaragua',
+    'Panama',
+    'Saint Kitts and Nevis',
+    'Saint Lucia',
+    'Saint Vincent and the Grenadines',
+    'Trinidad and Tobago',
+    'United States',
+    'Puerto Rico',
+    'Greenland',
+    'Bermuda',
+  ],
+  'South America': [
+    'Argentina',
+    'Bolivia',
+    'Brazil',
+    'Chile',
+    'Colombia',
+    'Ecuador',
+    'Guyana',
+    'Paraguay',
+    'Peru',
+    'Suriname',
+    'Uruguay',
+    'Venezuela',
+    'Falkland Islands',
+  ],
+  Oceania: [
+    'Australia',
+    'Fiji',
+    'Kiribati',
+    'Marshall Islands',
+    'Micronesia',
+    'Nauru',
+    'New Zealand',
+    'Palau',
+    'Papua New Guinea',
+    'Samoa',
+    'Solomon Islands',
+    'Tonga',
+    'Tuvalu',
+    'Vanuatu',
+    'New Caledonia',
+    'French Polynesia',
+    'Guam',
+    'American Samoa',
+  ],
+  'Middle East': [
+    'Algeria',
+    'Bahrain',
+    'Egypt',
+    'Iran',
+    'Iraq',
+    'Israel',
+    'Jordan',
+    'Kuwait',
+    'Lebanon',
+    'Libya',
+    'Oman',
+    'Palestine',
+    'Qatar',
+    'Saudi Arabia',
+    'Syria',
+    'Turkey',
+    'United Arab Emirates',
+    'Yemen',
+  ],
+}
+
+const COUNTRY_TO_REGION = new Map<string, string>()
+Object.entries(REGION_COUNTRY_MAP).forEach(([region, countries]) => {
+  countries.forEach((country) => COUNTRY_TO_REGION.set(country, region))
+})
+
+const resolveRegionForCountry = (country: string) => COUNTRY_TO_REGION.get(country) ?? 'Other'
+
 export default function TutorRegistrationPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState(1)
-  const [activeCountry, setActiveCountry] = useState('')
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [usernameStatus, setUsernameStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken'; message?: string; suggestion?: string }>({
     status: 'idle',
   })
@@ -126,12 +372,16 @@ export default function TutorRegistrationPage() {
     categories.push(...formData.globalExams.apAdvancedPlacement)
     categories.push(...formData.globalExams.internationalAS)
 
-    Object.entries(formData.countrySubjectSelections).forEach(([country, subjects]) => {
-      subjects.forEach((subject) => categories.push(`${country}: ${subject}`))
-    })
-
     return Array.from(new Set(categories))
-  }, [formData.countrySubjectSelections, formData.globalExams])
+  }, [formData.globalExams])
+
+  const availableCountries = useMemo(() => {
+    if (selectedRegions.length === 0 || selectedRegions.includes('Worldwide')) {
+      return ALL_COUNTRIES
+    }
+    const selected = new Set(selectedRegions)
+    return ALL_COUNTRIES.filter((country) => selected.has(resolveRegionForCountry(country.name)))
+  }, [selectedRegions])
 
   const toggleGlobalExam = (categoryId: keyof GlobalExamState, exam: string) => {
     setFormData((prev) => {
@@ -155,38 +405,31 @@ export default function TutorRegistrationPage() {
         ? prev.tutoringCountries.filter((c) => c !== country)
         : [...prev.tutoringCountries, country]
 
-      const nextSelections = { ...prev.countrySubjectSelections }
-      if (!nextCountries.includes(country)) {
-        delete nextSelections[country]
-      }
-
       return {
         ...prev,
         tutoringCountries: nextCountries,
-        countrySubjectSelections: nextSelections,
       }
-    })
-
-    setActiveCountry((prev) => {
-      if (!nextCountries.length) return ''
-      if (!nextCountries.includes(prev)) return nextCountries[0]
-      return prev
     })
   }
 
-  const toggleCountrySubject = (country: string, subject: string) => {
-    setFormData((prev) => {
-      const existing = prev.countrySubjectSelections[country] || []
-      const next = existing.includes(subject)
-        ? existing.filter((item) => item !== subject)
-        : [...existing, subject]
-      return {
-        ...prev,
-        countrySubjectSelections: {
-          ...prev.countrySubjectSelections,
-          [country]: next,
-        },
+  const toggleRegion = (region: string) => {
+    setSelectedRegions((prev) => {
+      if (region === 'Worldwide') {
+        setFormData((current) => ({
+          ...current,
+          tutoringCountries: ALL_COUNTRIES.map((c) => c.name),
+        }))
+        return ['Worldwide']
       }
+
+      let next = prev.includes(region)
+        ? prev.filter((item) => item !== region)
+        : [...prev.filter((item) => item !== 'Worldwide'), region]
+
+      if (!next.length) {
+        next = []
+      }
+      return next
     })
   }
 
@@ -818,48 +1061,57 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label>What countries do you want to offer your tutoring to?</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {ALL_COUNTRIES.map((country) => (
-                      <label key={country.code} className="flex items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={formData.tutoringCountries.includes(country.name)}
-                          onCheckedChange={() => toggleCountry(country.name)}
-                        />
-                        {country.name}
-                      </label>
-                    ))}
-                  </div>
+                  <Label>Which regions or continents do you want to offer tutoring in?</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        {selectedRegions.length ? selectedRegions.join(', ') : 'Select regions'}
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 max-h-72 overflow-y-auto">
+                      <div className="space-y-2">
+                        {REGION_OPTIONS.map((region) => (
+                          <label key={region} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={selectedRegions.includes(region)}
+                              onCheckedChange={() => toggleRegion(region)}
+                            />
+                            {region}
+                          </label>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Subjects and Exams by Country</Label>
-                  <Select
-                    value={activeCountry}
-                    onValueChange={(value) => setActiveCountry(value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a country to assign subjects" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formData.tutoringCountries.map((country) => (
-                        <SelectItem key={country} value={country}>{country}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {activeCountry && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {subjectsForCountry(activeCountry).map((subject) => (
-                        <label key={subject} className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            checked={(formData.countrySubjectSelections[activeCountry] || []).includes(subject)}
-                            onCheckedChange={() => toggleCountrySubject(activeCountry, subject)}
-                          />
-                          {subject}
-                        </label>
-                      ))}
-                    </div>
+                  <Label>Which countries do you want to offer your tutoring to?</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        {formData.tutoringCountries.length
+                          ? `${formData.tutoringCountries.length} selected`
+                          : 'Select countries'}
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-96 max-h-72 overflow-y-auto">
+                      <div className="space-y-2">
+                        {availableCountries.map((country) => (
+                          <label key={country.code} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={formData.tutoringCountries.includes(country.name)}
+                              onCheckedChange={() => toggleCountry(country.name)}
+                            />
+                            {country.name}
+                          </label>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  {selectedRegions.length > 0 && !selectedRegions.includes('Worldwide') && availableCountries.length === 0 && (
+                    <p className="text-xs text-gray-500">No countries mapped for those regions yet. Try adding “Other” or “Worldwide”.</p>
                   )}
                 </div>
 
