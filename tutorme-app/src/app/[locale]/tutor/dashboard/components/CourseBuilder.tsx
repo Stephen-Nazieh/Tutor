@@ -1214,21 +1214,6 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
             Open Question Bank
           </a>
         </Button>
-        <QuestionBankQuickImport
-          className="border-0 p-0 bg-transparent"
-          triggerClassName="min-w-[220px]"
-          showOpenButton={false}
-          onImport={(incomingQuestions) => {
-            const next = {
-              ...data,
-              questions: [...(data.questions || []), ...incomingQuestions],
-            } as T
-            if ('submissionType' in next) {
-              ;(next as T & Record<'submissionType', unknown>).submissionType = 'questions'
-            }
-            setData(next)
-          }}
-        />
       </div>
       {source && (
         <div className="space-y-2 rounded border bg-muted/20 p-3">
@@ -3325,9 +3310,10 @@ interface PreviewCardProps {
   lessonId?: string
   showLiveShareAction?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
+  onSaveAll?: () => void
 }
 
-function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, courseId, lessonId, showLiveShareAction, onMakeVisibleToStudents }: PreviewCardProps) {
+function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, courseId, lessonId, showLiveShareAction, onMakeVisibleToStudents, onSaveAll }: PreviewCardProps) {
   const [studentPreviewOpen, setStudentPreviewOpen] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [resourceText, setResourceText] = useState('')
@@ -3887,6 +3873,14 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               Save Imported Content
             </Button>
           </div>
+        </div>
+      )}
+      {onSaveAll && (
+        <div className="flex justify-end border-t pt-3">
+          <Button size="sm" onClick={onSaveAll} className="gap-1">
+            <Save className="h-3 w-3" />
+            Save
+          </Button>
         </div>
       )}
       {studentPreviewOpen && questions.length > 0 && (
@@ -4845,6 +4839,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     )
   }
 
+  const handleSaveAll = () => {
+    if (!onSave) return
+    onSave(modules, { developmentMode: devMode, previewDifficulty })
+  }
+
   return (
     <div className={cn("space-y-4", panelMode === 'live-class' && "pt-3")}>
       {/* DIFFICULTY DEVELOPMENT MODE HEADER */}
@@ -5614,6 +5613,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                     lessonId={lessonId}
                     showLiveShareAction={panelMode === 'live-class'}
                     onMakeVisibleToStudents={onMakeVisibleToStudents}
+                    onSaveAll={onSave ? handleSaveAll : undefined}
                   />
                 )
               })()}
