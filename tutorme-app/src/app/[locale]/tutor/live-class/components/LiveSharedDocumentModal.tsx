@@ -177,6 +177,10 @@ export function LiveSharedDocumentModal({
       }
     }
 
+    const isLast = currentIndex + 1 >= questions.length
+    if (isLast && onSubmitToTutor && viewerRole === 'student') {
+      onSubmitToTutor()
+    }
     setCurrentIndex((prev) => Math.min(prev + 1, questions.length))
   }
 
