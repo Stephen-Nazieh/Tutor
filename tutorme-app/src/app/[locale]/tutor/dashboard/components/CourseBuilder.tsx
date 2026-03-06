@@ -2083,13 +2083,6 @@ function AssessmentBuilderModal({
                       />
                       <Label className="text-sm">Randomize question order</Label>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={assessmentData.isAiGraded ?? false}
-                        onCheckedChange={(checked) => setData({ ...assessmentData, isAiGraded: checked })}
-                      />
-                      <Label className="text-sm">Enable AI grading assistance</Label>
-                    </div>
                   </div>
                 </div>
               )}
@@ -3792,13 +3785,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                 readOnly
               />
             </div>
-            <div className="flex items-center gap-2 pb-1">
-              <Switch
-                checked={(item as Task | Assessment).isAiGraded ?? false}
-                onCheckedChange={(checked) => onUpdateItem?.({ isAiGraded: checked })}
-              />
-              <Label className="text-sm">Enable AI grading assistance</Label>
-            </div>
+
           </div>
         </div>
       )}
