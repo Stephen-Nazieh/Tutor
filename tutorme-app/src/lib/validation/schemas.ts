@@ -129,12 +129,14 @@ export const UpdateProfileSchema = z.object({
 // Class & Live Session Schemas
 // ============================================
 
+const cuidOrUuid = z.string().uuid().or(z.string().cuid())
+
 export const CreateRoomSchema = z.object({
     title: z.string().min(3, 'Title must be at least 3 characters').max(100).optional(),
     subject: z.string().min(2, 'Subject must be at least 2 characters').max(50),
     description: z.string().max(1000).optional(),
     gradeLevel: z.string().optional(),
-    curriculumId: z.string().cuid('Invalid curriculum ID').optional(),
+    curriculumId: cuidOrUuid.optional(),
     scheduledAt: z.string().datetime('Invalid scheduled date/time').optional(),
     maxStudents: z.number().int().min(1).max(500).default(50),
     durationMinutes: z.number().int().min(15).max(480).default(120),
@@ -207,7 +209,7 @@ export const CreateCurriculumSchema = z.object({
 })
 
 export const EnrollCurriculumSchema = z.object({
-    curriculumId: z.string().cuid('Invalid curriculum ID'),
+    curriculumId: cuidOrUuid,
     studentId: z.string().cuid('Invalid student ID')
 })
 

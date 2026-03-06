@@ -4863,7 +4863,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   }
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", panelMode === 'live-class' && "pt-3")}>
       {/* DIFFICULTY DEVELOPMENT MODE HEADER */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
         <CardContent className="py-4">
