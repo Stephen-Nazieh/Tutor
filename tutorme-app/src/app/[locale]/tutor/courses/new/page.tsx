@@ -155,10 +155,6 @@ export default function CreateCoursePage() {
   }
 
   const handleConfirm = async () => {
-    if (!schedule.length) {
-      toast.error('Add at least one schedule slot')
-      return
-    }
     setCreating(true)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
@@ -215,9 +211,7 @@ export default function CreateCoursePage() {
               Create New Course
             </CardTitle>
             <CardDescription>
-              {step === 1
-                ? 'Set course details before scheduling lessons.'
-                : 'Schedule lessons before entering the Course Builder.'}
+              Set course details and continue directly to the Course Builder.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -312,7 +306,7 @@ export default function CreateCoursePage() {
                   </Button>
                   <Button
                     className="flex-1"
-                    onClick={() => validateDetailsStep() && setStep(2)}
+                    onClick={() => validateDetailsStep() && handleConfirm()}
                     disabled={creating}
                   >
                     Next
