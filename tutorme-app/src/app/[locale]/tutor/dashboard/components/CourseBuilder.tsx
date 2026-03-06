@@ -896,7 +896,15 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
   return { blob: pdfBlob, url: pdfUrl, fileName }
 }
 
-function QuestionBankQuickImport({ onImport, className }: { onImport: (questions: QuizQuestion[]) => void; className?: string }) {
+function QuestionBankQuickImport({
+  onImport,
+  className,
+  showOpenButton = true,
+}: {
+  onImport: (questions: QuizQuestion[]) => void
+  className?: string
+  showOpenButton?: boolean
+}) {
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<QuestionBankItemLite[]>([])
   const [selectedId, setSelectedId] = useState('')
@@ -953,11 +961,13 @@ function QuestionBankQuickImport({ onImport, className }: { onImport: (questions
         >
           Upload from Question Bank
         </Button>
-        <Button type="button" variant="ghost" size="sm" asChild>
-          <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
-            Open Question Bank
-          </a>
-        </Button>
+        {showOpenButton && (
+          <Button type="button" variant="ghost" size="sm" asChild>
+            <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
+              Open Question Bank
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   )
@@ -1181,7 +1191,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
   const source = data.sourceDocument
 
   return (
-    <div className="space-y-3 rounded-lg border border-dashed p-3">
+    <div className="space-y-2 rounded-lg border border-dashed p-3">
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" size="sm" disabled={extracting} asChild>
           <label className="cursor-pointer">
@@ -1203,20 +1213,26 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
             Open Resources
           </a>
         </Button>
-        <QuestionBankQuickImport
-          className="border-0 p-0 bg-transparent"
-          onImport={(incomingQuestions) => {
-            const next = {
-              ...data,
-              questions: [...(data.questions || []), ...incomingQuestions],
-            } as T
-            if ('submissionType' in next) {
-              ;(next as T & Record<'submissionType', unknown>).submissionType = 'questions'
-            }
-            setData(next)
-          }}
-        />
+        <Button type="button" variant="outline" size="sm" asChild>
+          <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
+            Open Question Bank
+          </a>
+        </Button>
       </div>
+      <QuestionBankQuickImport
+        className="border-0 p-0 bg-transparent"
+        showOpenButton={false}
+        onImport={(incomingQuestions) => {
+          const next = {
+            ...data,
+            questions: [...(data.questions || []), ...incomingQuestions],
+          } as T
+          if ('submissionType' in next) {
+            ;(next as T & Record<'submissionType', unknown>).submissionType = 'questions'
+          }
+          setData(next)
+        }}
+      />
       {source && (
         <div className="space-y-2 rounded border bg-muted/20 p-3">
           <div className="text-xs text-muted-foreground">
@@ -3321,6 +3337,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false)
   const [generatedPdf, setGeneratedPdf] = useState<{ url: string; fileName: string; blob: Blob } | null>(null)
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
+  const [showPreviewAnswerKey, setShowPreviewAnswerKey] = useState(false)
   const normalizedItem = item as (Task | Assessment | Worksheet | Quiz | ModuleQuiz | Lesson | Module) & {
     description?: string
     instructions?: string
@@ -3350,6 +3367,19 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
       questions: [...(normalizedItem.questions || []), newQuestion],
       submissionType: 'questions',
     } as PreviewUpdatePayload)
+  }
+
+  const updatePreviewQuestion = (index: number, updates: Partial<QuizQuestion>) => {
+    if (!onUpdateItem) return
+    const next = [...(normalizedItem.questions || [])]
+    next[index] = { ...next[index], ...updates }
+    onUpdateItem({ questions: next } as PreviewUpdatePayload)
+  }
+
+  const deletePreviewQuestion = (questionId: string) => {
+    if (!onUpdateItem) return
+    const next = (normalizedItem.questions || []).filter((q) => q.id !== questionId)
+    onUpdateItem({ questions: next } as PreviewUpdatePayload)
   }
 
   useEffect(() => {
@@ -3592,16 +3622,6 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               targetField="instructions"
             />
           )}
-          {onUpdateItem && (
-            <QuestionBankQuickImport
-              onImport={(incomingQuestions) =>
-                onUpdateItem({
-                  questions: [...(normalizedItem.questions || []), ...incomingQuestions],
-                  submissionType: 'questions',
-                } as PreviewUpdatePayload)
-              }
-            />
-          )}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Time (min)</Label>
@@ -3654,6 +3674,51 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </div>
         </div>
       )}
+      {isActivity && (
+        <div className="rounded-lg border p-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-amber-500" />
+              <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs gap-1"
+              onClick={() => setShowPreviewAnswerKey((prev) => !prev)}
+            >
+              {showPreviewAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              {showPreviewAnswerKey ? 'Hide' : 'Show'}
+            </Button>
+          </div>
+          {showPreviewAnswerKey ? (
+            <div className="space-y-3">
+              <Textarea
+                value={(item as Task | Assessment).answerKey || ''}
+                onChange={(e) => onUpdateItem?.({ answerKey: e.target.value })}
+                placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
+                rows={4}
+                className="border-amber-200 bg-amber-50/30"
+              />
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={(item as Task | Assessment).answerKeyProtected !== false}
+                  onCheckedChange={(checked) => onUpdateItem?.({ answerKeyProtected: checked })}
+                />
+                <Label className="text-xs text-muted-foreground">
+                  <Lock className="h-3 w-3 inline mr-1" />
+                  Protect answer key (never visible to students)
+                </Label>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
+              <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
+              <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
+            </div>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
         {typeof normalizedItem.estimatedMinutes === 'number' && (
           <div><span className="text-muted-foreground">Time:</span> {normalizedItem.estimatedMinutes} min</div>
@@ -3673,7 +3738,116 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
       </div>
       <div>
         <h4 className="text-sm font-medium mb-2">Questions ({questions?.length ?? 0})</h4>
-        <QuestionsPreview questions={questions ?? []} />
+        {isActivity ? (
+          <div className="space-y-3">
+            {(questions || []).map((q, idx) => (
+              <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      className="w-20 h-8"
+                      value={q.points}
+                      onChange={(e) => updatePreviewQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                    />
+                    <span className="text-sm text-muted-foreground">pts</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        if (!confirm('Delete this question?')) return
+                        deletePreviewQuestion(q.id)
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+                <Textarea
+                  value={q.question}
+                  onChange={(e) => updatePreviewQuestion(idx, { question: e.target.value })}
+                  placeholder="Enter question"
+                  rows={2}
+                />
+                {(q.type === 'mcq' || q.type === 'multiselect') && (
+                  <div className="space-y-2 pl-4">
+                    {(q.options && q.options.length > 0 ? q.options : ['', '', '', '']).map((opt, optIdx) => {
+                      const options = q.options && q.options.length > 0 ? q.options : ['', '', '', '']
+                      const selectedAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : []
+                      const checked = q.type === 'multiselect' ? selectedAnswers.includes(opt) : q.correctAnswer === opt
+                      return (
+                        <div key={optIdx} className="flex items-center gap-2">
+                          {q.type === 'multiselect' ? (
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={(e) => {
+                                const next = new Set(selectedAnswers)
+                                if (e.target.checked) next.add(opt)
+                                else next.delete(opt)
+                                updatePreviewQuestion(idx, { correctAnswer: Array.from(next) })
+                              }}
+                            />
+                          ) : (
+                            <input
+                              type="radio"
+                              name={`correct-${q.id}`}
+                              checked={checked}
+                              onChange={() => updatePreviewQuestion(idx, { correctAnswer: opt })}
+                            />
+                          )}
+                          <Input
+                            value={options[optIdx]}
+                            onChange={(e) => {
+                              const nextOptions = [...options]
+                              nextOptions[optIdx] = e.target.value
+                              updatePreviewQuestion(idx, { options: nextOptions })
+                            }}
+                            placeholder={`Option ${optIdx + 1}`}
+                            className="flex-1"
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {q.type === 'truefalse' && (
+                  <div className="flex gap-4 pl-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={`correct-${q.id}`}
+                        checked={q.correctAnswer === 'True'}
+                        onChange={() => updatePreviewQuestion(idx, { correctAnswer: 'True' })}
+                      />
+                      <span>True</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={`correct-${q.id}`}
+                        checked={q.correctAnswer === 'False'}
+                        onChange={() => updatePreviewQuestion(idx, { correctAnswer: 'False' })}
+                      />
+                      <span>False</span>
+                    </label>
+                  </div>
+                )}
+                <Textarea
+                  value={q.explanation || ''}
+                  onChange={(e) => updatePreviewQuestion(idx, { explanation: e.target.value })}
+                  placeholder="Explanation (shown after answering)"
+                  rows={2}
+                  className="text-sm"
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <QuestionsPreview questions={questions ?? []} />
+        )}
       </div>
       {isActivity && (
         <div className="flex items-center gap-2 pt-4 border-t flex-wrap">

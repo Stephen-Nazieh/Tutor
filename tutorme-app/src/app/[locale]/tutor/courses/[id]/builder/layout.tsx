@@ -546,7 +546,7 @@ export default function CourseBuilderLayout({
       const payload: Record<string, unknown> = {
         title: String(course.name || 'Live Class'),
         subject: String(course.subject || 'General'),
-        curriculumId: courseId,
+        curriculumId: course.curriculumId || courseId,
         maxStudents: 50,
         durationMinutes: Math.max(15, Math.min(480, durationFromCourseSchedule)),
         enableRecording: false,
