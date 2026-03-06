@@ -12,7 +12,6 @@ import { PDFCollaborativeViewer } from '@/components/pdf-tutoring/PDFCollaborati
 import { 
   Eye, 
   EyeOff, 
-  GraduationCap, 
   Users, 
   BrainCircuit,
   Clock,
@@ -238,149 +237,124 @@ export function LiveSharedDocumentModal({
 
           {canManageShare && (
             <ScrollArea className="border-b shrink-0">
-              <div className="px-5 py-3 space-y-4">
-                {/* Row 1: Visibility Controls - Icons with labels */}
-                <div className="flex flex-wrap items-center gap-6">
-                  {/* Reveal answers to me - Icon button */}
-                  {isQuestionShare && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={showTutorAnswers ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setShowTutorAnswers(!showTutorAnswers)}
-                        className="gap-2"
-                        title="Reveal answers to me"
-                      >
-                        {showTutorAnswers ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        <span className="hidden sm:inline">Answers to me</span>
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {/* Reveal answers to students - Icon button */}
-                  {isQuestionShare && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={share.revealAnswersToStudents ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          const newValue = !share.revealAnswersToStudents
-                          if (newValue && !confirm('Reveal answers to students now?')) return
-                          onRevealAnswersChange?.(newValue)
-                        }}
-                        className="gap-2"
-                        title="Reveal answers to students"
-                      >
-                        {share.revealAnswersToStudents ? <GraduationCap className="h-4 w-4" /> : <GraduationCap className="h-4 w-4 opacity-50" />}
-                        <span className="hidden sm:inline">Answers to students</span>
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {/* Visible to everyone */}
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      checked={share.visibleToAll} 
-                      onCheckedChange={onVisibilityChange} 
-                      id="visible-to-all"
-                    />
-                    <Label htmlFor="visible-to-all" className="flex items-center gap-1.5 cursor-pointer">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      Visible to everyone in this live class
-                    </Label>
-                  </div>
-                </div>
-
-                {/* Row 2: AI Grading & Timer */}
+              <div className="px-5 py-3 space-y-3">
+                {/* Row 1: Visibility Controls - Answer toggles */}
                 {isQuestionShare && (
-                  <div className="flex flex-wrap items-center gap-6 pt-2 border-t">
-                    {/* Enable AI grading assistance */}
+                  <div className="flex flex-wrap items-center gap-4">
+                    {/* Me - Icon button with short label */}
+                    <Button
+                      type="button"
+                      variant={showTutorAnswers ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowTutorAnswers(!showTutorAnswers)}
+                      className="gap-2"
+                      title="Reveal answers to me"
+                    >
+                      {showTutorAnswers ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      <span>Me</span>
+                    </Button>
+                    
+                    {/* Students - Icon button with short label */}
+                    <Button
+                      type="button"
+                      variant={share.revealAnswersToStudents ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        const newValue = !share.revealAnswersToStudents
+                        if (newValue && !confirm('Reveal answers to students now?')) return
+                        onRevealAnswersChange?.(newValue)
+                      }}
+                      className="gap-2"
+                      title="Reveal answers to students"
+                    >
+                      {share.revealAnswersToStudents ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      <span>Students</span>
+                    </Button>
+                    
+                    {/* Visible to everyone */}
                     <div className="flex items-center gap-2">
                       <Switch 
-                        checked={share.isAiGraded ?? false} 
-                        onCheckedChange={onAiGradingChange}
-                        id="ai-grading"
+                        checked={share.visibleToAll} 
+                        onCheckedChange={onVisibilityChange} 
+                        id="visible-to-all"
                       />
-                      <Label htmlFor="ai-grading" className="flex items-center gap-1.5 cursor-pointer">
-                        <BrainCircuit className="h-4 w-4 text-purple-500" />
-                        Enable AI grading assistance
+                      <Label htmlFor="visible-to-all" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        Visible to everyone in this live class
                       </Label>
-                    </div>
-
-                    {/* Timer */}
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <Label htmlFor="time-limit" className="text-sm">Time limit:</Label>
-                      <Input
-                        id="time-limit"
-                        type="number"
-                        min={0}
-                        max={180}
-                        value={timeLimitInput}
-                        onChange={(e) => handleTimeLimitChange(e.target.value)}
-                        className="w-20 h-8"
-                      />
-                      <span className="text-sm text-muted-foreground">minutes</span>
                     </div>
                   </div>
                 )}
 
-                {/* Row 3: Write Access & Collaboration Policy */}
-                <div className="pt-2 border-t">
-                  <div className="flex flex-wrap items-center gap-4">
-                    {/* Allow others to write */}
+                {/* Row 2: AI Grading, Timer & Collaboration Policy */}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2 border-t">
+                  {isQuestionShare && (
+                    <>
+                      {/* Enable AI grading assistance */}
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={share.isAiGraded ?? false} 
+                          onCheckedChange={onAiGradingChange}
+                          id="ai-grading"
+                        />
+                        <Label htmlFor="ai-grading" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                          <BrainCircuit className="h-4 w-4 text-purple-500" />
+                          Enable AI grading assistance
+                        </Label>
+                      </div>
+
+                      {/* Timer */}
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Label htmlFor="time-limit" className="text-sm">Time limit:</Label>
+                        <Input
+                          id="time-limit"
+                          type="number"
+                          min={0}
+                          max={180}
+                          value={timeLimitInput}
+                          onChange={(e) => handleTimeLimitChange(e.target.value)}
+                          className="w-20 h-8"
+                        />
+                        <span className="text-sm text-muted-foreground">min</span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Collaboration policy controls */}
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Switch 
-                        checked={share.allowCollaborativeWrite} 
-                        onCheckedChange={onWriteAccessChange}
-                        id="allow-write"
+                      <Switch
+                        checked={collaborationPolicy.allowDrawing}
+                        onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowDrawing: checked })}
+                        id="allow-drawing"
                       />
-                      <Label htmlFor="allow-write" className="flex items-center gap-1.5 cursor-pointer">
-                        <Pencil className="h-4 w-4 text-muted-foreground" />
-                        Allow others to write/type on this document
+                      <Label htmlFor="allow-drawing" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                        <Pencil className="h-3.5 w-3.5" />
+                        Allow drawing
                       </Label>
                     </div>
-
-                    {/* Collaboration policy controls - disabled when write access is off */}
-                    <div className="flex items-center gap-4 ml-0 sm:ml-4 pl-0 sm:pl-4 border-0 sm:border-l">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={collaborationPolicy.allowDrawing}
-                          onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowDrawing: checked })}
-                          disabled={!share.allowCollaborativeWrite}
-                          id="allow-drawing"
-                        />
-                        <Label htmlFor="allow-drawing" className={`flex items-center gap-1.5 cursor-pointer ${!share.allowCollaborativeWrite ? 'opacity-50' : ''}`}>
-                          <Pencil className="h-3.5 w-3.5" />
-                          Allow drawing
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={collaborationPolicy.allowTyping}
-                          onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowTyping: checked })}
-                          disabled={!share.allowCollaborativeWrite}
-                          id="allow-typing"
-                        />
-                        <Label htmlFor="allow-typing" className={`flex items-center gap-1.5 cursor-pointer ${!share.allowCollaborativeWrite ? 'opacity-50' : ''}`}>
-                          <Type className="h-3.5 w-3.5" />
-                          Allow typing
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={collaborationPolicy.allowShapes}
-                          onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowShapes: checked })}
-                          disabled={!share.allowCollaborativeWrite}
-                          id="allow-shapes"
-                        />
-                        <Label htmlFor="allow-shapes" className={`flex items-center gap-1.5 cursor-pointer ${!share.allowCollaborativeWrite ? 'opacity-50' : ''}`}>
-                          <Shapes className="h-3.5 w-3.5" />
-                          Allow shapes
-                        </Label>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={collaborationPolicy.allowTyping}
+                        onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowTyping: checked })}
+                        id="allow-typing"
+                      />
+                      <Label htmlFor="allow-typing" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                        <Type className="h-3.5 w-3.5" />
+                        Allow typing
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={collaborationPolicy.allowShapes}
+                        onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowShapes: checked })}
+                        id="allow-shapes"
+                      />
+                      <Label htmlFor="allow-shapes" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                        <Shapes className="h-3.5 w-3.5" />
+                        Allow shapes
+                      </Label>
                     </div>
                   </div>
                 </div>

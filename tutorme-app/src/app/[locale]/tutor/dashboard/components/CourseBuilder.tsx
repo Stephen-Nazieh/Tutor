@@ -2024,42 +2024,6 @@ function AssessmentBuilderModal({
               {!isTask && (
                 <div className="space-y-3 rounded-lg border bg-white p-3">
                   <h4 className="text-sm font-medium">Settings</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Time (min)</Label>
-                      <Input
-                        type="number"
-                        value={assessmentData.estimatedMinutes}
-                        onChange={(e) => setData({ ...assessmentData, estimatedMinutes: parseInt(e.target.value) || 30 })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Points</Label>
-                      <Input
-                        type="number"
-                        value={assessmentData.points}
-                        onChange={(e) => setData({ ...assessmentData, points: parseInt(e.target.value) || 20 })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Submission</Label>
-                      <Select
-                        value={assessmentData.submissionType}
-                        onValueChange={(v: Assessment['submissionType']) => setData({ ...assessmentData, submissionType: v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="file">File</SelectItem>
-                          <SelectItem value="link">Link</SelectItem>
-                          <SelectItem value="multiple">Multiple</SelectItem>
-                          <SelectItem value="questions">Questions</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
                   <div className="flex flex-wrap gap-4">
                     <div className="flex items-center gap-2">
                       <Switch
@@ -2086,7 +2050,6 @@ function AssessmentBuilderModal({
                   </div>
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">{data.estimatedMinutes} min · {data.points} pts · {data.submissionType}</p>
               <h4 className="text-sm font-medium mt-4">Questions</h4>
               <QuestionsPreview questions={data.questions ?? []} />
               </div>
@@ -3432,6 +3395,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const [generatedPdf, setGeneratedPdf] = useState<{ url: string; fileName: string; blob: Blob } | null>(null)
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const [showPreviewAnswerKey, setShowPreviewAnswerKey] = useState(false)
+  const [isAssigned, setIsAssigned] = useState(false)
   const normalizedItem = item as (Task | Assessment | Worksheet | Quiz | ModuleQuiz | Lesson | Module) & {
     description?: string
     instructions?: string
@@ -3609,6 +3573,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
       itemType: type,
       questions,
     })
+    setIsAssigned(true)
     toast.success('Assigned to live class')
   }
 
@@ -3732,12 +3697,12 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {courseId && (
             <Button
               size="sm"
-              onClick={showLiveShareAction ? handleAssignToLiveClass : handleGenerateAndPreviewPDF}
+              onClick={isAssigned ? () => setStudentPreviewOpen(true) : (showLiveShareAction ? handleAssignToLiveClass : handleGenerateAndPreviewPDF)}
               disabled={publishing || questions.length === 0}
               className="gap-1"
             >
-              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-              {showLiveShareAction ? 'Assign' : 'Publish & Assign'}
+              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : (isAssigned ? <Eye className="h-3 w-3" /> : <Send className="h-3 w-3" />)}
+              {isAssigned ? 'View' : (showLiveShareAction ? 'Assign' : 'Publish & Assign')}
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={onRemove} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
@@ -3769,36 +3734,19 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             />
           )}
           <div className="flex flex-wrap items-end gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs">Time (min)</Label>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs whitespace-nowrap">Points:</Label>
               <Input
                 type="number"
-                value={normalizedItem.estimatedMinutes || 0}
-                onChange={(e) => onUpdateItem?.({ estimatedMinutes: parseInt(e.target.value) || 0 })}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Points</Label>
-              <Input
-                type="number"
+                className="w-24 h-8"
                 value={totalQuestionPoints}
                 readOnly
               />
             </div>
-
           </div>
         </div>
       )}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
-        {typeof normalizedItem.estimatedMinutes === 'number' && (
-          <div><span className="text-muted-foreground">Time:</span> {normalizedItem.estimatedMinutes} min</div>
-        )}
-        {typeof normalizedItem.points === 'number' && (
-          <div><span className="text-muted-foreground">Points:</span> {normalizedItem.points}</div>
-        )}
-        {'submissionType' in normalizedItem && normalizedItem.submissionType && (
-          <div><span className="text-muted-foreground">Submission:</span> {normalizedItem.submissionType}</div>
-        )}
         {'timeLimit' in normalizedItem && normalizedItem.timeLimit != null && (
           <div><span className="text-muted-foreground">Time limit:</span> {normalizedItem.timeLimit} min</div>
         )}
