@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { libraryTask } from '@/lib/db/schema'
 import { desc, eq } from 'drizzle-orm'
@@ -33,7 +33,7 @@ export const GET = withAuth(async (_req, session) => {
     return NextResponse.json({ tasks: tasks.map(mapTask) })
   } catch (error) {
     console.error('Error fetching library tasks:', error)
-    return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch tasks', 'api/library/route.ts')
   }
 })
 
@@ -68,12 +68,12 @@ export const POST = withCsrf(withAuth(async (request, session) => {
 
     const [task] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, id)).limit(1)
     if (!task) {
-      return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
+      return handleApiError(error, 'Failed to create task', 'api/library/route.ts')
     }
 
     return NextResponse.json({ task: mapTask(task) }, { status: 201 })
   } catch (error) {
     console.error('Error saving task:', error)
-    return NextResponse.json({ error: 'Failed to save task' }, { status: 500 })
+    return handleApiError(error, 'Failed to save task', 'api/library/route.ts')
   }
 }))

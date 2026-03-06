@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { adminAuditLog, user, profile } from '@/lib/db/schema'
 import { eq, desc, and, gte, lte, like, inArray, sql } from 'drizzle-orm'
@@ -91,9 +92,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching audit logs:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch audit logs' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch audit logs', 'api/admin/audit-log/route.ts')
   }
 }

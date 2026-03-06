@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -171,10 +171,7 @@ Generate a compelling, persuasive course pitch based on this information.`
 
   } catch (error) {
     console.error('Failed to generate course pitch:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate course pitch' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to generate course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
   }
 }, { role: 'TUTOR' }))
 
@@ -198,10 +195,7 @@ export const GET = withAuth(async (req, session, context) => {
     return NextResponse.json({ pitch: course.coursePitch })
   } catch (error) {
     console.error('Failed to fetch course pitch:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch course pitch' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -230,10 +224,7 @@ export const PATCH = withCsrf(withAuth(async (req, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to update course pitch:', error)
-    return NextResponse.json(
-      { error: 'Failed to update course pitch' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
   }
 }, { role: 'TUTOR' }))
 
@@ -252,9 +243,6 @@ export const DELETE = withCsrf(withAuth(async (req, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete course pitch:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete course pitch' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete course pitch', 'api/tutor/courses/[id]/pitch/route.ts')
   }
 }, { role: 'TUTOR' }))

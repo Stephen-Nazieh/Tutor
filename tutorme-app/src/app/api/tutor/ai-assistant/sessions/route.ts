@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantSession, aIAssistantMessage, aIAssistantInsight } from '@/lib/db/schema'
 import { eq, and, desc, inArray, sql } from 'drizzle-orm'
@@ -84,9 +84,6 @@ export const DELETE = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Archive sessions error:', error)
-    return NextResponse.json(
-      { error: 'Failed to archive sessions' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to archive sessions', 'api/tutor/ai-assistant/sessions/route.ts')
   }
 }, { role: 'TUTOR' })

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage, whiteboardSnapshot } from '@/lib/db/schema'
 import { and, eq, desc, isNull, sql, inArray } from 'drizzle-orm'
@@ -100,10 +100,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ whiteboards })
   } catch (error) {
     console.error('Fetch whiteboards error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch whiteboards' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch whiteboards', 'api/whiteboards/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -172,9 +169,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     )
   } catch (error) {
     console.error('Create whiteboard error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create whiteboard' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create whiteboard', 'api/whiteboards/route.ts')
   }
 }, { role: 'TUTOR' })

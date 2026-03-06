@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, taskSubmission } from '@/lib/db/schema'
@@ -86,9 +87,6 @@ export async function GET(_request: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to fetch student assignments:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch assignments' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch assignments', 'api/student/assignments/route.ts')
   }
 }

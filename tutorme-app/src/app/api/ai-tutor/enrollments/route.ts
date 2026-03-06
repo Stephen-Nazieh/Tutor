@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aITutorEnrollment, aITutorDailyUsage } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
@@ -54,10 +54,7 @@ async function getHandler(_req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Get enrollments error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get enrollments' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to get enrollments', 'api/ai-tutor/enrollments/route.ts')
   }
 }
 
@@ -123,10 +120,7 @@ async function patchHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Update enrollment error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update enrollment' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update enrollment', 'api/ai-tutor/enrollments/route.ts')
   }
 }
 

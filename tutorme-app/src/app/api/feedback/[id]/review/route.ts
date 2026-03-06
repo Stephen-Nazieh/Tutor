@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { reviewFeedback } from '@/lib/feedback/workflow'
 
@@ -58,10 +58,7 @@ async function postHandler(
     })
   } catch (error) {
     console.error('Failed to review feedback:', error)
-    return NextResponse.json(
-      { error: '审核反馈失败' },
-      { status: 500 }
-    )
+    return handleApiError(error, '审核反馈失败', 'api/feedback/[id]/review/route.ts')
   }
 }
 

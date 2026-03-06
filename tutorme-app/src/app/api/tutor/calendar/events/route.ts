@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarEvent, curriculum, courseBatch, notification } from '@/lib/db/schema'
 import { eq, and, or, gte, lte, asc, isNull, lt, gt } from 'drizzle-orm'
@@ -124,10 +124,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Fetch calendar events error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch events' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch events', 'api/tutor/calendar/events/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -246,10 +243,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ event }, { status: 201 })
   } catch (error) {
     console.error('Create calendar event error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create event' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create event', 'api/tutor/calendar/events/route.ts')
   }
 }, { role: 'TUTOR' })
 

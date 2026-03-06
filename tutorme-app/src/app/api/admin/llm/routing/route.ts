@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { llmRoutingRule, llmModel, llmProvider } from '@/lib/db/schema'
 import { eq, asc, desc, inArray } from 'drizzle-orm'
@@ -47,10 +48,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ rules: rulesWithRelations })
   } catch (error) {
     console.error('Error fetching routing rules:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch routing rules' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch routing rules', 'api/admin/llm/routing/route.ts')
   }
 }
 
@@ -121,10 +119,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ rule })
   } catch (error) {
     console.error('Error creating routing rule:', error)
-    return NextResponse.json(
-      { error: 'Failed to create routing rule' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create routing rule', 'api/admin/llm/routing/route.ts')
   }
 }
 
@@ -196,10 +191,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ rule })
   } catch (error) {
     console.error('Error updating routing rule:', error)
-    return NextResponse.json(
-      { error: 'Failed to update routing rule' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update routing rule', 'api/admin/llm/routing/route.ts')
   }
 }
 
@@ -231,9 +223,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting routing rule:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete routing rule' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete routing rule', 'api/admin/llm/routing/route.ts')
   }
 }

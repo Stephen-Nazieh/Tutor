@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -127,9 +128,6 @@ export async function POST(
       )
     }
     console.error('Failed to submit vote:', error)
-    return NextResponse.json(
-      { error: 'Failed to submit vote' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to submit vote', 'api/polls/[pollId]/vote/route.ts')
   }
 }

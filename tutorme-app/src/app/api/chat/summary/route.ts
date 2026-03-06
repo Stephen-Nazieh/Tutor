@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { and, eq } from 'drizzle-orm'
 import { generateSessionSummary, SummaryOptions } from '@/lib/chat/summary'
@@ -79,10 +80,7 @@ export async function POST(request: NextRequest) {
     const result = await generateSessionSummary(sessionId, options)
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || '生成总结失败' },
-        { status: 500 }
-      )
+      return handleApiError(error, result.error || '生成总结失败', 'api/chat/summary/route.ts')
     }
 
     return NextResponse.json({
@@ -91,9 +89,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to generate chat summary:', error)
-    return NextResponse.json(
-      { error: '生成聊天总结失败' },
-      { status: 500 }
-    )
+    return handleApiError(error, '生成聊天总结失败', 'api/chat/summary/route.ts')
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { systemSetting } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
@@ -67,10 +68,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ settings })
   } catch (error) {
     console.error('Error fetching settings:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch settings' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch settings', 'api/admin/settings/route.ts')
   }
 }
 
@@ -138,9 +136,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ setting })
   } catch (error) {
     console.error('Error updating setting:', error)
-    return NextResponse.json(
-      { error: 'Failed to update setting' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update setting', 'api/admin/settings/route.ts')
   }
 }

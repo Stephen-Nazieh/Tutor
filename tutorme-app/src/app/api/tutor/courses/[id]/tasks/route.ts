@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumModule, curriculumLesson, courseBatch, generatedTask, taskSubmission } from '@/lib/db/schema'
@@ -188,7 +189,7 @@ export async function POST(req: NextRequest) {
         .returning()
 
     if (!task) {
-        return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
+        return handleApiError(new Error('Failed to create task'), 'Failed to create task', 'api/tutor/courses/[id]/tasks/route.ts')
     }
 
     return NextResponse.json({

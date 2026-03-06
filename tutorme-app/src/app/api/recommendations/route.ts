@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { and, desc, eq, gt, lt } from 'drizzle-orm'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem, contentProgress, quizAttempt } from '@/lib/db/schema'
@@ -129,7 +129,7 @@ Focus on:
       inProgress: inProgressSubjects
     })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to get recommendations' }, { status: 500 })
+    return handleApiError(error, 'Failed to get recommendations', 'api/recommendations/route.ts')
   }
 }
 

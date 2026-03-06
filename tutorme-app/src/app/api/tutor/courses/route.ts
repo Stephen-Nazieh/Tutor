@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, desc, asc, inArray } from 'drizzle-orm'
-import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
+import { withAuth, withCsrf, ValidationError, handleApiError } from '@/lib/api/middleware'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
@@ -91,10 +91,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ courses })
   } catch (error) {
     console.error('Failed to fetch tutor courses:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch courses' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch courses', 'api/tutor/courses/route.ts')
   }
 }, { role: 'TUTOR' })
 

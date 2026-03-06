@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { ValidationError } from '@/lib/api/middleware'
+import { ValidationError, handleApiError } from '@/lib/api/middleware'
 import { performRegistration } from '@/lib/registration/register-user'
 import type { RegisterUserInput } from '@/lib/validation/schemas'
 
@@ -39,6 +39,6 @@ export async function POST(request: NextRequest) {
       process.env.NODE_ENV === 'development'
         ? err.message || 'Internal server error. Please try again.'
         : err.message || 'Internal server error. Please try again.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return handleApiError(error, message, 'api/auth/register/route.ts')
   }
 }

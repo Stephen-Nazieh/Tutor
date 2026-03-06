@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
@@ -187,9 +188,6 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ success: true, data: { sessions: data } })
   } catch (error) {
     console.error('Failed to fetch lesson replays:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch lesson replays' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch lesson replays', 'api/student/lesson-replays/route.ts')
   }
 }

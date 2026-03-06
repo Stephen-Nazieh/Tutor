@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 
 export interface GeoCoordinates {
@@ -218,7 +219,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ results: Object.fromEntries(results) })
   } catch (error) {
     console.error('Batch geolocation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleApiError(error, 'Internal server error', 'api/admin/geolocation/route.ts')
   }
 }
 

@@ -12,7 +12,7 @@ import {
   ADMIN_TOKEN_NAME,
   ADMIN_TOKEN_EXPIRY,
 } from '@/lib/admin/auth'
-import { withRateLimitPreset } from '@/lib/api/middleware'
+import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { isSuspiciousIp, logFailedLogin } from '@/lib/security/suspicious-activity'
 
 export async function POST(req: NextRequest) {
@@ -153,9 +153,6 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     console.error('Admin login error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Internal server error', 'api/admin/auth/login/route.ts')
   }
 }

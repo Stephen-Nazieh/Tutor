@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getToken } from 'next-auth/jwt'
 import { REALM_COOKIE_TUTOR, REALM_COOKIE_STUDENT } from '@/lib/auth'
 
@@ -55,7 +56,6 @@ export async function POST(request: NextRequest) {
     res.cookies.set(cookieName, rawToken, COOKIE_OPTIONS)
     return res
   } catch (e) {
-    console.error('[set-realm-cookie]', e)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleApiError(e, 'Internal server error', 'api/auth/set-realm-cookie/route.ts')
   }
 }

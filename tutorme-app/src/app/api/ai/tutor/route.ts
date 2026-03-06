@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateModularResponse, TeachingMode } from '@/lib/ai/modular-tutor'
 import { getTeachingModes } from '@/lib/ai/teaching-prompts'
-import { withRateLimitPreset } from '@/lib/api/middleware'
+import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 
 interface ChatMessage {
@@ -90,13 +90,8 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('AI tutor error:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to get AI response',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to get AI response',
+        details: error instanceof Error ? error.message : 'Unknown error', 'api/ai/tutor/route.ts')
   }
 }
 

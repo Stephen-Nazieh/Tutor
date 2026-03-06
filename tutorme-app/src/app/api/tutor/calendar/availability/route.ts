@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarAvailability, calendarException, calendarEvent } from '@/lib/db/schema'
 import { eq, and, or, gte, lte, asc, isNull } from 'drizzle-orm'
@@ -87,10 +87,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Fetch availability error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch availability' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch availability', 'api/tutor/calendar/availability/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -144,10 +141,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     }
     
     console.error('Create availability error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create availability' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create availability', 'api/tutor/calendar/availability/route.ts')
   }
 }, { role: 'TUTOR' })
 

@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
@@ -96,10 +97,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ polls: formattedPolls })
   } catch (error) {
     console.error('Failed to fetch polls:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch polls' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch polls', 'api/polls/route.ts')
   }
 }
 
@@ -185,9 +183,6 @@ export async function POST(request: NextRequest) {
       )
     }
     console.error('Failed to create poll:', error)
-    return NextResponse.json(
-      { error: 'Failed to create poll' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create poll', 'api/polls/route.ts')
   }
 }

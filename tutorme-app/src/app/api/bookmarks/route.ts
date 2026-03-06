@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { and, desc, eq } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { bookmark as bookmarkTable, contentItem } from '@/lib/db/schema'
 
@@ -71,11 +71,8 @@ async function deleteHandler(req: NextRequest, session: Session) {
         )
       )
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json(
-      { error: 'Failed to remove bookmark' },
-      { status: 500 }
-    )
+  } catch (err) {
+    return handleApiError(err, 'Failed to remove bookmark', 'api/bookmarks/route.ts')
   }
 }
 

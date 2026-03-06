@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { eq, and, desc, count, sql, inArray } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { studyGroup, studyGroupMember, user, profile } from '@/lib/db/schema'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
@@ -116,7 +116,7 @@ async function getHandler(req: NextRequest, session: Session) {
     return NextResponse.json({ groups: groupsResult })
   } catch (error) {
     console.error('Failed to fetch study groups:', error)
-    return NextResponse.json({ error: 'Failed to fetch study groups' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch study groups', 'api/study-groups/route.ts')
   }
 }
 
@@ -191,7 +191,7 @@ async function postHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to join study group:', error)
-    return NextResponse.json({ error: 'Failed to join study group' }, { status: 500 })
+    return handleApiError(error, 'Failed to join study group', 'api/study-groups/route.ts')
   }
 }
 
@@ -255,7 +255,7 @@ async function putHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to create study group:', error)
-    return NextResponse.json({ error: 'Failed to create study group' }, { status: 500 })
+    return handleApiError(error, 'Failed to create study group', 'api/study-groups/route.ts')
   }
 }
 
@@ -307,7 +307,7 @@ async function deleteHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to leave study group:', error)
-    return NextResponse.json({ error: 'Failed to leave study group' }, { status: 500 })
+    return handleApiError(error, 'Failed to leave study group', 'api/study-groups/route.ts')
   }
 }
 

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, parseBoundedInt } from '@/lib/api/middleware'
+import { withAuth, parseBoundedInt, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { conversation, directMessage, user, profile, notification } from '@/lib/db/schema'
@@ -217,9 +217,6 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ message: messageResponse }, { status: 201 })
   } catch (error) {
     console.error('Send message error:', error)
-    return NextResponse.json(
-      { error: 'Failed to send message' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to send message', 'api/conversations/[id]/messages/route.ts')
   }
 })

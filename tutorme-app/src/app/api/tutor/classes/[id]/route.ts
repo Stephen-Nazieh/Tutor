@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
@@ -257,9 +257,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ message: 'Class deleted successfully' })
   } catch (error) {
     console.error('Error deleting class:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete class' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete class', 'api/tutor/classes/[id]/route.ts')
   }
 }, { role: 'TUTOR' })

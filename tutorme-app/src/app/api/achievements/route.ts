@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { and, desc, eq, sql } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { achievement, bookmark, contentProgress } from '@/lib/db/schema'
 
@@ -48,10 +48,7 @@ async function getHandler(_req: NextRequest, session: Session) {
       .orderBy(desc(achievement.unlockedAt))
     return NextResponse.json({ achievements })
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch achievements' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch achievements', 'api/achievements/route.ts')
   }
 }
 
@@ -134,7 +131,7 @@ async function postHandler(req: NextRequest, session: Session) {
       message: newAchievements.length > 0 ? 'New achievements earned!' : 'No new achievements',
     })
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to check achievements' }, { status: 500 })
+    return handleApiError(error, 'Failed to check achievements', 'api/achievements/route.ts')
   }
 }
 

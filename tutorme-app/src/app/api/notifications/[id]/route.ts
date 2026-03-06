@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { notification } from '@/lib/db/schema'
@@ -36,9 +36,6 @@ export const DELETE = withAuth(async (_req: NextRequest, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete notification error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete notification' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete notification', 'api/notifications/[id]/route.ts')
   }
 })

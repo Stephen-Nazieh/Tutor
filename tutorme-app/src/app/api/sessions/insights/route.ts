@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   postSessionReport,
@@ -77,10 +77,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     })
   } catch (error) {
     console.error('Error fetching session insights:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch insights' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch insights', 'api/sessions/insights/route.ts')
   }
 })
 
@@ -187,9 +184,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
     console.error('Error generating insights:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate insights' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to generate insights', 'api/sessions/insights/route.ts')
   }
 }, { role: 'TUTOR' })

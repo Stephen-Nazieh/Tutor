@@ -5,7 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   curriculumEnrollment,
@@ -123,6 +123,6 @@ export const GET = withAuth(async (req, session) => {
     return NextResponse.json({ students })
   } catch (error) {
     console.error('Failed to fetch tutor students:', error)
-    return NextResponse.json({ error: 'Failed to fetch students' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch students', 'api/tutor/students/route.ts')
   }
 }, { role: 'TUTOR' })

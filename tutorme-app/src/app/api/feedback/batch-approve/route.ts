@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { batchApproveFeedback } from '@/lib/feedback/workflow'
 
 async function postHandler(request: NextRequest, session: Session) {
@@ -46,10 +46,7 @@ async function postHandler(request: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to batch approve feedback:', error)
-    return NextResponse.json(
-      { error: '批量审核失败' },
-      { status: 500 }
-    )
+    return handleApiError(error, '批量审核失败', 'api/feedback/batch-approve/route.ts')
   }
 }
 

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantInsight } from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
@@ -241,9 +241,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Analysis error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate analysis' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to generate analysis', 'api/tutor/ai-assistant/analyze/route.ts')
   }
 }, { role: 'TUTOR' })

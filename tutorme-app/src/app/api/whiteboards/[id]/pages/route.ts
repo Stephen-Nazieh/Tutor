@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
@@ -58,10 +58,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ pages })
   } catch (error) {
     console.error('Fetch pages error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch pages' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch pages', 'api/whiteboards/[id]/pages/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -136,10 +133,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ page: inserted[0] }, { status: 201 })
   } catch (error) {
     console.error('Create page error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create page' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create page', 'api/whiteboards/[id]/pages/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -242,9 +236,6 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ pages })
   } catch (error) {
     console.error('Reorder pages error:', error)
-    return NextResponse.json(
-      { error: 'Failed to reorder pages' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to reorder pages', 'api/whiteboards/[id]/pages/route.ts')
   }
 }, { role: 'TUTOR' })

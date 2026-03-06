@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { resource } from '@/lib/db/schema'
 import { eq, and, or, desc, ilike, sql } from 'drizzle-orm'
@@ -78,9 +78,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ resource: resourceRow }, { status: 201 })
   } catch (error) {
     console.error('Create resource error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create resource' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create resource', 'api/tutor/resources/route.ts')
   }
 }, { role: 'TUTOR' })

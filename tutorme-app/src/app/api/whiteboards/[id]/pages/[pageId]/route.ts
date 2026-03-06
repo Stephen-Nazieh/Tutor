@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
@@ -98,10 +98,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     )
   } catch (error) {
     console.error('Fetch page error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch page' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch page', 'api/whiteboards/[id]/pages/[pageId]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -242,10 +239,7 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     )
   } catch (error) {
     console.error('Update page error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update page' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update page', 'api/whiteboards/[id]/pages/[pageId]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -334,9 +328,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ message: 'Page deleted' })
   } catch (error) {
     console.error('Delete page error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete page' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete page', 'api/whiteboards/[id]/pages/[pageId]/route.ts')
   }
 }, { role: 'TUTOR' })

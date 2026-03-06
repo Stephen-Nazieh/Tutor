@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getAdminSession } from '@/lib/admin/auth'
 
 export async function GET(req: NextRequest) {
@@ -24,9 +25,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Session check error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Internal server error', 'api/admin/auth/session/route.ts')
   }
 }

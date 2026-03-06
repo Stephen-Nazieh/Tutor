@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { profile } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
@@ -27,10 +27,7 @@ async function getHandler(_req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Profile fetch error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch profile' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch profile', 'api/user/profile/route.ts')
   }
 }
 
@@ -113,10 +110,7 @@ async function putHandler(req: NextRequest, session: Session) {
     return NextResponse.json({ profile: profileRow! })
   } catch (error) {
     console.error('Profile update error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update profile' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update profile', 'api/user/profile/route.ts')
   }
 }
 

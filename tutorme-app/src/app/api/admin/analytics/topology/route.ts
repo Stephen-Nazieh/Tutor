@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, sessionParticipant, user, profile } from '@/lib/db/schema'
 import { and, or, gte, inArray, desc } from 'drizzle-orm'
@@ -256,6 +257,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to build topology analytics', error)
-    return NextResponse.json({ error: 'Failed to build topology analytics' }, { status: 500 })
+    return handleApiError(error, 'Failed to build topology analytics', 'api/admin/analytics/topology/route.ts')
   }
 }

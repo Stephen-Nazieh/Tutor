@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { engagementSnapshot, sessionEngagementSummary, user, profile } from '@/lib/db/schema'
 import { eq, desc, and, sql } from 'drizzle-orm'
@@ -77,10 +77,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     })
   } catch (error) {
     console.error('Error fetching engagement data:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch engagement data' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch engagement data', 'api/class/engagement/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -114,9 +111,6 @@ export const POST = withAuth(async (req: NextRequest) => {
       )
     }
     console.error('Error recording engagement:', error)
-    return NextResponse.json(
-      { error: 'Failed to record engagement' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to record engagement', 'api/class/engagement/route.ts')
   }
 })

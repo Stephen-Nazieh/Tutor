@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getFeedbackStats } from '@/lib/feedback/workflow'
 
 async function getHandler(_request: NextRequest, session: Session) {
@@ -22,10 +22,7 @@ async function getHandler(_request: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to get feedback stats:', error)
-    return NextResponse.json(
-      { error: '获取反馈统计失败' },
-      { status: 500 }
-    )
+    return handleApiError(error, '获取反馈统计失败', 'api/feedback/stats/route.ts')
   }
 }
 

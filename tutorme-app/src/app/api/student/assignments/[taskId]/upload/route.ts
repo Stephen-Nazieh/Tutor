@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { getParamAsync } from '@/lib/api/params'
 import { writeFile, mkdir } from 'fs/promises'
@@ -98,6 +99,6 @@ export async function POST(
         })
     } catch (error) {
         console.error('File upload failed:', error)
-        return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+        return handleApiError(error, 'Upload failed', 'api/student/assignments/[taskId]/upload/route.ts')
     }
 }

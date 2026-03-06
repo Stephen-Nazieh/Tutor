@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { eq, and, desc, lt, count, inArray } from 'drizzle-orm'
-import { withAuth, parseBoundedInt } from '@/lib/api/middleware'
+import { withAuth, parseBoundedInt, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { notification } from '@/lib/db/schema'
 import crypto from 'crypto'
@@ -74,10 +74,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     return NextResponse.json({ notification: newNotification }, { status: 201 })
   } catch (error) {
     console.error('Create notification error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create notification' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create notification', 'api/notifications/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -120,10 +117,7 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
     )
   } catch (error) {
     console.error('Mark notifications error:', error)
-    return NextResponse.json(
-      { error: 'Failed to mark notifications' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to mark notifications', 'api/notifications/route.ts')
   }
 })
 
@@ -153,9 +147,6 @@ export const DELETE = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ deleted: 'completed' })
   } catch (error) {
     console.error('Delete notifications error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete notifications' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete notifications', 'api/notifications/route.ts')
   }
 })

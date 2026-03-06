@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
 import { eq, desc, asc } from 'drizzle-orm'
@@ -80,10 +80,7 @@ export const GET = withAuth(async (req: NextRequest) => {
     return NextResponse.json({ polls: result })
   } catch (error) {
     console.error('Error fetching polls:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch polls' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch polls', 'api/class/polls/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -150,9 +147,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
     console.error('Error creating poll:', error)
-    return NextResponse.json(
-      { error: 'Failed to create poll' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create poll', 'api/class/polls/route.ts')
   }
 }, { role: 'TUTOR' })

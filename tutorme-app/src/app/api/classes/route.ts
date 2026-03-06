@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth, requireCsrf, withRateLimitPreset } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { clinic, clinicBooking, payment, user, profile } from '@/lib/db/schema'
 import { eq, and, gte, inArray, asc, ilike, sql } from 'drizzle-orm'
@@ -212,7 +212,7 @@ async function getHandler(req: NextRequest, session: Session) {
     return NextResponse.json({ classes })
   } catch (error) {
     console.error('Failed to fetch classes:', error)
-    return NextResponse.json({ error: 'Failed to fetch classes' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch classes', 'api/classes/route.ts')
   }
 }
 
@@ -362,7 +362,7 @@ async function postHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to book class:', error)
-    return NextResponse.json({ error: 'Failed to book class' }, { status: 500 })
+    return handleApiError(error, 'Failed to book class', 'api/classes/route.ts')
   }
 }
 
@@ -410,7 +410,7 @@ async function deleteHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to cancel booking:', error)
-    return NextResponse.json({ error: 'Failed to cancel booking' }, { status: 500 })
+    return handleApiError(error, 'Failed to cancel booking', 'api/classes/route.ts')
   }
 }
 

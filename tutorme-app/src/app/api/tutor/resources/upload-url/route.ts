@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import {
   createPresignedUploadUrl,
   generateResourceKey,
@@ -53,7 +53,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       return NextResponse.json({ uploadUrl, key, type, publicUrl, usePresigned: true })
     } catch (error) {
       console.error('[upload-url] S3 presign failed:', error)
-      return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 })
+      return handleApiError(error, 'Failed to generate upload URL', 'api/tutor/resources/upload-url/route.ts')
     }
   }
 

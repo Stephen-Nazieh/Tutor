@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { SignJWT } from 'jose'
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     const secret = process.env.NEXTAUTH_SECRET
     if (!secret) {
       console.error('Socket token: NEXTAUTH_SECRET is not set')
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
+      return handleApiError(error, 'Server misconfiguration', 'api/socket-token/route.ts')
     }
     const role = session.user.role ?? 'STUDENT'
     const secretEncoded = new TextEncoder().encode(secret)
@@ -42,6 +43,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ token: socketToken })
   } catch (error) {
     console.error('Socket token error:', error)
-    return NextResponse.json({ error: 'Failed to issue token' }, { status: 500 })
+    return handleApiError(error, 'Failed to issue token', 'api/socket-token/route.ts')
   }
 }

@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarEvent, user, profile } from '@/lib/db/schema'
 import { eq, and, or, gte, lte, asc, isNull } from 'drizzle-orm'
@@ -159,10 +159,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Export calendar error:', error)
-    return NextResponse.json(
-      { error: 'Failed to export calendar' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to export calendar', 'api/tutor/calendar/export/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -191,9 +188,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Calendar feed error:', error)
-    return NextResponse.json(
-      { error: 'Failed to manage calendar feed' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to manage calendar feed', 'api/tutor/calendar/export/route.ts')
   }
 }, { role: 'TUTOR' })

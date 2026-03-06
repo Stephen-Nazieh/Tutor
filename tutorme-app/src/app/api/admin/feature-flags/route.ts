@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { requireAdmin, logAdminAction, getClientIp } from '@/lib/admin/auth'
 import { Permissions } from '@/lib/admin/permissions'
 import { getAllFeatureFlags, createFeatureFlag, deleteFeatureFlag, updateFeatureFlag } from '@/lib/admin/feature-flags'
@@ -14,10 +15,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ flags })
   } catch (error) {
     console.error('Error fetching feature flags:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch feature flags' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch feature flags', 'api/admin/feature-flags/route.ts')
   }
 }
 
@@ -61,10 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ flag })
   } catch (error) {
     console.error('Error creating feature flag:', error)
-    return NextResponse.json(
-      { error: 'Failed to create feature flag' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create feature flag', 'api/admin/feature-flags/route.ts')
   }
 }
 
@@ -102,10 +97,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ flag })
   } catch (error) {
     console.error('Error updating feature flag:', error)
-    return NextResponse.json(
-      { error: 'Failed to update feature flag' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update feature flag', 'api/admin/feature-flags/route.ts')
   }
 }
 
@@ -137,9 +129,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting feature flag:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete feature flag' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete feature flag', 'api/admin/feature-flags/route.ts')
   }
 }

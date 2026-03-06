@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 
 // Available subjects (English only for launch)
@@ -83,9 +84,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Get subjects error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get subjects' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to get subjects', 'api/ai-tutor/subjects/route.ts')
   }
 }

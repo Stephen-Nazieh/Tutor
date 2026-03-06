@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
@@ -146,9 +147,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to fetch missed classes:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch missed classes' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch missed classes', 'api/student/missed-classes/route.ts')
   }
 }

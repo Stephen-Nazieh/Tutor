@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { eq, and, desc, inArray } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentProgress, contentItem } from '@/lib/db/schema'
 import { z } from 'zod'
@@ -50,7 +50,7 @@ async function getHandler(_req: NextRequest, session: Session) {
     return NextResponse.json({ progress })
   } catch (error) {
     console.error('Progress fetch error:', error)
-    return NextResponse.json({ error: 'Failed to fetch progress' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch progress', 'api/progress/route.ts')
   }
 }
 
@@ -107,7 +107,7 @@ async function postHandler(req: NextRequest, session: Session) {
     return NextResponse.json({ progress: updatedProgress })
   } catch (error) {
     console.error('Progress update error:', error)
-    return NextResponse.json({ error: 'Failed to update progress' }, { status: 500 })
+    return handleApiError(error, 'Failed to update progress', 'api/progress/route.ts')
   }
 }
 

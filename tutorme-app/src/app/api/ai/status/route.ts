@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getAIProvidersStatus } from '@/lib/ai/orchestrator'
 import { getServerSession, authOptions } from '@/lib/auth'
 import type { NextRequest } from 'next/server'
@@ -28,9 +29,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('AI status check failed:', error)
-    return NextResponse.json(
-      { error: 'Failed to check AI providers' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to check AI providers', 'api/ai/status/route.ts')
   }
 }

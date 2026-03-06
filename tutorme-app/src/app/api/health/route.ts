@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sql } from 'drizzle-orm'
 import { dbMonitor, getHealthCheck } from '@/lib/db/monitor'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 
 export const dynamic = 'force-dynamic'
 
@@ -109,10 +109,7 @@ async function postHandler(_req: NextRequest) {
     dbMonitor.reset()
     return NextResponse.json({ message: 'Metrics reset' })
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to reset metrics' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to reset metrics', 'api/health/route.ts')
   }
 }
 

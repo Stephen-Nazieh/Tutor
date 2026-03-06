@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getAdminSession, clearAdminCookie, logAdminAction, getClientIp } from '@/lib/admin/auth'
 
 export async function POST(req: NextRequest) {
@@ -18,9 +19,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Admin logout error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Internal server error', 'api/admin/auth/logout/route.ts')
   }
 }

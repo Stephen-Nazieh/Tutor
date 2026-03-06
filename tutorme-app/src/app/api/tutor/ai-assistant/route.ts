@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantSession, aIAssistantMessage, aIAssistantInsight } from '@/lib/db/schema'
 import { eq, and, desc, asc, gte } from 'drizzle-orm'
@@ -169,10 +169,7 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
 
     const validation = await AISecurityManager.validateAiResponse(aiResponseContent)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
-      return NextResponse.json(
-        { error: 'AI response failed security validation' },
-        { status: 500 }
-      )
+      return handleApiError(error, 'AI response failed security validation', 'api/tutor/ai-assistant/route.ts')
     }
 
     await generateInsights(aiSessionRow.id, tutorId, safeMessage, aiResponseContent)
@@ -183,10 +180,7 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
     })
   } catch (error) {
     console.error('AI Assistant error:', error)
-    return NextResponse.json(
-      { error: 'Failed to process message' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to process message', 'api/tutor/ai-assistant/route.ts')
   }
 }, { role: 'TUTOR' })
 

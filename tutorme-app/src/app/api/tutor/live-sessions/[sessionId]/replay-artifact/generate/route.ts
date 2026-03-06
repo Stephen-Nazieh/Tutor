@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, sessionReplayArtifact, sessionParticipant, message, user, profile } from '@/lib/db/schema'
@@ -170,9 +171,6 @@ export async function POST(req: NextRequest) {
       .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
 
     console.error('Failed to generate replay artifact:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate replay artifact' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to generate replay artifact', 'api/tutor/live-sessions/[sessionId]/replay-artifact/generate/route.ts')
   }
 }

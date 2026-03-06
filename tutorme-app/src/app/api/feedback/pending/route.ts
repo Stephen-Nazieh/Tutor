@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getPendingFeedback } from '@/lib/feedback/workflow'
 
 async function getHandler(request: NextRequest, session: Session) {
@@ -33,10 +33,7 @@ async function getHandler(request: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Failed to get pending feedback:', error)
-    return NextResponse.json(
-      { error: '获取待审核反馈失败' },
-      { status: 500 }
-    )
+    return handleApiError(error, '获取待审核反馈失败', 'api/feedback/pending/route.ts')
   }
 }
 

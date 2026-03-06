@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { eq } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { profile as profileTable } from '@/lib/db/schema'
 import { sanitizeHtmlWithMax, sanitizeHtml } from '@/lib/security/sanitize'
@@ -37,10 +37,7 @@ async function postHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Tutor onboarding error:', error)
-    return NextResponse.json(
-      { error: 'Failed to save onboarding data' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to save onboarding data', 'api/onboarding/tutor/route.ts')
   }
 }
 

@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { resource } from '@/lib/db/schema'
@@ -79,10 +79,7 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ resource: resourceRow })
   } catch (error) {
     console.error('Update resource error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update resource' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update resource', 'api/tutor/resources/[id]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -122,9 +119,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete resource error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete resource' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete resource', 'api/tutor/resources/[id]/route.ts')
   }
 }, { role: 'TUTOR' })

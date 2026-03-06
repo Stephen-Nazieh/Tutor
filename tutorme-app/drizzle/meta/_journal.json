@@ -50,6 +50,13 @@
       "when": 1772774633000,
       "tag": "0006_curriculum_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1772775032691,
+      "tag": "0007_regular_swarm",
+      "breakpoints": true
     }
   ]
 }

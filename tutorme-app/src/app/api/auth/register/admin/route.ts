@@ -9,7 +9,7 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { user, profile, adminRole, adminAssignment } from '@/lib/db/schema'
 import { eq, inArray } from 'drizzle-orm'
 import { adminRegistrationSchema } from '@/lib/validation/user-registration'
-import { ValidationError, withRateLimitPreset } from '@/lib/api/middleware'
+import { ValidationError, withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
 import crypto from 'crypto'
 import { sql } from 'drizzle-orm'
@@ -158,9 +158,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(
-      { error: 'Internal server error. Please try again.' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Internal server error. Please try again.', 'api/auth/register/admin/route.ts')
   }
 }

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { conversation, directMessage, user, profile } from '@/lib/db/schema'
 import { or, eq, and, desc, ne, inArray, sql } from 'drizzle-orm'
@@ -160,7 +160,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     }
 
     if (!conv) {
-      return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })
+      return handleApiError(error, 'Failed to create conversation', 'api/conversations/route.ts')
     }
 
     const [p1] = await drizzleDb.select().from(user).where(eq(user.id, conv.participant1Id))
@@ -177,9 +177,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ conversation: conversationResponse })
   } catch (error) {
     console.error('Create conversation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create conversation' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create conversation', 'api/conversations/route.ts')
   }
 })

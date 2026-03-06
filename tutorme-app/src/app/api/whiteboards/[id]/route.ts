@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage, whiteboardSnapshot } from '@/lib/db/schema'
@@ -72,10 +72,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ whiteboard: whiteboardResult })
   } catch (error) {
     console.error('Fetch whiteboard error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch whiteboard' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch whiteboard', 'api/whiteboards/[id]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -132,10 +129,7 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ whiteboard: updated ? { ...updated, pages } : null })
   } catch (error) {
     console.error('Update whiteboard error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update whiteboard' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update whiteboard', 'api/whiteboards/[id]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -163,9 +157,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ message: 'Whiteboard deleted' })
   } catch (error) {
     console.error('Delete whiteboard error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete whiteboard' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete whiteboard', 'api/whiteboards/[id]/route.ts')
   }
 }, { role: 'TUTOR' })

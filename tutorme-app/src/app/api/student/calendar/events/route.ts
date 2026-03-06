@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { clinicBooking, clinic, user, profile } from '@/lib/db/schema'
@@ -77,9 +78,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ events })
   } catch (error) {
     console.error('Failed to fetch calendar events:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch calendar events' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch calendar events', 'api/student/calendar/events/route.ts')
   }
 }

@@ -5,8 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
-import { withRateLimit } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, withRateLimit, handleApiError } from '@/lib/api/middleware'
 import { runInSandbox, type SandboxLanguage } from '@/lib/code-runner/sandbox'
 import { z } from 'zod'
 
@@ -52,11 +51,7 @@ async function postHandler(req: NextRequest) {
       error: result.error ?? undefined,
     })
   } catch (err) {
-    console.error('[code/run]', err)
-    return NextResponse.json(
-      { error: 'Code execution failed' },
-      { status: 500 }
-    )
+    return handleApiError(err, 'Code execution failed', 'api/code/run/route.ts')
   }
 }
 

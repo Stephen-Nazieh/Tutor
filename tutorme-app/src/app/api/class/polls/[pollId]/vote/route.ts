@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollResponse } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -104,9 +104,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
     console.error('Error submitting vote:', error)
-    return NextResponse.json(
-      { error: 'Failed to submit vote' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to submit vote', 'api/class/polls/[pollId]/vote/route.ts')
   }
 })

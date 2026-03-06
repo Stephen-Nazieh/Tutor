@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { generateUniformTasks, TaskConfiguration } from '@/lib/ai/task-generator'
-import { withRateLimitPreset } from '@/lib/api/middleware'
+import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 
 const QuestionGenerateSchema = z.object({
@@ -76,9 +76,6 @@ export async function POST(req: NextRequest) {
         })
     } catch (error) {
         console.error('AI question generation failed:', error)
-        return NextResponse.json(
-            { error: 'Failed to generate questions' },
-            { status: 500 }
-        )
+        return handleApiError(error, 'Failed to generate questions', 'api/tutor/questions/generate/route.ts')
     }
 }

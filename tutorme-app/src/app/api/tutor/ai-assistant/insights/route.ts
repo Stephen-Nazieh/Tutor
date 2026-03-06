@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantInsight, aIAssistantSession } from '@/lib/db/schema'
 import { eq, and, desc, inArray } from 'drizzle-orm'
@@ -98,9 +98,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ insight }, { status: 201 })
   } catch (error) {
     console.error('Create insight error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create insight' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create insight', 'api/tutor/ai-assistant/insights/route.ts')
   }
 }, { role: 'TUTOR' })

@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 import { mkdir } from 'fs/promises'
@@ -92,10 +92,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('File upload error:', error)
-    return NextResponse.json(
-      { error: 'Failed to upload file' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to upload file', 'api/conversations/upload/route.ts')
   }
 })
 

@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { eq } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { profile as profileTable } from '@/lib/db/schema'
 import crypto from 'crypto'
@@ -57,10 +57,7 @@ async function postHandler(req: NextRequest, session: Session) {
     })
   } catch (error: unknown) {
     console.error('Student onboarding error:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to save onboarding data' },
-      { status: 500 }
-    )
+    return handleApiError(error, error instanceof Error ? error.message : 'Failed to save onboarding data', 'api/onboarding/student/route.ts')
   }
 }
 

@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { inferResourceType, generateResourceKey } from '@/lib/storage/s3'
@@ -47,6 +47,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         return NextResponse.json({ success: true, url: publicUrl, key, type })
     } catch (error) {
         console.error('[upload-proxy] Error:', error)
-        return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+        return handleApiError(error, 'Upload failed', 'api/tutor/resources/upload-proxy/route.ts')
     }
 }, { role: 'TUTOR' })

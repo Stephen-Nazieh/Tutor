@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarEvent, calendarAvailability, calendarException } from '@/lib/db/schema'
 import { eq, and, or, gte, lte, lt, gt, isNull, ne, not } from 'drizzle-orm'
@@ -137,10 +137,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Check availability error:', error)
-    return NextResponse.json(
-      { error: 'Failed to check availability' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to check availability', 'api/tutor/calendar/check/route.ts')
   }
 })
 

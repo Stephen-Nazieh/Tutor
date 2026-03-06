@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll } from '@/lib/db/schema'
@@ -62,10 +62,7 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
       )
     }
     console.error('Error updating poll:', error)
-    return NextResponse.json(
-      { error: 'Failed to update poll' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update poll', 'api/class/polls/[pollId]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -92,9 +89,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting poll:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete poll' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete poll', 'api/class/polls/[pollId]/route.ts')
   }
 }, { role: 'TUTOR' })

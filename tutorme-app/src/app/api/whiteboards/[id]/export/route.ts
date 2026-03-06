@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { whiteboard, whiteboardPage } from '@/lib/db/schema'
@@ -150,9 +150,6 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     }
   } catch (error) {
     console.error('Export whiteboard error:', error)
-    return NextResponse.json(
-      { error: 'Failed to export whiteboard' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to export whiteboard', 'api/whiteboards/[id]/export/route.ts')
   }
 }, { role: 'TUTOR' })

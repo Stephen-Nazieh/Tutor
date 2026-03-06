@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { createAdminSession, ADMIN_TOKEN_NAME, ADMIN_TOKEN_EXPIRY, getClientIp } from '@/lib/admin/auth'
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     console.error('Admin auth bridge error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleApiError(error, 'Internal server error', 'api/admin/auth/bridge/route.ts')
   }
 }
 

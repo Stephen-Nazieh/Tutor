@@ -9,7 +9,7 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/ai/task-generator'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession } from '@/lib/db/schema'
-import { withRateLimitPreset } from '@/lib/api/middleware'
+import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 
 const GenerateTasksSchema = z.object({
@@ -83,10 +83,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!result.success || !result.tasks) {
-      return NextResponse.json(
-        { error: result.error || '任务生成失败' },
-        { status: 500 }
-      )
+      return handleApiError(error, result.error || '任务生成失败', 'api/tasks/generate/route.ts')
     }
 
     // Save generated tasks to database
@@ -100,10 +97,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!saveResult.success) {
-      return NextResponse.json(
-        { error: saveResult.error || '保存任务失败' },
-        { status: 500 }
-      )
+      return handleApiError(error, saveResult.error || '保存任务失败', 'api/tasks/generate/route.ts')
     }
 
     return NextResponse.json({
@@ -116,9 +110,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to generate tasks:', error)
-    return NextResponse.json(
-      { error: '生成任务失败' },
-      { status: 500 }
-    )
+    return handleApiError(error, '生成任务失败', 'api/tasks/generate/route.ts')
   }
 }

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { eq } from "drizzle-orm"
-import { withAuth, ValidationError, withRateLimitPreset } from "@/lib/api/middleware"
+import { withAuth, ValidationError, withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { WeChatPayClient } from "@/lib/payments/wechat-pay-client"
 import { AlipayClient } from "@/lib/payments/alipay-client"
 import { CHINESE_CURRENCY, getChineseErrorMessage, isValidChineseAmount } from "@/lib/payments/chinese-gateways"
@@ -67,6 +67,6 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ paymentId: response.paymentId, checkoutUrl: response.checkoutUrl, status: response.status, isQrCode: gateway === "WECHAT_PAY" })
   } catch (err) {
     const msg = err instanceof Error ? err.message : getChineseErrorMessage("PAYMENT_SYSTEM_ERROR")
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return handleApiError(err, msg, 'api/payments/chinese-gateways/route.ts')
   }
 })

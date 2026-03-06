@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { llmProvider, llmModel, llmRoutingRule } from '@/lib/db/schema'
 import { eq, and, asc, inArray, sql } from 'drizzle-orm'
@@ -56,10 +57,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ providers: safeProviders })
   } catch (error) {
     console.error('Error fetching LLM providers:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch providers' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch providers', 'api/admin/llm/providers/route.ts')
   }
 }
 
@@ -107,10 +105,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ provider: { ...provider, apiKeyEncrypted: '***' } })
   } catch (error) {
     console.error('Error creating LLM provider:', error)
-    return NextResponse.json(
-      { error: 'Failed to create provider' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create provider', 'api/admin/llm/providers/route.ts')
   }
 }
 
@@ -165,9 +160,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ provider: { ...providerForResponse, apiKeyEncrypted: '***' } })
   } catch (error) {
     console.error('Error updating LLM provider:', error)
-    return NextResponse.json(
-      { error: 'Failed to update provider' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update provider', 'api/admin/llm/providers/route.ts')
   }
 }

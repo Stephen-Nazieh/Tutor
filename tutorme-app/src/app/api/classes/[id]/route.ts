@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -38,9 +39,6 @@ export async function GET(req: NextRequest, context?: { params?: Promise<Record<
     return NextResponse.json({ class: classItem })
   } catch (error) {
     console.error('Failed to fetch class details:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch class details' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch class details', 'api/classes/[id]/route.ts')
   }
 }

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantInsight, aIAssistantSession } from '@/lib/db/schema'
@@ -52,10 +52,7 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ insight: updatedInsight })
   } catch (error) {
     console.error('Update insight error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update insight' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update insight', 'api/tutor/ai-assistant/insights/[id]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -87,9 +84,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete insight error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete insight' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete insight', 'api/tutor/ai-assistant/insights/[id]/route.ts')
   }
 }, { role: 'TUTOR' })

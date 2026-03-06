@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarException } from '@/lib/db/schema'
 import { eq, and, asc, gte, lte, isNull } from 'drizzle-orm'
@@ -43,10 +43,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ exceptions })
   } catch (error) {
     console.error('Fetch exceptions error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch exceptions' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch exceptions', 'api/tutor/calendar/exceptions/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -133,10 +130,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       )
     }
     console.error('Create exception error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create exception' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create exception', 'api/tutor/calendar/exceptions/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -199,9 +193,6 @@ export const PUT = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Bulk create exceptions error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create exceptions' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to create exceptions', 'api/tutor/calendar/exceptions/route.ts')
   }
 }, { role: 'TUTOR' })

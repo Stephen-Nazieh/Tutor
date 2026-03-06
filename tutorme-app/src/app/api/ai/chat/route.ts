@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateTutorResponse, TutorMessage } from '@/lib/ai/tutor-service'
 import { getServerSession, authOptions } from '@/lib/auth'
-import { withRateLimitPreset } from '@/lib/api/middleware'
+import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 
@@ -85,10 +85,7 @@ export async function POST(request: NextRequest) {
     // Validate AI response before returning
     const validation = await AISecurityManager.validateAiResponse(response.message)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
-      return NextResponse.json(
-        { error: 'AI response failed security validation' },
-        { status: 500 }
-      )
+      return handleApiError(error, 'AI response failed security validation', 'api/ai/chat/route.ts')
     }
 
     return NextResponse.json({
@@ -100,10 +97,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('AI chat error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get AI response' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to get AI response', 'api/ai/chat/route.ts')
   }
 }
 

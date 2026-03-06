@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { and, asc, eq } from 'drizzle-orm'
-import { withAuth, requireCsrf } from '@/lib/api/middleware'
+import { withAuth, requireCsrf, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   aITutorEnrollment,
@@ -192,10 +192,7 @@ async function getHandler(req: NextRequest, session: Session) {
     })
   } catch (error) {
     console.error('Get lesson context error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get lesson context' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to get lesson context', 'api/ai-tutor/lesson-context/route.ts')
   }
 }
 
@@ -224,10 +221,7 @@ async function postHandler(req: NextRequest, session: Session) {
     return NextResponse.json({ success: true, session: tutoringSession ?? null })
   } catch (error) {
     console.error('Link session to lesson error:', error)
-    return NextResponse.json(
-      { error: 'Failed to link session to lesson' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to link session to lesson', 'api/ai-tutor/lesson-context/route.ts')
   }
 }
 

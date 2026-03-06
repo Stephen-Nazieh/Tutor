@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { quiz, aIAssistantInsight } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
@@ -252,10 +252,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     })
   } catch (error) {
     console.error('Quiz generation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate quiz' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to generate quiz', 'api/tutor/ai-assistant/quiz/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -284,9 +281,6 @@ export const GET = withAuth(async (_req: NextRequest, session) => {
     return NextResponse.json({ quizzes })
   } catch (error) {
     console.error('Fetch quizzes error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch quizzes' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch quizzes', 'api/tutor/ai-assistant/quiz/route.ts')
   }
 }, { role: 'TUTOR' })

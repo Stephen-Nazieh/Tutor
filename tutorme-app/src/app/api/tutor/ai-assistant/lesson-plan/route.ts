@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantInsight } from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/ai/orchestrator'
@@ -185,10 +185,7 @@ Make the lesson engaging, practical, and aligned with best teaching practices. I
     })
   } catch (error) {
     console.error('Lesson plan generation error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate lesson plan' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to generate lesson plan', 'api/tutor/ai-assistant/lesson-plan/route.ts')
   }
 }, { role: 'TUTOR' })
 

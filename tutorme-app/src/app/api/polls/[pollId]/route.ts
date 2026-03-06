@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -67,7 +68,7 @@ export async function GET(
     return NextResponse.json({ poll: formattedPoll })
   } catch (error) {
     console.error('Failed to fetch poll:', error)
-    return NextResponse.json({ error: 'Failed to fetch poll' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch poll', 'api/polls/[pollId]/route.ts')
   }
 }
 
@@ -160,7 +161,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 })
     }
     console.error('Failed to update poll:', error)
-    return NextResponse.json({ error: 'Failed to update poll' }, { status: 500 })
+    return handleApiError(error, 'Failed to update poll', 'api/polls/[pollId]/route.ts')
   }
 }
 
@@ -187,6 +188,6 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete poll:', error)
-    return NextResponse.json({ error: 'Failed to delete poll' }, { status: 500 })
+    return handleApiError(error, 'Failed to delete poll', 'api/polls/[pollId]/route.ts')
   }
 }

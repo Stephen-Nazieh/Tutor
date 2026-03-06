@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { withAuth, withCsrf } from '@/lib/api/middleware'
+import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { libraryTask } from '@/lib/db/schema'
@@ -55,7 +55,7 @@ export const PATCH = withCsrf(withAuth(async (request, session, context) => {
 
       const [updated] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, taskId)).limit(1)
       if (!updated) {
-        return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
+        return handleApiError(error, 'Failed to update task', 'api/library/[taskId]/route.ts')
       }
       return NextResponse.json({ task: mapTask(updated) })
     }
@@ -71,7 +71,7 @@ export const PATCH = withCsrf(withAuth(async (request, session, context) => {
     return NextResponse.json({ error: 'Unsupported action' }, { status: 400 })
   } catch (error) {
     console.error('Error updating task:', error)
-    return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
+    return handleApiError(error, 'Failed to update task', 'api/library/[taskId]/route.ts')
   }
 }))
 
@@ -89,6 +89,6 @@ export const DELETE = withCsrf(withAuth(async (_req, session, context) => {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting task:', error)
-    return NextResponse.json({ error: 'Failed to delete task' }, { status: 500 })
+    return handleApiError(error, 'Failed to delete task', 'api/library/[taskId]/route.ts')
   }
 }))

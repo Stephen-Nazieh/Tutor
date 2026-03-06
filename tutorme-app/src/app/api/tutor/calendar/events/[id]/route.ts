@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from '@/lib/api/middleware'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { calendarEvent, curriculum, courseBatch } from '@/lib/db/schema'
@@ -84,10 +84,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ event })
   } catch (error) {
     console.error('Fetch event error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch event' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch event', 'api/tutor/calendar/events/[id]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -183,10 +180,7 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
       .returning()
 
     if (!updated) {
-      return NextResponse.json(
-        { error: 'Failed to update event' },
-        { status: 500 }
-      )
+      return handleApiError(error, 'Failed to update event', 'api/tutor/calendar/events/[id]/route.ts')
     }
 
     const [curriculumRow] = updated.curriculumId
@@ -213,10 +207,7 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
     return NextResponse.json({ event })
   } catch (error) {
     console.error('Update event error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update event' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to update event', 'api/tutor/calendar/events/[id]/route.ts')
   }
 }, { role: 'TUTOR' })
 
@@ -273,9 +264,6 @@ export const DELETE = withAuth(async (req: NextRequest, session, context) => {
     })
   } catch (error) {
     console.error('Delete event error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete event' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to delete event', 'api/tutor/calendar/events/[id]/route.ts')
   }
 }, { role: 'TUTOR' })

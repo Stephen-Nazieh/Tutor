@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { user, profile, liveSession, sessionParticipant } from '@/lib/db/schema'
@@ -101,9 +102,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ tutors: formattedTutors })
   } catch (error) {
     console.error('Error fetching tutors:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch tutors' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'Failed to fetch tutors', 'api/tutors/by-subject/route.ts')
   }
 }
