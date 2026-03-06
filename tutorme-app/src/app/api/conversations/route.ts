@@ -160,7 +160,11 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     }
 
     if (!conv) {
-      return handleApiError(error, 'Failed to create conversation', 'api/conversations/route.ts')
+      return handleApiError(
+        new Error('Failed to create conversation'),
+        'Failed to create conversation',
+        'api/conversations/route.ts'
+      )
     }
 
     const [p1] = await drizzleDb.select().from(user).where(eq(user.id, conv.participant1Id))

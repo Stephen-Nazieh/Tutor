@@ -55,7 +55,11 @@ export const PATCH = withCsrf(withAuth(async (request, session, context) => {
 
       const [updated] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, taskId)).limit(1)
       if (!updated) {
-        return handleApiError(error, 'Failed to update task', 'api/library/[taskId]/route.ts')
+        return handleApiError(
+          new Error('Failed to update task'),
+          'Failed to update task',
+          'api/library/[taskId]/route.ts'
+        )
       }
       return NextResponse.json({ task: mapTask(updated) })
     }

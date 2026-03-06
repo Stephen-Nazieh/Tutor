@@ -89,9 +89,7 @@ export async function POST(request: NextRequest) {
       conversationId: convoKey
     })
   } catch (error) {
-    console.error('AI tutor error:', error)
-    return handleApiError(error, 'Failed to get AI response',
-        details: error instanceof Error ? error.message : 'Unknown error', 'api/ai/tutor/route.ts')
+    return handleApiError(error, 'Failed to get AI response', 'api/ai/tutor/route.ts')
   }
 }
 

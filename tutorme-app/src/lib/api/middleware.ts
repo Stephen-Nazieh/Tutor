@@ -118,8 +118,10 @@ export function withAuth(
     options?: WithAuthOptions
 ) {
     return async (req: NextRequest, context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }) => {
+        let activeSession: Session | null = null
         try {
             const session = await getServerSession(authOptions, req)
+            activeSession = session
 
             // Check if user is authenticated (session and session.user must exist to avoid "reading 'user'" in handlers)
             if (!session || !session.user || !session.user.id) {
@@ -181,7 +183,7 @@ export function withAuth(
             logApiError(errorId, 'API Error', error, {
                 path: req.nextUrl?.pathname,
                 method: req.method,
-                userId: session?.user?.id ?? null
+                userId: activeSession?.user?.id ?? null
             })
 
             // Don't expose internal errors in production

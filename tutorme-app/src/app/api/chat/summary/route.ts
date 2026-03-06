@@ -80,7 +80,11 @@ export async function POST(request: NextRequest) {
     const result = await generateSessionSummary(sessionId, options)
 
     if (!result.success) {
-      return handleApiError(error, result.error || '生成总结失败', 'api/chat/summary/route.ts')
+      return handleApiError(
+        new Error(result.error || '生成总结失败'),
+        result.error || '生成总结失败',
+        'api/chat/summary/route.ts'
+      )
     }
 
     return NextResponse.json({

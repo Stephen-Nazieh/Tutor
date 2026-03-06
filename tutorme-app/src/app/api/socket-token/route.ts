@@ -22,8 +22,11 @@ export async function GET(request: NextRequest) {
 
     const secret = process.env.NEXTAUTH_SECRET
     if (!secret) {
-      console.error('Socket token: NEXTAUTH_SECRET is not set')
-      return handleApiError(error, 'Server misconfiguration', 'api/socket-token/route.ts')
+      return handleApiError(
+        new Error('Socket token: NEXTAUTH_SECRET is not set'),
+        'Server misconfiguration',
+        'api/socket-token/route.ts'
+      )
     }
     const role = session.user.role ?? 'STUDENT'
     const secretEncoded = new TextEncoder().encode(secret)

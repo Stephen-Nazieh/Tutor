@@ -180,7 +180,11 @@ export const PUT = withAuth(async (req: NextRequest, session, context) => {
       .returning()
 
     if (!updated) {
-      return handleApiError(error, 'Failed to update event', 'api/tutor/calendar/events/[id]/route.ts')
+      return handleApiError(
+        new Error('Failed to update event'),
+        'Failed to update event',
+        'api/tutor/calendar/events/[id]/route.ts'
+      )
     }
 
     const [curriculumRow] = updated.curriculumId

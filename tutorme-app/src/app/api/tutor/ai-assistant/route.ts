@@ -169,7 +169,11 @@ Be concise, practical, and encouraging. Provide specific examples when possible.
 
     const validation = await AISecurityManager.validateAiResponse(aiResponseContent)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
-      return handleApiError(error, 'AI response failed security validation', 'api/tutor/ai-assistant/route.ts')
+      return handleApiError(
+        new Error('AI response failed security validation'),
+        'AI response failed security validation',
+        'api/tutor/ai-assistant/route.ts'
+      )
     }
 
     await generateInsights(aiSessionRow.id, tutorId, safeMessage, aiResponseContent)

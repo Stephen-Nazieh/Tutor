@@ -152,8 +152,6 @@ export async function POST(request: NextRequest) {
       { status: 402 }
     )
   } catch (error) {
-    console.error('Payment alert error:', error)
-    return handleApiError(error, 'Failed to process payment alert',
-        details: error instanceof Error ? error.message : 'Unknown error',, 'api/class/payment-alert/route.ts')
+    return handleApiError(error, 'Failed to process payment alert', 'api/class/payment-alert/route.ts')
   }
 }

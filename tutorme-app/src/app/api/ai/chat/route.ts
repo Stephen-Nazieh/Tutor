@@ -85,7 +85,11 @@ export async function POST(request: NextRequest) {
     // Validate AI response before returning
     const validation = await AISecurityManager.validateAiResponse(response.message)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
-      return handleApiError(error, 'AI response failed security validation', 'api/ai/chat/route.ts')
+      return handleApiError(
+        new Error('AI response failed security validation'),
+        'AI response failed security validation',
+        'api/ai/chat/route.ts'
+      )
     }
 
     return NextResponse.json({

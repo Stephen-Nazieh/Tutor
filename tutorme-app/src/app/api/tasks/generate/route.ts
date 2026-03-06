@@ -83,7 +83,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (!result.success || !result.tasks) {
-      return handleApiError(error, result.error || '任务生成失败', 'api/tasks/generate/route.ts')
+      return handleApiError(
+        new Error(result.error || '任务生成失败'),
+        result.error || '任务生成失败',
+        'api/tasks/generate/route.ts'
+      )
     }
 
     // Save generated tasks to database
@@ -97,7 +101,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (!saveResult.success) {
-      return handleApiError(error, saveResult.error || '保存任务失败', 'api/tasks/generate/route.ts')
+      return handleApiError(
+        new Error(saveResult.error || '保存任务失败'),
+        saveResult.error || '保存任务失败',
+        'api/tasks/generate/route.ts'
+      )
     }
 
     return NextResponse.json({

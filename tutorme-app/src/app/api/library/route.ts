@@ -68,7 +68,11 @@ export const POST = withCsrf(withAuth(async (request, session) => {
 
     const [task] = await drizzleDb.select().from(libraryTask).where(eq(libraryTask.id, id)).limit(1)
     if (!task) {
-      return handleApiError(error, 'Failed to create task', 'api/library/route.ts')
+      return handleApiError(
+        new Error('Failed to create task'),
+        'Failed to create task',
+        'api/library/route.ts'
+      )
     }
 
     return NextResponse.json({ task: mapTask(task) }, { status: 201 })
