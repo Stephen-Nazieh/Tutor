@@ -43,6 +43,13 @@
       "when": 1772723257129,
       "tag": "0005_curriculum_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772774633000,
+      "tag": "0006_curriculum_columns",
+      "breakpoints": true
     }
   ]
 }

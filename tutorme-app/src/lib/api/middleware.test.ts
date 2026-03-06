@@ -43,6 +43,7 @@ describe('api/middleware', () => {
       expect(res.status).toBe(500)
       return res.json().then((body) => {
         expect(body.error).toBe('Internal server error')
+        expect(body.errorId).toBeTruthy()
       })
     })
 
@@ -52,6 +53,7 @@ describe('api/middleware', () => {
       expect(res.status).toBe(500)
       return res.json().then((body) => {
         expect(body.error).toBe('Custom error')
+        expect(body.errorId).toBeTruthy()
       })
     })
 
@@ -60,6 +62,7 @@ describe('api/middleware', () => {
       const res = handleApiError(null, 'Something went wrong')
       return res.json().then((body) => {
         expect(body.error).toBe('Something went wrong')
+        expect(body.errorId).toBeTruthy()
       })
     })
   })

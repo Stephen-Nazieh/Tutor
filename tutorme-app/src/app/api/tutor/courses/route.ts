@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { eq, desc, asc, inArray, sql } from 'drizzle-orm'
+import { eq, desc, asc, inArray } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { CreateCurriculumSchema } from '@/lib/validation/schemas'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -22,12 +22,6 @@ import {
   curriculumEnrollment
 } from '@/lib/db/schema'
 import crypto from 'crypto'
-
-async function ensureCurriculumColumns() {
-  await drizzleDb.execute(sql`ALTER TABLE "Curriculum" ADD COLUMN IF NOT EXISTS "categories" text[];`)
-  await drizzleDb.execute(sql`ALTER TABLE "Curriculum" ADD COLUMN IF NOT EXISTS "schedule" jsonb;`)
-  await drizzleDb.execute(sql`ALTER TABLE "Curriculum" ADD COLUMN IF NOT EXISTS "currency" text;`)
-}
 
 /**
  * GET handler - List tutor's courses
@@ -108,7 +102,6 @@ export const GET = withAuth(async (req: NextRequest, session) => {
  * POST handler - Create a new course
  */
 export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
-  await ensureCurriculumColumns()
   const body = await req.json().catch(() => ({}))
   const parsed = CreateCurriculumSchema.safeParse(body)
   if (!parsed.success) {

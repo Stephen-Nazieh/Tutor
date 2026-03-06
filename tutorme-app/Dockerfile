@@ -32,11 +32,13 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/scripts ./scripts
 
 USER nextjs
 EXPOSE 3003
 ENV PORT=3003
 ENV HOSTNAME="0.0.0.0"
 
-# Custom server (Socket.io)
-CMD ["npx", "tsx", "server.ts"]
+# Custom server (Socket.io) + startup migrations
+CMD ["node", "scripts/start-prod.js"]

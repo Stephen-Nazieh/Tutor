@@ -13,6 +13,7 @@ import { verifyCsrfToken } from '@/lib/security/csrf'
 import { checkRateLimit, checkRateLimitPreset, getClientIdentifier } from '@/lib/security/rate-limit'
 import { hasPermission, type Permission } from '@/lib/security/rbac'
 import { isAdminIpAllowed, getClientIp } from '@/lib/security/admin-ip'
+import { nanoid } from 'nanoid'
 
 // Custom error classes
 export class UnauthorizedError extends Error {
@@ -43,6 +44,22 @@ export class NotFoundError extends Error {
     }
 }
 
+function createErrorId(): string {
+    return nanoid(12)
+}
+
+function logApiError(errorId: string, logLabel: string, error: unknown, meta?: Record<string, unknown>) {
+    const err = error instanceof Error ? error : undefined
+    console.error(JSON.stringify({
+        level: 'error',
+        errorId,
+        label: logLabel,
+        message: err?.message ?? 'Unknown error',
+        stack: err?.stack,
+        ...meta
+    }))
+}
+
 /**
  * Centralised API error logging and 500 response.
  * Use in route catch blocks for consistent logging and response shape.
@@ -52,11 +69,12 @@ export function handleApiError(
     defaultMessage: string = 'Internal server error',
     logLabel: string = 'API Error'
 ): NextResponse {
-    console.error(`[${logLabel}]`, error)
+    const errorId = createErrorId()
+    logApiError(errorId, logLabel, error)
     const message = error instanceof Error ? error.message : defaultMessage
     const isDev = process.env.NODE_ENV === 'development'
     return NextResponse.json(
-        { error: isDev ? message : defaultMessage },
+        { error: isDev ? message : defaultMessage, errorId },
         { status: 500 }
     )
 }
@@ -159,7 +177,12 @@ export function withAuth(
             }
 
             // Handle unknown errors
-            console.error('API Error:', error)
+            const errorId = createErrorId()
+            logApiError(errorId, 'API Error', error, {
+                path: req.nextUrl?.pathname,
+                method: req.method,
+                userId: session?.user?.id ?? null
+            })
 
             // Don't expose internal errors in production
             const isDev = process.env.NODE_ENV === 'development'
@@ -167,7 +190,8 @@ export function withAuth(
                 {
                     error: isDev
                         ? (error instanceof Error ? error.message : 'Unknown error')
-                        : 'Internal server error'
+                        : 'Internal server error',
+                    errorId
                 },
                 { status: 500 }
             )
@@ -227,6 +251,8 @@ export async function requireCsrf(req: NextRequest): Promise<NextResponse | null
     if (!CSRF_METHODS.has(req.method)) return null
     const path = req.nextUrl?.pathname ?? ''
     if (CSRF_SKIP_PATHS.some((p) => path.startsWith(p))) return null
+    const authHeader = req.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) return null
     const valid = await verifyCsrfToken(req)
     if (!valid) {
         return NextResponse.json({ error: 'Invalid or missing CSRF token' }, { status: 403 })
