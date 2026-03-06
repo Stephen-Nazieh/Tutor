@@ -821,7 +821,7 @@ export default function TutorRegistrationPage() {
                   <Label>What countries do you want to offer your tutoring to?</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {ALL_COUNTRIES.map((country) => (
-                      <label key={country} className="flex items-center gap-2 text-sm">
+                      <label key={country.code} className="flex items-center gap-2 text-sm">
                         <Checkbox
                           checked={formData.tutoringCountries.includes(country.name)}
                           onCheckedChange={() => toggleCountry(country.name)}
