@@ -166,6 +166,7 @@ export interface Assessment extends WithDifficultyVariants {
   estimatedMinutes: number
   points: number
   submissionType: 'text' | 'file' | 'link' | 'multiple' | 'questions'
+  isAiGraded?: boolean
   allowLateSubmission: boolean
   latePenalty?: number
   /** @protected Instructor-only answer key */
@@ -429,6 +430,7 @@ const DEFAULT_HOMEWORK = (order: number, category: 'assessment' | 'homework' = '
   estimatedMinutes: 30,
   points: 20,
   submissionType: 'file',
+  isAiGraded: false,
   allowLateSubmission: true,
   questions: [],
   randomizeQuestions: false,
@@ -1598,7 +1600,6 @@ function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModal
                   placeholder="e.g., Complete the reading exercise"
                 />
               </div>
-              <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
               <div className="space-y-2">
                 <Label>Instructions *</Label>
                 <Textarea
@@ -1617,43 +1618,6 @@ function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModal
                   rows={2}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Time (min)</Label>
-                  <Input
-                    type="number"
-                    value={data.estimatedMinutes}
-                    onChange={(e) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 15 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Points</Label>
-                  <Input
-                    type="number"
-                    value={data.points}
-                    onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 10 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Submission</Label>
-                  <Select
-                    value={data.submissionType}
-                    onValueChange={(v: Task['submissionType']) => setData({ ...data, submissionType: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="text">Text</SelectItem>
-                      <SelectItem value="file">File</SelectItem>
-                      <SelectItem value="link">Link</SelectItem>
-                      <SelectItem value="questions">Questions</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
               {/* Questions Section - Only when submissionType is 'questions' */}
               {data.submissionType === 'questions' && (
                 <div className="border rounded-lg p-4 space-y-4 bg-orange-50/30">
@@ -1813,14 +1777,6 @@ function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModal
                 </div>
               )}
 
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={data.isAiGraded}
-                  onCheckedChange={(checked) => setData({ ...data, isAiGraded: checked })}
-                />
-                <Label>Enable AI grading assistance</Label>
-              </div>
-
               {/* Answer Key Section - Protected */}
               <div className="border-t pt-4 mt-4">
                 <div className="flex items-center justify-between mb-3">
@@ -1876,6 +1832,9 @@ function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModal
               {data.instructions && (
                 <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
               )}
+              <div className="space-y-3">
+                <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+              </div>
               {data.sourceDocument && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
@@ -1889,7 +1848,52 @@ function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModal
                   />
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">{data.estimatedMinutes} min · {data.points} pts · {data.submissionType}</p>
+              <div className="space-y-3 rounded-lg border bg-white p-3">
+                <h4 className="text-sm font-medium">Settings</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Time (min)</Label>
+                    <Input
+                      type="number"
+                      value={data.estimatedMinutes}
+                      onChange={(e) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 15 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Points</Label>
+                    <Input
+                      type="number"
+                      value={data.points}
+                      onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 10 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Submission</Label>
+                    <Select
+                      value={data.submissionType}
+                      onValueChange={(v: Task['submissionType']) => setData({ ...data, submissionType: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="file">File</SelectItem>
+                        <SelectItem value="link">Link</SelectItem>
+                        <SelectItem value="questions">Questions</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={data.isAiGraded}
+                    onCheckedChange={(checked) => setData({ ...data, isAiGraded: checked })}
+                  />
+                  <Label className="text-sm">Enable AI grading assistance</Label>
+                </div>
+              </div>
               <h4 className="text-sm font-medium mt-4">Questions</h4>
               <QuestionsPreview questions={data.questions ?? []} />
             </div>
@@ -1954,23 +1958,13 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
           </TabsList>
           <TabsContent value="edit" className="space-y-4 py-2">
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3 space-y-2">
+              <div className="space-y-2">
                   <Label>Assessment Title *</Label>
                   <Input
                     value={data.title}
                     onChange={(e) => setData({ ...data, title: e.target.value })}
                     placeholder="e.g., Assessment 1"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Points</Label>
-                  <Input
-                    type="number"
-                    value={data.points}
-                    onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 20 })}
-                  />
-                </div>
               </div>
               <div className="space-y-2">
                 <Label>Instructions</Label>
@@ -1989,25 +1983,6 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
                   placeholder="Enter the question here"
                   rows={4}
                 />
-              </div>
-              <p className="text-sm text-muted-foreground">Or upload materials</p>
-              <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
-              <div className="flex gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={data.showCorrectAnswers ?? true}
-                    onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
-                    disabled={data.answersNeverVisible}
-                  />
-                  <Label className="text-sm">Show correct answers</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={data.answersNeverVisible ?? false}
-                    onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
-                  />
-                  <Label className="text-sm">Never show answers</Label>
-                </div>
               </div>
 
               {/* Questions Section - Only when submissionType is 'questions' */}
@@ -2041,13 +2016,6 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
                         <Plus className="h-4 w-4 mr-1" /> Fill Blank
                       </Button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={data.randomizeQuestions}
-                      onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
-                    />
-                    <Label className="text-sm">Randomize question order</Label>
                   </div>
                   <QuestionBankQuickImport
                     onImport={(incomingQuestions) =>
@@ -2252,6 +2220,9 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
               {data.instructions && (
                 <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
               )}
+              <div className="space-y-3">
+                <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+              </div>
               {data.sourceDocument && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
@@ -2594,7 +2565,76 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   />
                 </div>
               )}
-              <p className="text-xs text-muted-foreground">{data.estimatedMinutes} min · {data.points} pts · Passing: {data.passingScore}%</p>
+              <div className="space-y-3 rounded-lg border bg-white p-3">
+                <h4 className="text-sm font-medium">Settings</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Time (min)</Label>
+                    <Input
+                      type="number"
+                      value={data.estimatedMinutes}
+                      onChange={(e) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 30 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Points</Label>
+                    <Input
+                      type="number"
+                      value={data.points}
+                      onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 20 })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Submission</Label>
+                    <Select
+                      value={data.submissionType}
+                      onValueChange={(v: Assessment['submissionType']) => setData({ ...data, submissionType: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="file">File</SelectItem>
+                        <SelectItem value="link">Link</SelectItem>
+                        <SelectItem value="multiple">Multiple</SelectItem>
+                        <SelectItem value="questions">Questions</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={data.showCorrectAnswers ?? true}
+                      onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
+                      disabled={data.answersNeverVisible}
+                    />
+                    <Label className="text-sm">Show correct answers</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={data.answersNeverVisible ?? false}
+                      onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
+                    />
+                    <Label className="text-sm">Never show answers</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={data.randomizeQuestions}
+                      onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
+                    />
+                    <Label className="text-sm">Randomize question order</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={data.isAiGraded ?? false}
+                      onCheckedChange={(checked) => setData({ ...data, isAiGraded: checked })}
+                    />
+                    <Label className="text-sm">Enable AI grading assistance</Label>
+                  </div>
+                </div>
+              </div>
               <h4 className="text-sm font-medium mt-4">Questions</h4>
               <QuestionsPreview questions={data.questions ?? []} />
             </div>
@@ -4642,6 +4682,48 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     handleDocUpload(moduleId, lessonId, files)
   }
 
+  const handleDeleteAssetMedia = (mediaType: 'video' | 'image', mediaId: string) => {
+    const { moduleId, lessonId } = ensureFirstLessonContext()
+    setModules((prev) =>
+      prev.map((module) => {
+        if (module.id !== moduleId) return module
+        return {
+          ...module,
+          lessons: module.lessons.map((lesson) => {
+            if (lesson.id !== lessonId) return lesson
+            return {
+              ...lesson,
+              media: {
+                ...lesson.media,
+                videos: mediaType === 'video' ? (lesson.media?.videos || []).filter((v) => v.id !== mediaId) : (lesson.media?.videos || []),
+                images: mediaType === 'image' ? (lesson.media?.images || []).filter((i) => i.id !== mediaId) : (lesson.media?.images || []),
+              },
+            }
+          }),
+        }
+      })
+    )
+  }
+
+  const handleDeleteAssetDoc = (docId: string) => {
+    const { moduleId, lessonId } = ensureFirstLessonContext()
+    setModules((prev) =>
+      prev.map((module) => {
+        if (module.id !== moduleId) return module
+        return {
+          ...module,
+          lessons: module.lessons.map((lesson) => {
+            if (lesson.id !== lessonId) return lesson
+            return {
+              ...lesson,
+              docs: (lesson.docs || []).filter((doc) => doc.id !== docId),
+            }
+          }),
+        }
+      })
+    )
+  }
+
   const updateSelectedItem = (updates: { sourceDocument?: ImportedLearningResource }) => {
     if (!selectedItem) return
     const target = resolveSelectedItem(selectedItem, modules)
@@ -4976,12 +5058,34 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                         <Play className="h-3 w-3 shrink-0 mt-[2px]" />
                                         <span className="flex-1 min-w-0 break-words whitespace-normal">{video.title}</span>
                                         <span className="text-gray-400 shrink-0">{video.duration > 0 ? `${Math.floor(video.duration / 60)}m` : '—'}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5"
+                                          onClick={() => {
+                                            if (!confirm(`Delete "${video.title}"?`)) return
+                                            handleDeleteAssetMedia('video', video.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
                                       </div>
                                     ))}
                                     {assetsLesson?.media?.images?.map((img) => (
                                       <div key={img.id} className="flex items-start gap-1 text-[10px] text-gray-600">
                                         <ImageIcon className="h-3 w-3 shrink-0 mt-[2px]" />
                                         <span className="flex-1 min-w-0 break-words whitespace-normal">{img.title}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5"
+                                          onClick={() => {
+                                            if (!confirm(`Delete "${img.title}"?`)) return
+                                            handleDeleteAssetMedia('image', img.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
                                       </div>
                                     ))}
                                   </div>
@@ -5026,6 +5130,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                         <FileText className="h-3 w-3 shrink-0 mt-[2px]" />
                                         <span className="flex-1 min-w-0 break-words whitespace-normal">{doc.title}</span>
                                         <span className="text-gray-400 uppercase shrink-0">{doc.type}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5"
+                                          onClick={() => {
+                                            if (!confirm(`Delete "${doc.title}"?`)) return
+                                            handleDeleteAssetDoc(doc.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
                                       </div>
                                     ))}
                                   </div>
@@ -5164,6 +5279,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                             className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
                                             onClick={(e) => {
                                               e.stopPropagation()
+                                              if (!confirm(`Delete "${task.title}"?`)) return
                                               deleteTask(module.id, primaryLesson.id, task.id)
                                             }}
                                           >
@@ -5234,6 +5350,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                             className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
                                             onClick={(e) => {
                                               e.stopPropagation()
+                                              if (!confirm(`Delete "${hw.title}"?`)) return
                                               deleteAssessment(module.id, primaryLesson.id, hw.id)
                                             }}
                                           >
@@ -5304,6 +5421,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                             className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
                                             onClick={(e) => {
                                               e.stopPropagation()
+                                              if (!confirm(`Delete "${hw.title}"?`)) return
                                               deleteAssessment(module.id, primaryLesson.id, hw.id)
                                             }}
                                           >
