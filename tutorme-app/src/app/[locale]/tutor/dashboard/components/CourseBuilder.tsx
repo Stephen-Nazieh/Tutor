@@ -951,7 +951,7 @@ function QuestionBankQuickImport({ onImport }: { onImport: (questions: QuizQuest
             setSelectedId('')
           }}
         >
-          Import Selected
+          Upload from Question Bank
         </Button>
         <Button type="button" variant="ghost" size="sm" asChild>
           <a href="/tutor/question-bank" target="_blank" rel="noreferrer">
@@ -1608,6 +1608,40 @@ function AssessmentBuilderModal({
                   placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
                   rows={4}
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Submission</Label>
+                  <Select
+                    value={data.submissionType}
+                    onValueChange={(v) =>
+                      setData({
+                        ...data,
+                        submissionType: (isTask ? (v as Task['submissionType']) : (v as Assessment['submissionType'])),
+                      })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Text</SelectItem>
+                      <SelectItem value="file">File</SelectItem>
+                      <SelectItem value="link">Link</SelectItem>
+                      {isTask ? (
+                        <>
+                          <SelectItem value="questions">Questions</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="multiple">Multiple</SelectItem>
+                          <SelectItem value="questions">Questions</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Questions Section - Only when submissionType is 'questions' */}
