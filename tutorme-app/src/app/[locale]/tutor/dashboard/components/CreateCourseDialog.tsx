@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Dialog,
@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -21,17 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Loader2, BookOpen } from 'lucide-react'
-
-const SUBJECTS = [
-  { value: 'math', label: 'Mathematics' },
-  { value: 'english', label: 'English' },
-  { value: 'physics', label: 'Physics' },
-  { value: 'chemistry', label: 'Chemistry' },
-  { value: 'biology', label: 'Biology' },
-  { value: 'history', label: 'History' },
-  { value: 'cs', label: 'Computer Science' },
-]
+import { Loader2, BookOpen, Plus, X } from 'lucide-react'
 
 const GRADE_LEVELS = [
   { value: 'Grade 1', label: 'Grade 1' },
@@ -60,6 +51,10 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
   const router = useRouter()
   const [creating, setCreating] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const [categories, setCategories] = useState<string[]>([])
+  const [categoryInput, setCategoryInput] = useState('')
+  const [subjects, setSubjects] = useState<string[]>([])
+  const [subjectInput, setSubjectInput] = useState('')
   const [form, setForm] = useState({
     subject: '',
     description: '',
@@ -68,7 +63,80 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
   })
   const [generatingDescription, setGeneratingDescription] = useState(false)
 
-  const subjectLabel = SUBJECTS.find((s) => s.value === form.subject)?.label ?? (form.subject || 'Course')
+  const subjectLabel = form.subject || subjects[0] || 'Course'
+
+  const derivedSubjects = useMemo(() => {
+    const subjectSet = new Set<string>()
+    const subjectMap: Array<{ key: string; label: string }> = [
+      { key: 'math', label: 'Mathematics' },
+      { key: 'calculus', label: 'Mathematics' },
+      { key: 'algebra', label: 'Mathematics' },
+      { key: 'statistics', label: 'Mathematics' },
+      { key: 'english', label: 'English' },
+      { key: 'ielts', label: 'English' },
+      { key: 'toefl', label: 'English' },
+      { key: 'cambridge', label: 'English' },
+      { key: 'duolingo', label: 'English' },
+      { key: 'physics', label: 'Physics' },
+      { key: 'chemistry', label: 'Chemistry' },
+      { key: 'biology', label: 'Biology' },
+      { key: 'history', label: 'History' },
+      { key: 'computer', label: 'Computer Science' },
+      { key: 'coding', label: 'Computer Science' },
+      { key: 'economics', label: 'Economics' },
+      { key: 'business', label: 'Business' },
+      { key: 'finance', label: 'Business' },
+    ]
+
+    categories.forEach((category) => {
+      const normalized = category.toLowerCase()
+      subjectMap.forEach((entry) => {
+        if (normalized.includes(entry.key)) subjectSet.add(entry.label)
+      })
+    })
+
+    subjects.forEach((subject) => subjectSet.add(subject))
+    return Array.from(subjectSet)
+  }, [categories, subjects])
+
+  const selectedCategories = categories.filter(Boolean)
+  const allSubjects = derivedSubjects.length ? derivedSubjects : subjects
+
+  const handleAddCategory = () => {
+    const trimmed = categoryInput.trim()
+    if (!trimmed) return
+    setCategories((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
+    setCategoryInput('')
+  }
+
+  const handleAddSubject = () => {
+    const trimmed = subjectInput.trim()
+    if (!trimmed) return
+    setSubjects((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
+    setForm((prev) => ({ ...prev, subject: trimmed }))
+    setSubjectInput('')
+  }
+
+  useEffect(() => {
+    if (!open) return
+    let isMounted = true
+    const loadCategories = async () => {
+      try {
+        const res = await fetch('/api/user/profile', { credentials: 'include' })
+        const data = await res.json().catch(() => ({}))
+        const next = Array.isArray(data?.profile?.specialties) ? data.profile.specialties : []
+        if (isMounted && next.length) {
+          setCategories(next)
+        }
+      } catch {
+        // ignore, user can add manually
+      }
+    }
+    void loadCategories()
+    return () => {
+      isMounted = false
+    }
+  }, [open])
 
   const handleSubmit = async () => {
     if (!form.subject) {
@@ -76,7 +144,9 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
       return
     }
 
-    const title = subjectLabel
+    const titleBase = subjectLabel || 'Course'
+    const categoryLabel = selectedCategories.length ? selectedCategories.join(', ') : ''
+    const title = [titleBase, categoryLabel].filter(Boolean).join(' - ').slice(0, 200)
     setCreating(true)
     setApiError(null)
     try {
@@ -97,6 +167,7 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
           subject: form.subject,
           gradeLevel: form.gradeLevel || undefined,
           isLiveOnline: form.isLiveOnline,
+          categories: selectedCategories,
         }),
       })
 
@@ -105,12 +176,11 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
         toast.success(data.message ?? 'Course created successfully')
         onOpenChange(false)
         onCourseCreated?.()
-        setForm({
-          subject: '',
-          description: '',
-          gradeLevel: '',
-          isLiveOnline: false,
-        })
+        setForm({ subject: '', description: '', gradeLevel: '', isLiveOnline: false })
+        setCategories([])
+        setSubjects([])
+        setCategoryInput('')
+        setSubjectInput('')
         if (data.course?.id) {
           router.push(`/tutor/courses/${data.course.id}/builder`)
         }
@@ -153,21 +223,62 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
             </p>
           )}
 
-          <div>
+          <div className="space-y-3">
+            <Label>Categories (from your tutor registration)</Label>
+            <div className="flex flex-wrap gap-2">
+              {selectedCategories.length === 0 && (
+                <p className="text-sm text-gray-500">No categories selected yet.</p>
+              )}
+              {selectedCategories.map((category) => (
+                <span key={category} className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700">
+                  {category}
+                  <button type="button" onClick={() => setCategories((prev) => prev.filter((c) => c !== category))} className="text-blue-400 hover:text-blue-700">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={categoryInput}
+                onChange={(e) => setCategoryInput(e.target.value)}
+                placeholder="Add a category"
+                disabled={creating}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddCategory} disabled={creating}>
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label>Subject *</Label>
             <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
               <SelectTrigger disabled={creating}>
                 <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent>
-                {SUBJECTS.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
+                {allSubjects.map((subject) => (
+                  <SelectItem key={subject} value={subject}>
+                    {subject}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground mt-1">Choose Mathematics or English to pick a specific curriculum (e.g. AP Calculus, IELTS) on the course configuration page after creation.</p>
+            <div className="flex gap-2">
+              <Input
+                value={subjectInput}
+                onChange={(e) => setSubjectInput(e.target.value)}
+                placeholder="Add a subject"
+                disabled={creating}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleAddSubject} disabled={creating}>
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Subjects are suggested from your categories. You can add more.</p>
           </div>
 
           <div>

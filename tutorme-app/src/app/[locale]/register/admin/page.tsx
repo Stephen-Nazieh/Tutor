@@ -18,6 +18,8 @@ import {
   User,
   ChevronRight,
   ChevronLeft,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import {
   adminRegistrationSchema,
@@ -72,6 +74,8 @@ export default function AdminRegistrationPage() {
   const params = useParams<{ locale?: string }>()
   const localePrefix = params?.locale ? `/${params.locale}` : ''
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -493,16 +497,24 @@ export default function AdminRegistrationPage() {
                   <Label htmlFor="password" className="text-slate-300">
                     Password *
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 relative">
                     <Lock className="h-4 w-4 text-slate-500" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => updateField('password', e.target.value)}
                       placeholder="••••••••"
                       className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   <p className="text-xs text-slate-500">
                     Min 8 chars, at least one uppercase, one lowercase, one number.
@@ -516,14 +528,24 @@ export default function AdminRegistrationPage() {
                   <Label htmlFor="confirmPassword" className="text-slate-300">
                     Confirm Password *
                   </Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => updateField('confirmPassword', e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={formData.confirmPassword}
+                      onChange={(e) => updateField('confirmPassword', e.target.value)}
+                      placeholder="••••••••"
+                      className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                   {errors.confirmPassword && (
                     <p className="text-sm text-red-400">{errors.confirmPassword}</p>
                   )}
