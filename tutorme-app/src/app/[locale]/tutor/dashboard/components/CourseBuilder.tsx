@@ -1548,6 +1548,7 @@ function AssessmentBuilderModal({
         : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
   )
   const [showAnswerKey, setShowAnswerKey] = useState(false)
+  const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
   const isTask = builderType === 'task'
   const isHomework = builderType === 'homework'
   const titleLabel = isTask ? 'Task' : isHomework ? 'Homework' : 'Assessment'
@@ -1575,27 +1576,28 @@ function AssessmentBuilderModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {isTask ? (
-              <ListTodo className="h-5 w-5 text-orange-500" />
-            ) : isHomework ? (
-              <Home className="h-5 w-5 text-purple-500" />
-            ) : (
-              <FileQuestion className="h-5 w-5 text-purple-500" />
-            )}
-            {titleLabel} Builder
-          </DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
-          </TabsList>
-          <TabsContent value="edit" className="space-y-4 py-2">
-            <div className="space-y-4 py-4">
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {isTask ? (
+                <ListTodo className="h-5 w-5 text-orange-500" />
+              ) : isHomework ? (
+                <Home className="h-5 w-5 text-purple-500" />
+              ) : (
+                <FileQuestion className="h-5 w-5 text-purple-500" />
+              )}
+              {titleLabel} Builder
+            </DialogTitle>
+          </DialogHeader>
+          <Tabs defaultValue="edit" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="edit">Edit</TabsTrigger>
+              <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
+            </TabsList>
+            <TabsContent value="edit" className="space-y-4 py-2">
+              <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>{titleLabel} Title *</Label>
                 <Input
@@ -1899,10 +1901,10 @@ function AssessmentBuilderModal({
                   </div>
                 )}
               </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="preview" className="space-y-4 py-2">
-            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+              </div>
+            </TabsContent>
+            <TabsContent value="preview" className="space-y-4 py-2">
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h3 className="font-semibold">{data.title}</h3>
               {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
               {data.instructions && (
@@ -2001,15 +2003,35 @@ function AssessmentBuilderModal({
               <p className="text-xs text-muted-foreground">{data.estimatedMinutes} min · {data.points} pts · {data.submissionType}</p>
               <h4 className="text-sm font-medium mt-4">Questions</h4>
               <QuestionsPreview questions={data.questions ?? []} />
-            </div>
-          </TabsContent>
-        </Tabs>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onSave({ ...data })}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+              </div>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={() => onSave({ ...data })}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Question Bank Modal */}
+      <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-blue-500" />
+              Question Bank
+            </DialogTitle>
+          </DialogHeader>
+          <QuestionBankSelector
+            onSelect={(questions) => {
+              setData({ ...(data as Task | Assessment), questions: [...(data.questions || []), ...questions], submissionType: 'questions' })
+              setShowQuestionBankModal(false)
+              toast.success(`${questions.length} question(s) added`)
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
@@ -3298,6 +3320,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const [resourceText, setResourceText] = useState('')
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false)
   const [generatedPdf, setGeneratedPdf] = useState<{ url: string; fileName: string; blob: Blob } | null>(null)
+  const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const normalizedItem = item as (Task | Assessment | Worksheet | Quiz | ModuleQuiz | Lesson | Module) & {
     description?: string
     instructions?: string
@@ -3313,6 +3336,21 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const sourceDocument = normalizedItem.sourceDocument
   const questions = normalizedItem.questions ?? []
   const isDraft = normalizedItem.isPublished === false
+
+  const addPreviewQuestion = (type: QuizQuestion['type']) => {
+    if (!onUpdateItem) return
+    const newQuestion: QuizQuestion = {
+      id: `q-${generateId()}`,
+      type,
+      question: '',
+      points: 1,
+      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined
+    }
+    onUpdateItem({
+      questions: [...(normalizedItem.questions || []), newQuestion],
+      submissionType: 'questions',
+    } as PreviewUpdatePayload)
+  }
 
   useEffect(() => {
     setResourceText(sourceDocument?.extractedText || '')
@@ -3351,11 +3389,11 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                 <div key={c.id} className="flex items-center gap-2 text-sm border rounded p-2">
                   <Badge variant="secondary" className="text-xs capitalize">{c.type}</Badge>
                   <span>{c.title}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
         {lesson.prerequisites && lesson.prerequisites.length > 0 && (
           <div className="text-sm text-muted-foreground">
             Prerequisites: {lesson.prerequisites.length} lesson(s) required
@@ -3637,6 +3675,35 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
         <h4 className="text-sm font-medium mb-2">Questions ({questions?.length ?? 0})</h4>
         <QuestionsPreview questions={questions ?? []} />
       </div>
+      {isActivity && (
+        <div className="flex items-center gap-2 pt-4 border-t flex-wrap">
+          <Button variant="secondary" size="sm" onClick={() => setQuestionBankOpen(true)}>
+            <BookOpen className="h-4 w-4 mr-1" /> Add from question bank
+          </Button>
+          <div className="h-6 w-px bg-border mx-1" />
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('mcq')}>
+            <Plus className="h-4 w-4 mr-1" /> MCQ
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('truefalse')}>
+            <Plus className="h-4 w-4 mr-1" /> T/F
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('shortanswer')}>
+            <Plus className="h-4 w-4 mr-1" /> Short
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('essay')}>
+            <Plus className="h-4 w-4 mr-1" /> Essay
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('multiselect')}>
+            <Plus className="h-4 w-4 mr-1" /> Multi
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('matching')}>
+            <Plus className="h-4 w-4 mr-1" /> Match
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('fillblank')}>
+            <Plus className="h-4 w-4 mr-1" /> Fill
+          </Button>
+        </div>
+      )}
       {sourceDocument && (
         <div className="space-y-2 rounded-lg border p-3">
           <div className="text-xs text-muted-foreground">
@@ -3670,6 +3737,30 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           questions={questions}
           onClose={() => setStudentPreviewOpen(false)}
         />
+      )}
+
+      {isActivity && (
+        <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-blue-500" />
+                Question Bank
+              </DialogTitle>
+            </DialogHeader>
+            <QuestionBankSelector
+              onSelect={(incomingQuestions) => {
+                if (!onUpdateItem) return
+                onUpdateItem({
+                  questions: [...(normalizedItem.questions || []), ...incomingQuestions],
+                  submissionType: 'questions',
+                } as PreviewUpdatePayload)
+                setQuestionBankOpen(false)
+                toast.success(`${incomingQuestions.length} question(s) added`)
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       )}
       
       {/* PDF Preview Modal */}
@@ -5198,34 +5289,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                   </SortableContext>
                                 )}
 
-                                {/* Homework */}
-                                <TreeItem depth={2} isLast={false}>
-                                  <div className="flex items-center gap-1.5">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-5 text-[10px] gap-1 text-emerald-600 px-2"
-                                      onClick={() => addHomework(module.id, primaryLesson.id)}
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                      Homework
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-5 w-5"
-                                      onClick={() => toggleSection(module.id, 'homework')}
-                                      aria-label={isSectionCollapsed(module.id, 'homework') ? 'Expand homework' : 'Collapse homework'}
-                                    >
-                                      {isSectionCollapsed(module.id, 'homework') ? (
-                                        <ChevronRight className="h-3 w-3 text-emerald-600" />
-                                      ) : (
-                                        <ChevronDown className="h-3 w-3 text-emerald-600" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                </TreeItem>
-                                {!isSectionCollapsed(module.id, 'homework') && (
+                                {homeworkItems.length > 0 && (
                                   <SortableContext
                                     items={homeworkItems.map(h => h.id)}
                                     strategy={verticalListSortingStrategy}
