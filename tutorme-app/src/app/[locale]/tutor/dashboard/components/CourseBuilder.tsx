@@ -711,7 +711,7 @@ interface BuilderModalProps {
 
 type ResourceTargetField = 'instructions' | 'body' | 'description'
 
-interface ResourceImportPanelProps<T extends { sourceDocument?: ImportedLearningResource }> {
+interface ResourceImportPanelProps<T extends { sourceDocument?: ImportedLearningResource; questions?: QuizQuestion[]; submissionType?: string }> {
   data: T
   setData: (next: T) => void
   targetField: ResourceTargetField
@@ -1205,13 +1205,16 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
         </Button>
         <QuestionBankQuickImport
           className="border-0 p-0 bg-transparent"
-          onImport={(incomingQuestions) =>
-            setData({
+          onImport={(incomingQuestions) => {
+            const next = {
               ...data,
               questions: [...(data.questions || []), ...incomingQuestions],
-              submissionType: 'questions' as T extends Task ? Task['submissionType'] : Assessment['submissionType'],
-            } as T)
-          }
+            } as T
+            if ('submissionType' in next) {
+              ;(next as Task).submissionType = 'questions'
+            }
+            setData(next)
+          }}
         />
       </div>
       {source && (
