@@ -1507,419 +1507,37 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
   )
 }
 
-// Task Builder Modal
+// Task Builder Modal (now uses Assessment Builder layout)
 function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModalProps) {
-  const [data, setData] = useState<Task>(initialData || DEFAULT_TASK(0))
-  const [showAnswerKey, setShowAnswerKey] = useState(false)
-  const [taskManualQuestion, setTaskManualQuestion] = useState('')
-  const [savingManualQuestion, setSavingManualQuestion] = useState(false)
-
-  const addQuestion = (type: QuizQuestion['type']) => {
-    const newQuestion: QuizQuestion = {
-      id: `q-${Date.now()}`,
-      type,
-      question: '',
-      points: 1,
-      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined
-    }
-    setData({ ...data, questions: [...(data.questions || []), newQuestion] })
-  }
-
-  const updateQuestion = (index: number, updates: Partial<QuizQuestion>) => {
-    const newQuestions = [...(data.questions || [])]
-    newQuestions[index] = { ...newQuestions[index], ...updates }
-    setData({ ...data, questions: newQuestions })
-  }
-
-  const removeQuestion = (index: number) => {
-    setData({ ...data, questions: (data.questions || []).filter((_, i) => i !== index) })
-  }
-
-  const persistManualQuestionToBank = async () => {
-    const trimmed = taskManualQuestion.trim()
-    if (!trimmed) return
-
-    setSavingManualQuestion(true)
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      const qbRes = await fetch('/api/tutor/question-bank', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          type: 'short_answer',
-          question: trimmed,
-          correctAnswer: '',
-          explanation: '',
-          points: 1,
-          difficulty: 'medium',
-          tags: ['course-builder', 'task-manual-question'],
-          isPublic: false,
-        }),
-      })
-
-      if (!qbRes.ok) {
-        toast.error('Task saved, but manual question failed to save in question bank')
-      } else {
-        toast.success('Manual task question saved in question bank')
-      }
-    } catch {
-      toast.error('Task saved, but manual question failed to save in question bank')
-    } finally {
-      setSavingManualQuestion(false)
-    }
-  }
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ListTodo className="h-5 w-5 text-orange-500" />
-            Task Builder
-          </DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
-          </TabsList>
-          <TabsContent value="edit" className="space-y-4 py-2">
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Task Title *</Label>
-                <Input
-                  value={data.title}
-                  onChange={(e) => setData({ ...data, title: e.target.value })}
-                  placeholder="e.g., Complete the reading exercise"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Instructions *</Label>
-                <Textarea
-                  value={data.instructions}
-                  onChange={(e) => setData({ ...data, instructions: e.target.value })}
-                  placeholder="Detailed step-by-step instructions"
-                  rows={4}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Optional: Add your own question (saved to Question Bank on Save)</Label>
-                <Textarea
-                  value={taskManualQuestion}
-                  onChange={(e) => setTaskManualQuestion(e.target.value)}
-                  placeholder="Type your own question if needed. If empty, no new question is added to Question Bank."
-                  rows={2}
-                />
-              </div>
-              {/* Questions Section - Only when submissionType is 'questions' */}
-              {data.submissionType === 'questions' && (
-                <div className="border rounded-lg p-4 space-y-4 bg-orange-50/30">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium flex items-center gap-2">
-                      <FileQuestion className="h-4 w-4 text-orange-500" />
-                      Questions ({data.questions?.length || 0})
-                    </h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
-                        <Plus className="h-4 w-4 mr-1" /> MCQ
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
-                        <Plus className="h-4 w-4 mr-1" /> T/F
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
-                        <Plus className="h-4 w-4 mr-1" /> Short
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
-                        <Plus className="h-4 w-4 mr-1" /> Essay
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
-                        <Plus className="h-4 w-4 mr-1" /> Multi-select
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
-                        <Plus className="h-4 w-4 mr-1" /> Matching
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
-                        <Plus className="h-4 w-4 mr-1" /> Fill Blank
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={data.randomizeQuestions}
-                      onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
-                    />
-                    <Label className="text-sm">Randomize question order</Label>
-                  </div>
-                  <QuestionBankQuickImport
-                    onImport={(incomingQuestions) =>
-                      setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
-                    }
-                  />
-                  <div className="space-y-3">
-                    {(data.questions || []).map((q, idx) => (
-                      <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              className="w-20 h-8"
-                              value={q.points}
-                              onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
-                            />
-                            <span className="text-sm text-muted-foreground">pts</span>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <Textarea
-                          value={q.question}
-                          onChange={(e) => updateQuestion(idx, { question: e.target.value })}
-                          placeholder="Enter question"
-                          rows={2}
-                        />
-                        {q.type === 'mcq' && q.options && (
-                          <div className="space-y-2 pl-4">
-                            {q.options.map((opt, optIdx) => (
-                              <div key={optIdx} className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name={`correct-${q.id}`}
-                                  checked={q.correctAnswer === opt}
-                                  onChange={() => updateQuestion(idx, { correctAnswer: opt })}
-                                />
-                                <Input
-                                  value={opt}
-                                  onChange={(e) => {
-                                    const newOptions = [...q.options!]
-                                    newOptions[optIdx] = e.target.value
-                                    updateQuestion(idx, { options: newOptions })
-                                  }}
-                                  placeholder={`Option ${optIdx + 1}`}
-                                  className="flex-1"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {q.type === 'multiselect' && q.options && (
-                          <div className="space-y-2 pl-4">
-                            {q.options.map((opt, optIdx) => {
-                              const selectedAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : []
-                              const checked = selectedAnswers.includes(opt)
-                              return (
-                                <div key={optIdx} className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={(e) => {
-                                      const next = new Set(selectedAnswers)
-                                      if (e.target.checked) next.add(opt)
-                                      else next.delete(opt)
-                                      updateQuestion(idx, { correctAnswer: Array.from(next) })
-                                    }}
-                                  />
-                                  <Input
-                                    value={opt}
-                                    onChange={(e) => {
-                                      const newOptions = [...q.options!]
-                                      newOptions[optIdx] = e.target.value
-                                      updateQuestion(idx, { options: newOptions })
-                                    }}
-                                    placeholder={`Option ${optIdx + 1}`}
-                                    className="flex-1"
-                                  />
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )}
-                        {q.type === 'truefalse' && (
-                          <div className="flex gap-4 pl-4">
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={`correct-${q.id}`}
-                                checked={q.correctAnswer === 'True'}
-                                onChange={() => updateQuestion(idx, { correctAnswer: 'True' })}
-                              />
-                              <span>True</span>
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={`correct-${q.id}`}
-                                checked={q.correctAnswer === 'False'}
-                                onChange={() => updateQuestion(idx, { correctAnswer: 'False' })}
-                              />
-                              <span>False</span>
-                            </label>
-                          </div>
-                        )}
-                        <Textarea
-                          value={q.explanation || ''}
-                          onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
-                          placeholder="Explanation (shown after answering)"
-                          rows={2}
-                          className="text-sm"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Answer Key Section - Protected */}
-              <div className="border-t pt-4 mt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-amber-500" />
-                    <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      onClick={() => setShowAnswerKey(!showAnswerKey)}
-                    >
-                      {showAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      {showAnswerKey ? 'Hide' : 'Show'}
-                    </Button>
-                  </div>
-                </div>
-                {showAnswerKey ? (
-                  <div className="space-y-3">
-                    <Textarea
-                      value={data.answerKey || ''}
-                      onChange={(e) => setData({ ...data, answerKey: e.target.value })}
-                      placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
-                      rows={4}
-                      className="border-amber-200 bg-amber-50/30"
-                    />
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={data.answerKeyProtected !== false}
-                        onCheckedChange={(checked) => setData({ ...data, answerKeyProtected: checked })}
-                      />
-                      <Label className="text-xs text-muted-foreground">
-                        <Lock className="h-3 w-3 inline mr-1" />
-                        Protect answer key (never visible to students)
-                      </Label>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
-                    <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
-                    <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="preview" className="space-y-4 py-2">
-            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-              <h3 className="font-semibold">{data.title}</h3>
-              {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
-              {data.instructions && (
-                <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
-              )}
-              <div className="space-y-3">
-                <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
-              </div>
-              {data.sourceDocument && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
-                  <Textarea
-                    value={data.sourceDocument.extractedText}
-                    onChange={(e) => setData({
-                      ...data,
-                      sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
-                    })}
-                    rows={6}
-                  />
-                </div>
-              )}
-              <div className="space-y-3 rounded-lg border bg-white p-3">
-                <h4 className="text-sm font-medium">Settings</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Time (min)</Label>
-                    <Input
-                      type="number"
-                      value={data.estimatedMinutes}
-                      onChange={(e) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 15 })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Points</Label>
-                    <Input
-                      type="number"
-                      value={data.points}
-                      onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 10 })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Submission</Label>
-                    <Select
-                      value={data.submissionType}
-                      onValueChange={(v: Task['submissionType']) => setData({ ...data, submissionType: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="file">File</SelectItem>
-                        <SelectItem value="link">Link</SelectItem>
-                        <SelectItem value="questions">Questions</SelectItem>
-                        <SelectItem value="none">None</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={data.isAiGraded}
-                    onCheckedChange={(checked) => setData({ ...data, isAiGraded: checked })}
-                  />
-                  <Label className="text-sm">Enable AI grading assistance</Label>
-                </div>
-              </div>
-              <h4 className="text-sm font-medium mt-4">Questions</h4>
-              <QuestionsPreview questions={data.questions ?? []} />
-            </div>
-          </TabsContent>
-        </Tabs>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={async () => {
-              await persistManualQuestionToBank()
-              onSave({ ...data })
-            }}
-            disabled={savingManualQuestion}
-          >
-            {savingManualQuestion ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AssessmentBuilderModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onSave={onSave}
+      initialData={initialData}
+      builderType="task"
+    />
   )
 }
 
 // Assessment Builder Modal
-function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModalProps) {
-  const [data, setData] = useState<Assessment>(initialData || DEFAULT_HOMEWORK(0))
+function AssessmentBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  builderType = 'assessment',
+}: BuilderModalProps & { builderType?: 'task' | 'assessment' | 'homework' }) {
+  const [data, setData] = useState<Task | Assessment>(
+    initialData ||
+      (builderType === 'task'
+        ? DEFAULT_TASK(0)
+        : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
+  )
   const [showAnswerKey, setShowAnswerKey] = useState(false)
+  const isTask = builderType === 'task'
+  const isHomework = builderType === 'homework'
+  const titleLabel = isTask ? 'Task' : isHomework ? 'Homework' : 'Assessment'
 
   const addQuestion = (type: QuizQuestion['type']) => {
     const newQuestion: QuizQuestion = {
@@ -1947,8 +1565,14 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Home className="h-5 w-5 text-purple-500" />
-            Assessment Builder
+            {isTask ? (
+              <ListTodo className="h-5 w-5 text-orange-500" />
+            ) : isHomework ? (
+              <Home className="h-5 w-5 text-purple-500" />
+            ) : (
+              <FileQuestion className="h-5 w-5 text-purple-500" />
+            )}
+            {titleLabel} Builder
           </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
@@ -1959,12 +1583,12 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
           <TabsContent value="edit" className="space-y-4 py-2">
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                  <Label>Assessment Title *</Label>
-                  <Input
-                    value={data.title}
-                    onChange={(e) => setData({ ...data, title: e.target.value })}
-                    placeholder="e.g., Assessment 1"
-                  />
+                <Label>{titleLabel} Title *</Label>
+                <Input
+                  value={data.title}
+                  onChange={(e) => setData({ ...data, title: e.target.value })}
+                  placeholder={`e.g., ${titleLabel} 1`}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Instructions</Label>
@@ -1976,11 +1600,11 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
                 />
               </div>
               <div className="space-y-2">
-                <Label>Question *</Label>
+                <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
                 <Textarea
                   value={data.instructions}
                   onChange={(e) => setData({ ...data, instructions: e.target.value })}
-                  placeholder="Enter the question here"
+                  placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
                   rows={4}
                 />
               </div>
@@ -2142,28 +1766,30 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
                 </div>
               )}
 
-              <div className="space-y-3 border rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={data.allowLateSubmission}
-                    onCheckedChange={(checked) => setData({ ...data, allowLateSubmission: checked })}
-                  />
-                  <Label>Allow late submission</Label>
-                </div>
-                {data.allowLateSubmission && (
-                  <div className="space-y-2">
-                    <Label>Late Penalty (%)</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={data.latePenalty}
-                      onChange={(e) => setData({ ...data, latePenalty: parseInt(e.target.value) || 0 })}
+              {!isTask && (
+                <div className="space-y-3 border rounded-lg p-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={'allowLateSubmission' in data ? (data as Assessment).allowLateSubmission : false}
+                      onCheckedChange={(checked) => setData({ ...(data as Assessment), allowLateSubmission: checked })}
                     />
-                    <p className="text-xs text-muted-foreground">Percentage deducted for late submissions</p>
+                    <Label>Allow late submission</Label>
                   </div>
-                )}
-              </div>
+                  {'allowLateSubmission' in data && (data as Assessment).allowLateSubmission && (
+                    <div className="space-y-2">
+                      <Label>Late Penalty (%)</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={(data as Assessment).latePenalty}
+                        onChange={(e) => setData({ ...(data as Assessment), latePenalty: parseInt(e.target.value) || 0 })}
+                      />
+                      <p className="text-xs text-muted-foreground">Percentage deducted for late submissions</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Answer Key Section - Protected */}
               <div className="border-t pt-4 mt-4">
@@ -2220,10 +1846,12 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
               {data.instructions && (
                 <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
               )}
-              <div className="space-y-3">
-                <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
-              </div>
-              {data.sourceDocument && (
+              {!isTask && (
+                <div className="space-y-3">
+                  <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+                </div>
+              )}
+              {!isTask && data.sourceDocument && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
                   <Textarea
@@ -2234,6 +1862,83 @@ function AssessmentBuilderModal({ isOpen, onClose, onSave, initialData }: Builde
                     })}
                     rows={6}
                   />
+                </div>
+              )}
+              {!isTask && (
+                <div className="space-y-3 rounded-lg border bg-white p-3">
+                  {(() => {
+                    const assessmentData = data as Assessment
+                    return (
+                  <h4 className="text-sm font-medium">Settings</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Time (min)</Label>
+                      <Input
+                        type="number"
+                        value={assessmentData.estimatedMinutes}
+                        onChange={(e) => setData({ ...assessmentData, estimatedMinutes: parseInt(e.target.value) || 30 })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Points</Label>
+                      <Input
+                        type="number"
+                        value={assessmentData.points}
+                        onChange={(e) => setData({ ...assessmentData, points: parseInt(e.target.value) || 20 })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Submission</Label>
+                      <Select
+                        value={assessmentData.submissionType}
+                        onValueChange={(v: Assessment['submissionType']) => setData({ ...assessmentData, submissionType: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="file">File</SelectItem>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="multiple">Multiple</SelectItem>
+                          <SelectItem value="questions">Questions</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={assessmentData.showCorrectAnswers ?? true}
+                        onCheckedChange={(checked) => setData({ ...assessmentData, showCorrectAnswers: checked })}
+                        disabled={assessmentData.answersNeverVisible}
+                      />
+                      <Label className="text-sm">Show correct answers</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={assessmentData.answersNeverVisible ?? false}
+                        onCheckedChange={(checked) => setData({ ...assessmentData, answersNeverVisible: checked, showCorrectAnswers: checked ? false : assessmentData.showCorrectAnswers })}
+                      />
+                      <Label className="text-sm">Never show answers</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={assessmentData.randomizeQuestions}
+                        onCheckedChange={(checked) => setData({ ...assessmentData, randomizeQuestions: checked })}
+                      />
+                      <Label className="text-sm">Randomize question order</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={assessmentData.isAiGraded ?? false}
+                        onCheckedChange={(checked) => setData({ ...assessmentData, isAiGraded: checked })}
+                      />
+                      <Label className="text-sm">Enable AI grading assistance</Label>
+                    </div>
+                  </div>
+                    )
+                  })()}
                 </div>
               )}
               <p className="text-xs text-muted-foreground">{data.estimatedMinutes} min · {data.points} pts · {data.submissionType}</p>
@@ -3521,7 +3226,7 @@ interface PreviewCardProps {
   onEdit: () => void
   onDuplicate: () => void
   onRemove: () => void
-  onUpdateItem?: (updates: { sourceDocument?: ImportedLearningResource }) => void
+  onUpdateItem?: (updates: Partial<Task | Assessment | Worksheet>) => void
   courseId?: string
   lessonId?: string
   showLiveShareAction?: boolean
@@ -3775,6 +3480,61 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
         <div className="rounded-lg bg-muted/40 p-3">
           <p className="text-xs font-medium text-muted-foreground mb-1">Instructions</p>
           <p className="text-sm whitespace-pre-wrap">{normalizedItem.instructions}</p>
+        </div>
+      )}
+      {type === 'task' && (
+        <div className="space-y-3 rounded-lg border p-3">
+          <h4 className="text-sm font-medium">Task Settings</h4>
+          {onUpdateItem && (
+            <ResourceImportPanel
+              data={item as Task}
+              setData={(next) => onUpdateItem(next as Task)}
+              targetField="instructions"
+            />
+          )}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Time (min)</Label>
+              <Input
+                type="number"
+                value={(item as Task).estimatedMinutes}
+                onChange={(e) => onUpdateItem?.({ estimatedMinutes: parseInt(e.target.value) || 15 })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Points</Label>
+              <Input
+                type="number"
+                value={(item as Task).points}
+                onChange={(e) => onUpdateItem?.({ points: parseInt(e.target.value) || 10 })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Submission</Label>
+              <Select
+                value={(item as Task).submissionType}
+                onValueChange={(v: Task['submissionType']) => onUpdateItem?.({ submissionType: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="file">File</SelectItem>
+                  <SelectItem value="link">Link</SelectItem>
+                  <SelectItem value="questions">Questions</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={(item as Task).isAiGraded}
+              onCheckedChange={(checked) => onUpdateItem?.({ isAiGraded: checked })}
+            />
+            <Label className="text-sm">Enable AI grading assistance</Label>
+          </div>
         </div>
       )}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
@@ -4718,7 +4478,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     )
   }
 
-  const updateSelectedItem = (updates: { sourceDocument?: ImportedLearningResource }) => {
+  const updateSelectedItem = (updates: Partial<Task | Assessment | Worksheet>) => {
     if (!selectedItem) return
     const target = resolveSelectedItem(selectedItem, modules)
     if (!target?.lessonId) return
@@ -5689,12 +5449,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           initialData={editingData}
         />
 
-        <QuizBuilderModal
+        <AssessmentBuilderModal
           isOpen={activeModal.type === 'homework' && activeModal.isOpen}
           onClose={() => setActiveModal({ type: 'homework', isOpen: false })}
           onSave={handleSaveAssessment}
           initialData={editingData}
-          isModuleQuiz={false}
+          builderType={editingData?.category === 'homework' ? 'homework' : 'assessment'}
         />
 
         <WorksheetBuilderModal
