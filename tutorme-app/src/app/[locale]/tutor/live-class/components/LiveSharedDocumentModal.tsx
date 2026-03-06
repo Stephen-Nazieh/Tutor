@@ -36,6 +36,7 @@ export interface LiveSharedDocument {
   submissions?: Array<{ userId: string; userName: string; submittedAt: number }>
   updatedAt: number
   questions?: QuizQuestion[]
+  revealAnswersToStudents?: boolean
 }
 
 interface LiveSharedDocumentModalProps {
@@ -48,6 +49,7 @@ interface LiveSharedDocumentModalProps {
   onWriteAccessChange?: (allow: boolean) => void
   onCollaborationPolicyChange?: (policy: LiveDocumentCollaborationPolicy) => void
   onSubmitToTutor?: () => void
+  onRevealAnswersChange?: (revealed: boolean) => void
   hasSubmitted?: boolean
 }
 
@@ -61,6 +63,7 @@ export function LiveSharedDocumentModal({
   onWriteAccessChange,
   onCollaborationPolicyChange,
   onSubmitToTutor,
+  onRevealAnswersChange,
   hasSubmitted = false,
 }: LiveSharedDocumentModalProps) {
   const questions = Array.isArray(share?.questions) ? share?.questions : []
@@ -79,6 +82,7 @@ export function LiveSharedDocumentModal({
   const [extendBaseQuestion, setExtendBaseQuestion] = useState<QuizQuestion | null>(null)
   const [answer, setAnswer] = useState<string | string[] | null>(null)
   const [extendLoading, setExtendLoading] = useState(false)
+  const [showTutorAnswers, setShowTutorAnswers] = useState(false)
 
   const currentQuestion = extendMode ? extendQuestion : questions[currentIndex]
   const isStudent = viewerRole === 'student'
@@ -216,6 +220,18 @@ export function LiveSharedDocumentModal({
                 <Switch checked={share.allowCollaborativeWrite} onCheckedChange={onWriteAccessChange} />
                 <Label>Allow others to write/type on this document</Label>
               </div>
+              {isQuestionShare && (
+                <div className="flex items-center gap-2 md:col-span-2">
+                  <Switch
+                    checked={share.revealAnswersToStudents ?? false}
+                    onCheckedChange={(checked) => {
+                      if (checked && !confirm('Reveal answers to students now?')) return
+                      onRevealAnswersChange?.(checked)
+                    }}
+                  />
+                  <Label>Reveal answers to students</Label>
+                </div>
+              )}
               <div className="col-span-full grid grid-cols-1 gap-3 rounded-md border bg-muted/20 px-3 py-2 md:grid-cols-3">
                 <div className="flex items-center gap-2">
                   <Switch
@@ -266,7 +282,43 @@ export function LiveSharedDocumentModal({
                     Extend mode active. Keep answering to complete the extension streak.
                   </div>
                 )}
-                {currentQuestion ? (
+                {canManageShare ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        Tutor view — {questions.length} question(s)
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch checked={showTutorAnswers} onCheckedChange={setShowTutorAnswers} />
+                        <Label>Reveal answers to me</Label>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {questions.map((q, idx) => (
+                        <div key={q.id} className="rounded-lg border p-4 space-y-2">
+                          <div className="text-sm font-medium">
+                            Q{idx + 1}. {q.question}
+                          </div>
+                          {q.options?.length ? (
+                            <div className="text-xs text-muted-foreground">
+                              Options: {q.options.join(', ')}
+                            </div>
+                          ) : null}
+                          {q.type === 'matching' && q.matchingPairs && (
+                            <div className="text-xs text-muted-foreground">
+                              Pairs: {q.matchingPairs.map((pair) => `${pair.left} → ${pair.right}`).join(' | ')}
+                            </div>
+                          )}
+                          {showTutorAnswers && (
+                            <div className="text-xs text-emerald-700">
+                              Answer: {Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : q.correctAnswer || '—'}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : currentQuestion ? (
                   <>
                     <div className="flex items-center justify-between">
                       <div className="text-xs text-muted-foreground">
@@ -385,6 +437,13 @@ export function LiveSharedDocumentModal({
                           rows={4}
                           disabled={!isStudent}
                         />
+                      )}
+                      {share.revealAnswersToStudents && (
+                        <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                          Answer: {Array.isArray(currentQuestion.correctAnswer)
+                            ? currentQuestion.correctAnswer.join(', ')
+                            : currentQuestion.correctAnswer || '—'}
+                        </div>
                       )}
                     </div>
                     <div className="flex justify-end">

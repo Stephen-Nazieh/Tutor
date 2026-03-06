@@ -2695,43 +2695,6 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
               <ResourceImportPanel data={data} setData={setData} targetField="description" />
 
-              {/* Answer Key Section - Protected */}
-              <div className="space-y-3 border rounded-lg p-4 bg-amber-50/50">
-                <div className="flex items-center justify-between">
-                  <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAnswerKey(!showAnswerKey)}
-                  >
-                    {showAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                    {showAnswerKey ? 'Hide' : 'Show'}
-                  </Button>
-                </div>
-                {showAnswerKey ? (
-                  <>
-                    <Textarea
-                      value={data.answerKey || ''}
-                      onChange={(e) => setData({ ...data, answerKey: e.target.value })}
-                      placeholder="Enter the complete answer key here. This is ONLY visible to instructors."
-                      rows={6}
-                    />
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={data.answerKeyProtected !== false}
-                        onCheckedChange={(checked) => setData({ ...data, answerKeyProtected: checked })}
-                      />
-                      <Label className="text-sm">Protect answer key (never visible to students)</Label>
-                    </div>
-                  </>
-                ) : (
-                  <span className="text-xs text-muted-foreground">Answer key is hidden. Click &quot;Show&quot; to view/edit.</span>
-                )}
-              </div>
-
-              <Separator />
-
               {/* Questions Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -3837,51 +3800,6 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               <Label className="text-sm">Enable AI grading assistance</Label>
             </div>
           </div>
-        </div>
-      )}
-      {isActivity && (
-        <div className="rounded-lg border p-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-amber-500" />
-              <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs gap-1"
-              onClick={() => setShowPreviewAnswerKey((prev) => !prev)}
-            >
-              {showPreviewAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-              {showPreviewAnswerKey ? 'Hide' : 'Show'}
-            </Button>
-          </div>
-          {showPreviewAnswerKey ? (
-            <div className="space-y-3">
-              <Textarea
-                value={(item as Task | Assessment).answerKey || ''}
-                onChange={(e) => onUpdateItem?.({ answerKey: e.target.value })}
-                placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
-                rows={4}
-                className="border-amber-200 bg-amber-50/30"
-              />
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={(item as Task | Assessment).answerKeyProtected !== false}
-                  onCheckedChange={(checked) => onUpdateItem?.({ answerKeyProtected: checked })}
-                />
-                <Label className="text-xs text-muted-foreground">
-                  <Lock className="h-3 w-3 inline mr-1" />
-                  Protect answer key (never visible to students)
-                </Label>
-              </div>
-            </div>
-          ) : (
-            <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
-              <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
-              <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
-            </div>
-          )}
         </div>
       )}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
@@ -5875,39 +5793,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
               >
                 <Zap className="h-3 w-3" />
                 Generate More Ideas
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Templates */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <LayoutTemplate className="h-4 w-4 text-blue-500" />
-                Templates
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 space-y-2">
-              {CONTENT_TEMPLATES.slice(0, 4).map((template) => (
-                <div
-                  key={template.id}
-                  className="flex items-center gap-2 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => applyTemplate(template)}
-                >
-                  <template.icon className="h-4 w-4 text-blue-500" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{template.name}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1">{template.description}</p>
-                  </div>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => applyTemplate(CONTENT_TEMPLATES[0])}
-              >
-                View All Templates
               </Button>
             </CardContent>
           </Card>

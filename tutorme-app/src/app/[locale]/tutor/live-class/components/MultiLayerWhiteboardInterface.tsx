@@ -92,6 +92,7 @@ export function MultiLayerWhiteboardInterface({
       submissions: [],
       updatedAt: Date.now(),
       questions: payload.questions,
+      revealAnswersToStudents: false,
     }
     setShares((prev) => ({ ...prev, [shareId]: share }))
     publishShare(share)
@@ -279,24 +280,28 @@ export function MultiLayerWhiteboardInterface({
           </Card>
         </div>
 
-        <LiveSharedDocumentModal
-          open={Boolean(activeShare)}
-          onOpenChange={(open) => {
-            if (!open) setActiveShareId(null)
-          }}
-          share={activeShare}
-          viewerRole="tutor"
-          canManageShare={canManageActiveShare}
-          onVisibilityChange={(visible) => {
-            if (!activeShare || !canManageActiveShare) return
-            publishShare({ ...activeShare, visibleToAll: visible, active: visible })
-          }}
-          onWriteAccessChange={(allow) => {
-            if (!activeShare || !canManageActiveShare) return
-            publishShare({ ...activeShare, allowCollaborativeWrite: allow })
-          }}
-          onCollaborationPolicyChange={updateActiveSharePolicy}
-        />
+      <LiveSharedDocumentModal
+        open={Boolean(activeShare)}
+        onOpenChange={(open) => {
+          if (!open) setActiveShareId(null)
+        }}
+        share={activeShare}
+        viewerRole="tutor"
+        canManageShare={canManageActiveShare}
+        onVisibilityChange={(visible) => {
+          if (!activeShare || !canManageActiveShare) return
+          publishShare({ ...activeShare, visibleToAll: visible, active: visible })
+        }}
+        onWriteAccessChange={(allow) => {
+          if (!activeShare || !canManageActiveShare) return
+          publishShare({ ...activeShare, allowCollaborativeWrite: allow })
+        }}
+        onCollaborationPolicyChange={updateActiveSharePolicy}
+        onRevealAnswersChange={(revealed) => {
+          if (!activeShare || !canManageActiveShare) return
+          publishShare({ ...activeShare, revealAnswersToStudents: revealed })
+        }}
+      />
       </>
     )
   }
@@ -380,6 +385,10 @@ export function MultiLayerWhiteboardInterface({
           })
         }}
         hasSubmitted={Boolean(activeShare?.submissions?.some((submission) => submission.userId === userId))}
+        onRevealAnswersChange={(revealed) => {
+          if (!activeShare || !canManageActiveShare) return
+          publishShare({ ...activeShare, revealAnswersToStudents: revealed })
+        }}
       />
     </>
   )
