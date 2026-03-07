@@ -169,7 +169,7 @@ export function generateClassReportPDF(data: ClassExportData): Buffer {
     doc.setFontSize(8)
     doc.setTextColor(156, 163, 175)
     doc.text(
-      `Page ${i} of ${pageCount} | TutorMe Reports`,
+      `Page ${i} of ${pageCount} | Solocorn Reports`,
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 10,
       { align: 'center' }
@@ -267,7 +267,7 @@ export function generateStudentReportPDF(
   doc.setFontSize(8)
   doc.setTextColor(156, 163, 175)
   doc.text(
-    'TutorMe Student Report',
+    'Solocorn Student Report',
     pageWidth / 2,
     doc.internal.pageSize.getHeight() - 10,
     { align: 'center' }

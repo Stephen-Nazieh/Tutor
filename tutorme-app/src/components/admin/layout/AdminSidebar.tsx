@@ -150,7 +150,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
       {!collapsed && (
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700 p-4">
           <div className="text-xs text-slate-500">
-            TutorMe Admin v1.0
+            Solocorn Admin v1.0
           </div>
         </div>
       )}

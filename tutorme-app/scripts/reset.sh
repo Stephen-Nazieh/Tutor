@@ -3,7 +3,7 @@
 
 set -e
 
-cd /Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app
+cd /Users/nazy/ADK_WORKSPACE/Solocornkimi/tutorme-app
 
 # Ensure .env file exists
 if [ ! -f ".env" ]; then

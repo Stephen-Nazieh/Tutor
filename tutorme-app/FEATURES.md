@@ -1,4 +1,4 @@
-# TutorMekimi — Course Builder Feature Guide
+# Solocornkimi — Course Builder Feature Guide
 
 > **Who is this for?** Tutors and administrators who want to understand every feature available in the Course Builder — no technical background needed. Each section explains what the feature does, why it's useful, and walks through exactly how to use it.
 
@@ -466,4 +466,4 @@ A: Currently the system assigns to all enrolled students (or all in a batch). Ta
 
 ---
 
-*Last updated: February 2026 — TutorMekimi Course Builder v2.0*
+*Last updated: February 2026 — Solocornkimi Course Builder v2.0*

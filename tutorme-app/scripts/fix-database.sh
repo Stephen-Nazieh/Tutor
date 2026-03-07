@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Fix Database Configuration Script
-# Ensures TutorMe uses port 5433 and has proper schema
+# Ensures Solocorn uses port 5433 and has proper schema
 
 echo "╔════════════════════════════════════════════════════════╗"
 echo "║      Fixing Database Configuration                     ║"

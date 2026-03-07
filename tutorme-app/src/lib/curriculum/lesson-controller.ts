@@ -319,7 +319,7 @@ export function buildCurriculumPrompt(
   const currentSection = session.currentSection
   const context = session.sessionContext || {}
 
-  return `你是 TutorMe 的 AI 导师，正在进行结构化课程教学。
+  return `你是 Solocorn 的 AI 导师，正在进行结构化课程教学。
 
 ## 当前课程信息
 课程名称: ${lesson.title}

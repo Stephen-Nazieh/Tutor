@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TutorMe Initialize Script
+# Solocorn Initialize Script
 # Sets up database (port 5433 to avoid conflicts) and starts the app
 # Usage: npm run initialize
 # Or: bash scripts/initialize.sh
@@ -8,7 +8,7 @@
 set -e  # Exit on error
 
 echo "╔════════════════════════════════════════════════════════╗"
-echo "║         TutorMe Initialization Tool                    ║"
+echo "║         Solocorn Initialization Tool                    ║"
 echo "║     Database + Migrations + Seeding + Dev Server       ║"
 echo "╚════════════════════════════════════════════════════════╝"
 echo ""

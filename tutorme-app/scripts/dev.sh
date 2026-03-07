@@ -4,7 +4,7 @@
 
 set -e  # Exit on error
 
-cd /Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app
+cd /Users/nazy/ADK_WORKSPACE/Solocornkimi/tutorme-app
 
 # Ensure .env file exists
 if [ ! -f ".env" ]; then
@@ -13,7 +13,7 @@ if [ ! -f ".env" ]; then
 fi
 
 echo "========================================"
-echo "  TutorMe Development Environment"
+echo "  Solocorn Development Environment"
 echo "========================================"
 echo ""
 

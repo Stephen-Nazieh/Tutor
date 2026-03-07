@@ -22,7 +22,7 @@ echo ""
 # 3. Check user count in both databases
 echo "▶ User count in databases:"
 
-echo "   Port 5433 (TutorMe):"
+echo "   Port 5433 (Solocorn):"
 docker exec tutorme-db psql -U tutorme -d tutorme -c 'SELECT COUNT(*) as users FROM "User";' 2>/dev/null || echo "     (cannot connect)"
 
 echo ""

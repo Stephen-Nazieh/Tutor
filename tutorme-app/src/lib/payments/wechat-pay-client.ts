@@ -151,7 +151,7 @@ export class WeChatPayClient implements PaymentGateway {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'User-Agent': 'TutorMe-WeChatPay/1.0',
+        'User-Agent': 'Solocorn-WeChatPay/1.0',
         Authorization: auth,
       },
       body: bodyStr,

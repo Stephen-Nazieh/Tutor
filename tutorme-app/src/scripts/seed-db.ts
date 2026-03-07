@@ -163,7 +163,7 @@ async function main() {
     userId: studentId,
     type: 'FIRST_LOGIN',
     title: 'Welcome Aboard!',
-    description: 'Completed your first login to TutorMe',
+    description: 'Completed your first login to Solocorn',
     xpAwarded: 10,
   })
   console.log('Created achievement: Welcome Aboard!')

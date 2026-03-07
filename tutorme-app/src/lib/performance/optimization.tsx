@@ -3,7 +3,7 @@ import { memo, useMemo, useCallback, lazy, Suspense, useState, useEffect, useRef
 import dynamic from 'next/dynamic';
 
 /**
- * Advanced React performance optimizations for TutorMe platform
+ * Advanced React performance optimizations for Solocorn platform
  */
 
 // 1. Smart Memoization Components

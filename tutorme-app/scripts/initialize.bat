@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul
 
-REM TutorMe Initialize Script for Windows
+REM Solocorn Initialize Script for Windows
 REM Sets up database (port 5433) and starts the app
 
 echo ╔════════════════════════════════════════════════════════╗
-echo ║         TutorMe Initialization Tool                    ║
+echo ║         Solocorn Initialization Tool                    ║
 echo ║     Database + Migrations + Seeding + Dev Server       ║
 echo ╚════════════════════════════════════════════════════════╝
 echo.

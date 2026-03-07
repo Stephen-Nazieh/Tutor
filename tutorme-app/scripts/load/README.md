@@ -1,6 +1,6 @@
 # Load tests (k6)
 
-Run load tests against a running TutorMe app.
+Run load tests against a running Solocorn app.
 
 ## Prerequisites
 

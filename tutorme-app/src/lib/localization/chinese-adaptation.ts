@@ -1,6 +1,6 @@
 /**
  * Comprehensive Chinese Localization and Cultural Adaptation
- * 中文本地化与文化适配 - TutorMe Chinese Market
+ * 中文本地化与文化适配 - Solocorn Chinese Market
  *
  * Implements:
  * - Complete zh-CN localization with cultural nuances

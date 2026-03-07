@@ -50,7 +50,7 @@ Solocorn (also known as CogniClass) is an AI-human hybrid tutoring platform that
 ## Project Structure
 
 ```
-TutorMekimi/
+Solocornkimi/
 │
 ├── landing-page/                 # Vite + React Landing Page (NEW - Solocorn brand)
 │   ├── src/

@@ -535,7 +535,7 @@ function CoursesPageContent() {
                 Back
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold">TutorMe</h1>
+            <h1 className="text-2xl font-bold">Solocorn</h1>
           </div>
           <UserNav />
         </div>

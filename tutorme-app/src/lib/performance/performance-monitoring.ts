@@ -342,7 +342,7 @@ class AlertManager {
     if (alert.severity !== 'critical') return
 
     try {
-      const message = `[TutorMe性能告警] ${this.getTypeLabel(alert.type)}: ${alert.message}`
+      const message = `[Solocorn性能告警] ${this.getTypeLabel(alert.type)}: ${alert.message}`
 
       if (smsConfig.provider === 'aliyun') {
         await this.sendAliyunSMS(message, smsConfig)

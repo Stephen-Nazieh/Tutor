@@ -59,7 +59,7 @@ export default function AgreementPage() {
                     </div>
                     <CardTitle className="text-2xl">Terms of Service Update</CardTitle>
                     <CardDescription>
-                        Please review and accept our updated terms to continue using TutorMe.
+                        Please review and accept our updated terms to continue using Solocorn.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="h-[400px] overflow-y-auto border rounded-md p-6 mb-6 bg-white">

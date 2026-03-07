@@ -9,7 +9,7 @@ import crypto from 'crypto'
 
 const DEFAULT_SETTINGS = {
   general: {
-    platformName: { value: 'TutorMe', valueType: 'string', description: 'Name of the platform' },
+    platformName: { value: 'Solocorn', valueType: 'string', description: 'Name of the platform' },
     platformDescription: { value: 'AI-powered tutoring platform', valueType: 'string', description: 'Description shown in meta tags' },
     supportEmail: { value: 'support@tutorme.com', valueType: 'string', description: 'Primary support email address' },
     maxFileUploadSize: { value: 50, valueType: 'number', description: 'Maximum file upload size in MB' },

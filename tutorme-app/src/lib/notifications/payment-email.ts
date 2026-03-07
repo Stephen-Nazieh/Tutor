@@ -24,7 +24,7 @@ interface SendTutorPaymentReceivedParams {
 export async function sendPaymentConfirmation(params: SendPaymentConfirmationParams): Promise<void> {
   const { paymentId, studentEmail, amount, currency, description } = params
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.PAYMENT_EMAIL_FROM || 'TutorMe <noreply@tutorme.com>'
+  const from = process.env.PAYMENT_EMAIL_FROM || 'Solocorn <noreply@tutorme.com>'
 
   const html = `
     <p>Your payment was successful.</p>
@@ -44,7 +44,7 @@ export async function sendPaymentConfirmation(params: SendPaymentConfirmationPar
         body: JSON.stringify({
           from,
           to: studentEmail,
-          subject: 'Payment confirmed – TutorMe',
+          subject: 'Payment confirmed – Solocorn',
           html
         })
       })
@@ -63,7 +63,7 @@ export async function sendPaymentConfirmation(params: SendPaymentConfirmationPar
 export async function sendTutorPaymentReceived(params: SendTutorPaymentReceivedParams): Promise<void> {
   const { paymentId, tutorEmail, amount, currency, description } = params
   const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.PAYMENT_EMAIL_FROM || 'TutorMe <noreply@tutorme.com>'
+  const from = process.env.PAYMENT_EMAIL_FROM || 'Solocorn <noreply@tutorme.com>'
 
   const html = `
     <p>You received a payment for a class.</p>
@@ -82,7 +82,7 @@ export async function sendTutorPaymentReceived(params: SendTutorPaymentReceivedP
         body: JSON.stringify({
           from,
           to: tutorEmail,
-          subject: 'Payment received – TutorMe',
+          subject: 'Payment received – Solocorn',
           html
         })
       })

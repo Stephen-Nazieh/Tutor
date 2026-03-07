@@ -149,7 +149,7 @@ async function sendNotificationEmail(
     .limit(1)
   if (!u?.email) return
 
-  const from = process.env.NOTIFICATION_EMAIL_FROM || 'TutorMe <notifications@tutorme.com>'
+  const from = process.env.NOTIFICATION_EMAIL_FROM || 'Solocorn <notifications@tutorme.com>'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const actionButton = actionUrl
     ? `<p style="margin-top:16px"><a href="${appUrl}${actionUrl}" style="background:#3b82f6;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;display:inline-block">View Details</a></p>`
@@ -178,7 +178,7 @@ async function sendNotificationEmail(
       body: JSON.stringify({
         from,
         to: u.email,
-        subject: `${title} – TutorMe`,
+        subject: `${title} – Solocorn`,
         html,
       }),
     })

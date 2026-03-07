@@ -1,40 +1,40 @@
-# Merge TutorMekimi and make it the final repo
+# Merge Solocornkimi and make it the final repo
 
 ## Current state
 
 - **Reconciled repo (all merges done):**  
-  `Tutor-2` = `/Users/nazy/ADK_WORKSPACE/TutorMeAnti/Tutor-2`  
+  `Tutor-2` = `/Users/nazy/ADK_WORKSPACE/SolocornAnti/Tutor-2`  
   Connected to GitHub: `https://github.com/Stephen-Nazieh/Tutor`
 
-- **TutorMekimi (has extra differences):**  
-  `/Users/nazy/ADK_WORKSPACE/TutorMekimi`  
-  Goal: merge it in, then make **TutorMekimi** the single local repo connected to GitHub.
+- **Solocornkimi (has extra differences):**  
+  `/Users/nazy/ADK_WORKSPACE/Solocornkimi`  
+  Goal: merge it in, then make **Solocornkimi** the single local repo connected to GitHub.
 
 ---
 
-## Step 1: Merge TutorMekimi into Tutor-2 and push to GitHub
+## Step 1: Merge Solocornkimi into Tutor-2 and push to GitHub
 
 Run in **Tutor-2**:
 
 ```bash
-cd /Users/nazy/ADK_WORKSPACE/TutorMeAnti/Tutor-2
+cd /Users/nazy/ADK_WORKSPACE/SolocornAnti/Tutor-2
 
-git remote add tutor-mekimi /Users/nazy/ADK_WORKSPACE/TutorMekimi
+git remote add tutor-mekimi /Users/nazy/ADK_WORKSPACE/Solocornkimi
 git fetch tutor-mekimi
-git merge tutor-mekimi/main --allow-unrelated-histories -m "Merge TutorMekimi into reconciled repo"
-# If conflicts: fix, then git add . && git commit -m "Resolve merge conflicts with TutorMekimi"
+git merge tutor-mekimi/main --allow-unrelated-histories -m "Merge Solocornkimi into reconciled repo"
+# If conflicts: fix, then git add . && git commit -m "Resolve merge conflicts with Solocornkimi"
 
 git push origin main
 ```
 
 ---
 
-## Step 2: Make TutorMekimi the final local repo
+## Step 2: Make Solocornkimi the final local repo
 
-Run in **TutorMekimi**:
+Run in **Solocornkimi**:
 
 ```bash
-cd /Users/nazy/ADK_WORKSPACE/TutorMekimi
+cd /Users/nazy/ADK_WORKSPACE/Solocornkimi
 
 git remote set-url origin git@github.com:Stephen-Nazieh/Tutor.git
 git fetch origin
@@ -42,25 +42,25 @@ git checkout main
 git reset --hard origin/main
 ```
 
-After this, **TutorMekimi** is your one local repo, connected to GitHub.
+After this, **Solocornkimi** is your one local repo, connected to GitHub.
 
 ---
 
 ## How to verify everything really merged into one repo
 
-Use these checks in the repo you consider “final” (Tutor-2 before Step 2, or TutorMekimi after Step 2).
+Use these checks in the repo you consider “final” (Tutor-2 before Step 2, or Solocornkimi after Step 2).
 
 ### 1. See that all four sources are in history
 
-You should see commits that came from Tutor, Tutor-1, Tutor-2, and TutorMekimi (merge commits and their parents):
+You should see commits that came from Tutor, Tutor-1, Tutor-2, and Solocornkimi (merge commits and their parents):
 
 ```bash
-cd /path/to/your/final/repo   # Tutor-2 or TutorMekimi
+cd /path/to/your/final/repo   # Tutor-2 or Solocornkimi
 
 git log --oneline -30
 ```
 
-Look for merge commits like “Merge Tutor-1”, “Merge Tutor”, “Merge TutorMekimi”.
+Look for merge commits like “Merge Tutor-1”, “Merge Tutor”, “Merge Solocornkimi”.
 
 ### 2. List every file in the repo (no .git)
 
@@ -76,7 +76,7 @@ Confirm that important folders appear, e.g.:
 
 - `tutorme-app/` (Next.js app)
 - `infrastructure/` (CDK)
-- Any other top-level dirs you expect from Tutor, Tutor-1, Tutor-2, TutorMekimi.
+- Any other top-level dirs you expect from Tutor, Tutor-1, Tutor-2, Solocornkimi.
 
 ### 3. Compare file list with each source repo
 
@@ -84,17 +84,17 @@ Generate a file list from each of the four folders and diff. If nothing is missi
 
 ```bash
 # In your final repo (e.g. Tutor-2)
-cd /Users/nazy/ADK_WORKSPACE/TutorMeAnti/Tutor-2
+cd /Users/nazy/ADK_WORKSPACE/SolocornAnti/Tutor-2
 find . -type f -not -path './.git/*' | sort > /tmp/tutor2_files.txt
 
 # From each other repo (adjust paths if needed)
-cd /Users/nazy/ADK_WORKSPACE/TutorMeAnti/Tutor
+cd /Users/nazy/ADK_WORKSPACE/SolocornAnti/Tutor
 find . -type f -not -path './.git/*' | sort > /tmp/tutor_files.txt
 
-cd /Users/nazy/ADK_WORKSPACE/TutorMeAnti/Tutor-1
+cd /Users/nazy/ADK_WORKSPACE/SolocornAnti/Tutor-1
 find . -type f -not -path './.git/*' | sort > /tmp/tutor1_files.txt
 
-cd /Users/nazy/ADK_WORKSPACE/TutorMekimi
+cd /Users/nazy/ADK_WORKSPACE/Solocornkimi
 find . -type f -not -path './.git/*' | sort > /tmp/tutormekimi_files.txt
 
 # Combined list of all paths that existed in any repo (strip leading ./ for comparison)
@@ -102,7 +102,7 @@ cat /tmp/tutor2_files.txt /tmp/tutor_files.txt /tmp/tutor1_files.txt /tmp/tutorm
 wc -l /tmp/all_unique_paths.txt
 
 # Check if your final repo has every path (paths in final repo)
-cd /Users/nazy/ADK_WORKSPACE/TutorMeAnti/Tutor-2
+cd /Users/nazy/ADK_WORKSPACE/SolocornAnti/Tutor-2
 find . -type f -not -path './.git/*' | sed 's|^\./||' | sort -u > /tmp/final_files.txt
 # Any path in all_unique_paths that's missing from final?
 comm -23 /tmp/all_unique_paths.txt /tmp/final_files.txt
@@ -126,11 +126,11 @@ test -f tutorme-app/package.json && echo "package.json present" || echo "MISSING
 test -d tutorme-app/drizzle && echo "drizzle schema present" || echo "MISSING"
 ```
 
-Add similar lines for any folder or file you know should have come from Tutor, Tutor-1, or TutorMekimi.
+Add similar lines for any folder or file you know should have come from Tutor, Tutor-1, or Solocornkimi.
 
 ### 5. Confirm GitHub matches your final local
 
-After pushing from Tutor-2 (and after Step 2, from TutorMekimi):
+After pushing from Tutor-2 (and after Step 2, from Solocornkimi):
 
 ```bash
 git fetch origin
@@ -145,5 +145,5 @@ If `git status` says up to date and the log matches what you expect, the GitHub 
 
 ## Summary
 
-- **Merge steps:** Section above (add tutor-mekimi remote, merge, push; then in TutorMekimi fetch and reset to `origin/main`).
+- **Merge steps:** Section above (add tutor-mekimi remote, merge, push; then in Solocornkimi fetch and reset to `origin/main`).
 - **Verification:** Use the same repo as “final”, then run the checks in sections 1–5. When the file lists and spot-checks pass and `git status`/`git log origin/main` look right, you can treat that folder (and GitHub) as the one merged repo.

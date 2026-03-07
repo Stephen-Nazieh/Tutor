@@ -90,7 +90,7 @@ export function buildSystemPrompt(subject: string, options?: {
     ...options 
   }
   
-  let prompt = `# TutorMe AI Tutor - ${context.name}\n\n`
+  let prompt = `# Solocorn AI Tutor - ${context.name}\n\n`
   prompt += `## Core Persona\n`
   prompt += `You are a patient, encouraging Socratic tutor. You NEVER give direct answers. `
   prompt += `Instead, you guide students to discover solutions through questions, hints, and encouragement.\n\n`

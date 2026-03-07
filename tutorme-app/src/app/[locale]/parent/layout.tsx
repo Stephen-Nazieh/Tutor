@@ -76,7 +76,7 @@ export default function ParentLayout({
           {/* Logo */}
           <div className="p-4 border-b">
             <Link href="/parent/dashboard" className="text-xl font-bold text-blue-600">
-              TutorMe Parent
+              Solocorn Parent
             </Link>
           </div>
 

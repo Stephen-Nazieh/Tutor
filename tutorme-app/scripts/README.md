@@ -1,4 +1,4 @@
-# TutorMe Scripts
+# Solocorn Scripts
 
 ## 🚀 Quick Start: Initialize Everything
 

@@ -144,7 +144,7 @@ export default function StudentOnboarding() {
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-8 pb-8">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Welcome to TutorMe!</h2>
+            <h2 className="text-2xl font-bold mb-2">Welcome to Solocorn!</h2>
             <p className="text-gray-600">Your profile is set up. Redirecting to your dashboard...</p>
           </CardContent>
         </Card>

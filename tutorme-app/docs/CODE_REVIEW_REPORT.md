@@ -1,4 +1,4 @@
-# TutorMe Code Review Report
+# Solocorn Code Review Report
 
 **Date:** February 26, 2025  
 **Scope:** Full codebase review (API routes, auth, security, structure, tests)

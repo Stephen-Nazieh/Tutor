@@ -85,7 +85,7 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Login to TutorMe</CardTitle>
+        <CardTitle className="text-2xl">Login to Solocorn</CardTitle>
         <CardDescription>
           Enter your email and password to continue
         </CardDescription>
@@ -181,7 +181,7 @@ function LoginFormFallback() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Login to TutorMe</CardTitle>
+        <CardTitle className="text-2xl">Login to Solocorn</CardTitle>
         <CardDescription>
           Enter your email and password to continue
         </CardDescription>

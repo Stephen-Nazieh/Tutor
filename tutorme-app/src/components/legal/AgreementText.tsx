@@ -6,7 +6,7 @@ export function AgreementText() {
             <section>
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">1. Terms of Service</h3>
                 <p>
-                    Welcome to TutorMe. By accessing our platform, you agree to comply with these terms.
+                    Welcome to Solocorn. By accessing our platform, you agree to comply with these terms.
                     Our platform connects students with tutors for educational purposes.
                     You are responsible for maintaining the confidentiality of your account.
                 </p>

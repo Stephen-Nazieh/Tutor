@@ -13,7 +13,7 @@ import {
 import { MemoryService } from './memory-service'
 import { StudentContext } from './types/context'
 
-export interface TutorMessage {
+export interface Solocornssage {
   role: 'system' | 'user' | 'assistant'
   content: string
 }
@@ -22,7 +22,7 @@ export interface TutorContext {
   studentId?: string // Link to memory service
   subject: string
   currentTopic?: string
-  conversationHistory: TutorMessage[]
+  conversationHistory: Solocornssage[]
   knowledgeGraph?: any
   recentQuizAttempts?: any[]
   // NEW: Age-based teaching and voice preferences

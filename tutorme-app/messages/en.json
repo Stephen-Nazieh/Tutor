@@ -49,9 +49,9 @@
     "logout": "Sign Out"
   },
   "pwa": {
-    "install_title": "Install TutorMe",
-    "install_description": "Add TutorMe to your home screen for quick access and offline learning.",
-    "ios_install_description": "Install TutorMe on your device for the best experience.",
+    "install_title": "Install Solocorn",
+    "install_description": "Add Solocorn to your home screen for quick access and offline learning.",
+    "ios_install_description": "Install Solocorn on your device for the best experience.",
     "install_button": "Install",
     "install_dismiss": "Not now",
     "install_got_it": "Got it",

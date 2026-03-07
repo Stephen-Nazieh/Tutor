@@ -7,14 +7,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { generateTutorResponse, TutorMessage } from '@/lib/ai/tutor-service'
+import { generateTutorResponse, Solocornssage } from '@/lib/ai/tutor-service'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 
 // In-memory conversation storage (use Redis in production)
-const conversationStore = new Map<string, TutorMessage[]>()
+const conversationStore = new Map<string, Solocornssage[]>()
 const MAX_CONVERSATIONS = 500
 
 const AIChatRequestSchema = z.object({

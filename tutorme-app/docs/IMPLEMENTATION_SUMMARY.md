@@ -2,7 +2,7 @@
 
 ## Overview
 
-All 10 improvement categories have been implemented, adding comprehensive functionality to the TutorMe whiteboard system.
+All 10 improvement categories have been implemented, adding comprehensive functionality to the Solocorn whiteboard system.
 
 ## ✅ Completed Improvements
 

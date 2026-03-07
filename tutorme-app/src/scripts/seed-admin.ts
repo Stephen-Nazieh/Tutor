@@ -161,7 +161,7 @@ async function seedAdminSystem() {
       {
         category: 'general',
         key: 'platformName',
-        settingValue: { value: 'TutorMe' },
+        settingValue: { value: 'Solocorn' },
         valueType: 'string',
         description: 'Name of the platform',
         isEditable: true,

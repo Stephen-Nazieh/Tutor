@@ -147,7 +147,7 @@ describe('POST /api/auth/register/admin', () => {
         firstName: 'System',
         lastName: 'Admin',
         phoneNumber: '+8613800000000',
-        organizationName: 'TutorMe',
+        organizationName: 'Solocorn',
         adminLevel: 'standard',
         permissions: ['user_management'],
         mfaEnabled: true,

@@ -139,7 +139,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     // Generate iCal content
     let ical = 'BEGIN:VCALENDAR\r\n'
     ical += 'VERSION:2.0\r\n'
-    ical += 'PRODID:-//TutorMe//Tutor Calendar//EN\r\n'
+    ical += 'PRODID:-//Solocorn//Tutor Calendar//EN\r\n'
     ical += `X-WR-CALNAME:${tutorName}'s Calendar\r\n`
     ical += 'X-WR-TIMEZONE:Asia/Shanghai\r\n'
     ical += 'CALSCALE:GREGORIAN\r\n'

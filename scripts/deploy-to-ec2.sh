@@ -10,7 +10,7 @@ PROJECT_DIR="/opt/tutorme"
 DOMAIN_NAME="solocorn.co"
 
 echo "========================================"
-echo "TutorMe Application Deployment"
+echo "Solocorn Application Deployment"
 echo "========================================"
 echo ""
 

@@ -101,7 +101,7 @@ export default function StudentLayout({
       {/* Left Navigation Sidebar - Desktop */}
       <aside className="w-64 bg-white border-r sticky top-0 h-screen hidden lg:flex flex-col z-40">
         <div className="p-4 border-b flex items-center justify-between">
-          <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">TutorMe</Link>
+          <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
           <Link href="/student/notifications">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
@@ -228,7 +228,7 @@ export default function StudentLayout({
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">TutorMe</Link>
+            <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/student/settings">

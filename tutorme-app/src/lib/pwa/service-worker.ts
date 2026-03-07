@@ -308,7 +308,7 @@ function getOfflineFallbackHTML(): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Offline - TutorMe</title>
+  <title>Offline - Solocorn</title>
   <style>
     body{font-family:system-ui,-apple-system,sans-serif;margin:0;padding:2rem;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f9fafb;text-align:center}
     h1{color:#4B5563;margin-bottom:1rem}

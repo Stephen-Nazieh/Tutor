@@ -49,9 +49,9 @@
     "logout": "Sign Out"
   },
   "pwa": {
-    "install_title": "安装 TutorMe",
-    "install_description": "将 TutorMe 添加到主屏幕，离线也能学习。",
-    "ios_install_description": "在您的设备上安装 TutorMe 以获得最佳体验。",
+    "install_title": "安装 Solocorn",
+    "install_description": "将 Solocorn 添加到主屏幕，离线也能学习。",
+    "ios_install_description": "在您的设备上安装 Solocorn 以获得最佳体验。",
     "install_button": "安装",
     "install_dismiss": "暂不",
     "install_got_it": "知道了",

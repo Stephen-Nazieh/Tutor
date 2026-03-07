@@ -1,6 +1,6 @@
 # Whiteboard Advanced Features Implementation
 
-This document describes the 12 advanced whiteboard features implemented for the TutorMe live class system.
+This document describes the 12 advanced whiteboard features implemented for the Solocorn live class system.
 
 ## Overview
 

@@ -1,9 +1,9 @@
 @echo off
-REM TutorMe Project Setup Script for Windows
+REM Solocorn Project Setup Script for Windows
 REM Run this from: %USERPROFILE%\projects\tutorme
 
 echo ==========================================
-echo   TutorMe - Automated Setup Script (Windows)
+echo   Solocorn - Automated Setup Script (Windows)
 echo ==========================================
 echo.
 
@@ -199,7 +199,7 @@ echo [→] Step 8/8: Creating helper scripts...
 
 (
 echo @echo off
-echo echo Starting TutorMe development environment...
+echo echo Starting Solocorn development environment...
 echo echo.
 echo docker ps ^| findstr tutorme-db ^>nul
 echo if errorlevel 1 (

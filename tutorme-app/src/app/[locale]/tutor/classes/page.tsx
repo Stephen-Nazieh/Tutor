@@ -346,7 +346,7 @@ export default function TutorClassesPage() {
           <div className="flex justify-between h-16">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600">
-                TutorMe
+                Solocorn
               </Link>
               <Button variant="ghost" size="sm" onClick={() => router.push('/tutor/dashboard')}>
                 <ArrowLeft className="w-4 h-4 mr-1" /> Dashboard

@@ -2,7 +2,7 @@
 import SwaggerClient from 'swagger-client'
 import { swaggerSpec } from '../openapi'
 
-export class TutorMeSDK {
+export class SolocornSDK {
   private client: any
   
   constructor(options: SDKOptions) {

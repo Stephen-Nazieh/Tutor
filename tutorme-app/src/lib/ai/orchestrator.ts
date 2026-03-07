@@ -1,10 +1,11 @@
 /**
  * AI Orchestrator
  * Manages AI providers with fallback chain:
- * 1. Ollama (local) - Primary
- * 2. Kimi K2.5 - Fallback 1
+ * 1. Kimi K2.5 (Moonshot AI) - PRIMARY
+ * 2. Ollama (local Llama 3.1) - Fallback 1
  * 3. Zhipu GLM - Fallback 2
- * 7.3 AI performance: response caching for repeated prompts (optional)
+ * 
+ * Response caching for repeated prompts (5 min TTL)
  */
 
 import { generateWithOllama, chatWithOllama, isOllamaAvailable } from './ollama'
@@ -12,7 +13,7 @@ import { generateWithKimi, chatWithKimi } from './kimi'
 import { generateWithZhipu, chatWithZhipu } from './zhipu'
 import { cache } from '@/lib/db'
 
-type AIProvider = 'ollama' | 'kimi' | 'zhipu'
+type AIProvider = 'kimi' | 'ollama' | 'zhipu'
 
 interface AIOptions {
   temperature?: number
@@ -44,8 +45,8 @@ function cacheKeyForChat(messages: Array<{ role: string; content: string }>): st
 
 /**
  * Generate text with automatic fallback
- * Priority: Ollama -> Kimi -> Zhipu
- * 7.3 Response caching: identical prompts return cached result within TTL
+ * Priority: Kimi -> Ollama -> Zhipu
+ * Kimi is now PRIMARY provider
  */
 export async function generateWithFallback(
   prompt: string,
@@ -59,23 +60,43 @@ export async function generateWithFallback(
     if (cached) return { ...cached, latencyMs: Date.now() - startTime }
   }
 
-  const timeout = options.timeoutMs || 10000 // 10 second default timeout
+  const timeout = options.timeoutMs || 30000 // 30 second default timeout for Kimi
 
   // MOCK MODE (for verification/testing without keys)
   if (process.env.MOCK_AI === 'true') {
     return {
-      content: `[MOCK AI RESPONSE] Processed prompt: ${prompt.substring(0, 2000)}...`,
-      provider: 'ollama', // Simulate local provider
+      content: `[MOCK AI RESPONSE] Processed prompt: ${prompt.substring(0, 200)}...`,
+      provider: 'kimi',
       latencyMs: 10
     }
   }
 
-  // Try Ollama first (local, free)
+  // Try Kimi FIRST (now primary)
+  if (process.env.KIMI_API_KEY) {
+    try {
+      const content = await generateWithKimi(prompt, {
+        ...options,
+        model: 'kimi-k2.5',
+      })
+
+      const result = {
+        content,
+        provider: 'kimi' as AIProvider,
+        latencyMs: Date.now() - startTime,
+      }
+      if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
+      return result
+    } catch (error) {
+      console.log('Kimi failed, trying Ollama:', error)
+    }
+  }
+
+  // Fallback 1: Ollama (local, free)
   try {
     const isAvailable = await Promise.race([
       isOllamaAvailable(),
       new Promise<boolean>((_, reject) =>
-        setTimeout(() => reject(new Error('Ollama timeout')), timeout)
+        setTimeout(() => reject(new Error('Ollama timeout')), 5000)
       )
     ])
 
@@ -98,33 +119,13 @@ export async function generateWithFallback(
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error)
     if (msg.includes('not found') || msg.includes('404')) {
-      console.log('Ollama model not available, trying Kimi')
+      console.log('Ollama model not available, trying Zhipu')
     } else {
-      console.log('Ollama failed, trying Kimi:', error)
+      console.log('Ollama failed, trying Zhipu:', error)
     }
   }
 
-  // Try Kimi K2.5 (Fallback 1)
-  if (process.env.KIMI_API_KEY) {
-    try {
-      const content = await generateWithKimi(prompt, {
-        ...options,
-        model: 'kimi-k2.5',
-      })
-
-      const result = {
-        content,
-        provider: 'kimi' as AIProvider,
-        latencyMs: Date.now() - startTime,
-      }
-      if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
-      return result
-    } catch (error) {
-      console.log('Kimi failed, trying Zhipu:', error)
-    }
-  }
-
-  // Try Zhipu (Fallback 2)
+  // Fallback 2: Zhipu GLM
   if (process.env.ZHIPU_API_KEY) {
     try {
       const content = await generateWithZhipu(prompt, options)
@@ -142,13 +143,12 @@ export async function generateWithFallback(
     }
   }
 
-  throw new Error('No AI providers configured. Please set KIMI_API_KEY or ZHIPU_API_KEY.')
+  throw new Error('No AI providers configured. Please set KIMI_API_KEY.')
 }
 
 /**
  * Chat with automatic fallback
- * Priority: Ollama -> Kimi -> Zhipu
- * 7.3 Response caching: identical message history returns cached result within TTL
+ * Priority: Kimi -> Ollama -> Zhipu
  */
 export async function chatWithFallback(
   messages: Array<{ role: string; content: string }>,
@@ -162,23 +162,43 @@ export async function chatWithFallback(
     if (cached) return { ...cached, latencyMs: Date.now() - startTime }
   }
 
-  const timeout = options.timeoutMs || 10000
+  const timeout = options.timeoutMs || 30000
 
   // MOCK MODE
   if (process.env.MOCK_AI === 'true') {
     return {
       content: `[MOCK AI RESPONSE] Processed chat with ${messages.length} messages.`,
-      provider: 'ollama',
+      provider: 'kimi',
       latencyMs: 10
     }
   }
 
-  // Try Ollama first
+  // Try Kimi FIRST
+  if (process.env.KIMI_API_KEY) {
+    try {
+      const content = await chatWithKimi(messages, {
+        ...options,
+        model: 'kimi-k2.5',
+      })
+
+      const result = {
+        content,
+        provider: 'kimi' as AIProvider,
+        latencyMs: Date.now() - startTime,
+      }
+      if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
+      return result
+    } catch (error) {
+      console.log('Kimi failed, trying Ollama:', error)
+    }
+  }
+
+  // Fallback 1: Ollama
   try {
     const isAvailable = await Promise.race([
       isOllamaAvailable(),
       new Promise<boolean>((_, reject) =>
-        setTimeout(() => reject(new Error('Ollama timeout')), 3000)
+        setTimeout(() => reject(new Error('Ollama timeout')), 5000)
       )
     ])
 
@@ -201,33 +221,13 @@ export async function chatWithFallback(
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error)
     if (msg.includes('not found') || msg.includes('404')) {
-      console.log('Ollama model not available, trying Kimi')
+      console.log('Ollama model not available, trying Zhipu')
     } else {
-      console.log('Ollama failed, trying Kimi:', error)
+      console.log('Ollama failed, trying Zhipu:', error)
     }
   }
 
-  // Try Kimi K2.5
-  if (process.env.KIMI_API_KEY) {
-    try {
-      const content = await chatWithKimi(messages, {
-        ...options,
-        model: 'kimi-k2.5',
-      })
-
-      const result = {
-        content,
-        provider: 'kimi' as AIProvider,
-        latencyMs: Date.now() - startTime,
-      }
-      if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
-      return result
-    } catch (error) {
-      console.log('Kimi failed, trying Zhipu:', error)
-    }
-  }
-
-  // Try Zhipu
+  // Fallback 2: Zhipu
   if (process.env.ZHIPU_API_KEY) {
     try {
       const content = await chatWithZhipu(messages, options)
@@ -245,7 +245,7 @@ export async function chatWithFallback(
     }
   }
 
-  throw new Error('No AI providers configured. Please set KIMI_API_KEY or ZHIPU_API_KEY.')
+  throw new Error('No AI providers configured. Please set KIMI_API_KEY.')
 }
 
 /**
@@ -256,8 +256,6 @@ export async function* streamWithFallback(
   messages: Array<{ role: string; content: string }>,
   options: AIOptions = {}
 ): AsyncGenerator<{ content: string; provider: AIProvider }, void, unknown> {
-  // Note: This requires implementing streaming for each provider
-  // For now, we'll just yield the full response
   try {
     const result = await chatWithFallback(messages, options)
     yield { content: result.content, provider: result.provider }
@@ -274,6 +272,12 @@ export async function getAIProvidersStatus(): Promise<
 > {
   const results = []
 
+  // Check Kimi first
+  results.push({
+    name: 'kimi' as AIProvider,
+    available: !!process.env.KIMI_API_KEY,
+  })
+
   // Check Ollama
   const ollamaStart = Date.now()
   try {
@@ -286,12 +290,6 @@ export async function getAIProvidersStatus(): Promise<
   } catch {
     results.push({ name: 'ollama' as AIProvider, available: false })
   }
-
-  // Check Kimi
-  results.push({
-    name: 'kimi' as AIProvider,
-    available: !!process.env.KIMI_API_KEY,
-  })
 
   // Check Zhipu
   results.push({
@@ -313,16 +311,16 @@ export async function generateWithProvider(
   const startTime = Date.now()
 
   switch (provider) {
-    case 'ollama':
-      return {
-        content: await generateWithOllama(prompt, options),
-        provider: 'ollama',
-        latencyMs: Date.now() - startTime,
-      }
     case 'kimi':
       return {
         content: await generateWithKimi(prompt, { ...options, model: 'kimi-k2.5' }),
         provider: 'kimi',
+        latencyMs: Date.now() - startTime,
+      }
+    case 'ollama':
+      return {
+        content: await generateWithOllama(prompt, options),
+        provider: 'ollama',
         latencyMs: Date.now() - startTime,
       }
     case 'zhipu':

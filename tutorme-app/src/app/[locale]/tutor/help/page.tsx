@@ -36,7 +36,7 @@ const faqs = [
 ]
 
 const guides = [
-  { title: 'Getting Started Guide', icon: BookOpen, description: 'Learn the basics of TutorMe' },
+  { title: 'Getting Started Guide', icon: BookOpen, description: 'Learn the basics of Solocorn' },
   { title: 'Video Tutorials', icon: PlayCircle, description: 'Watch step-by-step tutorials' },
   { title: 'Teaching Best Practices', icon: FileText, description: 'Tips for effective online teaching' },
   { title: 'Live Class Guide', icon: Video, description: 'How to use the live classroom' },

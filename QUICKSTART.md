@@ -1,4 +1,4 @@
-# TutorMe - Quick Start Guide
+# Solocorn - Quick Start Guide
 
 ## 🚀 Choose Your Operating System
 

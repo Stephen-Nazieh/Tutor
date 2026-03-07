@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul
 
-REM TutorMe Database Diagnostic Script for Windows
+REM Solocorn Database Diagnostic Script for Windows
 REM Usage: scripts\check-db.bat
 
 echo ╔════════════════════════════════════════════════════════╗
-echo ║         TutorMe Database Diagnostic Tool               ║
+echo ║         Solocorn Database Diagnostic Tool               ║
 echo ╚════════════════════════════════════════════════════════╝
 echo.
 

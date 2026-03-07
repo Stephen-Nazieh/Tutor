@@ -8,7 +8,7 @@ import { buildPrompt, getTeachingModes } from './teaching-prompts'
 
 export type TeachingMode = 'socratic' | 'direct' | 'lesson' | 'practice'
 
-export interface TutorMessage {
+export interface Solocornssage {
   role: 'system' | 'user' | 'assistant'
   content: string
 }
@@ -20,7 +20,7 @@ export interface TutorContext {
   teachingAge: number
   voiceGender: string
   voiceAccent: string
-  conversationHistory: TutorMessage[]
+  conversationHistory: Solocornssage[]
 }
 
 export interface TutorResponse {
@@ -53,7 +53,7 @@ export async function generateModularResponse(
   )
   
   // Build the conversation
-  const messages: TutorMessage[] = [
+  const messages: Solocornssage[] = [
     { role: 'system', content: systemPrompt },
     ...context.conversationHistory.slice(-6), // Keep last 6 messages for context
     { role: 'user', content: studentMessage }

@@ -1,5 +1,5 @@
 /**
- * AI Prompts for TutorMe
+ * AI Prompts for Solocorn
  * All prompts used across the application
  */
 

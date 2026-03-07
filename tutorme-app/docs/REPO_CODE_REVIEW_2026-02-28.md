@@ -1,4 +1,4 @@
-# TutorMe Repository Code Review (2026-02-28)
+# Solocorn Repository Code Review (2026-02-28)
 
 ## Scope and Method
 

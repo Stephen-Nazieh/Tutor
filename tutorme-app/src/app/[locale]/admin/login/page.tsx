@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600">
               <Shield className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900">TutorMe Admin</span>
+            <span className="text-xl font-bold text-slate-900">Solocorn Admin</span>
           </Link>
         </div>
 

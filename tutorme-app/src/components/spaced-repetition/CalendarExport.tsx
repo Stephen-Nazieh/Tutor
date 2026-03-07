@@ -53,10 +53,10 @@ END:VEVENT`
 
   return `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//TutorMe//Spaced Repetition//EN
+PRODID:-//Solocorn//Spaced Repetition//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:TutorMe Review Schedule
+X-WR-CALNAME:Solocorn Review Schedule
 X-WR-TIMEZONE:UTC
 ${events}
 END:VCALENDAR`

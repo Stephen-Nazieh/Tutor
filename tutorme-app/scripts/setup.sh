@@ -3,10 +3,10 @@
 
 set -e
 
-cd /Users/nazy/ADK_WORKSPACE/TutorMekimi/tutorme-app
+cd /Users/nazy/ADK_WORKSPACE/Solocornkimi/tutorme-app
 
 echo "========================================"
-echo "  TutorMe Complete Setup"
+echo "  Solocorn Complete Setup"
 echo "========================================"
 echo ""
 

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# TutorMe Database Diagnostic Script
+# Solocorn Database Diagnostic Script
 # Usage: ./scripts/check-db.sh
 # Or from project root: bash scripts/check-db.sh
 
 set -e  # Exit on error
 
 echo "╔════════════════════════════════════════════════════════╗"
-echo "║         TutorMe Database Diagnostic Tool               ║"
+echo "║         Solocorn Database Diagnostic Tool               ║"
 echo "╚════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -212,7 +212,7 @@ echo ""
 echo "╔════════════════════════════════════════════════════════╗"
 echo "║                      Summary                           ║"
 echo "╠════════════════════════════════════════════════════════╣"
-docker ps --format "║  {{.Names}} - {{.Status}}" 2>/dev/null | grep -E "tutorme-db|tutorme-redis" || echo "║  (No TutorMe containers running)"
+docker ps --format "║  {{.Names}} - {{.Status}}" 2>/dev/null | grep -E "tutorme-db|tutorme-redis" || echo "║  (No Solocorn containers running)"
 echo "║                                                        ║"
 echo "║  Database URL: postgresql://tutorme:tutorme_password   ║"
 echo "║                @localhost:5433/tutorme                 ║"

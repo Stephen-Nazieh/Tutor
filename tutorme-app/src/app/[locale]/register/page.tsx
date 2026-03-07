@@ -48,7 +48,7 @@ export default function RoleSelectionPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Create Your Account</h1>
           <p className="text-lg text-gray-600">
-            Choose your role to get started with TutorMe
+            Choose your role to get started with Solocorn
           </p>
         </div>
 

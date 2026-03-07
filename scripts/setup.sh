@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# TutorMe Project Setup Script
+# Solocorn Project Setup Script
 # Run this from: ~/projects/tutorme (Mac) or %USERPROFILE%\projects\tutorme (Windows)
 
 set -e  # Exit on any error
 
 echo "=========================================="
-echo "  TutorMe - Automated Setup Script"
+echo "  Solocorn - Automated Setup Script"
 echo "=========================================="
 echo ""
 
@@ -684,7 +684,7 @@ cat > scripts/dev.sh << 'DEVSCRIPT'
 #!/bin/bash
 # Start development environment
 
-echo "Starting TutorMe development environment..."
+echo "Starting Solocorn development environment..."
 
 # Check if Docker containers are running
 if ! docker ps | grep -q tutorme-db; then
@@ -822,7 +822,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TutorMe - AI-Human Hybrid Tutoring",
+  title: "Solocorn - AI-Human Hybrid Tutoring",
   description: "Learn with AI assistance and human tutor support",
 };
 
@@ -850,7 +850,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            TutorMe
+            Solocorn
           </h1>
           <p className="text-xl text-gray-600 mb-8">
             AI-Human Hybrid Tutoring Platform
@@ -1002,7 +1002,7 @@ print_status "Initial pages created"
 
 # Create README
 cat > README.md << 'README'
-# TutorMe - AI-Human Hybrid Tutoring Platform
+# Solocorn - AI-Human Hybrid Tutoring Platform
 
 ## Quick Start
 

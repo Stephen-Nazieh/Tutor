@@ -11,7 +11,7 @@ This repository contains the complete development kit for building Solocorn (als
 | `MANUAL_SETUP.md` | Step-by-step manual setup for Windows | You (if automated fails) |
 | `Roadmap.md` | Complete development plan | Me (developer) |
 | `PROMPT.docx` | Original project requirements | Reference |
-| `TutorMe.docx` | Additional project details | Reference |
+| `Solocorn.docx` | Additional project details | Reference |
 | `scripts/setup.sh` | Automated setup script (Mac/Linux) | You (run once) |
 | `scripts/setup.bat` | Automated setup script (Windows) | You (alternative) |
 | `landing-page/` | **NEW** Vite + React landing page (Solocorn brand) | Separate entry point |

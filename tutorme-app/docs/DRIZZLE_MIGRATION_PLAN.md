@@ -1,6 +1,6 @@
 # Prisma → Drizzle ORM Migration Plan
 
-**TutorMe (tutorme-app)**  
+**Solocorn (tutorme-app)**  
 **Objective:** Replace Prisma with Drizzle ORM to eliminate Studio/migrate issues while preserving type safety, relations, and multi-user reliability.
 
 ---

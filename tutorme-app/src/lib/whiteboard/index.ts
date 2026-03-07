@@ -1,5 +1,5 @@
 /**
- * TutorMe Whiteboard System - Feature Complete
+ * Solocorn Whiteboard System - Feature Complete
  * 
  * This module provides a comprehensive whiteboard system with the following features:
  * 

@@ -1,4 +1,4 @@
-# TutorMe production image (Next.js + custom server with Socket.io)
+# Solocorn production image (Next.js + custom server with Socket.io)
 # Build and run: used by docker-compose for AWS deploy
 
 FROM node:20-alpine AS base
