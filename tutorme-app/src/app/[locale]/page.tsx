@@ -1,6 +1,6 @@
 /**
- * Solocorn Landing Page - Coming Soon Mode with i18n
- * Landing page with early bird signup, special developer access, and language selector
+ * Solocorn Landing Page - Coming Soon Mode with i18n and Themes
+ * Landing page with early bird signup, special developer access, language selector, and theme system
  */
 
 'use client';
@@ -24,7 +24,10 @@ import {
   Hexagon,
   Triangle,
   Circle,
-  Square
+  Square,
+  Sun,
+  Moon,
+  Palette
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +36,9 @@ import { useRouter } from 'next/navigation';
 
 // --- Types ---
 type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | null;
-type Language = 'en' | 'zh-CN' | 'zh-HK' | 'es' | 'fr' | 'de' | 'ja' | 'ko';
+type Language = 'en' | 'zh-CN' | 'zh-HK' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'pt' | 'hi';
+type ThemeMode = 'light' | 'dark';
+type ColorTheme = 'emerald' | 'ocean' | 'sunset' | 'galaxy';
 
 interface EarlyBirdForm {
   email: string;
@@ -46,72 +51,92 @@ interface Translations {
   };
 }
 
+// --- Theme Configurations ---
+const THEMES: Record<ColorTheme, { name: string; icon: string; colors: { primary: string; secondary: string; accent: string; bg: string; surface: string; text: string; muted: string } }> = {
+  emerald: {
+    name: 'Emerald Dreams',
+    icon: '🌿',
+    colors: {
+      primary: '#10b981',
+      secondary: '#06b6d4',
+      accent: '#8b5cf6',
+      bg: 'from-slate-950 via-zinc-950 to-slate-900',
+      surface: 'bg-zinc-900/60',
+      text: 'text-zinc-100',
+      muted: 'text-zinc-500',
+    }
+  },
+  ocean: {
+    name: 'Deep Ocean',
+    icon: '🌊',
+    colors: {
+      primary: '#0ea5e9',
+      secondary: '#6366f1',
+      accent: '#ec4899',
+      bg: 'from-slate-950 via-blue-950 to-slate-900',
+      surface: 'bg-blue-950/60',
+      text: 'text-blue-50',
+      muted: 'text-blue-400/70',
+    }
+  },
+  sunset: {
+    name: 'Golden Sunset',
+    icon: '🌅',
+    colors: {
+      primary: '#f59e0b',
+      secondary: '#ef4444',
+      accent: '#ec4899',
+      bg: 'from-orange-950 via-red-950 to-slate-900',
+      surface: 'bg-orange-950/60',
+      text: 'text-orange-50',
+      muted: 'text-orange-400/70',
+    }
+  },
+  galaxy: {
+    name: 'Cosmic Galaxy',
+    icon: '🌌',
+    colors: {
+      primary: '#a855f7',
+      secondary: '#ec4899',
+      accent: '#3b82f6',
+      bg: 'from-purple-950 via-fuchsia-950 to-slate-900',
+      surface: 'bg-purple-950/60',
+      text: 'text-purple-50',
+      muted: 'text-purple-400/70',
+    }
+  },
+};
+
 // --- Translations ---
 const translations: Translations = {
   // Navbar
   brandName: {
-    'en': 'SOLOCORN',
-    'zh-CN': 'SOLOCORN',
-    'zh-HK': 'SOLOCORN',
-    'es': 'SOLOCORN',
-    'fr': 'SOLOCORN',
-    'de': 'SOLOCORN',
-    'ja': 'SOLOCORN',
-    'ko': 'SOLOCORN',
+    'en': 'SOLOCORN', 'zh-CN': 'SOLOCORN', 'zh-HK': 'SOLOCORN', 'es': 'SOLOCORN', 'fr': 'SOLOCORN',
+    'de': 'SOLOCORN', 'ja': 'SOLOCORN', 'ko': 'SOLOCORN', 'pt': 'SOLOCORN', 'hi': 'SOLOCORN',
   },
   register: {
-    'en': 'Register',
-    'zh-CN': '注册',
-    'zh-HK': '註冊',
-    'es': 'Registrarse',
-    'fr': 'S\'inscrire',
-    'de': 'Registrieren',
-    'ja': '登録',
-    'ko': '등록',
+    'en': 'Register', 'zh-CN': '注册', 'zh-HK': '註冊', 'es': 'Registrarse', 'fr': 'S\'inscrire',
+    'de': 'Registrieren', 'ja': '登録', 'ko': '등록', 'pt': 'Registrar', 'hi': 'पंजीकरण',
   },
   
   // Hero Section
   comingSoon: {
-    'en': 'Coming Soon',
-    'zh-CN': '即将推出',
-    'zh-HK': '即將推出',
-    'es': 'Próximamente',
-    'fr': 'Bientôt disponible',
-    'de': 'Demnächst verfügbar',
-    'ja': 'まもなく公開',
-    'ko': '곧 출시',
+    'en': 'Coming Soon', 'zh-CN': '即将推出', 'zh-HK': '即將推出', 'es': 'Próximamente', 'fr': 'Bientôt disponible',
+    'de': 'Demnächst verfügbar', 'ja': 'まもなく公開', 'ko': '곧 출시', 'pt': 'Em breve', 'hi': 'जल्द आ रहा है',
   },
   launch: {
-    'en': 'Launch',
-    'zh-CN': '启动',
-    'zh-HK': '啟動',
-    'es': 'Lanzar',
-    'fr': 'Lancer',
-    'de': 'Starten',
-    'ja': 'ローンチ',
-    'ko': '출시',
+    'en': 'Launch', 'zh-CN': '启动', 'zh-HK': '啟動', 'es': 'Lanzar', 'fr': 'Lancer',
+    'de': 'Starten', 'ja': 'ローンチ', 'ko': '출시', 'pt': 'Lançar', 'hi': 'लॉन्च',
   },
   getEarlyAccess: {
-    'en': 'Get Early Access',
-    'zh-CN': '获取抢先体验',
-    'zh-HK': '獲取搶先體驗',
-    'es': 'Obtener acceso anticipado',
-    'fr': 'Obtenir un accès anticipé',
-    'de': 'Frühen Zugang erhalten',
-    'ja': '早期アクセスを取得',
-    'ko': '얼리 액세스 받기',
+    'en': 'Get Early Access', 'zh-CN': '获取抢先体验', 'zh-HK': '獲取搶先體驗', 'es': 'Obtener acceso anticipado', 'fr': 'Obtenir un accès anticipé',
+    'de': 'Frühen Zugang erhalten', 'ja': '早期アクセスを取得', 'ko': '얼리 액세스 받기', 'pt': 'Obter Acesso Antecipado', 'hi': 'पहले पहुंच प्राप्त करें',
   },
   
   // Tutor Section
   solocornTutors: {
-    'en': 'Solocorn Tutors',
-    'zh-CN': 'Solocorn 导师',
-    'zh-HK': 'Solocorn 導師',
-    'es': 'Tutores de Solocorn',
-    'fr': 'Tuteurs Solocorn',
-    'de': 'Solocorn-Tutoren',
-    'ja': 'Solocorn チューター',
-    'ko': 'Solocorn 튜터',
+    'en': 'Solocorn Tutors', 'zh-CN': 'Solocorn 导师', 'zh-HK': 'Solocorn 導師', 'es': 'Tutores de Solocorn', 'fr': 'Tuteurs Solocorn',
+    'de': 'Solocorn-Tutoren', 'ja': 'Solocorn チューター', 'ko': 'Solocorn 튜터', 'pt': 'Tutores Solocorn', 'hi': 'Solocorn शिक्षक',
   },
   tutorCohortDescription: {
     'en': 'Our celebrity tutor cohort is ready to transform your learning.',
@@ -122,70 +147,36 @@ const translations: Translations = {
     'de': 'Unsere Star-Tutoren sind bereit, Ihr Lernen zu transformieren.',
     'ja': '有名人チューターコホートがあなたの学習を変革する準備ができています。',
     'ko': '저희의 유명인 튜터 코호트가 귀하의 학습을 혁신할 준비가 되었습니다.',
+    'pt': 'Nossa equipe de tutores celebridades está pronta para transformar sua aprendizagem.',
+    'hi': 'हमारी सेलिब्रिटी शिक्षक टीम आपकी सीखने को बदलने के लिए तैयार है।',
   },
   viewAll: {
-    'en': 'View All',
-    'zh-CN': '查看全部',
-    'zh-HK': '查看全部',
-    'es': 'Ver todo',
-    'fr': 'Voir tout',
-    'de': 'Alle ansehen',
-    'ja': 'すべて表示',
-    'ko': '모두 보기',
+    'en': 'View All', 'zh-CN': '查看全部', 'zh-HK': '查看全部', 'es': 'Ver todo', 'fr': 'Voir tout',
+    'de': 'Alle ansehen', 'ja': 'すべて表示', 'ko': '모두 보기', 'pt': 'Ver Todos', 'hi': 'सभी देखें',
   },
   
   // Special Access
   specialAccess: {
-    'en': 'I have special access',
-    'zh-CN': '我有特殊访问权限',
-    'zh-HK': '我有特殊訪問權限',
-    'es': 'Tengo acceso especial',
-    'fr': 'J\'ai un accès spécial',
-    'de': 'Ich habe einen besonderen Zugang',
-    'ja': '特別アクセス権を持っています',
-    'ko': '특별 액세스 권한이 있습니다',
+    'en': 'I have special access', 'zh-CN': '我有特殊访问权限', 'zh-HK': '我有特殊訪問權限', 'es': 'Tengo acceso especial', 'fr': 'J\'ai un accès spécial',
+    'de': 'Ich habe einen besonderen Zugang', 'ja': '特別アクセス権を持っています', 'ko': '특별 액세스 권한이 있습니다', 'pt': 'Tenho Acesso Especial', 'hi': 'मेरे पास विशेष पहुंच है',
   },
   enterCode: {
-    'en': 'Enter code',
-    'zh-CN': '输入代码',
-    'zh-HK': '輸入代碼',
-    'es': 'Ingresar código',
-    'fr': 'Entrer le code',
-    'de': 'Code eingeben',
-    'ja': 'コードを入力',
-    'ko': '코드 입력',
+    'en': 'Enter code', 'zh-CN': '输入代码', 'zh-HK': '輸入代碼', 'es': 'Ingresar código', 'fr': 'Entrer le code',
+    'de': 'Code eingeben', 'ja': 'コードを入力', 'ko': '코드 입력', 'pt': 'Digite o código', 'hi': 'कोड दर्ज करें',
   },
   access: {
-    'en': 'Access',
-    'zh-CN': '访问',
-    'zh-HK': '訪問',
-    'es': 'Acceder',
-    'fr': 'Accéder',
-    'de': 'Zugang',
-    'ja': 'アクセス',
-    'ko': '액세스',
+    'en': 'Access', 'zh-CN': '访问', 'zh-HK': '訪問', 'es': 'Acceder', 'fr': 'Accéder',
+    'de': 'Zugang', 'ja': 'アクセス', 'ko': '액세스', 'pt': 'Acessar', 'hi': 'पहुंच',
   },
   invalidCode: {
-    'en': 'Invalid access code',
-    'zh-CN': '无效的访问代码',
-    'zh-HK': '無效嘅訪問代碼',
-    'es': 'Código de acceso inválido',
-    'fr': 'Code d\'accès invalide',
-    'de': 'Ungültiger Zugangscode',
-    'ja': '無効なアクセスコード',
-    'ko': '잘못된 액세스 코드',
+    'en': 'Invalid access code', 'zh-CN': '无效的访问代码', 'zh-HK': '無效嘅訪問代碼', 'es': 'Código de acceso inválido', 'fr': 'Code d\'accès invalide',
+    'de': 'Ungültiger Zugangscode', 'ja': '無効なアクセスコード', 'ko': '잘못된 액세스 코드', 'pt': 'Código de acesso inválido', 'hi': 'अमान्य पहुंच कोड',
   },
   
   // Action Cards
   becomeTutor: {
-    'en': 'Become a Solocorn Tutor',
-    'zh-CN': '成为 Solocorn 导师',
-    'zh-HK': '成為 Solocorn 導師',
-    'es': 'Conviértete en tutor de Solocorn',
-    'fr': 'Devenez tuteur Solocorn',
-    'de': 'Werden Sie Solocorn-Tutor',
-    'ja': 'Solocorn チューターになる',
-    'ko': 'Solocorn 튜터 되기',
+    'en': 'Become a Solocorn Tutor', 'zh-CN': '成为 Solocorn 导师', 'zh-HK': '成為 Solocorn 導師', 'es': 'Conviértete en tutor de Solocorn', 'fr': 'Devenez tuteur Solocorn',
+    'de': 'Werden Sie Solocorn-Tutor', 'ja': 'Solocorn チューターになる', 'ko': 'Solocorn 튜터 되기', 'pt': 'Torne-se um Tutor Solocorn', 'hi': 'Solocorn शिक्षक बनें',
   },
   becomeTutorDesc: {
     'en': 'Join our elite network of educators and reach students worldwide.',
@@ -196,26 +187,16 @@ const translations: Translations = {
     'de': 'Treten Sie unserem Netzwerk von Elite-Bildungsexperten bei und erreichen Sie Studenten weltweit.',
     'ja': 'エリート教育者ネットワークに参加し、世界中の学生にリーチしましょう。',
     'ko': '엘리트 교육자 네트워크에 참여하여 전 세계 학생들에게 다가가세요.',
+    'pt': 'Junte-se à nossa rede de educadores de elite e alcance estudantes em todo o mundo.',
+    'hi': 'हमारे精英 शिक्षक नेटवर्क में शामिल हों और दुनियाभर के छात्रों तक पहुंचें।',
   },
   applyToTeach: {
-    'en': 'Apply to Teach',
-    'zh-CN': '申请教学',
-    'zh-HK': '申請教學',
-    'es': 'Aplicar para enseñar',
-    'fr': 'Postuler pour enseigner',
-    'de': 'Bewerben Sie sich zum Unterrichten',
-    'ja': '教師として応募',
-    'ko': '교사 지원',
+    'en': 'Apply to Teach', 'zh-CN': '申请教学', 'zh-HK': '申請教學', 'es': 'Aplicar para enseñar', 'fr': 'Postuler pour enseigner',
+    'de': 'Bewerben Sie sich zum Unterrichten', 'ja': '教師として応募', 'ko': '교사 지원', 'pt': 'Aplicar para Ensinar', 'hi': 'पढ़ाने के लिए आवेदन',
   },
   startAcademy: {
-    'en': 'Start a Solocorn Academy',
-    'zh-CN': '开办 Solocorn 学院',
-    'zh-HK': '開辦 Solocorn 學院',
-    'es': 'Iniciar una academia Solocorn',
-    'fr': 'Démarrer une académie Solocorn',
-    'de': 'Gründen Sie eine Solocorn-Akademie',
-    'ja': 'Solocorn アカデミーを始める',
-    'ko': 'Solocorn 아카데미 시작',
+    'en': 'Start a Solocorn Academy', 'zh-CN': '开办 Solocorn 学院', 'zh-HK': '開辦 Solocorn 學院', 'es': 'Iniciar una academia Solocorn', 'fr': 'Démarrer une académie Solocorn',
+    'de': 'Gründen Sie eine Solocorn-Akademie', 'ja': 'Solocorn アカデミーを始める', 'ko': 'Solocorn 아카데미 시작', 'pt': 'Iniciar uma Academia Solocorn', 'hi': 'Solocorn अकादमी शुरू करें',
   },
   startAcademyDesc: {
     'en': 'Build your own branded learning institution on our infrastructure.',
@@ -226,26 +207,16 @@ const translations: Translations = {
     'de': 'Bauen Sie Ihre eigene Markenlerninstitution auf unserer Infrastruktur auf.',
     'ja': '私たちのインフラストラクチャ上に独自のブランド学習機関を構築してください。',
     'ko': '우리의 인프라에서 자신만의 브랜드 학습 기관을 구축하세요.',
+    'pt': 'Construa sua própria instituição de aprendizagem de marca em nossa infraestrutura.',
+    'hi': 'हमारे इंफ्रास्ट्रक्चर पर अपना खुद का ब्रांडेड लर्निंग संस्थान बनाएं।',
   },
   launchAcademy: {
-    'en': 'Launch Academy',
-    'zh-CN': '启动学院',
-    'zh-HK': '啟動學院',
-    'es': 'Lanzar academia',
-    'fr': 'Lancer l\'académie',
-    'de': 'Akademie starten',
-    'ja': 'アカデミーをローンチ',
-    'ko': '아카데미 출시',
+    'en': 'Launch Academy', 'zh-CN': '启动学院', 'zh-HK': '啟動學院', 'es': 'Lanzar academia', 'fr': 'Lancer l\'académie',
+    'de': 'Akademie starten', 'ja': 'アカデミーをローンチ', 'ko': '아카데미 출시', 'pt': 'Lançar Academia', 'hi': 'अकादमी लॉन्च करें',
   },
   solocornSchools: {
-    'en': 'Solocorn Schools',
-    'zh-CN': 'Solocorn 学校',
-    'zh-HK': 'Solocorn 學校',
-    'es': 'Escuelas Solocorn',
-    'fr': 'Écoles Solocorn',
-    'de': 'Solocorn-Schulen',
-    'ja': 'Solocorn スクール',
-    'ko': 'Solocorn 스쿨',
+    'en': 'Solocorn Schools', 'zh-CN': 'Solocorn 学校', 'zh-HK': 'Solocorn 學校', 'es': 'Escuelas Solocorn', 'fr': 'Écoles Solocorn',
+    'de': 'Solocorn-Schulen', 'ja': 'Solocorn スクール', 'ko': 'Solocorn 스쿨', 'pt': 'Escolas Solocorn', 'hi': 'Solocorn स्कूल',
   },
   schoolsDesc: {
     'en': 'Integrated solutions for K-12 and higher education institutions.',
@@ -256,28 +227,18 @@ const translations: Translations = {
     'de': 'Integrierte Lösungen für K-12 und Hochschulen.',
     'ja': 'K-12および高等教育機関向けの統合ソリューション。',
     'ko': 'K-12 및 고등 교육 기관을 위한 통합 솔루션.',
+    'pt': 'Soluções integradas para instituições educacionais K-12 e superior.',
+    'hi': 'K-12 और उच्च शिक्षा संस्थानों के लिए एकीकृत समाधान।',
   },
   partnerWithUs: {
-    'en': 'Partner with Us',
-    'zh-CN': '与我们合作',
-    'zh-HK': '與我哋合作',
-    'es': 'Asociarse con nosotros',
-    'fr': 'Devenir partenaire',
-    'de': 'Partner werden',
-    'ja': 'パートナーになる',
-    'ko': '파트너 되기',
+    'en': 'Partner with Us', 'zh-CN': '与我们合作', 'zh-HK': '與我哋合作', 'es': 'Asociarse con nosotros', 'fr': 'Devenir partenaire',
+    'de': 'Partner werden', 'ja': 'パートナーになる', 'ko': '파트너 되기', 'pt': 'Seja Nosso Parceiro', 'hi': 'हमारे साथ भागीदारी करें',
   },
   
   // Business Section
   businessInquiries: {
-    'en': 'Business and Licensing Inquiries',
-    'zh-CN': '商业和许可咨询',
-    'zh-HK': '商業同許可諮詢',
-    'es': 'Consultas comerciales y de licencias',
-    'fr': 'Demandes commerciales et de licence',
-    'de': 'Geschäfts- und Lizenzanfragen',
-    'ja': 'ビジネスおよびライセンスに関するお問い合わせ',
-    'ko': '비즈니스 및 라이선스 문의',
+    'en': 'Business and Licensing Inquiries', 'zh-CN': '商业和许可咨询', 'zh-HK': '商業同許可諮詢', 'es': 'Consultas comerciales y de licencias', 'fr': 'Demandes commerciales et de licence',
+    'de': 'Geschäfts- und Lizenzanfragen', 'ja': 'ビジネスおよびライセンスに関するお問い合わせ', 'ko': '비즈니스 및 라이선스 문의', 'pt': 'Consultas Comerciais e de Licenciamento', 'hi': 'व्यवसाय और लाइसेंसिंग पूछताछ',
   },
   businessDesc: {
     'en': 'Interested in bringing Solocorn to your organization? We offer enterprise-grade licensing and custom integration services.',
@@ -288,60 +249,36 @@ const translations: Translations = {
     'de': 'Interessiert, Solocorn in Ihre Organisation zu bringen? Wir bieten Enterprise-Lizenzen und maßgeschneiderte Integrationsdienste an.',
     'ja': 'Solocorn を貴社に導入することにご興味がありますか？エンタープライズグレードのライセンスとカスタム統合サービスを提供しています。',
     'ko': 'Solocorn을 귀하의 조직에 도입하는 데 관심이 있으신가요? 엔터프라이즈급 라이선스 및 맞춤형 통합 서비스를 제공합니다.',
+    'pt': 'Interessado em trazer o Solocorn para sua organização? Oferecemos licenciamento corporativo e serviços de integração personalizados.',
+    'hi': 'अपने संगठन में Solocorn लाने में रुचि रखते हैं? हम एंटरप्राइज-ग्रेड लाइसेंसिंग और कस्टम एकीकरण सेवाएं प्रदान करते हैं।',
   },
   contact: {
-    'en': 'Contact',
-    'zh-CN': '联系',
-    'zh-HK': '聯繫',
-    'es': 'Contactar',
-    'fr': 'Contacter',
-    'de': 'Kontakt',
-    'ja': 'お問い合わせ',
-    'ko': '문의',
+    'en': 'Contact', 'zh-CN': '联系', 'zh-HK': '聯繫', 'es': 'Contactar', 'fr': 'Contacter',
+    'de': 'Kontakt', 'ja': 'お問い合わせ', 'ko': '문의', 'pt': 'Contato', 'hi': 'संपर्क',
   },
   
   // Footer
   privacyPolicy: {
-    'en': 'Privacy Policy',
-    'zh-CN': '隐私政策',
-    'zh-HK': '隱私政策',
-    'es': 'Política de privacidad',
-    'fr': 'Politique de confidentialité',
-    'de': 'Datenschutzrichtlinie',
-    'ja': 'プライバシーポリシー',
-    'ko': '개인정보 처리방침',
+    'en': 'Privacy Policy', 'zh-CN': '隐私政策', 'zh-HK': '隱私政策', 'es': 'Política de privacidad', 'fr': 'Politique de confidentialité',
+    'de': 'Datenschutzrichtlinie', 'ja': 'プライバシーポリシー', 'ko': '개인정보 처리방침', 'pt': 'Política de Privacidade', 'hi': 'गोपनीयता नीति',
   },
   termsOfService: {
-    'en': 'Terms of Service',
-    'zh-CN': '服务条款',
-    'zh-HK': '服務條款',
-    'es': 'Términos de servicio',
-    'fr': 'Conditions d\'utilisation',
-    'de': 'Nutzungsbedingungen',
-    'ja': '利用規約',
-    'ko': '서비스 약관',
+    'en': 'Terms of Service', 'zh-CN': '服务条款', 'zh-HK': '服務條款', 'es': 'Términos de servicio', 'fr': 'Conditions d\'utilisation',
+    'de': 'Nutzungsbedingungen', 'ja': '利用規約', 'ko': '서비스 약관', 'pt': 'Termos de Serviço', 'hi': 'सेवा की शर्तें',
   },
   allRightsReserved: {
-    'en': '© 2026 Solocorn. All rights reserved.',
-    'zh-CN': '© 2026 Solocorn。保留所有权利。',
-    'zh-HK': '© 2026 Solocorn。保留所有權利。',
-    'es': '© 2026 Solocorn. Todos los derechos reservados.',
-    'fr': '© 2026 Solocorn. Tous droits réservés.',
-    'de': '© 2026 Solocorn. Alle Rechte vorbehalten.',
-    'ja': '© 2026 Solocorn. All rights reserved.',
-    'ko': '© 2026 Solocorn. 모든 권리 보유.',
+    'en': '© 2026 Solocorn. All rights reserved.', 'zh-CN': '© 2026 Solocorn。保留所有权利。', 'zh-HK': '© 2026 Solocorn。保留所有權利。',
+    'es': '© 2026 Solocorn. Todos los derechos reservados.', 'fr': '© 2026 Solocorn. Tous droits réservés.',
+    'de': '© 2026 Solocorn. Alle Rechte vorbehalten.', 'ja': '© 2026 Solocorn. All rights reserved.', 'ko': '© 2026 Solocorn. 모든 권리 보유.',
+    'pt': '© 2026 Solocorn. Todos os direitos reservados.', 'hi': '© 2026 Solocorn। सर्वाधिकार सुरक्षित।',
   },
   
   // Modal Content
   beFirst: {
-    'en': 'Be the first to experience Solocorn',
-    'zh-CN': '成为首批体验 Solocorn 的用户',
-    'zh-HK': '成為首批體驗 Solocorn 嘅用戶',
-    'es': 'Sé el primero en experimentar Solocorn',
-    'fr': 'Soyez le premier à découvrir Solocorn',
-    'de': 'Seien Sie der Erste, der Solocorn erlebt',
-    'ja': 'Solocorn を最初に体験する',
-    'ko': 'Solocorn을 가장 먼저 경험하세요',
+    'en': 'Be the first to experience Solocorn', 'zh-CN': '成为首批体验 Solocorn 的用户', 'zh-HK': '成為首批體驗 Solocorn 嘅用戶',
+    'es': 'Sé el primero en experimentar Solocorn', 'fr': 'Soyez le premier à découvrir Solocorn',
+    'de': 'Seien Sie der Erste, der Solocorn erlebt', 'ja': 'Solocorn を最初に体験する', 'ko': 'Solocorn을 가장 먼저 경험하세요',
+    'pt': 'Seja o primeiro a experimentar o Solocorn', 'hi': 'Solocorn का अनुभव करने वाले पहले व्यक्ति बनें',
   },
   modalDescRegister: {
     'en': 'We\'re putting the finishing touches on our platform. Leave your details and we\'ll notify you when we launch.',
@@ -352,96 +289,63 @@ const translations: Translations = {
     'de': 'Wir geben unserer Plattform den letzten Schliff. Hinterlassen Sie Ihre Daten und wir benachrichtigen Sie beim Start.',
     'ja': 'プラットフォームに最後の仕上げをしています。詳細を残していただければ、ローンチ時にお知らせします。',
     'ko': '플랫폼에 마지막 터치를 하고 있습니다. 세부 정보를 남겨주시면 출시 시 알려드리겠습니다.',
+    'pt': 'Estamos dando os toques finais em nossa plataforma. Deixe seus dados e notificaremos você quando lançarmos.',
+    'hi': 'हम अपने प्लेटफॉर्म पर अंतिम रूप दे रहे हैं। अपनी जानकारी छोड़ें और हम लॉन्च होने पर आपको सूचित करेंगे।',
   },
   notifyMe: {
-    'en': 'Notify Me',
-    'zh-CN': '通知我',
-    'zh-HK': '通知我',
-    'es': 'Notificarme',
-    'fr': 'Me notifier',
-    'de': 'Benachrichtige mich',
-    'ja': '通知する',
-    'ko': '알림 받기',
+    'en': 'Notify Me', 'zh-CN': '通知我', 'zh-HK': '通知我', 'es': 'Notificarme', 'fr': 'Me notifier',
+    'de': 'Benachrichtige mich', 'ja': '通知する', 'ko': '알림 받기', 'pt': 'Notifique-me', 'hi': 'मुझे सूचित करें',
   },
   thankYou: {
-    'en': 'Thank You!',
-    'zh-CN': '谢谢您！',
-    'zh-HK': '多謝你！',
-    'es': '¡Gracias!',
-    'fr': 'Merci !',
-    'de': 'Danke!',
-    'ja': 'ありがとうございます！',
-    'ko': '감사합니다!',
+    'en': 'Thank You!', 'zh-CN': '谢谢您！', 'zh-HK': '多謝你！', 'es': '¡Gracias!', 'fr': 'Merci !',
+    'de': 'Danke!', 'ja': 'ありがとうございます！', 'ko': '감사합니다!', 'pt': 'Obrigado!', 'hi': 'धन्यवाद!',
   },
   successMessageRegister: {
-    'en': 'You\'re on the list! We\'ll be in touch soon.',
-    'zh-CN': '您已在名单中！我们很快会与您联系。',
-    'zh-HK': '你已喺名單入面！我哋好快會同你聯繫。',
-    'es': '¡Estás en la lista! Nos pondremos en contacto pronto.',
-    'fr': 'Vous êtes sur la liste ! Nous vous contacterons bientôt.',
-    'de': 'Sie sind auf der Liste! Wir werden uns bald melden.',
-    'ja': 'リストに登録されました！まもなくご連絡いたします。',
-    'ko': '명단에 올랐습니다! 곧 연락드리겠습니다.',
+    'en': 'You\'re on the list! We\'ll be in touch soon.', 'zh-CN': '您已在名单中！我们很快会与您联系。',
+    'zh-HK': '你已喺名單入面！我哋好快會同你聯繫。', 'es': '¡Estás en la lista! Nos pondremos en contacto pronto.',
+    'fr': 'Vous êtes sur la liste ! Nous vous contacterons bientôt.', 'de': 'Sie sind auf der Liste! Wir werden uns bald melden.',
+    'ja': 'リストに登録されました！まもなくご連絡いたします。', 'ko': '명단에 올랐습니다! 곧 연락드리겠습니다.',
+    'pt': 'Você está na lista! Entraremos em contato em breve.', 'hi': 'आप सूची में हैं! हम जल्द ही संपर्क करेंगे।',
   },
   close: {
-    'en': 'Close',
-    'zh-CN': '关闭',
-    'zh-HK': '閂閉',
-    'es': 'Cerrar',
-    'fr': 'Fermer',
-    'de': 'Schließen',
-    'ja': '閉じる',
-    'ko': '닫기',
+    'en': 'Close', 'zh-CN': '关闭', 'zh-HK': '閂閉', 'es': 'Cerrar', 'fr': 'Fermer',
+    'de': 'Schließen', 'ja': '閉じる', 'ko': '닫기', 'pt': 'Fechar', 'hi': 'बंद करें',
   },
   yourName: {
-    'en': 'Your name',
-    'zh-CN': '您的姓名',
-    'zh-HK': '你嘅姓名',
-    'es': 'Su nombre',
-    'fr': 'Votre nom',
-    'de': 'Ihr Name',
-    'ja': 'お名前',
-    'ko': '이름',
+    'en': 'Your name', 'zh-CN': '您的姓名', 'zh-HK': '你嘅姓名', 'es': 'Su nombre', 'fr': 'Votre nom',
+    'de': 'Ihr Name', 'ja': 'お名前', 'ko': '이름', 'pt': 'Seu nome', 'hi': 'आपका नाम',
   },
   emailAddress: {
-    'en': 'Email address',
-    'zh-CN': '电子邮件地址',
-    'zh-HK': '電郵地址',
-    'es': 'Dirección de correo electrónico',
-    'fr': 'Adresse e-mail',
-    'de': 'E-Mail-Adresse',
-    'ja': 'メールアドレス',
-    'ko': '이메일 주소',
+    'en': 'Email address', 'zh-CN': '电子邮件地址', 'zh-HK': '電郵地址', 'es': 'Dirección de correo electrónico', 'fr': 'Adresse e-mail',
+    'de': 'E-Mail-Adresse', 'ja': 'メールアドレス', 'ko': '이메일 주소', 'pt': 'Endereço de e-mail', 'hi': 'ईमेल पता',
   },
   privacyNote: {
-    'en': 'We respect your privacy. Unsubscribe anytime.',
-    'zh-CN': '我们尊重您的隐私。随时可以取消订阅。',
-    'zh-HK': '我哋尊重你嘅隱私。隨時可以取消訂閱。',
-    'es': 'Respetamos su privacidad. Cancele la suscripción en cualquier momento.',
-    'fr': 'Nous respectons votre vie privée. Désabonnez-vous à tout moment.',
-    'de': 'Wir respektieren Ihre Privatsphäre. Jederzeit abbestellen.',
-    'ja': 'プライバシーを尊重します。いつでも購読を解除できます。',
-    'ko': '개인정보를 존중합니다. 언제든지 구독을 취소할 수 있습니다.',
+    'en': 'We respect your privacy. Unsubscribe anytime.', 'zh-CN': '我们尊重您的隐私。随时可以取消订阅。',
+    'zh-HK': '我哋尊重你嘅隱私。隨時可以取消訂閱。', 'es': 'Respetamos su privacidad. Cancele la suscripción en cualquier momento.',
+    'fr': 'Nous respectons votre vie privée. Désabonnez-vous à tout moment.', 'de': 'Wir respektieren Ihre Privatsphäre. Jederzeit abbestellen.',
+    'ja': 'プライバシーを尊重します。いつでも購読を解除できます。', 'ko': '개인정보를 존중합니다. 언제든지 구독을 취소할 수 있습니다.',
+    'pt': 'Respeitamos sua privacidade. Cancele a inscrição a qualquer momento.', 'hi': 'हम आपकी गोपनीयता का सम्मान करते हैं। कभी भी अनसब्सक्राइब करें।',
   },
   joinWaitlist: {
-    'en': 'Join Waitlist',
-    'zh-CN': '加入等待列表',
-    'zh-HK': '加入等待列表',
-    'es': 'Unirse a la lista de espera',
-    'fr': 'Rejoindre la liste d\'attente',
-    'de': 'Warteliste beitreten',
-    'ja': 'ウェイトリストに参加',
-    'ko': '대기 목록 참여',
+    'en': 'Join Waitlist', 'zh-CN': '加入等待列表', 'zh-HK': '加入等待列表', 'es': 'Unirse a la lista de espera', 'fr': 'Rejoindre la liste d\'attente',
+    'de': 'Warteliste beitreten', 'ja': 'ウェイトリストに参加', 'ko': '대기 목록 참여', 'pt': 'Entrar na Lista de Espera', 'hi': 'प्रतीक्षा सूची में शामिल हों',
   },
   expressInterest: {
-    'en': 'Express Interest',
-    'zh-CN': '表达兴趣',
-    'zh-HK': '表達興趣',
-    'es': 'Expresar interés',
-    'fr': 'Exprimer son intérêt',
-    'de': 'Interesse bekunden',
-    'ja': '興味を表明',
-    'ko': '관심 표현',
+    'en': 'Express Interest', 'zh-CN': '表达兴趣', 'zh-HK': '表達興趣', 'es': 'Expresar interés', 'fr': 'Exprimer son intérêt',
+    'de': 'Interesse bekunden', 'ja': '興味を表明', 'ko': '관심 표현', 'pt': 'Expressar Interesse', 'hi': 'रुचि व्यक्त करें',
+  },
+  // Theme related
+  selectTheme: {
+    'en': 'Select Theme', 'zh-CN': '选择主题', 'zh-HK': '選擇主題', 'es': 'Seleccionar tema', 'fr': 'Choisir le thème',
+    'de': 'Thema auswählen', 'ja': 'テーマを選択', 'ko': '테마 선택', 'pt': 'Selecionar Tema', 'hi': 'थीम चुनें',
+  },
+  lightMode: {
+    'en': 'Light', 'zh-CN': '浅色', 'zh-HK': '淺色', 'es': 'Claro', 'fr': 'Clair',
+    'de': 'Hell', 'ja': 'ライト', 'ko': '라이트', 'pt': 'Claro', 'hi': 'लाइट',
+  },
+  darkMode: {
+    'en': 'Dark', 'zh-CN': '深色', 'zh-HK': '深色', 'es': 'Oscuro', 'fr': 'Sombre',
+    'de': 'Dunkel', 'ja': 'ダーク', 'ko': '다크', 'pt': 'Escuro', 'hi': 'डार्क',
   },
 };
 
@@ -466,114 +370,181 @@ const LANGUAGES: { code: Language; name: string; flag: string }[] = [
   { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
   { code: 'ja', name: '日本語', flag: '🇯🇵' },
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
+  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
 ];
 
 // --- Background Animation Components ---
 
-const GridFloor = () => (
-  <div className="absolute inset-0 overflow-hidden">
-    <div className="absolute bottom-0 left-0 right-0 h-2/3 origin-bottom" style={{ transform: 'perspective(500px) rotateX(60deg)' }}>
-      <motion.div className="w-full h-[200%]" style={{ backgroundImage: 'linear-gradient(to right, rgba(16, 185, 129, 0.2) 1px, transparent 1px), linear-gradient(to bottom, rgba(16, 185, 129, 0.2) 1px, transparent 1px)', backgroundSize: '60px 60px' }} animate={{ y: ['0%', '60px'] }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} />
+const GridFloor = ({ theme }: { theme: ColorTheme }) => {
+  const gridColors = {
+    emerald: 'rgba(16, 185, 129, 0.2)',
+    ocean: 'rgba(14, 165, 233, 0.2)',
+    sunset: 'rgba(245, 158, 11, 0.2)',
+    galaxy: 'rgba(168, 85, 247, 0.2)',
+  };
+  
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute bottom-0 left-0 right-0 h-2/3 origin-bottom" style={{ transform: 'perspective(500px) rotateX(60deg)' }}>
+        <motion.div 
+          className="w-full h-[200%]" 
+          style={{ 
+            backgroundImage: `linear-gradient(to right, ${gridColors[theme]} 1px, transparent 1px), linear-gradient(to bottom, ${gridColors[theme]} 1px, transparent 1px)`, 
+            backgroundSize: '60px 60px' 
+          }} 
+          animate={{ y: ['0%', '60px'] }} 
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} 
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
-const FloatingSymbol = ({ symbol, x, y, delay }: { symbol: string; x: string; y: string; delay: number }) => (
-  <motion.div className="absolute text-emerald-400/30 font-bold select-none pointer-events-none" style={{ left: x, top: y, fontSize: '3rem', textShadow: '0 0 20px rgba(16, 185, 129, 0.5)' }} animate={{ y: [-15, 15, -15], opacity: [0.3, 0.6, 0.3], rotate: [0, 5, -5, 0] }} transition={{ duration: 4, delay, repeat: Infinity, ease: 'easeInOut' }}>
-    {symbol}
-  </motion.div>
-);
-
-const FloatingShape = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; delay: number }) => (
-  <motion.div className="absolute pointer-events-none" style={{ left: x, top: y }} animate={{ y: [-20, 20, -20], rotate: [0, 360] }} transition={{ duration: 12, delay, repeat: Infinity, ease: 'linear' }}>
-    <div className="w-12 h-12 border-2 border-emerald-500/30 bg-emerald-500/10 rounded-lg backdrop-blur-sm shadow-lg shadow-emerald-500/20 flex items-center justify-center">
-      <Icon className="w-6 h-6 text-emerald-400/50" />
-    </div>
-  </motion.div>
-);
-
-const AtomOrbit = ({ x, y, size, duration }: { x: string; y: string; size: number; duration: number }) => (
-  <div className="absolute pointer-events-none" style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
-    <div className="absolute w-2 h-2 bg-emerald-400 rounded-full shadow-lg shadow-emerald-500/50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10" />
-    <motion.div className="absolute border border-emerald-500/20 rounded-full" style={{ width: size, height: size, left: -size / 2, top: -size / 2 }} animate={{ rotate: 360 }} transition={{ duration, repeat: Infinity, ease: 'linear' }}>
-      <div className="absolute w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-lg shadow-cyan-500/50 -top-0.5 left-1/2 -translate-x-1/2" />
+const FloatingSymbol = ({ symbol, x, y, delay, theme }: { symbol: string; x: string; y: string; delay: number; theme: ColorTheme }) => {
+  const colors = {
+    emerald: 'text-emerald-400/30',
+    ocean: 'text-sky-400/30',
+    sunset: 'text-amber-400/30',
+    galaxy: 'text-purple-400/30',
+  };
+  
+  return (
+    <motion.div 
+      className={`absolute font-bold ${colors[theme]} select-none pointer-events-none`} 
+      style={{ left: x, top: y, fontSize: '3rem', textShadow: '0 0 20px currentColor' }} 
+      animate={{ y: [-15, 15, -15], opacity: [0.3, 0.6, 0.3], rotate: [0, 5, -5, 0] }} 
+      transition={{ duration: 4, delay, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      {symbol}
     </motion.div>
-  </div>
-);
+  );
+};
+
+const FloatingShape = ({ Icon, x, y, delay, theme }: { Icon: any; x: string; y: string; delay: number; theme: ColorTheme }) => {
+  const colors = {
+    emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', text: 'text-emerald-400/50', shadow: 'shadow-emerald-500/20' },
+    ocean: { border: 'border-sky-500/30', bg: 'bg-sky-500/10', text: 'text-sky-400/50', shadow: 'shadow-sky-500/20' },
+    sunset: { border: 'border-amber-500/30', bg: 'bg-amber-500/10', text: 'text-amber-400/50', shadow: 'shadow-amber-500/20' },
+    galaxy: { border: 'border-purple-500/30', bg: 'bg-purple-500/10', text: 'text-purple-400/50', shadow: 'shadow-purple-500/20' },
+  };
+  
+  return (
+    <motion.div className="absolute pointer-events-none" style={{ left: x, top: y }} animate={{ y: [-20, 20, -20], rotate: [0, 360] }} transition={{ duration: 12, delay, repeat: Infinity, ease: 'linear' }}>
+      <div className={`w-12 h-12 border-2 ${colors[theme].border} ${colors[theme].bg} rounded-lg backdrop-blur-sm shadow-lg ${colors[theme].shadow} flex items-center justify-center`}>
+        <Icon className={`w-6 h-6 ${colors[theme].text}`} />
+      </div>
+    </motion.div>
+  );
+};
+
+const AtomOrbit = ({ x, y, size, duration, theme }: { x: string; y: string; size: number; duration: number; theme: ColorTheme }) => {
+  const colors = {
+    emerald: { nucleus: 'bg-emerald-400', shadow: 'shadow-emerald-500/50', ring: 'border-emerald-500/20', electron: 'bg-cyan-400', electronShadow: 'shadow-cyan-500/50' },
+    ocean: { nucleus: 'bg-sky-400', shadow: 'shadow-sky-500/50', ring: 'border-sky-500/20', electron: 'bg-indigo-400', electronShadow: 'shadow-indigo-500/50' },
+    sunset: { nucleus: 'bg-amber-400', shadow: 'shadow-amber-500/50', ring: 'border-amber-500/20', electron: 'bg-rose-400', electronShadow: 'shadow-rose-500/50' },
+    galaxy: { nucleus: 'bg-purple-400', shadow: 'shadow-purple-500/50', ring: 'border-purple-500/20', electron: 'bg-pink-400', electronShadow: 'shadow-pink-500/50' },
+  };
+  
+  return (
+    <div className="absolute pointer-events-none" style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
+      <div className={`absolute w-2 h-2 ${colors[theme].nucleus} rounded-full shadow-lg ${colors[theme].shadow} left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10`} />
+      <motion.div className={`absolute border ${colors[theme].ring} rounded-full`} style={{ width: size, height: size, left: -size / 2, top: -size / 2 }} animate={{ rotate: 360 }} transition={{ duration, repeat: Infinity, ease: 'linear' }}>
+        <div className={`absolute w-1.5 h-1.5 ${colors[theme].electron} rounded-full shadow-lg ${colors[theme].electronShadow} -top-0.5 left-1/2 -translate-x-1/2`} />
+      </motion.div>
+    </div>
+  );
+};
 
 const GlowingOrb = ({ x, y, color, size, delay }: { x: string; y: string; color: string; size: string; delay: number }) => (
   <motion.div className={`absolute rounded-full blur-3xl pointer-events-none ${color}`} style={{ left: x, top: y, width: size, height: size }} animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 4, delay, repeat: Infinity, ease: 'easeInOut' }} />
 );
 
-const ShootingStar = ({ delay, top }: { delay: number; top: string }) => (
-  <motion.div className="absolute h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent pointer-events-none" style={{ width: '100px', top, left: '-100px' }} animate={{ left: ['-10%', '110%'], opacity: [0, 1, 0] }} transition={{ duration: 1.5, delay, repeat: Infinity, repeatDelay: 5, ease: 'easeOut' }} />
-);
+const ShootingStar = ({ delay, top, theme }: { delay: number; top: string; theme: ColorTheme }) => {
+  const colors = {
+    emerald: 'via-emerald-400',
+    ocean: 'via-sky-400',
+    sunset: 'via-amber-400',
+    galaxy: 'via-purple-400',
+  };
+  
+  return (
+    <motion.div className={`absolute h-px bg-gradient-to-r from-transparent ${colors[theme]} to-transparent pointer-events-none`} style={{ width: '100px', top, left: '-100px' }} animate={{ left: ['-10%', '110%'], opacity: [0, 1, 0] }} transition={{ duration: 1.5, delay, repeat: Infinity, repeatDelay: 5, ease: 'easeOut' }} />
+  );
+};
 
-const FuturisticBackground = () => (
-  <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
-    <GridFloor />
-    <FloatingSymbol symbol="∑" x="10%" y="20%" delay={0} />
-    <FloatingSymbol symbol="π" x="85%" y="15%" delay={1} />
-    <FloatingSymbol symbol="∫" x="75%" y="70%" delay={2} />
-    <FloatingSymbol symbol="√" x="15%" y="75%" delay={0.5} />
-    <FloatingSymbol symbol="∞" x="50%" y="10%" delay={1.5} />
-    <FloatingSymbol symbol="∆" x="90%" y="50%" delay={2.5} />
-    <FloatingSymbol symbol="Ω" x="5%" y="50%" delay={3} />
-    <FloatingSymbol symbol="λ" x="60%" y="80%" delay={0.8} />
-    <FloatingShape Icon={Square} x="20%" y="30%" delay={0} />
-    <FloatingShape Icon={Circle} x="70%" y="25%" delay={2} />
-    <FloatingShape Icon={Triangle} x="80%" y="60%" delay={4} />
-    <FloatingShape Icon={Hexagon} x="25%" y="65%" delay={1} />
-    <FloatingShape Icon={Atom} x="50%" y="40%" delay={3} />
-    <AtomOrbit x="30%" y="35%" size={120} duration={10} />
-    <AtomOrbit x="70%" y="55%" size={150} duration={14} />
-    <AtomOrbit x="45%" y="75%" size={100} duration={8} />
-    <GlowingOrb x="20%" y="20%" color="bg-emerald-500/20" size="300px" delay={0} />
-    <GlowingOrb x="70%" y="60%" color="bg-cyan-500/20" size="250px" delay={1} />
-    <GlowingOrb x="40%" y="40%" color="bg-purple-500/10" size="400px" delay={2} />
-    <ShootingStar delay={0} top="15%" />
-    <ShootingStar delay={3} top="35%" />
-    <ShootingStar delay={6} top="55%" />
-  </div>
-);
+const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode }) => {
+  const bgColors = {
+    emerald: mode === 'dark' ? 'from-slate-950 via-zinc-950 to-slate-900' : 'from-emerald-50 via-white to-emerald-100',
+    ocean: mode === 'dark' ? 'from-slate-950 via-blue-950 to-slate-900' : 'from-sky-50 via-white to-blue-100',
+    sunset: mode === 'dark' ? 'from-orange-950 via-red-950 to-slate-900' : 'from-orange-50 via-white to-amber-100',
+    galaxy: mode === 'dark' ? 'from-purple-950 via-fuchsia-950 to-slate-900' : 'from-purple-50 via-white to-fuchsia-100',
+  };
+  
+  const orbColors = {
+    emerald: mode === 'dark' ? ['bg-emerald-500/20', 'bg-cyan-500/20', 'bg-purple-500/10'] : ['bg-emerald-400/30', 'bg-cyan-400/30', 'bg-purple-400/20'],
+    ocean: mode === 'dark' ? ['bg-sky-500/20', 'bg-indigo-500/20', 'bg-blue-500/10'] : ['bg-sky-400/30', 'bg-indigo-400/30', 'bg-blue-400/20'],
+    sunset: mode === 'dark' ? ['bg-amber-500/20', 'bg-rose-500/20', 'bg-orange-500/10'] : ['bg-amber-400/30', 'bg-rose-400/30', 'bg-orange-400/20'],
+    galaxy: mode === 'dark' ? ['bg-purple-500/20', 'bg-pink-500/20', 'bg-fuchsia-500/10'] : ['bg-purple-400/30', 'bg-pink-400/30', 'bg-fuchsia-400/20'],
+  };
 
-// --- Components ---
+  return (
+    <div className={`fixed inset-0 -z-10 overflow-hidden bg-gradient-to-br ${bgColors[theme]}`}>
+      <GridFloor theme={theme} />
+      <FloatingSymbol symbol="∑" x="10%" y="20%" delay={0} theme={theme} />
+      <FloatingSymbol symbol="π" x="85%" y="15%" delay={1} theme={theme} />
+      <FloatingSymbol symbol="∫" x="75%" y="70%" delay={2} theme={theme} />
+      <FloatingSymbol symbol="√" x="15%" y="75%" delay={0.5} theme={theme} />
+      <FloatingSymbol symbol="∞" x="50%" y="10%" delay={1.5} theme={theme} />
+      <FloatingSymbol symbol="∆" x="90%" y="50%" delay={2.5} theme={theme} />
+      <FloatingSymbol symbol="Ω" x="5%" y="50%" delay={3} theme={theme} />
+      <FloatingSymbol symbol="λ" x="60%" y="80%" delay={0.8} theme={theme} />
+      <FloatingShape Icon={Square} x="20%" y="30%" delay={0} theme={theme} />
+      <FloatingShape Icon={Circle} x="70%" y="25%" delay={2} theme={theme} />
+      <FloatingShape Icon={Triangle} x="80%" y="60%" delay={4} theme={theme} />
+      <FloatingShape Icon={Hexagon} x="25%" y="65%" delay={1} theme={theme} />
+      <FloatingShape Icon={Atom} x="50%" y="40%" delay={3} theme={theme} />
+      <AtomOrbit x="30%" y="35%" size={120} duration={10} theme={theme} />
+      <AtomOrbit x="70%" y="55%" size={150} duration={14} theme={theme} />
+      <AtomOrbit x="45%" y="75%" size={100} duration={8} theme={theme} />
+      <GlowingOrb x="20%" y="20%" color={orbColors[theme][0]} size="300px" delay={0} />
+      <GlowingOrb x="70%" y="60%" color={orbColors[theme][1]} size="250px" delay={1} />
+      <GlowingOrb x="40%" y="40%" color={orbColors[theme][2]} size="400px" delay={2} />
+      <ShootingStar delay={0} top="15%" theme={theme} />
+      <ShootingStar delay={3} top="35%" theme={theme} />
+      <ShootingStar delay={6} top="55%" theme={theme} />
+    </div>
+  );
+};
 
-const LanguageSelector = ({ currentLang, onChange }: { currentLang: Language; onChange: (lang: Language) => void }) => {
+// --- Other Components ---
+
+const LanguageSelector = ({ currentLang, onChange, theme }: { currentLang: Language; onChange: (lang: Language) => void; theme: ColorTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentLangData = LANGUAGES.find(l => l.code === currentLang);
+  
+  const themeColors = {
+    emerald: 'hover:bg-emerald-500/10 text-emerald-400',
+    ocean: 'hover:bg-sky-500/10 text-sky-400',
+    sunset: 'hover:bg-amber-500/10 text-amber-400',
+    galaxy: 'hover:bg-purple-500/10 text-purple-400',
+  };
 
   return (
     <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm"
-      >
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm">
         <Globe className="w-4 h-4" />
         <span>{currentLangData?.flag}</span>
         <span className="hidden sm:inline">{currentLangData?.name}</span>
         <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
       </button>
-
       <AnimatePresence>
         {isOpen && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute right-0 top-full mt-2 w-56 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
-            >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-0 top-full mt-2 w-56 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
               {LANGUAGES.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    onChange(lang.code);
-                    setIsOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors ${currentLang === lang.code ? 'bg-emerald-500/10 text-emerald-400' : 'text-white'}`}
-                >
+                <button key={lang.code} onClick={() => { onChange(lang.code); setIsOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors ${currentLang === lang.code ? `${themeColors[theme]} bg-opacity-10` : 'text-white'}`}>
                   <span className="text-lg">{lang.flag}</span>
                   <span className="text-sm">{lang.name}</span>
                   {currentLang === lang.code && <CheckCircle className="w-4 h-4 ml-auto" />}
@@ -587,9 +558,64 @@ const LanguageSelector = ({ currentLang, onChange }: { currentLang: Language; on
   );
 };
 
+const ThemeSelector = ({ currentTheme, currentMode, onThemeChange, onModeChange, lang }: { currentTheme: ColorTheme; currentMode: ThemeMode; onThemeChange: (theme: ColorTheme) => void; onModeChange: (mode: ThemeMode) => void; lang: Language }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
+
+  return (
+    <div className="relative">
+      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm">
+        <Palette className="w-4 h-4" />
+        <span className="hidden sm:inline">{THEMES[currentTheme].icon} {THEMES[currentTheme].name}</span>
+        <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-0 top-full mt-2 w-64 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+              {/* Mode Toggle */}
+              <div className="p-3 border-b border-white/10">
+                <p className="text-xs text-zinc-500 mb-2">{currentMode === 'dark' ? t('darkMode') : t('lightMode')}</p>
+                <div className="flex gap-2">
+                  <button onClick={() => onModeChange('light')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${currentMode === 'light' ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/5 text-zinc-400'}`}>
+                    <Sun className="w-4 h-4" />
+                    <span className="text-sm">{t('lightMode')}</span>
+                  </button>
+                  <button onClick={() => onModeChange('dark')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${currentMode === 'dark' ? 'bg-indigo-500/20 text-indigo-400' : 'hover:bg-white/5 text-zinc-400'}`}>
+                    <Moon className="w-4 h-4" />
+                    <span className="text-sm">{t('darkMode')}</span>
+                  </button>
+                </div>
+              </div>
+              {/* Theme Selection */}
+              <div className="p-2">
+                <p className="text-xs text-zinc-500 px-2 py-1">{t('selectTheme')}</p>
+                {(Object.keys(THEMES) as ColorTheme[]).map((themeKey) => (
+                  <button key={themeKey} onClick={() => { onThemeChange(themeKey); setIsOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/5 transition-colors ${currentTheme === themeKey ? 'bg-white/10' : ''}`}>
+                    <span className="text-xl">{THEMES[themeKey].icon}</span>
+                    <div>
+                      <p className="text-sm font-medium text-white">{THEMES[themeKey].name}</p>
+                      <div className="flex gap-1 mt-1">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: THEMES[themeKey].colors.primary }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: THEMES[themeKey].colors.secondary }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: THEMES[themeKey].colors.accent }} />
+                      </div>
+                    </div>
+                    {currentTheme === themeKey && <CheckCircle className="w-4 h-4 ml-auto text-emerald-400" />}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 5, minutes: 45, seconds: 30 });
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -600,13 +626,12 @@ const CountdownTimer = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
-
   return (
     <div className="flex gap-4 md:gap-8 justify-center items-center font-mono">
       {Object.entries(timeLeft).map(([unit, value]) => (
         <div key={unit} className="flex flex-col items-center">
-          <div className="text-4xl md:text-6xl font-bold text-white tabular-nums drop-shadow-lg">{value.toString().padStart(2, '0')}</div>
-          <div className="text-xs uppercase tracking-widest text-zinc-500 mt-2">{unit}</div>
+          <div className="text-4xl md:text-6xl font-bold tabular-nums drop-shadow-lg">{value.toString().padStart(2, '0')}</div>
+          <div className="text-xs uppercase tracking-widest opacity-70 mt-2">{unit}</div>
         </div>
       ))}
     </div>
@@ -622,8 +647,8 @@ const TutorStrip = () => (
             <img src={tutor.image} alt={tutor.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
           <div>
-            <div className="text-lg font-bold text-white">{tutor.name}</div>
-            <div className="text-sm text-zinc-500">{tutor.subject}</div>
+            <div className="text-lg font-bold">{tutor.name}</div>
+            <div className="text-sm opacity-70">{tutor.subject}</div>
           </div>
         </div>
       ))}
@@ -631,14 +656,22 @@ const TutorStrip = () => (
   </div>
 );
 
-const ComingSoonModal = ({ isOpen, onClose, type, lang }: { isOpen: boolean; onClose: () => void; type: ModalType; lang: Language }) => {
+const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen: boolean; onClose: () => void; type: ModalType; lang: Language; theme: ColorTheme; mode: ThemeMode }) => {
   const [formData, setFormData] = useState<EarlyBirdForm>({ email: '', name: '' });
   const [submitted, setSubmitted] = useState(false);
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Early bird signup:', { type, ...formData });
     setSubmitted(true);
+  };
+
+  const themeColors = {
+    emerald: { primary: 'bg-emerald-500 hover:bg-emerald-400', light: 'bg-emerald-100 text-emerald-700' },
+    ocean: { primary: 'bg-sky-500 hover:bg-sky-400', light: 'bg-sky-100 text-sky-700' },
+    sunset: { primary: 'bg-amber-500 hover:bg-amber-400', light: 'bg-amber-100 text-amber-700' },
+    galaxy: { primary: 'bg-purple-500 hover:bg-purple-400', light: 'bg-purple-100 text-purple-700' },
   };
 
   if (!isOpen) return null;
@@ -647,33 +680,31 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang }: { isOpen: boolean; onC
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative w-full max-w-md bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
-
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-md backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/90 border-white/10' : 'bg-white/90 border-black/10'}`}>
+          <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
           {!submitted ? (
             <>
               <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
-                  <Sparkles className="w-3 h-3" />
-                  {translations.comingSoon[lang]}
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium mb-4 ${mode === 'dark' ? `bg-${theme}-500/10 border-${theme}-500/20 text-${theme}-400` : themeColors[theme].light}`}>
+                  <Sparkles className="w-3 h-3" />{t('comingSoon')}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-2">{type === 'tutor' ? translations.becomeTutor[lang] : type === 'academy' ? translations.startAcademy[lang] : type === 'schools' ? translations.solocornSchools[lang] : translations.comingSoon[lang]}</h3>
-                <p className="text-emerald-400 text-sm">{translations.beFirst[lang]}</p>
+                <h3 className={`text-2xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{type === 'tutor' ? t('becomeTutor') : type === 'academy' ? t('startAcademy') : type === 'schools' ? t('solocornSchools') : t('comingSoon')}</h3>
+                <p className={`text-sm ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('beFirst')}</p>
               </div>
-              <p className="text-zinc-400 text-sm text-center mb-6">{translations.modalDescRegister[lang]}</p>
+              <p className={`text-sm text-center mb-6 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('modalDescRegister')}</p>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Input type="text" placeholder={translations.yourName[lang]} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="w-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500" />
-                <Input type="email" placeholder={translations.emailAddress[lang]} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className="w-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500" />
-                <Button type="submit" className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl">{type === 'tutor' ? translations.applyToTeach[lang] : type === 'academy' ? translations.launchAcademy[lang] : type === 'schools' ? translations.partnerWithUs[lang] : translations.notifyMe[lang]}</Button>
+                <Input type="text" placeholder={t('yourName')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+                <Input type="email" placeholder={t('emailAddress')} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+                <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>{type === 'tutor' ? t('applyToTeach') : type === 'academy' ? t('launchAcademy') : type === 'schools' ? t('partnerWithUs') : t('notifyMe')}</Button>
               </form>
-              <p className="text-xs text-zinc-500 text-center mt-4">{translations.privacyNote[lang]}</p>
+              <p className={`text-xs text-center mt-4 ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>{t('privacyNote')}</p>
             </>
           ) : (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-emerald-400" /></div>
-              <h3 className="text-xl font-bold text-white mb-2">{translations.thankYou[lang]}</h3>
-              <p className="text-zinc-400">{translations.successMessageRegister[lang]}</p>
-              <Button onClick={onClose} className="mt-6 bg-white/10 hover:bg-white/20 text-white">{translations.close[lang]}</Button>
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${mode === 'dark' ? `bg-${theme}-500/20` : themeColors[theme].light}`}><CheckCircle className={`w-8 h-8 ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`} /></div>
+              <h3 className={`text-xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('thankYou')}</h3>
+              <p className={mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}>{t('successMessageRegister')}</p>
+              <Button onClick={onClose} className={`mt-6 ${mode === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-black/10 hover:bg-black/20 text-zinc-900'}`}>{t('close')}</Button>
             </div>
           )}
         </motion.div>
@@ -682,42 +713,46 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang }: { isOpen: boolean; onC
   );
 };
 
-const SpecialAccessSection = ({ lang }: { lang: Language }) => {
+const SpecialAccessSection = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme; mode: ThemeMode }) => {
   const [code, setCode] = useState('');
   const [error, setError] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const router = useRouter();
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (SPECIAL_CODES.includes(code.trim())) {
-      router.push('/login');
-    } else {
-      setError(true);
-      setTimeout(() => setError(false), 2000);
-    }
+    if (SPECIAL_CODES.includes(code.trim())) router.push('/login');
+    else { setError(true); setTimeout(() => setError(false), 2000); }
+  };
+
+  const themeColors = {
+    emerald: { border: 'border-emerald-500/20', bg: 'from-emerald-900/30 to-zinc-900/50', accent: 'bg-emerald-500 hover:bg-emerald-400' },
+    ocean: { border: 'border-sky-500/20', bg: 'from-sky-900/30 to-zinc-900/50', accent: 'bg-sky-500 hover:bg-sky-400' },
+    sunset: { border: 'border-amber-500/20', bg: 'from-amber-900/30 to-zinc-900/50', accent: 'bg-amber-500 hover:bg-amber-400' },
+    galaxy: { border: 'border-purple-500/20', bg: 'from-purple-900/30 to-zinc-900/50', accent: 'bg-purple-500 hover:bg-purple-400' },
   };
 
   return (
     <div className="max-w-7xl mx-auto px-6 mb-16">
-      <div className="bg-gradient-to-r from-emerald-900/30 to-zinc-900/50 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-sm">
+      <div className={`bg-gradient-to-r ${themeColors[theme].bg} ${themeColors[theme].border} border rounded-2xl p-6 backdrop-blur-sm`}>
         <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between text-left">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center"><Lock className="w-5 h-5 text-emerald-400" /></div>
-            <h3 className="font-semibold text-white">{translations.specialAccess[lang]}</h3>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mode === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}><Lock className={`w-5 h-5 ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`} /></div>
+            <h3 className={`font-semibold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('specialAccess')}</h3>
           </div>
-          <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+          <ChevronRight className={`w-5 h-5 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'} transition-transform ${expanded ? 'rotate-90' : ''}`} />
         </button>
         <AnimatePresence>
           {expanded && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-              <div className="pt-6 border-t border-white/10 mt-6">
-                <p className="text-sm text-zinc-400 mb-4">{translations.enterCode[lang]}</p>
+              <div className={`pt-6 border-t mt-6 ${mode === 'dark' ? 'border-white/10' : 'border-black/10'}`}>
+                <p className={`text-sm mb-4 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('enterCode')}</p>
                 <form onSubmit={handleSubmit} className="flex gap-3">
-                  <Input type="password" placeholder={translations.enterCode[lang]} value={code} onChange={(e) => setCode(e.target.value)} className={`flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 ${error ? 'border-red-500' : ''}`} />
-                  <Button type="submit" className="bg-emerald-500 hover:bg-emerald-400 text-white px-6">{translations.access[lang]}</Button>
+                  <Input type="password" placeholder={t('enterCode')} value={code} onChange={(e) => setCode(e.target.value)} className={`flex-1 border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'} ${error ? 'border-red-500' : ''}`} />
+                  <Button type="submit" className={`text-white px-6 ${themeColors[theme].accent}`}>{t('access')}</Button>
                 </form>
-                {error && <p className="text-red-400 text-sm mt-2">{translations.invalidCode[lang]}</p>}
+                {error && <p className="text-red-400 text-sm mt-2">{t('invalidCode')}</p>}
               </div>
             </motion.div>
           )}
@@ -727,59 +762,74 @@ const SpecialAccessSection = ({ lang }: { lang: Language }) => {
   );
 };
 
-const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick }: { title: string; copy: string; buttonText: string; icon: any; onClick: () => void }) => (
-  <motion.div whileHover={{ y: -5 }} className="bg-zinc-900/60 backdrop-blur-md border border-white/10 p-8 rounded-2xl flex flex-col items-start justify-between h-full group hover:border-emerald-500/30 transition-colors">
-    <div className="mb-6">
-      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors"><Icon className="w-6 h-6 text-emerald-400" /></div>
-      <h3 className="text-2xl font-bold mb-3">{title}</h3>
-      {copy && <p className="text-zinc-400 leading-relaxed">{copy}</p>}
-    </div>
-    <Button onClick={onClick} className="w-full py-3 px-6 rounded-xl bg-white text-black font-semibold hover:bg-emerald-400 transition-colors">{buttonText}</Button>
-  </motion.div>
-);
+const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick, theme, mode }: { title: string; copy: string; buttonText: string; icon: any; onClick: () => void; theme: ColorTheme; mode: ThemeMode }) => {
+  const themeColors = {
+    emerald: { border: 'border-emerald-500/30', hover: 'hover:border-emerald-500/50', icon: 'text-emerald-400', bg: 'bg-emerald-500/10', button: 'bg-white text-black hover:bg-emerald-400' },
+    ocean: { border: 'border-sky-500/30', hover: 'hover:border-sky-500/50', icon: 'text-sky-400', bg: 'bg-sky-500/10', button: 'bg-white text-black hover:bg-sky-400' },
+    sunset: { border: 'border-amber-500/30', hover: 'hover:border-amber-500/50', icon: 'text-amber-400', bg: 'bg-amber-500/10', button: 'bg-white text-black hover:bg-amber-400' },
+    galaxy: { border: 'border-purple-500/30', hover: 'hover:border-purple-500/50', icon: 'text-purple-400', bg: 'bg-purple-500/10', button: 'bg-white text-black hover:bg-purple-400' },
+  };
 
-const Navbar = ({ onRegister, lang, onLanguageChange }: { onRegister: () => void; lang: Language; onLanguageChange: (lang: Language) => void }) => (
-  <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-    <div className="max-w-7xl mx-auto flex justify-between items-center bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3">
-      <Link href="/" className="flex items-center gap-3">
-        <img src="/images/logo.png" alt="Solocorn" className="h-8 w-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        <span className="text-2xl font-bold tracking-tighter">{translations.brandName[lang]}</span>
-      </Link>
-      <div className="flex items-center gap-3">
-        <LanguageSelector currentLang={lang} onChange={onLanguageChange} />
-        <Button onClick={onRegister} variant="outline" className="px-5 py-2 bg-white text-black rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors border-0">{translations.register[lang]}</Button>
+  return (
+    <motion.div whileHover={{ y: -5 }} className={`backdrop-blur-md border ${themeColors[theme].border} ${themeColors[theme].hover} p-8 rounded-2xl flex flex-col items-start justify-between h-full group transition-all ${mode === 'dark' ? 'bg-zinc-900/60' : 'bg-white/60'}`}>
+      <div className="mb-6">
+        <div className={`w-12 h-12 rounded-xl ${themeColors[theme].bg} flex items-center justify-center mb-6 group-hover:bg-opacity-20 transition-colors`}><Icon className={`w-6 h-6 ${themeColors[theme].icon}`} /></div>
+        <h3 className={`text-2xl font-bold mb-3 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{title}</h3>
+        {copy && <p className={`leading-relaxed ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{copy}</p>}
       </div>
-    </div>
-  </nav>
-);
+      <Button onClick={onClick} className={`w-full py-3 px-6 rounded-xl font-semibold transition-colors ${themeColors[theme].button}`}>{buttonText}</Button>
+    </motion.div>
+  );
+};
+
+const Navbar = ({ onRegister, lang, onLanguageChange, theme, mode, onThemeChange, onModeChange }: { onRegister: () => void; lang: Language; onLanguageChange: (lang: Language) => void; theme: ColorTheme; mode: ThemeMode; onThemeChange: (theme: ColorTheme) => void; onModeChange: (mode: ThemeMode) => void }) => {
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
+
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+      <div className={`max-w-7xl mx-auto flex justify-between items-center backdrop-blur-md border rounded-2xl px-6 py-3 ${mode === 'dark' ? 'bg-zinc-900/60 border-white/10' : 'bg-white/60 border-black/10'}`}>
+        <Link href="/" className="flex items-center gap-3">
+          <img src="/images/logo.png" alt="Solocorn" className="h-8 w-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <span className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('brandName')}</span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeSelector currentTheme={theme} currentMode={mode} onThemeChange={onThemeChange} onModeChange={onModeChange} lang={lang} />
+          <LanguageSelector currentLang={lang} onChange={onLanguageChange} theme={theme} />
+          <Button onClick={onRegister} variant="outline" className={`px-5 py-2 rounded-lg text-sm font-bold transition-colors border-0 ${mode === 'dark' ? 'bg-white text-black hover:bg-emerald-400' : 'bg-zinc-900 text-white hover:bg-emerald-500'}`}>{t('register')}</Button>
+        </div>
+      </div>
+    </nav>
+  );
+};
 
 // --- Main Page Component ---
 
 export default function LandingPage() {
   const [modalType, setModalType] = useState<ModalType>(null);
   const [language, setLanguage] = useState<Language>('en');
+  const [theme, setTheme] = useState<ColorTheme>('emerald');
+  const [mode, setMode] = useState<ThemeMode>('dark');
 
   const t = (key: string) => translations[key]?.[language] || translations[key]?.['en'] || key;
 
   return (
-    <div className="min-h-screen text-zinc-100 relative">
-      <FuturisticBackground />
-      <Navbar onRegister={() => setModalType('register')} lang={language} onLanguageChange={setLanguage} />
-      <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} />
+    <div className={`min-h-screen relative ${mode === 'dark' ? 'text-zinc-100' : 'text-zinc-900'}`}>
+      <FuturisticBackground theme={theme} mode={mode} />
+      <Navbar onRegister={() => setModalType('register')} lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} onThemeChange={setTheme} onModeChange={setMode} />
+      <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} theme={theme} mode={mode} />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
         {/* Hero Section */}
         <section className="px-6 py-20 md:py-32 text-center relative overflow-hidden">
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8 backdrop-blur-sm">
-              <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium mb-8 backdrop-blur-sm ${mode === 'dark' ? `bg-${theme}-500/10 border-${theme}-500/20 text-${theme}-400` : `bg-${theme}-100 border-${theme}-300 text-${theme}-700`}`}>
+              <span className="relative flex h-2 w-2"><span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75`} style={{ backgroundColor: THEMES[theme].colors.primary }}></span><span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span></span>
               {t('comingSoon')}
             </div>
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-12 drop-shadow-2xl">{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
+            <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-12 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
             <div className="mb-16"><CountdownTimer /></div>
-            <Button onClick={() => setModalType('register')} className="group relative px-8 py-6 bg-white text-black rounded-2xl font-bold text-lg hover:bg-emerald-400 transition-all flex items-center gap-2 mx-auto shadow-lg shadow-emerald-500/20">
-              {t('getEarlyAccess')}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <Button onClick={() => setModalType('register')} className="group relative px-8 py-6 bg-white text-black rounded-2xl font-bold text-lg transition-all flex items-center gap-2 mx-auto shadow-lg hover:scale-105" style={{ boxShadow: `0 10px 40px -10px ${THEMES[theme].colors.primary}50` }}>
+              {t('getEarlyAccess')} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
         </section>
@@ -788,53 +838,52 @@ export default function LandingPage() {
         <section className="mb-32">
           <div className="max-w-7xl mx-auto px-6 mb-8 flex justify-between items-end">
             <div>
-              <h2 className="text-3xl font-bold drop-shadow-lg">{t('solocornTutors')}</h2>
-              <p className="text-zinc-500">{t('tutorCohortDescription')}</p>
+              <h2 className={`text-3xl font-bold drop-shadow-lg ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('solocornTutors')}</h2>
+              <p className={mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}>{t('tutorCohortDescription')}</p>
             </div>
-            <button className="text-sm font-bold text-emerald-400 flex items-center gap-1 hover:underline">{t('viewAll')} <ChevronRight className="w-4 h-4" /></button>
+            <button className={`text-sm font-bold flex items-center gap-1 hover:underline ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('viewAll')} <ChevronRight className="w-4 h-4" /></button>
           </div>
           <TutorStrip />
         </section>
 
         {/* Special Access */}
-        <SpecialAccessSection lang={language} />
+        <SpecialAccessSection lang={language} theme={theme} mode={mode} />
 
         {/* Action Grid */}
         <section className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-32">
-          <ActionCard title={t('becomeTutor')} copy={t('becomeTutorDesc')} buttonText={t('applyToTeach')} icon={UserPlus} onClick={() => setModalType('tutor')} />
-          <ActionCard title={t('startAcademy')} copy={t('startAcademyDesc')} buttonText={t('launchAcademy')} icon={GraduationCap} onClick={() => setModalType('academy')} />
-          <ActionCard title={t('solocornSchools')} copy={t('schoolsDesc')} buttonText={t('partnerWithUs')} icon={School} onClick={() => setModalType('schools')} />
+          <ActionCard title={t('becomeTutor')} copy={t('becomeTutorDesc')} buttonText={t('applyToTeach')} icon={UserPlus} onClick={() => setModalType('tutor')} theme={theme} mode={mode} />
+          <ActionCard title={t('startAcademy')} copy={t('startAcademyDesc')} buttonText={t('launchAcademy')} icon={GraduationCap} onClick={() => setModalType('academy')} theme={theme} mode={mode} />
+          <ActionCard title={t('solocornSchools')} copy={t('schoolsDesc')} buttonText={t('partnerWithUs')} icon={School} onClick={() => setModalType('schools')} theme={theme} mode={mode} />
         </section>
 
         {/* Business Section */}
         <section className="max-w-7xl mx-auto px-6 mb-32">
-          <div className="bg-zinc-900/60 backdrop-blur-md border border-emerald-500/10 p-12 rounded-[40px] flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className={`backdrop-blur-md border p-12 rounded-[40px] flex flex-col md:flex-row items-center justify-between gap-12 ${mode === 'dark' ? 'bg-zinc-900/60 border-emerald-500/10' : 'bg-white/60 border-emerald-500/20'}`}>
             <div className="max-w-xl">
-              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-8"><Building2 className="w-8 h-8 text-white" /></div>
-              <h2 className="text-4xl font-bold mb-6">{t('businessInquiries')}</h2>
-              <p className="text-zinc-400 text-lg leading-relaxed mb-8">{t('businessDesc')}</p>
-              <a href="mailto:support@solocorn.co" className="inline-flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-colors">
-                <Mail className="w-5 h-5" />
-                {t('contact')} support@solocorn.co
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 ${mode === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}><Building2 className={`w-8 h-8 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`} /></div>
+              <h2 className={`text-4xl font-bold mb-6 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('businessInquiries')}</h2>
+              <p className={`text-lg leading-relaxed mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('businessDesc')}</p>
+              <a href="mailto:support@solocorn.co" className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-colors ${mode === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}>
+                <Mail className="w-5 h-5" />{t('contact')} support@solocorn.co
               </a>
             </div>
-            <div className="w-full md:w-1/3 aspect-square bg-white/5 rounded-3xl flex items-center justify-center relative overflow-hidden border border-white/10">
+            <div className={`w-full md:w-1/3 aspect-square rounded-3xl flex items-center justify-center relative overflow-hidden border ${mode === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
-              <Building2 className="w-32 h-32 text-white/10" />
+              <Building2 className={`w-32 h-32 ${mode === 'dark' ? 'text-white/10' : 'text-black/10'}`} />
             </div>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="border-t border-white/5 py-20 px-6">
+        <footer className={`border-t py-20 px-6 ${mode === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-2xl font-bold tracking-tighter">{t('brandName')}</div>
-            <div className="flex gap-8 text-sm text-zinc-500">
-              <Link href="/legal/privacy" className="hover:text-white transition-colors">{t('privacyPolicy')}</Link>
-              <Link href="/legal/terms" className="hover:text-white transition-colors">{t('termsOfService')}</Link>
-              <a href="mailto:support@solocorn.co" className="hover:text-white transition-colors">{t('contact')}</a>
+            <div className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? '' : 'text-zinc-900'}`}>{t('brandName')}</div>
+            <div className={`flex gap-8 text-sm ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}`}>
+              <Link href="/legal/privacy" className={`hover:text-${theme}-400 transition-colors`}>{t('privacyPolicy')}</Link>
+              <Link href="/legal/terms" className={`hover:text-${theme}-400 transition-colors`}>{t('termsOfService')}</Link>
+              <a href="mailto:support@solocorn.co" className={`hover:text-${theme}-400 transition-colors`}>{t('contact')}</a>
             </div>
-            <div className="text-sm text-zinc-600">{t('allRightsReserved')}</div>
+            <div className={`text-sm ${mode === 'dark' ? 'text-zinc-600' : 'text-zinc-500'}`}>{t('allRightsReserved')}</div>
           </div>
         </footer>
       </motion.main>
