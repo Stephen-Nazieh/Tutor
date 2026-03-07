@@ -521,6 +521,26 @@ const FloatingSymbol = ({ symbol, x, y, delay, theme }: { symbol: string; x: str
   );
 };
 
+const FloatingText = ({ text, x, y, delay, theme }: { text: string; x: string; y: string; delay: number; theme: ColorTheme }) => {
+  const colors = {
+    emerald: 'text-emerald-400/20',
+    ocean: 'text-sky-400/20',
+    sunset: 'text-amber-400/20',
+    galaxy: 'text-purple-400/20',
+  };
+  
+  return (
+    <motion.div 
+      className={`absolute font-bold tracking-wider ${colors[theme]} select-none pointer-events-none uppercase`} 
+      style={{ left: x, top: y, fontSize: '1.5rem', textShadow: '0 0 10px currentColor' }} 
+      animate={{ y: [-10, 10, -10], opacity: [0.15, 0.35, 0.15] }} 
+      transition={{ duration: 5, delay, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      {text}
+    </motion.div>
+  );
+};
+
 const FloatingShape = ({ Icon, x, y, delay, theme }: { Icon: any; x: string; y: string; delay: number; theme: ColorTheme }) => {
   const colors = {
     emerald: { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', text: 'text-emerald-400/50', shadow: 'shadow-emerald-500/20' },
@@ -599,6 +619,19 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
       <FloatingSymbol symbol="∆" x="90%" y="50%" delay={2.5} theme={theme} />
       <FloatingSymbol symbol="Ω" x="5%" y="50%" delay={3} theme={theme} />
       <FloatingSymbol symbol="λ" x="60%" y="80%" delay={0.8} theme={theme} />
+      {/* Exam names floating in background */}
+      <FloatingText text="IELTS" x="12%" y="35%" delay={0} theme={theme} />
+      <FloatingText text="TOEFL" x="88%" y="25%" delay={0.5} theme={theme} />
+      <FloatingText text="AP" x="25%" y="15%" delay={1} theme={theme} />
+      <FloatingText text="IB" x="72%" y="85%" delay={1.5} theme={theme} />
+      <FloatingText text="SAT" x="8%" y="65%" delay={2} theme={theme} />
+      <FloatingText text="LSAT" x="82%" y="45%" delay={2.5} theme={theme} />
+      <FloatingText text="A LEVEL" x="35%" y="90%" delay={3} theme={theme} />
+      <FloatingText text="GRE" x="65%" y="5%" delay={3.5} theme={theme} />
+      <FloatingText text="GMAT" x="45%" y="55%" delay={4} theme={theme} />
+      <FloatingText text="ACT" x="18%" y="50%" delay={4.5} theme={theme} />
+      <FloatingText text="MCAT" x="78%" y="75%" delay={0.3} theme={theme} />
+      <FloatingText text="GCSE" x="5%" y="85%" delay={0.8} theme={theme} />
       <FloatingShape Icon={Square} x="20%" y="30%" delay={0} theme={theme} />
       <FloatingShape Icon={Circle} x="70%" y="25%" delay={2} theme={theme} />
       <FloatingShape Icon={Triangle} x="80%" y="60%" delay={4} theme={theme} />
@@ -686,13 +719,56 @@ const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme
         </motion.div>
         <motion.button
           onClick={() => setIsOpen(true)}
-          className={`p-4 rounded-full shadow-2xl ${themeColors[theme]} text-white`}
+          className={`relative w-16 h-16 rounded-full shadow-2xl overflow-hidden ${themeColors[theme]} text-white`}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
+          title="Ask Solocorn AI"
         >
-          <MessageCircle className="w-6 h-6" />
+          {/* 3D Professional Human Figure Avatar */}
+          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-300 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" className="w-14 h-14 drop-shadow-lg">
+              {/* Background circle */}
+              <circle cx="50" cy="50" r="48" fill="url(#grad1)" />
+              {/* Professional silhouette */}
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#1e3a5f" />
+                  <stop offset="100%" stopColor="#0d2137" />
+                </linearGradient>
+                <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#2c5282" />
+                  <stop offset="100%" stopColor="#1a365d" />
+                </linearGradient>
+                <linearGradient id="faceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#fbd38d" />
+                  <stop offset="100%" stopColor="#ed8936" />
+                </linearGradient>
+              </defs>
+              {/* Suit body */}
+              <path d="M20 85 L30 55 L40 50 L50 55 L60 50 L70 55 L80 85 Z" fill="url(#suitGrad)" />
+              {/* Shirt collar */}
+              <path d="M42 52 L50 58 L58 52 L50 50 Z" fill="white" />
+              {/* Tie */}
+              <path d="M48 55 L52 55 L50 70 L48 55" fill="#c53030" />
+              {/* Neck */}
+              <rect x="43" y="40" width="14" height="15" fill="url(#faceGrad)" />
+              {/* Head */}
+              <ellipse cx="50" cy="32" rx="16" ry="18" fill="url(#faceGrad)" />
+              {/* Hair */}
+              <path d="M34 28 Q34 12 50 12 Q66 12 66 28 Q66 22 60 20 Q50 18 40 20 Q34 22 34 28" fill="#1a202c" />
+              {/* Eyes */}
+              <ellipse cx="45" cy="32" rx="2" ry="2.5" fill="#1a202c" />
+              <ellipse cx="55" cy="32" rx="2" ry="2.5" fill="#1a202c" />
+              {/* Smile */}
+              <path d="M45 40 Q50 43 55 40" stroke="#c05621" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+              {/* 3D highlight effect */}
+              <ellipse cx="35" cy="25" rx="8" ry="5" fill="white" opacity="0.15" />
+            </svg>
+          </div>
+          {/* Online indicator */}
+          <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
         </motion.button>
       </div>
 

@@ -3075,22 +3075,30 @@ interface ResizablePanelProps {
   defaultWidth?: number
   minWidth?: number
   maxWidth?: number
+  actionButton?: React.ReactNode
 }
 
-function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth = 400 }: ResizablePanelProps) {
+function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth = 400, actionButton }: ResizablePanelProps) {
   const [width, setWidth] = useState(defaultWidth)
   const [isResizing, setIsResizing] = useState(false)
+  const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const startXRef = useRef(0)
+  const startWidthRef = useRef(0)
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !panelRef.current) return
-      const newWidth = e.clientX - panelRef.current.getBoundingClientRect().left
+      const deltaX = e.clientX - startXRef.current
+      const newWidth = resizeDirection === 'left' 
+        ? startWidthRef.current - deltaX
+        : startWidthRef.current + deltaX
       setWidth(Math.max(minWidth, Math.min(maxWidth, newWidth)))
     }
 
     const handleMouseUp = () => {
       setIsResizing(false)
+      setResizeDirection(null)
     }
 
     if (isResizing) {
@@ -3102,23 +3110,38 @@ function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isResizing, minWidth, maxWidth])
+  }, [isResizing, minWidth, maxWidth, resizeDirection])
+
+  const handleResizeStart = (direction: 'left' | 'right') => (e: React.MouseEvent) => {
+    setResizeDirection(direction)
+    setIsResizing(true)
+    startXRef.current = e.clientX
+    startWidthRef.current = panelRef.current?.offsetWidth || defaultWidth
+  }
 
   return (
-    <div 
-      ref={panelRef}
-      className="relative border-l pl-4 flex-shrink-0"
-      style={{ width: `${width}px` }}
-    >
-      {children}
-      {/* Resize handle */}
-      <div
-        className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-200/50 transition-colors flex items-center justify-center"
-        onMouseDown={() => setIsResizing(true)}
-        title="Drag to resize"
+    <div className="flex flex-col gap-2">
+      <div 
+        ref={panelRef}
+        className="relative border-l pl-4 flex-shrink-0"
+        style={{ width: `${width}px` }}
       >
-        <GripHorizontal className="h-3 w-3 text-gray-400 rotate-90" />
+        {children}
+        {/* Left resize handle */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-200/50 transition-colors flex items-center justify-center z-10"
+          onMouseDown={handleResizeStart('left')}
+          title="Drag left to shrink, right to expand"
+        >
+          <GripHorizontal className="h-3 w-3 text-gray-400 rotate-90" />
+        </div>
       </div>
+      {/* Action button directly under the panel */}
+      {actionButton && (
+        <div style={{ width: `${width}px` }} className="pl-4">
+          {actionButton}
+        </div>
+      )}
     </div>
   )
 }
@@ -5492,17 +5515,19 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         className="w-full min-h-[60px]"
                       />
                     </div>
-                    {/* Buttons row with Test, Save, and Add (for Extensions) */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">Test</Button>
-                        <Button size="sm">Save</Button>
-                      </div>
-                      <Button variant="outline" size="sm">Add Extension</Button>
+                    {/* Buttons row with Test and Save */}
+                    <div className="flex gap-2 mt-3">
+                      <Button variant="outline" size="sm">Test</Button>
+                      <Button size="sm">Save</Button>
                     </div>
                   </div>
                   {/* Right panel: Extensions - resizable */}
-                  <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
+                  <ResizablePanel 
+                    defaultWidth={192} 
+                    minWidth={150} 
+                    maxWidth={300}
+                    actionButton={<Button variant="outline" size="sm" className="w-full">Add Extension</Button>}
+                  >
                     <h4 className="text-sm font-medium mb-2">Extensions</h4>
                     <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
                       <p className="text-xs text-muted-foreground">No extensions added</p>
@@ -5551,18 +5576,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         className="w-full min-h-[60px]"
                       />
                     </div>
-                    {/* Buttons row with Generate DMI, Test, Save, and Add (for DMI) */}
-                    <div className="flex justify-between items-center mt-3">
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">Generate DMI</Button>
-                        <Button variant="outline" size="sm">Test</Button>
-                        <Button size="sm">Save</Button>
-                      </div>
-                      <Button variant="outline" size="sm">Add DMI</Button>
+                    {/* Buttons row with Generate DMI, Test, and Save */}
+                    <div className="flex gap-2 mt-3">
+                      <Button variant="outline" size="sm">Generate DMI</Button>
+                      <Button variant="outline" size="sm">Test</Button>
+                      <Button size="sm">Save</Button>
                     </div>
                   </div>
                   {/* Right panel: DMI - resizable */}
-                  <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
+                  <ResizablePanel 
+                    defaultWidth={192} 
+                    minWidth={150} 
+                    maxWidth={300}
+                    actionButton={<Button variant="outline" size="sm" className="w-full">Add DMI</Button>}
+                  >
                     <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
                     <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
                       <p className="text-xs text-muted-foreground">DMI content</p>
