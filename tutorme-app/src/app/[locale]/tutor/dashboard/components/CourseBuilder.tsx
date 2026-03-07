@@ -1584,16 +1584,156 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
   )
 }
 
-// Task Builder Modal (now uses Assessment Builder layout)
-function TaskBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderModalProps) {
+// Lesson Selector Dialog
+function LessonSelectorDialog({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  modules,
+  itemType = 'item'
+}: { 
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: (moduleId: string, lessonId: string) => void
+  modules: Module[]
+  itemType?: string
+}) {
+  const [selectedModuleId, setSelectedModuleId] = useState<string>('')
+  const [selectedLessonId, setSelectedLessonId] = useState<string>('')
+
+  const selectedModule = modules.find(m => m.id === selectedModuleId)
+  const lessons = selectedModule?.lessons || []
+
+  useEffect(() => {
+    if (isOpen) {
+      // Auto-select first module and lesson if available
+      if (modules.length > 0 && !selectedModuleId) {
+        setSelectedModuleId(modules[0].id)
+        if (modules[0].lessons.length > 0) {
+          setSelectedLessonId(modules[0].lessons[0].id)
+        }
+      }
+    }
+  }, [isOpen, modules, selectedModuleId])
+
+  const handleConfirm = () => {
+    if (selectedModuleId && selectedLessonId) {
+      onConfirm(selectedModuleId, selectedLessonId)
+      onClose()
+    }
+  }
+
   return (
-    <AssessmentBuilderModal
-      isOpen={isOpen}
-      onClose={onClose}
-      onSave={onSave}
-      initialData={initialData}
-      builderType="task"
-    />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5 text-blue-500" />
+            Select Target Lesson
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <p className="text-sm text-muted-foreground">
+            Choose which lesson to save this {itemType} to:
+          </p>
+          
+          <div className="space-y-2">
+            <Label>Lesson</Label>
+            <Select value={selectedModuleId} onValueChange={(value) => {
+              setSelectedModuleId(value)
+              const selectedMod = modules.find(m => m.id === value)
+              if (selectedMod && selectedMod.lessons.length > 0) {
+                setSelectedLessonId(selectedMod.lessons[0].id)
+              }
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a lesson" />
+              </SelectTrigger>
+              <SelectContent>
+                {modules.map((module) => (
+                  <SelectItem key={module.id} value={module.id}>
+                    {module.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {lessons.length > 0 && (
+            <div className="space-y-2">
+              <Label>Topic</Label>
+              <Select value={selectedLessonId} onValueChange={setSelectedLessonId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  {lessons.map((lesson) => (
+                    <SelectItem key={lesson.id} value={lesson.id}>
+                      {lesson.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button 
+            onClick={handleConfirm}
+            disabled={!selectedModuleId || !selectedLessonId}
+          >
+            Save to Selected Lesson
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Extended props for modals with lesson selector
+interface BuilderModalWithModulesProps {
+  isOpen: boolean
+  onClose: () => void
+  onSave: (data: any, moduleId?: string, lessonId?: string) => void
+  initialData?: any
+  modules: Module[]
+}
+
+// Task Builder Modal (now uses Assessment Builder layout)
+function TaskBuilderModal({ isOpen, onClose, onSave, initialData, modules }: BuilderModalWithModulesProps) {
+  const [showLessonSelector, setShowLessonSelector] = useState(false)
+  const [pendingData, setPendingData] = useState<any>(null)
+
+  const handleSaveRequest = (data: any) => {
+    setPendingData(data)
+    setShowLessonSelector(true)
+  }
+
+  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+    if (pendingData) {
+      onSave(pendingData, moduleId, lessonId)
+    }
+    setPendingData(null)
+  }
+
+  return (
+    <>
+      <AssessmentBuilderModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={handleSaveRequest}
+        initialData={initialData}
+        builderType="task"
+      />
+      <LessonSelectorDialog
+        isOpen={showLessonSelector}
+        onClose={() => setShowLessonSelector(false)}
+        onConfirm={handleConfirmLesson}
+        modules={modules}
+        itemType="task"
+      />
+    </>
   )
 }
 
@@ -2081,6 +2221,80 @@ function AssessmentBuilderModal({
           />
         </DialogContent>
       </Dialog>
+    </>
+  )
+}
+
+// Homework Builder Modal (wraps AssessmentBuilderModal with lesson selector)
+function HomeworkBuilderModal({ isOpen, onClose, onSave, initialData, modules }: BuilderModalWithModulesProps) {
+  const [showLessonSelector, setShowLessonSelector] = useState(false)
+  const [pendingData, setPendingData] = useState<any>(null)
+
+  const handleSaveRequest = (data: any) => {
+    setPendingData(data)
+    setShowLessonSelector(true)
+  }
+
+  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+    if (pendingData) {
+      onSave(pendingData, moduleId, lessonId)
+    }
+    setPendingData(null)
+  }
+
+  return (
+    <>
+      <AssessmentBuilderModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={handleSaveRequest}
+        initialData={initialData}
+        builderType="homework"
+      />
+      <LessonSelectorDialog
+        isOpen={showLessonSelector}
+        onClose={() => setShowLessonSelector(false)}
+        onConfirm={handleConfirmLesson}
+        modules={modules}
+        itemType="homework"
+      />
+    </>
+  )
+}
+
+// Assessment Builder Modal with lesson selector
+function AssessmentBuilderModalWithSelector({ isOpen, onClose, onSave, initialData, modules }: BuilderModalWithModulesProps) {
+  const [showLessonSelector, setShowLessonSelector] = useState(false)
+  const [pendingData, setPendingData] = useState<any>(null)
+
+  const handleSaveRequest = (data: any) => {
+    setPendingData(data)
+    setShowLessonSelector(true)
+  }
+
+  const handleConfirmLesson = (moduleId: string, lessonId: string) => {
+    if (pendingData) {
+      onSave(pendingData, moduleId, lessonId)
+    }
+    setPendingData(null)
+  }
+
+  return (
+    <>
+      <AssessmentBuilderModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={handleSaveRequest}
+        initialData={initialData}
+        builderType="assessment"
+      />
+      <LessonSelectorDialog
+        isOpen={showLessonSelector}
+        onClose={() => setShowLessonSelector(false)}
+        onConfirm={handleConfirmLesson}
+        modules={modules}
+        itemType="assessment"
+      />
     </>
   )
 }
@@ -4117,6 +4331,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const objectUrlsRef = useRef<string[]>([])
 
+  // State for lesson selection dialog
+  const [lessonSelectDialog, setLessonSelectDialog] = useState<{
+    isOpen: boolean
+    type: 'task' | 'assessment' | null
+    title: string
+  }>({ isOpen: false, type: null, title: '' })
+
+  // State for editable PCI tabs
+  const [testPciTabs, setTestPciTabs] = useState([
+    { id: 'classroom', label: 'Classroom' },
+    { id: 'student1', label: 'Test Student 1' },
+    { id: 'student2', label: 'Test Student 2' }
+  ])
+  const [editingTabId, setEditingTabId] = useState<string | null>(null)
+
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
   const [previewDifficulty, setPreviewDifficulty] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all')
@@ -4599,15 +4828,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     toast.success('Lesson saved')
   }
 
-  const handleSaveTask = (data: any) => {
-    const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === activeModal.lessonId)
+  const handleSaveTask = (data: any, targetModuleId?: string, targetLessonId?: string) => {
+    const moduleId = targetModuleId || activeModal.moduleId
+    const lessonId = targetLessonId || activeModal.lessonId
+    const moduleIndex = modules.findIndex(m => m.id === moduleId)
+    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
     if (moduleIndex === -1 || lessonIndex === -1) return
 
     const newModules = [...modules]
-    const taskIndex = newModules[moduleIndex].lessons[lessonIndex].tasks.findIndex(t => t.id === editingData.id)
+    const taskIndex = newModules[moduleIndex].lessons[lessonIndex].tasks.findIndex(t => t.id === editingData?.id)
     if (taskIndex !== -1) {
       newModules[moduleIndex].lessons[lessonIndex].tasks[taskIndex] = data
+    } else {
+      // Add new task if not found
+      newModules[moduleIndex].lessons[lessonIndex].tasks.push(data)
     }
     setModules(newModules)
     setActiveModal({ type: 'task', isOpen: false })
@@ -4631,19 +4865,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     toast.success('Content saved')
   }
 
-  const handleSaveAssessment = (data: any) => {
-    const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === activeModal.lessonId)
+  const handleSaveAssessment = (data: any, targetModuleId?: string, targetLessonId?: string) => {
+    const moduleId = targetModuleId || activeModal.moduleId
+    const lessonId = targetLessonId || activeModal.lessonId
+    const moduleIndex = modules.findIndex(m => m.id === moduleId)
+    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
     if (moduleIndex === -1 || lessonIndex === -1) return
 
     const newModules = [...modules]
-    const hwIndex = newModules[moduleIndex].lessons[lessonIndex].homework.findIndex(h => h.id === editingData.id)
+    const hwIndex = newModules[moduleIndex].lessons[lessonIndex].homework.findIndex(h => h.id === editingData?.id)
     if (hwIndex !== -1) {
       newModules[moduleIndex].lessons[lessonIndex].homework[hwIndex] = data
+    } else {
+      // Add new homework/assessment if not found
+      newModules[moduleIndex].lessons[lessonIndex].homework.push(data)
     }
     setModules(newModules)
     setActiveModal({ type: 'homework', isOpen: false })
-    toast.success('Assessment saved')
+    toast.success(data.category === 'homework' ? 'Homework saved' : 'Assessment saved')
   }
 
   const handleSaveWorksheet = (data: Worksheet) => {
@@ -5182,6 +5421,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 Assessment
                               </Button>
 
+                              {/* +Homework Button */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-emerald-600"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  addHomework(module.id, primaryLesson.id)
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                Homework
+                              </Button>
+
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -5437,25 +5690,42 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                   <div className="flex-1">
                     <Tabs defaultValue="classroom" className="w-full">
                       <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="classroom">Classroom</TabsTrigger>
-                        <TabsTrigger value="student1">Test Student 1</TabsTrigger>
-                        <TabsTrigger value="student2">Test Student 2</TabsTrigger>
+                        {testPciTabs.map((tab) => (
+                          <div key={tab.id} className="relative flex-1">
+                            {editingTabId === tab.id ? (
+                              <Input
+                                value={tab.label}
+                                onChange={(e) => {
+                                  setTestPciTabs(prev => prev.map(t => 
+                                    t.id === tab.id ? { ...t, label: e.target.value } : t
+                                  ))
+                                }}
+                                onBlur={() => setEditingTabId(null)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') setEditingTabId(null)
+                                }}
+                                className="h-8 text-xs font-medium text-center"
+                                autoFocus
+                              />
+                            ) : (
+                              <TabsTrigger 
+                                value={tab.id}
+                                className="w-full"
+                                onDoubleClick={() => setEditingTabId(tab.id)}
+                              >
+                                {tab.label}
+                              </TabsTrigger>
+                            )}
+                          </div>
+                        ))}
                       </TabsList>
-                      <TabsContent value="classroom" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">Classroom view content</p>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="student1" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">Test Student 1 view</p>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="student2" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">Test Student 2 view</p>
-                        </div>
-                      </TabsContent>
+                      {testPciTabs.map((tab) => (
+                        <TabsContent key={tab.id} value={tab.id} className="mt-2">
+                          <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
+                            <p className="text-sm text-muted-foreground">{tab.label} view content</p>
+                          </div>
+                        </TabsContent>
+                      ))}
                     </Tabs>
                     {/* Persistent text input below tabs */}
                     <div className="mt-3">
@@ -5484,7 +5754,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                   <Input 
                     placeholder="Task Title" 
                     className="flex-1 font-semibold"
-                    defaultValue=""
+                    id="task-title"
                   />
                 </div>
               </CardHeader>
@@ -5498,14 +5768,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         <TabsTrigger value="pci">PCI</TabsTrigger>
                       </TabsList>
                       <TabsContent value="content" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">Task content editor</p>
-                        </div>
+                        <Textarea 
+                          placeholder="Enter task content..." 
+                          className="w-full min-h-[100px]"
+                          id="task-content"
+                        />
                       </TabsContent>
                       <TabsContent value="pci" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">PCI configuration</p>
-                        </div>
+                        <Textarea 
+                          placeholder="Enter PCI configuration..." 
+                          className="w-full min-h-[100px]"
+                          id="task-pci"
+                        />
                       </TabsContent>
                     </Tabs>
                     {/* Persistent text input below tabs */}
@@ -5513,12 +5787,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <Textarea 
                         placeholder="Enter task details..." 
                         className="w-full min-h-[60px]"
+                        id="task-details"
                       />
                     </div>
                     {/* Buttons row with Test and Save */}
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm">Test</Button>
-                      <Button size="sm">Save</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          const title = (document.getElementById('task-title') as HTMLInputElement)?.value || 'New Task'
+                          setLessonSelectDialog({ isOpen: true, type: 'task', title })
+                        }}
+                      >
+                        Save
+                      </Button>
                     </div>
                   </div>
                   {/* Right panel: Extensions - resizable */}
@@ -5545,7 +5828,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                   <Input 
                     placeholder="Assessment Title" 
                     className="flex-1 font-semibold"
-                    defaultValue=""
+                    id="assessment-title"
                   />
                 </div>
               </CardHeader>
@@ -5559,14 +5842,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         <TabsTrigger value="pci">PCI</TabsTrigger>
                       </TabsList>
                       <TabsContent value="content" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">Assessment content editor</p>
-                        </div>
+                        <Textarea 
+                          placeholder="Enter assessment content..." 
+                          className="w-full min-h-[100px]"
+                          id="assessment-content"
+                        />
                       </TabsContent>
                       <TabsContent value="pci" className="mt-2">
-                        <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                          <p className="text-sm text-muted-foreground">PCI configuration</p>
-                        </div>
+                        <Textarea 
+                          placeholder="Enter PCI configuration..." 
+                          className="w-full min-h-[100px]"
+                          id="assessment-pci"
+                        />
                       </TabsContent>
                     </Tabs>
                     {/* Persistent text input below tabs */}
@@ -5574,13 +5861,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <Textarea 
                         placeholder="Enter assessment details..." 
                         className="w-full min-h-[60px]"
+                        id="assessment-details"
                       />
                     </div>
                     {/* Buttons row with Generate DMI, Test, and Save */}
                     <div className="flex gap-2 mt-3">
                       <Button variant="outline" size="sm">Generate DMI</Button>
                       <Button variant="outline" size="sm">Test</Button>
-                      <Button size="sm">Save</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          const title = (document.getElementById('assessment-title') as HTMLInputElement)?.value || 'New Assessment'
+                          setLessonSelectDialog({ isOpen: true, type: 'assessment', title })
+                        }}
+                      >
+                        Save
+                      </Button>
                     </div>
                   </div>
                   {/* Right panel: DMI - resizable */}
@@ -5870,14 +6166,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           onClose={() => setActiveModal({ type: 'task', isOpen: false })}
           onSave={handleSaveTask}
           initialData={editingData}
+          modules={modules}
         />
 
-        <AssessmentBuilderModal
+        <HomeworkBuilderModal
           isOpen={activeModal.type === 'homework' && activeModal.isOpen}
           onClose={() => setActiveModal({ type: 'homework', isOpen: false })}
           onSave={handleSaveAssessment}
           initialData={editingData}
-          builderType={editingData?.category === 'homework' ? 'homework' : 'assessment'}
+          modules={modules}
         />
 
         <WorksheetBuilderModal
@@ -5900,6 +6197,27 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           onClose={() => setActiveModal({ type: 'content', isOpen: false })}
           onSave={handleSaveContent}
           initialData={editingData}
+        />
+
+        {/* Lesson Selection Dialog for Preview Pane Save */}
+        <LessonSelectorDialog
+          isOpen={lessonSelectDialog.isOpen}
+          onClose={() => setLessonSelectDialog({ isOpen: false, type: null, title: '' })}
+          onConfirm={(moduleId, lessonId) => {
+            const title = lessonSelectDialog.title
+            if (lessonSelectDialog.type === 'task') {
+              const newTask = DEFAULT_TASK(0)
+              newTask.title = title
+              handleSaveTask(newTask, moduleId, lessonId)
+            } else if (lessonSelectDialog.type === 'assessment') {
+              const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+              newAssessment.title = title
+              handleSaveAssessment(newAssessment, moduleId, lessonId)
+            }
+            setLessonSelectDialog({ isOpen: false, type: null, title: '' })
+          }}
+          modules={modules}
+          itemType={lessonSelectDialog.type || 'item'}
         />
       </div>
     </div>
