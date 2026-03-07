@@ -358,11 +358,19 @@ const ActionCard = ({
 const Navbar = ({ onRegister }: { onRegister: () => void }) => (
   <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
     <div className="max-w-7xl mx-auto flex justify-between items-center bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-3">
-      <Link href="/" className="text-2xl font-bold tracking-tighter cursor-pointer flex items-center gap-2">
-        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-          <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
-        </div>
-        SOLOCORN
+      <Link href="/" className="flex items-center gap-3">
+        {/* Logo - Replace /images/logo.png with your logo file */}
+        <img 
+          src="/images/logo.png" 
+          alt="Solocorn" 
+          className="h-8 w-auto"
+          onError={(e) => {
+            // Fallback to text if logo fails to load
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
+        />
+        <span className="text-2xl font-bold tracking-tighter">SOLOCORN</span>
       </Link>
       <div className="flex items-center gap-4">
         <Button 
