@@ -5093,25 +5093,32 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 {totalItems}
                               </Badge>
 
-                              {/* Difficulty Badge */}
-                              <DifficultyBadge
-                                mode={module.difficultyMode}
-                                fixedDifficulty={module.fixedDifficulty}
-                                size="xs"
-                              />
-
+                              {/* +Task Button */}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2"
+                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-orange-600"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  setEditingData(module)
-                                  setActiveModal({ type: 'module', isOpen: true, itemId: module.id })
+                                  addTask(module.id, primaryLesson.id)
                                 }}
                               >
-                                <Wand2 className="h-3 w-3" />
-                                Builder
+                                <Plus className="h-3 w-3" />
+                                Task
+                              </Button>
+
+                              {/* +Assessment Button */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-purple-600"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  addAssessment(module.id, primaryLesson.id)
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                Assessment
                               </Button>
 
                               <Button
@@ -5132,15 +5139,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 {/* Tasks */}
                                 <TreeItem depth={2} isLast={false}>
                                   <div className="flex items-center gap-1.5">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-5 text-[10px] gap-1 text-orange-600 px-2"
-                                      onClick={() => addTask(module.id, primaryLesson.id)}
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                      Task
-                                    </Button>
+                                    <span className="text-[10px] text-orange-600 font-medium px-2">Tasks</span>
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -5203,15 +5202,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 {/* Assessments */}
                                 <TreeItem depth={2} isLast={false}>
                                   <div className="flex items-center gap-1.5">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-5 text-[10px] gap-1 text-purple-600 px-2"
-                                      onClick={() => addAssessment(module.id, primaryLesson.id)}
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                      Assessment
-                                    </Button>
+                                    <span className="text-[10px] text-purple-600 font-medium px-2">Assessments</span>
                                     <Button
                                       variant="ghost"
                                       size="icon"
