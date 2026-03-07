@@ -8,10 +8,10 @@
  * Response caching for repeated prompts (5 min TTL)
  */
 
-import { generateWithOllama, chatWithOllama, isOllamaAvailable } from './ollama'
-import { generateWithKimi, chatWithKimi } from './kimi'
-import { generateWithZhipu, chatWithZhipu } from './zhipu'
-import { cache } from '../db'
+import { generateWithOllama, chatWithOllama, isOllamaAvailable } from '@/lib/ai/ollama'
+import { generateWithKimi, chatWithKimi } from '@/lib/ai/kimi'
+import { generateWithZhipu, chatWithZhipu } from '@/lib/ai/zhipu'
+import { cache } from '@/lib/db'
 
 type AIProvider = 'kimi' | 'ollama' | 'zhipu'
 

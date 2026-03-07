@@ -229,10 +229,10 @@ export async function analyzeStudentWork(
   })
 
   const lines = result.content.split('\n')
-  const hasError = lines.find(l => l.includes('HAS_ERROR:'))?.includes('true') || false
-  const errorType = lines.find(l => l.includes('ERROR_TYPE:'))?.split(':')[1]?.trim()
-  const feedback = lines.find(l => l.includes('FEEDBACK:'))?.split(':').slice(1).join(':').trim() || ''
-  const correctionGuidance = lines.find(l => l.includes('GUIDANCE:'))?.split(':').slice(1).join(':').trim() || ''
+  const hasError = lines.find((l: string) => l.includes('HAS_ERROR:'))?.includes('true') || false
+  const errorType = lines.find((l: string) => l.includes('ERROR_TYPE:'))?.split(':')[1]?.trim()
+  const feedback = lines.find((l: string) => l.includes('FEEDBACK:'))?.split(':').slice(1).join(':').trim() || ''
+  const correctionGuidance = lines.find((l: string) => l.includes('GUIDANCE:'))?.split(':').slice(1).join(':').trim() || ''
 
   return {
     hasError,
