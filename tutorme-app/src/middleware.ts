@@ -40,12 +40,21 @@ function getCspHeader(): string {
   return directives.join('; ')
 }
 
-// Allowed origins for CORS (landing page and main app)
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',     // Vite landing page (dev)
-  'http://localhost:5173',     // Vite default port (dev)
-  'http://localhost:3003',     // Next.js app (dev)
-]
+// Allowed origins for CORS - uses env var in production, localhost in dev
+function getAllowedOrigins(): string[] {
+  const productionOrigin = process.env.NEXT_PUBLIC_APP_URL
+  const devOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:3003',
+  ]
+  
+  if (productionOrigin) {
+    return [productionOrigin, ...devOrigins]
+  }
+  
+  return devOrigins
+}
 
 function addSecurityHeaders(res: NextResponse, req?: Request): NextResponse {
   res.headers.set('X-Content-Type-Options', 'nosniff')
@@ -56,7 +65,7 @@ function addSecurityHeaders(res: NextResponse, req?: Request): NextResponse {
   // Add CORS headers for API requests from landing page
   if (req) {
     const origin = req.headers.get('origin')
-    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    if (origin && getAllowedOrigins().includes(origin)) {
       res.headers.set('Access-Control-Allow-Origin', origin)
       res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
       res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')

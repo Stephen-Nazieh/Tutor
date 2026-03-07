@@ -46,6 +46,184 @@ const CELEBRITY_TUTORS = [
 
 const SPECIAL_CODES = ['kim.kon#26', 'stephen#26'];
 
+// --- 3D Futuristic Background Component ---
+const FuturisticBackground = () => {
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+      {/* Deep space gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900" />
+      
+      {/* Animated grid floor */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/2 perspective-1000">
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(16, 185, 129, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16, 185, 129, 0.3) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+            transform: 'rotateX(60deg) translateY(100px)',
+            animation: 'gridMove 20s linear infinite',
+          }}
+        />
+      </div>
+
+      {/* Floating academic symbols */}
+      {[
+        { symbol: '∑', x: '10%', y: '20%', delay: '0s', size: '4rem' },
+        { symbol: 'π', x: '85%', y: '15%', delay: '2s', size: '3rem' },
+        { symbol: '∫', x: '75%', y: '70%', delay: '4s', size: '5rem' },
+        { symbol: '√', x: '15%', y: '75%', delay: '1s', size: '3.5rem' },
+        { symbol: '∞', x: '50%', y: '10%', delay: '3s', size: '4rem' },
+        { symbol: '∆', x: '90%', y: '50%', delay: '5s', size: '3rem' },
+        { symbol: 'Ω', x: '5%', y: '50%', delay: '2.5s', size: '4rem' },
+        { symbol: 'λ', x: '60%', y: '80%', delay: '1.5s', size: '3.5rem' },
+      ].map((item, i) => (
+        <motion.div
+          key={i}
+          className="absolute font-bold text-emerald-500/20 select-none"
+          style={{
+            left: item.x,
+            top: item.y,
+            fontSize: item.size,
+            textShadow: '0 0 30px rgba(16, 185, 129, 0.5)',
+          }}
+          animate={{
+            y: [-20, 20, -20],
+            rotate: [0, 10, -10, 0],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 6,
+            delay: parseFloat(item.delay),
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          {item.symbol}
+        </motion.div>
+      ))}
+
+      {/* Floating geometric shapes */}
+      {[
+        { type: 'cube', x: '20%', y: '30%', delay: 0 },
+        { type: 'sphere', x: '70%', y: '25%', delay: 2 },
+        { type: 'pyramid', x: '80%', y: '60%', delay: 4 },
+        { type: 'hexagon', x: '25%', y: '65%', delay: 1 },
+        { type: 'dodecahedron', x: '50%', y: '40%', delay: 3 },
+      ].map((shape, i) => (
+        <motion.div
+          key={`shape-${i}`}
+          className="absolute"
+          style={{
+            left: shape.x,
+            top: shape.y,
+          }}
+          animate={{
+            y: [-30, 30, -30],
+            rotateX: [0, 360],
+            rotateY: [0, 360],
+          }}
+          transition={{
+            duration: 15,
+            delay: shape.delay,
+            repeat: Infinity,
+            ease: 'linear',
+          }}
+        >
+          <div 
+            className="w-16 h-16 border-2 border-emerald-500/30 bg-emerald-500/5 backdrop-blur-sm"
+            style={{
+              transformStyle: 'preserve-3d',
+              boxShadow: '0 0 20px rgba(16, 185, 129, 0.3), inset 0 0 20px rgba(16, 185, 129, 0.1)',
+            }}
+          />
+        </motion.div>
+      ))}
+
+      {/* Orbiting electrons (atomic style) */}
+      {[
+        { cx: '30%', cy: '40%', r: 80, duration: 8 },
+        { cx: '65%', cy: '55%', r: 100, duration: 12 },
+        { cx: '45%', cy: '75%', r: 60, duration: 6 },
+      ].map((atom, i) => (
+        <div
+          key={`atom-${i}`}
+          className="absolute"
+          style={{
+            left: atom.cx,
+            top: atom.cy,
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          {/* Nucleus */}
+          <div className="absolute w-3 h-3 bg-emerald-400 rounded-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-emerald-500/50" />
+          
+          {/* Electron orbit */}
+          <motion.div
+            className="absolute border border-emerald-500/20 rounded-full"
+            style={{
+              width: atom.r * 2,
+              height: atom.r * 2,
+              left: -atom.r,
+              top: -atom.r,
+            }}
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: atom.duration,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          >
+            <div className="absolute w-2 h-2 bg-cyan-400 rounded-full -top-1 left-1/2 -translate-x-1/2 shadow-lg shadow-cyan-500/50" />
+          </motion.div>
+        </div>
+      ))}
+
+      {/* Gradient orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl" />
+
+      {/* Shooting stars */}
+      {[
+        { top: '10%', left: '-10%', delay: '0s' },
+        { top: '30%', left: '-10%', delay: '3s' },
+        { top: '60%', left: '-10%', delay: '6s' },
+      ].map((star, i) => (
+        <motion.div
+          key={`star-${i}`}
+          className="absolute w-20 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
+          style={{
+            top: star.top,
+            left: star.left,
+          }}
+          animate={{
+            left: ['-10%', '110%'],
+            opacity: [0, 1, 0],
+          }}
+          transition={{
+            duration: 2,
+            delay: parseFloat(star.delay),
+            repeat: Infinity,
+            repeatDelay: 7,
+            ease: 'easeOut',
+          }}
+        />
+      ))}
+
+      {/* CSS for grid animation */}
+      <style jsx global>{`
+        @keyframes gridMove {
+          0% { transform: rotateX(60deg) translateY(0); }
+          100% { transform: rotateX(60deg) translateY(50px); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // --- Components ---
 
 const CountdownTimer = () => {
@@ -388,7 +566,10 @@ export default function LandingPage() {
   const [modalType, setModalType] = useState<ModalType>(null);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 relative">
+      {/* Futuristic 3D Background */}
+      <FuturisticBackground />
+      
       <Navbar onRegister={() => setModalType('register')} />
 
       {/* Coming Soon Modal */}

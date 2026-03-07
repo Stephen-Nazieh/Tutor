@@ -6,18 +6,18 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'TutorMe API',
+      title: 'Solocorn API',
       version: '1.0.0',
       description: 'AI-powered hybrid tutoring platform API',
       contact: {
-        name: 'TutorMe Support',
-        email: 'support@tutorme.com'
+        name: 'Solocorn Support',
+        email: 'support@solocorn.co'
       }
     },
     servers: [
       {
-        url: 'http://localhost:3003',
-        description: 'Development server'
+        url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003',
+        description: 'Production server'
       }
     ],
     components: {

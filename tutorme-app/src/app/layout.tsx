@@ -65,8 +65,10 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://daily.co" />
-        <link rel="dns-prefetch" href="https://localhost:3003" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+        <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
       </head>
       <body className={inter.className}>
         <Providers locale={locale} messages={messages}>
