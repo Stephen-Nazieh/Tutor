@@ -28,7 +28,7 @@ import { toast } from 'sonner'
 import { ArrowLeft, BookOpen, CalendarDays, Loader2, Plus, X } from 'lucide-react'
 import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
 import type { ScheduleItem } from '../[id]/constants'
-import { DAYS, GRADE_LEVELS } from '../[id]/constants'
+import { DAYS } from '../[id]/constants'
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
@@ -49,7 +49,7 @@ export default function CreateCoursePage() {
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [subject, setSubject] = useState('')
   const [courseName, setCourseName] = useState('')
-  const [gradeLevel, setGradeLevel] = useState('')
+  // Grade level removed as per requirements
   const [description, setDescription] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
@@ -172,7 +172,7 @@ export default function CreateCoursePage() {
           title: courseName.trim(),
           description: description.trim() || undefined,
           subject,
-          gradeLevel: gradeLevel || undefined,
+          // gradeLevel removed as per requirements
           categories: selectedCategories,
           schedule,
           isLiveOnline: false,
@@ -228,38 +228,6 @@ export default function CreateCoursePage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Select Subject *</Label>
-                  <Select value={subject} onValueChange={setSubject} disabled={creating}>
-                    <SelectTrigger id="subject">
-                      <SelectValue placeholder="Select a subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SUBJECTS.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>
-                          {s.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="gradeLevel">Grade Level (Optional)</Label>
-                  <Select value={gradeLevel} onValueChange={setGradeLevel} disabled={creating}>
-                    <SelectTrigger id="gradeLevel">
-                      <SelectValue placeholder="Select a grade level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GRADE_LEVELS.map((g) => (
-                        <SelectItem key={g.value} value={g.value}>
-                          {g.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label>Subject Categories *</Label>
@@ -281,6 +249,22 @@ export default function CreateCoursePage() {
                       </span>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Select Subject *</Label>
+                  <Select value={subject} onValueChange={setSubject} disabled={creating}>
+                    <SelectTrigger id="subject">
+                      <SelectValue placeholder="Select a subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUBJECTS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

@@ -126,18 +126,16 @@ const THEMES: Record<ColorTheme, { name: string; icon: string; colors: { primary
 
 // --- Categories Data ---
 const CATEGORIES = [
-  { id: 'ielts', name: 'IELTS', icon: Languages, description: 'International English Language Testing System', color: 'bg-blue-500' },
-  { id: 'toefl', name: 'TOEFL', icon: Languages, description: 'Test of English as a Foreign Language', color: 'bg-indigo-500' },
-  { id: 'ap', name: 'AP', icon: BookOpen, description: 'Advanced Placement', color: 'bg-red-500' },
-  { id: 'ib', name: 'IB', icon: Trophy, description: 'International Baccalaureate', color: 'bg-emerald-500' },
-  { id: 'sat', name: 'SAT', icon: Calculator, description: 'Scholastic Assessment Test', color: 'bg-orange-500' },
-  { id: 'gre', name: 'GRE', icon: Calculator, description: 'Graduate Record Examination', color: 'bg-purple-500' },
-  { id: 'gmat', name: 'GMAT', icon: Calculator, description: 'Graduate Management Admission Test', color: 'bg-cyan-500' },
-  { id: 'math', name: 'Mathematics', icon: Calculator, description: 'Algebra, Calculus, Statistics', color: 'bg-yellow-500' },
-  { id: 'science', name: 'Science', icon: FlaskConical, description: 'Physics, Chemistry, Biology', color: 'bg-green-500' },
-  { id: 'coding', name: 'Coding', icon: Code, description: 'Programming & Computer Science', color: 'bg-slate-500' },
-  { id: 'arts', name: 'Arts', icon: ArtIcon, description: 'Music, Visual Arts, Drama', color: 'bg-pink-500' },
-  { id: 'history', name: 'History', icon: History, description: 'World History & Geography', color: 'bg-amber-600' },
+  // Curriculums
+  { id: 'ap', name: 'AP', icon: BookOpen, description: 'Advanced Placement', color: 'bg-red-500', category: 'Curriculums' },
+  { id: 'ib', name: 'IB', icon: Trophy, description: 'International Baccalaureate', color: 'bg-emerald-500', category: 'Curriculums' },
+  // Standardized Tests
+  { id: 'ielts', name: 'IELTS', icon: Languages, description: 'International English Language Testing System', color: 'bg-blue-500', category: 'Standardized Tests' },
+  { id: 'toefl', name: 'TOEFL', icon: Languages, description: 'Test of English as a Foreign Language', color: 'bg-indigo-500', category: 'Standardized Tests' },
+  { id: 'sat', name: 'SAT', icon: Calculator, description: 'Scholastic Assessment Test', color: 'bg-orange-500', category: 'Standardized Tests' },
+  // College Admission Exams
+  { id: 'gre', name: 'GRE', icon: Calculator, description: 'Graduate Record Examination', color: 'bg-purple-500', category: 'College Admission Exams' },
+  { id: 'gmat', name: 'GMAT', icon: Calculator, description: 'Graduate Management Admission Test', color: 'bg-cyan-500', category: 'College Admission Exams' },
 ];
 
 // --- Translations ---
@@ -677,17 +675,26 @@ const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme
 
   return (
     <>
-      {/* Floating Chat Button */}
-      <motion.button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-2xl ${themeColors[theme]} text-white`}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-      >
-        <MessageCircle className="w-6 h-6" />
-      </motion.button>
+      {/* Floating Chat Button with Tooltip */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg mb-1 ${mode === 'dark' ? 'bg-zinc-800 text-white border border-zinc-700' : 'bg-white text-zinc-900 border border-gray-200'}`}
+        >
+          Get to know all about Solocorn LLC
+        </motion.div>
+        <motion.button
+          onClick={() => setIsOpen(true)}
+          className={`p-4 rounded-full shadow-2xl ${themeColors[theme]} text-white`}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+        >
+          <MessageCircle className="w-6 h-6" />
+        </motion.button>
+      </div>
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -704,7 +711,8 @@ const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              className={`fixed bottom-24 right-6 z-50 w-96 h-[500px] rounded-2xl shadow-2xl overflow-hidden border ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}
+              className={`fixed bottom-24 right-6 z-50 w-96 rounded-2xl shadow-2xl overflow-hidden border flex flex-col ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}
+              style={{ height: '500px' }}
             >
               {/* Header */}
               <div className={`p-4 border-b flex items-center justify-between ${mode === 'dark' ? 'border-white/10 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20' : 'border-black/10 bg-gradient-to-r from-emerald-100 to-cyan-100'}`}>
@@ -723,7 +731,7 @@ const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme
               </div>
 
               {/* Messages */}
-              <div className={`flex-1 overflow-y-auto p-4 space-y-4 h-[380px] ${mode === 'dark' ? 'bg-zinc-900/50' : 'bg-gray-50'}`}>
+              <div className={`flex-1 overflow-y-auto p-4 space-y-4 min-h-0 ${mode === 'dark' ? 'bg-zinc-900/50' : 'bg-gray-50'}`}>
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[80%] p-3 rounded-2xl ${
@@ -753,7 +761,7 @@ const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme
               </div>
 
               {/* Input */}
-              <div className={`p-4 border-t ${mode === 'dark' ? 'border-white/10 bg-zinc-900' : 'border-black/10 bg-white'}`}>
+              <div className={`p-4 border-t flex-shrink-0 ${mode === 'dark' ? 'border-white/10 bg-zinc-900' : 'border-black/10 bg-white'}`}>
                 <div className="flex gap-2">
                   <Input
                     value={input}
@@ -1104,6 +1112,15 @@ const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onC
   
   if (!isOpen) return null;
 
+  // Group categories by their category type
+  const groupedCategories = CATEGORIES.reduce((acc, cat) => {
+    if (!acc[cat.category]) acc[cat.category] = [];
+    acc[cat.category].push(cat);
+    return acc;
+  }, {} as Record<string, typeof CATEGORIES>);
+
+  const categoryOrder = ['Curriculums', 'Standardized Tests', 'College Admission Exams'];
+
   return (
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1111,16 +1128,26 @@ const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onC
         <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-4xl max-h-[80vh] overflow-y-auto backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}>
           <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
           <h2 className={`text-3xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('viewAllCategories')}</h2>
-          <p className={`mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Explore all the subjects and test prep categories available on Solocorn</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {CATEGORIES.map((cat) => (
-              <div key={cat.id} className={`p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer ${mode === 'dark' ? 'bg-white/5 border-white/10 hover:border-emerald-500/50' : 'bg-gray-50 border-black/10 hover:border-emerald-500/50'}`}>
-                <div className={`w-12 h-12 rounded-lg ${cat.color} flex items-center justify-center mb-3`}>
-                  <cat.icon className="w-6 h-6 text-white" />
+          <p className={`mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Explore all curriculums, standardized tests, and college admission exams available on Solocorn</p>
+          
+          <div className="space-y-8">
+            {categoryOrder.map((categoryName) => (
+              groupedCategories[categoryName] && (
+                <div key={categoryName}>
+                  <h3 className={`text-lg font-semibold mb-4 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{categoryName}</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {groupedCategories[categoryName].map((cat) => (
+                      <div key={cat.id} className={`p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer ${mode === 'dark' ? 'bg-white/5 border-white/10 hover:border-emerald-500/50' : 'bg-gray-50 border-black/10 hover:border-emerald-500/50'}`}>
+                        <div className={`w-12 h-12 rounded-lg ${cat.color} flex items-center justify-center mb-3`}>
+                          <cat.icon className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className={`font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{cat.name}</h3>
+                        <p className={`text-sm mt-1 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{cat.description}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <h3 className={`font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{cat.name}</h3>
-                <p className={`text-sm mt-1 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{cat.description}</p>
-              </div>
+              )
             ))}
           </div>
         </motion.div>

@@ -4234,11 +4234,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   // Add handlers
   const addModule = () => {
-    const newModule = DEFAULT_MODULE(modules.length)
+    // Create a new module (lesson) directly without opening modal
+    const newOrder = modules.length
+    const newModule = DEFAULT_MODULE(newOrder)
+    // Ensure the title follows "Lesson N" format
+    newModule.title = `Lesson ${newOrder + 1}`
+    newModule.lessons[0].title = `Lesson ${newOrder + 1}`
+    
     setModules([...modules, newModule])
     setExpandedModules(new Set([...expandedModules, newModule.id]))
-    setEditingData(newModule)
-    setActiveModal({ type: 'module', isOpen: true })
+    // Do NOT open modal - just create directly
   }
 
 
@@ -5055,178 +5060,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       </div>
                     </div>
 
-                    {/* Assets folder (course-level) */}
-                    <TreeItem depth={1} isLast={false}>
-                      <div className="group">
-                        <div
-                          className={cn(
-                            "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
-                            "bg-slate-50 hover:bg-slate-100 border border-slate-200"
-                          )}
-                          onClick={() => setAssetsOpen((prev) => !prev)}
-                        >
-                          {assetsOpen ? (
-                            <ChevronDown className="h-3 w-3 text-slate-600" />
-                          ) : (
-                            <ChevronRight className="h-3 w-3 text-slate-600" />
-                          )}
-                          <Paperclip className="h-3 w-3 text-slate-600" />
-                          <span className="text-sm font-medium flex-1 truncate">Assets</span>
-                          <Badge variant="secondary" className="text-[10px] h-4">
-                            {(assetsLesson?.docs?.length || 0) + (assetsLesson?.media?.videos?.length || 0) + (assetsLesson?.media?.images?.length || 0)}
-                          </Badge>
-                        </div>
-
-                        {assetsOpen && (
-                          <div className="mt-1 space-y-1">
-                            <TreeItem depth={2} isLast={false}>
-                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/media">
-                                <div className="flex items-center gap-1.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4"
-                                    onClick={() => setMediaOpen((prev) => !prev)}
-                                    aria-label={mediaOpen ? 'Collapse media' : 'Expand media'}
-                                  >
-                                    {mediaOpen ? (
-                                      <ChevronDown className="h-3 w-3 text-gray-600" />
-                                    ) : (
-                                      <ChevronRight className="h-3 w-3 text-gray-600" />
-                                    )}
-                                  </Button>
-                                  <Video className="h-3 w-3 text-gray-500" />
-                                  <span className="text-[10px] text-muted-foreground">Media</span>
-                                  <span className="text-[10px] text-muted-foreground">
-                                    ({assetsLesson?.media?.videos?.length || 0}v, {assetsLesson?.media?.images?.length || 0}i)
-                                  </span>
-                                  <div className="flex items-center gap-1 ml-auto opacity-0 group-hover/media:opacity-100">
-                                    <label className="cursor-pointer">
-                                      <input
-                                        type="file"
-                                        accept="video/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => handleAssetsMediaUpload(e.target.files, 'video')}
-                                      />
-                                      <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
-                                        <Upload className="h-3 w-3" /> Vid
-                                      </span>
-                                    </label>
-                                    <label className="cursor-pointer">
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => handleAssetsMediaUpload(e.target.files, 'image')}
-                                      />
-                                      <span className="flex items-center gap-1 text-[10px] text-green-600 hover:text-green-700">
-                                        <ImageIcon className="h-3 w-3" /> Img
-                                      </span>
-                                    </label>
-                                  </div>
-                                </div>
-                                {mediaOpen && (assetsLesson?.media?.videos?.length > 0 || assetsLesson?.media?.images?.length > 0) && (
-                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
-                                    {assetsLesson?.media?.videos?.map((video) => (
-                                      <div key={video.id} className="flex items-start gap-1 text-[10px] text-gray-600">
-                                        <Play className="h-3 w-3 shrink-0 mt-[2px]" />
-                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{video.title}</span>
-                                        <span className="text-gray-400 shrink-0">{video.duration > 0 ? `${Math.floor(video.duration / 60)}m` : '—'}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5"
-                                          onClick={() => {
-                                            if (!confirm(`Delete "${video.title}"?`)) return
-                                            handleDeleteAssetMedia('video', video.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                    {assetsLesson?.media?.images?.map((img) => (
-                                      <div key={img.id} className="flex items-start gap-1 text-[10px] text-gray-600">
-                                        <ImageIcon className="h-3 w-3 shrink-0 mt-[2px]" />
-                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{img.title}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5"
-                                          onClick={() => {
-                                            if (!confirm(`Delete "${img.title}"?`)) return
-                                            handleDeleteAssetMedia('image', img.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </TreeItem>
-                            <TreeItem depth={2} isLast={false}>
-                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/docs">
-                                <div className="flex items-center gap-1.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4"
-                                    onClick={() => setDocsOpen((prev) => !prev)}
-                                    aria-label={docsOpen ? 'Collapse docs' : 'Expand docs'}
-                                  >
-                                    {docsOpen ? (
-                                      <ChevronDown className="h-3 w-3 text-gray-600" />
-                                    ) : (
-                                      <ChevronRight className="h-3 w-3 text-gray-600" />
-                                    )}
-                                  </Button>
-                                  <FileText className="h-3 w-3 text-gray-500" />
-                                  <span className="text-[10px] text-muted-foreground">Docs ({assetsLesson?.docs?.length || 0})</span>
-                                  <label className="cursor-pointer ml-auto opacity-0 group-hover/docs:opacity-100">
-                                    <input
-                                      type="file"
-                                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
-                                      multiple
-                                      className="hidden"
-                                      onChange={(e) => handleAssetsDocUpload(e.target.files)}
-                                    />
-                                    <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
-                                      <Upload className="h-3 w-3" /> Upload
-                                    </span>
-                                  </label>
-                                </div>
-                                {docsOpen && assetsLesson?.docs?.length > 0 && (
-                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
-                                    {assetsLesson?.docs?.map((doc) => (
-                                      <div key={doc.id} className="flex items-start gap-1 text-[10px] text-gray-600">
-                                        <FileText className="h-3 w-3 shrink-0 mt-[2px]" />
-                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{doc.title}</span>
-                                        <span className="text-gray-400 uppercase shrink-0">{doc.type}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5"
-                                          onClick={() => {
-                                            if (!confirm(`Delete "${doc.title}"?`)) return
-                                            handleDeleteAssetDoc(doc.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </TreeItem>
-                          </div>
-                        )}
-                      </div>
-                    </TreeItem>
 
                     {/* Lessons (formerly modules) - with drag sorting */}
                     <SortableContext
@@ -5697,6 +5530,178 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           initialData={editingData}
         />
 
+                    {/* Assets folder (course-level) */}
+                    <TreeItem depth={1} isLast={false}>
+                      <div className="group">
+                        <div
+                          className={cn(
+                            "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
+                            "bg-slate-50 hover:bg-slate-100 border border-slate-200"
+                          )}
+                          onClick={() => setAssetsOpen((prev) => !prev)}
+                        >
+                          {assetsOpen ? (
+                            <ChevronDown className="h-3 w-3 text-slate-600" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3 text-slate-600" />
+                          )}
+                          <Paperclip className="h-3 w-3 text-slate-600" />
+                          <span className="text-sm font-medium flex-1 truncate">Assets</span>
+                          <Badge variant="secondary" className="text-[10px] h-4">
+                            {(assetsLesson?.docs?.length || 0) + (assetsLesson?.media?.videos?.length || 0) + (assetsLesson?.media?.images?.length || 0)}
+                          </Badge>
+                        </div>
+
+                        {assetsOpen && (
+                          <div className="mt-1 space-y-1">
+                            <TreeItem depth={2} isLast={false}>
+                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/media">
+                                <div className="flex items-center gap-1.5">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4"
+                                    onClick={() => setMediaOpen((prev) => !prev)}
+                                    aria-label={mediaOpen ? 'Collapse media' : 'Expand media'}
+                                  >
+                                    {mediaOpen ? (
+                                      <ChevronDown className="h-3 w-3 text-gray-600" />
+                                    ) : (
+                                      <ChevronRight className="h-3 w-3 text-gray-600" />
+                                    )}
+                                  </Button>
+                                  <Video className="h-3 w-3 text-gray-500" />
+                                  <span className="text-[10px] text-muted-foreground">Media</span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    ({assetsLesson?.media?.videos?.length || 0}v, {assetsLesson?.media?.images?.length || 0}i)
+                                  </span>
+                                  <div className="flex items-center gap-1 ml-auto opacity-0 group-hover/media:opacity-100">
+                                    <label className="cursor-pointer">
+                                      <input
+                                        type="file"
+                                        accept="video/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={(e) => handleAssetsMediaUpload(e.target.files, 'video')}
+                                      />
+                                      <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
+                                        <Upload className="h-3 w-3" /> Vid
+                                      </span>
+                                    </label>
+                                    <label className="cursor-pointer">
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={(e) => handleAssetsMediaUpload(e.target.files, 'image')}
+                                      />
+                                      <span className="flex items-center gap-1 text-[10px] text-green-600 hover:text-green-700">
+                                        <ImageIcon className="h-3 w-3" /> Img
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                                {mediaOpen && (assetsLesson?.media?.videos?.length > 0 || assetsLesson?.media?.images?.length > 0) && (
+                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
+                                    {assetsLesson?.media?.videos?.map((video) => (
+                                      <div key={video.id} className="flex items-start gap-1 text-[10px] text-gray-600">
+                                        <Play className="h-3 w-3 shrink-0 mt-[2px]" />
+                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{video.title}</span>
+                                        <span className="text-gray-400 shrink-0">{video.duration > 0 ? `${Math.floor(video.duration / 60)}m` : '—'}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5"
+                                          onClick={() => {
+                                            if (!confirm(`Delete "${video.title}"?`)) return
+                                            handleDeleteAssetMedia('video', video.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                    {assetsLesson?.media?.images?.map((img) => (
+                                      <div key={img.id} className="flex items-start gap-1 text-[10px] text-gray-600">
+                                        <ImageIcon className="h-3 w-3 shrink-0 mt-[2px]" />
+                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{img.title}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5"
+                                          onClick={() => {
+                                            if (!confirm(`Delete "${img.title}"?`)) return
+                                            handleDeleteAssetMedia('image', img.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TreeItem>
+                            <TreeItem depth={2} isLast={false}>
+                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/docs">
+                                <div className="flex items-center gap-1.5">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4"
+                                    onClick={() => setDocsOpen((prev) => !prev)}
+                                    aria-label={docsOpen ? 'Collapse docs' : 'Expand docs'}
+                                  >
+                                    {docsOpen ? (
+                                      <ChevronDown className="h-3 w-3 text-gray-600" />
+                                    ) : (
+                                      <ChevronRight className="h-3 w-3 text-gray-600" />
+                                    )}
+                                  </Button>
+                                  <FileText className="h-3 w-3 text-gray-500" />
+                                  <span className="text-[10px] text-muted-foreground">Docs ({assetsLesson?.docs?.length || 0})</span>
+                                  <label className="cursor-pointer ml-auto opacity-0 group-hover/docs:opacity-100">
+                                    <input
+                                      type="file"
+                                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                                      multiple
+                                      className="hidden"
+                                      onChange={(e) => handleAssetsDocUpload(e.target.files)}
+                                    />
+                                    <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
+                                      <Upload className="h-3 w-3" /> Upload
+                                    </span>
+                                  </label>
+                                </div>
+                                {docsOpen && assetsLesson?.docs?.length > 0 && (
+                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
+                                    {assetsLesson?.docs?.map((doc) => (
+                                      <div key={doc.id} className="flex items-start gap-1 text-[10px] text-gray-600">
+                                        <FileText className="h-3 w-3 shrink-0 mt-[2px]" />
+                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{doc.title}</span>
+                                        <span className="text-gray-400 uppercase shrink-0">{doc.type}</span>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5"
+                                          onClick={() => {
+                                            if (!confirm(`Delete "${doc.title}"?`)) return
+                                            handleDeleteAssetDoc(doc.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </TreeItem>
+                          </div>
+                        )}
+                      </div>
+                    </TreeItem>
         <LessonBuilderModal
           isOpen={activeModal.type === 'lesson' && activeModal.isOpen}
           onClose={() => setActiveModal({ type: 'lesson', isOpen: false })}
