@@ -3428,10 +3428,11 @@ function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' 
 interface SortableTreeItemProps extends TreeItemProps {
   id: string
   dragHandle?: boolean
+  inlineDragHandle?: boolean
   onDragStart?: () => void
 }
 
-function SortableTreeItem({ id, children, depth, isLast, dragHandle = true }: SortableTreeItemProps) {
+function SortableTreeItem({ id, children, depth, isLast, dragHandle = true, inlineDragHandle = false }: SortableTreeItemProps) {
   const {
     attributes,
     listeners,
@@ -3449,7 +3450,7 @@ function SortableTreeItem({ id, children, depth, isLast, dragHandle = true }: So
 
   return (
     <div ref={setNodeRef} style={style} className="group relative">
-      {dragHandle && (
+      {dragHandle && !inlineDragHandle && (
         <button
           className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded opacity-100"
           {...attributes}
@@ -3460,7 +3461,23 @@ function SortableTreeItem({ id, children, depth, isLast, dragHandle = true }: So
         </button>
       )}
       <TreeItem depth={depth} isLast={isLast}>
-        {children}
+        {inlineDragHandle ? (
+          <div className="flex items-center gap-1">
+            <button
+              className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-blue-200 rounded flex-shrink-0"
+              {...attributes}
+              {...listeners}
+              title="Drag to reorder"
+            >
+              <GripVertical className="h-4 w-4 text-blue-400" />
+            </button>
+            <div className="flex-1 min-w-0">
+              {children}
+            </div>
+          </div>
+        ) : (
+          children
+        )}
       </TreeItem>
     </div>
   )
@@ -5373,7 +5390,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       const homeworkItems = (primaryLesson.homework || []).filter((h) => h.category === 'homework')
                       const totalItems = taskCount + assessments.length + homeworkItems.length
                       return (
-                        <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1}>
+                        <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1} inlineDragHandle>
                           <div className="group">
                             <div
                               className={cn(
@@ -5382,13 +5399,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               )}
                               onClick={() => toggleModule(module.id)}
                             >
-                              {/* Drag Handle - Visible */}
-                              <div 
-                                className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-blue-200 rounded"
-                                title="Drag to reorder"
-                              >
-                                <GripVertical className="h-4 w-4 text-blue-400" />
-                              </div>
                               {expandedModules.has(module.id) ? (
                                 <ChevronDown className="h-3 w-3 text-blue-600" />
                               ) : (
@@ -5754,7 +5764,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         {/* Persistent text input below tabs */}
                         <div className="mt-3">
                           <Textarea 
-                            placeholder="Enter task details..." 
+                            placeholder="Enter text" 
                             className="w-full min-h-[60px]"
                             id="task-details"
                           />
@@ -5823,7 +5833,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         {/* Persistent text input below tabs */}
                         <div className="mt-3">
                           <Textarea 
-                            placeholder="Enter assessment details..." 
+                            placeholder="Enter text" 
                             className="w-full min-h-[60px]"
                             id="assessment-details"
                           />
@@ -5907,7 +5917,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       {/* Persistent text input below tabs */}
                       <div className="mt-3">
                         <Input 
-                          placeholder="Type your message here..." 
+                          placeholder="Enter text" 
                           className="w-full"
                         />
                       </div>
