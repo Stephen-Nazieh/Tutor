@@ -11,7 +11,7 @@
 import { generateWithOllama, chatWithOllama, isOllamaAvailable } from './ollama'
 import { generateWithKimi, chatWithKimi } from './kimi'
 import { generateWithZhipu, chatWithZhipu } from './zhipu'
-import { cache } from '@/lib/db'
+import { cache } from '../db'
 
 type AIProvider = 'kimi' | 'ollama' | 'zhipu'
 
