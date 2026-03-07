@@ -27,11 +27,10 @@ interface ModernHeroSectionProps {
     currency: string
   }
   loading?: boolean
-  onScheduleClass?: () => void
   onCreateCourse?: () => void
 }
 
-export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCourse }: ModernHeroSectionProps) {
+export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHeroSectionProps) {
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
 
@@ -149,14 +148,6 @@ export function ModernHeroSection({ stats, loading, onScheduleClass, onCreateCou
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">
-          <Button
-            className="bg-white text-slate-900 hover:bg-white/90 font-medium shadow-lg"
-            onClick={onScheduleClass}
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Schedule Class
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
           <Button
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 font-medium shadow-lg border-0"
             onClick={onCreateCourse}

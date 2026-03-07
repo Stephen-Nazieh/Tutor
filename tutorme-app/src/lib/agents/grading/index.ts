@@ -18,8 +18,7 @@ import {
   Student, 
   ProgressData,
   Quiz,
-  getStudent,
-  getQuiz 
+  getStudent
 } from '../shared-data';
 import { 
   buildShortAnswerGradingPrompt,
@@ -312,7 +311,7 @@ async function generateGradingSummary(
   let performance = '';
   if (percentage >= 90) performance = 'excellent';
   else if (percentage >= 70) performance = 'good';
-  else if (percentage >= 50) performance 'needs improvement';
+  else if (percentage >= 50) performance = 'needs improvement';
   else performance = 'significant struggles';
   
   return `You scored ${correctCount} out of ${totalCount} (${percentage.toFixed(1)}%). This is a ${performance} performance.`;

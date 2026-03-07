@@ -235,7 +235,6 @@ function TutorDashboardContent() {
           <ModernHeroSection 
             stats={stats} 
             loading={loading} 
-            onScheduleClass={() => setShowCreateDialog(true)}
             onCreateCourse={() => router.push('/tutor/courses/new')}
           />
         </div>

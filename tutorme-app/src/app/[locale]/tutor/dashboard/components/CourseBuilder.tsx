@@ -476,7 +476,7 @@ const DEFAULT_MODULE_QUIZ = (order: number): ModuleQuiz => ({
 
 const DEFAULT_MODULE = (order: number): Module => ({
   id: `module-${generateId()}`,
-  title: order === 0 ? 'Lesson' : `Lesson ${order + 1}`,
+  title: `Lesson ${order + 1}`,
   description: '',
   order,
   isPublished: false,
@@ -4390,6 +4390,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     setActiveDragId(event.active.id as string)
   }
 
+  // Helper function to renumber module titles after reordering
+  const renumberModules = (mods: Module[]): Module[] => {
+    return mods.map((mod, idx) => ({
+      ...mod,
+      order: idx,
+      title: mod.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`)
+    }))
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     setActiveDragId(null)
@@ -4404,7 +4413,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     const overModuleIndex = modules.findIndex(m => m.id === overId)
 
     if (activeModuleIndex !== -1 && overModuleIndex !== -1) {
-      setModules(arrayMove(modules, activeModuleIndex, overModuleIndex))
+      const movedModules = arrayMove(modules, activeModuleIndex, overModuleIndex)
+      setModules(renumberModules(movedModules))
       return
     }
 
@@ -4415,11 +4425,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
       if (activeLessonIndex !== -1 && overLessonIndex !== -1) {
         const newModules = [...modules]
-        newModules[mIdx].lessons = arrayMove(
+        const movedLessons = arrayMove(
           newModules[mIdx].lessons,
           activeLessonIndex,
           overLessonIndex
         )
+        // Renumber lessons after reordering
+        newModules[mIdx].lessons = movedLessons.map((lesson, idx) => ({
+          ...lesson,
+          order: idx,
+          title: lesson.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`)
+        }))
         setModules(newModules)
         return
       }
@@ -4438,7 +4454,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
             newModules[mIdx].lessons[lIdx].content,
             activeContentIndex,
             overContentIndex
-          )
+          ).map((content, idx) => ({ ...content, order: idx }))
           setModules(newModules)
           return
         }
@@ -4917,100 +4933,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   return (
     <div className={cn("space-y-4", panelMode === 'live-class' && "pt-3")}>
-      {/* DIFFICULTY DEVELOPMENT MODE HEADER */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardContent className="py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Difficulty Development Mode</h3>
-                <p className="text-xs text-muted-foreground">
-                  Choose how to develop content for different skill levels
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              {/* Development Mode Toggle */}
-              <div className="flex items-center gap-2 bg-white rounded-lg p-1 border">
-                <button
-                  onClick={() => setDevMode('single')}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                    devMode === 'single'
-                      ? "bg-blue-500 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                >
-                  Single Level
-                </button>
-                <button
-                  onClick={() => setDevMode('multi')}
-                  className={cn(
-                    "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-                    devMode === 'multi'
-                      ? "bg-blue-500 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                >
-                  Multi-Level (Adaptive)
-                </button>
-              </div>
-
-              {/* Preview Difficulty Selector (only in multi mode) */}
-              {devMode === 'multi' && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Preview:</span>
-                  <div className="flex items-center gap-1 bg-white rounded-lg p-1 border">
-                    {(['all', 'beginner', 'intermediate', 'advanced'] as const).map((level) => (
-                      <button
-                        key={level}
-                        onClick={() => setPreviewDifficulty(level)}
-                        className={cn(
-                          "px-2 py-1 rounded text-xs font-medium transition-all capitalize",
-                          previewDifficulty === level
-                            ? level === 'all'
-                              ? "bg-gray-800 text-white"
-                              : level === 'beginner'
-                                ? "bg-green-500 text-white"
-                                : level === 'intermediate'
-                                  ? "bg-blue-500 text-white"
-                                  : "bg-purple-500 text-white"
-                            : "text-gray-600 hover:bg-gray-100"
-                        )}
-                      >
-                        {level === 'all' ? 'All' : level}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Info Text */}
-          <div className="mt-3 pt-3 border-t border-blue-200/50">
-            <p className="text-xs text-blue-700">
-              {devMode === 'single' ? (
-                <>
-                  <span className="font-medium">Single Level Mode:</span> All content is created for one difficulty level.
-                  When assigned to groups, content adapts automatically based on each group's difficulty setting.
-                </>
-              ) : (
-                <>
-                  <span className="font-medium">Multi-Level Mode:</span> Create customized versions for each difficulty level.
-                  Use the Preview buttons to see how content appears at different levels.
-                  Items marked with 🎯 are fixed to specific levels, while 🔄 adaptive items adjust automatically.
-                </>
-              )}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="grid grid-cols-12 gap-6">
         {/* LEFT PANEL - Course Structure */}
         <div className="col-span-4">

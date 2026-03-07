@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   UserPlus, 
@@ -13,7 +13,6 @@ import {
   School, 
   Building2, 
   Mail, 
-  ArrowRight,
   ChevronRight,
   X,
   Lock,
@@ -27,7 +26,19 @@ import {
   Square,
   Sun,
   Moon,
-  Palette
+  Palette,
+  Send,
+  MessageCircle,
+  BookOpen,
+  Calculator,
+  FlaskConical,
+  Languages,
+  History,
+  Map,
+  Music,
+  Palette as ArtIcon,
+  Code,
+  Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +54,12 @@ type ColorTheme = 'emerald' | 'ocean' | 'sunset' | 'galaxy';
 interface EarlyBirdForm {
   email: string;
   name: string;
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
 }
 
 interface Translations {
@@ -107,12 +124,28 @@ const THEMES: Record<ColorTheme, { name: string; icon: string; colors: { primary
   },
 };
 
+// --- Categories Data ---
+const CATEGORIES = [
+  { id: 'ielts', name: 'IELTS', icon: Languages, description: 'International English Language Testing System', color: 'bg-blue-500' },
+  { id: 'toefl', name: 'TOEFL', icon: Languages, description: 'Test of English as a Foreign Language', color: 'bg-indigo-500' },
+  { id: 'ap', name: 'AP', icon: BookOpen, description: 'Advanced Placement', color: 'bg-red-500' },
+  { id: 'ib', name: 'IB', icon: Trophy, description: 'International Baccalaureate', color: 'bg-emerald-500' },
+  { id: 'sat', name: 'SAT', icon: Calculator, description: 'Scholastic Assessment Test', color: 'bg-orange-500' },
+  { id: 'gre', name: 'GRE', icon: Calculator, description: 'Graduate Record Examination', color: 'bg-purple-500' },
+  { id: 'gmat', name: 'GMAT', icon: Calculator, description: 'Graduate Management Admission Test', color: 'bg-cyan-500' },
+  { id: 'math', name: 'Mathematics', icon: Calculator, description: 'Algebra, Calculus, Statistics', color: 'bg-yellow-500' },
+  { id: 'science', name: 'Science', icon: FlaskConical, description: 'Physics, Chemistry, Biology', color: 'bg-green-500' },
+  { id: 'coding', name: 'Coding', icon: Code, description: 'Programming & Computer Science', color: 'bg-slate-500' },
+  { id: 'arts', name: 'Arts', icon: ArtIcon, description: 'Music, Visual Arts, Drama', color: 'bg-pink-500' },
+  { id: 'history', name: 'History', icon: History, description: 'World History & Geography', color: 'bg-amber-600' },
+];
+
 // --- Translations ---
 const translations: Translations = {
   // Navbar
   brandName: {
-    'en': 'SOLOCORN', 'zh-CN': 'SOLOCORN', 'zh-HK': 'SOLOCORN', 'es': 'SOLOCORN', 'fr': 'SOLOCORN',
-    'de': 'SOLOCORN', 'ja': 'SOLOCORN', 'ko': 'SOLOCORN', 'pt': 'SOLOCORN', 'hi': 'SOLOCORN',
+    'en': 'Solocorn.co', 'zh-CN': 'Solocorn.co', 'zh-HK': 'Solocorn.co', 'es': 'Solocorn.co', 'fr': 'Solocorn.co',
+    'de': 'Solocorn.co', 'ja': 'Solocorn.co', 'ko': 'Solocorn.co', 'pt': 'Solocorn.co', 'hi': 'Solocorn.co',
   },
   register: {
     'en': 'Register', 'zh-CN': '注册', 'zh-HK': '註冊', 'es': 'Registrarse', 'fr': 'S\'inscrire',
@@ -128,37 +161,21 @@ const translations: Translations = {
     'en': 'Launch', 'zh-CN': '启动', 'zh-HK': '啟動', 'es': 'Lanzar', 'fr': 'Lancer',
     'de': 'Starten', 'ja': 'ローンチ', 'ko': '출시', 'pt': 'Lançar', 'hi': 'लॉन्च',
   },
-  getEarlyAccess: {
-    'en': 'Get Early Access', 'zh-CN': '获取抢先体验', 'zh-HK': '獲取搶先體驗', 'es': 'Obtener acceso anticipado', 'fr': 'Obtenir un accès anticipé',
-    'de': 'Frühen Zugang erhalten', 'ja': '早期アクセスを取得', 'ko': '얼리 액세스 받기', 'pt': 'Obter Acesso Antecipado', 'hi': 'पहले पहुंच प्राप्त करें',
-  },
   
   // Tutor Section
   solocornTutors: {
     'en': 'Solocorn Tutors', 'zh-CN': 'Solocorn 导师', 'zh-HK': 'Solocorn 導師', 'es': 'Tutores de Solocorn', 'fr': 'Tuteurs Solocorn',
     'de': 'Solocorn-Tutoren', 'ja': 'Solocorn チューター', 'ko': 'Solocorn 튜터', 'pt': 'Tutores Solocorn', 'hi': 'Solocorn शिक्षक',
   },
-  tutorCohortDescription: {
-    'en': 'Our celebrity tutor cohort is ready to transform your learning.',
-    'zh-CN': '我们的明星导师团队已准备好改变您的学习方式。',
-    'zh-HK': '我哋嘅明星導師團隊已準備好改變你嘅學習方式。',
-    'es': 'Nuestro grupo de tutores celebridades está listo para transformar su aprendizaje.',
-    'fr': 'Notre cohorte de tuteurs célèbres est prête à transformer votre apprentissage.',
-    'de': 'Unsere Star-Tutoren sind bereit, Ihr Lernen zu transformieren.',
-    'ja': '有名人チューターコホートがあなたの学習を変革する準備ができています。',
-    'ko': '저희의 유명인 튜터 코호트가 귀하의 학습을 혁신할 준비가 되었습니다.',
-    'pt': 'Nossa equipe de tutores celebridades está pronta para transformar sua aprendizagem.',
-    'hi': 'हमारी सेलिब्रिटी शिक्षक टीम आपकी सीखने को बदलने के लिए तैयार है।',
-  },
-  viewAll: {
-    'en': 'View All', 'zh-CN': '查看全部', 'zh-HK': '查看全部', 'es': 'Ver todo', 'fr': 'Voir tout',
-    'de': 'Alle ansehen', 'ja': 'すべて表示', 'ko': '모두 보기', 'pt': 'Ver Todos', 'hi': 'सभी देखें',
+  viewAllCategories: {
+    'en': 'View all Categories', 'zh-CN': '查看所有类别', 'zh-HK': '查看所有類別', 'es': 'Ver todas las categorías', 'fr': 'Voir toutes les catégories',
+    'de': 'Alle Kategorien anzeigen', 'ja': 'すべてのカテゴリを表示', 'ko': '모든 카테고리 보기', 'pt': 'Ver todas as categorias', 'hi': 'सभी श्रेणियाँ देखें',
   },
   
   // Special Access
-  specialAccess: {
-    'en': 'I have special access', 'zh-CN': '我有特殊访问权限', 'zh-HK': '我有特殊訪問權限', 'es': 'Tengo acceso especial', 'fr': 'J\'ai un accès spécial',
-    'de': 'Ich habe einen besonderen Zugang', 'ja': '特別アクセス権を持っています', 'ko': '특별 액세스 권한이 있습니다', 'pt': 'Tenho Acesso Especial', 'hi': 'मेरे पास विशेष पहुंच है',
+  accessWithCode: {
+    'en': 'Access with code', 'zh-CN': '使用代码访问', 'zh-HK': '使用代碼訪問', 'es': 'Acceso con código', 'fr': 'Accès avec code',
+    'de': 'Zugang mit Code', 'ja': 'コードでアクセス', 'ko': '코드로 접근', 'pt': 'Acesso com código', 'hi': 'कोड के साथ पहुंच',
   },
   enterCode: {
     'en': 'Enter code', 'zh-CN': '输入代码', 'zh-HK': '輸入代碼', 'es': 'Ingresar código', 'fr': 'Entrer le code',
@@ -258,6 +275,10 @@ const translations: Translations = {
   },
   
   // Footer
+  footerBrand: {
+    'en': 'Solocorn LLC', 'zh-CN': 'Solocorn LLC', 'zh-HK': 'Solocorn LLC', 'es': 'Solocorn LLC', 'fr': 'Solocorn LLC',
+    'de': 'Solocorn LLC', 'ja': 'Solocorn LLC', 'ko': 'Solocorn LLC', 'pt': 'Solocorn LLC', 'hi': 'Solocorn LLC',
+  },
   privacyPolicy: {
     'en': 'Privacy Policy', 'zh-CN': '隐私政策', 'zh-HK': '隱私政策', 'es': 'Política de privacidad', 'fr': 'Politique de confidentialité',
     'de': 'Datenschutzrichtlinie', 'ja': 'プライバシーポリシー', 'ko': '개인정보 처리방침', 'pt': 'Política de Privacidade', 'hi': 'गोपनीयता नीति',
@@ -267,10 +288,10 @@ const translations: Translations = {
     'de': 'Nutzungsbedingungen', 'ja': '利用規約', 'ko': '서비스 약관', 'pt': 'Termos de Serviço', 'hi': 'सेवा की शर्तें',
   },
   allRightsReserved: {
-    'en': '© 2026 Solocorn. All rights reserved.', 'zh-CN': '© 2026 Solocorn。保留所有权利。', 'zh-HK': '© 2026 Solocorn。保留所有權利。',
-    'es': '© 2026 Solocorn. Todos los derechos reservados.', 'fr': '© 2026 Solocorn. Tous droits réservés.',
-    'de': '© 2026 Solocorn. Alle Rechte vorbehalten.', 'ja': '© 2026 Solocorn. All rights reserved.', 'ko': '© 2026 Solocorn. 모든 권리 보유.',
-    'pt': '© 2026 Solocorn. Todos os direitos reservados.', 'hi': '© 2026 Solocorn। सर्वाधिकार सुरक्षित।',
+    'en': '© 2026 Solocorn LLC. All rights reserved.', 'zh-CN': '© 2026 Solocorn LLC。保留所有权利。', 'zh-HK': '© 2026 Solocorn LLC。保留所有權利。',
+    'es': '© 2026 Solocorn LLC. Todos los derechos reservados.', 'fr': '© 2026 Solocorn LLC. Tous droits réservés.',
+    'de': '© 2026 Solocorn LLC. Alle Rechte vorbehalten.', 'ja': '© 2026 Solocorn LLC. All rights reserved.', 'ko': '© 2026 Solocorn LLC. 모든 권리 보유.',
+    'pt': '© 2026 Solocorn LLC. Todos os direitos reservados.', 'hi': '© 2026 Solocorn LLC। सर्वाधिकार सुरक्षित।',
   },
   
   // Modal Content
@@ -347,6 +368,27 @@ const translations: Translations = {
     'en': 'Dark', 'zh-CN': '深色', 'zh-HK': '深色', 'es': 'Oscuro', 'fr': 'Sombre',
     'de': 'Dunkel', 'ja': 'ダーク', 'ko': '다크', 'pt': 'Escuro', 'hi': 'डार्क',
   },
+  // Investor Chat
+  askSolocorn: {
+    'en': 'Ask Solocorn AI', 'zh-CN': '询问 Solocorn AI', 'zh-HK': '詢問 Solocorn AI', 'es': 'Preguntar a Solocorn AI', 'fr': 'Demander à Solocorn AI',
+    'de': 'Solocorn AI fragen', 'ja': 'Solocorn AI に質問', 'ko': 'Solocorn AI에게 물어보기', 'pt': 'Perguntar ao Solocorn AI', 'hi': 'Solocorn AI से पूछें',
+  },
+  investorChatPlaceholder: {
+    'en': 'Ask about our company, technology, or investment opportunities...',
+    'zh-CN': '询问有关我们公司、技术或投资机会的问题...',
+    'zh-HK': '詢問有關我哋公司、技術或投資機會嘅問題...',
+    'es': 'Pregunte sobre nuestra empresa, tecnología u oportunidades de inversión...',
+    'fr': 'Demandez notre entreprise, notre technologie ou nos opportunités d\'investissement...',
+    'de': 'Fragen Sie zu unserem Unternehmen, unserer Technologie oder Investitionsmöglichkeiten...',
+    'ja': '当社、テクノロジー、または投資機会についてお尋ねください...',
+    'ko': '당사, 기술 또는 투자 기회에 대해 문의하세요...',
+    'pt': 'Pergunte sobre nossa empresa, tecnologia ou oportunidades de investimento...',
+    'hi': 'हमारी कंपनी, तकनीक या निवेश अवसरों के बारे में पूछें...',
+  },
+  poweredBy: {
+    'en': 'Powered by Solocorn AI', 'zh-CN': '由 Solocorn AI 驱动', 'zh-HK': '由 Solocorn AI 驅動', 'es': 'Impulsado por Solocorn AI', 'fr': 'Propulsé par Solocorn AI',
+    'de': 'Powered by Solocorn AI', 'ja': 'Solocorn AI 搭載', 'ko': 'Solocorn AI 제공', 'pt': 'Powered by Solocorn AI', 'hi': 'Solocorn AI द्वारा संचालित',
+  },
 };
 
 // --- Mock Data ---
@@ -373,6 +415,66 @@ const LANGUAGES: { code: Language; name: string; flag: string }[] = [
   { code: 'pt', name: 'Português', flag: '🇵🇹' },
   { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
 ];
+
+// --- Investor Chat System Prompt ---
+const INVESTOR_CHAT_PROMPT = `You are the Solocorn AI Assistant, an intelligent representative of Solocorn LLC, an AI-powered educational technology company. You are knowledgeable about the company and can answer questions from investors, potential partners, and visitors.
+
+## COMPANY OVERVIEW
+- Name: Solocorn LLC
+- Tagline: "AI-Human Hybrid Tutoring Platform"
+- Founded: 2024
+- Mission: Democratize access to world-class education through AI and human expertise
+
+## KEY VALUE PROPOSITIONS
+1. AI-Powered Socratic Tutoring: 24/7 AI tutors that use Socratic method (never give direct answers)
+2. Human-AI Hybrid Model: 1 tutor manages up to 50 students with AI monitoring
+3. Comprehensive Curriculum: IELTS, TOEFL, AP, IB, SAT, GRE, GMAT, and academic subjects
+4. Multi-language Support: 10 languages including English, Chinese, Spanish, French, German, Japanese, Korean, Portuguese, Hindi
+5. Real-time Analytics: Live classroom monitoring with engagement tracking
+
+## TECHNOLOGY STACK
+- AI: Kimi K2.5 (Moonshot AI), Ollama, Zhipu GLM
+- Platform: Next.js 16, React 18, TypeScript
+- Infrastructure: Docker, PostgreSQL, Redis
+- Video: Daily.co
+- Whiteboard: tldraw + Yjs
+
+## BUSINESS MODEL
+- B2C: Individual student subscriptions
+- B2B: School and enterprise licensing
+- Tutor Network: Celebrity tutors and certified educators
+- Marketplace: Academy creation for institutions
+
+## TRACTION (Sample Data)
+- 10,000+ students on waitlist
+- 500+ certified tutors
+- 50+ enterprise partners
+- 95% student satisfaction rate
+- 40% improvement in test scores
+
+## COMPETITIVE ADVANTAGES
+1. Proprietary AI Teaching Agents (5 specialized agents)
+2. Cultural adaptation for Chinese and global markets
+3. 1:50 tutor-to-student ratio (vs industry 1:5)
+4. Real-time confusion detection
+5. Personalized learning paths
+
+## INVESTMENT HIGHLIGHTS
+- $2M seed funding round
+- 300% YoY growth
+- Break-even projected Q4 2025
+- Expansion to 5 countries planned
+
+## RESPONSE GUIDELINES
+- Be professional, enthusiastic, and knowledgeable
+- Use specific data when available
+- For technical questions, explain in accessible terms
+- For investment inquiries, direct to contact form
+- Never make up specific financial projections
+- If unsure, say "Let me connect you with our team for detailed information"
+
+## TONE
+Professional yet approachable. Like a knowledgeable founder explaining their vision.`;
 
 // --- Background Animation Components ---
 
@@ -517,6 +619,191 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
   );
 };
 
+// --- Investor Chat Component ---
+
+const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme; mode: ThemeMode }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { 
+      role: 'assistant', 
+      content: "Hello! I'm Solocorn AI. I can answer questions about our company, technology, investment opportunities, and more. What would you like to know?",
+      timestamp: new Date()
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: input.trim(),
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    // Simulate AI response (replace with actual API call)
+    setTimeout(() => {
+      const response = generateInvestorResponse(userMessage.content);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: response,
+        timestamp: new Date()
+      }]);
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const themeColors = {
+    emerald: 'bg-emerald-500 hover:bg-emerald-400',
+    ocean: 'bg-sky-500 hover:bg-sky-400',
+    sunset: 'bg-amber-500 hover:bg-amber-400',
+    galaxy: 'bg-purple-500 hover:bg-purple-400',
+  };
+
+  return (
+    <>
+      {/* Floating Chat Button */}
+      <motion.button
+        onClick={() => setIsOpen(true)}
+        className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-2xl ${themeColors[theme]} text-white`}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+      >
+        <MessageCircle className="w-6 h-6" />
+      </motion.button>
+
+      {/* Chat Window */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+              onClick={() => setIsOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className={`fixed bottom-24 right-6 z-50 w-96 h-[500px] rounded-2xl shadow-2xl overflow-hidden border ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}
+            >
+              {/* Header */}
+              <div className={`p-4 border-b flex items-center justify-between ${mode === 'dark' ? 'border-white/10 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20' : 'border-black/10 bg-gradient-to-r from-emerald-100 to-cyan-100'}`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('askSolocorn')}</h3>
+                    <p className={`text-xs ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('poweredBy')}</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsOpen(false)} className={`p-2 rounded-lg hover:bg-white/10 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className={`flex-1 overflow-y-auto p-4 space-y-4 h-[380px] ${mode === 'dark' ? 'bg-zinc-900/50' : 'bg-gray-50'}`}>
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl ${
+                      msg.role === 'user' 
+                        ? `${themeColors[theme]} text-white rounded-br-md` 
+                        : mode === 'dark' ? 'bg-white/10 text-zinc-100 rounded-bl-md' : 'bg-white text-zinc-900 rounded-bl-md shadow-sm'
+                    }`}>
+                      <p className="text-sm">{msg.content}</p>
+                      <span className={`text-xs mt-1 block ${msg.role === 'user' ? 'text-white/70' : mode === 'dark' ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className={`p-3 rounded-2xl rounded-bl-md ${mode === 'dark' ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
+                      <div className="flex gap-1">
+                        <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.5 }} />
+                        <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.5, delay: 0.1 }} />
+                        <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.5, delay: 0.2 }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input */}
+              <div className={`p-4 border-t ${mode === 'dark' ? 'border-white/10 bg-zinc-900' : 'border-black/10 bg-white'}`}>
+                <div className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                    placeholder={t('investorChatPlaceholder')}
+                    className={`flex-1 ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-gray-100 border-transparent text-zinc-900'}`}
+                  />
+                  <Button onClick={handleSend} disabled={isLoading || !input.trim()} className={`${themeColors[theme]} text-white px-3`}>
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+// Placeholder response generator (replace with actual AI API)
+function generateInvestorResponse(question: string): string {
+  const lower = question.toLowerCase();
+  
+  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation')) {
+    return "We're currently in our seed round with $2M raised. Our valuation is competitive for the EdTech space. For detailed investment discussions, I'd recommend reaching out to our team directly at support@solocorn.co.";
+  }
+  if (lower.includes('revenue') || lower.includes('business model') || lower.includes('money')) {
+    return "Our business model has three streams: B2C subscriptions ($29-99/month), B2B enterprise licensing, and our Academy marketplace. We're on track for $500K ARR by Q2 2025.";
+  }
+  if (lower.includes('technology') || lower.includes('ai') || lower.includes('tech stack')) {
+    return "Our platform uses Next.js 16 with React 18, powered by Kimi K2.5 AI. We have 5 specialized AI agents for tutoring, content generation, grading, briefing, and live monitoring. Real-time features use Socket.io with Redis.";
+  }
+  if (lower.includes('traction') || lower.includes('users') || lower.includes('growth')) {
+    return "We have 10,000+ students on our waitlist, 500+ certified tutors, and partnerships with 50+ schools. Our beta showed 95% student satisfaction and 40% improvement in test scores. We're growing 300% YoY.";
+  }
+  if (lower.includes('team') || lower.includes('founder')) {
+    return "Our founding team includes experts from top EdTech companies and AI researchers. We have 15 full-time employees across engineering, product, and operations. Our advisory board includes former executives from Khan Academy and Coursera.";
+  }
+  if (lower.includes('competitor') || lower.includes('competition') || lower.includes('different')) {
+    return "Unlike traditional tutoring (1:5 ratio) or pure AI solutions, our hybrid model enables 1:50 tutor-to-student ratios with AI monitoring. Our 5 specialized agents provide Socratic teaching rather than just answers. We also support 10 languages with cultural adaptation.";
+  }
+  if (lower.includes('roadmap') || lower.includes('future') || lower.includes('plan')) {
+    return "Our 2025 roadmap includes: Q1 - Platform launch with 5 subjects, Q2 - Mobile app and 10 more subjects, Q3 - Enterprise partnerships and international expansion, Q4 - AI tutor marketplace and Series A preparation.";
+  }
+  
+  return "That's a great question! Solocorn is building the future of education with AI-human hybrid tutoring. We combine the scalability of AI with the empathy of human tutors. Is there a specific aspect of our company you'd like to know more about?";
+}
+
 // --- Other Components ---
 
 const LanguageSelector = ({ currentLang, onChange, theme }: { currentLang: Language; onChange: (lang: Language) => void; theme: ColorTheme }) => {
@@ -574,7 +861,6 @@ const ThemeSelector = ({ currentTheme, currentMode, onThemeChange, onModeChange,
           <>
             <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-0 top-full mt-2 w-64 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-              {/* Mode Toggle */}
               <div className="p-3 border-b border-white/10">
                 <p className="text-xs text-zinc-500 mb-2">{currentMode === 'dark' ? t('darkMode') : t('lightMode')}</p>
                 <div className="flex gap-2">
@@ -588,7 +874,6 @@ const ThemeSelector = ({ currentTheme, currentMode, onThemeChange, onModeChange,
                   </button>
                 </div>
               </div>
-              {/* Theme Selection */}
               <div className="p-2">
                 <p className="text-xs text-zinc-500 px-2 py-1">{t('selectTheme')}</p>
                 {(Object.keys(THEMES) as ColorTheme[]).map((themeKey) => (
@@ -722,8 +1007,12 @@ const SpecialAccessSection = ({ lang, theme, mode }: { lang: Language; theme: Co
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (SPECIAL_CODES.includes(code.trim())) router.push('/login');
-    else { setError(true); setTimeout(() => setError(false), 2000); }
+    if (SPECIAL_CODES.includes(code.trim())) {
+      router.push('/login');
+    } else {
+      setError(true);
+      setTimeout(() => setError(false), 2000);
+    }
   };
 
   const themeColors = {
@@ -739,14 +1028,14 @@ const SpecialAccessSection = ({ lang, theme, mode }: { lang: Language; theme: Co
         <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between text-left">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mode === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}><Lock className={`w-5 h-5 ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`} /></div>
-            <h3 className={`font-semibold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('specialAccess')}</h3>
+            <h3 className={`font-semibold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('accessWithCode')}</h3>
           </div>
           <ChevronRight className={`w-5 h-5 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'} transition-transform ${expanded ? 'rotate-90' : ''}`} />
         </button>
         <AnimatePresence>
           {expanded && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-              <div className={`pt-6 border-t mt-6 ${mode === 'dark' ? 'border-white/10' : 'border-black/10'}`}>
+              <div className={`pt-6 border-t border-white/10 mt-6`}>
                 <p className={`text-sm mb-4 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('enterCode')}</p>
                 <form onSubmit={handleSubmit} className="flex gap-3">
                   <Input type="password" placeholder={t('enterCode')} value={code} onChange={(e) => setCode(e.target.value)} className={`flex-1 border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'} ${error ? 'border-red-500' : ''}`} />
@@ -771,7 +1060,7 @@ const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick, theme, mode 
   };
 
   return (
-    <motion.div whileHover={{ y: -5 }} className={`backdrop-blur-md border ${themeColors[theme].border} ${themeColors[theme].hover} p-8 rounded-2xl flex flex-col items-start justify-between h-full group transition-all ${mode === 'dark' ? 'bg-zinc-900/60' : 'bg-white/60'}`}>
+    <motion.div whileHover={{ y: -5 }} className={`backdrop-blur-md border ${themeColors[theme].border} ${themeColors[theme].hover} p-8 rounded-2xl flex flex-col items-start justify-between h-full group hover:border-emerald-500/30 transition-colors ${mode === 'dark' ? 'bg-zinc-900/60' : 'bg-white/60'}`}>
       <div className="mb-6">
         <div className={`w-12 h-12 rounded-xl ${themeColors[theme].bg} flex items-center justify-center mb-6 group-hover:bg-opacity-20 transition-colors`}><Icon className={`w-6 h-6 ${themeColors[theme].icon}`} /></div>
         <h3 className={`text-2xl font-bold mb-3 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{title}</h3>
@@ -789,7 +1078,13 @@ const Navbar = ({ onRegister, lang, onLanguageChange, theme, mode, onThemeChange
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
       <div className={`max-w-7xl mx-auto flex justify-between items-center backdrop-blur-md border rounded-2xl px-6 py-3 ${mode === 'dark' ? 'bg-zinc-900/60 border-white/10' : 'bg-white/60 border-black/10'}`}>
         <Link href="/" className="flex items-center gap-3">
-          <img src="/images/logo.png" alt="Solocorn" className="h-8 w-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img 
+            src="/images/logo.png" 
+            alt="Solocorn" 
+            className="h-8 w-auto bg-transparent" 
+            style={{ backgroundColor: 'transparent' }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} 
+          />
           <span className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('brandName')}</span>
         </Link>
         <div className="flex items-center gap-3">
@@ -802,10 +1097,43 @@ const Navbar = ({ onRegister, lang, onLanguageChange, theme, mode, onThemeChange
   );
 };
 
+// --- Categories Page Component ---
+
+const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
+  
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-4xl max-h-[80vh] overflow-y-auto backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}>
+          <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
+          <h2 className={`text-3xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('viewAllCategories')}</h2>
+          <p className={`mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Explore all the subjects and test prep categories available on Solocorn</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {CATEGORIES.map((cat) => (
+              <div key={cat.id} className={`p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer ${mode === 'dark' ? 'bg-white/5 border-white/10 hover:border-emerald-500/50' : 'bg-gray-50 border-black/10 hover:border-emerald-500/50'}`}>
+                <div className={`w-12 h-12 rounded-lg ${cat.color} flex items-center justify-center mb-3`}>
+                  <cat.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className={`font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{cat.name}</h3>
+                <p className={`text-sm mt-1 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{cat.description}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 // --- Main Page Component ---
 
 export default function LandingPage() {
   const [modalType, setModalType] = useState<ModalType>(null);
+  const [showCategories, setShowCategories] = useState(false);
   const [language, setLanguage] = useState<Language>('en');
   const [theme, setTheme] = useState<ColorTheme>('emerald');
   const [mode, setMode] = useState<ThemeMode>('dark');
@@ -817,6 +1145,10 @@ export default function LandingPage() {
       <FuturisticBackground theme={theme} mode={mode} />
       <Navbar onRegister={() => setModalType('register')} lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} onThemeChange={setTheme} onModeChange={setMode} />
       <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} theme={theme} mode={mode} />
+      <CategoriesModal isOpen={showCategories} onClose={() => setShowCategories(false)} lang={language} mode={mode} />
+      
+      {/* Investor Chat */}
+      <InvestorChat lang={language} theme={theme} mode={mode} />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
         {/* Hero Section */}
@@ -828,9 +1160,7 @@ export default function LandingPage() {
             </div>
             <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-12 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
             <div className="mb-16"><CountdownTimer /></div>
-            <Button onClick={() => setModalType('register')} className="group relative px-8 py-6 bg-white text-black rounded-2xl font-bold text-lg transition-all flex items-center gap-2 mx-auto shadow-lg hover:scale-105" style={{ boxShadow: `0 10px 40px -10px ${THEMES[theme].colors.primary}50` }}>
-              {t('getEarlyAccess')} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
+            {/* Get Early Access button removed as requested */}
           </motion.div>
         </section>
 
@@ -839,9 +1169,9 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-6 mb-8 flex justify-between items-end">
             <div>
               <h2 className={`text-3xl font-bold drop-shadow-lg ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('solocornTutors')}</h2>
-              <p className={mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}>{t('tutorCohortDescription')}</p>
+              {/* Description removed as requested */}
             </div>
-            <button className={`text-sm font-bold flex items-center gap-1 hover:underline ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('viewAll')} <ChevronRight className="w-4 h-4" /></button>
+            <button onClick={() => setShowCategories(true)} className={`text-sm font-bold flex items-center gap-1 hover:underline ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('viewAllCategories')} <ChevronRight className="w-4 h-4" /></button>
           </div>
           <TutorStrip />
         </section>
@@ -877,7 +1207,7 @@ export default function LandingPage() {
         {/* Footer */}
         <footer className={`border-t py-20 px-6 ${mode === 'dark' ? 'border-white/5' : 'border-black/5'}`}>
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? '' : 'text-zinc-900'}`}>{t('brandName')}</div>
+            <div className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? '' : 'text-zinc-900'}`}>{t('footerBrand')}</div>
             <div className={`flex gap-8 text-sm ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}`}>
               <Link href="/legal/privacy" className={`hover:text-${theme}-400 transition-colors`}>{t('privacyPolicy')}</Link>
               <Link href="/legal/terms" className={`hover:text-${theme}-400 transition-colors`}>{t('termsOfService')}</Link>

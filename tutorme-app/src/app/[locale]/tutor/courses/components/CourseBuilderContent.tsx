@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Wand2, BookOpen, Radio, Loader2, Settings, Save } from 'lucide-react'
+import { ArrowLeft, Wand2, BookOpen, Loader2, Save } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
@@ -66,7 +66,6 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   const [course, setCourse] = useState<CourseData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [isLiveOnline, setIsLiveOnline] = useState(true)
   const [loadedModules, setLoadedModules] = useState<CourseBuilderModule[] | null>(null)
   const [savedVariants, setSavedVariants] = useState<AdaptiveVariantLink[]>([])
   const courseBuilderRef = useRef<CourseBuilderRef>(null)
@@ -80,7 +79,6 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
       if (res.ok) {
         const data = await res.json()
         setCourse(data.course)
-        setIsLiveOnline(data.course?.isLiveOnline ?? true)
       }
 
       // Load curriculum tree from DB
@@ -104,41 +102,6 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   useEffect(() => {
     loadCourse()
   }, [loadCourse])
-
-  const handleToggleAvailability = async () => {
-    const newValue = !isLiveOnline
-    setIsLiveOnline(newValue)
-
-    setSaving(true)
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      const res = await fetch(`/api/tutor/courses/${courseId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-        },
-        credentials: 'include',
-        body: JSON.stringify({ isLiveOnline: newValue }),
-      })
-
-      if (res.ok) {
-        toast.success(newValue ? 'Course is now online' : 'Course is now offline')
-        setCourse(prev => prev ? { ...prev, isLiveOnline: newValue } : null)
-      } else {
-        setIsLiveOnline(!newValue)
-        toast.error('Failed to update availability')
-      }
-    } catch {
-      setIsLiveOnline(!newValue)
-      toast.error('Failed to update availability')
-    } finally {
-      setSaving(false)
-    }
-  }
 
   if (!courseId) {
     return (
@@ -236,34 +199,6 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {/* Course Availability Toggle */}
-              <div className="flex items-center gap-2 pr-4 border-r">
-                <Radio className={cn(
-                  "h-4 w-4",
-                  isLiveOnline ? "text-green-500" : "text-gray-400"
-                )} />
-                <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {isLiveOnline ? 'Online' : 'Offline'}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleToggleAvailability}
-                  disabled={saving || loading}
-                  className={cn(
-                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                    isLiveOnline ? 'bg-green-500' : 'bg-gray-200',
-                    (saving || loading) && 'opacity-50 cursor-not-allowed'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
-                      isLiveOnline ? 'translate-x-6' : 'translate-x-1'
-                    )}
-                  />
-                </button>
-              </div>
-
               <Button
                 variant="default"
                 className="gap-2"
@@ -274,15 +209,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
                 Save Course
               </Button>
               {course && (
-                <>
-                  <PublishStatusBadge isPublished={course.isPublished} />
-                  <Button variant="outline" asChild>
-                    <Link href={`/tutor/courses/${courseId}`}>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </Link>
-                  </Button>
-                </>
+                <PublishStatusBadge isPublished={course.isPublished} />
               )}
             </div>
           </div>

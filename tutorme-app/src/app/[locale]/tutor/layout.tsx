@@ -98,7 +98,6 @@ const quickActionSections: QuickActionSection[] = [
     items: [
       { href: '/tutor/dashboard?create=1', label: 'Create Class', icon: Zap },
       { href: '/tutor/group-builder', label: 'Group Builder', icon: Users },
-      { href: '/tutor/calendar', label: 'Schedule Class', icon: CalendarPlus },
     ],
   },
   {
