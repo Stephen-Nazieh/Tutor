@@ -5382,6 +5382,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               )}
                               onClick={() => toggleModule(module.id)}
                             >
+                              {/* Drag Handle - Visible */}
+                              <div 
+                                className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-blue-200 rounded"
+                                title="Drag to reorder"
+                              >
+                                <GripVertical className="h-4 w-4 text-blue-400" />
+                              </div>
                               {expandedModules.has(module.id) ? (
                                 <ChevronDown className="h-3 w-3 text-blue-600" />
                               ) : (
@@ -5419,20 +5426,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               >
                                 <Plus className="h-3 w-3" />
                                 Assessment
-                              </Button>
-
-                              {/* +Homework Button */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-emerald-600"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  addHomework(module.id, primaryLesson.id)
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                                Homework
                               </Button>
 
                               <Button
@@ -5574,7 +5567,38 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                   </SortableContext>
                                 )}
 
-                                {homeworkItems.length > 0 && (
+                                {/* Homework Folder */}
+                                <TreeItem depth={2} isLast={false}>
+                                  <div className="flex items-center gap-1.5">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-5 w-5"
+                                      onClick={() => toggleSection(module.id, 'homework')}
+                                      aria-label={isSectionCollapsed(module.id, 'homework') ? 'Expand homework' : 'Collapse homework'}
+                                    >
+                                      {isSectionCollapsed(module.id, 'homework') ? (
+                                        <ChevronRight className="h-3 w-3 text-emerald-600" />
+                                      ) : (
+                                        <ChevronDown className="h-3 w-3 text-emerald-600" />
+                                      )}
+                                    </Button>
+                                    <span className="text-xs font-medium text-emerald-700">Homework</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1 text-emerald-600"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        addHomework(module.id, primaryLesson.id)
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Add
+                                    </Button>
+                                  </div>
+                                </TreeItem>
+                                {!isSectionCollapsed(module.id, 'homework') && homeworkItems.length > 0 && (
                                   <SortableContext
                                     items={homeworkItems.map(h => h.id)}
                                     strategy={verticalListSortingStrategy}
@@ -5679,218 +5703,223 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
         <div className={aiPanelOpen ? 'col-span-5' : 'col-span-8'}>
           <div className="h-full flex flex-col space-y-4 overflow-auto">
             
-            {/* SECTION 1: Test PCI */}
+            {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
             <Card className="flex-shrink-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">Test PCI</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-4">
-                  {/* Main content with tabs */}
-                  <div className="flex-1">
-                    <Tabs defaultValue="classroom" className="w-full">
-                      <TabsList className="grid w-full grid-cols-3">
-                        {testPciTabs.map((tab) => (
-                          <div key={tab.id} className="relative flex-1">
-                            {editingTabId === tab.id ? (
-                              <Input
-                                value={tab.label}
-                                onChange={(e) => {
-                                  setTestPciTabs(prev => prev.map(t => 
-                                    t.id === tab.id ? { ...t, label: e.target.value } : t
-                                  ))
-                                }}
-                                onBlur={() => setEditingTabId(null)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') setEditingTabId(null)
-                                }}
-                                className="h-8 text-xs font-medium text-center"
-                                autoFocus
-                              />
-                            ) : (
-                              <TabsTrigger 
-                                value={tab.id}
-                                className="w-full"
-                                onDoubleClick={() => setEditingTabId(tab.id)}
-                              >
-                                {tab.label}
-                              </TabsTrigger>
-                            )}
-                          </div>
-                        ))}
-                      </TabsList>
-                      {testPciTabs.map((tab) => (
-                        <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                          <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                            <p className="text-sm text-muted-foreground">{tab.label} view content</p>
-                          </div>
-                        </TabsContent>
-                      ))}
-                    </Tabs>
-                    {/* Persistent text input below tabs */}
-                    <div className="mt-3">
+              <CardContent className="pt-4">
+                <Tabs defaultValue="task" className="w-full">
+                  {/* Main Builder Tabs */}
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="task" className="gap-2">
+                      <ListTodo className="h-4 w-4 text-orange-500" />
+                      Task Builder
+                    </TabsTrigger>
+                    <TabsTrigger value="assessment" className="gap-2">
+                      <FileQuestion className="h-4 w-4 text-purple-500" />
+                      Assessment Builder
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Task Builder Tab */}
+                  <TabsContent value="task" className="space-y-4">
+                    <div className="flex items-center gap-3">
                       <Input 
-                        placeholder="Type your message here..." 
-                        className="w-full"
+                        placeholder="Task Title" 
+                        className="flex-1 font-semibold"
+                        id="task-title"
                       />
                     </div>
-                  </div>
-                  {/* Right panel: DMI - resizable */}
-                  <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
-                    <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
-                    <div className="p-3 bg-slate-50 rounded-lg min-h-[120px]">
-                      <p className="text-xs text-muted-foreground">DMI content</p>
-                    </div>
-                  </ResizablePanel>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* SECTION 2: Task Builder */}
-            <Card className="flex-shrink-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground mb-1">Task Builder</CardTitle>
-                <div className="flex items-center gap-3">
-                  <Input 
-                    placeholder="Task Title" 
-                    className="flex-1 font-semibold"
-                    id="task-title"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-4">
-                  {/* Main content with tabs */}
-                  <div className="flex-1">
-                    <Tabs defaultValue="content" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="content">Content</TabsTrigger>
-                        <TabsTrigger value="pci">PCI</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="content" className="mt-2">
-                        <Textarea 
-                          placeholder="Enter task content..." 
-                          className="w-full min-h-[100px]"
-                          id="task-content"
-                        />
-                      </TabsContent>
-                      <TabsContent value="pci" className="mt-2">
-                        <Textarea 
-                          placeholder="Enter PCI configuration..." 
-                          className="w-full min-h-[100px]"
-                          id="task-pci"
-                        />
-                      </TabsContent>
-                    </Tabs>
-                    {/* Persistent text input below tabs */}
-                    <div className="mt-3">
-                      <Textarea 
-                        placeholder="Enter task details..." 
-                        className="w-full min-h-[60px]"
-                        id="task-details"
-                      />
-                    </div>
-                    {/* Buttons row with Test and Save */}
-                    <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm">Test</Button>
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          const title = (document.getElementById('task-title') as HTMLInputElement)?.value || 'New Task'
-                          setLessonSelectDialog({ isOpen: true, type: 'task', title })
-                        }}
+                    <div className="flex gap-4">
+                      {/* Main content with tabs */}
+                      <div className="flex-1">
+                        <Tabs defaultValue="content" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="content">Content</TabsTrigger>
+                            <TabsTrigger value="pci">PCI</TabsTrigger>
+                          </TabsList>
+                          <TabsContent value="content" className="mt-2">
+                            <Textarea 
+                              placeholder="Enter task content..." 
+                              className="w-full min-h-[100px]"
+                              id="task-content"
+                            />
+                          </TabsContent>
+                          <TabsContent value="pci" className="mt-2">
+                            <Textarea 
+                              placeholder="Enter PCI configuration..." 
+                              className="w-full min-h-[100px]"
+                              id="task-pci"
+                            />
+                          </TabsContent>
+                        </Tabs>
+                        {/* Persistent text input below tabs */}
+                        <div className="mt-3">
+                          <Textarea 
+                            placeholder="Enter task details..." 
+                            className="w-full min-h-[60px]"
+                            id="task-details"
+                          />
+                        </div>
+                        {/* Buttons row with Test and Save */}
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm">Test</Button>
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              const title = (document.getElementById('task-title') as HTMLInputElement)?.value || 'New Task'
+                              setLessonSelectDialog({ isOpen: true, type: 'task', title })
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Right panel: Extensions - resizable */}
+                      <ResizablePanel 
+                        defaultWidth={192} 
+                        minWidth={150} 
+                        maxWidth={300}
+                        actionButton={<Button variant="outline" size="sm" className="w-full">Add Extension</Button>}
                       >
-                        Save
-                      </Button>
+                        <h4 className="text-sm font-medium mb-2">Extensions</h4>
+                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
+                          <p className="text-xs text-muted-foreground">No extensions added</p>
+                        </div>
+                      </ResizablePanel>
                     </div>
-                  </div>
-                  {/* Right panel: Extensions - resizable */}
-                  <ResizablePanel 
-                    defaultWidth={192} 
-                    minWidth={150} 
-                    maxWidth={300}
-                    actionButton={<Button variant="outline" size="sm" className="w-full">Add Extension</Button>}
-                  >
-                    <h4 className="text-sm font-medium mb-2">Extensions</h4>
-                    <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
-                      <p className="text-xs text-muted-foreground">No extensions added</p>
-                    </div>
-                  </ResizablePanel>
-                </div>
-              </CardContent>
-            </Card>
+                  </TabsContent>
 
-            {/* SECTION 3: Assessment Builder */}
-            <Card className="flex-shrink-0">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground mb-1">Assessment Builder</CardTitle>
-                <div className="flex items-center gap-3">
-                  <Input 
-                    placeholder="Assessment Title" 
-                    className="flex-1 font-semibold"
-                    id="assessment-title"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-4">
-                  {/* Main content with tabs */}
-                  <div className="flex-1">
-                    <Tabs defaultValue="content" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="content">Content</TabsTrigger>
-                        <TabsTrigger value="pci">PCI</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="content" className="mt-2">
-                        <Textarea 
-                          placeholder="Enter assessment content..." 
-                          className="w-full min-h-[100px]"
-                          id="assessment-content"
-                        />
-                      </TabsContent>
-                      <TabsContent value="pci" className="mt-2">
-                        <Textarea 
-                          placeholder="Enter PCI configuration..." 
-                          className="w-full min-h-[100px]"
-                          id="assessment-pci"
-                        />
-                      </TabsContent>
-                    </Tabs>
-                    {/* Persistent text input below tabs */}
-                    <div className="mt-3">
-                      <Textarea 
-                        placeholder="Enter assessment details..." 
-                        className="w-full min-h-[60px]"
-                        id="assessment-details"
+                  {/* Assessment Builder Tab */}
+                  <TabsContent value="assessment" className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Input 
+                        placeholder="Assessment Title" 
+                        className="flex-1 font-semibold"
+                        id="assessment-title"
                       />
                     </div>
-                    {/* Buttons row with Generate DMI, Test, and Save */}
-                    <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm">Generate DMI</Button>
-                      <Button variant="outline" size="sm">Test</Button>
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          const title = (document.getElementById('assessment-title') as HTMLInputElement)?.value || 'New Assessment'
-                          setLessonSelectDialog({ isOpen: true, type: 'assessment', title })
-                        }}
+                    <div className="flex gap-4">
+                      {/* Main content with tabs */}
+                      <div className="flex-1">
+                        <Tabs defaultValue="content" className="w-full">
+                          <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="content">Content</TabsTrigger>
+                            <TabsTrigger value="pci">PCI</TabsTrigger>
+                          </TabsList>
+                          <TabsContent value="content" className="mt-2">
+                            <Textarea 
+                              placeholder="Enter assessment content..." 
+                              className="w-full min-h-[100px]"
+                              id="assessment-content"
+                            />
+                          </TabsContent>
+                          <TabsContent value="pci" className="mt-2">
+                            <Textarea 
+                              placeholder="Enter PCI configuration..." 
+                              className="w-full min-h-[100px]"
+                              id="assessment-pci"
+                            />
+                          </TabsContent>
+                        </Tabs>
+                        {/* Persistent text input below tabs */}
+                        <div className="mt-3">
+                          <Textarea 
+                            placeholder="Enter assessment details..." 
+                            className="w-full min-h-[60px]"
+                            id="assessment-details"
+                          />
+                        </div>
+                        {/* Buttons row with Generate DMI, Test, and Save */}
+                        <div className="flex gap-2 mt-3">
+                          <Button variant="outline" size="sm">Generate DMI</Button>
+                          <Button variant="outline" size="sm">Test</Button>
+                          <Button 
+                            size="sm"
+                            onClick={() => {
+                              const title = (document.getElementById('assessment-title') as HTMLInputElement)?.value || 'New Assessment'
+                              setLessonSelectDialog({ isOpen: true, type: 'assessment', title })
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Right panel: DMI - resizable */}
+                      <ResizablePanel 
+                        defaultWidth={192} 
+                        minWidth={150} 
+                        maxWidth={300}
+                        actionButton={<Button variant="outline" size="sm" className="w-full">Add DMI</Button>}
                       >
-                        Save
-                      </Button>
+                        <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
+                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
+                          <p className="text-xs text-muted-foreground">DMI content</p>
+                        </div>
+                      </ResizablePanel>
                     </div>
+                  </TabsContent>
+                </Tabs>
+
+                {/* Test PCI Section - Persistent below the tabs */}
+                <div className="mt-6 pt-6 border-t">
+                  <CardTitle className="text-base font-semibold mb-3">Test PCI</CardTitle>
+                  <div className="flex gap-4">
+                    {/* Main content with tabs */}
+                    <div className="flex-1">
+                      <Tabs defaultValue="classroom" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                          {testPciTabs.map((tab) => (
+                            <div key={tab.id} className="relative flex-1">
+                              {editingTabId === tab.id ? (
+                                <Input
+                                  value={tab.label}
+                                  onChange={(e) => {
+                                    setTestPciTabs(prev => prev.map(t => 
+                                      t.id === tab.id ? { ...t, label: e.target.value } : t
+                                    ))
+                                  }}
+                                  onBlur={() => setEditingTabId(null)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') setEditingTabId(null)
+                                  }}
+                                  className="h-8 text-xs font-medium text-center"
+                                  autoFocus
+                                />
+                              ) : (
+                                <TabsTrigger 
+                                  value={tab.id}
+                                  className="w-full"
+                                  onDoubleClick={() => setEditingTabId(tab.id)}
+                                >
+                                  {tab.label}
+                                </TabsTrigger>
+                              )}
+                            </div>
+                          ))}
+                        </TabsList>
+                        {testPciTabs.map((tab) => (
+                          <TabsContent key={tab.id} value={tab.id} className="mt-2">
+                            <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
+                              <p className="text-sm text-muted-foreground">{tab.label} view content</p>
+                            </div>
+                          </TabsContent>
+                        ))}
+                      </Tabs>
+                      {/* Persistent text input below tabs */}
+                      <div className="mt-3">
+                        <Input 
+                          placeholder="Type your message here..." 
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                    {/* Right panel: DMI - resizable */}
+                    <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
+                      <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
+                      <div className="p-3 bg-slate-50 rounded-lg min-h-[120px]">
+                        <p className="text-xs text-muted-foreground">DMI content</p>
+                      </div>
+                    </ResizablePanel>
                   </div>
-                  {/* Right panel: DMI - resizable */}
-                  <ResizablePanel 
-                    defaultWidth={192} 
-                    minWidth={150} 
-                    maxWidth={300}
-                    actionButton={<Button variant="outline" size="sm" className="w-full">Add DMI</Button>}
-                  >
-                    <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
-                    <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
-                      <p className="text-xs text-muted-foreground">DMI content</p>
-                    </div>
-                  </ResizablePanel>
                 </div>
               </CardContent>
             </Card>
