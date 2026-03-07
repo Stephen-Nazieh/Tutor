@@ -40,11 +40,30 @@ function getCspHeader(): string {
   return directives.join('; ')
 }
 
-function addSecurityHeaders(res: NextResponse): NextResponse {
+// Allowed origins for CORS (landing page and main app)
+const ALLOWED_ORIGINS = [
+  'http://localhost:3000',     // Vite landing page (dev)
+  'http://localhost:5173',     // Vite default port (dev)
+  'http://localhost:3003',     // Next.js app (dev)
+]
+
+function addSecurityHeaders(res: NextResponse, req?: Request): NextResponse {
   res.headers.set('X-Content-Type-Options', 'nosniff')
   res.headers.set('X-Frame-Options', 'SAMEORIGIN')
   res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.headers.set('Content-Security-Policy', getCspHeader())
+  
+  // Add CORS headers for API requests from landing page
+  if (req) {
+    const origin = req.headers.get('origin')
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+      res.headers.set('Access-Control-Allow-Origin', origin)
+      res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+      res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      res.headers.set('Access-Control-Allow-Credentials', 'true')
+    }
+  }
+  
   return res
 }
 
@@ -88,7 +107,7 @@ export default withAuth(
               },
             }
           )
-          addSecurityHeaders(res)
+          addSecurityHeaders(res, req as unknown as Request)
           return res
         }
       } catch (error) {
@@ -106,7 +125,7 @@ export default withAuth(
             status: 429,
             headers: { 'Content-Type': 'application/json', 'Retry-After': '60' }
           })
-          addSecurityHeaders(res)
+          addSecurityHeaders(res, req as unknown as Request)
           return res
         }
       } catch (error) {
@@ -114,10 +133,17 @@ export default withAuth(
       }
     }
 
+    // Handle CORS preflight requests from landing page
+    if (req.method === 'OPTIONS') {
+      const res = new NextResponse(null, { status: 204 })
+      addSecurityHeaders(res, req as unknown as Request)
+      return res
+    }
+
     // Allow access to onboarding pages
     if (normalizedPath.startsWith('/onboarding')) {
       const res = NextResponse.next()
-      addSecurityHeaders(res)
+      addSecurityHeaders(res, req as unknown as Request)
       return res
     }
 
@@ -154,12 +180,12 @@ export default withAuth(
     // Never run i18n middleware for API routes.
     if (path.startsWith('/api')) {
       const res = NextResponse.next()
-      addSecurityHeaders(res)
+      addSecurityHeaders(res, req as unknown as Request)
       return res
     }
 
     const res = intlMiddleware(req)
-    addSecurityHeaders(res)
+    addSecurityHeaders(res, req as unknown as Request)
     return res
   },
   {

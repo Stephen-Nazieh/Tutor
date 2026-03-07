@@ -1,6 +1,6 @@
-# TutorMe - AI-Human Hybrid Tutoring Platform
+# Solocorn - AI-Human Hybrid Tutoring Platform
 
-This repository contains the complete development kit for building TutorMe (also known as CogniClass).
+This repository contains the complete development kit for building Solocorn (also known as CogniClass).
 
 ## 📚 What's in This Folder
 
@@ -14,8 +14,39 @@ This repository contains the complete development kit for building TutorMe (also
 | `TutorMe.docx` | Additional project details | Reference |
 | `scripts/setup.sh` | Automated setup script (Mac/Linux) | You (run once) |
 | `scripts/setup.bat` | Automated setup script (Windows) | You (alternative) |
+| `landing-page/` | **NEW** Vite + React landing page (Solocorn brand) | Separate entry point |
+| `tutorme-app/` | Main Next.js application | Core platform |
 
 ## 🚀 How to Use This Development Kit
+
+### Step 0: Landing Page + Main App Architecture
+
+This project now has two separate applications:
+
+```
+┌─────────────────┐         ┌─────────────────┐
+│  Landing Page   │  ────►  │  Solocorn App   │
+│  (Solocorn)     │  Links  │  (Next.js)      │
+│  Port: 3000     │         │  Port: 3003     │
+└─────────────────┘         └─────────────────┘
+```
+
+**To run both apps:**
+
+```bash
+# Terminal 1 - Landing Page
+cd landing-page
+npm install
+npm run dev        # http://localhost:3000
+
+# Terminal 2 - Main App
+cd tutorme-app
+npm run initialize # http://localhost:3003
+```
+
+The landing page has a **"Get Started"** button that links to the main app.
+
+See `landing-page/README.md` for detailed integration docs.
 
 ### Step 1: Read Your Actions
 
@@ -28,7 +59,7 @@ From this folder, download:
 2. `YourActions.md`
 3. `QUICKSTART.md`
 
-Save them to your computer at `~/projects/tutorme/` (Mac) or `%USERPROFILE%\projects\tutorme\` (Windows).
+Save them to your computer at `~/projects/solocorn/` (Mac) or `%USERPROFILE%\projects\solocorn\` (Windows).
 
 ### Step 3: Follow the Phases
 

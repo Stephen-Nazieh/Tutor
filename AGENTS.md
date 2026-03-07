@@ -1,8 +1,8 @@
-# TutorMe - AI Coding Agent Guide
+# Solocorn - AI Coding Agent Guide
 
 ## Project Overview
 
-TutorMe (also known as CogniClass) is an AI-human hybrid tutoring platform that combines 24/7 AI-powered Socratic tutoring with live group clinics led by human tutors. The platform supports multiple user roles (Student, Tutor, Parent, Admin) and is designed for global markets with focus on Chinese market adaptation.
+Solocorn (also known as CogniClass) is an AI-human hybrid tutoring platform that combines 24/7 AI-powered Socratic tutoring with live group clinics led by human tutors. The platform supports multiple user roles (Student, Tutor, Parent, Admin) and is designed for global markets with focus on Chinese market adaptation.
 
 **Core Value Proposition:**
 - AI tutors use Socratic method (never give direct answers, guide students to discover)
@@ -13,7 +13,7 @@ TutorMe (also known as CogniClass) is an AI-human hybrid tutoring platform that 
 
 **Target Ratio:** 1 tutor : 50 students  
 **Primary Languages:** English (en) with Chinese (zh-CN) and 8 other languages  
-**Default Port:** 3003  
+**Default Port:** 3003
 
 ---
 
@@ -50,9 +50,24 @@ TutorMe (also known as CogniClass) is an AI-human hybrid tutoring platform that 
 ## Project Structure
 
 ```
-tutorme-app/
-├── src/
-│   ├── app/                      # Next.js App Router
+TutorMekimi/
+│
+├── landing-page/                 # Vite + React Landing Page (NEW - Solocorn brand)
+│   ├── src/
+│   │   ├── App.tsx               # Main landing page component
+│   │   ├── components/
+│   │   │   ├── Layout.tsx        # Navbar, shared UI
+│   │   │   ├── RegistrationPage.tsx
+│   │   │   └── ProfilePage.tsx
+│   │   └── main.tsx              # Entry point
+│   ├── .env.local                # Environment variables
+│   ├── package.json              # Vite dependencies
+│   ├── vite.config.ts            # Vite configuration
+│   └── README.md                 # Landing page docs
+│
+├── tutorme-app/                  # Main Next.js Application
+│   ├── src/
+│   │   ├── app/                  # Next.js App Router
 │   │   ├── [locale]/             # i18n route segments (en, zh-CN, es, fr, de, ja, ko, pt, ru, ar)
 │   │   │   ├── (student)/        # Student route group (curriculum)
 │   │   │   ├── student/          # Student dashboard & features
@@ -161,6 +176,58 @@ tutorme-app/
 ├── drizzle.config.ts             # Drizzle Kit configuration
 └── eslint.config.mjs             # ESLint flat config
 ```
+
+---
+
+## Landing Page Integration (Solocorn Landing → Solocorn App)
+
+The project includes a separate **landing page** built with Vite + React + TypeScript. It serves as the entry point that links to the main Solocorn Next.js application.
+
+### Architecture
+
+```
+Landing Page (Solocorn)              Main App (Solocorn)
+├─ Port: 3000 (Vite)                 ├─ Port: 3003 (Next.js)
+├─ Brand: Solocorn                   ├─ Brand: Solocorn/CogniClass
+└─ Links to main app via             └─ Receives users from
+   "Get Started" button                 landing page
+```
+
+### Running Both Apps
+
+**Terminal 1 - Landing Page:**
+```bash
+cd landing-page
+npm install
+npm run dev              # http://localhost:3000
+```
+
+**Terminal 2 - Main App:**
+```bash
+cd tutorme-app
+npm run initialize       # http://localhost:3003
+```
+
+### Configuration
+
+**Landing Page** (`.env.local`):
+```bash
+VITE_MAIN_APP_URL=http://localhost:3003
+```
+
+**Next.js Middleware** (`src/middleware.ts`):
+CORS headers are configured to allow requests from the landing page origins:
+- `http://localhost:3000` - Vite landing page
+- `http://localhost:5173` - Vite default port
+- `http://localhost:3003` - Next.js app
+
+### Integration Points
+
+1. **Navbar "Get Started" button** - Direct link to main app
+2. **"Launch Academy" card** - Opens Solocorn app
+3. **"Partner with Us" card** - Opens Solocorn app
+
+See `landing-page/README.md` for detailed documentation.
 
 ---
 
