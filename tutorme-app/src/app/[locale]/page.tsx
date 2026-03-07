@@ -8,7 +8,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Timer, 
   UserPlus, 
   GraduationCap, 
   School, 
@@ -19,7 +18,12 @@ import {
   X,
   Lock,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  Atom,
+  Hexagon,
+  Triangle,
+  Circle,
+  Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,185 +50,196 @@ const CELEBRITY_TUTORS = [
 
 const SPECIAL_CODES = ['kim.kon#26', 'stephen#26'];
 
-// --- 3D Futuristic Background Component ---
+// --- Background Animation Components ---
+
+const GridFloor = () => (
+  <div className="absolute inset-0 overflow-hidden">
+    <div 
+      className="absolute bottom-0 left-0 right-0 h-2/3 origin-bottom"
+      style={{
+        transform: 'perspective(500px) rotateX(60deg)',
+      }}
+    >
+      <motion.div 
+        className="w-full h-[200%]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(16, 185, 129, 0.2) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(16, 185, 129, 0.2) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+        }}
+        animate={{
+          y: ['0%', '60px'],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'linear',
+        }}
+      />
+    </div>
+  </div>
+);
+
+const FloatingSymbol = ({ symbol, x, y, delay, duration = 4 }: { symbol: string; x: string; y: string; delay: number; duration?: number }) => (
+  <motion.div
+    className="absolute text-emerald-400/30 font-bold select-none pointer-events-none"
+    style={{
+      left: x,
+      top: y,
+      fontSize: '3rem',
+      textShadow: '0 0 20px rgba(16, 185, 129, 0.5)',
+    }}
+    animate={{
+      y: [-15, 15, -15],
+      opacity: [0.3, 0.6, 0.3],
+      rotate: [0, 5, -5, 0],
+    }}
+    transition={{
+      duration,
+      delay,
+      repeat: Infinity,
+      ease: 'easeInOut',
+    }}
+  >
+    {symbol}
+  </motion.div>
+);
+
+const FloatingShape = ({ Icon, x, y, delay }: { Icon: any; x: string; y: string; delay: number }) => (
+  <motion.div
+    className="absolute pointer-events-none"
+    style={{ left: x, top: y }}
+    animate={{
+      y: [-20, 20, -20],
+      rotate: [0, 360],
+    }}
+    transition={{
+      duration: 12,
+      delay,
+      repeat: Infinity,
+      ease: 'linear',
+    }}
+  >
+    <div className="w-12 h-12 border-2 border-emerald-500/30 bg-emerald-500/10 rounded-lg backdrop-blur-sm shadow-lg shadow-emerald-500/20 flex items-center justify-center">
+      <Icon className="w-6 h-6 text-emerald-400/50" />
+    </div>
+  </motion.div>
+);
+
+const AtomOrbit = ({ x, y, size, duration }: { x: string; y: string; size: number; duration: number }) => (
+  <div className="absolute pointer-events-none" style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
+    {/* Nucleus */}
+    <div className="absolute w-2 h-2 bg-emerald-400 rounded-full shadow-lg shadow-emerald-500/50 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10" />
+    
+    {/* Orbit ring */}
+    <motion.div
+      className="absolute border border-emerald-500/20 rounded-full"
+      style={{
+        width: size,
+        height: size,
+        left: -size / 2,
+        top: -size / 2,
+      }}
+      animate={{ rotate: 360 }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        ease: 'linear',
+      }}
+    >
+      <div className="absolute w-1.5 h-1.5 bg-cyan-400 rounded-full shadow-lg shadow-cyan-500/50 -top-0.5 left-1/2 -translate-x-1/2" />
+    </motion.div>
+  </div>
+);
+
+const GlowingOrb = ({ x, y, color, size, delay }: { x: string; y: string; color: string; size: string; delay: number }) => (
+  <motion.div
+    className={`absolute rounded-full blur-3xl pointer-events-none ${color}`}
+    style={{
+      left: x,
+      top: y,
+      width: size,
+      height: size,
+    }}
+    animate={{
+      scale: [1, 1.2, 1],
+      opacity: [0.3, 0.5, 0.3],
+    }}
+    transition={{
+      duration: 4,
+      delay,
+      repeat: Infinity,
+      ease: 'easeInOut',
+    }}
+  />
+);
+
+const ShootingStar = ({ delay, top }: { delay: number; top: string }) => (
+  <motion.div
+    className="absolute h-px bg-gradient-to-r from-transparent via-emerald-400 to-transparent pointer-events-none"
+    style={{
+      width: '100px',
+      top,
+      left: '-100px',
+    }}
+    animate={{
+      left: ['-10%', '110%'],
+      opacity: [0, 1, 0],
+    }}
+    transition={{
+      duration: 1.5,
+      delay,
+      repeat: Infinity,
+      repeatDelay: 5,
+      ease: 'easeOut',
+    }}
+  />
+);
+
 const FuturisticBackground = () => {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-      {/* Deep space gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900" />
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-gradient-to-br from-slate-950 via-zinc-950 to-slate-900">
+      {/* Grid Floor */}
+      <GridFloor />
       
-      {/* Animated grid floor */}
-      <div className="absolute bottom-0 left-0 right-0 h-1/2 perspective-1000">
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(16, 185, 129, 0.3) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(16, 185, 129, 0.3) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-            transform: 'rotateX(60deg) translateY(100px)',
-            animation: 'gridMove 20s linear infinite',
-          }}
-        />
-      </div>
-
-      {/* Floating academic symbols */}
-      {[
-        { symbol: '∑', x: '10%', y: '20%', delay: '0s', size: '4rem' },
-        { symbol: 'π', x: '85%', y: '15%', delay: '2s', size: '3rem' },
-        { symbol: '∫', x: '75%', y: '70%', delay: '4s', size: '5rem' },
-        { symbol: '√', x: '15%', y: '75%', delay: '1s', size: '3.5rem' },
-        { symbol: '∞', x: '50%', y: '10%', delay: '3s', size: '4rem' },
-        { symbol: '∆', x: '90%', y: '50%', delay: '5s', size: '3rem' },
-        { symbol: 'Ω', x: '5%', y: '50%', delay: '2.5s', size: '4rem' },
-        { symbol: 'λ', x: '60%', y: '80%', delay: '1.5s', size: '3.5rem' },
-      ].map((item, i) => (
-        <motion.div
-          key={i}
-          className="absolute font-bold text-emerald-500/20 select-none"
-          style={{
-            left: item.x,
-            top: item.y,
-            fontSize: item.size,
-            textShadow: '0 0 30px rgba(16, 185, 129, 0.5)',
-          }}
-          animate={{
-            y: [-20, 20, -20],
-            rotate: [0, 10, -10, 0],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 6,
-            delay: parseFloat(item.delay),
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        >
-          {item.symbol}
-        </motion.div>
-      ))}
-
-      {/* Floating geometric shapes */}
-      {[
-        { type: 'cube', x: '20%', y: '30%', delay: 0 },
-        { type: 'sphere', x: '70%', y: '25%', delay: 2 },
-        { type: 'pyramid', x: '80%', y: '60%', delay: 4 },
-        { type: 'hexagon', x: '25%', y: '65%', delay: 1 },
-        { type: 'dodecahedron', x: '50%', y: '40%', delay: 3 },
-      ].map((shape, i) => (
-        <motion.div
-          key={`shape-${i}`}
-          className="absolute"
-          style={{
-            left: shape.x,
-            top: shape.y,
-          }}
-          animate={{
-            y: [-30, 30, -30],
-            rotateX: [0, 360],
-            rotateY: [0, 360],
-          }}
-          transition={{
-            duration: 15,
-            delay: shape.delay,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-        >
-          <div 
-            className="w-16 h-16 border-2 border-emerald-500/30 bg-emerald-500/5 backdrop-blur-sm"
-            style={{
-              transformStyle: 'preserve-3d',
-              boxShadow: '0 0 20px rgba(16, 185, 129, 0.3), inset 0 0 20px rgba(16, 185, 129, 0.1)',
-            }}
-          />
-        </motion.div>
-      ))}
-
-      {/* Orbiting electrons (atomic style) */}
-      {[
-        { cx: '30%', cy: '40%', r: 80, duration: 8 },
-        { cx: '65%', cy: '55%', r: 100, duration: 12 },
-        { cx: '45%', cy: '75%', r: 60, duration: 6 },
-      ].map((atom, i) => (
-        <div
-          key={`atom-${i}`}
-          className="absolute"
-          style={{
-            left: atom.cx,
-            top: atom.cy,
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          {/* Nucleus */}
-          <div className="absolute w-3 h-3 bg-emerald-400 rounded-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-emerald-500/50" />
-          
-          {/* Electron orbit */}
-          <motion.div
-            className="absolute border border-emerald-500/20 rounded-full"
-            style={{
-              width: atom.r * 2,
-              height: atom.r * 2,
-              left: -atom.r,
-              top: -atom.r,
-            }}
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: atom.duration,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          >
-            <div className="absolute w-2 h-2 bg-cyan-400 rounded-full -top-1 left-1/2 -translate-x-1/2 shadow-lg shadow-cyan-500/50" />
-          </motion.div>
-        </div>
-      ))}
-
-      {/* Gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-3xl" />
-
-      {/* Shooting stars */}
-      {[
-        { top: '10%', left: '-10%', delay: '0s' },
-        { top: '30%', left: '-10%', delay: '3s' },
-        { top: '60%', left: '-10%', delay: '6s' },
-      ].map((star, i) => (
-        <motion.div
-          key={`star-${i}`}
-          className="absolute w-20 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
-          style={{
-            top: star.top,
-            left: star.left,
-          }}
-          animate={{
-            left: ['-10%', '110%'],
-            opacity: [0, 1, 0],
-          }}
-          transition={{
-            duration: 2,
-            delay: parseFloat(star.delay),
-            repeat: Infinity,
-            repeatDelay: 7,
-            ease: 'easeOut',
-          }}
-        />
-      ))}
-
-      {/* CSS for grid animation */}
-      <style jsx global>{`
-        @keyframes gridMove {
-          0% { transform: rotateX(60deg) translateY(0); }
-          100% { transform: rotateX(60deg) translateY(50px); }
-        }
-      `}</style>
+      {/* Floating Math Symbols */}
+      <FloatingSymbol symbol="∑" x="10%" y="20%" delay={0} />
+      <FloatingSymbol symbol="π" x="85%" y="15%" delay={1} />
+      <FloatingSymbol symbol="∫" x="75%" y="70%" delay={2} />
+      <FloatingSymbol symbol="√" x="15%" y="75%" delay={0.5} />
+      <FloatingSymbol symbol="∞" x="50%" y="10%" delay={1.5} />
+      <FloatingSymbol symbol="∆" x="90%" y="50%" delay={2.5} />
+      <FloatingSymbol symbol="Ω" x="5%" y="50%" delay={3} />
+      <FloatingSymbol symbol="λ" x="60%" y="80%" delay={0.8} />
+      
+      {/* Floating Shapes */}
+      <FloatingShape Icon={Square} x="20%" y="30%" delay={0} />
+      <FloatingShape Icon={Circle} x="70%" y="25%" delay={2} />
+      <FloatingShape Icon={Triangle} x="80%" y="60%" delay={4} />
+      <FloatingShape Icon={Hexagon} x="25%" y="65%" delay={1} />
+      <FloatingShape Icon={Atom} x="50%" y="40%" delay={3} />
+      
+      {/* Atomic Orbits */}
+      <AtomOrbit x="30%" y="35%" size={120} duration={10} />
+      <AtomOrbit x="70%" y="55%" size={150} duration={14} />
+      <AtomOrbit x="45%" y="75%" size={100} duration={8} />
+      
+      {/* Gradient Orbs */}
+      <GlowingOrb x="20%" y="20%" color="bg-emerald-500/20" size="300px" delay={0} />
+      <GlowingOrb x="70%" y="60%" color="bg-cyan-500/20" size="250px" delay={1} />
+      <GlowingOrb x="40%" y="40%" color="bg-purple-500/10" size="400px" delay={2} />
+      
+      {/* Shooting Stars */}
+      <ShootingStar delay={0} top="15%" />
+      <ShootingStar delay={3} top="35%" />
+      <ShootingStar delay={6} top="55%" />
     </div>
   );
 };
 
-// --- Components ---
+// --- Other Components ---
 
 const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 5, minutes: 45, seconds: 30 });
@@ -244,7 +259,7 @@ const CountdownTimer = () => {
     <div className="flex gap-4 md:gap-8 justify-center items-center font-mono">
       {Object.entries(timeLeft).map(([unit, value]) => (
         <div key={unit} className="flex flex-col items-center">
-          <div className="text-4xl md:text-6xl font-bold text-white tabular-nums">
+          <div className="text-4xl md:text-6xl font-bold text-white tabular-nums drop-shadow-lg">
             {value.toString().padStart(2, '0')}
           </div>
           <div className="text-xs uppercase tracking-widest text-zinc-500 mt-2">{unit}</div>
@@ -321,7 +336,6 @@ const ComingSoonModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In production, this would save to a database or send to an API
     console.log('Early bird signup:', { type, ...formData });
     setSubmitted(true);
   };
@@ -336,23 +350,15 @@ const ComingSoonModal = ({
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       >
-        {/* Backdrop */}
-        <div 
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-          onClick={onClose}
-        />
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
         
-        {/* Modal */}
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="relative w-full max-w-md bg-zinc-900 border border-white/10 rounded-2xl p-8 shadow-2xl"
+          className="relative w-full max-w-md bg-zinc-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl"
         >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors"
-          >
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
 
@@ -367,42 +373,31 @@ const ComingSoonModal = ({
                 <p className="text-emerald-400 text-sm">{currentContent.subtitle}</p>
               </div>
 
-              <p className="text-zinc-400 text-sm text-center mb-6">
-                {currentContent.description}
-              </p>
+              <p className="text-zinc-400 text-sm text-center mb-6">{currentContent.description}</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Your name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    className="w-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="email"
-                    placeholder="Email address"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    className="w-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl"
-                >
+                <Input
+                  type="text"
+                  placeholder="Your name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="w-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+                />
+                <Input
+                  type="email"
+                  placeholder="Email address"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="w-full bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+                />
+                <Button type="submit" className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl">
                   {currentContent.buttonText}
                 </Button>
               </form>
 
-              <p className="text-xs text-zinc-500 text-center mt-4">
-                We respect your privacy. Unsubscribe anytime.
-              </p>
+              <p className="text-xs text-zinc-500 text-center mt-4">We respect your privacy. Unsubscribe anytime.</p>
             </>
           ) : (
             <div className="text-center py-8">
@@ -411,12 +406,7 @@ const ComingSoonModal = ({
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Thank You!</h3>
               <p className="text-zinc-400">{currentContent.successMessage}</p>
-              <Button
-                onClick={onClose}
-                className="mt-6 bg-white/10 hover:bg-white/20 text-white"
-              >
-                Close
-              </Button>
+              <Button onClick={onClose} className="mt-6 bg-white/10 hover:bg-white/20 text-white">Close</Button>
             </div>
           )}
         </motion.div>
@@ -434,7 +424,6 @@ const SpecialAccessSection = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (SPECIAL_CODES.includes(code.trim())) {
-      // Valid code - redirect to app
       router.push('/login');
     } else {
       setError(true);
@@ -444,18 +433,13 @@ const SpecialAccessSection = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 mb-16">
-      <div className="bg-gradient-to-r from-emerald-900/30 to-zinc-900/50 border border-emerald-500/20 rounded-2xl p-6">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between text-left"
-        >
+      <div className="bg-gradient-to-r from-emerald-900/30 to-zinc-900/50 border border-emerald-500/20 rounded-2xl p-6 backdrop-blur-sm">
+        <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between text-left">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
               <Lock className="w-5 h-5 text-emerald-400" />
             </div>
-            <div>
-              <h3 className="font-semibold text-white">I have special access</h3>
-            </div>
+            <h3 className="font-semibold text-white">I have special access</h3>
           </div>
           <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
         </button>
@@ -478,16 +462,9 @@ const SpecialAccessSection = () => {
                     onChange={(e) => setCode(e.target.value)}
                     className={`flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 ${error ? 'border-red-500' : ''}`}
                   />
-                  <Button
-                    type="submit"
-                    className="bg-emerald-500 hover:bg-emerald-400 text-white px-6"
-                  >
-                    Access
-                  </Button>
+                  <Button type="submit" className="bg-emerald-500 hover:bg-emerald-400 text-white px-6">Access</Button>
                 </form>
-                {error && (
-                  <p className="text-red-400 text-sm mt-2">Invalid access code</p>
-                )}
+                {error && <p className="text-red-400 text-sm mt-2">Invalid access code</p>}
               </div>
             </motion.div>
           )}
@@ -497,22 +474,10 @@ const SpecialAccessSection = () => {
   );
 };
 
-const ActionCard = ({ 
-  title, 
-  copy, 
-  buttonText, 
-  icon: Icon, 
-  onClick 
-}: { 
-  title: string; 
-  copy: string; 
-  buttonText: string; 
-  icon: any; 
-  onClick: () => void;
-}) => (
+const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick }: { title: string; copy: string; buttonText: string; icon: any; onClick: () => void }) => (
   <motion.div 
     whileHover={{ y: -5 }}
-    className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-2xl flex flex-col items-start justify-between h-full group"
+    className="bg-zinc-900/60 backdrop-blur-md border border-white/10 p-8 rounded-2xl flex flex-col items-start justify-between h-full group hover:border-emerald-500/30 transition-colors"
   >
     <div className="mb-6">
       <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">
@@ -521,10 +486,7 @@ const ActionCard = ({
       <h3 className="text-2xl font-bold mb-3">{title}</h3>
       {copy && <p className="text-zinc-400 leading-relaxed">{copy}</p>}
     </div>
-    <Button 
-      onClick={onClick}
-      className="w-full py-3 px-6 rounded-xl bg-white text-black font-semibold hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"
-    >
+    <Button onClick={onClick} className="w-full py-3 px-6 rounded-xl bg-white text-black font-semibold hover:bg-emerald-400 transition-colors">
       {buttonText}
     </Button>
   </motion.div>
@@ -532,27 +494,13 @@ const ActionCard = ({
 
 const Navbar = ({ onRegister }: { onRegister: () => void }) => (
   <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-    <div className="max-w-7xl mx-auto flex justify-between items-center bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-3">
+    <div className="max-w-7xl mx-auto flex justify-between items-center bg-zinc-900/60 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3">
       <Link href="/" className="flex items-center gap-3">
-        {/* Logo - Replace /images/logo.png with your logo file */}
-        <img 
-          src="/images/logo.png" 
-          alt="Solocorn" 
-          className="h-8 w-auto"
-          onError={(e) => {
-            // Fallback to text if logo fails to load
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
+        <img src="/images/logo.png" alt="Solocorn" className="h-8 w-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
         <span className="text-2xl font-bold tracking-tighter">SOLOCORN</span>
       </Link>
       <div className="flex items-center gap-4">
-        <Button 
-          onClick={onRegister}
-          variant="outline" 
-          className="px-5 py-2 bg-white text-black rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors border-0"
-        >
+        <Button onClick={onRegister} variant="outline" className="px-5 py-2 bg-white text-black rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors border-0">
           Register
         </Button>
       </div>
@@ -566,34 +514,17 @@ export default function LandingPage() {
   const [modalType, setModalType] = useState<ModalType>(null);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 relative">
-      {/* Futuristic 3D Background */}
+    <div className="min-h-screen text-zinc-100 relative">
       <FuturisticBackground />
-      
       <Navbar onRegister={() => setModalType('register')} />
 
-      {/* Coming Soon Modal */}
-      <ComingSoonModal 
-        isOpen={modalType !== null} 
-        onClose={() => setModalType(null)} 
-        type={modalType}
-      />
+      <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} />
 
-      <motion.main
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="pt-24"
-      >
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
         {/* Hero Section */}
         <section className="px-6 py-20 md:py-32 text-center relative overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 blur-[120px] rounded-full -z-10" />
-          
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8 backdrop-blur-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -601,7 +532,7 @@ export default function LandingPage() {
               Coming Soon
             </div>
             
-            <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-12">
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-12 drop-shadow-2xl">
               Launch <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span>
             </h1>
 
@@ -609,21 +540,18 @@ export default function LandingPage() {
               <CountdownTimer />
             </div>
 
-            <Button 
-              onClick={() => setModalType('register')}
-              className="group relative px-8 py-6 bg-white text-black rounded-2xl font-bold text-lg hover:bg-emerald-400 transition-all flex items-center gap-2 mx-auto"
-            >
+            <Button onClick={() => setModalType('register')} className="group relative px-8 py-6 bg-white text-black rounded-2xl font-bold text-lg hover:bg-emerald-400 transition-all flex items-center gap-2 mx-auto shadow-lg shadow-emerald-500/20">
               Get Early Access
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
         </section>
 
-        {/* Tutor Cohort Strip */}
+        {/* Tutor Strip */}
         <section className="mb-32">
           <div className="max-w-7xl mx-auto px-6 mb-8 flex justify-between items-end">
             <div>
-              <h2 className="text-3xl font-bold">Solocorn Tutors</h2>
+              <h2 className="text-3xl font-bold drop-shadow-lg">Solocorn Tutors</h2>
               <p className="text-zinc-500">Our celebrity tutor cohort is ready to transform your learning.</p>
             </div>
             <button className="text-sm font-bold text-emerald-400 flex items-center gap-1 hover:underline">
@@ -633,37 +561,19 @@ export default function LandingPage() {
           <TutorStrip />
         </section>
 
-        {/* Special Access Section */}
+        {/* Special Access */}
         <SpecialAccessSection />
 
         {/* Action Grid */}
         <section className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-32">
-          <ActionCard 
-            title="Become a Solocorn Tutor"
-            copy="Join our elite network of educators and reach students worldwide."
-            buttonText="Apply to Teach"
-            icon={UserPlus}
-            onClick={() => setModalType('tutor')}
-          />
-          <ActionCard 
-            title="Start a Solocorn Academy"
-            copy="Build your own branded learning institution on our infrastructure."
-            buttonText="Launch Academy"
-            icon={GraduationCap}
-            onClick={() => setModalType('academy')}
-          />
-          <ActionCard 
-            title="Solocorn Schools"
-            copy="Integrated solutions for K-12 and higher education institutions."
-            buttonText="Partner with Us"
-            icon={School}
-            onClick={() => setModalType('schools')}
-          />
+          <ActionCard title="Become a Solocorn Tutor" copy="Join our elite network of educators and reach students worldwide." buttonText="Apply to Teach" icon={UserPlus} onClick={() => setModalType('tutor')} />
+          <ActionCard title="Start a Solocorn Academy" copy="Build your own branded learning institution on our infrastructure." buttonText="Launch Academy" icon={GraduationCap} onClick={() => setModalType('academy')} />
+          <ActionCard title="Solocorn Schools" copy="Integrated solutions for K-12 and higher education institutions." buttonText="Partner with Us" icon={School} onClick={() => setModalType('schools')} />
         </section>
 
         {/* Business Section */}
         <section className="max-w-7xl mx-auto px-6 mb-32">
-          <div className="bg-white/5 backdrop-blur-sm border border-emerald-500/10 p-12 rounded-[40px] flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className="bg-zinc-900/60 backdrop-blur-md border border-emerald-500/10 p-12 rounded-[40px] flex flex-col md:flex-row items-center justify-between gap-12">
             <div className="max-w-xl">
               <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-8">
                 <Building2 className="w-8 h-8 text-white" />
@@ -672,10 +582,7 @@ export default function LandingPage() {
               <p className="text-zinc-400 text-lg leading-relaxed mb-8">
                 Interested in bringing Solocorn to your organization? We offer enterprise-grade licensing and custom integration services.
               </p>
-              <a 
-                href="mailto:support@solocorn.co"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-colors"
-              >
+              <a href="mailto:support@solocorn.co" className="inline-flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-colors">
                 <Mail className="w-5 h-5" />
                 Contact support@solocorn.co
               </a>
@@ -696,14 +603,11 @@ export default function LandingPage() {
               <Link href="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link>
               <a href="mailto:support@solocorn.co" className="hover:text-white transition-colors">Contact</a>
             </div>
-            <div className="text-sm text-zinc-600">
-              © 2026 Solocorn. All rights reserved.
-            </div>
+            <div className="text-sm text-zinc-600">© 2026 Solocorn. All rights reserved.</div>
           </div>
         </footer>
       </motion.main>
 
-      {/* CSS for marquee animation */}
       <style jsx global>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
