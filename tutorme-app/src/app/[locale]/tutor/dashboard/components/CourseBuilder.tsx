@@ -89,7 +89,8 @@ import {
   Signal,
   SignalHigh,
   SignalLow,
-  Layers2
+  Layers2,
+  GripHorizontal
 } from 'lucide-react'
 
 // ============================================
@@ -3060,28 +3061,64 @@ interface TreeItemProps {
 function TreeItem({ children, depth, isLast }: TreeItemProps) {
   return (
     <div className="relative" style={{ marginLeft: depth * 20 }}>
-      {depth > 0 && (
-        <>
-          <div
-            className="absolute border-l-2 border-dashed border-gray-300"
-            style={{
-              left: -10,
-              top: 0,
-              bottom: isLast ? '50%' : 0,
-              height: isLast ? '50%' : '100%'
-            }}
-          />
-          <div
-            className="absolute border-t-2 border-dashed border-gray-300"
-            style={{
-              left: -10,
-              top: '50%',
-              width: 10
-            }}
-          />
-        </>
-      )}
       {children}
+    </div>
+  )
+}
+
+// ============================================
+// RESIZABLE PANEL COMPONENT
+// ============================================
+
+interface ResizablePanelProps {
+  children: React.ReactNode
+  defaultWidth?: number
+  minWidth?: number
+  maxWidth?: number
+}
+
+function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth = 400 }: ResizablePanelProps) {
+  const [width, setWidth] = useState(defaultWidth)
+  const [isResizing, setIsResizing] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing || !panelRef.current) return
+      const newWidth = e.clientX - panelRef.current.getBoundingClientRect().left
+      setWidth(Math.max(minWidth, Math.min(maxWidth, newWidth)))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+    }
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing, minWidth, maxWidth])
+
+  return (
+    <div 
+      ref={panelRef}
+      className="relative border-l pl-4 flex-shrink-0"
+      style={{ width: `${width}px` }}
+    >
+      {children}
+      {/* Resize handle */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-200/50 transition-colors flex items-center justify-center"
+        onMouseDown={() => setIsResizing(true)}
+        title="Drag to resize"
+      >
+        <GripHorizontal className="h-3 w-3 text-gray-400 rotate-90" />
+      </div>
     </div>
   )
 }
@@ -4042,7 +4079,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   { courseId, courseName, panelMode = 'default', initialModules = [], onSave, onMakeVisibleToStudents },
   ref
 ) {
-  const [modules, setModules] = useState<Module[]>(() => normalizeModulesForAssessments(initialModules))
+  const [modules, setModules] = useState<Module[]>([])
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
@@ -5405,13 +5442,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       />
                     </div>
                   </div>
-                  {/* Right panel: DMI */}
-                  <div className="w-48 border-l pl-4">
+                  {/* Right panel: DMI - resizable */}
+                  <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
                     <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
                     <div className="p-3 bg-slate-50 rounded-lg min-h-[120px]">
                       <p className="text-xs text-muted-foreground">DMI content</p>
                     </div>
-                  </div>
+                  </ResizablePanel>
                 </div>
               </CardContent>
             </Card>
@@ -5419,6 +5456,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
             {/* SECTION 2: Task Builder */}
             <Card className="flex-shrink-0">
               <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground mb-1">Task Builder</CardTitle>
                 <div className="flex items-center gap-3">
                   <Input 
                     placeholder="Task Title" 
@@ -5454,20 +5492,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         className="w-full min-h-[60px]"
                       />
                     </div>
-                    {/* Buttons */}
-                    <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm">Test</Button>
-                      <Button size="sm">Save</Button>
+                    {/* Buttons row with Test, Save, and Add (for Extensions) */}
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">Test</Button>
+                        <Button size="sm">Save</Button>
+                      </div>
+                      <Button variant="outline" size="sm">Add Extension</Button>
                     </div>
                   </div>
-                  {/* Right panel: Extensions */}
-                  <div className="w-48 border-l pl-4">
+                  {/* Right panel: Extensions - resizable */}
+                  <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
                     <h4 className="text-sm font-medium mb-2">Extensions</h4>
-                    <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] mb-2">
+                    <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
                       <p className="text-xs text-muted-foreground">No extensions added</p>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full">Add</Button>
-                  </div>
+                  </ResizablePanel>
                 </div>
               </CardContent>
             </Card>
@@ -5475,6 +5515,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
             {/* SECTION 3: Assessment Builder */}
             <Card className="flex-shrink-0">
               <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground mb-1">Assessment Builder</CardTitle>
                 <div className="flex items-center gap-3">
                   <Input 
                     placeholder="Assessment Title" 
@@ -5510,20 +5551,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         className="w-full min-h-[60px]"
                       />
                     </div>
-                    {/* Buttons */}
-                    <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm">Generate DMI</Button>
-                      <Button variant="outline" size="sm">Test</Button>
-                      <Button size="sm">Save</Button>
+                    {/* Buttons row with Generate DMI, Test, Save, and Add (for DMI) */}
+                    <div className="flex justify-between items-center mt-3">
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">Generate DMI</Button>
+                        <Button variant="outline" size="sm">Test</Button>
+                        <Button size="sm">Save</Button>
+                      </div>
+                      <Button variant="outline" size="sm">Add DMI</Button>
                     </div>
                   </div>
-                  {/* Right panel: DMI */}
-                  <div className="w-48 border-l pl-4">
+                  {/* Right panel: DMI - resizable */}
+                  <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
                     <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
                     <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
                       <p className="text-xs text-muted-foreground">DMI content</p>
                     </div>
-                  </div>
+                  </ResizablePanel>
                 </div>
               </CardContent>
             </Card>
