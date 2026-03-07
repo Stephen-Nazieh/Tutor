@@ -280,7 +280,7 @@ export function LiveSharedDocumentModal({
                       />
                       <Label htmlFor="visible-to-all" className="flex items-center gap-1.5 cursor-pointer text-sm">
                         <Users className="h-4 w-4 text-muted-foreground" />
-                        Visible to everyone in this live class
+                        Visible to class
                       </Label>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export function LiveSharedDocumentModal({
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2 border-t">
                   {isQuestionShare && (
                     <>
-                      {/* Enable AI grading assistance */}
+                      {/* AI grading */}
                       <div className="flex items-center gap-2">
                         <Switch 
                           checked={share.isAiGraded ?? false} 
@@ -299,7 +299,7 @@ export function LiveSharedDocumentModal({
                         />
                         <Label htmlFor="ai-grading" className="flex items-center gap-1.5 cursor-pointer text-sm">
                           <BrainCircuit className="h-4 w-4 text-purple-500" />
-                          Enable AI grading assistance
+                          AI grading
                         </Label>
                       </div>
 

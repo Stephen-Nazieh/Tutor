@@ -11,6 +11,7 @@ import { StudentLiveWhiteboard } from '@/app/[locale]/student/live/components/St
 import { PDFCollaborativeViewer } from '@/components/pdf-tutoring/PDFCollaborativeViewer'
 import { useSimpleSocket } from '@/hooks/use-simple-socket'
 import { LiveSharedDocumentModal, LiveSharedDocument, type LiveDocumentCollaborationPolicy } from './LiveSharedDocumentModal'
+import { WhiteboardAssignmentOverlay } from './WhiteboardAssignmentOverlay'
 import type { VisibleDocumentPayload } from '../../dashboard/components/CourseBuilder'
 import { Layers, Users, Radio, Eye } from 'lucide-react'
 import { toast } from 'sonner'
@@ -222,7 +223,7 @@ export function MultiLayerWhiteboardInterface({
     return (
       <>
         <div className="h-full grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
-          <div className="min-h-0">
+          <div className="min-h-0 relative">
             <TutorWhiteboardManager
               roomId={roomId}
               sessionId={sessionId}
@@ -230,6 +231,29 @@ export function MultiLayerWhiteboardInterface({
               classSubject={classSubject}
               students={students.map((student) => ({ id: student.id, name: student.name }))}
               onDocumentVisibleToStudents={handleShareRequestFromBuilder}
+            />
+            {/* Assignment Overlay - appears on whiteboard when content is assigned */}
+            <WhiteboardAssignmentOverlay
+              share={activeShare}
+              onClose={() => setActiveShareId(null)}
+              canManageShare={canManageActiveShare}
+              onVisibilityChange={(visible) => {
+                if (!activeShare || !canManageActiveShare) return
+                publishShare({ ...activeShare, visibleToAll: visible, active: visible })
+              }}
+              onCollaborationPolicyChange={updateActiveSharePolicy}
+              onRevealAnswersChange={(revealed) => {
+                if (!activeShare || !canManageActiveShare) return
+                publishShare({ ...activeShare, revealAnswersToStudents: revealed })
+              }}
+              onAiGradingChange={(enabled) => {
+                if (!activeShare || !canManageActiveShare) return
+                publishShare({ ...activeShare, isAiGraded: enabled })
+              }}
+              onTimeLimitChange={(minutes) => {
+                if (!activeShare || !canManageActiveShare) return
+                publishShare({ ...activeShare, timeLimit: minutes })
+              }}
             />
           </div>
 
