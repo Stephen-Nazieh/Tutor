@@ -13,20 +13,33 @@ const inter = Inter({
 
 export const metadata = {
   title: {
-    default: 'TutorMe - AI-Powered Educational Platform',
-    template: '%s | TutorMe'
+    default: 'Solocorn - AI-Powered Educational Platform',
+    template: '%s | Solocorn'
   },
   description: 'AI-human hybrid tutoring platform with 24/7 Socratic AI tutoring and live group clinics',
-  manifest: '/manifest.json',
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'TutorMe'
+    title: 'Solocorn'
   },
   other: {
-    'theme-color': '#ffffff',
-    'msapplication-TileColor': '#ffffff',
-    'msapplication-TileImage': '/ms-icon-144x144.png',
+    'theme-color': '#10b981',
+    'msapplication-TileColor': '#10b981',
   }
 }
 
