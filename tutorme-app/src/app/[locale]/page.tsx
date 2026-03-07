@@ -1,69 +1,275 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+/**
+ * Solocorn Landing Page - Embedded in Next.js
+ * This replaces the simple placeholder with the full Solocorn landing experience
+ */
 
-export default function Home() {
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Timer, 
+  UserPlus, 
+  GraduationCap, 
+  School, 
+  Building2, 
+  Mail, 
+  ArrowRight,
+  ChevronRight,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+
+// --- Types ---
+type View = 'home' | 'register' | 'profile';
+
+// --- Mock Data ---
+const CELEBRITY_TUTORS = [
+  { name: "Dr. Aris", subject: "Quantum Physics", image: "https://picsum.photos/seed/tutor1/400/400" },
+  { name: "Sarah Jenkins", subject: "Creative Writing", image: "https://picsum.photos/seed/tutor2/400/400" },
+  { name: "Chef Marco", subject: "Culinary Arts", image: "https://picsum.photos/seed/tutor3/400/400" },
+  { name: "Elena Rossi", subject: "Digital Marketing", image: "https://picsum.photos/seed/tutor4/400/400" },
+  { name: "Prof. Zhang", subject: "Mandarin", image: "https://picsum.photos/seed/tutor5/400/400" },
+  { name: "David Miller", subject: "Financial Literacy", image: "https://picsum.photos/seed/tutor6/400/400" },
+];
+
+// --- Components ---
+
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 5, minutes: 45, seconds: 30 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, seconds: 59, minutes: prev.minutes - 1 };
+        return prev;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            TutorMe
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            AI-Human Hybrid Tutoring Platform
-          </p>
-          <div className="flex justify-center gap-4">
-            <Button size="lg" asChild>
-              <a href="/login">Login</a>
-            </Button>
-            <Button size="lg" variant="outline" asChild>
-              <a href="/register">Sign Up</a>
-            </Button>
+    <div className="flex gap-4 md:gap-8 justify-center items-center font-mono">
+      {Object.entries(timeLeft).map(([unit, value]) => (
+        <div key={unit} className="flex flex-col items-center">
+          <div className="text-4xl md:text-6xl font-bold text-white tabular-nums">
+            {value.toString().padStart(2, '0')}
           </div>
+          <div className="text-xs uppercase tracking-widest text-zinc-500 mt-2">{unit}</div>
         </div>
+      ))}
+    </div>
+  );
+};
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Learning</CardTitle>
-              <CardDescription>24/7 Socratic AI tutor</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Get instant help with our AI that guides you to answers, never just gives them.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Classes</CardTitle>
-              <CardDescription>Group learning sessions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Join live classes where AI monitors progress and tutors provide targeted help.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Progress Tracking</CardTitle>
-              <CardDescription>Visualize your growth</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                See your knowledge graph grow as you master new concepts.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="text-center mt-16 text-gray-500">
-          <p>MVP in Development - Phase 1 Complete</p>
-        </div>
+const TutorStrip = () => {
+  return (
+    <div className="relative overflow-hidden py-12 border-y border-white/5 bg-white/[0.02]">
+      <div className="flex animate-marquee whitespace-nowrap">
+        {[...CELEBRITY_TUTORS, ...CELEBRITY_TUTORS].map((tutor, i) => (
+          <div key={i} className="inline-flex items-center mx-8 group">
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-emerald-500/30 mr-4 group-hover:border-emerald-400 transition-colors">
+              <img src={tutor.image} alt={tutor.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <div>
+              <div className="text-lg font-bold text-white">{tutor.name}</div>
+              <div className="text-sm text-zinc-500">{tutor.subject}</div>
+            </div>
+          </div>
+        ))}
       </div>
-    </main>
-  )
+    </div>
+  );
+};
+
+const ActionCard = ({ title, copy, buttonText, icon: Icon, href }: { title: string; copy: string; buttonText: string; icon: any; href: string }) => (
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className="bg-white/5 backdrop-blur-sm border border-white/10 p-8 rounded-2xl flex flex-col items-start justify-between h-full group"
+  >
+    <div className="mb-6">
+      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">
+        <Icon className="w-6 h-6 text-emerald-400" />
+      </div>
+      <h3 className="text-2xl font-bold mb-3">{title}</h3>
+      {copy && <p className="text-zinc-400 leading-relaxed">{copy}</p>}
+    </div>
+    <Link href={href}>
+      <Button className="w-full py-3 px-6 rounded-xl bg-white text-black font-semibold hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2">
+        {buttonText}
+      </Button>
+    </Link>
+  </motion.div>
+);
+
+const Navbar = () => (
+  <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+    <div className="max-w-7xl mx-auto flex justify-between items-center bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl px-6 py-3">
+      <Link href="/" className="text-2xl font-bold tracking-tighter cursor-pointer flex items-center gap-2">
+        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+          <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
+        </div>
+        SOLOCORN
+      </Link>
+      <div className="flex items-center gap-4">
+        <Link href="/register/tutor" className="text-sm font-medium hover:text-emerald-400 transition-colors hidden sm:block">
+          Become a Tutor
+        </Link>
+        <Link href="/student">
+          <Button className="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors">
+            Get Started
+          </Button>
+        </Link>
+        <Link href="/register">
+          <Button variant="outline" className="px-5 py-2 bg-white text-black rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors border-0">
+            Register
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </nav>
+);
+
+// --- Main Page Component ---
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <Navbar />
+
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="pt-24"
+      >
+        {/* Hero Section */}
+        <section className="px-6 py-20 md:py-32 text-center relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/10 blur-[120px] rounded-full -z-10" />
+          
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              Going Live
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-12">
+              Launch <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span>
+            </h1>
+
+            <div className="mb-16">
+              <CountdownTimer />
+            </div>
+
+            <Link href="/register">
+              <Button className="group relative px-8 py-6 bg-white text-black rounded-2xl font-bold text-lg hover:bg-emerald-400 transition-all flex items-center gap-2 mx-auto">
+                Register Now
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </motion.div>
+        </section>
+
+        {/* Tutor Cohort Strip */}
+        <section className="mb-32">
+          <div className="max-w-7xl mx-auto px-6 mb-8 flex justify-between items-end">
+            <div>
+              <h2 className="text-3xl font-bold">Solocorn Tutors</h2>
+              <p className="text-zinc-500">Our celebrity tutor cohort is ready to transform your learning.</p>
+            </div>
+            <button className="text-sm font-bold text-emerald-400 flex items-center gap-1 hover:underline">
+              View All <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+          <TutorStrip />
+        </section>
+
+        {/* Action Grid */}
+        <section className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-32">
+          <ActionCard 
+            title="Become a Solocorn Tutor"
+            copy="Join our elite network of educators and reach students worldwide."
+            buttonText="Apply to Teach"
+            icon={UserPlus}
+            href="/register/tutor"
+          />
+          <ActionCard 
+            title="Start a Solocorn Academy"
+            copy="Build your own branded learning institution on our infrastructure."
+            buttonText="Launch Academy"
+            icon={GraduationCap}
+            href="/student"
+          />
+          <ActionCard 
+            title="Solocorn Schools"
+            copy="Integrated solutions for K-12 and higher education institutions."
+            buttonText="Partner with Us"
+            icon={School}
+            href="/student"
+          />
+        </section>
+
+        {/* Business Section */}
+        <section className="max-w-7xl mx-auto px-6 mb-32">
+          <div className="bg-white/5 backdrop-blur-sm border border-emerald-500/10 p-12 rounded-[40px] flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="max-w-xl">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-8">
+                <Building2 className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-4xl font-bold mb-6">Business and Licensing Inquiries</h2>
+              <p className="text-zinc-400 text-lg leading-relaxed mb-8">
+                Interested in bringing Solocorn to your organization? We offer enterprise-grade licensing and custom integration services.
+              </p>
+              <a 
+                href="mailto:support@solocorn.co"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-colors"
+              >
+                <Mail className="w-5 h-5" />
+                Contact support@solocorn.co
+              </a>
+            </div>
+            <div className="w-full md:w-1/3 aspect-square bg-white/5 rounded-3xl flex items-center justify-center relative overflow-hidden border border-white/10">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
+              <Building2 className="w-32 h-32 text-white/10" />
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="border-t border-white/5 py-20 px-6">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="text-2xl font-bold tracking-tighter">SOLOCORN</div>
+            <div className="flex gap-8 text-sm text-zinc-500">
+              <Link href="/legal/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/legal/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <a href="mailto:support@solocorn.co" className="hover:text-white transition-colors">Contact</a>
+            </div>
+            <div className="text-sm text-zinc-600">
+              © 2026 Solocorn. All rights reserved.
+            </div>
+          </div>
+        </footer>
+      </motion.main>
+
+      {/* CSS for marquee animation */}
+      <style jsx global>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+      `}</style>
+    </div>
+  );
 }
