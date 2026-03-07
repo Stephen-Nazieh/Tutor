@@ -277,7 +277,6 @@ const SpecialAccessSection = () => {
             </div>
             <div>
               <h3 className="font-semibold text-white">I have special access</h3>
-              <p className="text-sm text-zinc-400">Developers and authorized personnel only</p>
             </div>
           </div>
           <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
@@ -292,9 +291,7 @@ const SpecialAccessSection = () => {
               className="overflow-hidden"
             >
               <div className="pt-6 border-t border-white/10 mt-6">
-                <p className="text-sm text-zinc-400 mb-4">
-                  Enter your developer access code to proceed to the application.
-                </p>
+                <p className="text-sm text-zinc-400 mb-4">Enter code</p>
                 <form onSubmit={handleSubmit} className="flex gap-3">
                   <Input
                     type="password"
