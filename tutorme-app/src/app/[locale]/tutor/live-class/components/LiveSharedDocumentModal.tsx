@@ -17,7 +17,8 @@ import {
   Clock,
   Pencil,
   Type,
-  Shapes
+  Shapes,
+  Presentation
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { QuizQuestion } from '../../dashboard/components/CourseBuilder'
@@ -65,6 +66,7 @@ interface LiveSharedDocumentModalProps {
   onRevealAnswersChange?: (revealed: boolean) => void
   onAiGradingChange?: (enabled: boolean) => void
   onTimeLimitChange?: (minutes: number) => void
+  onOpenInWhiteboard?: () => void
   hasSubmitted?: boolean
 }
 
@@ -81,6 +83,7 @@ export function LiveSharedDocumentModal({
   onRevealAnswersChange,
   onAiGradingChange,
   onTimeLimitChange,
+  onOpenInWhiteboard,
   hasSubmitted = false,
 }: LiveSharedDocumentModalProps) {
   const questions = Array.isArray(share?.questions) ? share?.questions : []
@@ -213,6 +216,12 @@ export function LiveSharedDocumentModal({
     onTimeLimitChange?.(minutes)
   }
 
+  const handleVisibilityToggle = () => {
+    if (share) {
+      onVisibilityChange?.(!share.visibleToAll)
+    }
+  }
+
   if (!share) return null
 
   return (
@@ -220,15 +229,53 @@ export function LiveSharedDocumentModal({
       <DialogContent className="max-h-[92vh] w-[95vw] max-w-[1300px] overflow-hidden p-0">
         <div className="flex h-full flex-col">
           <DialogHeader className="border-b px-5 py-4 shrink-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <DialogTitle>{share.title}</DialogTitle>
               <Badge variant="outline">Owner: {share.ownerName}</Badge>
-              <Badge variant={share.visibleToAll ? 'default' : 'secondary'}>
-                {share.visibleToAll ? 'Visible to class' : 'Private copy'}
-              </Badge>
+              
+              {/* Clickable visibility badge */}
+              {canManageShare ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleVisibilityToggle}
+                  className="h-6 px-2 py-0 gap-1"
+                  title="Click to toggle visibility"
+                >
+                  <Badge 
+                    variant={share.visibleToAll ? 'default' : 'secondary'}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    <Users className="h-3 w-3 mr-1" />
+                    {share.visibleToAll ? 'Visible to class' : 'Private'}
+                  </Badge>
+                </Button>
+              ) : (
+                <Badge variant={share.visibleToAll ? 'default' : 'secondary'}>
+                  <Users className="h-3 w-3 mr-1" />
+                  {share.visibleToAll ? 'Visible to class' : 'Private'}
+                </Badge>
+              )}
+              
               <Badge variant="outline">
                 Submissions: {share.submissions?.length || 0}
               </Badge>
+
+              {/* Open in Whiteboard button */}
+              {canManageShare && onOpenInWhiteboard && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onOpenInWhiteboard()
+                    onOpenChange(false)
+                  }}
+                  className="gap-1 ml-auto"
+                >
+                  <Presentation className="h-4 w-4" />
+                  Open in Whiteboard
+                </Button>
+              )}
             </div>
             <DialogDescription>
               {share.description || 'Shared live document session'}
@@ -241,6 +288,11 @@ export function LiveSharedDocumentModal({
                 {/* Row 1: Visibility Controls - Answer toggles */}
                 {isQuestionShare && (
                   <div className="flex flex-wrap items-center gap-4">
+                    {/* Answers label */}
+                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                      Answers:
+                    </span>
+
                     {/* Me - Icon button with short label */}
                     <Button
                       type="button"
@@ -270,19 +322,6 @@ export function LiveSharedDocumentModal({
                       {share.revealAnswersToStudents ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       <span>Students</span>
                     </Button>
-                    
-                    {/* Visible to everyone */}
-                    <div className="flex items-center gap-2">
-                      <Switch 
-                        checked={share.visibleToAll} 
-                        onCheckedChange={onVisibilityChange} 
-                        id="visible-to-all"
-                      />
-                      <Label htmlFor="visible-to-all" className="flex items-center gap-1.5 cursor-pointer text-sm">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        Visible to class
-                      </Label>
-                    </div>
                   </div>
                 )}
 

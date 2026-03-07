@@ -756,6 +756,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                   engagement: student.engagementScore,
                 }))}
                 isSocketConnected={Boolean(socket)}
+                onOpenInWhiteboard={() => setActiveTab('whiteboard')}
               />
             </TabsContent>
 

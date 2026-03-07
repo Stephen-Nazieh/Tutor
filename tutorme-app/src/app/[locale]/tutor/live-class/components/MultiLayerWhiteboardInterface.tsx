@@ -32,6 +32,7 @@ interface MultiLayerWhiteboardInterfaceProps {
   isSocketConnected: boolean
   onLayerUpdate?: (layerData: unknown) => void
   onPermissionChange?: (permissionData: unknown) => void
+  onOpenInWhiteboard?: () => void
 }
 
 export function MultiLayerWhiteboardInterface({
@@ -41,6 +42,7 @@ export function MultiLayerWhiteboardInterface({
   classSubject,
   students,
   isSocketConnected,
+  onOpenInWhiteboard,
 }: MultiLayerWhiteboardInterfaceProps) {
   const { data: session } = useSession()
   const isTutor = session?.user?.role === 'TUTOR'
@@ -325,6 +327,7 @@ export function MultiLayerWhiteboardInterface({
           if (!activeShare || !canManageActiveShare) return
           publishShare({ ...activeShare, revealAnswersToStudents: revealed })
         }}
+        onOpenInWhiteboard={onOpenInWhiteboard}
       />
       </>
     )

@@ -84,9 +84,31 @@ export function WhiteboardAssignmentOverlay({
       <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50 rounded-t-lg">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-xs">{share.title}</Badge>
-          <Badge variant={share.visibleToAll ? 'default' : 'secondary'} className="text-xs">
-            {share.visibleToAll ? 'Visible' : 'Private'}
-          </Badge>
+          
+          {/* Clickable visibility badge */}
+          {canManageShare ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onVisibilityChange?.(!share.visibleToAll)}
+              className="h-6 px-2 py-0 gap-1"
+              title="Click to toggle visibility"
+            >
+              <Badge 
+                variant={share.visibleToAll ? 'default' : 'secondary'}
+                className="cursor-pointer hover:opacity-80 transition-opacity text-xs"
+              >
+                <Users className="h-3 w-3 mr-1" />
+                {share.visibleToAll ? 'Visible' : 'Private'}
+              </Badge>
+            </Button>
+          ) : (
+            <Badge variant={share.visibleToAll ? 'default' : 'secondary'} className="text-xs">
+              <Users className="h-3 w-3 mr-1" />
+              {share.visibleToAll ? 'Visible' : 'Private'}
+            </Badge>
+          )}
+
           {isQuestionShare && (
             <span className="text-xs text-muted-foreground">
               {questions.length} Q
@@ -97,6 +119,11 @@ export function WhiteboardAssignmentOverlay({
         <div className="flex items-center gap-1">
           {canManageShare && isQuestionShare && (
             <>
+              {/* Answers label */}
+              <span className="text-xs text-muted-foreground mr-1">
+                Answers:
+              </span>
+
               {/* Me */}
               <Button
                 type="button"
@@ -150,20 +177,6 @@ export function WhiteboardAssignmentOverlay({
       {/* Controls Bar - only when not minimized */}
       {!isMinimized && canManageShare && (
         <div className="px-4 py-2 border-b bg-gray-50/50 flex flex-wrap items-center gap-x-4 gap-y-2">
-          {/* Visible to class */}
-          <div className="flex items-center gap-1.5">
-            <Switch 
-              checked={share.visibleToAll} 
-              onCheckedChange={onVisibilityChange} 
-              id="visible-to-all"
-              className="scale-75"
-            />
-            <Label htmlFor="visible-to-all" className="flex items-center gap-1 cursor-pointer text-xs">
-              <Users className="h-3 w-3 text-muted-foreground" />
-              Visible to class
-            </Label>
-          </div>
-
           {isQuestionShare && (
             <>
               {/* AI grading */}
