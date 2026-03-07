@@ -3177,11 +3177,12 @@ function SortableTreeItem({ id, children, depth, isLast, dragHandle = true }: So
     <div ref={setNodeRef} style={style} className="group relative">
       {dragHandle && (
         <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded opacity-100"
           {...attributes}
           {...listeners}
+          title="Drag to reorder"
         >
-          <GripVertical className="h-4 w-4 text-gray-400" />
+          <GripVertical className="h-4 w-4 text-gray-500" />
         </button>
       )}
       <TreeItem depth={depth} isLast={isLast}>
@@ -5139,7 +5140,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 {/* Tasks */}
                                 <TreeItem depth={2} isLast={false}>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] text-orange-600 font-medium px-2">Tasks</span>
                                     <Button
                                       variant="ghost"
                                       size="icon"
@@ -5202,7 +5202,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 {/* Assessments */}
                                 <TreeItem depth={2} isLast={false}>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] text-purple-600 font-medium px-2">Assessments</span>
                                     <Button
                                       variant="ghost"
                                       size="icon"
