@@ -1741,11 +1741,11 @@ Format your response clearly and concisely.`
           
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleApplyToContent} disabled={messages.length < 2}>
+              <Button variant="outline" size="sm" onClick={handleApplyToContent}>
                 <FileText className="h-4 w-4 mr-1" />
                 Apply to Content
               </Button>
-              <Button variant="outline" size="sm" onClick={handleApplyToPci} disabled={messages.length < 2}>
+              <Button variant="outline" size="sm" onClick={handleApplyToPci}>
                 <Settings className="h-4 w-4 mr-1" />
                 Apply to PCI
               </Button>
@@ -4578,6 +4578,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     student1: '',
     student2: ''
   })
+  
+  // Active tab tracking for Enter button
+  const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
+  const [assessmentBuilderActiveTab, setAssessmentBuilderActiveTab] = useState<'content' | 'pci'>('content')
 
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
@@ -5970,7 +5974,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
                       <div className="flex-1">
-                        <Tabs defaultValue="content" className="w-full">
+                        <Tabs 
+                          value={taskBuilderActiveTab} 
+                          onValueChange={(v) => setTaskBuilderActiveTab(v as 'content' | 'pci')}
+                          className="w-full"
+                        >
                           <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="content">Content</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
@@ -6076,23 +6084,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         {/* Persistent text input below tabs */}
                         <div className="mt-3 space-y-2">
                           <Textarea 
-                            placeholder="Enter text and press Enter to add to active tab..." 
+                            placeholder={`Enter text and press Enter to add to ${taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
                             className="w-full min-h-[60px]"
                             value={taskBuilder.details}
                             onChange={(e) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault()
-                                // Get active tab and append content
-                                const activeTab = document.querySelector('[data-state="active"][role="tabpanel"]')?.getAttribute('id')
                                 if (taskBuilder.details.trim()) {
-                                  if (activeTab?.includes('content')) {
+                                  if (taskBuilderActiveTab === 'content') {
                                     setTaskBuilder(prev => ({
                                       ...prev,
                                       content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
                                       details: ''
                                     }))
-                                  } else if (activeTab?.includes('pci')) {
+                                  } else {
                                     setTaskBuilder(prev => ({
                                       ...prev,
                                       pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
@@ -6103,40 +6109,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               }
                             }}
                           />
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                if (taskBuilder.details.trim()) {
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              if (taskBuilder.details.trim()) {
+                                if (taskBuilderActiveTab === 'content') {
                                   setTaskBuilder(prev => ({
                                     ...prev,
                                     content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
                                     details: ''
                                   }))
-                                }
-                              }}
-                            >
-                              <CornerDownLeft className="h-3 w-3 mr-1" />
-                              Enter to Content
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                if (taskBuilder.details.trim()) {
+                                } else {
                                   setTaskBuilder(prev => ({
                                     ...prev,
                                     pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
                                     details: ''
                                   }))
                                 }
-                              }}
-                            >
-                              <CornerDownLeft className="h-3 w-3 mr-1" />
-                              Enter to PCI
-                            </Button>
-                          </div>
+                              }
+                            }}
+                          >
+                            <CornerDownLeft className="h-3 w-3 mr-1" />
+                            Enter to {taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
+                          </Button>
                         </div>
                         {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
@@ -6248,7 +6244,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
                       <div className="flex-1">
-                        <Tabs defaultValue="content" className="w-full">
+                        <Tabs 
+                          value={assessmentBuilderActiveTab} 
+                          onValueChange={(v) => setAssessmentBuilderActiveTab(v as 'content' | 'pci')}
+                          className="w-full"
+                        >
                           <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="content">Content</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
@@ -6353,23 +6353,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         {/* Persistent text input below tabs */}
                         <div className="mt-3 space-y-2">
                           <Textarea 
-                            placeholder="Enter text and press Enter to add to active tab..." 
+                            placeholder={`Enter text and press Enter to add to ${assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
                             className="w-full min-h-[60px]"
                             value={assessmentBuilder.details}
                             onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault()
-                                // Get active tab and append content
-                                const activeTab = document.querySelector('[data-state="active"][role="tabpanel"]')?.getAttribute('id')
                                 if (assessmentBuilder.details.trim()) {
-                                  if (activeTab?.includes('content')) {
+                                  if (assessmentBuilderActiveTab === 'content') {
                                     setAssessmentBuilder(prev => ({
                                       ...prev,
                                       content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
                                       details: ''
                                     }))
-                                  } else if (activeTab?.includes('pci')) {
+                                  } else {
                                     setAssessmentBuilder(prev => ({
                                       ...prev,
                                       pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
@@ -6380,40 +6378,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               }
                             }}
                           />
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                if (assessmentBuilder.details.trim()) {
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              if (assessmentBuilder.details.trim()) {
+                                if (assessmentBuilderActiveTab === 'content') {
                                   setAssessmentBuilder(prev => ({
                                     ...prev,
                                     content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
                                     details: ''
                                   }))
-                                }
-                              }}
-                            >
-                              <CornerDownLeft className="h-3 w-3 mr-1" />
-                              Enter to Content
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                if (assessmentBuilder.details.trim()) {
+                                } else {
                                   setAssessmentBuilder(prev => ({
                                     ...prev,
                                     pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
                                     details: ''
                                   }))
                                 }
-                              }}
-                            >
-                              <CornerDownLeft className="h-3 w-3 mr-1" />
-                              Enter to PCI
-                            </Button>
-                          </div>
+                              }
+                            }}
+                          >
+                            <CornerDownLeft className="h-3 w-3 mr-1" />
+                            Enter to {assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
+                          </Button>
                         </div>
                         {/* Buttons row with Generate DMI, Test, and Save */}
                         <div className="flex gap-2 mt-3">

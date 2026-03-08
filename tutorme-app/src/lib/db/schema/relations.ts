@@ -43,7 +43,11 @@ import {
     aITutorEnrollment,
     aIInteractionSession,
     aITutorDailyUsage,
-    userActivityLog
+    userActivityLog,
+    builderTask,
+    builderTaskExtension,
+    builderTaskFile,
+    builderTaskVersion
 } from './tables'
 
 export const userRelations = relations(user, ({ one, many }) => ({
@@ -482,5 +486,53 @@ export const userActivityLogRelations = relations(userActivityLog, ({ one }) => 
     user: one(user, {
         fields: [userActivityLog.userId],
         references: [user.id],
+    }),
+}))
+
+
+// ============================================
+// TASK BUILDER RELATIONS
+// ============================================
+
+export const builderTaskRelations = relations(builderTask, ({ one, many }) => ({
+    curriculum: one(curriculum, {
+        fields: [builderTask.curriculumId],
+        references: [curriculum.id],
+    }),
+    lesson: one(curriculumLesson, {
+        fields: [builderTask.lessonId],
+        references: [curriculumLesson.id],
+    }),
+    module: one(curriculumModule, {
+        fields: [builderTask.moduleId],
+        references: [curriculumModule.id],
+    }),
+    tutor: one(user, {
+        fields: [builderTask.tutorId],
+        references: [user.id],
+    }),
+    extensions: many(builderTaskExtension),
+    files: many(builderTaskFile),
+    versions: many(builderTaskVersion),
+}))
+
+export const builderTaskExtensionRelations = relations(builderTaskExtension, ({ one }) => ({
+    task: one(builderTask, {
+        fields: [builderTaskExtension.taskId],
+        references: [builderTask.id],
+    }),
+}))
+
+export const builderTaskFileRelations = relations(builderTaskFile, ({ one }) => ({
+    task: one(builderTask, {
+        fields: [builderTaskFile.taskId],
+        references: [builderTask.id],
+    }),
+}))
+
+export const builderTaskVersionRelations = relations(builderTaskVersion, ({ one }) => ({
+    task: one(builderTask, {
+        fields: [builderTaskVersion.taskId],
+        references: [builderTask.id],
     }),
 }))
