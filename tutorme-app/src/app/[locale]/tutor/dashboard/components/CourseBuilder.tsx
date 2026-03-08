@@ -1752,6 +1752,177 @@ Format your response clearly and concisely.`
 }
 
 // Question Bank Modal
+// --- DMI Panel Component ---
+
+interface DMIPanelProps {
+  content: string
+  pci: string
+}
+
+interface DMIAnswer {
+  questionNumber: number
+  questionText: string
+  answer: string
+  isGenerated: boolean
+}
+
+function DMIPanel({ content, pci }: DMIPanelProps) {
+  const [answers, setAnswers] = useState<DMIAnswer[]>([])
+  const [editingAnswer, setEditingAnswer] = useState<number | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  // Parse questions from content and extract/generate answers
+  useEffect(() => {
+    const parseContent = () => {
+      if (!content.trim()) {
+        setAnswers([])
+        return
+      }
+
+      // Split content into potential questions
+      const lines = content.split('\n').filter(line => line.trim())
+      const questionLines: { number: number; text: string }[] = []
+      
+      lines.forEach((line) => {
+        // Match patterns like "1.", "Q1:", "Question 1:", etc.
+        const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
+        if (match) {
+          questionLines.push({
+            number: parseInt(match[1]),
+            text: match[2].trim()
+          })
+        }
+      })
+
+      // If no numbered questions found, try to split by double newlines
+      if (questionLines.length === 0) {
+        const chunks = content.split(/\n\n+/).filter(c => c.trim().length > 10)
+        chunks.forEach((chunk, idx) => {
+          const firstLine = chunk.split('\n')[0].trim()
+          if (firstLine.length > 5) {
+            questionLines.push({
+              number: idx + 1,
+              text: firstLine.substring(0, 100) + (firstLine.length > 100 ? '...' : '')
+            })
+          }
+        })
+      }
+
+      // Try to extract answers from PCI
+      const pciAnswers = new Map<number, string>()
+      if (pci.trim()) {
+        const pciLines = pci.split('\n')
+        pciLines.forEach(line => {
+          // Match answer patterns in PCI like "A: answer", "Answer 1: ...", "1. answer"
+          const match = line.match(/^(?:A(?:nswer)?[:\s]*)?(\d+)[:.)\s]+(.+)$/i)
+          if (match) {
+            pciAnswers.set(parseInt(match[1]), match[2].trim())
+          }
+        })
+      }
+
+      // Build answers array
+      const newAnswers: DMIAnswer[] = questionLines.map(q => ({
+        questionNumber: q.number,
+        questionText: q.text,
+        answer: pciAnswers.get(q.number) || '[AI will generate answer]',
+        isGenerated: !pciAnswers.has(q.number)
+      }))
+
+      setAnswers(newAnswers)
+    }
+
+    parseContent()
+  }, [content, pci])
+
+  const handleEdit = (index: number) => {
+    setEditingAnswer(index)
+    setEditValue(answers[index].answer)
+  }
+
+  const handleSave = (index: number) => {
+    const newAnswers = [...answers]
+    newAnswers[index].answer = editValue
+    newAnswers[index].isGenerated = false
+    setAnswers(newAnswers)
+    setEditingAnswer(null)
+  }
+
+  const handleCancel = () => {
+    setEditingAnswer(null)
+    setEditValue('')
+  }
+
+  if (!content.trim()) {
+    return (
+      <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
+        <h4 className="text-sm font-medium mb-2">Digital Marking Interface</h4>
+        <p className="text-xs text-muted-foreground">Add content in the Content tab to generate answers</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-sm font-medium">Digital Marking Interface</h4>
+      </div>
+      
+      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+        {answers.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No questions detected in content</p>
+        ) : (
+          answers.map((item, idx) => (
+            <div key={idx} className="bg-white rounded border p-2">
+              <div className="flex items-start gap-2">
+                <span className="text-xs font-medium text-blue-600 mt-0.5">Q{item.questionNumber}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground truncate mb-1">{item.questionText}</p>
+                  
+                  {editingAnswer === idx ? (
+                    <div className="space-y-1">
+                      <textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="w-full text-xs border rounded p-1 resize-none"
+                        rows={2}
+                      />
+                      <div className="flex gap-1">
+                        <Button size="sm" className="h-5 text-[10px] px-2" onClick={() => handleSave(idx)}>Save</Button>
+                        <Button size="sm" variant="ghost" className="h-5 text-[10px] px-2" onClick={handleCancel}>Cancel</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-2">
+                      <p className={`text-xs ${item.isGenerated ? 'text-amber-600 italic' : 'text-green-700'}`}>
+                        A: {item.answer}
+                      </p>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-5 text-[10px] px-1 shrink-0"
+                        onClick={() => handleEdit(idx)}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      
+      <p className="text-[10px] text-muted-foreground mt-2">
+        {answers.some(a => a.isGenerated) ? 'Yellow answers need to be filled. Green are from PCI.' : 'All answers are from PCI'}
+      </p>
+    </div>
+  )
+}
+
+// --- Question Bank Modal ---
+
 interface QuestionBankModalProps {
   isOpen: boolean
   onClose: () => void
@@ -4830,8 +5001,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Right panel tabs for Task Builder (Extensions / DMI)
   const [taskBuilderRightTab, setTaskBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
   
+  // Right panel tabs for Assessment Builder (Extensions / DMI)
+  const [assessmentBuilderRightTab, setAssessmentBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
+  
   // Question Bank modal state
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
+  const [questionBankTarget, setQuestionBankTarget] = useState<'task' | 'assessment'>('task')
 
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
@@ -6447,12 +6622,15 @@ FEEDBACK: [your explanation]`
                                   variant="outline"
                                   size="sm"
                                   className="gap-1 text-xs"
-                                  onClick={() => setQuestionBankOpen(true)}
+                                  onClick={() => {
+                                    setQuestionBankTarget('task')
+                                    setQuestionBankOpen(true)
+                                  }}
                                 >
                                   <BookOpen className="h-3 w-3" />
                                   From Question Bank
                                 </Button>
-                                <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
+                                {/* File type hint removed */}
                               </div>
                             )}
                           </TabsContent>
@@ -6699,29 +6877,14 @@ FEEDBACK: [your explanation]`
                           </TabsContent>
                           
                           <TabsContent value="dmi" className="mt-0">
-                            <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
-                              <h4 className="text-sm font-medium mb-2">Digital Marking Interface</h4>
-                              <p className="text-xs text-muted-foreground mb-3">Configure DMI settings for this task</p>
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs">Auto-marking</span>
-                                  <input type="checkbox" className="rounded" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs">Show hints</span>
-                                  <input type="checkbox" className="rounded" defaultChecked />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-xs">Time limit</span>
-                                  <select className="text-xs border rounded px-1 py-0.5">
-                                    <option>None</option>
-                                    <option>5 min</option>
-                                    <option>10 min</option>
-                                    <option>30 min</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </div>
+                            <DMIPanel 
+                              content={taskBuilder.activeExtensionId 
+                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
+                                : taskBuilder.taskContent}
+                              pci={taskBuilder.activeExtensionId 
+                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
+                                : taskBuilder.taskPci}
+                            />
                           </TabsContent>
                         </Tabs>
                       </ResizablePanel>
@@ -6865,7 +7028,20 @@ FEEDBACK: [your explanation]`
                                     Upload Files
                                   </span>
                                 </label>
-                                <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
+                                {/* Question Bank Button for Assessment */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-1 text-xs"
+                                  onClick={() => {
+                                    setQuestionBankTarget('assessment')
+                                    setQuestionBankOpen(true)
+                                  }}
+                                >
+                                  <BookOpen className="h-3 w-3" />
+                                  From Question Bank
+                                </Button>
+                                {/* File type hint removed */}
                               </div>
                             )}
                           </TabsContent>
@@ -7029,17 +7205,96 @@ FEEDBACK: [your explanation]`
                           </Button>
                         </div>
                       </div>
-                      {/* Right panel: DMI - resizable */}
+                      {/* Right panel: Extensions & DMI Tabs - resizable */}
                       <ResizablePanel 
                         defaultWidth={192} 
                         minWidth={150} 
                         maxWidth={600}
-                        actionButton={<Button variant="outline" size="sm" className="w-full">Add DMI</Button>}
                       >
-                        <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
-                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
-                          <p className="text-xs text-muted-foreground">DMI content</p>
-                        </div>
+                        <Tabs value={assessmentBuilderRightTab} onValueChange={(v) => setAssessmentBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 mb-2">
+                            <TabsTrigger value="extensions">Extensions</TabsTrigger>
+                            <TabsTrigger value="dmi">DMI</TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="extensions" className="mt-0">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full mb-2"
+                              onClick={() => {
+                                const extNumber = assessmentBuilder.extensions.length + 1
+                                setAssessmentBuilder(prev => ({
+                                  ...prev,
+                                  extensions: [...prev.extensions, { 
+                                    id: `ext-${Date.now()}`, 
+                                    name: `Extension ${extNumber}`, 
+                                    content: '', 
+                                    pci: '' 
+                                  }]
+                                }))
+                              }}
+                            >
+                              Add Extension
+                            </Button>
+                            <div className="mb-2">
+                              <p className="text-xs text-muted-foreground truncate">{assessmentBuilder.title || 'Assessment'}</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
+                              {assessmentBuilder.extensions.length === 0 ? (
+                                <p className="text-xs text-muted-foreground">No extensions added</p>
+                              ) : (
+                                assessmentBuilder.extensions.map((ext) => (
+                                  <div key={ext.id} className="flex items-center gap-1 group">
+                                    <Button
+                                      variant={assessmentBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
+                                      size="sm"
+                                      className="flex-1 justify-start text-xs"
+                                      onClick={() => {
+                                        if (assessmentBuilder.activeExtensionId === ext.id) {
+                                          setAssessmentBuilder(prev => ({ ...prev, activeExtensionId: null }))
+                                        } else {
+                                          setAssessmentBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
+                                        }
+                                      }}
+                                    >
+                                      <FileText className="h-3 w-3 mr-1" />
+                                      {ext.name}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (confirm(`Delete "${ext.name}"?`)) {
+                                          setAssessmentBuilder(prev => ({
+                                            ...prev,
+                                            extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                            activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
+                                          }))
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                    </Button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="dmi" className="mt-0">
+                            <DMIPanel 
+                              content={assessmentBuilder.activeExtensionId 
+                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
+                                : assessmentBuilder.taskContent}
+                              pci={assessmentBuilder.activeExtensionId 
+                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
+                                : assessmentBuilder.taskPci}
+                            />
+                          </TabsContent>
+                        </Tabs>
                       </ResizablePanel>
                     </div>
                   </TabsContent>
@@ -7291,11 +7546,18 @@ FEEDBACK: [your explanation]`
           isOpen={questionBankOpen}
           onClose={() => setQuestionBankOpen(false)}
           onImport={(questions) => {
-            // Add imported questions to task content
-            setTaskBuilder(prev => ({
-              ...prev,
-              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Question Bank]\n\n${questions}`
-            }))
+            // Add imported questions to the appropriate builder
+            if (questionBankTarget === 'task') {
+              setTaskBuilder(prev => ({
+                ...prev,
+                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Question Bank]\n\n${questions}`
+              }))
+            } else {
+              setAssessmentBuilder(prev => ({
+                ...prev,
+                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Question Bank]\n\n${questions}`
+              }))
+            }
             toast.success('Questions imported from Question Bank')
           }}
         />

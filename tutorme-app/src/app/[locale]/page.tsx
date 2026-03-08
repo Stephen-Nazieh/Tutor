@@ -652,15 +652,8 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
 
 // --- Investor Chat Component ---
 
-const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lang: Language; theme: ColorTheme; mode: ThemeMode; setIsOpen?: (open: boolean) => void }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      role: 'assistant', 
-      content: "Hello! I'm Solocorn AI. I can answer questions about our company, technology, investment opportunities, and more. What would you like to know?",
-      timestamp: new Date()
-    }
-  ]);
+const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; theme: ColorTheme; mode: ThemeMode; isOpen: boolean; onClose: () => void }) => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -673,6 +666,19 @@ const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lan
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Initialize message when opened
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([
+        { 
+          role: 'assistant', 
+          content: "Hello! I'm Solocorn AI. I can answer questions about our company, technology, investment opportunities, and more. What would you like to know?",
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, [isOpen, messages.length]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -699,6 +705,19 @@ const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lan
     }, 1000);
   };
 
+  // Reset messages when opening
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      setMessages([
+        { 
+          role: 'assistant', 
+          content: "Hello! I'm Solocorn AI. I can answer questions about our company, technology, investment opportunities, and more. What would you like to know?",
+          timestamp: new Date()
+        }
+      ]);
+    }
+  }, [isOpen]);
+
   const themeColors = {
     emerald: 'bg-emerald-500 hover:bg-emerald-400',
     ocean: 'bg-sky-500 hover:bg-sky-400',
@@ -708,69 +727,6 @@ const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lan
 
   return (
     <>
-      {/* Floating Chat Button with Tooltip */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg mb-1 ${mode === 'dark' ? 'bg-zinc-800 text-white border border-zinc-700' : 'bg-white text-zinc-900 border border-gray-200'}`}
-        >
-          Get to know all about Solocorn LLC
-        </motion.div>
-        <motion.button
-          onClick={() => setIsOpen(true)}
-          className={`relative w-16 h-16 rounded-full shadow-2xl overflow-hidden ${themeColors[theme]} text-white`}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          title="Ask Solocorn AI"
-        >
-          {/* 3D Professional Human Figure Avatar */}
-          <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-300 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" className="w-14 h-14 drop-shadow-lg">
-              {/* Background circle */}
-              <circle cx="50" cy="50" r="48" fill="url(#grad1)" />
-              {/* Professional silhouette */}
-              <defs>
-                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#1e3a5f" />
-                  <stop offset="100%" stopColor="#0d2137" />
-                </linearGradient>
-                <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#2c5282" />
-                  <stop offset="100%" stopColor="#1a365d" />
-                </linearGradient>
-                <linearGradient id="faceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#fbd38d" />
-                  <stop offset="100%" stopColor="#ed8936" />
-                </linearGradient>
-              </defs>
-              {/* Suit body */}
-              <path d="M20 85 L30 55 L40 50 L50 55 L60 50 L70 55 L80 85 Z" fill="url(#suitGrad)" />
-              {/* Shirt collar */}
-              <path d="M42 52 L50 58 L58 52 L50 50 Z" fill="white" />
-              {/* Tie */}
-              <path d="M48 55 L52 55 L50 70 L48 55" fill="#c53030" />
-              {/* Neck */}
-              <rect x="43" y="40" width="14" height="15" fill="url(#faceGrad)" />
-              {/* Head */}
-              <ellipse cx="50" cy="32" rx="16" ry="18" fill="url(#faceGrad)" />
-              {/* Hair */}
-              <path d="M34 28 Q34 12 50 12 Q66 12 66 28 Q66 22 60 20 Q50 18 40 20 Q34 22 34 28" fill="#1a202c" />
-              {/* Eyes */}
-              <ellipse cx="45" cy="32" rx="2" ry="2.5" fill="#1a202c" />
-              <ellipse cx="55" cy="32" rx="2" ry="2.5" fill="#1a202c" />
-              {/* Smile */}
-              <path d="M45 40 Q50 43 55 40" stroke="#c05621" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-              {/* 3D highlight effect */}
-              <ellipse cx="35" cy="25" rx="8" ry="5" fill="white" opacity="0.15" />
-            </svg>
-          </div>
-          {/* Online indicator */}
-          <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
-        </motion.button>
-      </div>
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -781,7 +737,7 @@ const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lan
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
             />
             <motion.div
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
@@ -801,7 +757,7 @@ const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lan
                     <p className={`text-xs ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('poweredBy')}</p>
                   </div>
                 </div>
-                <button onClick={() => setIsOpen(false)} className={`p-2 rounded-lg hover:bg-white/10 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                <button onClick={onClose} className={`p-2 rounded-lg hover:bg-white/10 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1181,6 +1137,116 @@ const Navbar = ({ onRegister, lang, onLanguageChange, theme, mode, onThemeChange
   );
 };
 
+// --- Contact Modal Component ---
+
+const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Contact form submitted:', formData);
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      setFormData({ name: '', email: '', message: '' });
+      onClose();
+    }, 2000);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      >
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0 }} 
+          animate={{ scale: 1, opacity: 1 }} 
+          exit={{ scale: 0.95, opacity: 0 }}
+          className={`relative w-full max-w-md backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/90 border-white/10' : 'bg-white/90 border-black/10'}`}
+        >
+          <button 
+            onClick={onClose} 
+            className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          {!submitted ? (
+            <>
+              <div className="text-center mb-6">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${mode === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}>
+                  <Mail className={`w-6 h-6 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                </div>
+                <h3 className={`text-2xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Contact Us</h3>
+                <p className={`text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Send us a message and we'll get back to you soon.</p>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Name</label>
+                  <Input 
+                    type="text" 
+                    placeholder="Your name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Email</label>
+                  <Input 
+                    type="email" 
+                    placeholder="your@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Message</label>
+                  <textarea 
+                    placeholder="How can we help you?"
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    required
+                    rows={4}
+                    className={`w-full border rounded-lg px-3 py-2 resize-none ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+                  />
+                </div>
+                <Button type="submit" className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl">
+                  Send Message
+                </Button>
+              </form>
+              
+              <p className={`text-xs text-center mt-4 ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>
+                You can also email us directly at support@solocorn.co
+              </p>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${mode === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}>
+                <CheckCircle className={`w-8 h-8 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Message Sent!</h3>
+              <p className={mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}>Thank you for reaching out. We'll be in touch soon.</p>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 // --- Categories Page Component ---
 
 const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
@@ -1240,6 +1306,8 @@ export default function LandingPage() {
   const [language, setLanguage] = useState<Language>('en');
   const [theme, setTheme] = useState<ColorTheme>('emerald');
   const [mode, setMode] = useState<ThemeMode>('dark');
+  const [chatOpen, setChatOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   const t = (key: string) => translations[key]?.[language] || translations[key]?.['en'] || key;
 
@@ -1249,11 +1317,10 @@ export default function LandingPage() {
       <Navbar onRegister={() => setModalType('register')} lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} onThemeChange={setTheme} onModeChange={setMode} />
       <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} theme={theme} mode={mode} />
       <CategoriesModal isOpen={showCategories} onClose={() => setShowCategories(false)} lang={language} mode={mode} />
+      <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} lang={language} mode={mode} />
       
       {/* Investor Chat */}
-      <InvestorChat lang={language} theme={theme} mode={mode} setIsOpen={(open) => {
-        // This is handled via the global button now
-      }} />
+      <InvestorChat lang={language} theme={theme} mode={mode} isOpen={chatOpen} onClose={() => setChatOpen(false)} />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
         {/* Hero Section */}
@@ -1263,11 +1330,21 @@ export default function LandingPage() {
               <span className="relative flex h-2 w-2"><span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75`} style={{ backgroundColor: THEMES[theme].colors.primary }}></span><span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span></span>
               {t('comingSoon')}
             </div>
-            <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-6 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
+            <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-4 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
             
-            {/* Ask Solocorn AI Button - moved next to Launch Solocorn */}
+            {/* Tooltip above the button */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className={`text-sm mb-3 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}
+            >
+              Learn about Solocorn
+            </motion.p>
+            
+            {/* Ask Solocorn AI Button - active and working */}
             <motion.button
-              onClick={() => document.getElementById('investor-chat-btn')?.click()}
+              onClick={() => setChatOpen(true)}
               className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-semibold mb-12 transition-all ${mode === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-zinc-900 border border-black/20'}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -1310,10 +1387,10 @@ export default function LandingPage() {
               <h2 className={`text-4xl font-bold mb-6 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('businessInquiries')}</h2>
               <p className={`text-lg leading-relaxed mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('businessDesc')}</p>
               <button 
-                onClick={() => window.open('mailto:support@solocorn.co', '_blank')}
+                onClick={() => setContactModalOpen(true)}
                 className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-colors ${mode === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
               >
-                <Mail className="w-5 h-5" />{t('contact')} support@solocorn.co
+                <Mail className="w-5 h-5" />{t('contact')}
               </button>
             </div>
             <div className={`w-full md:w-1/3 aspect-square rounded-3xl flex items-center justify-center relative overflow-hidden border ${mode === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
@@ -1331,7 +1408,7 @@ export default function LandingPage() {
               <Link href="/legal/privacy" className={`hover:text-${theme}-400 transition-colors`}>{t('privacyPolicy')}</Link>
               <Link href="/legal/terms" className={`hover:text-${theme}-400 transition-colors`}>{t('termsOfService')}</Link>
               <button 
-                onClick={() => window.open('mailto:support@solocorn.co', '_blank')}
+                onClick={() => setContactModalOpen(true)}
                 className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
               >
                 {t('contact')}
