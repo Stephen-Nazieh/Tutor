@@ -1751,6 +1751,249 @@ Format your response clearly and concisely.`
   )
 }
 
+// Question Bank Modal
+interface QuestionBankModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onImport: (questions: string) => void
+}
+
+interface Question {
+  id: string
+  type: 'multiple_choice' | 'short_answer' | 'essay'
+  question: string
+  options?: string[]
+  correctAnswer?: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  subject: string
+}
+
+const SAMPLE_QUESTIONS: Question[] = [
+  {
+    id: 'q1',
+    type: 'multiple_choice',
+    question: 'What is the capital of France?',
+    options: ['London', 'Berlin', 'Paris', 'Madrid'],
+    correctAnswer: 'Paris',
+    difficulty: 'easy',
+    subject: 'Geography'
+  },
+  {
+    id: 'q2',
+    type: 'short_answer',
+    question: 'Explain the process of photosynthesis in your own words.',
+    difficulty: 'medium',
+    subject: 'Biology'
+  },
+  {
+    id: 'q3',
+    type: 'multiple_choice',
+    question: 'Which of the following is NOT a prime number?',
+    options: ['2', '3', '4', '5'],
+    correctAnswer: '4',
+    difficulty: 'easy',
+    subject: 'Mathematics'
+  },
+  {
+    id: 'q4',
+    type: 'essay',
+    question: 'Discuss the causes and effects of climate change on global ecosystems.',
+    difficulty: 'hard',
+    subject: 'Environmental Science'
+  },
+  {
+    id: 'q5',
+    type: 'multiple_choice',
+    question: 'In which year did World War II end?',
+    options: ['1943', '1944', '1945', '1946'],
+    correctAnswer: '1945',
+    difficulty: 'medium',
+    subject: 'History'
+  }
+]
+
+function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps) {
+  const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set())
+  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null)
+  const [filterSubject, setFilterSubject] = useState<string>('all')
+  const [filterDifficulty, setFilterDifficulty] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const subjects = Array.from(new Set(SAMPLE_QUESTIONS.map(q => q.subject)))
+  
+  const filteredQuestions = SAMPLE_QUESTIONS.filter(q => {
+    const matchesSubject = filterSubject === 'all' || q.subject === filterSubject
+    const matchesDifficulty = filterDifficulty === 'all' || q.difficulty === filterDifficulty
+    const matchesSearch = searchQuery === '' || 
+      q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      q.subject.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesSubject && matchesDifficulty && matchesSearch
+  })
+
+  const toggleQuestion = (id: string) => {
+    const newSelected = new Set(selectedQuestions)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedQuestions(newSelected)
+    
+    // Set preview to the last selected question
+    const question = SAMPLE_QUESTIONS.find(q => q.id === id)
+    if (question && newSelected.has(id)) {
+      setPreviewQuestion(question)
+    } else if (newSelected.size === 0) {
+      setPreviewQuestion(null)
+    }
+  }
+
+  const handleImport = () => {
+    const selectedQList = SAMPLE_QUESTIONS.filter(q => selectedQuestions.has(q.id))
+    const formatted = selectedQList.map((q, idx) => {
+      let text = `${idx + 1}. ${q.question}\n   Type: ${q.type.replace('_', ' ')} | Subject: ${q.subject} | Difficulty: ${q.difficulty}`
+      if (q.options) {
+        text += '\n   Options: ' + q.options.join(', ')
+      }
+      return text
+    }).join('\n\n')
+    
+    onImport(formatted)
+    setSelectedQuestions(new Set())
+    setPreviewQuestion(null)
+    onClose()
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl h-[600px] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-blue-500" />
+            Question Bank
+          </DialogTitle>
+        </DialogHeader>
+        
+        {/* Filters */}
+        <div className="flex gap-3 mb-4">
+          <Input
+            placeholder="Search questions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1"
+          />
+          <select
+            value={filterSubject}
+            onChange={(e) => setFilterSubject(e.target.value)}
+            className="px-3 py-2 border rounded-md text-sm"
+          >
+            <option value="all">All Subjects</option>
+            {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select
+            value={filterDifficulty}
+            onChange={(e) => setFilterDifficulty(e.target.value)}
+            className="px-3 py-2 border rounded-md text-sm"
+          >
+            <option value="all">All Difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        {/* Two-column layout */}
+        <div className="flex-1 flex gap-4 overflow-hidden">
+          {/* Left: Question List */}
+          <div className="flex-1 border rounded-lg overflow-y-auto">
+            {filteredQuestions.map((question) => (
+              <div
+                key={question.id}
+                onClick={() => toggleQuestion(question.id)}
+                className={`p-3 border-b cursor-pointer transition-colors ${
+                  selectedQuestions.has(question.id) 
+                    ? 'bg-blue-50 border-blue-200' 
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${
+                    selectedQuestions.has(question.id) 
+                      ? 'bg-blue-500 border-blue-500' 
+                      : 'border-gray-300'
+                  }`}>
+                    {selectedQuestions.has(question.id) && <Check className="w-3 h-3 text-white" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium line-clamp-2">{question.question}</p>
+                    <div className="flex gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">{question.subject}</Badge>
+                      <Badge variant="secondary" className="text-xs">{question.difficulty}</Badge>
+                      <Badge variant="secondary" className="text-xs">{question.type.replace('_', ' ')}</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filteredQuestions.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground">
+                No questions match your filters.
+              </div>
+            )}
+          </div>
+
+          {/* Right: Preview Panel */}
+          <div className="w-80 border rounded-lg p-4 bg-gray-50 overflow-y-auto">
+            <h4 className="font-semibold mb-3">Preview</h4>
+            {previewQuestion ? (
+              <div className="space-y-3">
+                <p className="text-sm">{previewQuestion.question}</p>
+                {previewQuestion.options && (
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">Options:</p>
+                    {previewQuestion.options.map((opt, i) => (
+                      <p key={i} className={`text-sm pl-2 ${opt === previewQuestion.correctAnswer ? 'text-green-600 font-medium' : ''}`}>
+                        {String.fromCharCode(65 + i)}. {opt} {opt === previewQuestion.correctAnswer && '✓'}
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <div className="pt-3 border-t space-y-1 text-xs text-muted-foreground">
+                  <p><span className="font-medium">Type:</span> {previewQuestion.type.replace('_', ' ')}</p>
+                  <p><span className="font-medium">Subject:</span> {previewQuestion.subject}</p>
+                  <p><span className="font-medium">Difficulty:</span> {previewQuestion.difficulty}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Select a question from the list to preview it here.
+              </p>
+            )}
+            
+            {selectedQuestions.size > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm font-medium">
+                  {selectedQuestions.size} question{selectedQuestions.size !== 1 ? 's' : ''} selected
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button 
+            onClick={handleImport} 
+            disabled={selectedQuestions.size === 0}
+          >
+            Import {selectedQuestions.size > 0 && `(${selectedQuestions.size})`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // Lesson Selector Dialog
 function LessonSelectorDialog({ 
   isOpen, 
@@ -3931,7 +4174,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             <BookOpen className="h-5 w-5 text-green-500" />
             <div>
               <Badge variant="outline" className="text-xs">Lesson</Badge>
-              {!lesson.isPublished && <Badge variant="secondary" className="text-xs ml-1">Draft</Badge>}
+              {/* Draft badge removed */}
               <h3 className="font-semibold text-lg mt-1">{lesson.title}</h3>
             </div>
           </div>
@@ -4126,7 +4369,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             {showPreviewBadges && (
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline" className="text-xs">{label}</Badge>
-                {isDraft && <Badge variant="secondary" className="text-xs">Draft</Badge>}
+                {/* Draft badge removed */}
               </div>
             )}
             <h3 className="font-semibold text-lg mt-1">{item.title}</h3>
@@ -4583,6 +4826,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Active tab tracking for Enter button
   const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
   const [assessmentBuilderActiveTab, setAssessmentBuilderActiveTab] = useState<'content' | 'pci'>('content')
+  
+  // Right panel tabs for Task Builder (Extensions / DMI)
+  const [taskBuilderRightTab, setTaskBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
+  
+  // Question Bank modal state
+  const [questionBankOpen, setQuestionBankOpen] = useState(false)
 
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
@@ -6193,6 +6442,16 @@ FEEDBACK: [your explanation]`
                                     Upload Files
                                   </span>
                                 </label>
+                                {/* Question Bank Button */}
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-1 text-xs"
+                                  onClick={() => setQuestionBankOpen(true)}
+                                >
+                                  <BookOpen className="h-3 w-3" />
+                                  From Question Bank
+                                </Button>
                                 <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
                               </div>
                             )}
@@ -6359,80 +6618,112 @@ FEEDBACK: [your explanation]`
                           </Button>
                         </div>
                       </div>
-                      {/* Right panel: Extensions - resizable */}
+                      {/* Right panel: Extensions & DMI Tabs - resizable */}
                       <ResizablePanel 
                         defaultWidth={192} 
                         minWidth={150} 
                         maxWidth={600}
-                        actionButton={
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => {
-                              const extNumber = taskBuilder.extensions.length + 1
-                              setTaskBuilder(prev => ({
-                                ...prev,
-                                extensions: [...prev.extensions, { 
-                                  id: `ext-${Date.now()}`, 
-                                  name: `Extension ${extNumber}`, 
-                                  content: '', 
-                                  pci: '' 
-                                }]
-                              }))
-                            }}
-                          >
-                            Add Extension
-                          </Button>
-                        }
                       >
-                        <div className="mb-2">
-                          <h4 className="text-sm font-medium">Extensions</h4>
-                          <p className="text-xs text-muted-foreground truncate">{taskBuilder.title || 'Task'}</p>
-                        </div>
-                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
-                          {taskBuilder.extensions.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">No extensions added</p>
-                          ) : (
-                            taskBuilder.extensions.map((ext) => (
-                              <div key={ext.id} className="flex items-center gap-1 group">
-                                <Button
-                                  variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
-                                  size="sm"
-                                  className="flex-1 justify-start text-xs"
-                                  onClick={() => {
-                                    // Simply toggle which content is being viewed
-                                    if (taskBuilder.activeExtensionId === ext.id) {
-                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
-                                    } else {
-                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
-                                    }
-                                  }}
-                                >
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  {ext.name}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    if (confirm(`Delete "${ext.name}"?`)) {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.filter(e => e.id !== ext.id),
-                                        activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
-                                      }))
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="h-3 w-3 text-red-500" />
-                                </Button>
+                        <Tabs value={taskBuilderRightTab} onValueChange={(v) => setTaskBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 mb-2">
+                            <TabsTrigger value="extensions">Extensions</TabsTrigger>
+                            <TabsTrigger value="dmi">DMI</TabsTrigger>
+                          </TabsList>
+                          
+                          <TabsContent value="extensions" className="mt-0">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full mb-2"
+                              onClick={() => {
+                                const extNumber = taskBuilder.extensions.length + 1
+                                setTaskBuilder(prev => ({
+                                  ...prev,
+                                  extensions: [...prev.extensions, { 
+                                    id: `ext-${Date.now()}`, 
+                                    name: `Extension ${extNumber}`, 
+                                    content: '', 
+                                    pci: '' 
+                                  }]
+                                }))
+                              }}
+                            >
+                              Add Extension
+                            </Button>
+                            <div className="mb-2">
+                              <p className="text-xs text-muted-foreground truncate">{taskBuilder.title || 'Task'}</p>
+                            </div>
+                            <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
+                              {taskBuilder.extensions.length === 0 ? (
+                                <p className="text-xs text-muted-foreground">No extensions added</p>
+                              ) : (
+                                taskBuilder.extensions.map((ext) => (
+                                  <div key={ext.id} className="flex items-center gap-1 group">
+                                    <Button
+                                      variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
+                                      size="sm"
+                                      className="flex-1 justify-start text-xs"
+                                      onClick={() => {
+                                        // Simply toggle which content is being viewed
+                                        if (taskBuilder.activeExtensionId === ext.id) {
+                                          setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
+                                        } else {
+                                          setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
+                                        }
+                                      }}
+                                    >
+                                      <FileText className="h-3 w-3 mr-1" />
+                                      {ext.name}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (confirm(`Delete "${ext.name}"?`)) {
+                                          setTaskBuilder(prev => ({
+                                            ...prev,
+                                            extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                            activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
+                                          }))
+                                        }
+                                      }}
+                                    >
+                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                    </Button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </TabsContent>
+                          
+                          <TabsContent value="dmi" className="mt-0">
+                            <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
+                              <h4 className="text-sm font-medium mb-2">Digital Marking Interface</h4>
+                              <p className="text-xs text-muted-foreground mb-3">Configure DMI settings for this task</p>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs">Auto-marking</span>
+                                  <input type="checkbox" className="rounded" />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs">Show hints</span>
+                                  <input type="checkbox" className="rounded" defaultChecked />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs">Time limit</span>
+                                  <select className="text-xs border rounded px-1 py-0.5">
+                                    <option>None</option>
+                                    <option>5 min</option>
+                                    <option>10 min</option>
+                                    <option>30 min</option>
+                                  </select>
+                                </div>
                               </div>
-                            ))
-                          )}
-                        </div>
+                            </div>
+                          </TabsContent>
+                        </Tabs>
                       </ResizablePanel>
                     </div>
                   </TabsContent>
@@ -6992,6 +7283,20 @@ FEEDBACK: [your explanation]`
                 setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
               }
             }
+          }}
+        />
+
+        {/* Question Bank Modal */}
+        <QuestionBankModal
+          isOpen={questionBankOpen}
+          onClose={() => setQuestionBankOpen(false)}
+          onImport={(questions) => {
+            // Add imported questions to task content
+            setTaskBuilder(prev => ({
+              ...prev,
+              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Question Bank]\n\n${questions}`
+            }))
+            toast.success('Questions imported from Question Bank')
           }}
         />
       </div>

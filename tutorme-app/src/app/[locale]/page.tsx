@@ -652,7 +652,7 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
 
 // --- Investor Chat Component ---
 
-const InvestorChat = ({ lang, theme, mode }: { lang: Language; theme: ColorTheme; mode: ThemeMode }) => {
+const InvestorChat = ({ lang, theme, mode, setIsOpen: externalSetIsOpen }: { lang: Language; theme: ColorTheme; mode: ThemeMode; setIsOpen?: (open: boolean) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
@@ -1251,7 +1251,9 @@ export default function LandingPage() {
       <CategoriesModal isOpen={showCategories} onClose={() => setShowCategories(false)} lang={language} mode={mode} />
       
       {/* Investor Chat */}
-      <InvestorChat lang={language} theme={theme} mode={mode} />
+      <InvestorChat lang={language} theme={theme} mode={mode} setIsOpen={(open) => {
+        // This is handled via the global button now
+      }} />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
         {/* Hero Section */}
@@ -1261,7 +1263,18 @@ export default function LandingPage() {
               <span className="relative flex h-2 w-2"><span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75`} style={{ backgroundColor: THEMES[theme].colors.primary }}></span><span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span></span>
               {t('comingSoon')}
             </div>
-            <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-12 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
+            <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-6 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
+            
+            {/* Ask Solocorn AI Button - moved next to Launch Solocorn */}
+            <motion.button
+              onClick={() => document.getElementById('investor-chat-btn')?.click()}
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-semibold mb-12 transition-all ${mode === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-zinc-900 border border-black/20'}`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Sparkles className="w-5 h-5" />
+              {t('askSolocorn')}
+            </motion.button>
             <div className="mb-16"><CountdownTimer /></div>
             {/* Get Early Access button removed as requested */}
           </motion.div>
@@ -1296,9 +1309,12 @@ export default function LandingPage() {
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 ${mode === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}><Building2 className={`w-8 h-8 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`} /></div>
               <h2 className={`text-4xl font-bold mb-6 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('businessInquiries')}</h2>
               <p className={`text-lg leading-relaxed mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('businessDesc')}</p>
-              <a href="mailto:support@solocorn.co" className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-colors ${mode === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}>
+              <button 
+                onClick={() => window.open('mailto:support@solocorn.co', '_blank')}
+                className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-colors ${mode === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
+              >
                 <Mail className="w-5 h-5" />{t('contact')} support@solocorn.co
-              </a>
+              </button>
             </div>
             <div className={`w-full md:w-1/3 aspect-square rounded-3xl flex items-center justify-center relative overflow-hidden border ${mode === 'dark' ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
@@ -1314,7 +1330,12 @@ export default function LandingPage() {
             <div className={`flex gap-8 text-sm ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}`}>
               <Link href="/legal/privacy" className={`hover:text-${theme}-400 transition-colors`}>{t('privacyPolicy')}</Link>
               <Link href="/legal/terms" className={`hover:text-${theme}-400 transition-colors`}>{t('termsOfService')}</Link>
-              <a href="mailto:support@solocorn.co" className={`hover:text-${theme}-400 transition-colors`}>{t('contact')}</a>
+              <button 
+                onClick={() => window.open('mailto:support@solocorn.co', '_blank')}
+                className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
+              >
+                {t('contact')}
+              </button>
             </div>
             <div className={`text-sm ${mode === 'dark' ? 'text-zinc-600' : 'text-zinc-500'}`}>{t('allRightsReserved')}</div>
           </div>
