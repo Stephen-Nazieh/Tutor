@@ -63,6 +63,8 @@ Platform commission on tutoring classes, tutor subscription fees, and institutio
 6. IMPORTANT: Detect the language of the user's message and ALWAYS reply in that same language. If the user writes in Chinese, reply in Chinese. If they write in Spanish, reply in Spanish. Match the user's language exactly.`;
 
 export async function POST(request: NextRequest) {
+  let language = 'en' // Default language, declared outside try for catch block access
+  
   try {
     const body = await request.json().catch(() => null)
     const parsed = InvestorChatRequestSchema.safeParse(body)
@@ -74,7 +76,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { message, conversationHistory, language } = parsed.data
+    const { message, conversationHistory, language: lang } = parsed.data
+    language = lang // Update language from request
     const apiKey = process.env.KIMI_API_KEY
 
     if (!apiKey) {
