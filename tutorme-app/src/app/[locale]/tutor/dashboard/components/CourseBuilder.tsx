@@ -5047,6 +5047,60 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     setAssessmentUploadedFiles(assessment.sourceDocument ? [{ id: 'source', name: assessment.sourceDocument.fileName }] : [])
   }, [])
 
+  // Auto-save task on the fly (debounced)
+  useEffect(() => {
+    if (!loadedTaskId) return
+    
+    const timeoutId = setTimeout(() => {
+      setModules(prev => prev.map(mod => ({
+        ...mod,
+        lessons: mod.lessons.map(lesson => ({
+          ...lesson,
+          tasks: lesson.tasks.map(task => 
+            task.id === loadedTaskId 
+              ? { 
+                  ...task, 
+                  title: taskBuilder.title,
+                  description: taskBuilder.taskContent,
+                  instructions: taskBuilder.taskPci,
+                  sourceDocument: undefined
+                }
+              : task
+          )
+        }))
+      })))
+    }, 1000) // Auto-save after 1 second of inactivity
+    
+    return () => clearTimeout(timeoutId)
+  }, [taskBuilder.title, taskBuilder.taskContent, taskBuilder.taskPci, loadedTaskId])
+
+  // Auto-save assessment on the fly (debounced)
+  useEffect(() => {
+    if (!loadedAssessmentId) return
+    
+    const timeoutId = setTimeout(() => {
+      setModules(prev => prev.map(mod => ({
+        ...mod,
+        lessons: mod.lessons.map(lesson => ({
+          ...lesson,
+          homework: lesson.homework.map(hw => 
+            hw.id === loadedAssessmentId 
+              ? { 
+                  ...hw, 
+                  title: assessmentBuilder.title,
+                  description: assessmentBuilder.taskContent,
+                  instructions: assessmentBuilder.taskPci,
+                  sourceDocument: undefined
+                }
+              : hw
+          )
+        }))
+      })))
+    }, 1000) // Auto-save after 1 second of inactivity
+    
+    return () => clearTimeout(timeoutId)
+  }, [assessmentBuilder.title, assessmentBuilder.taskContent, assessmentBuilder.taskPci, loadedAssessmentId])
+
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
   const [previewDifficulty, setPreviewDifficulty] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all')

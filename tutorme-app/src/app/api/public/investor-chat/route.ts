@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
         response: generateFallbackResponse(message, language),
         source: 'fallback'
       })
+    }
 
     return NextResponse.json({
       response: aiResponse,
@@ -193,6 +194,41 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     pci: "PCI signifie Instruction Post-Achèvement (Post-Completion Instruction). Cela signifie que les étudiants reçoivent des commentaires immédiatement après avoir terminé une tâche, plutôt que d'attendre que leurs devoirs soient corrigés. Cela permet une correction immédiate des erreurs et un renforcement du raisonnement correct, même dans les grandes classes.",
     invest: "Pour des discussions d'investissement détaillées, veuillez contacter notre équipe via le formulaire de contact sur le site web. La proposition de valeur clé de Solocorn est de transformer le tutorat d'un service limité par la main-d'œuvre en une plateforme d'éducation numérique évolutive.",
     default: "C'est une excellente question ! Solocorn combine l'enseignement en direct avec l'évaluation par l'IA pour rendre le tutorat évolutif. Y a-t-il un aspect spécifique — comment fonctionnent les cours, à qui cela s'adresse-t-il, ou le modèle d'affaires — sur lequel vous aimeriez en savoir plus ?"
+  },
+  de: {
+    whatis: "Solocorn ist eine Live-KI-gestützte Nachhilfeplattform, auf der KI Schülerarbeiten bewertet und Feedback gibt, damit Tutoren große Klassen effizient unterrichten können. Anstelle traditioneller Einzelnachhilfe ermöglicht Solocorn einem Tutor, viele Schüler gleichzeitig zu unterrichten, während jeder Schüler weiterhin individuelles Feedback erhält.",
+    how: "Ein Solocorn-Kurs folgt einem einfachen Zyklus: (1) Der Tutor erklärt ein Konzept, (2) Die Schüler erledigen eine Aufgabe, (3) Die Schüler reichen Antworten ein, (4) Die KI bewertet Antworten sofort, (5) Die Schüler erhalten personalisiertes Feedback innerhalb von Sekunden, (6) Der Tutor überprüft die Ergebnisse und passt den Unterricht an. Dies wird PCI genannt — Post-Completion Instruction (Instruktion nach Abschluss).",
+    pci: "PCI steht für Post-Completion Instruction (Instruktion nach Abschluss). Es bedeutet, dass Schüler sofort nach Abschluss einer Aufgabe Feedback erhalten, anstatt zu warten, bis Hausaufgaben benotet werden. Dies ermöglicht sofortige Fehlerkorrektur und Verstärkung korrekter Argumentation, selbst in großen Klassen.",
+    invest: "Für detaillierte Investitionsgespräche wenden Sie sich bitte über das Kontaktformular auf der Website an unser Team. Der Kernwert von Solocorn besteht darin, Nachhilfe von einem arbeitsintensiven Dienst in eine skalierbare digitale Bildungsplattform zu verwandeln.",
+    default: "Das ist eine großartige Frage! Solocorn kombiniert Live-Unterricht mit KI-Bewertung, um Nachhilfe skalierbar zu machen. Gibt es einen bestimmten Aspekt — wie Kurse funktionieren, für wen es gedacht ist, oder das Geschäftsmodell — über den Sie mehr erfahren möchten?"
+  },
+  ja: {
+    whatis: "Solocornは、AIが生徒の課業を評価し、フィードバックを提供することで、チューターが大規模なクラスを効率的に教えられるライブAI支援型指導プラットフォームです。従来の1対1の指導と異なり、Solocornは1人のチューターが多くの生徒に同時に教えられるようにし、各生徒が個別のフィードバックを受け取れるようにします。",
+    how: "Solocornのクラスは、シンプルなサイクルに従います：(1) チューターが概念を説明、(2) 生徒が課題を完了、(3) 生徒が回答を提出、(4) AIが即座に回答を評価、(5) 生徒が数秒以内にパーソナライズされたフィードバックを受信、(6) チューターが結果を確認し、指導を調整。これをPCI（Post-Completion Instruction）と呼びます。",
+    pci: "PCIはPost-Completion Instruction（完了後指導）の略です。これは、生徒が課題の採点を待つのでなく、課題を完了した直後にフィードバックを受けることを意味します。これにより、大規模なクラスでも即座に間違いを修正し、正しい推論を強化できます。",
+    invest: "詳細な投資に関するご相談は、ウェブサイトのお問い合わせフォームから当社チームまでご連絡ください。Solocornの核心的価値提案は、指導を労働集約型サービスからスケーラブルなデジタル教育プラットフォームに変えることです。",
+    default: "素晴らしい質問ですね！Solocornはライブ指導とAI評価を組み合わせて、指導をスケーラブルにします。クラスの仕組み、対象者、ビジネスモデルなど、特定の側面についてもっと知りたいことはありますか？"
+  },
+  ko: {
+    whatis: "Solocorn은 AI가 학생 과제를 평가하고 피드백을 제공하여 튜터가 대규모 수업을 효율적으로 가르칠 수 있는 실시간 AI 지원 과외 플랫폼입니다. 전통적인 일대일 과외와 달리 Solocorn은 한 명의 튜터가 많은 학생들에게 동시에 가르칠 수 있도록 하면서 각 학생이 여전히 개별화된 피드백을 받을 수 있도록 합니다.",
+    how: "Solocorn 수업은 간단한 사이클을 따릅니다: (1) 튜터가 개념을 설명, (2) 학생들이 과제를 완료, (3) 학생들이 답변을 제출, (4) AI가 즉시 답변을 평가, (5) 학생들이 수 초 내에 개인화된 피드백을 받음, (6) 튜터가 결과를 검토하고 교육을 조정. 이를 PCI(Post-Completion Instruction)라고 합니다.",
+    pci: "PCI는 Post-Completion Instruction(완료 후 지도)의 약자입니다. 이는 학생들이 과제 채점을 기다리는 대신 과제를 완료한 직후 피드백을 받는다는 의미입니다. 이를 통해 대규모 수업에서도 즉각적인 오류 수정과 올바른 추론 강화가 가능합니다.",
+    invest: "자세한 투자 관련 문의는 웹사이트의 문의 양식을 통해 당사 팀에 연락해 주십시오. Solocorn의 핵심 가치 제안은 과외를 노동 집약형 서비스에서 확장 가능한 디지털 교육 플랫폼으로 전환하는 것입니다.",
+    default: "훌륭한 질문입니다! Solocorn은 실시간 교육과 AI 평가를 결합하여 과외를 확장 가능하게 만듭니다. 수업 작동 방식, 대상, 비즈니스 모델 등 특정 측면에 대해 더 알고 싶은 것이 있습니까?"
+  },
+  pt: {
+    whatis: "Solocorn é uma plataforma de tutoria assistida por IA em tempo real onde a IA avalia o trabalho dos alunos e fornece feedback para que os tutores possam ensinar turmas grandes de forma eficiente. Em vez da tutoria tradicional um a um, Solocorn permite que um tutor ensine muitos alunos simultaneamente enquanto cada aluno ainda recebe feedback individualizado.",
+    how: "Uma aula Solocorn segue um ciclo simples: (1) O tutor explica um conceito, (2) Os alunos completam uma tarefa, (3) Os alunos enviam respostas, (4) A IA avalia as respostas instantaneamente, (5) Os alunos recebem feedback personalizado em segundos, (6) O tutor revisa os resultados e ajusta o ensino. Isso é chamado de PCI — Instrução Pós-Conclusão.",
+    pci: "PCI significa Instrução Pós-Conclusão (Post-Completion Instruction). Significa que os alunos recebem feedback imediatamente após concluir uma tarefa, em vez de esperar que a lição de casa seja avaliada. Isso permite correção imediata de erros e reforço do raciocínio correto, mesmo em turmas grandes.",
+    invest: "Para discussões detalhadas de investimento, entre em contato com nossa equipe através do formulário de contato no site. A proposta de valor principal da Solocorn é transformar a tutoria de um serviço limitado por mão de obra em uma plataforma de educação digital escalável.",
+    default: "Essa é uma ótima pergunta! A Solocorn combina ensino ao vivo com avaliação de IA para tornar a tutoria escalável. Há algum aspecto específico — como as aulas funcionam, para quem é, ou o modelo de negócio — sobre o qual você gostaria de saber mais?"
+  },
+  hi: {
+    whatis: "Solocorn एक लाइव AI-सहायता प्राप्त ट्यूटरिंग प्लेटफॉर्म है जहाँ AI छात्रों के काम का मूल्यांकन करता है और फीडबैक प्रदान करता है ताकि ट्यूटर बड़ी कक्षाओं को कुशलता से पढ़ा सकें। पारंपरिक एक-से-एक ट्यूटरिंग के बजाय, Solocorn एक ट्यूटर को कई छात्रों को एक साथ पढ़ाने में सक्षम बनाता है जबकि प्रत्येक छात्र को अभी भी व्यक्तिगत फीडबैक मिलता है।",
+    how: "एक Solocorn कक्षा एक साधारण चक्र का पालन करती है: (1) ट्यूटर एक अवधारणा समझाता है, (2) छात्र एक कार्य पूरा करते हैं, (3) छात्र उत्तर जमा करते हैं, (4) AI तुरंत उत्तरों का मूल्यांकन करता है, (5) छात्र सेकंडों के भीतर व्यक्तिगत फीडबैक प्राप्त करते हैं, (6) ट्यूटर परिणामों की समीक्षा करता है और शिक्षण को समायोजित करता है। इसे PCI कहा जाता है — पोस्ट-कंप्लीशन इंस्ट्रक्शन।",
+    pci: "PCI का अर्थ है पोस्ट-कंप्लीशन इंस्ट्रक्शन। इसका मतलब है कि छात्र एक कार्य पूरा करने के तुरंत बाद फीडबैक प्राप्त करते हैं, बजाय इसके कि होमवर्क के ग्रेड होने का इंतजार करें। यह तुरंत गलतियों के सुधार और सही तर्क को मजबूत करने की अनुमति देता है, यहां तक कि बड़ी कक्षाओं में भी।",
+    invest: "विस्तृत निवेश चर्चा के लिए, कृपया वेबसाइट पर संपर्क फॉर्म के माध्यम से हमारी टीम से संपर्क करें। Solocorn का मुख्य मूल्य प्रस्ताव ट्यूटरिंग को श्रम-सीमित सेवा से एक स्केलेबल डिजिटल शिक्षा प्लेटफॉर्म में बदलना है।",
+    default: "यह एक बहुत अच्छा सवाल है! Solocorn लाइव टीचिंग को AI मूल्यांकन के साथ जोड़ता है ताकि ट्यूटरिंग को स्केलेबल बनाया जा सके। क्या कोई विशिष्ट पहलू है — कक्षाएं कैसे काम करती हैं, यह किसके लिए है, या व्यवसाय मॉडल — जिसके बारे में आप और जानना चाहेंगे?"
   }
 };
 
