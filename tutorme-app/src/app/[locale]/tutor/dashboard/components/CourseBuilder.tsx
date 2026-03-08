@@ -89,6 +89,7 @@ import {
   Signal,
   SignalHigh,
   SignalLow,
+  Settings,
   Layers2,
   GripHorizontal
 } from 'lucide-react'
@@ -1579,6 +1580,180 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={() => onSave(data)}>Save Lesson</Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// AI Assist Agent Modal
+interface AIAssistAgentProps {
+  isOpen: boolean
+  onClose: () => void
+  context: 'task' | 'assessment'
+  content: string
+  pci: string
+  title: string
+  onApplyContent: (content: string) => void
+  onApplyPci: (pci: string) => void
+}
+
+function AIAssistAgent({ isOpen, onClose, context, content, pci, title, onApplyContent, onApplyPci }: AIAssistAgentProps) {
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      // Initial system message
+      setMessages([{
+        role: 'assistant',
+        content: `Hello! I'm your AI Course Builder Assistant. I can help you with this ${context === 'task' ? 'Task' : 'Assessment'}: "${title}".\n\nI have access to:\n📄 **Content Tab**: The questions/content${content ? ' (currently has content)' : ' (currently empty)'}\n⚙️ **PCI Tab**: Instructions on how to process the content${pci ? ' (currently has instructions)' : ' (currently empty)'}\n\nHow can I help you today?`
+      }])
+    }
+  }, [isOpen, context, title, content, pci, messages.length])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const generatePrompt = (userInput: string) => {
+    return `You are an AI Course Builder Assistant helping a tutor create educational content.
+
+CURRENT CONTEXT:
+- Type: ${context === 'task' ? 'Task' : 'Assessment'}
+- Title: ${title}
+
+CONTENT TAB (Questions/Content to work with):
+${content || '(empty)'}
+
+PCI TAB (Instructions for processing):
+${pci || '(empty - you can suggest instructions based on the content)'}
+
+USER REQUEST:
+${userInput}
+
+Please respond helpfully. You can:
+1. Answer questions about the content
+2. Suggest improvements to the PCI instructions
+3. Analyze the questions and provide feedback
+4. Generate additional content following the PCI pattern
+5. If the user asks to apply something to Content or PCI, indicate that clearly
+
+Format your response clearly and concisely.`
+  }
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return
+
+    const userMessage = input.trim()
+    setInput('')
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setLoading(true)
+
+    try {
+      // Call the AI orchestrator
+      const prompt = generatePrompt(userMessage)
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7
+        })
+      })
+
+      if (!response.ok) throw new Error('Failed to get AI response')
+
+      const data = await response.json()
+      setMessages(prev => [...prev, { role: 'assistant', content: data.content || 'I apologize, but I was unable to process your request.' }])
+    } catch (error) {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error processing your request. Please try again.' }])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleApplyToContent = () => {
+    const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant')
+    if (lastAssistantMessage) {
+      onApplyContent(lastAssistantMessage.content)
+    }
+  }
+
+  const handleApplyToPci = () => {
+    const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant')
+    if (lastAssistantMessage) {
+      onApplyPci(lastAssistantMessage.content)
+    }
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-amber-500" />
+            AI Assist Agent - {context === 'task' ? 'Task' : 'Assessment'} Builder
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="flex-1 overflow-y-auto space-y-4 py-4 min-h-[300px] max-h-[400px]">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] rounded-lg p-3 text-sm ${
+                msg.role === 'user' 
+                  ? 'bg-blue-500 text-white' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                <div className="whitespace-pre-wrap">{msg.content}</div>
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-100 rounded-lg p-3 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-gray-600">Thinking...</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="border-t pt-4 space-y-3">
+          <div className="flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask me anything about your content or PCI instructions..."
+              className="flex-1 min-h-[80px]"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSend()
+                }
+              }}
+            />
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleApplyToContent} disabled={messages.length < 2}>
+                <FileText className="h-4 w-4 mr-1" />
+                Apply to Content
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleApplyToPci} disabled={messages.length < 2}>
+                <Settings className="h-4 w-4 mr-1" />
+                Apply to PCI
+              </Button>
+            </div>
+            <Button onClick={handleSend} disabled={!input.trim() || loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
+              Send
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   )
@@ -4363,6 +4538,34 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   ])
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
 
+  // Builder state for Task and Assessment
+  const [taskBuilder, setTaskBuilder] = useState({
+    title: '',
+    content: '',
+    pci: '',
+    details: '',
+    extensions: [] as { id: string; name: string; content: string; pci: string }[],
+    activeExtensionId: null as string | null,
+    originalContent: { content: '', pci: '' }
+  })
+  
+  const [assessmentBuilder, setAssessmentBuilder] = useState({
+    title: '',
+    content: '',
+    pci: '',
+    details: '',
+    extensions: [] as { id: string; name: string; content: string; pci: string }[],
+    activeExtensionId: null as string | null,
+    originalContent: { content: '', pci: '' }
+  })
+
+  // AI Assist Agent state
+  const [aiAssistOpen, setAiAssistOpen] = useState(false)
+  const [aiAssistContext, setAiAssistContext] = useState<'task' | 'assessment'>('task')
+  const [aiAssistMessages, setAiAssistMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  const [aiAssistInput, setAiAssistInput] = useState('')
+  const [aiAssistLoading, setAiAssistLoading] = useState(false)
+
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
   const [previewDifficulty, setPreviewDifficulty] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all')
@@ -5710,7 +5913,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
         </div>
 
         {/* CENTER PANEL - New Three-Section Design */}
-        <div className={aiPanelOpen ? 'col-span-5' : 'col-span-8'}>
+        <div className="col-span-8">
           <div className="h-full flex flex-col space-y-4 overflow-auto">
             
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
@@ -5735,8 +5938,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <Input 
                         placeholder="Task Title" 
                         className="flex-1 font-semibold"
-                        id="task-title"
+                        value={taskBuilder.title}
+                        onChange={(e) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
                       />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => {
+                          setAiAssistContext('task')
+                          setAiAssistOpen(true)
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 text-amber-500" />
+                        AI Assist
+                      </Button>
                     </div>
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
@@ -5746,18 +5962,73 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             <TabsTrigger value="content">Content</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
-                          <TabsContent value="content" className="mt-2">
+                          <TabsContent value="content" className="mt-2 space-y-2">
                             <Textarea 
-                              placeholder="Enter task content..." 
+                              placeholder="Enter task content or upload files..." 
                               className="w-full min-h-[100px]"
-                              id="task-content"
+                              value={taskBuilder.content}
+                              onChange={(e) => setTaskBuilder(prev => ({ ...prev, content: e.target.value }))}
                             />
+                            <div className="flex items-center gap-2">
+                              <label className="cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="*/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const files = e.target.files
+                                    if (!files || files.length === 0) return
+                                    
+                                    for (const file of Array.from(files)) {
+                                      try {
+                                        const formData = new FormData()
+                                        formData.append('file', file)
+                                        
+                                        const response = await fetch('/api/extract-text', {
+                                          method: 'POST',
+                                          body: formData
+                                        })
+                                        
+                                        if (response.ok) {
+                                          const data = await response.json()
+                                          const extractedText = data.text || ''
+                                          
+                                          setTaskBuilder(prev => ({
+                                            ...prev,
+                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
+                                          }))
+                                        } else {
+                                          // Fallback: just add filename if extraction fails
+                                          setTaskBuilder(prev => ({
+                                            ...prev,
+                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                          }))
+                                        }
+                                      } catch (error) {
+                                        setTaskBuilder(prev => ({
+                                          ...prev,
+                                          content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                        }))
+                                      }
+                                    }
+                                    e.currentTarget.value = ''
+                                  }}
+                                />
+                                <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
+                                  <Upload className="h-3 w-3" />
+                                  Upload Files
+                                </span>
+                              </label>
+                              <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
+                            </div>
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <Textarea 
                               placeholder="Enter PCI configuration..." 
                               className="w-full min-h-[100px]"
-                              id="task-pci"
+                              value={taskBuilder.pci}
+                              onChange={(e) => setTaskBuilder(prev => ({ ...prev, pci: e.target.value }))}
                             />
                           </TabsContent>
                         </Tabs>
@@ -5766,7 +6037,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           <Textarea 
                             placeholder="Enter text" 
                             className="w-full min-h-[60px]"
-                            id="task-details"
+                            value={taskBuilder.details}
+                            onChange={(e) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
                           />
                         </div>
                         {/* Buttons row with Test and Save */}
@@ -5775,8 +6047,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           <Button 
                             size="sm"
                             onClick={() => {
-                              const title = (document.getElementById('task-title') as HTMLInputElement)?.value || 'New Task'
-                              setLessonSelectDialog({ isOpen: true, type: 'task', title })
+                              setLessonSelectDialog({ isOpen: true, type: 'task', title: taskBuilder.title || 'New Task' })
                             }}
                           >
                             Save
@@ -5788,11 +6059,65 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         defaultWidth={192} 
                         minWidth={150} 
                         maxWidth={300}
-                        actionButton={<Button variant="outline" size="sm" className="w-full">Add Extension</Button>}
+                        actionButton={
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => {
+                              const extNumber = taskBuilder.extensions.length + 1
+                              setTaskBuilder(prev => ({
+                                ...prev,
+                                extensions: [...prev.extensions, { 
+                                  id: `ext-${Date.now()}`, 
+                                  name: `Extension ${extNumber}`, 
+                                  content: '', 
+                                  pci: '' 
+                                }]
+                              }))
+                            }}
+                          >
+                            Add Extension
+                          </Button>
+                        }
                       >
-                        <h4 className="text-sm font-medium mb-2">Extensions</h4>
-                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px]">
-                          <p className="text-xs text-muted-foreground">No extensions added</p>
+                        <h4 className="text-sm font-medium mb-2">{taskBuilder.title || 'Task'} Extensions</h4>
+                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
+                          {taskBuilder.extensions.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">No extensions added</p>
+                          ) : (
+                            taskBuilder.extensions.map((ext) => (
+                              <Button
+                                key={ext.id}
+                                variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
+                                size="sm"
+                                className="w-full justify-start text-xs"
+                                onClick={() => {
+                                  if (taskBuilder.activeExtensionId === ext.id) {
+                                    // Deactivate - restore original content
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      activeExtensionId: null,
+                                      content: prev.originalContent.content,
+                                      pci: prev.originalContent.pci
+                                    }))
+                                  } else {
+                                    // Activate extension
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      activeExtensionId: ext.id,
+                                      originalContent: { content: prev.content, pci: prev.pci },
+                                      content: ext.content,
+                                      pci: ext.pci
+                                    }))
+                                  }
+                                }}
+                              >
+                                <FileText className="h-3 w-3 mr-1" />
+                                {ext.name}
+                              </Button>
+                            ))
+                          )}
                         </div>
                       </ResizablePanel>
                     </div>
@@ -5804,8 +6129,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <Input 
                         placeholder="Assessment Title" 
                         className="flex-1 font-semibold"
-                        id="assessment-title"
+                        value={assessmentBuilder.title}
+                        onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))}
                       />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => {
+                          setAiAssistContext('assessment')
+                          setAiAssistOpen(true)
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 text-amber-500" />
+                        AI Assist
+                      </Button>
                     </div>
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
@@ -5815,18 +6153,72 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             <TabsTrigger value="content">Content</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
-                          <TabsContent value="content" className="mt-2">
+                          <TabsContent value="content" className="mt-2 space-y-2">
                             <Textarea 
-                              placeholder="Enter assessment content..." 
+                              placeholder="Enter assessment content or upload files..." 
                               className="w-full min-h-[100px]"
-                              id="assessment-content"
+                              value={assessmentBuilder.content}
+                              onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, content: e.target.value }))}
                             />
+                            <div className="flex items-center gap-2">
+                              <label className="cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="*/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const files = e.target.files
+                                    if (!files || files.length === 0) return
+                                    
+                                    for (const file of Array.from(files)) {
+                                      try {
+                                        const formData = new FormData()
+                                        formData.append('file', file)
+                                        
+                                        const response = await fetch('/api/extract-text', {
+                                          method: 'POST',
+                                          body: formData
+                                        })
+                                        
+                                        if (response.ok) {
+                                          const data = await response.json()
+                                          const extractedText = data.text || ''
+                                          
+                                          setAssessmentBuilder(prev => ({
+                                            ...prev,
+                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
+                                          }))
+                                        } else {
+                                          setAssessmentBuilder(prev => ({
+                                            ...prev,
+                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                          }))
+                                        }
+                                      } catch (error) {
+                                        setAssessmentBuilder(prev => ({
+                                          ...prev,
+                                          content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                        }))
+                                      }
+                                    }
+                                    e.currentTarget.value = ''
+                                  }}
+                                />
+                                <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
+                                  <Upload className="h-3 w-3" />
+                                  Upload Files
+                                </span>
+                              </label>
+                              <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
+                            </div>
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <Textarea 
                               placeholder="Enter PCI configuration..." 
                               className="w-full min-h-[100px]"
-                              id="assessment-pci"
+                              value={assessmentBuilder.pci}
+                              onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, pci: e.target.value }))}
                             />
                           </TabsContent>
                         </Tabs>
@@ -5835,7 +6227,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           <Textarea 
                             placeholder="Enter text" 
                             className="w-full min-h-[60px]"
-                            id="assessment-details"
+                            value={assessmentBuilder.details}
+                            onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
                           />
                         </div>
                         {/* Buttons row with Generate DMI, Test, and Save */}
@@ -5845,8 +6238,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           <Button 
                             size="sm"
                             onClick={() => {
-                              const title = (document.getElementById('assessment-title') as HTMLInputElement)?.value || 'New Assessment'
-                              setLessonSelectDialog({ isOpen: true, type: 'assessment', title })
+                              setLessonSelectDialog({ isOpen: true, type: 'assessment', title: assessmentBuilder.title || 'New Assessment' })
                             }}
                           >
                             Save
@@ -5937,82 +6329,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           </div>
         </div>
 
-        {/* RIGHT PANEL - AI Assistant & Templates (conditional) */}
-        {aiPanelOpen && (
-        <div className="col-span-3 space-y-4">
-          {/* AI Suggestions */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Sparkles className="h-4 w-4 text-amber-500" />
-                AI Assistant
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 space-y-3">
-              {AI_SUGGESTIONS.slice(0, 3).map((suggestion) => (
-                <div
-                  key={suggestion.id}
-                  className="flex items-start gap-2 p-2 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => applyAiSuggestion(suggestion)}
-                >
-                  <suggestion.icon className="h-4 w-4 text-amber-500 mt-0.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{suggestion.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{suggestion.description}</p>
-                  </div>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-2"
-                onClick={() => {
-                  const nextSuggestion = AI_SUGGESTIONS[(Math.floor(Math.random() * AI_SUGGESTIONS.length))]
-                  applyAiSuggestion(nextSuggestion)
-                }}
-              >
-                <Zap className="h-3 w-3" />
-                Generate More Ideas
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Course Stats</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-lg font-bold">{modules.length}</p>
-                  <p className="text-xs text-muted-foreground">Lessons</p>
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-lg font-bold">
-                    {modules.reduce((acc, m) => acc + m.lessons.length, 0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Sections</p>
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-lg font-bold">
-                    {modules.reduce((acc, m) => acc + m.moduleQuizzes.length, 0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Exams</p>
-                </div>
-                <div className="p-2 bg-gray-50 rounded">
-                  <p className="text-lg font-bold">
-                    {modules.reduce((acc, m) => acc + m.lessons.reduce((lacc, l) => lacc + l.tasks.length + l.homework.length + (l.worksheets?.length || 0), 0), 0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Activities</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        )}
-
-        {/* Modals */}
+        {/* Modals -->
         <ModuleBuilderModal
           isOpen={activeModal.type === 'module' && activeModal.isOpen}
           onClose={() => setActiveModal({ type: 'module', isOpen: false })}
@@ -6257,6 +6574,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           }}
           modules={modules}
           itemType={lessonSelectDialog.type || 'item'}
+        />
+
+        {/* AI Assist Agent Modal */}
+        <AIAssistAgent
+          isOpen={aiAssistOpen}
+          onClose={() => setAiAssistOpen(false)}
+          context={aiAssistContext}
+          content={aiAssistContext === 'task' ? taskBuilder.content : assessmentBuilder.content}
+          pci={aiAssistContext === 'task' ? taskBuilder.pci : assessmentBuilder.pci}
+          title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
+          onApplyContent={(content) => {
+            if (aiAssistContext === 'task') {
+              setTaskBuilder(prev => ({ ...prev, content }))
+            } else {
+              setAssessmentBuilder(prev => ({ ...prev, content }))
+            }
+          }}
+          onApplyPci={(pci) => {
+            if (aiAssistContext === 'task') {
+              setTaskBuilder(prev => ({ ...prev, pci }))
+            } else {
+              setAssessmentBuilder(prev => ({ ...prev, pci }))
+            }
+          }}
         />
       </div>
     </div>
