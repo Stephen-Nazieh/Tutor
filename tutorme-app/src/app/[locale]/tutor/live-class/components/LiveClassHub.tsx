@@ -205,25 +205,64 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     if (alreadyLoaded) return
 
     let cancelled = false
+    let timeoutId: NodeJS.Timeout | null = null
     loadedForRef.current = { sessionId, userId }
+
+    // Fetch with timeout helper
+    const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 15000) => {
+      const controller = new AbortController()
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          controller.abort()
+          reject(new Error(`Request timeout after ${timeoutMs}ms`))
+        }, timeoutMs)
+      })
+      
+      try {
+        const response = await Promise.race([
+          fetch(url, { ...options, signal: controller.signal }),
+          timeoutPromise
+        ])
+        if (timeoutId) clearTimeout(timeoutId)
+        return response as Response
+      } catch (error) {
+        if (timeoutId) clearTimeout(timeoutId)
+        throw error
+      }
+    }
+
     const load = async () => {
       setIsLoading(true)
       try {
-        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-        const csrfData = await csrfRes.json().catch(() => ({}))
+        // Fetch CSRF token and start class in parallel
+        const csrfPromise = fetchWithTimeout('/api/csrf', { credentials: 'include' }, 5000)
+          .then(r => r.json()).catch(() => ({}))
+        
+        // Start class immediately (CSRF not strictly required for idempotent start)
+        const startPromise = fetchWithTimeout(`/api/tutor/classes/${sessionId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+        }, 10000).catch(() => null) // Non-fatal: class may already be started
+
+        // Wait for CSRF and start to complete
+        const [csrfData] = await Promise.all([csrfPromise, startPromise])
         const csrfToken = csrfData?.token ?? null
 
-        // Start class if not already active.
-        await fetch(`/api/tutor/classes/${sessionId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-          },
-          credentials: 'include',
-        })
+        // If start failed due to CSRF, retry with token
+        if (csrfToken && startPromise === null) {
+          await fetchWithTimeout(`/api/tutor/classes/${sessionId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': csrfToken,
+            },
+            credentials: 'include',
+          }, 10000).catch(() => null) // Still non-fatal
+        }
 
-        const res = await fetch(`/api/tutor/classes/${sessionId}`, { credentials: 'include' })
+        // Fetch class data
+        const res = await fetchWithTimeout(`/api/tutor/classes/${sessionId}`, { credentials: 'include' }, 15000)
         if (!res.ok) {
           const raw = await res.text().catch(() => '')
           throw new Error(raw || `Failed to load class (${res.status})`)
@@ -245,10 +284,12 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       } catch (error) {
         loadedForRef.current = null
         if (!cancelled) {
-          toast.error(error instanceof Error ? error.message : 'Failed to load live class session')
-          router.push('/tutor/live-class')
+          const message = error instanceof Error ? error.message : 'Failed to load live class session'
+          toast.error(message)
+          router.push('/tutor/classes')
         }
       } finally {
+        if (timeoutId) clearTimeout(timeoutId)
         if (!cancelled) setIsLoading(false)
       }
     }
@@ -256,6 +297,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     load()
     return () => {
       cancelled = true
+      if (timeoutId) clearTimeout(timeoutId)
     }
   }, [session?.user?.id, sessionId, router])
 
@@ -520,9 +562,18 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+        <div className="text-center max-w-md px-4">
           <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Loading live session...</p>
+          <p className="text-gray-600 font-medium">Loading live session...</p>
+          <p className="text-gray-400 text-sm mt-2">This may take a few seconds. Please wait.</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-4"
+            onClick={() => router.push('/tutor/classes')}
+          >
+            Cancel & Go Back
+          </Button>
         </div>
       </div>
     )

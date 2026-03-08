@@ -40,23 +40,44 @@ export function useSocket(options?: UseSocketOptions) {
 
   useEffect(() => {
     let socket: Socket
+    let connectionTimeout: NodeJS.Timeout | null = null
+    
     const connect = async () => {
-      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken())
+      // Don't attempt connection if required options are missing
+      if (!options?.roomId || !options?.userId) {
+        setError('Missing connection options')
+        return
+      }
+      
+      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken(5000))
       if (!token) {
         setError('Authentication required')
         return
       }
+      
       socket = io({
         path: '/api/socket',
         transports: ['websocket', 'polling'],
         auth: { token },
+        timeout: 10000,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       })
       socketRef.current = socket
+      
+      // Set connection timeout
+      connectionTimeout = setTimeout(() => {
+        if (!socket.connected) {
+          setError('Connection timeout')
+          socket.disconnect()
+        }
+      }, 10000)
 
     socket.on('connect', () => {
       console.log('Socket connected:', socket.id)
       setIsConnected(true)
       setError(null)
+      if (connectionTimeout) clearTimeout(connectionTimeout)
 
       // Join class room only when identity context is provided.
       if (options?.roomId && options.userId && options.name && options.role) {
@@ -147,6 +168,7 @@ export function useSocket(options?: UseSocketOptions) {
     }
     connect()
     return () => {
+      if (connectionTimeout) clearTimeout(connectionTimeout)
       if (socketRef.current) {
         socketRef.current.disconnect()
         socketRef.current = null

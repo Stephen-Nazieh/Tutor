@@ -4570,6 +4570,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     student1: '',
     student2: ''
   })
+  // AI scoring results for Test PCI
+  const [testPciScores, setTestPciScores] = useState<Record<string, { score: number; feedback: string }[]>>({
+    classroom: [],
+    student1: [],
+    student2: []
+  })
+  const [testPciLoading, setTestPciLoading] = useState(false)
+  const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
+  const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
   
   // Active tab tracking for Enter button
   const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
@@ -4594,6 +4603,109 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }
     return url
   }, [])
+
+  // Handle Test PCI answer submission with AI scoring
+  const handleTestPciSubmit = async () => {
+    if (!testPciInput.trim() || testPciLoading) return
+    
+    const answer = testPciInput.trim()
+    setTestPciInput('')
+    setTestPciLoading(true)
+    
+    // Get PCI content from active task/assessment
+    const pciContent = testPciSource === 'task' 
+      ? (taskBuilder.activeExtensionId 
+          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
+          : taskBuilder.taskPci)
+      : (assessmentBuilder.activeExtensionId 
+          ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
+          : assessmentBuilder.taskPci)
+    
+    // Determine which tabs to update
+    const tabsToUpdate: string[] = []
+    if (testPciActiveTab === 'classroom') {
+      // Classroom goes to both students
+      tabsToUpdate.push('classroom', 'student1', 'student2')
+    } else {
+      // Individual student tab
+      tabsToUpdate.push(testPciActiveTab)
+    }
+    
+    // Update content for all affected tabs
+    setTestPciContent(prev => {
+      const newContent = { ...prev }
+      tabsToUpdate.forEach(tab => {
+        newContent[tab] = (newContent[tab] ? newContent[tab] + '\n' : '') + `Tutor: ${answer}`
+      })
+      return newContent
+    })
+    
+    try {
+      // Call AI to score the answer
+      const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
+
+Question/Task Content:
+${testPciContent.classroom || 'No content provided'}
+
+PCI (Instructions/Criteria):
+${pciContent || 'No PCI provided - use your best judgment'}
+
+Student Answer:
+${answer}
+
+Please provide:
+1. A score from 0-100
+2. Brief feedback explaining the score (why it's correct or what needs improvement)
+
+Respond in this exact format:
+SCORE: [number]
+FEEDBACK: [your explanation]`
+
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.3
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to get AI response')
+      
+      const data = await response.json()
+      const aiResponse = data.content || ''
+      
+      // Parse AI response
+      const scoreMatch = aiResponse.match(/SCORE:\s*(\d+)/i)
+      const feedbackMatch = aiResponse.match(/FEEDBACK:\s*([\s\S]+)/i)
+      
+      const score = scoreMatch ? parseInt(scoreMatch[1]) : 50
+      const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback provided'
+      
+      // Update scores for all affected tabs
+      setTestPciScores(prev => {
+        const newScores = { ...prev }
+        tabsToUpdate.forEach(tab => {
+          newScores[tab] = [...(newScores[tab] || []), { score, feedback: `Answer: ${answer}\n${feedback}` }]
+        })
+        return newScores
+      })
+      
+      toast.success(`Answer scored: ${score}%`)
+    } catch (error) {
+      toast.error('Failed to score answer')
+      // Still add the answer without scoring
+      setTestPciScores(prev => {
+        const newScores = { ...prev }
+        tabsToUpdate.forEach(tab => {
+          newScores[tab] = [...(newScores[tab] || []), { score: 0, feedback: `Answer: ${answer}\nError: Could not score - ${error instanceof Error ? error.message : 'Unknown error'}` }]
+        })
+        return newScores
+      })
+    } finally {
+      setTestPciLoading(false)
+    }
+  }
 
   const handleSendPrompt = async () => {
     if (!aiPrompt.trim() && attachedFiles.length === 0) return
@@ -6114,11 +6226,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             />
                           </TabsContent>
                         </Tabs>
-                        {/* Persistent text input below tabs */}
-                        <div className="mt-3 space-y-2">
+                        {/* Persistent text input with horizontal Enter button */}
+                        <div className="mt-3 flex gap-2 items-start">
                           <Textarea 
                             placeholder={`Enter text and press Enter to add to ${taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
-                            className="w-full min-h-[60px]"
+                            className="flex-1 min-h-[60px]"
                             value={taskBuilder.details}
                             onChange={(e) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
                             onKeyDown={(e) => {
@@ -6169,6 +6281,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           <Button 
                             variant="outline" 
                             size="sm"
+                            className="h-[60px] px-3"
                             onClick={() => {
                               if (taskBuilder.details.trim()) {
                                 if (taskBuilderActiveTab === 'content') {
@@ -6217,7 +6330,25 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         </div>
                         {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
-                          <Button variant="outline" size="sm">Test</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              // Prefill Test PCI with content from Task Builder
+                              const content = taskBuilder.activeExtensionId 
+                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
+                                : taskBuilder.taskContent
+                              setTestPciContent({
+                                classroom: content,
+                                student1: content,
+                                student2: content
+                              })
+                              setTestPciSource('task')
+                              toast.success('Test PCI prefilled with task content')
+                            }}
+                          >
+                            Test
+                          </Button>
                           <Button 
                             size="sm"
                             onClick={() => {
@@ -6232,7 +6363,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <ResizablePanel 
                         defaultWidth={192} 
                         minWidth={150} 
-                        maxWidth={300}
+                        maxWidth={600}
                         actionButton={
                           <Button 
                             variant="outline" 
@@ -6264,27 +6395,41 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             <p className="text-xs text-muted-foreground">No extensions added</p>
                           ) : (
                             taskBuilder.extensions.map((ext) => (
-                              <Button
-                                key={ext.id}
-                                variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
-                                size="sm"
-                                className="w-full justify-start text-xs"
-                                onClick={() => {
-                                  // Simply toggle which content is being viewed
-                                  // Task content and extension content are stored separately
-                                  // Nothing is cleared or overwritten
-                                  if (taskBuilder.activeExtensionId === ext.id) {
-                                    // Switch back to viewing task content
-                                    setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
-                                  } else {
-                                    // Switch to viewing this extension's content
-                                    setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
-                                  }
-                                }}
-                              >
-                                <FileText className="h-3 w-3 mr-1" />
-                                {ext.name}
-                              </Button>
+                              <div key={ext.id} className="flex items-center gap-1 group">
+                                <Button
+                                  variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
+                                  size="sm"
+                                  className="flex-1 justify-start text-xs"
+                                  onClick={() => {
+                                    // Simply toggle which content is being viewed
+                                    if (taskBuilder.activeExtensionId === ext.id) {
+                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
+                                    } else {
+                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
+                                    }
+                                  }}
+                                >
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  {ext.name}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (confirm(`Delete "${ext.name}"?`)) {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                        activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
+                                      }))
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                </Button>
+                              </div>
                             ))
                           )}
                         </div>
@@ -6459,11 +6604,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             />
                           </TabsContent>
                         </Tabs>
-                        {/* Persistent text input below tabs */}
-                        <div className="mt-3 space-y-2">
+                        {/* Persistent text input with horizontal Enter button */}
+                        <div className="mt-3 flex gap-2 items-start">
                           <Textarea 
                             placeholder={`Enter text and press Enter to add to ${assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
-                            className="w-full min-h-[60px]"
+                            className="flex-1 min-h-[60px]"
                             value={assessmentBuilder.details}
                             onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
                             onKeyDown={(e) => {
@@ -6514,6 +6659,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           <Button 
                             variant="outline" 
                             size="sm"
+                            className="h-[60px] px-3"
                             onClick={() => {
                               if (assessmentBuilder.details.trim()) {
                                 if (assessmentBuilderActiveTab === 'content') {
@@ -6563,7 +6709,25 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         {/* Buttons row with Generate DMI, Test, and Save */}
                         <div className="flex gap-2 mt-3">
                           <Button variant="outline" size="sm">Generate DMI</Button>
-                          <Button variant="outline" size="sm">Test</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              // Prefill Test PCI with content from Assessment Builder
+                              const content = assessmentBuilder.activeExtensionId 
+                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
+                                : assessmentBuilder.taskContent
+                              setTestPciContent({
+                                classroom: content,
+                                student1: content,
+                                student2: content
+                              })
+                              setTestPciSource('assessment')
+                              toast.success('Test PCI prefilled with assessment content')
+                            }}
+                          >
+                            Test
+                          </Button>
                           <Button 
                             size="sm"
                             onClick={() => {
@@ -6578,7 +6742,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                       <ResizablePanel 
                         defaultWidth={192} 
                         minWidth={150} 
-                        maxWidth={300}
+                        maxWidth={600}
                         actionButton={<Button variant="outline" size="sm" className="w-full">Add DMI</Button>}
                       >
                         <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
@@ -6596,7 +6760,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                   <div className="flex gap-4">
                     {/* Main content with tabs */}
                     <div className="flex-1">
-                      <Tabs defaultValue="classroom" className="w-full">
+                      <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
                           {testPciTabs.map((tab) => (
                             <div key={tab.id} className="relative flex-1">
@@ -6629,64 +6793,57 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         </TabsList>
                         {testPciTabs.map((tab) => (
                           <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                            <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
+                            <div className="p-4 bg-gray-50 rounded-lg min-h-[80px] max-h-[200px] overflow-y-auto">
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
+                              {/* Show AI scores if any */}
+                              {testPciScores[tab.id]?.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                  <p className="text-xs font-medium text-gray-600 mb-2">AI Feedback:</p>
+                                  {testPciScores[tab.id].map((score, idx) => (
+                                    <div key={idx} className="mb-2 p-2 bg-white rounded border border-gray-200">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant={score.score >= 80 ? "default" : score.score >= 50 ? "secondary" : "destructive"} className="text-[10px]">
+                                          {score.score}%
+                                        </Badge>
+                                      </div>
+                                      <p className="text-xs text-gray-600 mt-1">{score.feedback}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </TabsContent>
                         ))}
                       </Tabs>
-                      {/* Persistent text input below tabs */}
-                      <div className="mt-3 space-y-2">
+                      {/* Persistent text input with Enter button inline */}
+                      <div className="mt-3">
                         <div className="flex gap-2">
                           <Input 
-                            placeholder="Enter text and press Enter..." 
+                            placeholder={testPciActiveTab === 'classroom' ? "Enter answer (goes to both students)..." : "Enter answer..."}
                             className="flex-1"
                             value={testPciInput}
                             onChange={(e) => setTestPciInput(e.target.value)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter' && testPciInput.trim()) {
+                              if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
                                 e.preventDefault()
-                                const activeTab = testPciTabs.find(tab => {
-                                  const tabElement = document.querySelector(`[data-state="active"][value="${tab.id}"]`)
-                                  return tabElement !== null
-                                })
-                                if (activeTab) {
-                                  setTestPciContent(prev => ({
-                                    ...prev,
-                                    [activeTab.id]: prev[activeTab.id] + (prev[activeTab.id] ? '\n' : '') + testPciInput.trim()
-                                  }))
-                                  setTestPciInput('')
-                                }
+                                handleTestPciSubmit()
                               }
                             }}
                           />
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
-                              if (testPciInput.trim()) {
-                                const activeTab = testPciTabs.find(tab => {
-                                  const tabElement = document.querySelector(`[data-state="active"][value="${tab.id}"]`)
-                                  return tabElement !== null
-                                })
-                                if (activeTab) {
-                                  setTestPciContent(prev => ({
-                                    ...prev,
-                                    [activeTab.id]: prev[activeTab.id] + (prev[activeTab.id] ? '\n' : '') + testPciInput.trim()
-                                  }))
-                                  setTestPciInput('')
-                                }
-                              }
-                            }}
+                            disabled={testPciLoading || !testPciInput.trim()}
+                            onClick={handleTestPciSubmit}
                           >
-                            <CornerDownLeft className="h-4 w-4 mr-1" />
+                            {testPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CornerDownLeft className="h-4 w-4 mr-1" />}
                             Enter
                           </Button>
                         </div>
                       </div>
                     </div>
                     {/* Right panel: DMI - resizable */}
-                    <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={300}>
+                    <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={600}>
                       <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
                       <div className="p-3 bg-slate-50 rounded-lg min-h-[120px]">
                         <p className="text-xs text-muted-foreground">DMI content</p>
@@ -6700,7 +6857,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           </div>
         </div>
 
-        {/* Modals -->
+        {/* Modals */}
         <ModuleBuilderModal
           isOpen={activeModal.type === 'module' && activeModal.isOpen}
           onClose={() => setActiveModal({ type: 'module', isOpen: false })}
@@ -6708,193 +6865,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           initialData={editingData}
         />
 
-                    {/* Assets folder (course-level) */}
-                    <TreeItem depth={1} isLast={false}>
-                      <div className="group">
-                        <div
-                          className={cn(
-                            "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
-                            "bg-slate-50 hover:bg-slate-100 border border-slate-200"
-                          )}
-                          onClick={() => setAssetsOpen((prev) => !prev)}
-                        >
-                          {assetsOpen ? (
-                            <ChevronDown className="h-3 w-3 text-slate-600" />
-                          ) : (
-                            <ChevronRight className="h-3 w-3 text-slate-600" />
-                          )}
-                          <Paperclip className="h-3 w-3 text-slate-600" />
-                          <span className="text-sm font-medium flex-1 truncate">Assets</span>
-                          <Badge variant="secondary" className="text-[10px] h-4">
-                            {(assetsLesson?.docs?.length || 0) + (assetsLesson?.media?.videos?.length || 0) + (assetsLesson?.media?.images?.length || 0)}
-                          </Badge>
-                        </div>
-
-                        {assetsOpen && (
-                          <div className="mt-1 space-y-1">
-                            <TreeItem depth={2} isLast={false}>
-                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/media">
-                                <div className="flex items-center gap-1.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4"
-                                    onClick={() => setMediaOpen((prev) => !prev)}
-                                    aria-label={mediaOpen ? 'Collapse media' : 'Expand media'}
-                                  >
-                                    {mediaOpen ? (
-                                      <ChevronDown className="h-3 w-3 text-gray-600" />
-                                    ) : (
-                                      <ChevronRight className="h-3 w-3 text-gray-600" />
-                                    )}
-                                  </Button>
-                                  <Video className="h-3 w-3 text-gray-500" />
-                                  <span className="text-[10px] text-muted-foreground">Media</span>
-                                  <span className="text-[10px] text-muted-foreground">
-                                    ({assetsLesson?.media?.videos?.length || 0}v, {assetsLesson?.media?.images?.length || 0}i)
-                                  </span>
-                                  <div className="flex items-center gap-1 ml-auto opacity-0 group-hover/media:opacity-100">
-                                    <label className="cursor-pointer">
-                                      <input
-                                        type="file"
-                                        accept="video/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => handleAssetsMediaUpload(e.target.files, 'video')}
-                                      />
-                                      <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
-                                        <Upload className="h-3 w-3" /> Vid
-                                      </span>
-                                    </label>
-                                    <label className="cursor-pointer">
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => handleAssetsMediaUpload(e.target.files, 'image')}
-                                      />
-                                      <span className="flex items-center gap-1 text-[10px] text-green-600 hover:text-green-700">
-                                        <ImageIcon className="h-3 w-3" /> Img
-                                      </span>
-                                    </label>
-                                  </div>
-                                </div>
-                                {mediaOpen && (assetsLesson?.media?.videos?.length > 0 || assetsLesson?.media?.images?.length > 0) && (
-                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
-                                    {assetsLesson?.media?.videos?.map((video) => (
-                                      <div key={video.id} className="flex items-start gap-1 text-[10px] text-gray-600">
-                                        <Play className="h-3 w-3 shrink-0 mt-[2px]" />
-                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{video.title}</span>
-                                        <span className="text-gray-400 shrink-0">{video.duration > 0 ? `${Math.floor(video.duration / 60)}m` : '—'}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5"
-                                          onClick={() => {
-                                            if (!confirm(`Delete "${video.title}"?`)) return
-                                            handleDeleteAssetMedia('video', video.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                    {assetsLesson?.media?.images?.map((img) => (
-                                      <div key={img.id} className="flex items-start gap-1 text-[10px] text-gray-600">
-                                        <ImageIcon className="h-3 w-3 shrink-0 mt-[2px]" />
-                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{img.title}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5"
-                                          onClick={() => {
-                                            if (!confirm(`Delete "${img.title}"?`)) return
-                                            handleDeleteAssetMedia('image', img.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </TreeItem>
-                            <TreeItem depth={2} isLast={false}>
-                              <div className="py-1 px-2 rounded bg-gray-50 border border-gray-200 group/docs">
-                                <div className="flex items-center gap-1.5">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4"
-                                    onClick={() => setDocsOpen((prev) => !prev)}
-                                    aria-label={docsOpen ? 'Collapse docs' : 'Expand docs'}
-                                  >
-                                    {docsOpen ? (
-                                      <ChevronDown className="h-3 w-3 text-gray-600" />
-                                    ) : (
-                                      <ChevronRight className="h-3 w-3 text-gray-600" />
-                                    )}
-                                  </Button>
-                                  <FileText className="h-3 w-3 text-gray-500" />
-                                  <span className="text-[10px] text-muted-foreground">Docs ({assetsLesson?.docs?.length || 0})</span>
-                                  <label className="cursor-pointer ml-auto opacity-0 group-hover/docs:opacity-100">
-                                    <input
-                                      type="file"
-                                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
-                                      multiple
-                                      className="hidden"
-                                      onChange={(e) => handleAssetsDocUpload(e.target.files)}
-                                    />
-                                    <span className="flex items-center gap-1 text-[10px] text-blue-600 hover:text-blue-700">
-                                      <Upload className="h-3 w-3" /> Upload
-                                    </span>
-                                  </label>
-                                </div>
-                                {docsOpen && assetsLesson?.docs?.length > 0 && (
-                                  <div className="mt-1.5 space-y-0.5 pl-4 border-l border-dashed border-gray-300 ml-1">
-                                    {assetsLesson?.docs?.map((doc) => (
-                                      <div key={doc.id} className="flex items-start gap-1 text-[10px] text-gray-600">
-                                        <FileText className="h-3 w-3 shrink-0 mt-[2px]" />
-                                        <span className="flex-1 min-w-0 break-words whitespace-normal">{doc.title}</span>
-                                        <span className="text-gray-400 uppercase shrink-0">{doc.type}</span>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5"
-                                          onClick={() => {
-                                            if (!confirm(`Delete "${doc.title}"?`)) return
-                                            handleDeleteAssetDoc(doc.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </TreeItem>
-                          </div>
-                        )}
-                      </div>
-                    </TreeItem>
-        <LessonBuilderModal
-          isOpen={activeModal.type === 'lesson' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'lesson', isOpen: false })}
-          onSave={handleSaveLesson}
-          initialData={editingData}
-          allLessons={getAllLessons()}
-        />
-
-        <TaskBuilderModal
-          isOpen={activeModal.type === 'task' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'task', isOpen: false })}
-          onSave={handleSaveTask}
-          initialData={editingData}
-          modules={modules}
-        />
 
         <HomeworkBuilderModal
           isOpen={activeModal.type === 'homework' && activeModal.isOpen}
