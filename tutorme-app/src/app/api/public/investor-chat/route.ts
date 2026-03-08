@@ -44,13 +44,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
+// Handle OPTIONS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, { 
+    status: 204,
+    headers: corsHeaders 
+  })
+}
+
 export async function POST(request: NextRequest) {
   let language = 'en' // Default language, declared outside try for catch block access
-  
-  // Handle preflight requests
-  if (request.method === 'OPTIONS') {
-    return new NextResponse(null, { headers: corsHeaders })
-  }
   
   try {
     const body = await request.json().catch(() => null)
@@ -91,7 +94,10 @@ export async function POST(request: NextRequest) {
     console.log('API Key exists:', apiKey ? 'yes (length: ' + apiKey.length + ')' : 'no')
     console.log('Conversation history length:', conversationHistory?.length || 0)
 
-    // Call Kimi API
+    // Call Kimi API with timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+    
     const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -104,7 +110,8 @@ export async function POST(request: NextRequest) {
         temperature: 1,
         max_tokens: 1024,
       }),
-    })
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId))
 
     console.log('Kimi API response status:', response.status)
 
