@@ -722,7 +722,8 @@ const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage.content,
-          conversationHistory: messages.map(m => ({ role: m.role, content: m.content }))
+          conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+          language: lang
         })
       });
 
