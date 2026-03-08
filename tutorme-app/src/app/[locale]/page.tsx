@@ -190,11 +190,11 @@ const translations: Translations = {
   
   // Action Cards
   becomeTutor: {
-    'en': 'Become a Solocorn Tutor', 'zh-CN': '成为 Solocorn 导师', 'zh-HK': '成為 Solocorn 導師', 'es': 'Conviértete en tutor de Solocorn', 'fr': 'Devenez tuteur Solocorn',
-    'de': 'Werden Sie Solocorn-Tutor', 'ja': 'Solocorn チューターになる', 'ko': 'Solocorn 튜터 되기', 'pt': 'Torne-se um Tutor Solocorn', 'hi': 'Solocorn शिक्षक बनें',
+    'en': 'Pre-register to become a Solocorn Tutor', 'zh-CN': '预注册成为 Solocorn 导师', 'zh-HK': '預註冊成為 Solocorn 導師', 'es': 'Pre-regístrate para ser tutor de Solocorn', 'fr': 'Pré-inscrivez-vous pour devenir tuteur Solocorn',
+    'de': 'Registrieren Sie sich vor, um Solocorn-Tutor zu werden', 'ja': 'Solocorn チューターになるための事前登録', 'ko': 'Solocorn 튜터 되기 사전 등록', 'pt': 'Pré-registre-se para ser Tutor Solocorn', 'hi': 'Solocorn शिक्षक बनने के लिए पूर्व-पंजीकरण',
   },
   becomeTutorDesc: {
-    'en': 'Join our elite network of educators and reach students worldwide.',
+    'en': 'Join our network of tutors and educators.',
     'zh-CN': '加入我们的精英教育者网络，触达全球学生。',
     'zh-HK': '加入我哋嘅精英教育者網絡，觸達全球學生。',
     'es': 'Únase a nuestra red de educadores de élite y llegue a estudiantes de todo el mundo.',
@@ -206,15 +206,15 @@ const translations: Translations = {
     'hi': 'हमारे精英 शिक्षक नेटवर्क में शामिल हों और दुनियाभर के छात्रों तक पहुंचें।',
   },
   applyToTeach: {
-    'en': 'Apply to Teach', 'zh-CN': '申请教学', 'zh-HK': '申請教學', 'es': 'Aplicar para enseñar', 'fr': 'Postuler pour enseigner',
-    'de': 'Bewerben Sie sich zum Unterrichten', 'ja': '教師として応募', 'ko': '교사 지원', 'pt': 'Aplicar para Ensinar', 'hi': 'पढ़ाने के लिए आवेदन',
+    'en': 'Apply', 'zh-CN': '申请', 'zh-HK': '申請', 'es': 'Aplicar', 'fr': 'Postuler',
+    'de': 'Bewerben', 'ja': '応募', 'ko': '지원', 'pt': 'Aplicar', 'hi': 'आवेदन',
   },
   startAcademy: {
     'en': 'Start a Solocorn Academy', 'zh-CN': '开办 Solocorn 学院', 'zh-HK': '開辦 Solocorn 學院', 'es': 'Iniciar una academia Solocorn', 'fr': 'Démarrer une académie Solocorn',
     'de': 'Gründen Sie eine Solocorn-Akademie', 'ja': 'Solocorn アカデミーを始める', 'ko': 'Solocorn 아카데미 시작', 'pt': 'Iniciar uma Academia Solocorn', 'hi': 'Solocorn अकादमी शुरू करें',
   },
   startAcademyDesc: {
-    'en': 'Build your own branded learning institution on our infrastructure.',
+    'en': 'Host your tutors on our platform. Start a new academy.',
     'zh-CN': '在我们的基础设施上建立您自己的品牌学习机构。',
     'zh-HK': '在我哋嘅基礎設施上建立你自己嘅品牌學習機構。',
     'es': 'Construya su propia institución de aprendizaje de marca en nuestra infraestructura.',
@@ -246,8 +246,8 @@ const translations: Translations = {
     'hi': 'K-12 और उच्च शिक्षा संस्थानों के लिए एकीकृत समाधान।',
   },
   partnerWithUs: {
-    'en': 'Partner with Us', 'zh-CN': '与我们合作', 'zh-HK': '與我哋合作', 'es': 'Asociarse con nosotros', 'fr': 'Devenir partenaire',
-    'de': 'Partner werden', 'ja': 'パートナーになる', 'ko': '파트너 되기', 'pt': 'Seja Nosso Parceiro', 'hi': 'हमारे साथ भागीदारी करें',
+    'en': 'Inquire', 'zh-CN': '咨询', 'zh-HK': '諮詢', 'es': 'Consultar', 'fr': 'Renseignements',
+    'de': 'Anfragen', 'ja': 'お問い合わせ', 'ko': '문의', 'pt': 'Consultar', 'hi': 'पूछताछ',
   },
   
   // Business Section
@@ -368,8 +368,8 @@ const translations: Translations = {
   },
   // Investor Chat
   askSolocorn: {
-    'en': 'Ask Solocorn AI', 'zh-CN': '询问 Solocorn AI', 'zh-HK': '詢問 Solocorn AI', 'es': 'Preguntar a Solocorn AI', 'fr': 'Demander à Solocorn AI',
-    'de': 'Solocorn AI fragen', 'ja': 'Solocorn AI に質問', 'ko': 'Solocorn AI에게 물어보기', 'pt': 'Perguntar ao Solocorn AI', 'hi': 'Solocorn AI से पूछें',
+    'en': 'Ask Solocorn', 'zh-CN': '询问 Solocorn', 'zh-HK': '詢問 Solocorn', 'es': 'Preguntar a Solocorn', 'fr': 'Demander à Solocorn',
+    'de': 'Solocorn fragen', 'ja': 'Solocorn に質問', 'ko': 'Solocorn에게 물어보기', 'pt': 'Perguntar ao Solocorn', 'hi': 'Solocorn से पूछें',
   },
   investorChatPlaceholder: {
     'en': 'Ask about our company, technology, or investment opportunities...',
@@ -415,64 +415,86 @@ const LANGUAGES: { code: Language; name: string; flag: string }[] = [
 ];
 
 // --- Investor Chat System Prompt ---
-const INVESTOR_CHAT_PROMPT = `You are the Solocorn AI Assistant, an intelligent representative of Solocorn LLC, an AI-powered educational technology company. You are knowledgeable about the company and can answer questions from investors, potential partners, and visitors.
+const INVESTOR_CHAT_PROMPT = `You are the Solocorn AI Assistant, an intelligent representative of Solocorn, a live AI-assisted tutoring platform. Use the following knowledge base to answer questions accurately.
 
-## COMPANY OVERVIEW
-- Name: Solocorn LLC
-- Tagline: "AI-Human Hybrid Tutoring Platform"
-- Founded: 2024
-- Mission: Democratize access to world-class education through AI and human expertise
+## WHAT SOLOCORN IS
+Solocorn is a live AI-assisted tutoring platform designed to allow a single tutor to teach large groups of students simultaneously while still delivering individualized feedback.
 
-## KEY VALUE PROPOSITIONS
-1. AI-Powered Socratic Tutoring: 24/7 AI tutors that use Socratic method (never give direct answers)
-2. Human-AI Hybrid Model: 1 tutor manages up to 50 students with AI monitoring
-3. Comprehensive Curriculum: IELTS, TOEFL, AP, IB, SAT, GRE, GMAT, and academic subjects
-4. Multi-language Support: 10 languages including English, Chinese, Spanish, French, German, Japanese, Korean, Portuguese, Hindi
-5. Real-time Analytics: Live classroom monitoring with engagement tracking
+Traditional tutoring platforms scale poorly because tutors must manually grade student work and provide feedback. Solocorn solves this by using AI to automatically analyze student submissions and generate structured feedback immediately after each task.
 
-## TECHNOLOGY STACK
-- AI: Kimi K2.5 (Moonshot AI), Ollama, Zhipu GLM
-- Platform: Next.js 16, React 18, TypeScript
-- Infrastructure: Docker, PostgreSQL, Redis
-- Video: Daily.co
-- Whiteboard: tldraw + Yjs
+This allows tutors to focus on teaching while the system handles grading, analysis, and feedback.
+
+## THE CORE CONCEPT: LIVE TEACHING + AI EVALUATION
+Solocorn is based on a simple division of labor.
+
+Tutor responsibilities:
+• Teach the lesson
+• Decide what students should learn
+• Create tasks or questions
+• Guide the class discussion
+
+AI responsibilities:
+• Evaluate student answers
+• Score responses instantly
+• Identify mistakes and patterns
+• Generate feedback for each student
+
+This separation makes the system easier to use than fully automated AI learning platforms. Tutors remain in control of the learning process.
+
+## HOW A SOLOCORN CLASS WORKS
+A Solocorn class follows a repeating cycle:
+
+Step 1 — Tutor Instruction: The tutor explains a concept just like in a normal class.
+Step 2 — Tutor Assigns a Task: The tutor asks students to complete a short task or answer a question.
+Step 3 — Students Submit Work: Students submit their answers through the platform.
+Step 4 — AI Evaluation: The AI analyzes each student's response.
+Step 5 — Immediate Feedback: Students receive personalized feedback within seconds.
+Step 6 — Tutor Adjusts Teaching: The tutor can view class performance and adjust instruction accordingly.
+
+This system is called PCI — Post-Completion Instruction.
+
+## WHAT PCI (POST-COMPLETION INSTRUCTION) MEANS
+PCI stands for Post-Completion Instruction. It refers to the process of giving students feedback immediately after they complete a learning task. Traditional classrooms often delay feedback until homework is graded later. Solocorn provides feedback instantly.
+
+## KEY PLATFORM FEATURES
+• Live Interactive Classrooms: Tutors can teach live classes with many students simultaneously
+• AI-Assisted Evaluation: AI analyzes student responses in real time
+• Micro-Task Learning Structure: Lessons are broken into short tasks
+• Immediate Feedback: Students receive feedback within seconds
+• Tutor Control: Tutors design lessons and tasks
+
+## WHO SOLOCORN IS FOR
+• Tutors: Can teach many students at once instead of one-to-one sessions
+• Academies: Can use Solocorn to deliver classes to large groups of students
+• Schools: Can use Solocorn as a digital classroom system with AI-assisted grading
+• Students: Receive immediate feedback and more practice opportunities
+• Investors: Solocorn addresses a key inefficiency in tutoring
 
 ## BUSINESS MODEL
-- B2C: Individual student subscriptions
-- B2B: School and enterprise licensing
-- Tutor Network: Celebrity tutors and certified educators
-- Marketplace: Academy creation for institutions
+Revenue sources include:
+• Platform Commission: Solocorn takes a percentage of tutoring revenue
+• Tutor Subscription: Tutors may pay a monthly fee to access platform tools
+• Institutional Licensing: Schools and academies can license the platform
 
-## TRACTION (Sample Data)
-- 10,000+ students on waitlist
-- 500+ certified tutors
-- 50+ enterprise partners
-- 95% student satisfaction rate
-- 40% improvement in test scores
+## COMPETITIVE POSITION
+Traditional tutoring platform: 1 tutor → 1 student, manual grading, limited scalability
+Solocorn: 1 tutor → many students, AI grading and feedback, scalable instruction
 
-## COMPETITIVE ADVANTAGES
-1. Proprietary AI Teaching Agents (5 specialized agents)
-2. Cultural adaptation for Chinese and global markets
-3. 1:50 tutor-to-student ratio (vs industry 1:5)
-4. Real-time confusion detection
-5. Personalized learning paths
+Unlike AI learning apps that replace teachers, Solocorn keeps tutors in control of instruction while AI handles grading and feedback.
 
-## INVESTMENT HIGHLIGHTS
-- $2M seed funding round
-- 300% YoY growth
-- Break-even projected Q4 2025
-- Expansion to 5 countries planned
+## SUBJECTS SUPPORTED
+IELTS, TOEFL, SAT, AP courses, A-Level, mathematics, science subjects, English language learning, university entrance exams.
+
+## STRATEGIC ADVANTAGE
+The tutoring industry historically scales in only two ways: hire more tutors or raise prices. Solocorn proposes a third possibility: increase tutor capacity through AI-assisted evaluation.
 
 ## RESPONSE GUIDELINES
-- Be professional, enthusiastic, and knowledgeable
-- Use specific data when available
-- For technical questions, explain in accessible terms
-- For investment inquiries, direct to contact form
-- Never make up specific financial projections
+- Be professional, knowledgeable, and helpful
+- Answer based on the knowledge base provided
+- If asked about specific investment details, direct to the contact form
+- Keep responses concise but informative
 - If unsure, say "Let me connect you with our team for detailed information"
-
-## TONE
-Professional yet approachable. Like a knowledgeable founder explaining their vision.`;
+- Never make up specific financial data or projections`;
 
 // --- Background Animation Components ---
 
@@ -815,33 +837,64 @@ const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; 
   );
 };
 
-// Placeholder response generator (replace with actual AI API)
+// Response generator using the knowledge base
 function generateInvestorResponse(question: string): string {
   const lower = question.toLowerCase();
   
-  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation')) {
-    return "We're currently in our seed round with $2M raised. Our valuation is competitive for the EdTech space. For detailed investment discussions, I'd recommend reaching out to our team directly at support@solocorn.co.";
-  }
-  if (lower.includes('revenue') || lower.includes('business model') || lower.includes('money')) {
-    return "Our business model has three streams: B2C subscriptions ($29-99/month), B2B enterprise licensing, and our Academy marketplace. We're on track for $500K ARR by Q2 2025.";
-  }
-  if (lower.includes('technology') || lower.includes('ai') || lower.includes('tech stack')) {
-    return "Our platform uses Next.js 16 with React 18, powered by Kimi K2.5 AI. We have 5 specialized AI agents for tutoring, content generation, grading, briefing, and live monitoring. Real-time features use Socket.io with Redis.";
-  }
-  if (lower.includes('traction') || lower.includes('users') || lower.includes('growth')) {
-    return "We have 10,000+ students on our waitlist, 500+ certified tutors, and partnerships with 50+ schools. Our beta showed 95% student satisfaction and 40% improvement in test scores. We're growing 300% YoY.";
-  }
-  if (lower.includes('team') || lower.includes('founder')) {
-    return "Our founding team includes experts from top EdTech companies and AI researchers. We have 15 full-time employees across engineering, product, and operations. Our advisory board includes former executives from Khan Academy and Coursera.";
-  }
-  if (lower.includes('competitor') || lower.includes('competition') || lower.includes('different')) {
-    return "Unlike traditional tutoring (1:5 ratio) or pure AI solutions, our hybrid model enables 1:50 tutor-to-student ratios with AI monitoring. Our 5 specialized agents provide Socratic teaching rather than just answers. We also support 10 languages with cultural adaptation.";
-  }
-  if (lower.includes('roadmap') || lower.includes('future') || lower.includes('plan')) {
-    return "Our 2025 roadmap includes: Q1 - Platform launch with 5 subjects, Q2 - Mobile app and 10 more subjects, Q3 - Enterprise partnerships and international expansion, Q4 - AI tutor marketplace and Series A preparation.";
+  // Use knowledge base content for responses
+  if (lower.includes('what is') || lower.includes('what does') || lower.includes('who are')) {
+    return "Solocorn is a live AI-assisted tutoring platform where AI evaluates student work and provides feedback so tutors can teach large classes efficiently. Instead of traditional one-to-one tutoring, Solocorn enables one tutor to teach many students simultaneously while each student still receives individualized feedback.";
   }
   
-  return "That's a great question! Solocorn is building the future of education with AI-human hybrid tutoring. We combine the scalability of AI with the empathy of human tutors. Is there a specific aspect of our company you'd like to know more about?";
+  if (lower.includes('how') && (lower.includes('work') || lower.includes('class'))) {
+    return "A Solocorn class follows a simple cycle: (1) Tutor explains a concept, (2) Students complete a task, (3) Students submit answers, (4) AI evaluates responses instantly, (5) Students receive personalized feedback within seconds, (6) Tutor reviews results and adjusts teaching. This is called PCI — Post-Completion Instruction.";
+  }
+  
+  if (lower.includes('pci') || lower.includes('post-completion')) {
+    return "PCI stands for Post-Completion Instruction. It means students receive feedback immediately after completing a task, rather than waiting for homework to be graded later. This allows immediate correction of mistakes and reinforcement of correct reasoning, even in large classes.";
+  }
+  
+  if (lower.includes('tutor') && (lower.includes('benefit') || lower.includes('why'))) {
+    return "Tutors benefit from Solocorn by being able to teach many students at once instead of one-to-one sessions. This means higher earning potential, reduced grading workload (AI handles evaluation), and scalable classes. Tutors focus on teaching while the system handles feedback.";
+  }
+  
+  if (lower.includes('student') && (lower.includes('benefit') || lower.includes('why'))) {
+    return "Students receive immediate personalized feedback within seconds of submitting work, get more practice opportunities through micro-tasks, and gain clearer understanding of mistakes. Group tutoring is also more affordable than traditional one-to-one sessions.";
+  }
+  
+  if (lower.includes('school') || lower.includes('academy')) {
+    return "Schools and academies can use Solocorn as a digital classroom system with AI-assisted grading. Benefits include reduced grading workload for teachers, digital assignments instead of paper, immediate feedback for students, and lower administrative costs.";
+  }
+  
+  if (lower.includes('different') || lower.includes('compare') || lower.includes('vs')) {
+    return "Traditional tutoring platforms support one-to-one lessons (1 tutor → 1 student) with manual grading. Solocorn supports one-to-many classes (1 tutor → many students) with AI grading and feedback. Unlike AI learning apps that try to replace teachers, Solocorn keeps tutors in control of instruction.";
+  }
+  
+  if (lower.includes('subject') || lower.includes('course')) {
+    return "Solocorn supports IELTS, TOEFL, SAT, AP courses, A-Level tutoring, mathematics, science subjects, English language learning, and university entrance exams. The system works best with subjects where students submit structured answers.";
+  }
+  
+  if (lower.includes('revenue') || lower.includes('business model') || lower.includes('make money')) {
+    return "Solocorn generates revenue through platform commission on tutoring classes, tutor subscription fees for accessing tools, and institutional licensing for schools and academies. This creates multiple revenue streams from both individual tutors and institutions.";
+  }
+  
+  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation')) {
+    return "For detailed investment discussions, I'd recommend reaching out to our team through the contact form. Solocorn's key value proposition is transforming tutoring from a labor-limited service into a scalable digital education platform.";
+  }
+  
+  if (lower.includes('ai') || lower.includes('technology') || lower.includes('automatic')) {
+    return "Solocorn uses AI language models to analyze student responses and generate feedback in real-time. The AI evaluates answers for correctness, reasoning, and common error patterns. This happens instantly—students receive feedback within seconds of submitting work.";
+  }
+  
+  if (lower.includes('scale') || lower.includes('many student') || lower.includes('capacity')) {
+    return "The traditional tutoring industry scales in only two ways: hire more tutors or raise prices. Solocorn enables a third possibility: increase tutor capacity through AI-assisted evaluation. One tutor can teach many students simultaneously while each student still receives individualized feedback.";
+  }
+  
+  if (lower.includes('replace teacher') || lower.includes('replace tutor')) {
+    return "No, Solocorn does not replace teachers. Tutors remain responsible for teaching, designing lessons, and guiding class discussions. AI handles evaluation and feedback so tutors can focus on instruction. The platform is designed to amplify teacher effectiveness, not replace them.";
+  }
+  
+  return "That's a great question! Solocorn combines live teaching with AI evaluation to make tutoring scalable. Is there a specific aspect—how classes work, who it's for, or the business model—you'd like to know more about?";
 }
 
 // --- Other Components ---
@@ -982,7 +1035,15 @@ const TutorStrip = () => (
 );
 
 const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen: boolean; onClose: () => void; type: ModalType; lang: Language; theme: ColorTheme; mode: ThemeMode }) => {
-  const [formData, setFormData] = useState<EarlyBirdForm>({ email: '', name: '' });
+  const [formData, setFormData] = useState({ 
+    email: '', 
+    name: '',
+    about: '',
+    socialMedia: '',
+    school: '',
+    website: '',
+    message: ''
+  });
   const [submitted, setSubmitted] = useState(false);
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
@@ -1001,6 +1062,72 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
 
   if (!isOpen) return null;
 
+  // Tutor form content
+  const renderTutorForm = () => (
+    <>
+      <Input type="text" placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <textarea 
+        placeholder="Tell us about your tutoring (500 characters max)" 
+        value={formData.about}
+        onChange={(e) => setFormData({ ...formData, about: e.target.value.slice(0, 500) })}
+        required
+        rows={3}
+        className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+      />
+      <Input type="text" placeholder="Social media (optional)" value={formData.socialMedia} onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>Confirm</Button>
+    </>
+  );
+
+  // Academy form content
+  const renderAcademyForm = () => (
+    <>
+      <h3 className={`text-xl font-bold mb-4 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Solocorn Academy</h3>
+      <Input type="text" placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <textarea 
+        placeholder="Tell us about your academy" 
+        value={formData.about}
+        onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+        required
+        rows={3}
+        className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+      />
+      <Input type="text" placeholder="Social media (optional)" value={formData.socialMedia} onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <p className={`text-xs ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>Unsubscribe at anytime</p>
+      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>Confirm</Button>
+    </>
+  );
+
+  // Schools form content
+  const renderSchoolsForm = () => (
+    <>
+      <Input type="text" placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="text" placeholder="School" value={formData.school} onChange={(e) => setFormData({ ...formData, school: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="text" placeholder="Website" value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <textarea 
+        placeholder="Message (500 characters max)" 
+        value={formData.message}
+        onChange={(e) => setFormData({ ...formData, message: e.target.value.slice(0, 500) })}
+        required
+        rows={3}
+        className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+      />
+      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>Confirm</Button>
+    </>
+  );
+
+  // Default form
+  const renderDefaultForm = () => (
+    <>
+      <Input type="text" placeholder={t('yourName')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="email" placeholder={t('emailAddress')} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>{t('notifyMe')}</Button>
+    </>
+  );
+
   return (
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1009,20 +1136,19 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
           <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
           {!submitted ? (
             <>
-              <div className="text-center mb-6">
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium mb-4 ${mode === 'dark' ? `bg-${theme}-500/10 border-${theme}-500/20 text-${theme}-400` : themeColors[theme].light}`}>
-                  <Sparkles className="w-3 h-3" />{t('comingSoon')}
+              {type !== 'schools' && (
+                <div className="text-center mb-6">
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium mb-4 ${mode === 'dark' ? `bg-${theme}-500/10 border-${theme}-500/20 text-${theme}-400` : themeColors[theme].light}`}>
+                    <Sparkles className="w-3 h-3" />{t('comingSoon')}
+                  </div>
                 </div>
-                <h3 className={`text-2xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{type === 'tutor' ? t('becomeTutor') : type === 'academy' ? t('startAcademy') : type === 'schools' ? t('solocornSchools') : t('comingSoon')}</h3>
-                <p className={`text-sm ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('beFirst')}</p>
-              </div>
-              <p className={`text-sm text-center mb-6 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('modalDescRegister')}</p>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Input type="text" placeholder={t('yourName')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
-                <Input type="email" placeholder={t('emailAddress')} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
-                <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>{type === 'tutor' ? t('applyToTeach') : type === 'academy' ? t('launchAcademy') : type === 'schools' ? t('partnerWithUs') : t('notifyMe')}</Button>
+                {type === 'tutor' && renderTutorForm()}
+                {type === 'academy' && renderAcademyForm()}
+                {type === 'schools' && renderSchoolsForm()}
+                {!type && renderDefaultForm()}
               </form>
-              <p className={`text-xs text-center mt-4 ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>{t('privacyNote')}</p>
             </>
           ) : (
             <div className="text-center py-8">
@@ -1247,6 +1373,66 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
   );
 };
 
+// --- Legal Modals ---
+
+const PrivacyPolicyModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClose: () => void; mode: ThemeMode }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <AnimatePresence>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}>
+          <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
+          <h2 className={`text-2xl font-bold mb-6 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Privacy Policy</h2>
+          <div className={`space-y-4 text-sm ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>
+            <p>Last updated: March 2025</p>
+            <h3 className="font-semibold mt-4">1. Information We Collect</h3>
+            <p>We collect information you provide directly to us, including name, email address, and any other information you choose to provide when using our platform.</p>
+            <h3 className="font-semibold mt-4">2. How We Use Your Information</h3>
+            <p>We use the information we collect to provide, maintain, and improve our services, communicate with you, and develop new features.</p>
+            <h3 className="font-semibold mt-4">3. Information Sharing</h3>
+            <p>We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties except as described in this policy.</p>
+            <h3 className="font-semibold mt-4">4. Data Security</h3>
+            <p>We implement appropriate technical and organizational measures to protect your personal data against unauthorized access, alteration, or destruction.</p>
+            <h3 className="font-semibold mt-4">5. Your Rights</h3>
+            <p>You have the right to access, correct, or delete your personal information. Contact us at support@solocorn.co for any privacy-related requests.</p>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+const TermsOfServiceModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClose: () => void; mode: ThemeMode }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <AnimatePresence>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-2xl max-h-[80vh] overflow-y-auto backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}>
+          <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
+          <h2 className={`text-2xl font-bold mb-6 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Terms of Service</h2>
+          <div className={`space-y-4 text-sm ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>
+            <p>Last updated: March 2025</p>
+            <h3 className="font-semibold mt-4">1. Acceptance of Terms</h3>
+            <p>By accessing or using Solocorn's services, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>
+            <h3 className="font-semibold mt-4">2. Use of Service</h3>
+            <p>You agree to use the service only for lawful purposes and in accordance with these Terms. You are responsible for all content you provide.</p>
+            <h3 className="font-semibold mt-4">3. User Accounts</h3>
+            <p>You are responsible for safeguarding your account credentials and for any activities under your account. Notify us immediately of any unauthorized use.</p>
+            <h3 className="font-semibold mt-4">4. Intellectual Property</h3>
+            <p>All content and materials available on Solocorn are the property of Solocorn LLC and are protected by applicable intellectual property laws.</p>
+            <h3 className="font-semibold mt-4">5. Limitation of Liability</h3>
+            <p>Solocorn shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the service.</p>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 // --- Categories Page Component ---
 
 const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
@@ -1308,6 +1494,8 @@ export default function LandingPage() {
   const [mode, setMode] = useState<ThemeMode>('dark');
   const [chatOpen, setChatOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const t = (key: string) => translations[key]?.[language] || translations[key]?.['en'] || key;
 
@@ -1318,6 +1506,8 @@ export default function LandingPage() {
       <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} theme={theme} mode={mode} />
       <CategoriesModal isOpen={showCategories} onClose={() => setShowCategories(false)} lang={language} mode={mode} />
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} lang={language} mode={mode} />
+      <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} mode={mode} />
+      <TermsOfServiceModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} mode={mode} />
       
       {/* Investor Chat */}
       <InvestorChat lang={language} theme={theme} mode={mode} isOpen={chatOpen} onClose={() => setChatOpen(false)} />
@@ -1342,12 +1532,26 @@ export default function LandingPage() {
               Learn about Solocorn
             </motion.p>
             
-            {/* Ask Solocorn AI Button - active and working */}
+            {/* Ask Solocorn Button - glowing and active */}
             <motion.button
               onClick={() => setChatOpen(true)}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-semibold mb-12 transition-all ${mode === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-zinc-900 border border-black/20'}`}
+              className={`relative inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-semibold mb-12 transition-all ${mode === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-zinc-900 border border-black/20'}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              animate={{
+                boxShadow: [
+                  '0 0 20px rgba(16, 185, 129, 0.3)',
+                  '0 0 40px rgba(16, 185, 129, 0.5)',
+                  '0 0 20px rgba(16, 185, 129, 0.3)',
+                ]
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                }
+              }}
             >
               <Sparkles className="w-5 h-5" />
               {t('askSolocorn')}
@@ -1405,8 +1609,18 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
             <div className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? '' : 'text-zinc-900'}`}>{t('footerBrand')}</div>
             <div className={`flex gap-8 text-sm ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}`}>
-              <Link href="/legal/privacy" className={`hover:text-${theme}-400 transition-colors`}>{t('privacyPolicy')}</Link>
-              <Link href="/legal/terms" className={`hover:text-${theme}-400 transition-colors`}>{t('termsOfService')}</Link>
+              <button 
+                onClick={() => setPrivacyOpen(true)}
+                className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
+              >
+                {t('privacyPolicy')}
+              </button>
+              <button 
+                onClick={() => setTermsOpen(true)}
+                className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
+              >
+                {t('termsOfService')}
+              </button>
               <button 
                 onClick={() => setContactModalOpen(true)}
                 className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}

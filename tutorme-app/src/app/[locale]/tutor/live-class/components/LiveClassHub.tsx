@@ -21,11 +21,9 @@ import { UnifiedBreakoutManager, UnifiedBreakoutModal } from './breakout'
 import { HandRaiseQueue } from './HandRaiseQueue'
 import { ChatMonitor } from './ChatMonitor'
 import { LiveAnalytics } from './LiveAnalytics'
-import { CourseDevPanel } from '@/components/class/course-dev-panel'
 import { AITeachingAssistant } from './AITeachingAssistant'
 import { StudentProgressPanel } from './StudentProgressPanel'
 import { MultiLayerWhiteboardInterface } from './MultiLayerWhiteboardInterface'
-import { MathBoardHost } from '@/components/whiteboard/MathBoardHost'
 import { QuickPollPanel } from '@/components/polls'
 import { 
   EngagementDashboard,
@@ -51,13 +49,11 @@ import {
   Hand,
   ArrowLeft,
   TrendingUp,
-  GraduationCap,
   BarChart2,
   Wrench,
   Command,
   ChevronRight,
   LogOut,
-  Calculator
 } from 'lucide-react'
 
 interface LiveClassHubProps {
@@ -740,14 +736,6 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                 <Wrench className="w-3 h-3" />
                 Whiteboard
               </TabsTrigger>
-              <TabsTrigger value="math" onClick={() => setActiveTab('math')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <Calculator className="w-3 h-3" />
-                Math
-              </TabsTrigger>
-              <TabsTrigger value="course-dev" onClick={() => setActiveTab('course-dev')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <GraduationCap className="w-3 h-3" />
-                Course Dev
-              </TabsTrigger>
               <TabsTrigger value="analytics" onClick={() => setActiveTab('analytics')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
                 <BarChart3 className="w-3 h-3" />
                 Analytics
@@ -811,33 +799,10 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               />
             </TabsContent>
 
-            <TabsContent value="math" className="flex-1 mt-4 overflow-hidden">
-              <MathBoardHost
-                sessionId={`math-${sessionId}`}
-                socket={socket}
-                userId={session?.user?.id}
-                userName={session?.user?.name || 'Tutor'}
-                role="tutor"
-                className="h-full"
-              />
-            </TabsContent>
-
             <TabsContent value="analytics" className="flex-1 mt-4 overflow-hidden">
               <div className="h-full overflow-auto">
                 {metrics && <LiveAnalytics metrics={metrics} alerts={alerts} />}
               </div>
-            </TabsContent>
-
-            <TabsContent value="course-dev" className="flex-1 mt-4 overflow-hidden">
-              <CourseDevPanel
-                roomId={sessionId}
-                students={students.map(s => ({
-                  id: s.id,
-                  name: s.name,
-                  userId: s.id,
-                  status: s.status
-                }))}
-              />
             </TabsContent>
           </Tabs>
         </div>
