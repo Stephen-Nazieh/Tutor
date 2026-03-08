@@ -19,7 +19,7 @@ const InvestorChatRequestSchema = z.object({
 })
 
 const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
-const DEFAULT_MODEL = 'kimi-k2.5'
+const DEFAULT_MODEL = 'kimi-latest' // Use latest model alias
 
 // System prompt with knowledge base
 const SYSTEM_PROMPT = `You are Solocorn AI, an intelligent assistant for Solocorn - a live AI-assisted tutoring platform.
@@ -94,15 +94,15 @@ export async function POST(request: NextRequest) {
       ? `\n\n## LANGUAGE INSTRUCTION\nThe user is writing in "${language}". You MUST respond in the same language as the user's message.`
       : ''
     
-    // Build messages array with system prompt
+    // Build messages array with system prompt (simplified - just current message)
     const messagesPayload = [
       { role: 'system', content: SYSTEM_PROMPT + languageInstruction },
-      ...conversationHistory.slice(-10), // Keep last 10 messages for context
       { role: 'user', content: message }
     ]
 
     console.log('Calling Kimi API with message:', message.substring(0, 50) + '...')
     console.log('API Key exists:', apiKey ? 'yes (length: ' + apiKey.length + ')' : 'no')
+    console.log('Conversation history length:', conversationHistory?.length || 0)
 
     // Call Kimi API
     const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
