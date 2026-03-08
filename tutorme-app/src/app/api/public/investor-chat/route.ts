@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model: DEFAULT_MODEL,
         messages: messagesPayload,
-        temperature: 0.7,
+        temperature: 1, // Kimi only accepts temperature=1
         max_tokens: 2048,
       }),
     })

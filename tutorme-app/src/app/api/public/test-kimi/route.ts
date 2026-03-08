@@ -34,7 +34,7 @@ export async function GET() {
           { role: 'system', content: 'You are a helpful assistant.' },
           { role: 'user', content: 'Say "Kimi API is working!" and nothing else.' }
         ],
-        temperature: 0.1,
+        temperature: 1, // Kimi only accepts temperature=1
         max_tokens: 50,
       }),
     })
