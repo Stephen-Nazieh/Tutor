@@ -210,8 +210,8 @@ const translations: Translations = {
     'de': 'Bewerben', 'ja': '応募', 'ko': '지원', 'pt': 'Aplicar', 'hi': 'आवेदन',
   },
   startAcademy: {
-    'en': 'Start a Solocorn Academy', 'zh-CN': '开办 Solocorn 学院', 'zh-HK': '開辦 Solocorn 學院', 'es': 'Iniciar una academia Solocorn', 'fr': 'Démarrer une académie Solocorn',
-    'de': 'Gründen Sie eine Solocorn-Akademie', 'ja': 'Solocorn アカデミーを始める', 'ko': 'Solocorn 아카데미 시작', 'pt': 'Iniciar uma Academia Solocorn', 'hi': 'Solocorn अकादमी शुरू करें',
+    'en': 'Solocorn Academy', 'zh-CN': 'Solocorn 学院', 'zh-HK': 'Solocorn 學院', 'es': 'Academia Solocorn', 'fr': 'Académie Solocorn',
+    'de': 'Solocorn-Akademie', 'ja': 'Solocorn アカデミー', 'ko': 'Solocorn 아카데미 시작', 'pt': 'Academia Solocorn', 'hi': 'Solocorn अकादमी',
   },
   startAcademyDesc: {
     'en': 'Host your tutors on our platform. Start a new academy.',

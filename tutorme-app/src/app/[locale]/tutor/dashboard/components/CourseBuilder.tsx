@@ -5007,6 +5007,38 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Question Bank modal state
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const [questionBankTarget, setQuestionBankTarget] = useState<'task' | 'assessment'>('task')
+  
+  // Track currently loaded item for saving back
+  const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
+  const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
+
+  // Load task data into taskBuilder
+  const loadTaskIntoBuilder = useCallback((task: Task) => {
+    setTaskBuilder({
+      title: task.title || '',
+      taskContent: task.sourceDocument?.extractedText || task.description || '',
+      taskPci: task.instructions || '',
+      details: '',
+      extensions: [],
+      activeExtensionId: null,
+    })
+    setLoadedTaskId(task.id)
+    setTaskUploadedFiles(task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : [])
+  }, [])
+
+  // Load assessment data into assessmentBuilder
+  const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
+    setAssessmentBuilder({
+      title: assessment.title || '',
+      taskContent: assessment.sourceDocument?.extractedText || assessment.description || '',
+      taskPci: assessment.instructions || '',
+      details: '',
+      extensions: [],
+      activeExtensionId: null,
+    })
+    setLoadedAssessmentId(assessment.id)
+    setAssessmentUploadedFiles(assessment.sourceDocument ? [{ id: 'source', name: assessment.sourceDocument.fileName }] : [])
+  }, [])
 
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
@@ -5355,8 +5387,8 @@ FEEDBACK: [your explanation]`
     const newModules = [...modules]
     newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
     setModules(newModules)
-    setEditingData(newAssessment)
-    setActiveModal({ type: 'homework', isOpen: true, moduleId, lessonId })
+    // Just add to list without opening modal - same as addTask behavior
+    toast.success('Assessment added')
   }
 
   const addHomework = (moduleId: string, lessonId: string) => {
@@ -6228,7 +6260,10 @@ FEEDBACK: [your explanation]`
                                       <SortableTreeItem key={task.id} id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
                                         <div
                                           className="flex items-center gap-1.5 py-1 px-2 rounded bg-orange-50 border border-orange-200 group/item cursor-pointer hover:bg-orange-100"
-                                          onClick={() => setSelectedItem({ type: 'task', id: task.id })}
+                                          onClick={() => {
+                                            setSelectedItem({ type: 'task', id: task.id })
+                                            loadTaskIntoBuilder(task)
+                                          }}
                                         >
                                           <ListTodo className="h-3 w-3 text-orange-500" />
                                           <span className="text-[10px] flex-1 truncate">{task.title}</span>
@@ -6290,7 +6325,10 @@ FEEDBACK: [your explanation]`
                                       <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === assessments.length - 1}>
                                         <div
                                           className="flex items-center gap-1.5 py-1 px-2 rounded bg-purple-50 border border-purple-200 group/item cursor-pointer hover:bg-purple-100"
-                                          onClick={() => setSelectedItem({ type: 'homework', id: hw.id })}
+                                          onClick={() => {
+                                            setSelectedItem({ type: 'homework', id: hw.id })
+                                            loadAssessmentIntoBuilder(hw)
+                                          }}
                                         >
                                           <FileQuestion className="h-3 w-3 text-purple-500" />
                                           <span className="text-[10px] flex-1 truncate">{hw.title}</span>
@@ -6480,12 +6518,18 @@ FEEDBACK: [your explanation]`
                   {/* Task Builder Tab */}
                   <TabsContent value="task" className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Input 
-                        placeholder="Task Title" 
-                        className="flex-1 font-semibold"
-                        value={taskBuilder.title}
-                        onChange={(e) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
-                      />
+                      <div className="flex-1">
+                        <Input 
+                          placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
+                          className="font-semibold"
+                          value={taskBuilder.title}
+                          onChange={(e) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
+                          disabled={!loadedTaskId}
+                        />
+                        {loadedTaskId && (
+                          <p className="text-xs text-muted-foreground mt-1">Editing: {taskBuilder.title || 'Untitled Task'}</p>
+                        )}
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"
@@ -6497,6 +6541,35 @@ FEEDBACK: [your explanation]`
                       >
                         <Sparkles className="h-4 w-4 text-amber-500" />
                         AI Assist
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="gap-2"
+                        disabled={!loadedTaskId}
+                        onClick={() => {
+                          if (!loadedTaskId) return
+                          // Save task builder content back to the task
+                          setModules(prev => prev.map(mod => ({
+                            ...mod,
+                            lessons: mod.lessons.map(lesson => ({
+                              ...lesson,
+                              tasks: lesson.tasks.map(task => 
+                                task.id === loadedTaskId 
+                                  ? { 
+                                      ...task, 
+                                      title: taskBuilder.title,
+                                      description: taskBuilder.taskContent,
+                                      instructions: taskBuilder.taskPci
+                                    }
+                                  : task
+                              )
+                            }))
+                          })))
+                          toast.success('Task saved')
+                        }}
+                      >
+                        <Save className="h-4 w-4" />
+                        Save
                       </Button>
                     </div>
                     <div className="flex gap-4">
@@ -6894,12 +6967,18 @@ FEEDBACK: [your explanation]`
                   {/* Assessment Builder Tab */}
                   <TabsContent value="assessment" className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Input 
-                        placeholder="Assessment Title" 
-                        className="flex-1 font-semibold"
-                        value={assessmentBuilder.title}
-                        onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))}
-                      />
+                      <div className="flex-1">
+                        <Input 
+                          placeholder={loadedAssessmentId ? "Assessment Title" : "Select an assessment from the left sidebar to edit"}
+                          className="font-semibold"
+                          value={assessmentBuilder.title}
+                          onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))}
+                          disabled={!loadedAssessmentId}
+                        />
+                        {loadedAssessmentId && (
+                          <p className="text-xs text-muted-foreground mt-1">Editing: {assessmentBuilder.title || 'Untitled Assessment'}</p>
+                        )}
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"
@@ -6911,6 +6990,35 @@ FEEDBACK: [your explanation]`
                       >
                         <Sparkles className="h-4 w-4 text-amber-500" />
                         AI Assist
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="gap-2"
+                        disabled={!loadedAssessmentId}
+                        onClick={() => {
+                          if (!loadedAssessmentId) return
+                          // Save assessment builder content back to the assessment
+                          setModules(prev => prev.map(mod => ({
+                            ...mod,
+                            lessons: mod.lessons.map(lesson => ({
+                              ...lesson,
+                              homework: lesson.homework.map(hw => 
+                                hw.id === loadedAssessmentId 
+                                  ? { 
+                                      ...hw, 
+                                      title: assessmentBuilder.title,
+                                      description: assessmentBuilder.taskContent,
+                                      instructions: assessmentBuilder.taskPci
+                                    }
+                                  : hw
+                              )
+                            }))
+                          })))
+                          toast.success('Assessment saved')
+                        }}
+                      >
+                        <Save className="h-4 w-4" />
+                        Save
                       </Button>
                     </div>
                     <div className="flex gap-4">
