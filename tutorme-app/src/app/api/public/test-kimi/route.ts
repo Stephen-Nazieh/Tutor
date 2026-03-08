@@ -53,11 +53,14 @@ export async function GET() {
     }
 
     const data = await response.json()
-    const aiResponse = data.choices?.[0]?.message?.content
+    console.log('Test Kimi API - Full response:', JSON.stringify(data).substring(0, 500))
+    
+    const aiResponse = data.choices?.[0]?.message?.content || data.choices?.[0]?.text || ''
 
     return NextResponse.json({
       status: 'success',
       response: aiResponse,
+      fullChoice: data.choices?.[0],
       model: data.model,
       usage: data.usage,
       keyPrefix: apiKey.substring(0, 10) + '...'

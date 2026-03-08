@@ -137,10 +137,14 @@ export async function POST(request: NextRequest) {
     console.log('Kimi API choices exist:', data.choices ? 'yes' : 'no')
     if (data.choices) {
       console.log('Kimi API choices count:', data.choices.length)
-      console.log('Kimi API first choice structure:', data.choices[0] ? Object.keys(data.choices[0]) : 'none')
+      console.log('Kimi API first choice:', JSON.stringify(data.choices[0]).substring(0, 200))
     }
     
-    const aiResponse = data.choices?.[0]?.message?.content
+    // Try different possible response formats
+    const aiResponse = data.choices?.[0]?.message?.content 
+      || data.choices?.[0]?.text 
+      || data.output 
+      || ''
 
     if (!aiResponse) {
       console.error('No AI response content. Full data:', JSON.stringify(data).substring(0, 500))
