@@ -1739,17 +1739,7 @@ Format your response clearly and concisely.`
             />
           </div>
           
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleApplyToContent}>
-                <FileText className="h-4 w-4 mr-1" />
-                Apply to Content
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleApplyToPci}>
-                <Settings className="h-4 w-4 mr-1" />
-                Apply to PCI
-              </Button>
-            </div>
+          <div className="flex justify-end items-center">
             <Button onClick={handleSend} disabled={!input.trim() || loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
               Send
@@ -4541,24 +4531,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [editingTabId, setEditingTabId] = useState<string | null>(null)
 
   // Builder state for Task and Assessment
+  // Task content is always preserved. Extensions have their own content.
+  // When activeExtensionId is null, we show/edit taskContent/taskPci
+  // When activeExtensionId is set, we show/edit that extension's content
   const [taskBuilder, setTaskBuilder] = useState({
     title: '',
-    content: '',
-    pci: '',
+    taskContent: '', // Base task content (never overwritten by extensions)
+    taskPci: '', // Base task PCI (never overwritten by extensions)
     details: '',
+    // Extensions have their own content stored separately
     extensions: [] as { id: string; name: string; content: string; pci: string }[],
-    activeExtensionId: null as string | null,
-    originalContent: { content: '', pci: '' }
+    activeExtensionId: null as string | null, // null = viewing task, string = viewing extension
   })
   
   const [assessmentBuilder, setAssessmentBuilder] = useState({
     title: '',
-    content: '',
-    pci: '',
+    taskContent: '',
+    taskPci: '',
     details: '',
     extensions: [] as { id: string; name: string; content: string; pci: string }[],
     activeExtensionId: null as string | null,
-    originalContent: { content: '', pci: '' }
   })
 
   // AI Assist Agent state - separate for task and assessment
@@ -5985,13 +5977,33 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <Textarea 
-                              placeholder="Enter task content or upload files..." 
+                              placeholder={taskBuilder.activeExtensionId ? "Extension content..." : "Enter task content or upload files..."}
                               className="w-full min-h-[100px]"
-                              value={taskBuilder.content}
-                              onChange={(e) => setTaskBuilder(prev => ({ ...prev, content: e.target.value }))}
+                              // Show task content if no extension active, otherwise show active extension's content
+                              value={taskBuilder.activeExtensionId 
+                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
+                                : taskBuilder.taskContent
+                              }
+                              onChange={(e) => {
+                                const newContent = e.target.value
+                                if (taskBuilder.activeExtensionId) {
+                                  // Update extension content
+                                  setTaskBuilder(prev => ({
+                                    ...prev,
+                                    extensions: prev.extensions.map(ext => 
+                                      ext.id === prev.activeExtensionId 
+                                        ? { ...ext, content: newContent }
+                                        : ext
+                                    )
+                                  }))
+                                } else {
+                                  // Update task content
+                                  setTaskBuilder(prev => ({ ...prev, taskContent: newContent }))
+                                }
+                              }}
                             />
-                            {/* Uploaded Files List */}
-                            {taskUploadedFiles.length > 0 && (
+                            {/* Uploaded Files List - only show for task (not extensions) */}
+                            {!taskBuilder.activeExtensionId && taskUploadedFiles.length > 0 && (
                               <div className="flex flex-wrap gap-2">
                                 {taskUploadedFiles.map((file) => (
                                   <div key={file.id} className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 text-xs">
@@ -6000,10 +6012,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                     <button
                                       onClick={() => {
                                         setTaskUploadedFiles(prev => prev.filter(f => f.id !== file.id))
-                                        // Also remove from content
                                         setTaskBuilder(prev => ({
                                           ...prev,
-                                          content: prev.content.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
+                                          taskContent: prev.taskContent.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
                                         }))
                                       }}
                                       className="text-gray-400 hover:text-red-500 ml-1"
@@ -6014,70 +6025,92 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 ))}
                               </div>
                             )}
-                            <div className="flex items-center gap-2">
-                              <label className="cursor-pointer">
-                                <input
-                                  type="file"
-                                  accept="*/*"
-                                  multiple
-                                  className="hidden"
-                                  onChange={async (e) => {
-                                    const files = e.target.files
-                                    if (!files || files.length === 0) return
-                                    
-                                    for (const file of Array.from(files)) {
-                                      const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                                      try {
-                                        const formData = new FormData()
-                                        formData.append('file', file)
-                                        
-                                        const response = await fetch('/api/extract-text', {
-                                          method: 'POST',
-                                          body: formData
-                                        })
-                                        
-                                        if (response.ok) {
-                                          const data = await response.json()
-                                          const extractedText = data.text || ''
+                            {/* Upload button - only for task (not extensions) */}
+                            {!taskBuilder.activeExtensionId && (
+                              <div className="flex items-center gap-2">
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="*/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const files = e.target.files
+                                      if (!files || files.length === 0) return
+                                      
+                                      for (const file of Array.from(files)) {
+                                        const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                                        try {
+                                          const formData = new FormData()
+                                          formData.append('file', file)
                                           
+                                          const response = await fetch('/api/extract-text', {
+                                            method: 'POST',
+                                            body: formData
+                                          })
+                                          
+                                          if (response.ok) {
+                                            const data = await response.json()
+                                            const extractedText = data.text || ''
+                                            
+                                            setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
+                                            setTaskBuilder(prev => ({
+                                              ...prev,
+                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
+                                            }))
+                                          } else {
+                                            setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
+                                            setTaskBuilder(prev => ({
+                                              ...prev,
+                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                            }))
+                                          }
+                                        } catch (error) {
                                           setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                           setTaskBuilder(prev => ({
                                             ...prev,
-                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
-                                          }))
-                                        } else {
-                                          // Fallback: just add filename if extraction fails
-                                          setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                            taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
                                           }))
                                         }
-                                      } catch (error) {
-                                        setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
-                                        }))
                                       }
-                                    }
-                                    e.currentTarget.value = ''
-                                  }}
-                                />
-                                <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
-                                  <Upload className="h-3 w-3" />
-                                  Upload Files
-                                </span>
-                              </label>
-                              <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
-                            </div>
+                                      e.currentTarget.value = ''
+                                    }}
+                                  />
+                                  <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
+                                    <Upload className="h-3 w-3" />
+                                    Upload Files
+                                  </span>
+                                </label>
+                                <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
+                              </div>
+                            )}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <Textarea 
-                              placeholder="Enter PCI configuration..." 
+                              placeholder={taskBuilder.activeExtensionId ? "Extension PCI..." : "Enter PCI configuration..."}
                               className="w-full min-h-[100px]"
-                              value={taskBuilder.pci}
-                              onChange={(e) => setTaskBuilder(prev => ({ ...prev, pci: e.target.value }))}
+                              // Show task PCI if no extension active, otherwise show active extension's PCI
+                              value={taskBuilder.activeExtensionId 
+                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
+                                : taskBuilder.taskPci
+                              }
+                              onChange={(e) => {
+                                const newPci = e.target.value
+                                if (taskBuilder.activeExtensionId) {
+                                  // Update extension PCI
+                                  setTaskBuilder(prev => ({
+                                    ...prev,
+                                    extensions: prev.extensions.map(ext => 
+                                      ext.id === prev.activeExtensionId 
+                                        ? { ...ext, pci: newPci }
+                                        : ext
+                                    )
+                                  }))
+                                } else {
+                                  // Update task PCI
+                                  setTaskBuilder(prev => ({ ...prev, taskPci: newPci }))
+                                }
+                              }}
                             />
                           </TabsContent>
                         </Tabs>
@@ -6093,17 +6126,41 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 e.preventDefault()
                                 if (taskBuilder.details.trim()) {
                                   if (taskBuilderActiveTab === 'content') {
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
+                                    if (taskBuilder.activeExtensionId) {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.map(ext => 
+                                          ext.id === prev.activeExtensionId 
+                                            ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
+                                            : ext
+                                        ),
+                                        details: ''
+                                      }))
+                                    } else {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
+                                        details: ''
+                                      }))
+                                    }
                                   } else {
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
+                                    if (taskBuilder.activeExtensionId) {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.map(ext => 
+                                          ext.id === prev.activeExtensionId 
+                                            ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
+                                            : ext
+                                        ),
+                                        details: ''
+                                      }))
+                                    } else {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
+                                        details: ''
+                                      }))
+                                    }
                                   }
                                 }
                               }
@@ -6115,20 +6172,44 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             onClick={() => {
                               if (taskBuilder.details.trim()) {
                                 if (taskBuilderActiveTab === 'content') {
-                                  setTaskBuilder(prev => ({
-                                    ...prev,
-                                    content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
-                                    details: ''
-                                  }))
+                                  if (taskBuilder.activeExtensionId) {
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      extensions: prev.extensions.map(ext => 
+                                        ext.id === prev.activeExtensionId 
+                                          ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
+                                          : ext
+                                      ),
+                                      details: ''
+                                    }))
+                                  } else {
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  }
                                 } else {
-                                  setTaskBuilder(prev => ({
-                                    ...prev,
-                                    pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
-                                    details: ''
-                                  }))
+                                  if (taskBuilder.activeExtensionId) {
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      extensions: prev.extensions.map(ext => 
+                                        ext.id === prev.activeExtensionId 
+                                          ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
+                                          : ext
+                                      ),
+                                      details: ''
+                                    }))
+                                  } else {
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
                                 }
                               }
-                            }}
+                            }
+                          }}
                           >
                             <CornerDownLeft className="h-3 w-3 mr-1" />
                             Enter to {taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
@@ -6189,23 +6270,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 size="sm"
                                 className="w-full justify-start text-xs"
                                 onClick={() => {
+                                  // Simply toggle which content is being viewed
+                                  // Task content and extension content are stored separately
+                                  // Nothing is cleared or overwritten
                                   if (taskBuilder.activeExtensionId === ext.id) {
-                                    // Deactivate - restore original content
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      activeExtensionId: null,
-                                      content: prev.originalContent.content,
-                                      pci: prev.originalContent.pci
-                                    }))
+                                    // Switch back to viewing task content
+                                    setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
                                   } else {
-                                    // Activate extension
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      activeExtensionId: ext.id,
-                                      originalContent: { content: prev.content, pci: prev.pci },
-                                      content: ext.content,
-                                      pci: ext.pci
-                                    }))
+                                    // Switch to viewing this extension's content
+                                    setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
                                   }
                                 }}
                               >
@@ -6255,13 +6328,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <Textarea 
-                              placeholder="Enter assessment content or upload files..." 
+                              placeholder={assessmentBuilder.activeExtensionId ? "Extension content..." : "Enter assessment content or upload files..."}
                               className="w-full min-h-[100px]"
-                              value={assessmentBuilder.content}
-                              onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, content: e.target.value }))}
+                              value={assessmentBuilder.activeExtensionId 
+                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
+                                : assessmentBuilder.taskContent
+                              }
+                              onChange={(e) => {
+                                const newContent = e.target.value
+                                if (assessmentBuilder.activeExtensionId) {
+                                  setAssessmentBuilder(prev => ({
+                                    ...prev,
+                                    extensions: prev.extensions.map(ext => 
+                                      ext.id === prev.activeExtensionId 
+                                        ? { ...ext, content: newContent }
+                                        : ext
+                                    )
+                                  }))
+                                } else {
+                                  setAssessmentBuilder(prev => ({ ...prev, taskContent: newContent }))
+                                }
+                              }}
                             />
-                            {/* Uploaded Files List */}
-                            {assessmentUploadedFiles.length > 0 && (
+                            {/* Uploaded Files List - only for assessment (not extensions) */}
+                            {!assessmentBuilder.activeExtensionId && assessmentUploadedFiles.length > 0 && (
                               <div className="flex flex-wrap gap-2">
                                 {assessmentUploadedFiles.map((file) => (
                                   <div key={file.id} className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1 text-xs">
@@ -6270,10 +6360,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                     <button
                                       onClick={() => {
                                         setAssessmentUploadedFiles(prev => prev.filter(f => f.id !== file.id))
-                                        // Also remove from content
                                         setAssessmentBuilder(prev => ({
                                           ...prev,
-                                          content: prev.content.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
+                                          taskContent: prev.taskContent.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
                                         }))
                                       }}
                                       className="text-gray-400 hover:text-red-500 ml-1"
@@ -6284,69 +6373,89 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 ))}
                               </div>
                             )}
-                            <div className="flex items-center gap-2">
-                              <label className="cursor-pointer">
-                                <input
-                                  type="file"
-                                  accept="*/*"
-                                  multiple
-                                  className="hidden"
-                                  onChange={async (e) => {
-                                    const files = e.target.files
-                                    if (!files || files.length === 0) return
-                                    
-                                    for (const file of Array.from(files)) {
-                                      const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                                      try {
-                                        const formData = new FormData()
-                                        formData.append('file', file)
-                                        
-                                        const response = await fetch('/api/extract-text', {
-                                          method: 'POST',
-                                          body: formData
-                                        })
-                                        
-                                        if (response.ok) {
-                                          const data = await response.json()
-                                          const extractedText = data.text || ''
+                            {/* Upload button - only for assessment (not extensions) */}
+                            {!assessmentBuilder.activeExtensionId && (
+                              <div className="flex items-center gap-2">
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="file"
+                                    accept="*/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const files = e.target.files
+                                      if (!files || files.length === 0) return
+                                      
+                                      for (const file of Array.from(files)) {
+                                        const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                                        try {
+                                          const formData = new FormData()
+                                          formData.append('file', file)
                                           
+                                          const response = await fetch('/api/extract-text', {
+                                            method: 'POST',
+                                            body: formData
+                                          })
+                                          
+                                          if (response.ok) {
+                                            const data = await response.json()
+                                            const extractedText = data.text || ''
+                                            
+                                            setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
+                                            setAssessmentBuilder(prev => ({
+                                              ...prev,
+                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
+                                            }))
+                                          } else {
+                                            setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
+                                            setAssessmentBuilder(prev => ({
+                                              ...prev,
+                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                            }))
+                                          }
+                                        } catch (error) {
                                           setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                           setAssessmentBuilder(prev => ({
                                             ...prev,
-                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
-                                          }))
-                                        } else {
-                                          setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                          setAssessmentBuilder(prev => ({
-                                            ...prev,
-                                            content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
+                                            taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
                                           }))
                                         }
-                                      } catch (error) {
-                                        setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                        setAssessmentBuilder(prev => ({
-                                          ...prev,
-                                          content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
-                                        }))
                                       }
-                                    }
-                                    e.currentTarget.value = ''
-                                  }}
-                                />
-                                <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
-                                  <Upload className="h-3 w-3" />
-                                  Upload Files
-                                </span>
-                              </label>
-                              <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
-                            </div>
+                                      e.currentTarget.value = ''
+                                    }}
+                                  />
+                                  <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
+                                    <Upload className="h-3 w-3" />
+                                    Upload Files
+                                  </span>
+                                </label>
+                                <span className="text-xs text-muted-foreground">(PDF, DOC, Images, etc.)</span>
+                              </div>
+                            )}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <Textarea 
-                              placeholder="Enter PCI configuration..." 
+                              placeholder={assessmentBuilder.activeExtensionId ? "Extension PCI..." : "Enter PCI configuration..."}
                               className="w-full min-h-[100px]"
-                              value={assessmentBuilder.pci}
-                              onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, pci: e.target.value }))}
+                              value={assessmentBuilder.activeExtensionId 
+                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
+                                : assessmentBuilder.taskPci
+                              }
+                              onChange={(e) => {
+                                const newPci = e.target.value
+                                if (assessmentBuilder.activeExtensionId) {
+                                  setAssessmentBuilder(prev => ({
+                                    ...prev,
+                                    extensions: prev.extensions.map(ext => 
+                                      ext.id === prev.activeExtensionId 
+                                        ? { ...ext, pci: newPci }
+                                        : ext
+                                    )
+                                  }))
+                                } else {
+                                  setAssessmentBuilder(prev => ({ ...prev, taskPci: newPci }))
+                                }
+                              }}
                             />
                           </TabsContent>
                         </Tabs>
@@ -6362,17 +6471,41 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                 e.preventDefault()
                                 if (assessmentBuilder.details.trim()) {
                                   if (assessmentBuilderActiveTab === 'content') {
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
+                                    if (assessmentBuilder.activeExtensionId) {
+                                      setAssessmentBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.map(ext => 
+                                          ext.id === prev.activeExtensionId 
+                                            ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
+                                            : ext
+                                        ),
+                                        details: ''
+                                      }))
+                                    } else {
+                                      setAssessmentBuilder(prev => ({
+                                        ...prev,
+                                        taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
+                                        details: ''
+                                      }))
+                                    }
                                   } else {
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
+                                    if (assessmentBuilder.activeExtensionId) {
+                                      setAssessmentBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.map(ext => 
+                                          ext.id === prev.activeExtensionId 
+                                            ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
+                                            : ext
+                                        ),
+                                        details: ''
+                                      }))
+                                    } else {
+                                      setAssessmentBuilder(prev => ({
+                                        ...prev,
+                                        taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
+                                        details: ''
+                                      }))
+                                    }
                                   }
                                 }
                               }
@@ -6384,17 +6517,41 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                             onClick={() => {
                               if (assessmentBuilder.details.trim()) {
                                 if (assessmentBuilderActiveTab === 'content') {
-                                  setAssessmentBuilder(prev => ({
-                                    ...prev,
-                                    content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
-                                    details: ''
-                                  }))
+                                  if (assessmentBuilder.activeExtensionId) {
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      extensions: prev.extensions.map(ext => 
+                                        ext.id === prev.activeExtensionId 
+                                          ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
+                                          : ext
+                                      ),
+                                      details: ''
+                                    }))
+                                  } else {
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  }
                                 } else {
-                                  setAssessmentBuilder(prev => ({
-                                    ...prev,
-                                    pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
-                                    details: ''
-                                  }))
+                                  if (assessmentBuilder.activeExtensionId) {
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      extensions: prev.extensions.map(ext => 
+                                        ext.id === prev.activeExtensionId 
+                                          ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
+                                          : ext
+                                      ),
+                                      details: ''
+                                    }))
+                                  } else {
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  }
                                 }
                               }
                             }}
@@ -6795,23 +6952,75 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           isOpen={aiAssistOpen}
           onClose={() => setAiAssistOpen(false)}
           context={aiAssistContext}
-          content={aiAssistContext === 'task' ? taskBuilder.content : assessmentBuilder.content}
-          pci={aiAssistContext === 'task' ? taskBuilder.pci : assessmentBuilder.pci}
+          content={aiAssistContext === 'task' 
+            ? (taskBuilder.activeExtensionId 
+                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
+                : taskBuilder.taskContent)
+            : (assessmentBuilder.activeExtensionId 
+                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
+                : assessmentBuilder.taskContent)
+          }
+          pci={aiAssistContext === 'task' 
+            ? (taskBuilder.activeExtensionId 
+                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
+                : taskBuilder.taskPci)
+            : (assessmentBuilder.activeExtensionId 
+                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
+                : assessmentBuilder.taskPci)
+          }
           title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
           messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
           setMessages={aiAssistContext === 'task' ? setTaskAiMessages : setAssessmentAiMessages}
           onApplyContent={(content) => {
             if (aiAssistContext === 'task') {
-              setTaskBuilder(prev => ({ ...prev, content }))
+              if (taskBuilder.activeExtensionId) {
+                // Apply to active extension
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext => 
+                    ext.id === prev.activeExtensionId ? { ...ext, content } : ext
+                  )
+                }))
+              } else {
+                // Apply to task
+                setTaskBuilder(prev => ({ ...prev, taskContent: content }))
+              }
             } else {
-              setAssessmentBuilder(prev => ({ ...prev, content }))
+              if (assessmentBuilder.activeExtensionId) {
+                setAssessmentBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext => 
+                    ext.id === prev.activeExtensionId ? { ...ext, content } : ext
+                  )
+                }))
+              } else {
+                setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
+              }
             }
           }}
           onApplyPci={(pci) => {
             if (aiAssistContext === 'task') {
-              setTaskBuilder(prev => ({ ...prev, pci }))
+              if (taskBuilder.activeExtensionId) {
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext => 
+                    ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
+                  )
+                }))
+              } else {
+                setTaskBuilder(prev => ({ ...prev, taskPci: pci }))
+              }
             } else {
-              setAssessmentBuilder(prev => ({ ...prev, pci }))
+              if (assessmentBuilder.activeExtensionId) {
+                setAssessmentBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext => 
+                    ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
+                  )
+                }))
+              } else {
+                setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
+              }
             }
           }}
         />
