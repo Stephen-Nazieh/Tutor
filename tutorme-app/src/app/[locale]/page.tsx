@@ -715,16 +715,36 @@ const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; 
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const response = generateInvestorResponse(userMessage.content);
+    try {
+      // Call the investor chat API with Kimi AI
+      const response = await fetch('/api/public/investor-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage.content,
+          conversationHistory: messages.map(m => ({ role: m.role, content: m.content }))
+        })
+      });
+
+      const data = await response.json();
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: response,
+        content: data.response || 'Sorry, I could not process your request. Please try again.',
         timestamp: new Date()
       }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      // Fallback to local response on error
+      const fallbackResponse = generateInvestorResponse(userMessage.content);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: fallbackResponse,
+        timestamp: new Date()
+      }]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   // Reset messages when opening

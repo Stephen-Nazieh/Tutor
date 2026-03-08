@@ -5004,6 +5004,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Right panel tabs for Assessment Builder (Extensions / DMI)
   const [assessmentBuilderRightTab, setAssessmentBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
   
+  // Main builder tab (task vs assessment)
+  const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
+  
   // Question Bank modal state
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const [questionBankTarget, setQuestionBankTarget] = useState<'task' | 'assessment'>('task')
@@ -6259,14 +6262,22 @@ FEEDBACK: [your explanation]`
                                     {(primaryLesson.tasks || []).map((task, idx) => (
                                       <SortableTreeItem key={task.id} id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
                                         <div
-                                          className="flex items-center gap-1.5 py-1 px-2 rounded bg-orange-50 border border-orange-200 group/item cursor-pointer hover:bg-orange-100"
+                                          className={cn(
+                                            "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
+                                            selectedItem?.type === 'task' && selectedItem?.id === task.id
+                                              ? "bg-orange-200 border-orange-400 ring-1 ring-orange-400"
+                                              : "bg-orange-50 border-orange-200 hover:bg-orange-100"
+                                          )}
                                           onClick={() => {
                                             setSelectedItem({ type: 'task', id: task.id })
                                             loadTaskIntoBuilder(task)
+                                            setMainBuilderTab('task')
                                           }}
                                         >
                                           <ListTodo className="h-3 w-3 text-orange-500" />
-                                          <span className="text-[10px] flex-1 truncate">{task.title}</span>
+                                          <span className="text-[10px] flex-1 truncate">
+                                            <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
+                                          </span>
                                           <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
                                           <Button
                                             variant="ghost"
@@ -6324,14 +6335,22 @@ FEEDBACK: [your explanation]`
                                     {assessments.map((hw, idx) => (
                                       <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === assessments.length - 1}>
                                         <div
-                                          className="flex items-center gap-1.5 py-1 px-2 rounded bg-purple-50 border border-purple-200 group/item cursor-pointer hover:bg-purple-100"
+                                          className={cn(
+                                            "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
+                                            selectedItem?.type === 'homework' && selectedItem?.id === hw.id
+                                              ? "bg-purple-200 border-purple-400 ring-1 ring-purple-400"
+                                              : "bg-purple-50 border-purple-200 hover:bg-purple-100"
+                                          )}
                                           onClick={() => {
                                             setSelectedItem({ type: 'homework', id: hw.id })
                                             loadAssessmentIntoBuilder(hw)
+                                            setMainBuilderTab('assessment')
                                           }}
                                         >
                                           <FileQuestion className="h-3 w-3 text-purple-500" />
-                                          <span className="text-[10px] flex-1 truncate">{hw.title}</span>
+                                          <span className="text-[10px] flex-1 truncate">
+                                            <span className="font-semibold text-purple-700">{idx + 1}.</span> {hw.title}
+                                          </span>
                                           <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
                                           <Button
                                             variant="ghost"
@@ -6502,7 +6521,7 @@ FEEDBACK: [your explanation]`
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
             <Card className="flex-shrink-0">
               <CardContent className="pt-4">
-                <Tabs defaultValue="task" className="w-full">
+                <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="task" className="gap-2">
@@ -6559,7 +6578,9 @@ FEEDBACK: [your explanation]`
                                       ...task, 
                                       title: taskBuilder.title,
                                       description: taskBuilder.taskContent,
-                                      instructions: taskBuilder.taskPci
+                                      instructions: taskBuilder.taskPci,
+                                      // Clear sourceDocument so saved content takes precedence on next load
+                                      sourceDocument: undefined
                                     }
                                   : task
                               )
@@ -7008,7 +7029,9 @@ FEEDBACK: [your explanation]`
                                       ...hw, 
                                       title: assessmentBuilder.title,
                                       description: assessmentBuilder.taskContent,
-                                      instructions: assessmentBuilder.taskPci
+                                      instructions: assessmentBuilder.taskPci,
+                                      // Clear sourceDocument so saved content takes precedence on next load
+                                      sourceDocument: undefined
                                     }
                                   : hw
                               )
