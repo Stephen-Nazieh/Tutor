@@ -60,6 +60,7 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  source?: string;
 }
 
 interface Translations {
@@ -729,10 +730,16 @@ const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; 
 
       const data = await response.json();
       
+      // Debug: log if using fallback
+      if (data.source?.includes('fallback')) {
+        console.log('Using fallback response, source:', data.source);
+      }
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: data.response || 'Sorry, I could not process your request. Please try again.',
-        timestamp: new Date()
+        timestamp: new Date(),
+        source: data.source || 'unknown'
       }]);
     } catch (error) {
       console.error('Chat error:', error);

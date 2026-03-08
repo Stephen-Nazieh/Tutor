@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       // Fallback to mock response if no API key
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
-        source: 'fallback'
+        source: 'fallback-no-key'
       })
     }
 
@@ -95,13 +95,15 @@ export async function POST(request: NextRequest) {
       : ''
     
     // Build messages array with system prompt
-    const messages = [
+    const messagesPayload = [
       { role: 'system', content: SYSTEM_PROMPT + languageInstruction },
       ...conversationHistory.slice(-10), // Keep last 10 messages for context
       { role: 'user', content: message }
     ]
 
-    // Call Kimi API with web search tool
+    console.log('Calling Kimi API with message:', message.substring(0, 50) + '...')
+
+    // Call Kimi API
     const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
@@ -110,18 +112,9 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: DEFAULT_MODEL,
-        messages,
+        messages: messagesPayload,
         temperature: 0.7,
         max_tokens: 2048,
-        tools: [
-          {
-            type: 'web_search',
-            web_search: {
-              enable: true,
-              search_mode: 'smart'
-            }
-          }
-        ],
       }),
     })
 
@@ -132,17 +125,19 @@ export async function POST(request: NextRequest) {
       // Fallback to local response
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
-        source: 'fallback'
+        source: 'fallback-api-error'
       })
     }
 
     const data = await response.json()
+    console.log('Kimi API response received:', data.choices ? 'success' : 'no choices')
     const aiResponse = data.choices?.[0]?.message?.content
 
     if (!aiResponse) {
+      console.error('No AI response content:', data)
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
-        source: 'fallback'
+        source: 'fallback-no-content'
       })
     }
 
