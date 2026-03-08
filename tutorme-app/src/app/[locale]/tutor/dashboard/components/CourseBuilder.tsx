@@ -91,7 +91,8 @@ import {
   SignalLow,
   Settings,
   Layers2,
-  GripHorizontal
+  GripHorizontal,
+  CornerDownLeft
 } from 'lucide-react'
 
 // ============================================
@@ -1593,12 +1594,13 @@ interface AIAssistAgentProps {
   content: string
   pci: string
   title: string
+  messages: { role: 'user' | 'assistant'; content: string }[]
+  setMessages: React.Dispatch<React.SetStateAction<{ role: 'user' | 'assistant'; content: string }[]>>
   onApplyContent: (content: string) => void
   onApplyPci: (pci: string) => void
 }
 
-function AIAssistAgent({ isOpen, onClose, context, content, pci, title, onApplyContent, onApplyPci }: AIAssistAgentProps) {
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+function AIAssistAgent({ isOpen, onClose, context, content, pci, title, messages, setMessages, onApplyContent, onApplyPci }: AIAssistAgentProps) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -1611,7 +1613,7 @@ function AIAssistAgent({ isOpen, onClose, context, content, pci, title, onApplyC
         content: `Hello! I'm your AI Course Builder Assistant. I can help you with this ${context === 'task' ? 'Task' : 'Assessment'}: "${title}".\n\nI have access to:\n📄 **Content Tab**: The questions/content${content ? ' (currently has content)' : ' (currently empty)'}\n⚙️ **PCI Tab**: Instructions on how to process the content${pci ? ' (currently has instructions)' : ' (currently empty)'}\n\nHow can I help you today?`
       }])
     }
-  }, [isOpen, context, title, content, pci, messages.length])
+  }, [isOpen, context, title, content, pci, messages.length, setMessages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -4559,12 +4561,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     originalContent: { content: '', pci: '' }
   })
 
-  // AI Assist Agent state
+  // AI Assist Agent state - separate for task and assessment
   const [aiAssistOpen, setAiAssistOpen] = useState(false)
   const [aiAssistContext, setAiAssistContext] = useState<'task' | 'assessment'>('task')
-  const [aiAssistMessages, setAiAssistMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
-  const [aiAssistInput, setAiAssistInput] = useState('')
-  const [aiAssistLoading, setAiAssistLoading] = useState(false)
+  const [taskAiMessages, setTaskAiMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  const [assessmentAiMessages, setAssessmentAiMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  
+  // Uploaded files tracking
+  const [taskUploadedFiles, setTaskUploadedFiles] = useState<{ id: string; name: string }[]>([])
+  const [assessmentUploadedFiles, setAssessmentUploadedFiles] = useState<{ id: string; name: string }[]>([])
+  
+  // Test PCI state
+  const [testPciInput, setTestPciInput] = useState('')
+  const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
+    classroom: '',
+    student1: '',
+    student2: ''
+  })
 
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
@@ -5969,6 +5982,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               value={taskBuilder.content}
                               onChange={(e) => setTaskBuilder(prev => ({ ...prev, content: e.target.value }))}
                             />
+                            {/* Uploaded Files List */}
+                            {taskUploadedFiles.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {taskUploadedFiles.map((file) => (
+                                  <div key={file.id} className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 text-xs">
+                                    <FileText className="h-3 w-3 text-blue-500" />
+                                    <span className="truncate max-w-[100px]">{file.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        setTaskUploadedFiles(prev => prev.filter(f => f.id !== file.id))
+                                        // Also remove from content
+                                        setTaskBuilder(prev => ({
+                                          ...prev,
+                                          content: prev.content.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
+                                        }))
+                                      }}
+                                      className="text-gray-400 hover:text-red-500 ml-1"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                             <div className="flex items-center gap-2">
                               <label className="cursor-pointer">
                                 <input
@@ -5981,6 +6018,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                     if (!files || files.length === 0) return
                                     
                                     for (const file of Array.from(files)) {
+                                      const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                                       try {
                                         const formData = new FormData()
                                         formData.append('file', file)
@@ -5994,18 +6032,21 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                           const data = await response.json()
                                           const extractedText = data.text || ''
                                           
+                                          setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                           setTaskBuilder(prev => ({
                                             ...prev,
                                             content: prev.content + (prev.content ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
                                           }))
                                         } else {
                                           // Fallback: just add filename if extraction fails
+                                          setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                           setTaskBuilder(prev => ({
                                             ...prev,
                                             content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
                                           }))
                                         }
                                       } catch (error) {
+                                        setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                         setTaskBuilder(prev => ({
                                           ...prev,
                                           content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
@@ -6033,13 +6074,69 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           </TabsContent>
                         </Tabs>
                         {/* Persistent text input below tabs */}
-                        <div className="mt-3">
+                        <div className="mt-3 space-y-2">
                           <Textarea 
-                            placeholder="Enter text" 
+                            placeholder="Enter text and press Enter to add to active tab..." 
                             className="w-full min-h-[60px]"
                             value={taskBuilder.details}
                             onChange={(e) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                // Get active tab and append content
+                                const activeTab = document.querySelector('[data-state="active"][role="tabpanel"]')?.getAttribute('id')
+                                if (taskBuilder.details.trim()) {
+                                  if (activeTab?.includes('content')) {
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  } else if (activeTab?.includes('pci')) {
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  }
+                                }
+                              }
+                            }}
                           />
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                if (taskBuilder.details.trim()) {
+                                  setTaskBuilder(prev => ({
+                                    ...prev,
+                                    content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
+                                    details: ''
+                                  }))
+                                }
+                              }}
+                            >
+                              <CornerDownLeft className="h-3 w-3 mr-1" />
+                              Enter to Content
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                if (taskBuilder.details.trim()) {
+                                  setTaskBuilder(prev => ({
+                                    ...prev,
+                                    pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
+                                    details: ''
+                                  }))
+                                }
+                              }}
+                            >
+                              <CornerDownLeft className="h-3 w-3 mr-1" />
+                              Enter to PCI
+                            </Button>
+                          </div>
                         </div>
                         {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
@@ -6081,7 +6178,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           </Button>
                         }
                       >
-                        <h4 className="text-sm font-medium mb-2">{taskBuilder.title || 'Task'} Extensions</h4>
+                        <div className="mb-2">
+                          <h4 className="text-sm font-medium">Extensions</h4>
+                          <p className="text-xs text-muted-foreground truncate">{taskBuilder.title || 'Task'}</p>
+                        </div>
                         <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
                           {taskBuilder.extensions.length === 0 ? (
                             <p className="text-xs text-muted-foreground">No extensions added</p>
@@ -6160,6 +6260,30 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                               value={assessmentBuilder.content}
                               onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, content: e.target.value }))}
                             />
+                            {/* Uploaded Files List */}
+                            {assessmentUploadedFiles.length > 0 && (
+                              <div className="flex flex-wrap gap-2">
+                                {assessmentUploadedFiles.map((file) => (
+                                  <div key={file.id} className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1 text-xs">
+                                    <FileText className="h-3 w-3 text-purple-500" />
+                                    <span className="truncate max-w-[100px]">{file.name}</span>
+                                    <button
+                                      onClick={() => {
+                                        setAssessmentUploadedFiles(prev => prev.filter(f => f.id !== file.id))
+                                        // Also remove from content
+                                        setAssessmentBuilder(prev => ({
+                                          ...prev,
+                                          content: prev.content.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
+                                        }))
+                                      }}
+                                      className="text-gray-400 hover:text-red-500 ml-1"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                             <div className="flex items-center gap-2">
                               <label className="cursor-pointer">
                                 <input
@@ -6172,6 +6296,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                     if (!files || files.length === 0) return
                                     
                                     for (const file of Array.from(files)) {
+                                      const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                                       try {
                                         const formData = new FormData()
                                         formData.append('file', file)
@@ -6185,17 +6310,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                                           const data = await response.json()
                                           const extractedText = data.text || ''
                                           
+                                          setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                           setAssessmentBuilder(prev => ({
                                             ...prev,
                                             content: prev.content + (prev.content ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
                                           }))
                                         } else {
+                                          setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                           setAssessmentBuilder(prev => ({
                                             ...prev,
                                             content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
                                           }))
                                         }
                                       } catch (error) {
+                                        setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                         setAssessmentBuilder(prev => ({
                                           ...prev,
                                           content: prev.content + (prev.content ? '\n\n' : '') + `[File uploaded: ${file.name}]`
@@ -6223,13 +6351,69 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                           </TabsContent>
                         </Tabs>
                         {/* Persistent text input below tabs */}
-                        <div className="mt-3">
+                        <div className="mt-3 space-y-2">
                           <Textarea 
-                            placeholder="Enter text" 
+                            placeholder="Enter text and press Enter to add to active tab..." 
                             className="w-full min-h-[60px]"
                             value={assessmentBuilder.details}
                             onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                // Get active tab and append content
+                                const activeTab = document.querySelector('[data-state="active"][role="tabpanel"]')?.getAttribute('id')
+                                if (assessmentBuilder.details.trim()) {
+                                  if (activeTab?.includes('content')) {
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  } else if (activeTab?.includes('pci')) {
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
+                                      details: ''
+                                    }))
+                                  }
+                                }
+                              }
+                            }}
                           />
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                if (assessmentBuilder.details.trim()) {
+                                  setAssessmentBuilder(prev => ({
+                                    ...prev,
+                                    content: prev.content + (prev.content ? '\n\n' : '') + prev.details,
+                                    details: ''
+                                  }))
+                                }
+                              }}
+                            >
+                              <CornerDownLeft className="h-3 w-3 mr-1" />
+                              Enter to Content
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                if (assessmentBuilder.details.trim()) {
+                                  setAssessmentBuilder(prev => ({
+                                    ...prev,
+                                    pci: prev.pci + (prev.pci ? '\n\n' : '') + prev.details,
+                                    details: ''
+                                  }))
+                                }
+                              }}
+                            >
+                              <CornerDownLeft className="h-3 w-3 mr-1" />
+                              Enter to PCI
+                            </Button>
+                          </div>
                         </div>
                         {/* Buttons row with Generate DMI, Test, and Save */}
                         <div className="flex gap-2 mt-3">
@@ -6301,17 +6485,59 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                         {testPciTabs.map((tab) => (
                           <TabsContent key={tab.id} value={tab.id} className="mt-2">
                             <div className="p-4 bg-gray-50 rounded-lg min-h-[80px]">
-                              <p className="text-sm text-muted-foreground">{tab.label} view content</p>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
                             </div>
                           </TabsContent>
                         ))}
                       </Tabs>
                       {/* Persistent text input below tabs */}
-                      <div className="mt-3">
-                        <Input 
-                          placeholder="Enter text" 
-                          className="w-full"
-                        />
+                      <div className="mt-3 space-y-2">
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="Enter text and press Enter..." 
+                            className="flex-1"
+                            value={testPciInput}
+                            onChange={(e) => setTestPciInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && testPciInput.trim()) {
+                                e.preventDefault()
+                                const activeTab = testPciTabs.find(tab => {
+                                  const tabElement = document.querySelector(`[data-state="active"][value="${tab.id}"]`)
+                                  return tabElement !== null
+                                })
+                                if (activeTab) {
+                                  setTestPciContent(prev => ({
+                                    ...prev,
+                                    [activeTab.id]: prev[activeTab.id] + (prev[activeTab.id] ? '\n' : '') + testPciInput.trim()
+                                  }))
+                                  setTestPciInput('')
+                                }
+                              }
+                            }}
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              if (testPciInput.trim()) {
+                                const activeTab = testPciTabs.find(tab => {
+                                  const tabElement = document.querySelector(`[data-state="active"][value="${tab.id}"]`)
+                                  return tabElement !== null
+                                })
+                                if (activeTab) {
+                                  setTestPciContent(prev => ({
+                                    ...prev,
+                                    [activeTab.id]: prev[activeTab.id] + (prev[activeTab.id] ? '\n' : '') + testPciInput.trim()
+                                  }))
+                                  setTestPciInput('')
+                                }
+                              }
+                            }}
+                          >
+                            <CornerDownLeft className="h-4 w-4 mr-1" />
+                            Enter
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     {/* Right panel: DMI - resizable */}
@@ -6584,6 +6810,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           content={aiAssistContext === 'task' ? taskBuilder.content : assessmentBuilder.content}
           pci={aiAssistContext === 'task' ? taskBuilder.pci : assessmentBuilder.pci}
           title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
+          messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
+          setMessages={aiAssistContext === 'task' ? setTaskAiMessages : setAssessmentAiMessages}
           onApplyContent={(content) => {
             if (aiAssistContext === 'task') {
               setTaskBuilder(prev => ({ ...prev, content }))
