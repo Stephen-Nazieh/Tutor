@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
     ]
 
     console.log('Calling Kimi API with message:', message.substring(0, 50) + '...')
+    console.log('API Key exists:', apiKey ? 'yes (length: ' + apiKey.length + ')' : 'no')
 
     // Call Kimi API
     const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
@@ -118,6 +119,8 @@ export async function POST(request: NextRequest) {
       }),
     })
 
+    console.log('Kimi API response status:', response.status)
+
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Kimi API error:', response.status, errorText)
@@ -125,16 +128,22 @@ export async function POST(request: NextRequest) {
       // Fallback to local response
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
-        source: 'fallback-api-error'
+        source: 'fallback-api-error-' + response.status
       })
     }
 
     const data = await response.json()
-    console.log('Kimi API response received:', data.choices ? 'success' : 'no choices')
+    console.log('Kimi API response structure:', Object.keys(data))
+    console.log('Kimi API choices exist:', data.choices ? 'yes' : 'no')
+    if (data.choices) {
+      console.log('Kimi API choices count:', data.choices.length)
+      console.log('Kimi API first choice structure:', data.choices[0] ? Object.keys(data.choices[0]) : 'none')
+    }
+    
     const aiResponse = data.choices?.[0]?.message?.content
 
     if (!aiResponse) {
-      console.error('No AI response content:', data)
+      console.error('No AI response content. Full data:', JSON.stringify(data).substring(0, 500))
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
         source: 'fallback-no-content'
