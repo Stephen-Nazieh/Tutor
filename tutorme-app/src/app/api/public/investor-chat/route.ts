@@ -37,8 +37,20 @@ Instructions:
 3. If asked about investment, direct to contact form
 4. Reply in the same language as the user's message`;
 
+// CORS headers for cross-origin requests
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
 export async function POST(request: NextRequest) {
   let language = 'en' // Default language, declared outside try for catch block access
+  
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { headers: corsHeaders })
+  }
   
   try {
     const body = await request.json().catch(() => null)
@@ -47,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Invalid request', details: parsed.error },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       )
     }
 
@@ -61,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
         source: 'fallback-no-key'
-      })
+      }, { headers: corsHeaders })
     }
 
     // Add language instruction to system prompt
@@ -104,7 +116,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
         source: 'fallback-api-error-' + response.status
-      })
+      }, { headers: corsHeaders })
     }
 
     const data = await response.json()
@@ -126,21 +138,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
         source: 'fallback-no-content'
-      })
+      }, { headers: corsHeaders })
     }
 
     return NextResponse.json({
       response: aiResponse,
       source: 'kimi',
       model: DEFAULT_MODEL,
-    })
+    }, { headers: corsHeaders })
 
   } catch (error) {
     console.error('Investor chat error:', error)
     return NextResponse.json({
       response: generateFallbackResponse('', language),
       source: 'fallback'
-    })
+    }, { headers: corsHeaders })
   }
 }
 

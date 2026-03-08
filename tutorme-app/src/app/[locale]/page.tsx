@@ -728,7 +728,14 @@ const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; 
         })
       });
 
+      console.log('Chat API response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+      console.log('Chat API response data:', data);
       
       // Debug: log if using fallback
       if (data.source?.includes('fallback')) {
@@ -737,7 +744,7 @@ const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; 
       
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: data.response || 'Sorry, I could not process your request. Please try again.',
+        content: data.response || generateInvestorResponse(userMessage.content),
         timestamp: new Date(),
         source: data.source || 'unknown'
       }]);
