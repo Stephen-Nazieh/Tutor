@@ -5017,9 +5017,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   // Load task data into taskBuilder
   const loadTaskIntoBuilder = useCallback((task: Task) => {
+    // Prioritize description over sourceDocument - description holds edited content
+    const content = task.description || task.sourceDocument?.extractedText || ''
     setTaskBuilder({
       title: task.title || '',
-      taskContent: task.sourceDocument?.extractedText || task.description || '',
+      taskContent: content,
       taskPci: task.instructions || '',
       details: '',
       extensions: [],
@@ -5031,9 +5033,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   // Load assessment data into assessmentBuilder
   const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
+    // Prioritize description over sourceDocument - description holds edited content
+    const content = assessment.description || assessment.sourceDocument?.extractedText || ''
     setAssessmentBuilder({
       title: assessment.title || '',
-      taskContent: assessment.sourceDocument?.extractedText || assessment.description || '',
+      taskContent: content,
       taskPci: assessment.instructions || '',
       details: '',
       extensions: [],
@@ -6269,6 +6273,46 @@ FEEDBACK: [your explanation]`
                                               : "bg-orange-50 border-orange-200 hover:bg-orange-100"
                                           )}
                                           onClick={() => {
+                                            // Auto-save current assessment if switching from one
+                                            if (loadedAssessmentId) {
+                                              setModules(prev => prev.map(mod => ({
+                                                ...mod,
+                                                lessons: mod.lessons.map(lesson => ({
+                                                  ...lesson,
+                                                  homework: lesson.homework.map(hw => 
+                                                    hw.id === loadedAssessmentId 
+                                                      ? { 
+                                                          ...hw, 
+                                                          title: assessmentBuilder.title,
+                                                          description: assessmentBuilder.taskContent,
+                                                          instructions: assessmentBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                      : hw
+                                                  )
+                                                }))
+                                              })))
+                                            }
+                                            // Auto-save current task if switching from another task
+                                            if (loadedTaskId && loadedTaskId !== task.id) {
+                                              setModules(prev => prev.map(mod => ({
+                                                ...mod,
+                                                lessons: mod.lessons.map(lesson => ({
+                                                  ...lesson,
+                                                  tasks: lesson.tasks.map(t => 
+                                                    t.id === loadedTaskId 
+                                                      ? { 
+                                                          ...t, 
+                                                          title: taskBuilder.title,
+                                                          description: taskBuilder.taskContent,
+                                                          instructions: taskBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                      : t
+                                                  )
+                                                }))
+                                              })))
+                                            }
                                             setSelectedItem({ type: 'task', id: task.id })
                                             loadTaskIntoBuilder(task)
                                             setMainBuilderTab('task')
@@ -6342,6 +6386,46 @@ FEEDBACK: [your explanation]`
                                               : "bg-purple-50 border-purple-200 hover:bg-purple-100"
                                           )}
                                           onClick={() => {
+                                            // Auto-save current task if switching from one
+                                            if (loadedTaskId) {
+                                              setModules(prev => prev.map(mod => ({
+                                                ...mod,
+                                                lessons: mod.lessons.map(lesson => ({
+                                                  ...lesson,
+                                                  tasks: lesson.tasks.map(t => 
+                                                    t.id === loadedTaskId 
+                                                      ? { 
+                                                          ...t, 
+                                                          title: taskBuilder.title,
+                                                          description: taskBuilder.taskContent,
+                                                          instructions: taskBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                      : t
+                                                  )
+                                                }))
+                                              })))
+                                            }
+                                            // Auto-save current assessment if switching from another assessment
+                                            if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
+                                              setModules(prev => prev.map(mod => ({
+                                                ...mod,
+                                                lessons: mod.lessons.map(lesson => ({
+                                                  ...lesson,
+                                                  homework: lesson.homework.map(h => 
+                                                    h.id === loadedAssessmentId 
+                                                      ? { 
+                                                          ...h, 
+                                                          title: assessmentBuilder.title,
+                                                          description: assessmentBuilder.taskContent,
+                                                          instructions: assessmentBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                      : h
+                                                  )
+                                                }))
+                                              })))
+                                            }
                                             setSelectedItem({ type: 'homework', id: hw.id })
                                             loadAssessmentIntoBuilder(hw)
                                             setMainBuilderTab('assessment')
@@ -6421,11 +6505,62 @@ FEEDBACK: [your explanation]`
                                     {homeworkItems.map((hw, idx) => (
                                       <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === homeworkItems.length - 1}>
                                         <div
-                                          className="flex items-center gap-1.5 py-1 px-2 rounded bg-emerald-50 border border-emerald-200 group/item cursor-pointer hover:bg-emerald-100"
-                                          onClick={() => setSelectedItem({ type: 'homework', id: hw.id })}
+                                          className={cn(
+                                            "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
+                                            selectedItem?.type === 'homework' && selectedItem?.id === hw.id
+                                              ? "bg-emerald-200 border-emerald-400 ring-1 ring-emerald-400"
+                                              : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                                          )}
+                                          onClick={() => {
+                                            // Auto-save current task if switching from one
+                                            if (loadedTaskId) {
+                                              setModules(prev => prev.map(mod => ({
+                                                ...mod,
+                                                lessons: mod.lessons.map(lesson => ({
+                                                  ...lesson,
+                                                  tasks: lesson.tasks.map(t => 
+                                                    t.id === loadedTaskId 
+                                                      ? { 
+                                                          ...t, 
+                                                          title: taskBuilder.title,
+                                                          description: taskBuilder.taskContent,
+                                                          instructions: taskBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                      : t
+                                                  )
+                                                }))
+                                              })))
+                                            }
+                                            // Auto-save current assessment/homework if switching from another
+                                            if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
+                                              setModules(prev => prev.map(mod => ({
+                                                ...mod,
+                                                lessons: mod.lessons.map(lesson => ({
+                                                  ...lesson,
+                                                  homework: lesson.homework.map(h => 
+                                                    h.id === loadedAssessmentId 
+                                                      ? { 
+                                                          ...h, 
+                                                          title: assessmentBuilder.title,
+                                                          description: assessmentBuilder.taskContent,
+                                                          instructions: assessmentBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                      : h
+                                                  )
+                                                }))
+                                              })))
+                                            }
+                                            setSelectedItem({ type: 'homework', id: hw.id })
+                                            loadAssessmentIntoBuilder(hw)
+                                            setMainBuilderTab('assessment')
+                                          }}
                                         >
                                           <Home className="h-3 w-3 text-emerald-500" />
-                                          <span className="text-[10px] flex-1 truncate">{hw.title}</span>
+                                          <span className="text-[10px] flex-1 truncate">
+                                            <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
+                                          </span>
                                           <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
                                           <Button
                                             variant="ghost"
