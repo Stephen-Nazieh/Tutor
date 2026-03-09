@@ -169,6 +169,24 @@ export async function POST(request: NextRequest) {
 
     const { message, conversationHistory, language: lang } = parsed.data
     language = lang // Update language from request
+    
+    // Quick check for greetings - respond immediately without API call
+    const lowerMessage = message.toLowerCase().trim();
+    const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
+                       '你好', '您好', '嗨', '哈囉', 'hola', 'buenos', 'bonjour', 'salut', 
+                       'hallo', 'guten tag', 'こんにちは', 'やあ', '안녕하세요', '안녕', 
+                       'olá', 'oi', 'नमस्ते', 'हैलो'];
+    const isGreeting = greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '));
+    
+    if (isGreeting) {
+      const langResponses = FALLBACK_RESPONSES[language] || FALLBACK_RESPONSES['en'];
+      console.log('Greeting detected, returning immediate response');
+      return NextResponse.json({
+        response: langResponses.greeting,
+        source: 'greeting-handler'
+      }, { headers: corsHeaders });
+    }
+    
     const apiKey = process.env.KIMI_API_KEY
 
     if (!apiKey) {
@@ -373,14 +391,19 @@ function generateFallbackResponse(question: string, language: string = 'en'): st
   const lang = language in FALLBACK_RESPONSES ? language : 'en';
   const responses = FALLBACK_RESPONSES[lang];
   
-  // Check for greetings first
+  console.log('Fallback generator - Input:', question, 'Language:', lang, 'Lower:', lower);
+  
+  // Check for greetings first - simple exact match or starts with
   const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
                      '你好', '您好', '嗨', '哈囉', 'hola', 'buenos', 'bonjour', 'salut', 
                      'hallo', 'guten tag', 'こんにちは', 'やあ', '안녕하세요', '안녕', 
                      'olá', 'oi', 'नमस्ते', 'हैलो'];
   
-  if (greetings.some(g => lower === g || lower.startsWith(g + ' '))) {
-    return responses.greeting;
+  for (const g of greetings) {
+    if (lower === g || lower.startsWith(g + ' ')) {
+      console.log('Fallback generator - Matched greeting:', g);
+      return responses.greeting;
+    }
   }
   
   if (lower.includes('what is') || lower.includes('what does') || lower.includes('who are') || lower.includes('是什么') || lower.includes('什麼是')) {
@@ -399,5 +422,6 @@ function generateFallbackResponse(question: string, language: string = 'en'): st
     return responses.invest;
   }
   
+  console.log('Fallback generator - Using default response');
   return responses.default;
 }
