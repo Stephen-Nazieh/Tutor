@@ -44,6 +44,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ChatContainer } from '@/components/solocorn-chat';
 
 // --- Types ---
 type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | null;
@@ -56,12 +57,7 @@ interface EarlyBirdForm {
   name: string;
 }
 
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  source?: string;
-}
+
 
 interface Translations {
   [key: string]: {
@@ -672,265 +668,6 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
     </div>
   );
 };
-
-// --- Investor Chat Component ---
-
-const InvestorChat = ({ lang, theme, mode, isOpen, onClose }: { lang: Language; theme: ColorTheme; mode: ThemeMode; isOpen: boolean; onClose: () => void }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Initialize message when opened
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([
-        { 
-          role: 'assistant', 
-          content: "Hello! I'm Solocorn AI. I can answer questions about our company, technology, investment opportunities, and more. What would you like to know?",
-          timestamp: new Date()
-        }
-      ]);
-    }
-  }, [isOpen, messages.length]);
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: input.trim(),
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      // Call the investor chat API with Kimi AI
-      const response = await fetch('/api/public/investor-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage.content,
-          conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
-          language: lang
-        })
-      });
-
-      console.log('Chat API response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Chat API response data:', data);
-      
-      // Debug: log if using fallback
-      if (data.source?.includes('fallback')) {
-        console.log('Using fallback response, source:', data.source);
-      }
-      
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.response || generateInvestorResponse(userMessage.content),
-        timestamp: new Date(),
-        source: data.source || 'unknown'
-      }]);
-    } catch (error) {
-      console.error('Chat error:', error);
-      // Fallback to local response on error
-      const fallbackResponse = generateInvestorResponse(userMessage.content);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: fallbackResponse,
-        timestamp: new Date()
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Reset messages when opening
-  useEffect(() => {
-    if (isOpen && messages.length === 0) {
-      setMessages([
-        { 
-          role: 'assistant', 
-          content: "Hello! I'm Solocorn AI. I can answer questions about our company, technology, investment opportunities, and more. What would you like to know?",
-          timestamp: new Date()
-        }
-      ]);
-    }
-  }, [isOpen]);
-
-  const themeColors = {
-    emerald: 'bg-emerald-500 hover:bg-emerald-400',
-    ocean: 'bg-sky-500 hover:bg-sky-400',
-    sunset: 'bg-amber-500 hover:bg-amber-400',
-    galaxy: 'bg-purple-500 hover:bg-purple-400',
-  };
-
-  return (
-    <>
-
-      {/* Chat Window */}
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-              onClick={onClose}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.95 }}
-              className={`fixed bottom-24 right-6 z-50 w-96 rounded-2xl shadow-2xl overflow-hidden border flex flex-col ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}
-              style={{ height: '500px' }}
-            >
-              {/* Header */}
-              <div className={`p-4 border-b flex items-center justify-between ${mode === 'dark' ? 'border-white/10 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20' : 'border-black/10 bg-gradient-to-r from-emerald-100 to-cyan-100'}`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className={`font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('askSolocorn')}</h3>
-                    <p className={`text-xs ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('poweredBy')}</p>
-                  </div>
-                </div>
-                <button onClick={onClose} className={`p-2 rounded-lg hover:bg-white/10 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Messages */}
-              <div className={`flex-1 overflow-y-auto p-4 space-y-4 min-h-0 ${mode === 'dark' ? 'bg-zinc-900/50' : 'bg-gray-50'}`}>
-                {messages.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] p-3 rounded-2xl ${
-                      msg.role === 'user' 
-                        ? `${themeColors[theme]} text-white rounded-br-md` 
-                        : mode === 'dark' ? 'bg-white/10 text-zinc-100 rounded-bl-md' : 'bg-white text-zinc-900 rounded-bl-md shadow-sm'
-                    }`}>
-                      <p className="text-sm">{msg.content}</p>
-                      <span className={`text-xs mt-1 block ${msg.role === 'user' ? 'text-white/70' : mode === 'dark' ? 'text-zinc-500' : 'text-zinc-400'}`}>
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className={`p-3 rounded-2xl rounded-bl-md ${mode === 'dark' ? 'bg-white/10' : 'bg-white shadow-sm'}`}>
-                      <div className="flex gap-1">
-                        <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.5 }} />
-                        <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.5, delay: 0.1 }} />
-                        <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.5, delay: 0.2 }} />
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Input */}
-              <div className={`p-4 border-t flex-shrink-0 ${mode === 'dark' ? 'border-white/10 bg-zinc-900' : 'border-black/10 bg-white'}`}>
-                <div className="flex gap-2">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder={t('investorChatPlaceholder')}
-                    className={`flex-1 ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-gray-100 border-transparent text-zinc-900'}`}
-                  />
-                  <Button onClick={handleSend} disabled={isLoading || !input.trim()} className={`${themeColors[theme]} text-white px-3`}>
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </>
-  );
-};
-
-// Response generator using the knowledge base
-function generateInvestorResponse(question: string): string {
-  const lower = question.toLowerCase();
-  
-  // Use knowledge base content for responses
-  if (lower.includes('what is') || lower.includes('what does') || lower.includes('who are')) {
-    return "Solocorn is a live AI-assisted tutoring platform where AI evaluates student work and provides feedback so tutors can teach large classes efficiently. Instead of traditional one-to-one tutoring, Solocorn enables one tutor to teach many students simultaneously while each student still receives individualized feedback.";
-  }
-  
-  if (lower.includes('how') && (lower.includes('work') || lower.includes('class'))) {
-    return "A Solocorn class follows a simple cycle: (1) Tutor explains a concept, (2) Students complete a task, (3) Students submit answers, (4) AI evaluates responses instantly, (5) Students receive personalized feedback within seconds, (6) Tutor reviews results and adjusts teaching. This is called PCI — Post-Completion Instruction.";
-  }
-  
-  if (lower.includes('pci') || lower.includes('post-completion')) {
-    return "PCI stands for Post-Completion Instruction. It means students receive feedback immediately after completing a task, rather than waiting for homework to be graded later. This allows immediate correction of mistakes and reinforcement of correct reasoning, even in large classes.";
-  }
-  
-  if (lower.includes('tutor') && (lower.includes('benefit') || lower.includes('why'))) {
-    return "Tutors benefit from Solocorn by being able to teach many students at once instead of one-to-one sessions. This means higher earning potential, reduced grading workload (AI handles evaluation), and scalable classes. Tutors focus on teaching while the system handles feedback.";
-  }
-  
-  if (lower.includes('student') && (lower.includes('benefit') || lower.includes('why'))) {
-    return "Students receive immediate personalized feedback within seconds of submitting work, get more practice opportunities through micro-tasks, and gain clearer understanding of mistakes. Group tutoring is also more affordable than traditional one-to-one sessions.";
-  }
-  
-  if (lower.includes('school') || lower.includes('academy')) {
-    return "Schools and academies can use Solocorn as a digital classroom system with AI-assisted grading. Benefits include reduced grading workload for teachers, digital assignments instead of paper, immediate feedback for students, and lower administrative costs.";
-  }
-  
-  if (lower.includes('different') || lower.includes('compare') || lower.includes('vs')) {
-    return "Traditional tutoring platforms support one-to-one lessons (1 tutor → 1 student) with manual grading. Solocorn supports one-to-many classes (1 tutor → many students) with AI grading and feedback. Unlike AI learning apps that try to replace teachers, Solocorn keeps tutors in control of instruction.";
-  }
-  
-  if (lower.includes('subject') || lower.includes('course')) {
-    return "Solocorn supports IELTS, TOEFL, SAT, AP courses, A-Level tutoring, mathematics, science subjects, English language learning, and university entrance exams. The system works best with subjects where students submit structured answers.";
-  }
-  
-  if (lower.includes('revenue') || lower.includes('business model') || lower.includes('make money')) {
-    return "Solocorn generates revenue through platform commission on tutoring classes, tutor subscription fees for accessing tools, and institutional licensing for schools and academies. This creates multiple revenue streams from both individual tutors and institutions.";
-  }
-  
-  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation')) {
-    return "For detailed investment discussions, I'd recommend reaching out to our team through the contact form. Solocorn's key value proposition is transforming tutoring from a labor-limited service into a scalable digital education platform.";
-  }
-  
-  if (lower.includes('ai') || lower.includes('technology') || lower.includes('automatic')) {
-    return "Solocorn uses AI language models to analyze student responses and generate feedback in real-time. The AI evaluates answers for correctness, reasoning, and common error patterns. This happens instantly—students receive feedback within seconds of submitting work.";
-  }
-  
-  if (lower.includes('scale') || lower.includes('many student') || lower.includes('capacity')) {
-    return "The traditional tutoring industry scales in only two ways: hire more tutors or raise prices. Solocorn enables a third possibility: increase tutor capacity through AI-assisted evaluation. One tutor can teach many students simultaneously while each student still receives individualized feedback.";
-  }
-  
-  if (lower.includes('replace teacher') || lower.includes('replace tutor')) {
-    return "No, Solocorn does not replace teachers. Tutors remain responsible for teaching, designing lessons, and guiding class discussions. AI handles evaluation and feedback so tutors can focus on instruction. The platform is designed to amplify teacher effectiveness, not replace them.";
-  }
-  
-  return "That's a great question! Solocorn combines live teaching with AI evaluation to make tutoring scalable. Is there a specific aspect—how classes work, who it's for, or the business model—you'd like to know more about?";
-}
 
 // --- Other Components ---
 
@@ -1545,7 +1282,13 @@ export default function LandingPage() {
       <TermsOfServiceModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} mode={mode} />
       
       {/* Investor Chat */}
-      <InvestorChat lang={language} theme={theme} mode={mode} isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+      <ChatContainer 
+        language={language} 
+        themeColor={theme} 
+        mode={mode} 
+        isOpen={chatOpen} 
+        onClose={() => setChatOpen(false)} 
+      />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
         {/* Hero Section */}
