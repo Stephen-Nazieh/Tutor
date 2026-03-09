@@ -1556,6 +1556,7 @@ export default function LandingPage() {
               {t('comingSoon')}
             </div>
             <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-4 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
+            <p className={`text-xl md:text-2xl font-medium mb-8 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Live AI-Augmented Instruction Platform</p>
             
             {/* Tooltip above the button */}
             <motion.p
