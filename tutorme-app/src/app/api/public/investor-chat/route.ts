@@ -19,7 +19,7 @@ const InvestorChatRequestSchema = z.object({
 })
 
 const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
-const DEFAULT_MODEL = 'kimi-latest' // Use latest model alias
+const DEFAULT_MODEL = 'kimi-k2.5' // Use specific model name
 
 // System prompt with knowledge base
 const SYSTEM_PROMPT = `You are Solocorn AI, an intelligent assistant for Solocorn - a Live AI-Augmented Instruction Platform.
@@ -163,6 +163,10 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   let language = 'en' // Default language, declared outside try for catch block access
   
+  console.log('=== Investor Chat API called ===')
+  console.log('KIMI_API_KEY configured:', process.env.KIMI_API_KEY ? 'YES (length: ' + process.env.KIMI_API_KEY.length + ')' : 'NO')
+  console.log('GEMINI_API_KEY configured:', process.env.GEMINI_API_KEY ? 'YES' : 'NO')
+  
   try {
     const body = await request.json().catch(() => null)
     const parsed = InvestorChatRequestSchema.safeParse(body)
@@ -301,9 +305,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Investor chat error:', error)
+    const langResponses = FALLBACK_RESPONSES[language] || FALLBACK_RESPONSES['en']
     return NextResponse.json({
-      response: generateFallbackResponse('', language),
-      source: 'fallback'
+      response: langResponses.default,
+      source: 'fallback-exception'
     }, { headers: corsHeaders })
   }
 }
