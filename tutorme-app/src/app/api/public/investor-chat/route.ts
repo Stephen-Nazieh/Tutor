@@ -21,83 +21,43 @@ const InvestorChatRequestSchema = z.object({
 const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
 const DEFAULT_MODEL = 'kimi-k2.5' // Use specific model name
 
-// System prompt with knowledge base
-const SYSTEM_PROMPT = `You are Solocorn AI, an intelligent assistant for Solocorn - a Live AI-Augmented Instruction Platform.
+// System prompt - give AI knowledge but let it behave naturally
+const SYSTEM_PROMPT = `You are Solocorn AI, a helpful assistant representing Solocorn - a Live AI-Augmented Instruction Platform.
 
-## PLATFORM OVERVIEW
-Solocorn is a Live AI-Assisted Classroom Learning Platform that enables teachers to deliver instruction while AI provides:
-- Real-time marking and individualized feedback
-- Continuous performance tracking
-- Safeguarded learning environments
+## ABOUT SOLOCORN (use this knowledge when relevant):
 
-Traditional classrooms scale teaching but not feedback. Solocorn strengthens both — safely and sustainably. The teacher teaches. Every student receives personalized academic support.
+**What Solocorn Does:**
+- Live AI-Assisted Classroom Learning Platform
+- Teachers deliver instruction while AI provides real-time marking and individualized feedback
+- Enables one tutor to teach many students simultaneously with personalized support for each
+- Solves the problem: traditional classrooms scale teaching but not feedback
 
-## CORE CLASSROOM ADVANTAGES
+**Key Features:**
+- Post-Completion Instruction (PCI): Students get immediate feedback after completing tasks
+- Real-time learning analytics for teachers
+- Automatic lesson recording for absent students
+- Parent/guardian dashboards for monitoring progress
+- Supports: IELTS, TOEFL, SAT, AP courses, A-Level, math, science, English learning
 
-REAL-TIME PERSONALIZED LEARNING:
-Every student receives immediate marking and individualized evaluation on every task. Feedback explains errors clearly and guides improvement instantly. Learning occurs at the moment of effort — not days later. Outcomes: faster mastery, stronger retention, reduced learning gaps.
+**How It Works:**
+1. Tutor explains a concept
+2. Students complete tasks
+3. AI evaluates and provides personalized feedback within seconds
+4. Tutor reviews and adjusts teaching based on data
 
-NO LOST LEARNING TIME:
-All lessons are automatically recorded. Students who miss class can watch the full lesson, complete assigned tasks, and receive full evaluation and feedback. No rescheduling, no reteaching, no academic drift.
+**Business Model:** Platform commissions, tutor subscriptions, institutional licensing
 
-CONTINUOUS ASSESSMENT WITHOUT TEACHER BURNOUT:
-Teachers can assign quizzes, essays, short answers, coding problems, mathematical proofs, and custom tasks. All work is automatically evaluated and graded. Teachers focus on instruction — Solocorn handles marking at scale.
+## HOW TO RESPOND:
 
-## CORE PLATFORM FEATURES
-
-POST-COMPLETION INSTRUCTION (PCI):
-Every completed task triggers immediate evaluation, clear explanations, grading, and targeted guidance for improvement. Each submission becomes a personalized tutoring moment.
-
-REAL-TIME LEARNING ANALYTICS:
-Teachers can monitor understanding live, detect misconceptions instantly, and adjust instruction using real data. No guesswork, no waiting for exam cycles.
-
-GUARDIAN & PARENT ACCOUNTS:
-Parents and guardians have secure web and mobile access to student performance dashboards. They can monitor progress in real time, track performance across subjects, view feedback, grades, and proficiency growth.
-
-SUBJECTS SUPPORTED:
-IELTS, TOEFL, SAT, AP courses, A-Level, mathematics, science subjects, English language learning, and university entrance exams.
-
-REVENUE MODEL:
-Platform commission on tutoring classes, tutor subscription fees, and institutional licensing for schools and academies.
-
-## CRITICAL INSTRUCTIONS
-
-1. LANGUAGE DETECTION AND RESPONSE:
-   - Detect the language of the user's message automatically
-   - You MUST respond in the EXACT SAME LANGUAGE as the user
-   - If user writes in English → reply in English
-   - If user writes in Chinese → reply in Chinese
-   - If user writes in Spanish → reply in Spanish
-   - If user writes in French → reply in French
-   - If user writes in German → reply in German
-   - If user writes in Japanese → reply in Japanese
-   - If user writes in Korean → reply in Korean
-   - If user writes in Portuguese → reply in Portuguese
-   - If user writes in Hindi → reply in Hindi
-   - NEVER respond in a different language than the user's message
-
-2. GREETINGS AND SHORT MESSAGES:
-   - For "Hi", "Hello", "Hey" → Respond naturally with a greeting and offer to help
-   - Example: "Hello! I'm Solocorn AI. How can I help you learn about our platform today?"
-   - Example (Chinese): "您好！我是Solocorn AI。我如何帮助您了解我们的平台？"
-   - NEVER give generic "That's a great question" responses to greetings
-
-3. CONVERSATION STYLE:
-   - Be conversational and natural
-   - Answer the specific question asked directly
-   - NEVER use phrases like "That's a great question!" or "I'd be happy to help!"
-   - Be helpful and professional
-   - Engage with the user's actual question, don't deflect to generic info
-
-4. AI CAPABILITIES - BE TRUTHFUL:
-   - If asked "Can you think for yourself?" or about AI capabilities: Answer honestly that you are an AI that can reason, analyze, and answer questions about Solocorn using your training knowledge
-   - If asked about web access: You have knowledge about Solocorn but cannot browse the live web in real-time
-   - You can discuss the platform, its features, how it works, and answer general questions
-
-5. OTHER RULES:
-   - If asked about investment, direct to contact form
-   - Be truthful — if you don't know something, say so
-   - IMPORTANT: Never deflect valid questions with generic responses`;
+1. **BE NATURAL AND CONVERSATIONAL** - Talk like a normal person, not a robot
+2. **ANSWER THE ACTUAL QUESTION** - Don't ignore what was asked
+3. **NO TEMPLATED PHRASES** - Never say "That's a great question!" or "I'd be happy to help!"
+4. **BE TRUTHFUL ABOUT AI:**
+   - If asked about your capabilities: Say you're an AI that can think, reason, and discuss Solocorn
+   - If asked about web access: You have knowledge about Solocorn but can't browse live websites
+5. **LANGUAGE:** Respond in the same language as the user's message
+6. **IF UNSURE:** Say you don't know rather than making things up
+7. **INVESTMENT INQUIRIES:** Direct to the contact form on the website`;
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -161,11 +121,11 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
-  let language = 'en' // Default language, declared outside try for catch block access
+  let language = 'en'
   
   console.log('=== Investor Chat API called ===')
-  console.log('KIMI_API_KEY configured:', process.env.KIMI_API_KEY ? 'YES (length: ' + process.env.KIMI_API_KEY.length + ')' : 'NO')
-  console.log('GEMINI_API_KEY configured:', process.env.GEMINI_API_KEY ? 'YES' : 'NO')
+  console.log('KIMI_API_KEY:', process.env.KIMI_API_KEY ? 'YES' : 'NO')
+  console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'YES' : 'NO')
   
   try {
     const body = await request.json().catch(() => null)
@@ -179,9 +139,8 @@ export async function POST(request: NextRequest) {
     }
 
     const { message, conversationHistory, language: lang } = parsed.data
-    language = lang // Update language from request
+    language = lang
     
-    // Quick check for greetings - respond immediately without API call
     const lowerMessage = message.toLowerCase().trim();
     const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
                        '你好', '您好', '嗨', '哈囉', 'hola', 'buenos', 'bonjour', 'salut', 
@@ -191,116 +150,82 @@ export async function POST(request: NextRequest) {
     
     if (isGreeting) {
       const langResponses = FALLBACK_RESPONSES[language] || FALLBACK_RESPONSES['en'];
-      console.log('Greeting detected, returning immediate response');
       return NextResponse.json({
         response: langResponses.greeting,
         source: 'greeting-handler'
       }, { headers: corsHeaders });
     }
     
-    const apiKey = process.env.KIMI_API_KEY
-
-    if (!apiKey) {
-      console.error('KIMI_API_KEY not configured')
-      // Fallback to mock response if no API key
-      return NextResponse.json({
-        response: generateFallbackResponse(message, language),
-        source: 'fallback-no-key'
-      }, { headers: corsHeaders })
-    }
-
-    // Add language instruction to system prompt
+    // Try AI providers
     const languageInstruction = language && language !== 'en' 
-      ? `\n\n## LANGUAGE INSTRUCTION\nThe user is writing in "${language}". You MUST respond in the same language as the user's message.`
+      ? `\n\nRespond in ${language}.`
       : ''
     
-    // Build messages array with system prompt (simplified - just current message)
     const messagesPayload = [
       { role: 'system', content: SYSTEM_PROMPT + languageInstruction },
       { role: 'user', content: message }
     ]
 
-    console.log('Calling Kimi API with message:', message.substring(0, 50) + '...')
-    console.log('API Key exists:', apiKey ? 'yes (length: ' + apiKey.length + ')' : 'no')
-    console.log('Conversation history length:', conversationHistory?.length || 0)
+    // Try Kimi first
+    const apiKey = process.env.KIMI_API_KEY
+    if (apiKey) {
+      try {
+        console.log('Trying Kimi API...')
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 15000)
+        
+        const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: DEFAULT_MODEL,
+            messages: messagesPayload,
+            temperature: 0.8,
+            max_tokens: 1024,
+          }),
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timeoutId))
 
-    // Call Kimi API with timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-    
-    const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: DEFAULT_MODEL,
-        messages: messagesPayload,
-        temperature: 1,
-        max_tokens: 1024,
-      }),
-      signal: controller.signal,
-    }).finally(() => clearTimeout(timeoutId))
+        console.log('Kimi response status:', response.status)
 
-    console.log('Kimi API response status:', response.status)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('Kimi API error:', response.status, errorText)
-      
-      // Try Gemini as fallback
-      const geminiResponse = await callGemini(message, SYSTEM_PROMPT + languageInstruction, language)
-      if (geminiResponse) {
-        return NextResponse.json({
-          response: geminiResponse,
-          source: 'gemini-fallback'
-        }, { headers: corsHeaders })
+        if (response.ok) {
+          const data = await response.json()
+          const aiResponse = data.choices?.[0]?.message?.content || data.choices?.[0]?.text
+          
+          if (aiResponse) {
+            console.log('Kimi success!')
+            return NextResponse.json({
+              response: aiResponse,
+              source: 'kimi',
+              model: DEFAULT_MODEL,
+            }, { headers: corsHeaders })
+          }
+        } else {
+          console.error('Kimi error:', response.status)
+        }
+      } catch (error) {
+        console.error('Kimi exception:', error)
       }
-      
-      // Fallback to local response
+    }
+
+    // Try Gemini as fallback
+    console.log('Trying Gemini fallback...')
+    const geminiResponse = await callGemini(message, SYSTEM_PROMPT + languageInstruction, language)
+    if (geminiResponse) {
       return NextResponse.json({
-        response: generateFallbackResponse(message, language),
-        source: 'fallback-api-error-' + response.status
+        response: geminiResponse,
+        source: 'gemini'
       }, { headers: corsHeaders })
     }
 
-    const data = await response.json()
-    console.log('Kimi API response structure:', Object.keys(data))
-    console.log('Kimi API choices exist:', data.choices ? 'yes' : 'no')
-    if (data.choices) {
-      console.log('Kimi API choices count:', data.choices.length)
-      console.log('Kimi API first choice:', JSON.stringify(data.choices[0]).substring(0, 200))
-    }
-    
-    // Try different possible response formats
-    const aiResponse = data.choices?.[0]?.message?.content 
-      || data.choices?.[0]?.text 
-      || data.output 
-      || ''
-
-    if (!aiResponse) {
-      console.error('No AI response content. Full data:', JSON.stringify(data).substring(0, 500))
-      
-      // Try Gemini as fallback
-      const geminiResponse = await callGemini(message, SYSTEM_PROMPT + languageInstruction, language)
-      if (geminiResponse) {
-        return NextResponse.json({
-          response: geminiResponse,
-          source: 'gemini-fallback'
-        }, { headers: corsHeaders })
-      }
-      
-      return NextResponse.json({
-        response: generateFallbackResponse(message, language),
-        source: 'fallback-no-content'
-      }, { headers: corsHeaders })
-    }
-
+    // Last resort fallback
+    console.log('All AI failed, using fallback')
     return NextResponse.json({
-      response: aiResponse,
-      source: 'kimi',
-      model: DEFAULT_MODEL,
+      response: generateFallbackResponse(message, language),
+      source: 'fallback'
     }, { headers: corsHeaders })
 
   } catch (error) {
@@ -308,7 +233,7 @@ export async function POST(request: NextRequest) {
     const langResponses = FALLBACK_RESPONSES[language] || FALLBACK_RESPONSES['en']
     return NextResponse.json({
       response: langResponses.default,
-      source: 'fallback-exception'
+      source: 'error-fallback'
     }, { headers: corsHeaders })
   }
 }
@@ -397,15 +322,15 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
   }
 };
 
-// Fallback response generator for when API is unavailable
+// Simplified fallback - only for when ALL APIs fail
 function generateFallbackResponse(question: string, language: string = 'en'): string {
   const lower = question.toLowerCase().trim();
   const lang = language in FALLBACK_RESPONSES ? language : 'en';
   const responses = FALLBACK_RESPONSES[lang];
   
-  console.log('Fallback generator - Input:', question, 'Language:', lang, 'Lower:', lower);
+  console.log('Fallback generator - Input:', question, 'Language:', lang);
   
-  // Check for greetings first - simple exact match or starts with
+  // Only use hardcoded responses for greetings
   const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
                      '你好', '您好', '嗨', '哈囉', 'hola', 'buenos', 'bonjour', 'salut', 
                      'hallo', 'guten tag', 'こんにちは', 'やあ', '안녕하세요', '안녕', 
@@ -413,27 +338,11 @@ function generateFallbackResponse(question: string, language: string = 'en'): st
   
   for (const g of greetings) {
     if (lower === g || lower.startsWith(g + ' ')) {
-      console.log('Fallback generator - Matched greeting:', g);
       return responses.greeting;
     }
   }
   
-  if (lower.includes('what is') || lower.includes('what does') || lower.includes('who are') || lower.includes('是什么') || lower.includes('什麼是')) {
-    return responses.whatis;
-  }
-  
-  if (lower.includes('how') && (lower.includes('work') || lower.includes('class') || lower.includes('運作') || lower.includes('运作'))) {
-    return responses.how;
-  }
-  
-  if (lower.includes('pci') || lower.includes('post-completion') || lower.includes('post completion')) {
-    return responses.pci;
-  }
-  
-  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation') || lower.includes('投資') || lower.includes('投资')) {
-    return responses.invest;
-  }
-  
-  console.log('Fallback generator - Using default response');
+  // For everything else, return the generic response (which should rarely happen)
+  console.log('Fallback generator - Using generic response');
   return responses.default;
 }
