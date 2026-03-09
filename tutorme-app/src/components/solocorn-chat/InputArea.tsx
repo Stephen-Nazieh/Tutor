@@ -7,6 +7,7 @@
 
 import { useRef, useEffect } from 'react';
 import { Send, Square } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface InputAreaProps {
   value: string;
@@ -83,22 +84,24 @@ export function InputArea({
         </div>
 
         {showStopButton ? (
-          <button
+          <Button
+            type="button"
             onClick={onStop}
-            className="w-11 h-11 rounded-xl bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors"
+            className="w-11 h-11 rounded-xl bg-red-500 hover:bg-red-600 p-0 flex items-center justify-center"
             title="Stop generating"
           >
             <Square className="w-4 h-4 text-white fill-current" />
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
+            type="button"
             onClick={onSend}
             disabled={isLoading || !value.trim()}
-            className={`w-11 h-11 rounded-xl ${themeColor} hover:opacity-90 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`w-11 h-11 rounded-xl ${themeColor} hover:opacity-90 p-0 flex items-center justify-center disabled:opacity-50`}
             title="Send message"
           >
             <Send className="w-4 h-4 text-white" />
-          </button>
+          </Button>
         )}
       </div>
 

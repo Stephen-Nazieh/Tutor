@@ -70,8 +70,14 @@ export function useSolocornChat(options: UseSolocornChatOptions = {}): UseSoloco
   const [isStreaming, setIsStreaming] = useState(false);
   const [input, setInput] = useState('');
   
+  // Use ref to avoid closure issues with input value
+  const inputRef = useRef(input);
+  inputRef.current = input;
+  
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentAssistantMessageRef = useRef<string>('');
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
 
   // Persist messages
   useEffect(() => {
@@ -88,8 +94,8 @@ export function useSolocornChat(options: UseSolocornChatOptions = {}): UseSoloco
   }, []);
 
   const sendMessage = useCallback(async (content?: string) => {
-    const messageContent = content || input;
-    if (!messageContent.trim() || isLoading) return;
+    const messageContent = content || inputRef.current;
+    if (!messageContent.trim() || isLoadingRef.current) return;
 
     // Add user message
     const userMessage: Message = {
@@ -231,7 +237,7 @@ export function useSolocornChat(options: UseSolocornChatOptions = {}): UseSoloco
       setIsStreaming(false);
       abortControllerRef.current = null;
     }
-  }, [input, isLoading, messages, language, onError]);
+  }, [messages, language, onError]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

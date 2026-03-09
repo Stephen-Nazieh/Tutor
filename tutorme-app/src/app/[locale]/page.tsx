@@ -1009,7 +1009,7 @@ const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick, theme, mode 
   );
 };
 
-const Navbar = ({ onRegister, lang, onLanguageChange, theme, mode, onThemeChange, onModeChange }: { onRegister: () => void; lang: Language; onLanguageChange: (lang: Language) => void; theme: ColorTheme; mode: ThemeMode; onThemeChange: (theme: ColorTheme) => void; onModeChange: (mode: ThemeMode) => void }) => {
+const Navbar = ({ lang, onLanguageChange, theme, mode, onThemeChange, onModeChange }: { lang: Language; onLanguageChange: (lang: Language) => void; theme: ColorTheme; mode: ThemeMode; onThemeChange: (theme: ColorTheme) => void; onModeChange: (mode: ThemeMode) => void }) => {
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
   return (
@@ -1028,7 +1028,6 @@ const Navbar = ({ onRegister, lang, onLanguageChange, theme, mode, onThemeChange
         <div className="flex items-center gap-3">
           <ThemeSelector currentTheme={theme} currentMode={mode} onThemeChange={onThemeChange} onModeChange={onModeChange} lang={lang} />
           <LanguageSelector currentLang={lang} onChange={onLanguageChange} theme={theme} />
-          <Button onClick={onRegister} variant="outline" className={`px-5 py-2 rounded-lg text-sm font-bold transition-colors border-0 ${mode === 'dark' ? 'bg-white text-black hover:bg-emerald-400' : 'bg-zinc-900 text-white hover:bg-emerald-500'}`}>{t('register')}</Button>
         </div>
       </div>
     </nav>
@@ -1274,7 +1273,7 @@ export default function LandingPage() {
   return (
     <div className={`min-h-screen relative ${mode === 'dark' ? 'text-zinc-100' : 'text-zinc-900'}`}>
       <FuturisticBackground theme={theme} mode={mode} />
-      <Navbar onRegister={() => setModalType('register')} lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} onThemeChange={setTheme} onModeChange={setMode} />
+      <Navbar lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} onThemeChange={setTheme} onModeChange={setMode} />
       <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} theme={theme} mode={mode} />
       <CategoriesModal isOpen={showCategories} onClose={() => setShowCategories(false)} lang={language} mode={mode} />
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} lang={language} mode={mode} />
