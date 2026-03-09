@@ -60,18 +60,89 @@ IELTS, TOEFL, SAT, AP courses, A-Level, mathematics, science subjects, English l
 REVENUE MODEL:
 Platform commission on tutoring classes, tutor subscription fees, and institutional licensing for schools and academies.
 
-## INSTRUCTIONS
-1. Answer questions about Solocorn based on the knowledge above
-2. Be helpful, professional, and enthusiastic about Solocorn
-3. If asked about investment, direct to the contact form
-4. Always reply in the same language as the user's message
-5. Be truthful — if you don't know something, say so`;
+## CRITICAL INSTRUCTIONS
+
+1. LANGUAGE DETECTION AND RESPONSE:
+   - Detect the language of the user's message automatically
+   - You MUST respond in the EXACT SAME LANGUAGE as the user
+   - If user writes in English → reply in English
+   - If user writes in Chinese → reply in Chinese
+   - If user writes in Spanish → reply in Spanish
+   - If user writes in French → reply in French
+   - If user writes in German → reply in German
+   - If user writes in Japanese → reply in Japanese
+   - If user writes in Korean → reply in Korean
+   - If user writes in Portuguese → reply in Portuguese
+   - If user writes in Hindi → reply in Hindi
+   - NEVER respond in a different language than the user's message
+
+2. GREETINGS AND SHORT MESSAGES:
+   - For "Hi", "Hello", "Hey" → Respond naturally with a greeting and offer to help
+   - Example: "Hello! I'm Solocorn AI. How can I help you learn about our platform today?"
+   - Example (Chinese): "您好！我是Solocorn AI。我如何帮助您了解我们的平台？"
+   - NEVER give generic "That's a great question" responses to greetings
+
+3. CONVERSATION STYLE:
+   - Be conversational and natural
+   - Answer the specific question asked
+   - Don't use templated responses
+   - Be helpful and professional
+
+4. OTHER RULES:
+   - If asked about investment, direct to contact form
+   - Be truthful — if you don't know something, say so`;
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+// Gemini API configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+const GEMINI_MODEL = 'gemini-1.5-flash'
+
+// Function to call Gemini API
+async function callGemini(message: string, systemPrompt: string, language: string): Promise<string | null> {
+  if (!GEMINI_API_KEY) {
+    console.log('Gemini API key not configured')
+    return null
+  }
+  
+  try {
+    console.log('Trying Gemini API fallback...')
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          { role: 'user', parts: [{ text: systemPrompt + '\n\nUser message: ' + message }] }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        }
+      })
+    })
+    
+    if (!response.ok) {
+      console.error('Gemini API error:', response.status)
+      return null
+    }
+    
+    const data = await response.json()
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+    
+    if (text) {
+      console.log('Gemini API success')
+      return text
+    }
+    return null
+  } catch (error) {
+    console.error('Gemini API exception:', error)
+    return null
+  }
 }
 
 // Handle OPTIONS preflight requests
@@ -149,6 +220,15 @@ export async function POST(request: NextRequest) {
       const errorText = await response.text()
       console.error('Kimi API error:', response.status, errorText)
       
+      // Try Gemini as fallback
+      const geminiResponse = await callGemini(message, SYSTEM_PROMPT + languageInstruction, language)
+      if (geminiResponse) {
+        return NextResponse.json({
+          response: geminiResponse,
+          source: 'gemini-fallback'
+        }, { headers: corsHeaders })
+      }
+      
       // Fallback to local response
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
@@ -172,6 +252,16 @@ export async function POST(request: NextRequest) {
 
     if (!aiResponse) {
       console.error('No AI response content. Full data:', JSON.stringify(data).substring(0, 500))
+      
+      // Try Gemini as fallback
+      const geminiResponse = await callGemini(message, SYSTEM_PROMPT + languageInstruction, language)
+      if (geminiResponse) {
+        return NextResponse.json({
+          response: geminiResponse,
+          source: 'gemini-fallback'
+        }, { headers: corsHeaders })
+      }
+      
       return NextResponse.json({
         response: generateFallbackResponse(message, language),
         source: 'fallback-no-content'
@@ -196,13 +286,15 @@ export async function POST(request: NextRequest) {
 // Language-specific fallback responses
 const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
   en: {
+    greeting: "Hello! I'm Solocorn AI, your assistant for learning about our Live AI-Augmented Instruction Platform. How can I help you today?",
     whatis: "Solocorn is a live AI-assisted tutoring platform where AI evaluates student work and provides feedback so tutors can teach large classes efficiently. Instead of traditional one-to-one tutoring, Solocorn enables one tutor to teach many students simultaneously while each student still receives individualized feedback.",
     how: "A Solocorn class follows a simple cycle: (1) Tutor explains a concept, (2) Students complete a task, (3) Students submit answers, (4) AI evaluates responses instantly, (5) Students receive personalized feedback within seconds, (6) Tutor reviews results and adjusts teaching. This is called PCI — Post-Completion Instruction.",
     pci: "PCI stands for Post-Completion Instruction. It means students receive feedback immediately after completing a task, rather than waiting for homework to be graded later. This allows immediate correction of mistakes and reinforcement of correct reasoning, even in large classes.",
     invest: "For detailed investment discussions, please reach out to our team through the contact form on the website. Solocorn's key value proposition is transforming tutoring from a labor-limited service into a scalable digital education platform.",
-    default: "That's a great question! Solocorn combines live teaching with AI evaluation to make tutoring scalable. Is there a specific aspect—how classes work, who it's for, or the business model—you'd like to know more about?"
+    default: "I'd be happy to tell you more about Solocorn! We're a Live AI-Augmented Instruction Platform that helps teachers deliver personalized feedback at scale. What would you like to know—how it works, who it's for, or something else?"
   },
   'zh-CN': {
+    greeting: "您好！我是Solocorn AI，您的实时AI增强教学平台助手。今天我能为您提供什么帮助？",
     whatis: "Solocorn是一个实时AI辅助辅导平台，AI评估学生作业并提供反馈，使教师能够高效地教授大班课程。与传统的一对一辅导不同，Solocorn使一位教师能够同时教授许多学生，同时每个学生仍然获得个性化的反馈。",
     how: "Solocorn课程遵循一个简单的循环：(1) 教师解释概念，(2) 学生完成任务，(3) 学生提交答案，(4) AI即时评估回答，(5) 学生在几秒钟内收到个性化反馈，(6) 教师审查结果并调整教学。这被称为PCI——完成后指导。",
     pci: "PCI代表完成后指导（Post-Completion Instruction）。这意味着学生在完成任务后立即收到反馈，而不是等待作业被批改。这允许立即纠正错误和加强正确推理，即使在大班课程中也是如此。",
@@ -210,6 +302,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "这是个好问题！Solocorn结合实时教学和AI评估，使辅导变得可扩展。您想了解哪个具体方面——课程如何运作、适合谁，还是商业模式？"
   },
   'zh-HK': {
+    greeting: "您好！我是Solocorn AI，您的實時AI增強教學平台助手。今天我能為您提供什麼幫助？",
     whatis: "Solocorn是一個實時AI輔助輔導平台，AI評估學生作業並提供反饋，使教師能夠高效地教授大班課程。與傳統的一對一輔導不同，Solocorn使一位教師能夠同時教授許多學生，同時每個學生仍然獲得個性化的反饋。",
     how: "Solocorn課程遵循一個簡單的循環：(1) 教師解釋概念，(2) 學生完成任務，(3) 學生提交答案，(4) AI即時評估回答，(5) 學生在幾秒鐘內收到個性化反饋，(6) 教師審查結果並調整教學。這被稱為PCI——完成後指導。",
     pci: "PCI代表完成後指導（Post-Completion Instruction）。這意味著學生在完成任務後立即收到反饋，而不是等待作業被批改。這允許立即糾正錯誤和加強正確推理，即使在大班課程中也是如此。",
@@ -217,6 +310,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "這是個好問題！Solocorn結合實時教學和AI評估，使輔導變得可擴展。您想了解哪個具體方面——課程如何運作、適合誰，還是商業模式？"
   },
   es: {
+    greeting: "¡Hola! Soy Solocorn AI, su asistente para la Plataforma de Instrucción Aumentada con IA en Vivo. ¿Cómo puedo ayudarle hoy?",
     whatis: "Solocorn es una plataforma de tutoría asistida por IA en tiempo real donde la IA evalúa el trabajo de los estudiantes y proporciona retroalimentación para que los tutores puedan enseñar clases grandes de manera eficiente. En lugar de la tutoría tradicional uno a uno, Solocorn permite que un tutor enseñe a muchos estudiantes simultáneamente mientras cada estudiante aún recibe retroalimentación individualizada.",
     how: "Una clase de Solocorn sigue un ciclo simple: (1) El tutor explica un concepto, (2) Los estudiantes completan una tarea, (3) Los estudiantes envían respuestas, (4) La IA evalúa las respuestas al instante, (5) Los estudiantes reciben retroalimentación personalizada en segundos, (6) El tutor revisa los resultados y ajusta la enseñanza. Esto se llama PCI — Instrucción Post-Completación.",
     pci: "PCI significa Instrucción Post-Completación (Post-Completion Instruction). Significa que los estudiantes reciben retroalimentación inmediatamente después de completar una tarea, en lugar de esperar a que se califique la tarea. Esto permite la corrección inmediata de errores y el refuerzo del razonamiento correcto, incluso en clases grandes.",
@@ -224,6 +318,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "¡Esa es una excelente pregunta! Solocorn combina la enseñanza en vivo con la evaluación de IA para hacer que la tutoría sea escalable. ¿Hay algún aspecto específico—cómo funcionan las clases, para quién es, o el modelo de negocio—sobre el que le gustaría saber más?"
   },
   fr: {
+    greeting: "Bonjour ! Je suis Solocorn AI, votre assistant pour la Plateforme d'Instruction Augmentée par IA en Direct. Comment puis-je vous aider aujourd'hui ?",
     whatis: "Solocorn est une plateforme de tutorat assistée par IA en temps réel où l'IA évalue le travail des étudiants et fournit des commentaires pour que les tuteurs puissent enseigner efficacement aux grandes classes. Au lieu du tutorat traditionnel en tête-à-tête, Solocorn permet à un tuteur d'enseigner à de nombreux étudiants simultanément tout en recevant des commentaires individualisés.",
     how: "Un cours Solocorn suit un cycle simple : (1) Le tuteur explique un concept, (2) Les étudiants accomplissent une tâche, (3) Les étudiants soumettent leurs réponses, (4) L'IA évalue les réponses instantanément, (5) Les étudiants reçoivent des commentaires personnalisés en quelques secondes, (6) Le tuteur examine les résultats et ajuste l'enseignement. C'est ce qu'on appelle PCI — Instruction Post-Achèvement.",
     pci: "PCI signifie Instruction Post-Achèvement (Post-Completion Instruction). Cela signifie que les étudiants reçoivent des commentaires immédiatement après avoir terminé une tâche, plutôt que d'attendre que leurs devoirs soient corrigés. Cela permet une correction immédiate des erreurs et un renforcement du raisonnement correct, même dans les grandes classes.",
@@ -231,6 +326,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "C'est une excellente question ! Solocorn combine l'enseignement en direct avec l'évaluation par l'IA pour rendre le tutorat évolutif. Y a-t-il un aspect spécifique — comment fonctionnent les cours, à qui cela s'adresse-t-il, ou le modèle d'affaires — sur lequel vous aimeriez en savoir plus ?"
   },
   de: {
+    greeting: "Hallo! Ich bin Solocorn AI, Ihr Assistent für die Live-KI-Augmentierte Unterrichtsplattform. Wie kann ich Ihnen heute helfen?",
     whatis: "Solocorn ist eine Live-KI-gestützte Nachhilfeplattform, auf der KI Schülerarbeiten bewertet und Feedback gibt, damit Tutoren große Klassen effizient unterrichten können. Anstelle traditioneller Einzelnachhilfe ermöglicht Solocorn einem Tutor, viele Schüler gleichzeitig zu unterrichten, während jeder Schüler weiterhin individuelles Feedback erhält.",
     how: "Ein Solocorn-Kurs folgt einem einfachen Zyklus: (1) Der Tutor erklärt ein Konzept, (2) Die Schüler erledigen eine Aufgabe, (3) Die Schüler reichen Antworten ein, (4) Die KI bewertet Antworten sofort, (5) Die Schüler erhalten personalisiertes Feedback innerhalb von Sekunden, (6) Der Tutor überprüft die Ergebnisse und passt den Unterricht an. Dies wird PCI genannt — Post-Completion Instruction (Instruktion nach Abschluss).",
     pci: "PCI steht für Post-Completion Instruction (Instruktion nach Abschluss). Es bedeutet, dass Schüler sofort nach Abschluss einer Aufgabe Feedback erhalten, anstatt zu warten, bis Hausaufgaben benotet werden. Dies ermöglicht sofortige Fehlerkorrektur und Verstärkung korrekter Argumentation, selbst in großen Klassen.",
@@ -238,6 +334,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "Das ist eine großartige Frage! Solocorn kombiniert Live-Unterricht mit KI-Bewertung, um Nachhilfe skalierbar zu machen. Gibt es einen bestimmten Aspekt — wie Kurse funktionieren, für wen es gedacht ist, oder das Geschäftsmodell — über den Sie mehr erfahren möchten?"
   },
   ja: {
+    greeting: "こんにちは！Solocorn AIです。ライブAI増強指導プラットフォームのアシスタントです。本日はどのようなご用件でしょうか？",
     whatis: "Solocornは、AIが生徒の課業を評価し、フィードバックを提供することで、チューターが大規模なクラスを効率的に教えられるライブAI支援型指導プラットフォームです。従来の1対1の指導と異なり、Solocornは1人のチューターが多くの生徒に同時に教えられるようにし、各生徒が個別のフィードバックを受け取れるようにします。",
     how: "Solocornのクラスは、シンプルなサイクルに従います：(1) チューターが概念を説明、(2) 生徒が課題を完了、(3) 生徒が回答を提出、(4) AIが即座に回答を評価、(5) 生徒が数秒以内にパーソナライズされたフィードバックを受信、(6) チューターが結果を確認し、指導を調整。これをPCI（Post-Completion Instruction）と呼びます。",
     pci: "PCIはPost-Completion Instruction（完了後指導）の略です。これは、生徒が課題の採点を待つのでなく、課題を完了した直後にフィードバックを受けることを意味します。これにより、大規模なクラスでも即座に間違いを修正し、正しい推論を強化できます。",
@@ -245,6 +342,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "素晴らしい質問ですね！Solocornはライブ指導とAI評価を組み合わせて、指導をスケーラブルにします。クラスの仕組み、対象者、ビジネスモデルなど、特定の側面についてもっと知りたいことはありますか？"
   },
   ko: {
+    greeting: "안녕하세요! Solocorn AI입니다. 라이브 AI 증강 지도 플랫폼의 도우미입니다. 오늘 무엇을 도와드릴까요?",
     whatis: "Solocorn은 AI가 학생 과제를 평가하고 피드백을 제공하여 튜터가 대규모 수업을 효율적으로 가르칠 수 있는 실시간 AI 지원 과외 플랫폼입니다. 전통적인 일대일 과외와 달리 Solocorn은 한 명의 튜터가 많은 학생들에게 동시에 가르칠 수 있도록 하면서 각 학생이 여전히 개별화된 피드백을 받을 수 있도록 합니다.",
     how: "Solocorn 수업은 간단한 사이클을 따릅니다: (1) 튜터가 개념을 설명, (2) 학생들이 과제를 완료, (3) 학생들이 답변을 제출, (4) AI가 즉시 답변을 평가, (5) 학생들이 수 초 내에 개인화된 피드백을 받음, (6) 튜터가 결과를 검토하고 교육을 조정. 이를 PCI(Post-Completion Instruction)라고 합니다.",
     pci: "PCI는 Post-Completion Instruction(완료 후 지도)의 약자입니다. 이는 학생들이 과제 채점을 기다리는 대신 과제를 완료한 직후 피드백을 받는다는 의미입니다. 이를 통해 대규모 수업에서도 즉각적인 오류 수정과 올바른 추론 강화가 가능합니다.",
@@ -252,6 +350,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "훌륭한 질문입니다! Solocorn은 실시간 교육과 AI 평가를 결합하여 과외를 확장 가능하게 만듭니다. 수업 작동 방식, 대상, 비즈니스 모델 등 특정 측면에 대해 더 알고 싶은 것이 있습니까?"
   },
   pt: {
+    greeting: "Olá! Sou o Solocorn AI, seu assistente para a Plataforma de Instrução Aumentada por IA ao Vivo. Como posso ajudá-lo hoje?",
     whatis: "Solocorn é uma plataforma de tutoria assistida por IA em tempo real onde a IA avalia o trabalho dos alunos e fornece feedback para que os tutores possam ensinar turmas grandes de forma eficiente. Em vez da tutoria tradicional um a um, Solocorn permite que um tutor ensine muitos alunos simultaneamente enquanto cada aluno ainda recebe feedback individualizado.",
     how: "Uma aula Solocorn segue um ciclo simples: (1) O tutor explica um conceito, (2) Os alunos completam uma tarefa, (3) Os alunos enviam respostas, (4) A IA avalia as respostas instantaneamente, (5) Os alunos recebem feedback personalizado em segundos, (6) O tutor revisa os resultados e ajusta o ensino. Isso é chamado de PCI — Instrução Pós-Conclusão.",
     pci: "PCI significa Instrução Pós-Conclusão (Post-Completion Instruction). Significa que os alunos recebem feedback imediatamente após concluir uma tarefa, em vez de esperar que a lição de casa seja avaliada. Isso permite correção imediata de erros e reforço do raciocínio correto, mesmo em turmas grandes.",
@@ -259,6 +358,7 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
     default: "Essa é uma ótima pergunta! A Solocorn combina ensino ao vivo com avaliação de IA para tornar a tutoria escalável. Há algum aspecto específico — como as aulas funcionam, para quem é, ou o modelo de negócio — sobre o qual você gostaria de saber mais?"
   },
   hi: {
+    greeting: "नमस्ते! मैं Solocorn AI हूं, लाइव AI-ऑग्मेंटेड इंस्ट्रक्शन प्लेटफॉर्म के लिए आपका सहायक। आज मैं आपकी कैसे मदद कर सकता हूं?",
     whatis: "Solocorn एक लाइव AI-सहायता प्राप्त ट्यूटरिंग प्लेटफॉर्म है जहाँ AI छात्रों के काम का मूल्यांकन करता है और फीडबैक प्रदान करता है ताकि ट्यूटर बड़ी कक्षाओं को कुशलता से पढ़ा सकें। पारंपरिक एक-से-एक ट्यूटरिंग के बजाय, Solocorn एक ट्यूटर को कई छात्रों को एक साथ पढ़ाने में सक्षम बनाता है जबकि प्रत्येक छात्र को अभी भी व्यक्तिगत फीडबैक मिलता है।",
     how: "एक Solocorn कक्षा एक साधारण चक्र का पालन करती है: (1) ट्यूटर एक अवधारणा समझाता है, (2) छात्र एक कार्य पूरा करते हैं, (3) छात्र उत्तर जमा करते हैं, (4) AI तुरंत उत्तरों का मूल्यांकन करता है, (5) छात्र सेकंडों के भीतर व्यक्तिगत फीडबैक प्राप्त करते हैं, (6) ट्यूटर परिणामों की समीक्षा करता है और शिक्षण को समायोजित करता है। इसे PCI कहा जाता है — पोस्ट-कंप्लीशन इंस्ट्रक्शन।",
     pci: "PCI का अर्थ है पोस्ट-कंप्लीशन इंस्ट्रक्शन। इसका मतलब है कि छात्र एक कार्य पूरा करने के तुरंत बाद फीडबैक प्राप्त करते हैं, बजाय इसके कि होमवर्क के ग्रेड होने का इंतजार करें। यह तुरंत गलतियों के सुधार और सही तर्क को मजबूत करने की अनुमति देता है, यहां तक कि बड़ी कक्षाओं में भी।",
@@ -269,23 +369,33 @@ const FALLBACK_RESPONSES: Record<string, Record<string, string>> = {
 
 // Fallback response generator for when API is unavailable
 function generateFallbackResponse(question: string, language: string = 'en'): string {
-  const lower = question.toLowerCase();
+  const lower = question.toLowerCase().trim();
   const lang = language in FALLBACK_RESPONSES ? language : 'en';
   const responses = FALLBACK_RESPONSES[lang];
   
-  if (lower.includes('what is') || lower.includes('what does') || lower.includes('who are') || lower.includes('是什么')) {
+  // Check for greetings first
+  const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening', 
+                     '你好', '您好', '嗨', '哈囉', 'hola', 'buenos', 'bonjour', 'salut', 
+                     'hallo', 'guten tag', 'こんにちは', 'やあ', '안녕하세요', '안녕', 
+                     'olá', 'oi', 'नमस्ते', 'हैलो'];
+  
+  if (greetings.some(g => lower === g || lower.startsWith(g + ' '))) {
+    return responses.greeting;
+  }
+  
+  if (lower.includes('what is') || lower.includes('what does') || lower.includes('who are') || lower.includes('是什么') || lower.includes('什麼是')) {
     return responses.whatis;
   }
   
-  if (lower.includes('how') && (lower.includes('work') || lower.includes('class'))) {
+  if (lower.includes('how') && (lower.includes('work') || lower.includes('class') || lower.includes('運作') || lower.includes('运作'))) {
     return responses.how;
   }
   
-  if (lower.includes('pci') || lower.includes('post-completion')) {
+  if (lower.includes('pci') || lower.includes('post-completion') || lower.includes('post completion')) {
     return responses.pci;
   }
   
-  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation')) {
+  if (lower.includes('invest') || lower.includes('funding') || lower.includes('valuation') || lower.includes('投資') || lower.includes('投资')) {
     return responses.invest;
   }
   

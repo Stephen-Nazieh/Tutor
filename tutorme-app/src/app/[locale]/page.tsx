@@ -1592,8 +1592,23 @@ export default function LandingPage() {
               <Sparkles className="w-5 h-5" />
               {t('askSolocorn')}
             </motion.button>
-            <div className="mb-16"><CountdownTimer /></div>
-            {/* Get Early Access button removed as requested */}
+            <div className="mb-8"><CountdownTimer /></div>
+            
+            {/* Register Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mb-16"
+            >
+              <Button 
+                onClick={() => setModalType('register')} 
+                size="lg"
+                className={`px-8 py-6 text-lg font-bold rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 ${mode === 'dark' ? 'bg-white text-black hover:bg-emerald-400' : 'bg-zinc-900 text-white hover:bg-emerald-500'}`}
+              >
+                {t('register')}
+              </Button>
+            </motion.div>
           </motion.div>
         </section>
 
