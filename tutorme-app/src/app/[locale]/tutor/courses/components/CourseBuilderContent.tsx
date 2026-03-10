@@ -178,7 +178,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4">
+        <div className="w-full px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" asChild>
@@ -217,7 +217,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
       </div>
 
       {/* Main Content - Full Width for 3-Column Layout */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
+      <div className="w-full px-4 sm:px-6 py-6">
         {savedVariants.length > 0 && (
           <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
             <CardHeader className="pb-2 pt-4">

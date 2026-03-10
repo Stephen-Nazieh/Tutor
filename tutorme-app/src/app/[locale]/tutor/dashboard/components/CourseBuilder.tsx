@@ -1927,7 +1927,7 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
 interface QuestionBankModalProps {
   isOpen: boolean
   onClose: () => void
-  onImport: (questions: string) => void
+  onImport: (items: { questionText: string; pciText: string }[]) => void
 }
 
 interface Question {
@@ -2022,15 +2022,16 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
   const handleImport = () => {
     const selectedQList = SAMPLE_QUESTIONS.filter(q => selectedQuestions.has(q.id))
-    const formatted = selectedQList.map((q, idx) => {
-      let text = `${idx + 1}. ${q.question}\n   Type: ${q.type.replace('_', ' ')} | Subject: ${q.subject} | Difficulty: ${q.difficulty}`
+    const items = selectedQList.map((q, idx) => {
+      let qText = `${idx + 1}. ${q.question}`
       if (q.options) {
-        text += '\n   Options: ' + q.options.join(', ')
+        qText += '\n    A. ' + q.options.join('\n    ')
       }
-      return text
-    }).join('\n\n')
+      let pciText = `${idx + 1}. ${q.correctAnswer || '[Answer goes here]'}`
+      return { questionText: qText, pciText }
+    })
 
-    onImport(formatted)
+    onImport(items)
     setSelectedQuestions(new Set())
     setPreviewQuestion(null)
     onClose()
@@ -6101,6 +6102,24 @@ FEEDBACK: [your explanation]`
     </div>
   )
 
+  const autoExtractNumbering = (target: 'task' | 'assessment') => {
+    if (target === 'task') {
+      if (!taskBuilder.taskPci.trim() && taskBuilder.taskContent.trim() && !taskBuilder.activeExtensionId) {
+        const matches = taskBuilder.taskContent.match(/^(\s*)(?:(?:\d+\.)+|\d+\.|[a-z]\.|[ivx]+\.|-|[*])\s/gim)
+        if (matches) {
+          setTaskBuilder(prev => ({ ...prev, taskPci: matches.join('\n') }))
+        }
+      }
+    } else {
+      if (!assessmentBuilder.taskPci.trim() && assessmentBuilder.taskContent.trim() && !assessmentBuilder.activeExtensionId) {
+        const matches = assessmentBuilder.taskContent.match(/^(\s*)(?:(?:\d+\.)+|\d+\.|[a-z]\.|[ivx]+\.|-|[*])\s/gim)
+        if (matches) {
+          setAssessmentBuilder(prev => ({ ...prev, taskPci: matches.join('\n') }))
+        }
+      }
+    }
+  }
+
   const updateSelectedItem = (updates: PreviewUpdatePayload) => {
     if (!selectedItem) return
     const target = resolveSelectedItem(selectedItem, modules)
@@ -6287,7 +6306,7 @@ FEEDBACK: [your explanation]`
                             <div className="group">
                               <div
                                 className={cn(
-                                  "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
+                                  "flex flex-wrap items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
                                   "bg-blue-50 hover:bg-blue-100 border border-blue-200"
                                 )}
                                 onClick={() => toggleModule(module.id)}
@@ -6298,7 +6317,7 @@ FEEDBACK: [your explanation]`
                                   <ChevronRight className="h-3 w-3 text-blue-600" />
                                 )}
                                 <Layers className="h-3 w-3 text-blue-600" />
-                                <span className="text-sm font-medium flex-1 truncate">{module.title}</span>
+                                <span className="text-sm font-medium flex-1 truncate min-w-0">{module.title}</span>
                                 <Badge variant="secondary" className="text-[10px] h-4">
                                   {totalItems}
                                 </Badge>
@@ -6345,6 +6364,26 @@ FEEDBACK: [your explanation]`
                                   <FolderOpen className="h-3 w-3" />
                                   Import
                                 </Button>
+
+                                {/* PPT Button */}
+                                <label className="cursor-pointer">
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept=".ppt,.pptx"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) {
+                                        toast.success('PPT uploaded. Pages being parsed into Lesson.')
+                                        e.target.value = ''
+                                      }
+                                    }}
+                                  />
+                                  <span className="h-6 flex items-center text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-green-600 hover:bg-slate-100 rounded">
+                                    <FileText className="h-3 w-3" />
+                                    PPT
+                                  </span>
+                                </label>
 
                                 <Button
                                   variant="ghost"
@@ -6766,6 +6805,10 @@ FEEDBACK: [your explanation]`
                   </div>
                 </DndContext>
               </ScrollArea>
+              {/* Assets Folder added to the bottom of the left panel */}
+              <div className="mt-4 pt-4 border-t">
+                {renderAssetsFolder()}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -6818,6 +6861,19 @@ FEEDBACK: [your explanation]`
                         AI Assist
                       </Button>
                       <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 text-blue-600 border-blue-200 bg-blue-50"
+                        onClick={() => {
+                          setQuestionBankTarget('task')
+                          setImportTarget(null)
+                          setQuestionBankOpen(true)
+                        }}
+                      >
+                        <FolderOpen className="h-4 w-4" />
+                        Import
+                      </Button>
+                      <Button
                         size="sm"
                         className="gap-2"
                         disabled={!loadedTaskId}
@@ -6854,7 +6910,10 @@ FEEDBACK: [your explanation]`
                       <div className="flex-1">
                         <Tabs
                           value={taskBuilderActiveTab}
-                          onValueChange={(v) => setTaskBuilderActiveTab(v as 'content' | 'pci')}
+                          onValueChange={(v) => {
+                            if (v === 'pci') autoExtractNumbering('task')
+                            setTaskBuilderActiveTab(v as 'content' | 'pci')
+                          }}
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2">
@@ -6889,84 +6948,9 @@ FEEDBACK: [your explanation]`
                               }}
                             />
                             {/* Uploaded Files List - only show for task (not extensions) */}
-                            {!taskBuilder.activeExtensionId && taskUploadedFiles.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {taskUploadedFiles.map((file) => (
-                                  <div key={file.id} className="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 text-xs">
-                                    <FileText className="h-3 w-3 text-blue-500" />
-                                    <span className="truncate max-w-[100px]">{file.name}</span>
-                                    <button
-                                      onClick={() => {
-                                        setTaskUploadedFiles(prev => prev.filter(f => f.id !== file.id))
-                                        setTaskBuilder(prev => ({
-                                          ...prev,
-                                          taskContent: prev.taskContent.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
-                                        }))
-                                      }}
-                                      className="text-gray-400 hover:text-red-500 ml-1"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                             {/* Upload button - only for task (not extensions) */}
                             {!taskBuilder.activeExtensionId && (
                               <div className="flex items-center gap-2">
-                                <label className="cursor-pointer">
-                                  <input
-                                    type="file"
-                                    accept="*/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={async (e) => {
-                                      const files = e.target.files
-                                      if (!files || files.length === 0) return
-
-                                      for (const file of Array.from(files)) {
-                                        const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                                        try {
-                                          const formData = new FormData()
-                                          formData.append('file', file)
-
-                                          const response = await fetch('/api/extract-text', {
-                                            method: 'POST',
-                                            body: formData
-                                          })
-
-                                          if (response.ok) {
-                                            const data = await response.json()
-                                            const extractedText = data.text || ''
-
-                                            setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                            setTaskBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
-                                            }))
-                                          } else {
-                                            setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                            setTaskBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
-                                            }))
-                                          }
-                                        } catch (error) {
-                                          setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
-                                          }))
-                                        }
-                                      }
-                                      e.currentTarget.value = ''
-                                    }}
-                                  />
-                                  <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
-                                    <Upload className="h-3 w-3" />
-                                    Upload Files
-                                  </span>
-                                </label>
                                 {/* Question Bank Button */}
                                 <Button
                                   variant="outline"
@@ -6983,8 +6967,7 @@ FEEDBACK: [your explanation]`
                                 {/* File type hint removed */}
                               </div>
                             )}
-                            {/* Assets Folder added to Slide Tab */}
-                            {!taskBuilder.activeExtensionId && renderAssetsFolder()}
+                            {/* Assets Folder added to Slide Tab removed from here */}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <AutoTextarea
@@ -7229,6 +7212,9 @@ FEEDBACK: [your explanation]`
                           </TabsContent>
 
                           <TabsContent value="dmi" className="mt-0">
+                            <div className="mb-2">
+                              <Button variant="outline" size="sm" className="w-full">Generate DMI</Button>
+                            </div>
                             <DMIPanel
                               content={taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
@@ -7271,6 +7257,19 @@ FEEDBACK: [your explanation]`
                         AI Assist
                       </Button>
                       <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2 text-blue-600 border-blue-200 bg-blue-50"
+                        onClick={() => {
+                          setQuestionBankTarget('assessment')
+                          setImportTarget(null)
+                          setQuestionBankOpen(true)
+                        }}
+                      >
+                        <FolderOpen className="h-4 w-4" />
+                        Import
+                      </Button>
+                      <Button
                         size="sm"
                         className="gap-2"
                         disabled={!loadedAssessmentId}
@@ -7307,7 +7306,10 @@ FEEDBACK: [your explanation]`
                       <div className="flex-1">
                         <Tabs
                           value={assessmentBuilderActiveTab}
-                          onValueChange={(v) => setAssessmentBuilderActiveTab(v as 'content' | 'pci')}
+                          onValueChange={(v) => {
+                            if (v === 'pci') autoExtractNumbering('assessment')
+                            setAssessmentBuilderActiveTab(v as 'content' | 'pci')
+                          }}
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2">
@@ -7339,84 +7341,9 @@ FEEDBACK: [your explanation]`
                               }}
                             />
                             {/* Uploaded Files List - only for assessment (not extensions) */}
-                            {!assessmentBuilder.activeExtensionId && assessmentUploadedFiles.length > 0 && (
-                              <div className="flex flex-wrap gap-2">
-                                {assessmentUploadedFiles.map((file) => (
-                                  <div key={file.id} className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1 text-xs">
-                                    <FileText className="h-3 w-3 text-purple-500" />
-                                    <span className="truncate max-w-[100px]">{file.name}</span>
-                                    <button
-                                      onClick={() => {
-                                        setAssessmentUploadedFiles(prev => prev.filter(f => f.id !== file.id))
-                                        setAssessmentBuilder(prev => ({
-                                          ...prev,
-                                          taskContent: prev.taskContent.replace(new RegExp(`\\[File( uploaded)?: ${file.name}\\][^\\[]*`, 'g'), '').trim()
-                                        }))
-                                      }}
-                                      className="text-gray-400 hover:text-red-500 ml-1"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
                             {/* Upload button - only for assessment (not extensions) */}
                             {!assessmentBuilder.activeExtensionId && (
                               <div className="flex items-center gap-2">
-                                <label className="cursor-pointer">
-                                  <input
-                                    type="file"
-                                    accept="*/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={async (e) => {
-                                      const files = e.target.files
-                                      if (!files || files.length === 0) return
-
-                                      for (const file of Array.from(files)) {
-                                        const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-                                        try {
-                                          const formData = new FormData()
-                                          formData.append('file', file)
-
-                                          const response = await fetch('/api/extract-text', {
-                                            method: 'POST',
-                                            body: formData
-                                          })
-
-                                          if (response.ok) {
-                                            const data = await response.json()
-                                            const extractedText = data.text || ''
-
-                                            setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                            setAssessmentBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File: ${file.name}]\n${extractedText}`
-                                            }))
-                                          } else {
-                                            setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                            setAssessmentBuilder(prev => ({
-                                              ...prev,
-                                              taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
-                                            }))
-                                          }
-                                        } catch (error) {
-                                          setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
-                                          setAssessmentBuilder(prev => ({
-                                            ...prev,
-                                            taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[File uploaded: ${file.name}]`
-                                          }))
-                                        }
-                                      }
-                                      e.currentTarget.value = ''
-                                    }}
-                                  />
-                                  <span className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 cursor-pointer">
-                                    <Upload className="h-3 w-3" />
-                                    Upload Files
-                                  </span>
-                                </label>
                                 {/* Question Bank Button for Assessment */}
                                 <Button
                                   variant="outline"
@@ -7433,8 +7360,7 @@ FEEDBACK: [your explanation]`
                                 {/* File type hint removed */}
                               </div>
                             )}
-                            {/* Assets Folder added to Slide Tab */}
-                            {!assessmentBuilder.activeExtensionId && renderAssetsFolder()}
+                            {/* Assets Folder added to Slide Tab removed from here */}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <AutoTextarea
@@ -7941,12 +7867,16 @@ FEEDBACK: [your explanation]`
             setQuestionBankOpen(false)
             setImportTarget(null)
           }}
-          onImport={(questions) => {
+          onImport={(items) => {
+            const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+            const joinedPci = items.map(i => i.pciText).join('\n\n')
+
             if (importTarget) {
               // Creating a new assessment from imported content
               const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
               newAssessment.title = 'Imported Assessment'
-              newAssessment.description = questions
+              newAssessment.description = joinedQuestions
+              newAssessment.instructions = joinedPci
 
               setModules(prev => prev.map(mod => {
                 if (mod.id === importTarget.moduleId) {
@@ -7972,12 +7902,14 @@ FEEDBACK: [your explanation]`
               if (questionBankTarget === 'task') {
                 setTaskBuilder(prev => ({
                   ...prev,
-                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Assessment Bank]\n\n${questions}`
+                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
+                  taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
                 }))
               } else {
                 setAssessmentBuilder(prev => ({
                   ...prev,
-                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Assessment Bank]\n\n${questions}`
+                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
+                  taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
                 }))
               }
               toast.success('Questions imported from Assessment Bank')

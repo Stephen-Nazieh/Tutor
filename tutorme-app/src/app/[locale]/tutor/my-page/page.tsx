@@ -270,7 +270,7 @@ export default function TutorMyPage() {
 
       {/* Tabs for Published Courses and Work in Progress */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 max-w-lg">
+        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
           <TabsTrigger value="public">
             Published
             {publishedCourses.length > 0 && (
@@ -286,6 +286,12 @@ export default function TutorMyPage() {
                 {draftCourses.length}
               </span>
             )}
+          </TabsTrigger>
+          <TabsTrigger value="ongoing">
+            Ongoing
+          </TabsTrigger>
+          <TabsTrigger value="completed">
+            Completed
           </TabsTrigger>
         </TabsList>
 
@@ -450,6 +456,34 @@ export default function TutorMyPage() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ongoing" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ongoing Courses</CardTitle>
+              <CardDescription>Courses that are currently active and being taught.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <p className="text-sm text-muted-foreground">You don't have any ongoing courses at the moment.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Completed Courses</CardTitle>
+              <CardDescription>Courses that you have successfully finished teaching.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <p className="text-sm text-muted-foreground">You haven't completed any courses yet.</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

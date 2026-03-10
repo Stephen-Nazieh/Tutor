@@ -60,7 +60,6 @@ const navSections: NavSection[] = [
   {
     title: 'Content',
     items: [
-      { href: '/tutor/courses', label: 'Course Catalogue', icon: BookOpen },
       { href: '/tutor/question-bank', label: 'Assessment Bank', icon: FileText },
     ],
   },
