@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Copy, ExternalLink, Edit, DollarSign, LayoutGrid, List } from 'lucide-react'
+import { Copy, ExternalLink, Edit, DollarSign, LayoutGrid, List, Search, Filter, BookOpen, Clock, ChevronRight, GraduationCap } from 'lucide-react'
 
 interface PublicCourse {
   id: string
@@ -47,7 +47,9 @@ export default function TutorMyPage() {
   const [bio, setBio] = useState('')
   const [publishedCourses, setPublishedCourses] = useState<PublicCourse[]>([])
   const [draftCourses, setDraftCourses] = useState<DraftCourse[]>([])
-  const [activeTab, setActiveTab] = useState(initialTab)
+  const [allCourses, setAllCourses] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState(initialTab === 'drafts' ? 'drafts' : searchParams.get('tab') === 'catalogue' ? 'catalogue' : 'public')
   const [draftViewMode, setDraftViewMode] = useState<'grid' | 'list'>('list')
 
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function TutorMyPage() {
         const coursesRes = await fetch('/api/tutor/courses', { credentials: 'include' })
         if (coursesRes.ok) {
           const coursesData = await coursesRes.json()
+          setAllCourses(coursesData.courses || [])
           const drafts = (coursesData.courses || [])
             .filter((c: DraftCourse) => !c.isPublished)
             .map((c: DraftCourse) => ({
@@ -265,193 +268,288 @@ export default function TutorMyPage() {
         </CardContent>
       </Card>
 
-      {/* Tabs for Published Courses and Work in Progress */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="public">
-            Published Courses
-            {publishedCourses.length > 0 && (
-              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-                {publishedCourses.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="drafts">
-            Work in Progress
-            {draftCourses.length > 0 && (
-              <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-                {draftCourses.length}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      <TabsList className="grid w-full grid-cols-3 max-w-lg">
+        <TabsTrigger value="public">
+          Published
+          {publishedCourses.length > 0 && (
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+              {publishedCourses.length}
+            </span>
+          )}
+        </TabsTrigger>
+        <TabsTrigger value="drafts">
+          Drafts
+          {draftCourses.length > 0 && (
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+              {draftCourses.length}
+            </span>
+          )}
+        </TabsTrigger>
+        <TabsTrigger value="catalogue">
+          Catalogue
+        </TabsTrigger>
+      </TabsList>
 
-        <TabsContent value="public" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle>Published Courses ({publishedCourses.length})</CardTitle>
-                  <CardDescription>These courses are visible on your public page.</CardDescription>
+      <TabsContent value="public" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Published Courses ({publishedCourses.length})</CardTitle>
+                <CardDescription>These courses are visible on your public page.</CardDescription>
+              </div>
+              <Button onClick={() => router.push('/tutor/courses/new')} className="w-fit">
+                Create New Course
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {publishedCourses.map((course) => (
+              <div key={course.id} className="rounded border p-3">
+                <div className="font-medium">{course.name}</div>
+                <div className="text-sm text-muted-foreground">{course.description || 'No description'}</div>
+                <div className="mt-2 flex gap-2">
+                  <Badge variant="secondary">{course.subject}</Badge>
+                  {course.gradeLevel ? <Badge variant="outline">{course.gradeLevel}</Badge> : null}
+                  {course.difficulty ? <Badge variant="outline">{course.difficulty}</Badge> : null}
                 </div>
-                <Button onClick={() => router.push('/tutor/courses/new')} className="w-fit">
+              </div>
+            ))}
+            {publishedCourses.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No published courses yet. Go to "Work in Progress" to publish your courses.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="drafts" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Work in Progress</CardTitle>
+                <CardDescription>
+                  Courses you&apos;re building that aren&apos;t published yet.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center border rounded-md p-1 bg-muted/50">
+                  <Button
+                    variant={draftViewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => setDraftViewMode('grid')}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={draftViewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => setDraftViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button asChild>
+                  <Link href="/tutor/courses/new">+ New Course</Link>
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {draftCourses.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  No courses in progress. Start building your first course!
+                </p>
+                <Button onClick={() => router.push('/tutor/courses/new')}>
                   Create New Course
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {publishedCourses.map((course) => (
-                <div key={course.id} className="rounded border p-3">
-                  <div className="font-medium">{course.name}</div>
-                  <div className="text-sm text-muted-foreground">{course.description || 'No description'}</div>
-                  <div className="mt-2 flex gap-2">
-                    <Badge variant="secondary">{course.subject}</Badge>
-                    {course.gradeLevel ? <Badge variant="outline">{course.gradeLevel}</Badge> : null}
-                    {course.difficulty ? <Badge variant="outline">{course.difficulty}</Badge> : null}
+            ) : draftViewMode === 'list' ? (
+              <div className="space-y-3">
+                {draftCourses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="flex items-center justify-between rounded border p-4 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium truncate">{course.name}</span>
+                        <Badge variant="secondary">{course.subject}</Badge>
+                        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                          Draft
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {course.description || 'No description'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {course._count.modules} modules • {course._count.lessons} lessons • Last edited {formatDate(course.updatedAt)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button size="sm" asChild>
+                        <Link href={`/tutor/courses/${course.id}/builder`}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit & Publish
+                        </Link>
+                      </Button>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/tutor/courses/${course.id}`}>
+                          <DollarSign className="h-4 w-4 mr-1" />
+                          Price & Schedule
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {publishedCourses.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No published courses yet. Go to "Work in Progress" to publish your courses.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="drafts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Work in Progress</CardTitle>
-                  <CardDescription>
-                    Courses you&apos;re building that aren&apos;t published yet.
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center border rounded-md p-1 bg-muted/50">
-                    <Button
-                      variant={draftViewMode === 'grid' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className="h-7 px-2"
-                      onClick={() => setDraftViewMode('grid')}
-                    >
-                      <LayoutGrid className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant={draftViewMode === 'list' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className="h-7 px-2"
-                      onClick={() => setDraftViewMode('list')}
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <Button asChild>
-                    <Link href="/tutor/courses/new">+ New Course</Link>
-                  </Button>
-                </div>
+                ))}
               </div>
-            </CardHeader>
-            <CardContent>
-              {draftCourses.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    No courses in progress. Start building your first course!
-                  </p>
-                  <Button onClick={() => router.push('/tutor/courses/new')}>
-                    Create New Course
-                  </Button>
-                </div>
-              ) : draftViewMode === 'list' ? (
-                <div className="space-y-3">
-                  {draftCourses.map((course) => (
-                    <div
-                      key={course.id}
-                      className="flex items-center justify-between rounded border p-4 hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium truncate">{course.name}</span>
-                          <Badge variant="secondary">{course.subject}</Badge>
-                          <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
-                            Draft
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {course.description || 'No description'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {course._count.modules} modules • {course._count.lessons} lessons • Last edited {formatDate(course.updatedAt)}
-                        </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {draftCourses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="rounded border p-4 hover:bg-muted/50 transition-colors flex flex-col"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <span className="font-medium truncate">{course.name}</span>
+                        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 shrink-0">
+                          Draft
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button size="sm" asChild>
-                          <Link href={`/tutor/courses/${course.id}/builder`}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit & Publish
-                          </Link>
-                        </Button>
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={`/tutor/courses/${course.id}`}>
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            Price & Schedule
-                          </Link>
-                        </Button>
-                      </div>
+                      <Badge variant="secondary" className="mb-2">{course.subject}</Badge>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {course.description || 'No description'}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-3">
+                        {course._count.modules} modules • {course._count.lessons} lessons
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Last edited {formatDate(course.updatedAt)}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {draftCourses.map((course) => (
-                    <div
-                      key={course.id}
-                      className="rounded border p-4 hover:bg-muted/50 transition-colors flex flex-col"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <span className="font-medium truncate">{course.name}</span>
-                          <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 shrink-0">
-                            Draft
-                          </Badge>
-                        </div>
-                        <Badge variant="secondary" className="mb-2">{course.subject}</Badge>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {course.description || 'No description'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-3">
-                          {course._count.modules} modules • {course._count.lessons} lessons
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Last edited {formatDate(course.updatedAt)}
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-2 mt-4 pt-3 border-t">
-                        <Button size="sm" asChild className="w-full">
-                          <Link href={`/tutor/courses/${course.id}/builder`}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit & Publish
-                          </Link>
-                        </Button>
-                        <Button size="sm" variant="outline" asChild className="w-full">
-                          <Link href={`/tutor/courses/${course.id}`}>
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            Price & Schedule
-                          </Link>
-                        </Button>
-                      </div>
+                    <div className="flex flex-col gap-2 mt-4 pt-3 border-t">
+                      <Button size="sm" asChild className="w-full">
+                        <Link href={`/tutor/courses/${course.id}/builder`}>
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit & Publish
+                        </Link>
+                      </Button>
+                      <Button size="sm" variant="outline" asChild className="w-full">
+                        <Link href={`/tutor/courses/${course.id}`}>
+                          <DollarSign className="h-4 w-4 mr-1" />
+                          Price & Schedule
+                        </Link>
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
 
-    </div>
+      <TabsContent value="catalogue" className="space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Course Catalogue</CardTitle>
+                <CardDescription>Manage your courses and curriculum</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Search courses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button variant="outline" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Filter
+              </Button>
+            </div>
+
+            {allCourses.length === 0 ? (
+              <div className="text-center py-12">
+                <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">No courses yet</h3>
+                <Button asChild onClick={() => router.push('/tutor/courses/new')}>
+                  <a>Create New Course</a>
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allCourses
+                  .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.subject.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((course) => (
+                    <Card key={course.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <BookOpen className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <Badge variant={course.isPublished ? 'default' : 'secondary'}>
+                            {course.isPublished ? 'Published' : 'Draft'}
+                          </Badge>
+                        </div>
+                        <CardTitle className="text-lg mt-3">{course.name}</CardTitle>
+                        <CardDescription className="line-clamp-2">
+                          {course.description || 'No description'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          <Badge variant="outline">{course.subject}</Badge>
+                          {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
+                          {course.difficulty && <Badge variant="outline" className="capitalize">{course.difficulty}</Badge>}
+                        </div>
+
+                        <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{course.estimatedHours || 0}h</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <BookOpen className="h-4 w-4" />
+                            <span>{course._count?.modules || 0} modules</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <GraduationCap className="h-4 w-4" />
+                            <span>{course._count?.enrollments || 0} students</span>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button asChild className="flex-1">
+                            <Link href={`/tutor/courses/${course.id}/builder`}>
+                              Open Builder
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+
+    </div >
   )
 }

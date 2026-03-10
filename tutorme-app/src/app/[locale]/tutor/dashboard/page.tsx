@@ -61,7 +61,7 @@ function TutorDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
-  
+
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateDialog(true)
     if (searchParams.get('course') === '1') router.push('/tutor/courses/new')
@@ -85,7 +85,7 @@ function TutorDashboardContent() {
     setOneAccountTipDismissed(true)
     try {
       localStorage.setItem('tutor-dashboard-one-account-tip-dismissed', '1')
-    } catch {}
+    } catch { }
   }
 
   const fetchData = useCallback(async () => {
@@ -154,7 +154,7 @@ function TutorDashboardContent() {
     }
   }, [session?.user?.id, fetchData])
 
-  const handleClassCreated = useCallback((classData?: { id: string; [key: string]: unknown }) => {
+  const handleClassCreated = useCallback((classData?: { id: string;[key: string]: unknown }) => {
     if (classData) {
       // Add the new class to the list immediately
       const newClass: UpcomingClass = {
@@ -219,97 +219,115 @@ function TutorDashboardContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {showOneAccountTip && (
-          <div className="mb-4 p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-start gap-2">
-            <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-slate-600 flex-1">
-              Only one account is logged in per browser. Logging in as a different user in another tab will switch the account in all tabs. To use a student account at the same time, use another browser or an incognito window.
-            </p>
-            <button type="button" onClick={dismissOneAccountTip} className="p-1 rounded hover:bg-slate-200 text-slate-500" aria-label="Dismiss">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-        {/* Modern Hero Section */}
-        <div className="mb-8">
-          <ModernHeroSection 
-            stats={stats} 
-            loading={loading} 
-            onCreateCourse={() => router.push('/tutor/courses/new')}
-          />
+
+      {/* Modern Hero Section */}
+      <div className="mb-8">
+        <ModernHeroSection
+          stats={stats}
+          loading={loading}
+          onCreateCourse={() => router.push('/tutor/courses/new')}
+        />
+      </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
+          {error}
+          <Button variant="outline" size="sm" className="ml-2" onClick={() => { setLoading(true); fetchData(); }}>
+            Retry
+          </Button>
         </div>
+      )}
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
-            {error}
-            <Button variant="outline" size="sm" className="ml-2" onClick={() => { setLoading(true); fetchData(); }}>
-              Retry
-            </Button>
-          </div>
-        )}
-
-        {/* Modern Grid Layout - Full Width */}
-        <div className="space-y-6">
-            <UpcomingClassesCard
-              classes={classes}
-              formatDate={formatDate}
-              loading={loading}
-              onCreateClassClick={() => setShowCreateDialog(true)}
-              onRemoveClass={handleRemoveClass}
-            />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-2">
-                <GlassCard 
-                  title="Course Catalogue" 
-                  icon={Library}
-                  gradient="blue"
-                  action={
-                    <Link href="/curriculum">
-                      <Button variant="ghost" size="sm">
-                        View
-                        <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    </Link>
-                  }
-                >
-                  <p className="text-sm text-gray-600 mb-4">
-                    Browse and manage your courses. Create new courses, then configure curriculum, groups, and schedule for each.
-                  </p>
-                  <Link href="/curriculum">
-                    <Button variant="outline" className="w-full">
-                      <Library className="w-4 h-4 mr-2" />
-                      Open Course Catalogue
-                    </Button>
-                  </Link>
-                </GlassCard>
-              </div>
-
-              <div className="lg:col-span-2">
-                <StudentsNeedingAttentionCard students={students} loading={loading} />
-              </div>
-            </div>
-
-            <StudentProgressCard loading={loading} students={allStudents} />
-            
-            {/* Interactive Calendar */}
-            <InteractiveCalendar 
-              onEventClick={(event) => console.log('Event clicked:', event)}
-              onDateClick={(date) => console.log('Date clicked:', date)}
-              onCreateClass={(date) => setShowCreateDialog(true)}
-              loading={loading}
-            />
-
-        {/* Create Class Dialog */}
-        <CreateClassDialog
-          open={showCreateDialog}
-          onOpenChange={setShowCreateDialog}
-          onClassCreated={handleClassCreated}
-          redirectToClass={false}
+      {/* Modern Grid Layout - Full Width */}
+      <div className="space-y-6">
+        <UpcomingClassesCard
+          classes={classes}
+          formatDate={formatDate}
+          loading={loading}
+          onCreateClassClick={() => setShowCreateDialog(true)}
+          onRemoveClass={handleRemoveClass}
         />
 
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-2">
+            <GlassCard
+              title="Course Catalogue"
+              icon={Library}
+              gradient="blue"
+              action={
+                <Link href="/tutor/my-page?tab=catalogue">
+                  <Button variant="ghost" size="sm">
+                    View
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+              }
+            >
+              <p className="text-sm text-gray-600 mb-4">
+                Browse and manage your courses. Create new courses, then configure curriculum, groups, and schedule for each.
+              </p>
+              <Link href="/tutor/my-page?tab=catalogue">
+                <Button variant="outline" className="w-full">
+                  <Library className="w-4 h-4 mr-2" />
+                  Open Course Catalogue
+                </Button>
+              </Link>
+            </GlassCard>
+          </div>
+
+        </div>
       </div>
+
+      {/* Analytics Section */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Analytics overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
+                <p className="text-4xl font-bold mt-2 text-blue-600">{stats.totalClasses}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
+                <p className="text-4xl font-bold mt-2 text-green-600">{stats.totalStudents}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>
+                <p className="text-4xl font-bold mt-2 text-purple-600">85%</p>
+                <p className="text-sm text-gray-400 mt-1">Task/Assessment completion</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Interactive Calendar */}
+      <InteractiveCalendar
+        onEventClick={(event) => console.log('Event clicked:', event)}
+        onDateClick={(date) => console.log('Date clicked:', date)}
+        onCreateClass={(date) => setShowCreateDialog(true)}
+        loading={loading}
+      />
+
+      {/* Create Class Dialog */}
+      <CreateClassDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onClassCreated={handleClassCreated}
+        redirectToClass={false}
+      />
+
     </div>
+    </div >
   )
 }
 

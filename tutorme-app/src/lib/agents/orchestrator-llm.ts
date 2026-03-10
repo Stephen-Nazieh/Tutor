@@ -8,12 +8,11 @@
  * Response caching for repeated prompts (5 min TTL)
  */
 
-import { generateWithOllama, chatWithOllama, isOllamaAvailable } from '@/lib/ai/ollama'
+import { generateWithGemini, chatWithGemini, isGeminiAvailable } from '@/lib/ai/gemini'
 import { generateWithKimi, chatWithKimi } from '@/lib/ai/kimi'
-import { generateWithZhipu, chatWithZhipu } from '@/lib/ai/zhipu'
 import { cache } from '@/lib/db'
 
-type AIProvider = 'kimi' | 'ollama' | 'zhipu'
+type AIProvider = 'kimi' | 'gemini'
 
 interface AIOptions {
   temperature?: number
@@ -45,7 +44,7 @@ function cacheKeyForChat(messages: Array<{ role: string; content: string }>): st
 
 /**
  * Generate text with automatic fallback
- * Priority: Kimi -> Ollama -> Zhipu
+ * Priority: Kimi -> Gemini
  * Kimi is now PRIMARY provider
  */
 export async function generateWithFallback(
@@ -91,48 +90,14 @@ export async function generateWithFallback(
     }
   }
 
-  // Fallback 1: Ollama (local, free)
-  try {
-    const isAvailable = await Promise.race([
-      isOllamaAvailable(),
-      new Promise<boolean>((_, reject) =>
-        setTimeout(() => reject(new Error('Ollama timeout')), 5000)
-      )
-    ])
-
-    if (isAvailable) {
-      const content = await Promise.race([
-        generateWithOllama(prompt, options),
-        new Promise<string>((_, reject) =>
-          setTimeout(() => reject(new Error('Ollama generation timeout')), timeout)
-        )
-      ])
-
-      const result = {
-        content,
-        provider: 'ollama' as AIProvider,
-        latencyMs: Date.now() - startTime,
-      }
-      if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
-      return result
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error)
-    if (msg.includes('not found') || msg.includes('404')) {
-      console.log('Ollama model not available, trying Zhipu')
-    } else {
-      console.log('Ollama failed, trying Zhipu:', error)
-    }
-  }
-
-  // Fallback 2: Zhipu GLM
-  if (process.env.ZHIPU_API_KEY) {
+  // Fallback 1: Gemini
+  if (process.env.GEMINI_API_KEY) {
     try {
-      const content = await generateWithZhipu(prompt, options)
+      const content = await generateWithGemini(prompt, options)
 
       const result = {
-        content,
-        provider: 'zhipu' as AIProvider,
+        content: content || '',
+        provider: 'gemini' as AIProvider,
         latencyMs: Date.now() - startTime,
       }
       if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
@@ -148,7 +113,7 @@ export async function generateWithFallback(
 
 /**
  * Chat with automatic fallback
- * Priority: Kimi -> Ollama -> Zhipu
+ * Priority: Kimi -> Gemini
  */
 export async function chatWithFallback(
   messages: Array<{ role: string; content: string }>,
@@ -193,48 +158,14 @@ export async function chatWithFallback(
     }
   }
 
-  // Fallback 1: Ollama
-  try {
-    const isAvailable = await Promise.race([
-      isOllamaAvailable(),
-      new Promise<boolean>((_, reject) =>
-        setTimeout(() => reject(new Error('Ollama timeout')), 5000)
-      )
-    ])
-
-    if (isAvailable) {
-      const content = await Promise.race([
-        chatWithOllama(messages, options),
-        new Promise<string>((_, reject) =>
-          setTimeout(() => reject(new Error('Ollama chat timeout')), timeout)
-        )
-      ])
-
-      const result = {
-        content,
-        provider: 'ollama' as AIProvider,
-        latencyMs: Date.now() - startTime,
-      }
-      if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
-      return result
-    }
-  } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : String(error)
-    if (msg.includes('not found') || msg.includes('404')) {
-      console.log('Ollama model not available, trying Zhipu')
-    } else {
-      console.log('Ollama failed, trying Zhipu:', error)
-    }
-  }
-
-  // Fallback 2: Zhipu
-  if (process.env.ZHIPU_API_KEY) {
+  // Fallback 1: Gemini
+  if (process.env.GEMINI_API_KEY) {
     try {
-      const content = await chatWithZhipu(messages, options)
+      const content = await chatWithGemini(messages, options)
 
       const result = {
-        content,
-        provider: 'zhipu' as AIProvider,
+        content: content || '',
+        provider: 'gemini' as AIProvider,
         latencyMs: Date.now() - startTime,
       }
       if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
@@ -278,23 +209,10 @@ export async function getAIProvidersStatus(): Promise<
     available: !!process.env.KIMI_API_KEY,
   })
 
-  // Check Ollama
-  const ollamaStart = Date.now()
-  try {
-    const available = await isOllamaAvailable()
-    results.push({
-      name: 'ollama' as AIProvider,
-      available,
-      latencyMs: Date.now() - ollamaStart,
-    })
-  } catch {
-    results.push({ name: 'ollama' as AIProvider, available: false })
-  }
-
-  // Check Zhipu
+  // Check Gemini
   results.push({
-    name: 'zhipu' as AIProvider,
-    available: !!process.env.ZHIPU_API_KEY,
+    name: 'gemini' as AIProvider,
+    available: !!process.env.GEMINI_API_KEY,
   })
 
   return results
@@ -317,16 +235,10 @@ export async function generateWithProvider(
         provider: 'kimi',
         latencyMs: Date.now() - startTime,
       }
-    case 'ollama':
+    case 'gemini':
       return {
-        content: await generateWithOllama(prompt, options),
-        provider: 'ollama',
-        latencyMs: Date.now() - startTime,
-      }
-    case 'zhipu':
-      return {
-        content: await generateWithZhipu(prompt, options),
-        provider: 'zhipu',
+        content: await generateWithGemini(prompt, options) || '',
+        provider: 'gemini',
         latencyMs: Date.now() - startTime,
       }
     default:

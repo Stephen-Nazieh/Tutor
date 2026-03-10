@@ -15,8 +15,11 @@ import {
   ArrowRight,
   Activity,
   BookOpen,
-  Award
+  Award,
+  Video,
+  Plus
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ModernHeroSectionProps {
   stats?: {
@@ -111,39 +114,30 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
           </div>
         </div>
 
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            icon={BookOpen}
-            label="Total Classes"
-            value={stats?.totalClasses || 0}
-            trend="+12%"
-            trendUp
-            color="from-blue-500 to-cyan-500"
-          />
-          <StatCard
-            icon={Users}
-            label="Active Students"
-            value={stats?.totalStudents || 0}
-            trend="+8%"
-            trendUp
-            color="from-purple-500 to-pink-500"
-          />
-          <StatCard
-            icon={Calendar}
-            label="Upcoming"
-            value={stats?.upcomingClasses || 0}
-            sublabel="This week"
-            color="from-orange-500 to-red-500"
-          />
-          <StatCard
-            icon={DollarSign}
-            label="Earnings"
-            value={`${stats?.currency || 'SGD'} ${(stats?.earnings || 0).toLocaleString()}`}
-            trend="+23%"
-            trendUp
-            color="from-green-500 to-emerald-500"
-          />
+        {/* One Week Calendar Schedule */}
+        <div className="grid grid-cols-7 gap-2 mb-8 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+          {Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(currentTime);
+            d.setDate(currentTime.getDate() + i);
+            return (
+              <div key={i} className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group">
+                <span className="text-slate-400 text-xs font-medium mb-1">
+                  {d.toLocaleDateString('en-US', { weekday: 'short' })}
+                </span>
+                <span className={cn(
+                  "text-lg font-bold w-8 h-8 flex items-center justify-center rounded-full mt-1",
+                  i === 0 ? "bg-purple-500 text-white" : "text-white group-hover:bg-white/10"
+                )}>
+                  {d.getDate()}
+                </span>
+                {/* Mock event dots */}
+                <div className="flex gap-1 mt-2 h-1.5">
+                  {i % 2 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                  {i % 3 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-pink-400" />}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Action Bar */}
@@ -154,6 +148,22 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
           >
             <Award className="w-4 h-4 mr-2" />
             Create Course
+          </Button>
+          <Button
+            variant="outline"
+            className="text-white border-white/20 bg-white/5 hover:bg-white/10"
+            onClick={() => toast.info('Coming soon...')}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Class
+          </Button>
+          <Button
+            variant="outline"
+            className="text-white border-white/20 bg-white/5 hover:bg-white/10"
+            onClick={() => toast.info('Coming soon...')}
+          >
+            <Video className="w-4 h-4 mr-2" />
+            Go Live
           </Button>
           <div className="flex-1" />
           <div className="flex items-center gap-2 text-sm text-slate-400">

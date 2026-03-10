@@ -59,9 +59,7 @@ const navSections: NavSection[] = [
   {
     title: 'Content',
     items: [
-      { href: '/tutor/quizzes', label: 'Quizzes', icon: FileText },
       { href: '/tutor/question-bank', label: 'Question Bank', icon: BookOpen },
-      { href: '/tutor/resources', label: 'Resources', icon: FolderOpen },
     ],
   },
   {
@@ -96,7 +94,6 @@ const quickActionSections: QuickActionSection[] = [
   {
     title: 'Build & Launch',
     items: [
-      { href: '/tutor/dashboard?create=1', label: 'Create Class', icon: Zap },
       { href: '/tutor/group-builder', label: 'Group Builder', icon: Users },
     ],
   },
@@ -149,7 +146,7 @@ export default function TutorLayout({
   // Check if we're on the Course Builder page - if so, don't render the tutor nav
   // The Course Builder has its own layout
   const isCourseBuilder = pathname?.includes('/courses/') && pathname?.includes('/builder')
-  
+
   // Check if we're in a live class session - if so, don't render the sidebar
   // Live class should be immersive full-screen experience
   const isLiveClass = pathname?.includes('/live-class/') && pathname?.split('/live-class/')[1]?.length > 0

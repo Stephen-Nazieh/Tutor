@@ -9,16 +9,16 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { 
-  TrendingUp, 
-  Users, 
-  BookOpen, 
+import {
+  TrendingUp,
+  Users,
+  BookOpen,
   Award,
   ArrowLeft,
   Download,
@@ -38,6 +38,8 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { ScoreDistributionChart } from '@/components/analytics/score-distribution-chart'
 import { EngagementDashboard } from '@/components/reports/engagement-dashboard'
+import { StudentsNeedingAttentionCard } from '../dashboard/components/StudentsNeedingAttentionCard'
+import { StudentProgressCard } from '../dashboard/components/StudentProgressCard'
 
 interface ClassOption {
   id: string
@@ -94,10 +96,13 @@ export default function TutorReports() {
   const [students, setStudents] = useState<Student[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isExporting, setIsExporting] = useState(false)
-  
+
   // Class selector state
   const [availableClasses, setAvailableClasses] = useState<ClassOption[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string>('')
+  const [globalAttentionStudents, setGlobalAttentionStudents] = useState([])
+  const [globalAllStudents, setGlobalAllStudents] = useState([])
+  const [loadingGlobals, setLoadingGlobals] = useState(true)
 
   // Fetch available classes on mount
   useEffect(() => {
@@ -107,9 +112,9 @@ export default function TutorReports() {
           fetch('/api/tutor/classes', { credentials: 'include' }),
           fetch('/api/tutor/courses', { credentials: 'include' }),
         ])
-        
+
         let options: ClassOption[] = []
-        
+
         if (classesRes.ok) {
           const classesData = await classesRes.json()
           const classOptions = (classesData.classes || []).map((c: any) => ({
@@ -120,7 +125,7 @@ export default function TutorReports() {
           }))
           options = [...options, ...classOptions]
         }
-        
+
         if (coursesRes.ok) {
           const coursesData = await coursesRes.json()
           const courseOptions = (coursesData.courses || []).map((c: any) => ({
@@ -131,9 +136,9 @@ export default function TutorReports() {
           }))
           options = [...options, ...courseOptions]
         }
-        
+
         setAvailableClasses(options)
-        
+
         // Select first class by default if available
         if (options.length > 0 && !selectedClassId) {
           setSelectedClassId(options[0].id)
@@ -143,8 +148,30 @@ export default function TutorReports() {
         toast.error('Failed to load classes')
       }
     }
-    
+
     fetchClasses()
+
+    const fetchGlobals = async () => {
+      try {
+        const [attRes, allRes] = await Promise.all([
+          fetch('/api/tutor/students-needing-attention', { credentials: 'include' }),
+          fetch('/api/tutor/students', { credentials: 'include' })
+        ])
+        if (attRes.ok) {
+          const d = await attRes.json()
+          setGlobalAttentionStudents(d.students || [])
+        }
+        if (allRes.ok) {
+          const d = await allRes.json()
+          setGlobalAllStudents(d.students || [])
+        }
+      } catch (err) {
+        console.error('Failed to load global reports')
+      } finally {
+        setLoadingGlobals(false)
+      }
+    }
+    fetchGlobals()
   }, [])
 
   // Fetch report data when selected class changes
@@ -153,7 +180,7 @@ export default function TutorReports() {
       setIsLoading(false)
       return
     }
-    
+
     const fetchReportData = async () => {
       setIsLoading(true)
       try {
@@ -161,19 +188,19 @@ export default function TutorReports() {
         const reportRes = await fetch(`/api/reports/class/${selectedClassId}`, {
           credentials: 'include',
         })
-        
+
         if (reportRes.ok) {
           const reportData = await reportRes.json()
           if (reportData.success) {
             setClassData(reportData.data)
           }
         }
-        
+
         // Fetch students list
         const analyticsRes = await fetch(`/api/analytics/class/${selectedClassId}`, {
           credentials: 'include',
         })
-        
+
         if (analyticsRes.ok) {
           const analyticsData = await analyticsRes.json()
           if (analyticsData.success && analyticsData.data?.students) {
@@ -193,7 +220,7 @@ export default function TutorReports() {
         setIsLoading(false)
       }
     }
-    
+
     fetchReportData()
   }, [selectedClassId])
 
@@ -202,24 +229,24 @@ export default function TutorReports() {
       toast.info('Please select a class first')
       return
     }
-    
+
     setIsExporting(true)
     try {
       const res = await fetch(`/api/reports/class/${selectedClassId}/export?format=${format}`, {
         credentials: 'include',
       })
-      
+
       if (res.ok) {
         const blob = await res.blob()
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        
+
         const extension = format === 'excel' ? 'xlsx' : format
         a.download = `class-report-${selectedClassId}.${extension}`
         a.click()
         window.URL.revokeObjectURL(url)
-        
+
         toast.success(`${format.toUpperCase()} report exported successfully`)
       } else {
         const error = await res.json()
@@ -237,7 +264,7 @@ export default function TutorReports() {
     router.push(`/tutor/reports/${studentId}`)
   }
 
-  const filteredStudents = students.filter(s => 
+  const filteredStudents = students.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -264,7 +291,7 @@ export default function TutorReports() {
     classInfo: {
       id: selectedClassId || 'default',
       totalStudents: students.length || 0,
-      averageScore: students.length 
+      averageScore: students.length
         ? Math.round(students.reduce((acc, s) => acc + s.averageScore, 0) / students.length)
         : 0
     },
@@ -302,7 +329,7 @@ export default function TutorReports() {
       })),
     summary: {
       totalStudents: students.length,
-      averageScore: students.length 
+      averageScore: students.length
         ? Math.round(students.reduce((acc, s) => acc + s.averageScore, 0) / students.length)
         : 0,
       advancedCount: students.filter(s => s.cluster === 'advanced').length,
@@ -338,7 +365,7 @@ export default function TutorReports() {
               <p className="text-gray-500">Track student performance and class progress</p>
             </div>
           </div>
-          
+
           {/* Export Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -366,6 +393,12 @@ export default function TutorReports() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        {/* Global Dashboard Reports */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
+          <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
         </div>
 
         {/* Class Selector */}
@@ -523,14 +556,14 @@ export default function TutorReports() {
                     <div className="space-y-4">
                       {displayData.charts.clusterDistribution.map((cluster) => (
                         <div key={cluster.name} className="flex items-center gap-4">
-                          <div 
-                            className="w-4 h-4 rounded-full" 
+                          <div
+                            className="w-4 h-4 rounded-full"
                             style={{ backgroundColor: cluster.color }}
                           />
                           <span className="flex-1">{cluster.name}</span>
                           <span className="font-bold">{cluster.count}</span>
                           <span className="text-sm text-gray-500">
-                            {displayData.summary.totalStudents > 0 
+                            {displayData.summary.totalStudents > 0
                               ? Math.round((cluster.count / displayData.summary.totalStudents) * 100)
                               : 0}%
                           </span>
@@ -551,8 +584,8 @@ export default function TutorReports() {
                   <CardContent>
                     <div className="space-y-3">
                       {displayData.topStudents.length > 0 ? displayData.topStudents.map((student, index) => (
-                        <div 
-                          key={student.id} 
+                        <div
+                          key={student.id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                           onClick={() => handleStudentClick(student.id)}
                         >
@@ -589,8 +622,8 @@ export default function TutorReports() {
                   <CardContent>
                     <div className="space-y-3">
                       {displayData.studentsNeedingAttention.length > 0 ? displayData.studentsNeedingAttention.map((student) => (
-                        <div 
-                          key={student.id} 
+                        <div
+                          key={student.id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                           onClick={() => handleStudentClick(student.id)}
                         >
@@ -634,7 +667,7 @@ export default function TutorReports() {
                 <CardContent>
                   <div className="space-y-2">
                     {filteredStudents.length > 0 ? filteredStudents.map((student) => (
-                      <div 
+                      <div
                         key={student.id}
                         className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
                         onClick={() => handleStudentClick(student.id)}
