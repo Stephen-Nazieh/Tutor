@@ -31,7 +31,9 @@ import {
   Palette,
   BookOpen,
   FileText,
-  Globe
+  Globe,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -53,19 +55,19 @@ const navSections: NavSection[] = [
     title: 'Teaching',
     items: [
       { href: '/tutor/classes', label: 'My Schedules', icon: CalendarDays },
-      { href: '/tutor/whiteboards', label: 'Whiteboards', icon: Palette },
     ],
   },
   {
     title: 'Content',
     items: [
-      { href: '/tutor/question-bank', label: 'Question Bank', icon: BookOpen },
+      { href: '/tutor/courses', label: 'Course Catalogue', icon: BookOpen },
+      { href: '/tutor/question-bank', label: 'Assessment Bank', icon: FileText },
     ],
   },
   {
     title: 'Profile',
     items: [
-      { href: '/tutor/my-page', label: 'My Page & Courses', icon: Globe },
+      { href: '/tutor/my-page', label: 'My Page', icon: Globe },
     ],
   },
   {
@@ -124,6 +126,7 @@ export default function TutorLayout({
   const { data: session, status } = useSession()
   const { data: realmSession, status: realmStatus } = useRealmSession('tutor')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [desktopNavOpen, setDesktopNavOpen] = useState(true)
 
   // Use realm session (tutor tab) first; only redirect if we don't have a tutor session and default session is another role
   useEffect(() => {
@@ -157,16 +160,36 @@ export default function TutorLayout({
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Floating Action Button to Show Navigation on Desktop */}
+      {!desktopNavOpen && (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setDesktopNavOpen(true)}
+          className="fixed top-4 left-4 z-50 hidden lg:flex rounded-full shadow-md bg-white border-gray-200"
+        >
+          <PanelLeftOpen className="h-5 w-5" />
+        </Button>
+      )}
+
       {/* Left Navigation Sidebar - Desktop */}
-      <aside className="w-64 bg-white border-r sticky top-0 h-screen hidden lg:flex flex-col z-40">
-        <div className="p-4 border-b flex items-center justify-between">
+      <aside className={cn(
+        "bg-white border-r sticky top-0 h-screen z-40 transition-all duration-300 hidden lg:flex flex-col",
+        desktopNavOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full overflow-hidden border-r-0"
+      )}>
+        <div className="p-4 border-b flex items-center justify-between min-w-[256px]">
           <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
-          <Link href="/tutor/notifications">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setDesktopNavOpen(false)} title="Hide Navigation text-gray-400">
+              <PanelLeftClose className="h-4 w-4" />
             </Button>
-          </Link>
+            <Link href="/tutor/notifications">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <nav className="flex-1 p-4 space-y-4 overflow-y-auto">

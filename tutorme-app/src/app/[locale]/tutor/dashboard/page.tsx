@@ -255,7 +255,7 @@ function TutorDashboardContent() {
               icon={Library}
               gradient="blue"
               action={
-                <Link href="/tutor/my-page?tab=catalogue">
+                <Link href="/tutor/courses">
                   <Button variant="ghost" size="sm">
                     View
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -266,7 +266,7 @@ function TutorDashboardContent() {
               <p className="text-sm text-gray-600 mb-4">
                 Browse and manage your courses. Create new courses, then configure curriculum, groups, and schedule for each.
               </p>
-              <Link href="/tutor/my-page?tab=catalogue">
+              <Link href="/tutor/courses">
                 <Button variant="outline" className="w-full">
                   <Library className="w-4 h-4 mr-2" />
                   Open Course Catalogue

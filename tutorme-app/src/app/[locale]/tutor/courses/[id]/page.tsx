@@ -157,7 +157,7 @@ export default function TutorCoursePage() {
     fetch('/api/user/profile', { credentials: 'include' })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => data?.profile && setTutorProfile(data.profile))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   useEffect(() => {
@@ -288,18 +288,18 @@ export default function TutorCoursePage() {
       setCourse((prev) =>
         prev
           ? {
-              ...prev,
-              name: courseName.trim() || prev.name,
-              description: description.trim() || prev.description,
-              gradeLevel: gradeLevel || prev.gradeLevel,
-              difficulty: difficulty || prev.difficulty,
-              languageOfInstruction: languageOfInstruction || null,
-              price: price === '' ? null : Number(price),
-              currency: currency || null,
-              curriculumSource,
-              outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
-              schedule,
-            }
+            ...prev,
+            name: courseName.trim() || prev.name,
+            description: description.trim() || prev.description,
+            gradeLevel: gradeLevel || prev.gradeLevel,
+            difficulty: difficulty || prev.difficulty,
+            languageOfInstruction: languageOfInstruction || null,
+            price: price === '' ? null : Number(price),
+            currency: currency || null,
+            curriculumSource,
+            outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
+            schedule,
+          }
           : null
       )
       if (curriculumSource === 'UPLOADED' && (editableCurriculum || editableNotes || editableTopics || outline.length > 0)) {
@@ -531,7 +531,7 @@ export default function TutorCoursePage() {
               ) : (
                 <>
                   <Radio className="h-4 w-4 mr-2" />
-                  Open in Live Class
+                  Go Live
                 </>
               )}
             </Button>

@@ -28,6 +28,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -58,6 +59,7 @@ import {
   Clock,
   GraduationCap,
   ListTodo,
+  FolderOpen,
   Home,
   BrainCircuit,
   GripVertical,
@@ -771,36 +773,36 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
   // Dynamic import jsPDF to avoid SSR issues
   const jsPDF = require('jspdf')
   const doc = new jsPDF()
-  
+
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 15
   const contentWidth = pageWidth - (margin * 2)
   let y = 20
-  
+
   // Title
   doc.setFontSize(18)
   doc.setFont('helvetica', 'bold')
   doc.text(title.toUpperCase(), pageWidth / 2, y, { align: 'center' })
   y += 12
-  
+
   // Line under title
   doc.setDrawColor(0)
   doc.line(margin, y, pageWidth - margin, y)
   y += 10
-  
+
   // Instructions
   if (description) {
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
     doc.text('INSTRUCTIONS:', margin, y)
     y += 6
-    
+
     doc.setFont('helvetica', 'normal')
     const descLines = doc.splitTextToSize(description, contentWidth)
     doc.text(descLines, margin, y)
     y += (descLines.length * 5) + 8
   }
-  
+
   // Summary box
   doc.setFillColor(240, 240, 240)
   doc.rect(margin, y - 5, contentWidth, 15, 'F')
@@ -809,7 +811,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
   const totalPoints = questions.reduce((sum, q) => sum + (q.points || 1), 0)
   doc.text(`Total Questions: ${questions.length}    |    Total Points: ${totalPoints}`, margin + 5, y + 5)
   y += 20
-  
+
   // Questions
   questions.forEach((q, idx) => {
     // Check for page break
@@ -817,26 +819,26 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
       doc.addPage()
       y = 20
     }
-    
+
     // Question header
     doc.setFontSize(11)
     doc.setFont('helvetica', 'bold')
     doc.text(`Question ${idx + 1}`, margin, y)
-    
+
     // Points badge
     doc.setFillColor(230, 230, 230)
     doc.rect(pageWidth - margin - 30, y - 5, 30, 8, 'F')
     doc.setFontSize(9)
     doc.text(`${q.points || 1} pt${q.points !== 1 ? 's' : ''}`, pageWidth - margin - 15, y, { align: 'center' })
     y += 8
-    
+
     // Question text
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     const questionLines = doc.splitTextToSize(q.question, contentWidth)
     doc.text(questionLines, margin, y)
     y += (questionLines.length * 5) + 6
-    
+
     // Options for MCQ/Multi-select
     if (q.options && q.options.length > 0) {
       q.options.forEach((opt, optIdx) => {
@@ -851,7 +853,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
       })
       y += 4
     }
-    
+
     // True/False
     if (q.type === 'truefalse') {
       doc.text('    [  ] True', margin + 5, y)
@@ -859,21 +861,21 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
       doc.text('    [  ] False', margin + 5, y)
       y += 10
     }
-    
+
     // Fill in blank
     if (q.type === 'fillblank') {
       doc.setDrawColor(180)
       doc.line(margin + 5, y, margin + 100, y)
       y += 10
     }
-    
+
     // Short answer
     if (q.type === 'shortanswer') {
       doc.setDrawColor(180)
       doc.line(margin + 5, y, pageWidth - margin, y)
       y += 12
     }
-    
+
     // Essay
     if (q.type === 'essay') {
       doc.setDrawColor(180)
@@ -882,10 +884,10 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
       }
       y += 40
     }
-    
+
     y += 8
   })
-  
+
   // Footer
   const totalPages = doc.internal.getNumberOfPages()
   for (let i = 1; i <= totalPages; i++) {
@@ -894,11 +896,11 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
     doc.setTextColor(128)
     doc.text(`Page ${i} of ${totalPages}  |  ${title}`, pageWidth / 2, 285, { align: 'center' })
   }
-  
+
   const pdfBlob = doc.output('blob')
   const pdfUrl = URL.createObjectURL(pdfBlob)
   const fileName = `${title.replace(/[^a-z0-9]/gi, '_')}_Question_Paper.pdf`
-  
+
   return { blob: pdfBlob, url: pdfUrl, fileName }
 }
 
@@ -1699,15 +1701,14 @@ Format your response clearly and concisely.`
             AI Assist Agent - {context === 'task' ? 'Task' : 'Assessment'} Builder
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex-1 overflow-y-auto space-y-4 py-4 min-h-[300px] max-h-[400px]">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-lg p-3 text-sm ${
-                msg.role === 'user' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
+              <div className={`max-w-[80%] rounded-lg p-3 text-sm ${msg.role === 'user'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 text-gray-800'
+                }`}>
                 <div className="whitespace-pre-wrap">{msg.content}</div>
               </div>
             </div>
@@ -1738,7 +1739,7 @@ Format your response clearly and concisely.`
               }}
             />
           </div>
-          
+
           <div className="flex justify-end items-center">
             <Button onClick={handleSend} disabled={!input.trim() || loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
@@ -1782,7 +1783,7 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
       // Split content into potential questions
       const lines = content.split('\n').filter(line => line.trim())
       const questionLines: { number: number; text: string }[] = []
-      
+
       lines.forEach((line) => {
         // Match patterns like "1.", "Q1:", "Question 1:", etc.
         const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
@@ -1867,7 +1868,7 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium">Digital Marking Interface</h4>
       </div>
-      
+
       <div className="space-y-2 max-h-[300px] overflow-y-auto">
         {answers.length === 0 ? (
           <p className="text-xs text-muted-foreground">No questions detected in content</p>
@@ -1878,7 +1879,7 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
                 <span className="text-xs font-medium text-blue-600 mt-0.5">Q{item.questionNumber}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground truncate mb-1">{item.questionText}</p>
-                  
+
                   {editingAnswer === idx ? (
                     <div className="space-y-1">
                       <textarea
@@ -1897,9 +1898,9 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
                       <p className={`text-xs ${item.isGenerated ? 'text-amber-600 italic' : 'text-green-700'}`}>
                         A: {item.answer}
                       </p>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         className="h-5 text-[10px] px-1 shrink-0"
                         onClick={() => handleEdit(idx)}
                       >
@@ -1913,7 +1914,7 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
           ))
         )}
       </div>
-      
+
       <p className="text-[10px] text-muted-foreground mt-2">
         {answers.some(a => a.isGenerated) ? 'Yellow answers need to be filled. Green are from PCI.' : 'All answers are from PCI'}
       </p>
@@ -1991,11 +1992,11 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
   const [searchQuery, setSearchQuery] = useState('')
 
   const subjects = Array.from(new Set(SAMPLE_QUESTIONS.map(q => q.subject)))
-  
+
   const filteredQuestions = SAMPLE_QUESTIONS.filter(q => {
     const matchesSubject = filterSubject === 'all' || q.subject === filterSubject
     const matchesDifficulty = filterDifficulty === 'all' || q.difficulty === filterDifficulty
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.subject.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesSubject && matchesDifficulty && matchesSearch
@@ -2009,7 +2010,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
       newSelected.add(id)
     }
     setSelectedQuestions(newSelected)
-    
+
     // Set preview to the last selected question
     const question = SAMPLE_QUESTIONS.find(q => q.id === id)
     if (question && newSelected.has(id)) {
@@ -2028,7 +2029,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
       }
       return text
     }).join('\n\n')
-    
+
     onImport(formatted)
     setSelectedQuestions(new Set())
     setPreviewQuestion(null)
@@ -2044,7 +2045,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
             Question Bank
           </DialogTitle>
         </DialogHeader>
-        
+
         {/* Filters */}
         <div className="flex gap-3 mb-4">
           <Input
@@ -2081,18 +2082,16 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
               <div
                 key={question.id}
                 onClick={() => toggleQuestion(question.id)}
-                className={`p-3 border-b cursor-pointer transition-colors ${
-                  selectedQuestions.has(question.id) 
-                    ? 'bg-blue-50 border-blue-200' 
-                    : 'hover:bg-gray-50'
-                }`}
+                className={`p-3 border-b cursor-pointer transition-colors ${selectedQuestions.has(question.id)
+                  ? 'bg-blue-50 border-blue-200'
+                  : 'hover:bg-gray-50'
+                  }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${
-                    selectedQuestions.has(question.id) 
-                      ? 'bg-blue-500 border-blue-500' 
-                      : 'border-gray-300'
-                  }`}>
+                  <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${selectedQuestions.has(question.id)
+                    ? 'bg-blue-500 border-blue-500'
+                    : 'border-gray-300'
+                    }`}>
                     {selectedQuestions.has(question.id) && <Check className="w-3 h-3 text-white" />}
                   </div>
                   <div className="flex-1">
@@ -2140,7 +2139,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
                 Select a question from the list to preview it here.
               </p>
             )}
-            
+
             {selectedQuestions.size > 0 && (
               <div className="mt-4 pt-4 border-t">
                 <p className="text-sm font-medium">
@@ -2153,8 +2152,8 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            onClick={handleImport} 
+          <Button
+            onClick={handleImport}
             disabled={selectedQuestions.size === 0}
           >
             Import {selectedQuestions.size > 0 && `(${selectedQuestions.size})`}
@@ -2166,13 +2165,13 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 }
 
 // Lesson Selector Dialog
-function LessonSelectorDialog({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
+function LessonSelectorDialog({
+  isOpen,
+  onClose,
+  onConfirm,
   modules,
   itemType = 'item'
-}: { 
+}: {
   isOpen: boolean
   onClose: () => void
   onConfirm: (moduleId: string, lessonId: string) => void
@@ -2217,7 +2216,7 @@ function LessonSelectorDialog({
           <p className="text-sm text-muted-foreground">
             Choose which lesson to save this {itemType} to:
           </p>
-          
+
           <div className="space-y-2">
             <Label>Lesson</Label>
             <Select value={selectedModuleId} onValueChange={(value) => {
@@ -2260,7 +2259,7 @@ function LessonSelectorDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
+          <Button
             onClick={handleConfirm}
             disabled={!selectedModuleId || !selectedLessonId}
           >
@@ -2328,9 +2327,9 @@ function AssessmentBuilderModal({
 }: BuilderModalProps & { builderType?: 'task' | 'assessment' | 'homework' }) {
   const [data, setData] = useState<Task | Assessment>(
     initialData ||
-      (builderType === 'task'
-        ? DEFAULT_TASK(0)
-        : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
+    (builderType === 'task'
+      ? DEFAULT_TASK(0)
+      : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
   )
   const [showAnswerKey, setShowAnswerKey] = useState(false)
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
@@ -2342,9 +2341,9 @@ function AssessmentBuilderModal({
   const addQuestion = (type: QuizQuestion['type']) => {
     const matchingPairs = type === 'matching'
       ? [
-          { left: '', right: '' },
-          { left: '', right: '' },
-        ]
+        { left: '', right: '' },
+        { left: '', right: '' },
+      ]
       : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
@@ -2391,197 +2390,166 @@ function AssessmentBuilderModal({
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-2">
               <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>{titleLabel} Title *</Label>
-                <Input
-                  value={data.title}
-                  onChange={(e) => setData({ ...data, title: e.target.value })}
-                  placeholder={`e.g., ${titleLabel} 1`}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Instructions</Label>
-                <Textarea
-                  value={data.description}
-                  onChange={(e) => setData({ ...data, description: e.target.value })}
-                  placeholder="What should students know before starting this assessment?"
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
-                <Textarea
-                  value={data.instructions}
-                  onChange={(e) => setData({ ...data, instructions: e.target.value })}
-                  placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
-                  rows={4}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Submission</Label>
-                  {isTask ? (
-                    <Select
-                      value={data.submissionType as Task['submissionType']}
-                      onValueChange={(v) =>
-                        setData({
-                          ...(data as Task),
-                          submissionType: v as Task['submissionType'],
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="file">File</SelectItem>
-                        <SelectItem value="link">Link</SelectItem>
-                        <SelectItem value="questions">Questions</SelectItem>
-                        <SelectItem value="none">None</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Select
-                      value={data.submissionType as Assessment['submissionType']}
-                      onValueChange={(v) =>
-                        setData({
-                          ...(data as Assessment),
-                          submissionType: v as Assessment['submissionType'],
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="text">Text</SelectItem>
-                        <SelectItem value="file">File</SelectItem>
-                        <SelectItem value="link">Link</SelectItem>
-                        <SelectItem value="multiple">Multiple</SelectItem>
-                        <SelectItem value="questions">Questions</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <Label>{titleLabel} Title *</Label>
+                  <Input
+                    value={data.title}
+                    onChange={(e) => setData({ ...data, title: e.target.value })}
+                    placeholder={`e.g., ${titleLabel} 1`}
+                  />
                 </div>
-              </div>
-
-              {/* Questions Section - Only when submissionType is 'questions' */}
-              {data.submissionType === 'questions' && (
-                <div className="border rounded-lg p-4 space-y-4 bg-purple-50/30">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium flex items-center gap-2">
-                      <FileQuestion className="h-4 w-4 text-purple-500" />
-                      Questions ({data.questions?.length || 0})
-                    </h3>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
-                        <Plus className="h-4 w-4 mr-1" /> MCQ
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
-                        <Plus className="h-4 w-4 mr-1" /> T/F
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
-                        <Plus className="h-4 w-4 mr-1" /> Short
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
-                        <Plus className="h-4 w-4 mr-1" /> Essay
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
-                        <Plus className="h-4 w-4 mr-1" /> Multi-select
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
-                        <Plus className="h-4 w-4 mr-1" /> Matching
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
-                        <Plus className="h-4 w-4 mr-1" /> Fill Blank
-                      </Button>
-                    </div>
+                <div className="space-y-2">
+                  <Label>Instructions</Label>
+                  <Textarea
+                    value={data.description}
+                    onChange={(e) => setData({ ...data, description: e.target.value })}
+                    placeholder="What should students know before starting this assessment?"
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
+                  <Textarea
+                    value={data.instructions}
+                    onChange={(e) => setData({ ...data, instructions: e.target.value })}
+                    placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
+                    rows={4}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Submission</Label>
+                    {isTask ? (
+                      <Select
+                        value={data.submissionType as Task['submissionType']}
+                        onValueChange={(v) =>
+                          setData({
+                            ...(data as Task),
+                            submissionType: v as Task['submissionType'],
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="file">File</SelectItem>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="questions">Questions</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Select
+                        value={data.submissionType as Assessment['submissionType']}
+                        onValueChange={(v) =>
+                          setData({
+                            ...(data as Assessment),
+                            submissionType: v as Assessment['submissionType'],
+                          })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Text</SelectItem>
+                          <SelectItem value="file">File</SelectItem>
+                          <SelectItem value="link">Link</SelectItem>
+                          <SelectItem value="multiple">Multiple</SelectItem>
+                          <SelectItem value="questions">Questions</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
-                  <QuestionBankQuickImport
-                    onImport={(incomingQuestions) =>
-                      setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
-                    }
-                  />
-                  <ManualQuestionComposer
-                    onImport={(incomingQuestions) =>
-                      setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
-                    }
-                  />
-                  <div className="space-y-3">
-                    {(data.questions || []).map((q, idx) => (
-                      <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
-                            <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <input
-                                type="checkbox"
-                                checked={q.extendEnabled ?? false}
-                                onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
-                              />
-                              Extend
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              className="w-20 h-8"
-                              value={q.points}
-                              onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
-                            />
-                            <span className="text-sm text-muted-foreground">pts</span>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <Textarea
-                          value={q.question}
-                          onChange={(e) => updateQuestion(idx, { question: e.target.value })}
-                          placeholder="Enter question"
-                          rows={2}
-                        />
-                        {q.type === 'mcq' && q.options && (
-                          <div className="space-y-2 pl-4">
-                            {q.options.map((opt, optIdx) => (
-                              <div key={optIdx} className="flex items-center gap-2">
+                </div>
+
+                {/* Questions Section - Only when submissionType is 'questions' */}
+                {data.submissionType === 'questions' && (
+                  <div className="border rounded-lg p-4 space-y-4 bg-purple-50/30">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium flex items-center gap-2">
+                        <FileQuestion className="h-4 w-4 text-purple-500" />
+                        Questions ({data.questions?.length || 0})
+                      </h3>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
+                          <Plus className="h-4 w-4 mr-1" /> MCQ
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
+                          <Plus className="h-4 w-4 mr-1" /> T/F
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
+                          <Plus className="h-4 w-4 mr-1" /> Short
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
+                          <Plus className="h-4 w-4 mr-1" /> Essay
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
+                          <Plus className="h-4 w-4 mr-1" /> Multi-select
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
+                          <Plus className="h-4 w-4 mr-1" /> Matching
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
+                          <Plus className="h-4 w-4 mr-1" /> Fill Blank
+                        </Button>
+                      </div>
+                    </div>
+                    <QuestionBankQuickImport
+                      onImport={(incomingQuestions) =>
+                        setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
+                      }
+                    />
+                    <ManualQuestionComposer
+                      onImport={(incomingQuestions) =>
+                        setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
+                      }
+                    />
+                    <div className="space-y-3">
+                      {(data.questions || []).map((q, idx) => (
+                        <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                              <label className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <input
-                                  type="radio"
-                                  name={`correct-${q.id}`}
-                                  checked={q.correctAnswer === opt}
-                                  onChange={() => updateQuestion(idx, { correctAnswer: opt })}
+                                  type="checkbox"
+                                  checked={q.extendEnabled ?? false}
+                                  onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
                                 />
-                                <Input
-                                  value={opt}
-                                  onChange={(e) => {
-                                    const newOptions = [...q.options!]
-                                    newOptions[optIdx] = e.target.value
-                                    updateQuestion(idx, { options: newOptions })
-                                  }}
-                                  placeholder={`Option ${optIdx + 1}`}
-                                  className="flex-1"
-                                />
-                              </div>
-                            ))}
+                                Extend
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                className="w-20 h-8"
+                                value={q.points}
+                                onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                              />
+                              <span className="text-sm text-muted-foreground">pts</span>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        )}
-                        {q.type === 'multiselect' && q.options && (
-                          <div className="space-y-2 pl-4">
-                            {q.options.map((opt, optIdx) => {
-                              const selectedAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : []
-                              const checked = selectedAnswers.includes(opt)
-                              return (
+                          <Textarea
+                            value={q.question}
+                            onChange={(e) => updateQuestion(idx, { question: e.target.value })}
+                            placeholder="Enter question"
+                            rows={2}
+                          />
+                          {q.type === 'mcq' && q.options && (
+                            <div className="space-y-2 pl-4">
+                              {q.options.map((opt, optIdx) => (
                                 <div key={optIdx} className="flex items-center gap-2">
                                   <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={(e) => {
-                                      const next = new Set(selectedAnswers)
-                                      if (e.target.checked) next.add(opt)
-                                      else next.delete(opt)
-                                      updateQuestion(idx, { correctAnswer: Array.from(next) })
-                                    }}
+                                    type="radio"
+                                    name={`correct-${q.id}`}
+                                    checked={q.correctAnswer === opt}
+                                    onChange={() => updateQuestion(idx, { correctAnswer: opt })}
                                   />
                                   <Input
                                     value={opt}
@@ -2594,186 +2562,217 @@ function AssessmentBuilderModal({
                                     className="flex-1"
                                   />
                                 </div>
-                              )
-                            })}
-                          </div>
-                        )}
-                        {q.type === 'truefalse' && (
-                          <div className="flex gap-4 pl-4">
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={`correct-${q.id}`}
-                                checked={q.correctAnswer === 'True'}
-                                onChange={() => updateQuestion(idx, { correctAnswer: 'True' })}
-                              />
-                              <span>True</span>
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={`correct-${q.id}`}
-                                checked={q.correctAnswer === 'False'}
-                                onChange={() => updateQuestion(idx, { correctAnswer: 'False' })}
-                              />
-                              <span>False</span>
-                            </label>
-                          </div>
-                        )}
-                        {q.type === 'matching' && (
-                          <MatchingPairsEditor
-                            pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
-                            onChange={(nextPairs) =>
-                              updateQuestion(idx, {
-                                matchingPairs: nextPairs,
-                                correctAnswer: nextPairs.map((pair) => pair.right),
-                                explanation: formatMatchingExplanation(nextPairs),
-                              })
-                            }
+                              ))}
+                            </div>
+                          )}
+                          {q.type === 'multiselect' && q.options && (
+                            <div className="space-y-2 pl-4">
+                              {q.options.map((opt, optIdx) => {
+                                const selectedAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : []
+                                const checked = selectedAnswers.includes(opt)
+                                return (
+                                  <div key={optIdx} className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={(e) => {
+                                        const next = new Set(selectedAnswers)
+                                        if (e.target.checked) next.add(opt)
+                                        else next.delete(opt)
+                                        updateQuestion(idx, { correctAnswer: Array.from(next) })
+                                      }}
+                                    />
+                                    <Input
+                                      value={opt}
+                                      onChange={(e) => {
+                                        const newOptions = [...q.options!]
+                                        newOptions[optIdx] = e.target.value
+                                        updateQuestion(idx, { options: newOptions })
+                                      }}
+                                      placeholder={`Option ${optIdx + 1}`}
+                                      className="flex-1"
+                                    />
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                          {q.type === 'truefalse' && (
+                            <div className="flex gap-4 pl-4">
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name={`correct-${q.id}`}
+                                  checked={q.correctAnswer === 'True'}
+                                  onChange={() => updateQuestion(idx, { correctAnswer: 'True' })}
+                                />
+                                <span>True</span>
+                              </label>
+                              <label className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name={`correct-${q.id}`}
+                                  checked={q.correctAnswer === 'False'}
+                                  onChange={() => updateQuestion(idx, { correctAnswer: 'False' })}
+                                />
+                                <span>False</span>
+                              </label>
+                            </div>
+                          )}
+                          {q.type === 'matching' && (
+                            <MatchingPairsEditor
+                              pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
+                              onChange={(nextPairs) =>
+                                updateQuestion(idx, {
+                                  matchingPairs: nextPairs,
+                                  correctAnswer: nextPairs.map((pair) => pair.right),
+                                  explanation: formatMatchingExplanation(nextPairs),
+                                })
+                              }
+                            />
+                          )}
+                          <Textarea
+                            value={q.explanation || ''}
+                            onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+                            placeholder="Explanation (shown after answering)"
+                            rows={2}
+                            className="text-sm"
                           />
-                        )}
-                        <Textarea
-                          value={q.explanation || ''}
-                          onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
-                          placeholder="Explanation (shown after answering)"
-                          rows={2}
-                          className="text-sm"
-                        />
-                      </div>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {!isTask && (
-                <div className="space-y-3 border rounded-lg p-4">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={'allowLateSubmission' in data ? (data as Assessment).allowLateSubmission : false}
-                      onCheckedChange={(checked) => setData({ ...(data as Assessment), allowLateSubmission: checked })}
-                    />
-                    <Label>Allow late submission</Label>
-                  </div>
-                  {'allowLateSubmission' in data && (data as Assessment).allowLateSubmission && (
-                    <div className="space-y-2">
-                      <Label>Late Penalty (%)</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={(data as Assessment).latePenalty}
-                        onChange={(e) => setData({ ...(data as Assessment), latePenalty: parseInt(e.target.value) || 0 })}
+                {!isTask && (
+                  <div className="space-y-3 border rounded-lg p-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={'allowLateSubmission' in data ? (data as Assessment).allowLateSubmission : false}
+                        onCheckedChange={(checked) => setData({ ...(data as Assessment), allowLateSubmission: checked })}
                       />
-                      <p className="text-xs text-muted-foreground">Percentage deducted for late submissions</p>
+                      <Label>Allow late submission</Label>
+                    </div>
+                    {'allowLateSubmission' in data && (data as Assessment).allowLateSubmission && (
+                      <div className="space-y-2">
+                        <Label>Late Penalty (%)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={(data as Assessment).latePenalty}
+                          onChange={(e) => setData({ ...(data as Assessment), latePenalty: parseInt(e.target.value) || 0 })}
+                        />
+                        <p className="text-xs text-muted-foreground">Percentage deducted for late submissions</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Answer Key Section - Protected */}
+                <div className="border-t pt-4 mt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-amber-500" />
+                      <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => setShowAnswerKey(!showAnswerKey)}
+                      >
+                        {showAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        {showAnswerKey ? 'Hide' : 'Show'}
+                      </Button>
+                    </div>
+                  </div>
+                  {showAnswerKey ? (
+                    <div className="space-y-3">
+                      <Textarea
+                        value={data.answerKey || ''}
+                        onChange={(e) => setData({ ...data, answerKey: e.target.value })}
+                        placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
+                        rows={4}
+                        className="border-amber-200 bg-amber-50/30"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={data.answerKeyProtected !== false}
+                          onCheckedChange={(checked) => setData({ ...data, answerKeyProtected: checked })}
+                        />
+                        <Label className="text-xs text-muted-foreground">
+                          <Lock className="h-3 w-3 inline mr-1" />
+                          Protect answer key (never visible to students)
+                        </Label>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
+                      <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
+                      <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Answer Key Section - Protected */}
-              <div className="border-t pt-4 mt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-amber-500" />
-                    <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      onClick={() => setShowAnswerKey(!showAnswerKey)}
-                    >
-                      {showAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                      {showAnswerKey ? 'Hide' : 'Show'}
-                    </Button>
-                  </div>
-                </div>
-                {showAnswerKey ? (
-                  <div className="space-y-3">
-                    <Textarea
-                      value={data.answerKey || ''}
-                      onChange={(e) => setData({ ...data, answerKey: e.target.value })}
-                      placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
-                      rows={4}
-                      className="border-amber-200 bg-amber-50/30"
-                    />
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={data.answerKeyProtected !== false}
-                        onCheckedChange={(checked) => setData({ ...data, answerKeyProtected: checked })}
-                      />
-                      <Label className="text-xs text-muted-foreground">
-                        <Lock className="h-3 w-3 inline mr-1" />
-                        Protect answer key (never visible to students)
-                      </Label>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
-                    <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
-                    <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
-                  </div>
-                )}
-              </div>
               </div>
             </TabsContent>
             <TabsContent value="preview" className="space-y-4 py-2">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-              <h3 className="font-semibold">{data.title}</h3>
-              {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
-              {data.instructions && (
-                <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
-              )}
-              {!isTask && (
-                <div className="space-y-3">
-                  <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
-                </div>
-              )}
-              {!isTask && data.sourceDocument && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
-                  <Textarea
-                    value={data.sourceDocument.extractedText}
-                    onChange={(e) => setData({
-                      ...data,
-                      sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
-                    })}
-                    rows={6}
-                  />
-                </div>
-              )}
-              {!isTask && (
-                <div className="space-y-3 rounded-lg border bg-white p-3">
-                  <h4 className="text-sm font-medium">Settings</h4>
-                  <div className="flex flex-wrap gap-4">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={assessmentData.showCorrectAnswers ?? true}
-                        onCheckedChange={(checked) => setData({ ...assessmentData, showCorrectAnswers: checked })}
-                        disabled={assessmentData.answersNeverVisible}
-                      />
-                      <Label className="text-sm">Show correct answers</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={assessmentData.answersNeverVisible ?? false}
-                        onCheckedChange={(checked) => setData({ ...assessmentData, answersNeverVisible: checked, showCorrectAnswers: checked ? false : assessmentData.showCorrectAnswers })}
-                      />
-                      <Label className="text-sm">Never show answers</Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={assessmentData.randomizeQuestions}
-                        onCheckedChange={(checked) => setData({ ...assessmentData, randomizeQuestions: checked })}
-                      />
-                      <Label className="text-sm">Randomize question order</Label>
+                <h3 className="font-semibold">{data.title}</h3>
+                {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
+                {data.instructions && (
+                  <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
+                )}
+                {!isTask && (
+                  <div className="space-y-3">
+                    <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+                  </div>
+                )}
+                {!isTask && data.sourceDocument && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
+                    <Textarea
+                      value={data.sourceDocument.extractedText}
+                      onChange={(e) => setData({
+                        ...data,
+                        sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
+                      })}
+                      rows={6}
+                    />
+                  </div>
+                )}
+                {!isTask && (
+                  <div className="space-y-3 rounded-lg border bg-white p-3">
+                    <h4 className="text-sm font-medium">Settings</h4>
+                    <div className="flex flex-wrap gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={assessmentData.showCorrectAnswers ?? true}
+                          onCheckedChange={(checked) => setData({ ...assessmentData, showCorrectAnswers: checked })}
+                          disabled={assessmentData.answersNeverVisible}
+                        />
+                        <Label className="text-sm">Show correct answers</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={assessmentData.answersNeverVisible ?? false}
+                          onCheckedChange={(checked) => setData({ ...assessmentData, answersNeverVisible: checked, showCorrectAnswers: checked ? false : assessmentData.showCorrectAnswers })}
+                        />
+                        <Label className="text-sm">Never show answers</Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={assessmentData.randomizeQuestions}
+                          onCheckedChange={(checked) => setData({ ...assessmentData, randomizeQuestions: checked })}
+                        />
+                        <Label className="text-sm">Randomize question order</Label>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-              <h4 className="text-sm font-medium mt-4">Questions</h4>
-              <QuestionsPreview questions={data.questions ?? []} />
+                )}
+                <h4 className="text-sm font-medium mt-4">Questions</h4>
+                <QuestionsPreview questions={data.questions ?? []} />
               </div>
             </TabsContent>
           </Tabs>
@@ -2888,9 +2887,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
   const addQuestion = (type: QuizQuestion['type']) => {
     const matchingPairs = type === 'matching'
       ? [
-          { left: '', right: '' },
-          { left: '', right: '' },
-        ]
+        { left: '', right: '' },
+        { left: '', right: '' },
+      ]
       : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
@@ -3311,9 +3310,9 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   const addQuestion = async (type: QuizQuestion['type']) => {
     const matchingPairs = type === 'matching'
       ? [
-          { left: '', right: '' },
-          { left: '', right: '' },
-        ]
+        { left: '', right: '' },
+        { left: '', right: '' },
+      ]
       : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
@@ -3325,7 +3324,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
       correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
     }
     setData({ ...data, questions: [...data.questions, newQuestion] })
-    
+
     // Auto-save to question bank
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
@@ -3370,277 +3369,277 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
               {isModuleQuiz ? 'Exam Builder (Summative)' : 'Assessment Builder'}
-          </DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
-          </TabsList>
-          <TabsContent value="edit" className="space-y-4 py-2">
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
-                <Input
-                  value={data.title}
-                  onChange={(e) => setData({ ...data, title: e.target.value })}
-                  placeholder={isModuleQuiz ? "e.g., Lesson 1 Comprehensive Exam" : "e.g., Lesson 1 Assessment"}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Instructions</Label>
-                <Textarea
-                  value={data.description}
-                  onChange={(e) => setData({ ...data, description: e.target.value })}
-                  placeholder="What should students know before starting this exam?"
-                  rows={2}
-                />
-              </div>
-              <div className="flex gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={data.showCorrectAnswers}
-                    onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
-                    disabled={data.answersNeverVisible}
+            </DialogTitle>
+          </DialogHeader>
+          <Tabs defaultValue="edit" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="edit">Edit</TabsTrigger>
+              <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
+            </TabsList>
+            <TabsContent value="edit" className="space-y-4 py-2">
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
+                  <Input
+                    value={data.title}
+                    onChange={(e) => setData({ ...data, title: e.target.value })}
+                    placeholder={isModuleQuiz ? "e.g., Lesson 1 Comprehensive Exam" : "e.g., Lesson 1 Assessment"}
                   />
-                  <Label className="text-sm">Show correct answers</Label>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={data.randomizeQuestions}
-                    onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
+                <div className="space-y-2">
+                  <Label>Instructions</Label>
+                  <Textarea
+                    value={data.description}
+                    onChange={(e) => setData({ ...data, description: e.target.value })}
+                    placeholder="What should students know before starting this exam?"
+                    rows={2}
                   />
-                  <Label className="text-sm">Randomize questions</Label>
                 </div>
-                <div className="flex items-center gap-2 border-l pl-4 border-amber-200">
-                  <Switch
-                    checked={data.answersNeverVisible}
-                    onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
-                  />
-                  <Label className="text-sm text-amber-700 font-medium flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    Never show answers to students
-                  </Label>
-                </div>
-              </div>
-
-              {isModuleQuiz && (
-                <div className="space-y-2 border rounded-lg p-4 bg-blue-50">
-                  <Label>Coverage</Label>
-                  <Select
-                    value={(data as ModuleQuiz).coverage}
-                    onValueChange={(v) => setData({ ...data, coverage: v as 'all_lessons' | 'selected_lessons' })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all_lessons">All lessons in module</SelectItem>
-                      <SelectItem value="selected_lessons">Selected lessons only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    This is a summative assessment covering knowledge from the entire module
-                  </p>
-                </div>
-              )}
-
-              <ResourceImportPanel data={data} setData={setData} targetField="description" />
-
-              {/* Questions Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Questions ({data.questions.length})</h3>
+                <div className="flex gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={data.showCorrectAnswers}
+                      onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
+                      disabled={data.answersNeverVisible}
+                    />
+                    <Label className="text-sm">Show correct answers</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={data.randomizeQuestions}
+                      onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
+                    />
+                    <Label className="text-sm">Randomize questions</Label>
+                  </div>
+                  <div className="flex items-center gap-2 border-l pl-4 border-amber-200">
+                    <Switch
+                      checked={data.answersNeverVisible}
+                      onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
+                    />
+                    <Label className="text-sm text-amber-700 font-medium flex items-center gap-1">
+                      <Shield className="h-3 w-3" />
+                      Never show answers to students
+                    </Label>
+                  </div>
                 </div>
 
-                <div className="space-y-3">
-                  {data.questions.map((q, idx) => (
-                    <div key={q.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
-                          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <input
-                              type="checkbox"
-                              checked={q.extendEnabled ?? false}
-                              onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                {isModuleQuiz && (
+                  <div className="space-y-2 border rounded-lg p-4 bg-blue-50">
+                    <Label>Coverage</Label>
+                    <Select
+                      value={(data as ModuleQuiz).coverage}
+                      onValueChange={(v) => setData({ ...data, coverage: v as 'all_lessons' | 'selected_lessons' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all_lessons">All lessons in module</SelectItem>
+                        <SelectItem value="selected_lessons">Selected lessons only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This is a summative assessment covering knowledge from the entire module
+                    </p>
+                  </div>
+                )}
+
+                <ResourceImportPanel data={data} setData={setData} targetField="description" />
+
+                {/* Questions Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium">Questions ({data.questions.length})</h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    {data.questions.map((q, idx) => (
+                      <div key={q.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <input
+                                type="checkbox"
+                                checked={q.extendEnabled ?? false}
+                                onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                              />
+                              Extend
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              className="w-20 h-8"
+                              value={q.points}
+                              onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
                             />
-                            Extend
-                          </label>
+                            <span className="text-sm text-muted-foreground">pts</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            className="w-20 h-8"
-                            value={q.points}
-                            onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
-                          />
-                          <span className="text-sm text-muted-foreground">pts</span>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <Textarea
-                        value={q.question}
-                        onChange={(e) => updateQuestion(idx, { question: e.target.value })}
-                        placeholder="Enter question"
-                        rows={2}
-                      />
-                      {q.type === 'mcq' && q.options && (
-                        <div className="space-y-2 pl-4">
-                          {q.options.map((opt, optIdx) => (
-                            <div key={optIdx} className="flex items-center gap-2">
+                        <Textarea
+                          value={q.question}
+                          onChange={(e) => updateQuestion(idx, { question: e.target.value })}
+                          placeholder="Enter question"
+                          rows={2}
+                        />
+                        {q.type === 'mcq' && q.options && (
+                          <div className="space-y-2 pl-4">
+                            {q.options.map((opt, optIdx) => (
+                              <div key={optIdx} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name={`correct-${q.id}`}
+                                  checked={q.correctAnswer === opt}
+                                  onChange={() => updateQuestion(idx, { correctAnswer: opt })}
+                                />
+                                <Input
+                                  value={opt}
+                                  onChange={(e) => {
+                                    const newOptions = [...q.options!]
+                                    newOptions[optIdx] = e.target.value
+                                    updateQuestion(idx, { options: newOptions })
+                                  }}
+                                  placeholder={`Option ${optIdx + 1}`}
+                                  className="flex-1"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {q.type === 'truefalse' && (
+                          <div className="flex gap-4 pl-4">
+                            <label className="flex items-center gap-2">
                               <input
                                 type="radio"
                                 name={`correct-${q.id}`}
-                                checked={q.correctAnswer === opt}
-                                onChange={() => updateQuestion(idx, { correctAnswer: opt })}
+                                checked={q.correctAnswer === 'True'}
+                                onChange={() => updateQuestion(idx, { correctAnswer: 'True' })}
                               />
-                              <Input
-                                value={opt}
-                                onChange={(e) => {
-                                  const newOptions = [...q.options!]
-                                  newOptions[optIdx] = e.target.value
-                                  updateQuestion(idx, { options: newOptions })
-                                }}
-                                placeholder={`Option ${optIdx + 1}`}
-                                className="flex-1"
+                              <span>True</span>
+                            </label>
+                            <label className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name={`correct-${q.id}`}
+                                checked={q.correctAnswer === 'False'}
+                                onChange={() => updateQuestion(idx, { correctAnswer: 'False' })}
                               />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {q.type === 'truefalse' && (
-                        <div className="flex gap-4 pl-4">
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name={`correct-${q.id}`}
-                              checked={q.correctAnswer === 'True'}
-                              onChange={() => updateQuestion(idx, { correctAnswer: 'True' })}
-                            />
-                            <span>True</span>
-                          </label>
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name={`correct-${q.id}`}
-                              checked={q.correctAnswer === 'False'}
-                              onChange={() => updateQuestion(idx, { correctAnswer: 'False' })}
-                            />
-                            <span>False</span>
-                          </label>
-                        </div>
-                      )}
-                      {q.type === 'matching' && (
-                        <MatchingPairsEditor
-                          pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
-                          onChange={(nextPairs) =>
-                            updateQuestion(idx, {
-                              matchingPairs: nextPairs,
-                              correctAnswer: nextPairs.map((pair) => pair.right),
-                              explanation: formatMatchingExplanation(nextPairs),
-                            })
-                          }
+                              <span>False</span>
+                            </label>
+                          </div>
+                        )}
+                        {q.type === 'matching' && (
+                          <MatchingPairsEditor
+                            pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
+                            onChange={(nextPairs) =>
+                              updateQuestion(idx, {
+                                matchingPairs: nextPairs,
+                                correctAnswer: nextPairs.map((pair) => pair.right),
+                                explanation: formatMatchingExplanation(nextPairs),
+                              })
+                            }
+                          />
+                        )}
+                        <Textarea
+                          value={q.explanation || ''}
+                          onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+                          placeholder="Explanation (shown after answering)"
+                          rows={2}
+                          className="text-sm"
                         />
-                      )}
-                      <Textarea
-                        value={q.explanation || ''}
-                        onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
-                        placeholder="Explanation (shown after answering)"
-                        rows={2}
-                        className="text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
+                      </div>
+                    ))}
+                  </div>
 
-                {/* Add Questions Bar */}
-                <div className="flex items-center gap-2 pt-4 border-t flex-wrap">
-                  <Button variant="secondary" size="sm" onClick={() => setShowQuestionBankModal(true)}>
-                    <BookOpen className="h-4 w-4 mr-1" /> Add from question bank
-                  </Button>
-                  <div className="h-6 w-px bg-border mx-1" />
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
-                    <Plus className="h-4 w-4 mr-1" /> MCQ
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
-                    <Plus className="h-4 w-4 mr-1" /> T/F
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
-                    <Plus className="h-4 w-4 mr-1" /> Short
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
-                    <Plus className="h-4 w-4 mr-1" /> Essay
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
-                    <Plus className="h-4 w-4 mr-1" /> Multi
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
-                    <Plus className="h-4 w-4 mr-1" /> Match
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
-                    <Plus className="h-4 w-4 mr-1" /> Fill
-                  </Button>
+                  {/* Add Questions Bar */}
+                  <div className="flex items-center gap-2 pt-4 border-t flex-wrap">
+                    <Button variant="secondary" size="sm" onClick={() => setShowQuestionBankModal(true)}>
+                      <BookOpen className="h-4 w-4 mr-1" /> Add from question bank
+                    </Button>
+                    <div className="h-6 w-px bg-border mx-1" />
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
+                      <Plus className="h-4 w-4 mr-1" /> MCQ
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
+                      <Plus className="h-4 w-4 mr-1" /> T/F
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
+                      <Plus className="h-4 w-4 mr-1" /> Short
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
+                      <Plus className="h-4 w-4 mr-1" /> Essay
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
+                      <Plus className="h-4 w-4 mr-1" /> Multi
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
+                      <Plus className="h-4 w-4 mr-1" /> Match
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
+                      <Plus className="h-4 w-4 mr-1" /> Fill
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </TabsContent>
-          <TabsContent value="preview" className="space-y-4 py-2">
-            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-              <h3 className="font-semibold">{data.title}</h3>
-              {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
-              {data.sourceDocument && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
-                  <Textarea
-                    value={data.sourceDocument.extractedText}
-                    onChange={(e) => setData({
-                      ...data,
-                      sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
-                    })}
-                    rows={6}
-                  />
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">
-                {data.timeLimit != null ? `${data.timeLimit} min limit · ` : ''}
-                {data.attemptsAllowed} attempt(s) · {data.questions.length} questions
-              </p>
-              <h4 className="text-sm font-medium mt-4">Questions</h4>
-              <QuestionsPreview questions={data.questions ?? []} />
-            </div>
-          </TabsContent>
-        </Tabs>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => onSave({ ...data })} disabled={data.questions.length === 0}>
-            Save ({data.questions.length} questions)
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            </TabsContent>
+            <TabsContent value="preview" className="space-y-4 py-2">
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                <h3 className="font-semibold">{data.title}</h3>
+                {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
+                {data.sourceDocument && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
+                    <Textarea
+                      value={data.sourceDocument.extractedText}
+                      onChange={(e) => setData({
+                        ...data,
+                        sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
+                      })}
+                      rows={6}
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {data.timeLimit != null ? `${data.timeLimit} min limit · ` : ''}
+                  {data.attemptsAllowed} attempt(s) · {data.questions.length} questions
+                </p>
+                <h4 className="text-sm font-medium mt-4">Questions</h4>
+                <QuestionsPreview questions={data.questions ?? []} />
+              </div>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={() => onSave({ ...data })} disabled={data.questions.length === 0}>
+              Save ({data.questions.length} questions)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-    {/* Question Bank Modal */}
-    <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-blue-500" />
-            Question Bank
-          </DialogTitle>
-        </DialogHeader>
-        <QuestionBankSelector
-          onSelect={(questions) => {
-            setData({ ...data, questions: [...data.questions, ...questions] })
-            setShowQuestionBankModal(false)
-            toast.success(`${questions.length} question(s) added`)
-          }}
-        />
-      </DialogContent>
-    </Dialog>
-  </>
+      {/* Question Bank Modal */}
+      <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-blue-500" />
+              Question Bank
+            </DialogTitle>
+          </DialogHeader>
+          <QuestionBankSelector
+            onSelect={(questions) => {
+              setData({ ...data, questions: [...data.questions, ...questions] })
+              setShowQuestionBankModal(false)
+              toast.success(`${questions.length} question(s) added`)
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
@@ -3703,15 +3702,13 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
             {filteredItems.map((item) => (
               <div
                 key={item.id}
-                className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
-                  selectedIds.has(item.id) ? 'bg-blue-50 hover:bg-blue-100' : ''
-                }`}
+                className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${selectedIds.has(item.id) ? 'bg-blue-50 hover:bg-blue-100' : ''
+                  }`}
                 onClick={() => toggleSelection(item.id)}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center ${
-                    selectedIds.has(item.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-                  }`}>
+                  <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center ${selectedIds.has(item.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                    }`}>
                     {selectedIds.has(item.id) && <CheckCircle className="h-3 w-3 text-white" />}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -3885,7 +3882,7 @@ function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !panelRef.current) return
       const deltaX = e.clientX - startXRef.current
-      const newWidth = resizeDirection === 'left' 
+      const newWidth = resizeDirection === 'left'
         ? startWidthRef.current - deltaX
         : startWidthRef.current + deltaX
       setWidth(Math.max(minWidth, Math.min(maxWidth, newWidth)))
@@ -3916,7 +3913,7 @@ function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth
 
   return (
     <div className="flex flex-col gap-2">
-      <div 
+      <div
         ref={panelRef}
         className="relative border-l pl-4 flex-shrink-0"
         style={{ width: `${width}px` }}
@@ -4292,9 +4289,9 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
     if (!onUpdateItem) return
     const matchingPairs = type === 'matching'
       ? [
-          { left: '', right: '' },
-          { left: '', right: '' },
-        ]
+        { left: '', right: '' },
+        { left: '', right: '' },
+      ]
       : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${generateId()}`,
@@ -4368,11 +4365,11 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                 <div key={c.id} className="flex items-center gap-2 text-sm border rounded p-2">
                   <Badge variant="secondary" className="text-xs capitalize">{c.type}</Badge>
                   <span>{c.title}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
-              )}
+              ))}
+            </div>
+          </div>
+        )}
         {lesson.prerequisites && lesson.prerequisites.length > 0 && (
           <div className="text-sm text-muted-foreground">
             Prerequisites: {lesson.prerequisites.length} lesson(s) required
@@ -4422,7 +4419,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
       toast.error('No questions to generate PDF')
       return
     }
-    
+
     try {
       // Generate PDF from questions
       const pdf = generateQuestionPaperPDF(item.title, normalizedItem.description || '', questions)
@@ -4459,7 +4456,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const handleConfirmPublish = async () => {
     if (!courseId) { toast.error('Course ID not available'); return }
     if (!generatedPdf) return
-    
+
     setPublishing(true)
     try {
       // Convert blob to base64 for storage
@@ -4471,9 +4468,9 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           reader.readAsDataURL(blob)
         })
       }
-      
+
       const pdfBase64 = await blobToBase64(generatedPdf.blob)
-      
+
       const generatedDocument: ImportedLearningResource = {
         fileName: generatedPdf.fileName,
         mimeType: 'application/pdf',
@@ -4857,7 +4854,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </DialogContent>
         </Dialog>
       )}
-      
+
       {/* PDF Preview Modal */}
       <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -4882,15 +4879,15 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             )}
             <div className="flex items-center justify-between pt-4 border-t">
               <div className="text-sm text-muted-foreground">
-                {questions.length} questions • 
+                {questions.length} questions •
                 {questions.reduce((sum, q) => sum + (q.points || 1), 0)} total points
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setPdfPreviewOpen(false)}>
                   Cancel
                 </Button>
-                <Button 
-                  onClick={handleConfirmPublish} 
+                <Button
+                  onClick={handleConfirmPublish}
                   disabled={publishing}
                   className="gap-1"
                 >
@@ -4917,7 +4914,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [modules, setModules] = useState<Module[]>([])
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
+  const [outlineModalOpen, setOutlineModalOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
+  const [importTarget, setImportTarget] = useState<{ moduleId: string, lessonId: string } | null>(null)
+  const [courseAssets, setCourseAssets] = useState<{ id: string, name: string }[]>([])
   const [assetsOpen, setAssetsOpen] = useState(true)
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
@@ -4957,7 +4957,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     extensions: [] as { id: string; name: string; content: string; pci: string }[],
     activeExtensionId: null as string | null, // null = viewing task, string = viewing extension
   })
-  
+
   const [assessmentBuilder, setAssessmentBuilder] = useState({
     title: '',
     taskContent: '',
@@ -4972,11 +4972,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [aiAssistContext, setAiAssistContext] = useState<'task' | 'assessment'>('task')
   const [taskAiMessages, setTaskAiMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
   const [assessmentAiMessages, setAssessmentAiMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
-  
+
   // Uploaded files tracking
   const [taskUploadedFiles, setTaskUploadedFiles] = useState<{ id: string; name: string }[]>([])
   const [assessmentUploadedFiles, setAssessmentUploadedFiles] = useState<{ id: string; name: string }[]>([])
-  
+
   // Test PCI state
   const [testPciInput, setTestPciInput] = useState('')
   const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
@@ -4993,24 +4993,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [testPciLoading, setTestPciLoading] = useState(false)
   const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
   const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
-  
+
   // Active tab tracking for Enter button
   const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
   const [assessmentBuilderActiveTab, setAssessmentBuilderActiveTab] = useState<'content' | 'pci'>('content')
-  
+
   // Right panel tabs for Task Builder (Extensions / DMI)
   const [taskBuilderRightTab, setTaskBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
-  
+
   // Right panel tabs for Assessment Builder (Extensions / DMI)
   const [assessmentBuilderRightTab, setAssessmentBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
-  
+
   // Main builder tab (task vs assessment)
   const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
-  
+
   // Question Bank modal state
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const [questionBankTarget, setQuestionBankTarget] = useState<'task' | 'assessment'>('task')
-  
+
   // Track currently loaded item for saving back
   const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
   const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
@@ -5050,54 +5050,54 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Auto-save task on the fly (debounced)
   useEffect(() => {
     if (!loadedTaskId) return
-    
+
     const timeoutId = setTimeout(() => {
       setModules(prev => prev.map(mod => ({
         ...mod,
         lessons: mod.lessons.map(lesson => ({
           ...lesson,
-          tasks: lesson.tasks.map(task => 
-            task.id === loadedTaskId 
-              ? { 
-                  ...task, 
-                  title: taskBuilder.title,
-                  description: taskBuilder.taskContent,
-                  instructions: taskBuilder.taskPci,
-                  sourceDocument: undefined
-                }
+          tasks: lesson.tasks.map(task =>
+            task.id === loadedTaskId
+              ? {
+                ...task,
+                title: taskBuilder.title,
+                description: taskBuilder.taskContent,
+                instructions: taskBuilder.taskPci,
+                sourceDocument: undefined
+              }
               : task
           )
         }))
       })))
     }, 1000) // Auto-save after 1 second of inactivity
-    
+
     return () => clearTimeout(timeoutId)
   }, [taskBuilder.title, taskBuilder.taskContent, taskBuilder.taskPci, loadedTaskId])
 
   // Auto-save assessment on the fly (debounced)
   useEffect(() => {
     if (!loadedAssessmentId) return
-    
+
     const timeoutId = setTimeout(() => {
       setModules(prev => prev.map(mod => ({
         ...mod,
         lessons: mod.lessons.map(lesson => ({
           ...lesson,
-          homework: lesson.homework.map(hw => 
-            hw.id === loadedAssessmentId 
-              ? { 
-                  ...hw, 
-                  title: assessmentBuilder.title,
-                  description: assessmentBuilder.taskContent,
-                  instructions: assessmentBuilder.taskPci,
-                  sourceDocument: undefined
-                }
+          homework: lesson.homework.map(hw =>
+            hw.id === loadedAssessmentId
+              ? {
+                ...hw,
+                title: assessmentBuilder.title,
+                description: assessmentBuilder.taskContent,
+                instructions: assessmentBuilder.taskPci,
+                sourceDocument: undefined
+              }
               : hw
           )
         }))
       })))
     }, 1000) // Auto-save after 1 second of inactivity
-    
+
     return () => clearTimeout(timeoutId)
   }, [assessmentBuilder.title, assessmentBuilder.taskContent, assessmentBuilder.taskPci, loadedAssessmentId])
 
@@ -5124,20 +5124,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Handle Test PCI answer submission with AI scoring
   const handleTestPciSubmit = async () => {
     if (!testPciInput.trim() || testPciLoading) return
-    
+
     const answer = testPciInput.trim()
     setTestPciInput('')
     setTestPciLoading(true)
-    
+
     // Get PCI content from active task/assessment
-    const pciContent = testPciSource === 'task' 
-      ? (taskBuilder.activeExtensionId 
-          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
-          : taskBuilder.taskPci)
-      : (assessmentBuilder.activeExtensionId 
-          ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
-          : assessmentBuilder.taskPci)
-    
+    const pciContent = testPciSource === 'task'
+      ? (taskBuilder.activeExtensionId
+        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
+        : taskBuilder.taskPci)
+      : (assessmentBuilder.activeExtensionId
+        ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
+        : assessmentBuilder.taskPci)
+
     // Determine which tabs to update
     const tabsToUpdate: string[] = []
     if (testPciActiveTab === 'classroom') {
@@ -5147,7 +5147,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       // Individual student tab
       tabsToUpdate.push(testPciActiveTab)
     }
-    
+
     // Update content for all affected tabs
     setTestPciContent(prev => {
       const newContent = { ...prev }
@@ -5156,7 +5156,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       })
       return newContent
     })
-    
+
     try {
       // Call AI to score the answer
       const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
@@ -5186,19 +5186,19 @@ FEEDBACK: [your explanation]`
           temperature: 0.3
         })
       })
-      
+
       if (!response.ok) throw new Error('Failed to get AI response')
-      
+
       const data = await response.json()
       const aiResponse = data.content || ''
-      
+
       // Parse AI response
       const scoreMatch = aiResponse.match(/SCORE:\s*(\d+)/i)
       const feedbackMatch = aiResponse.match(/FEEDBACK:\s*([\s\S]+)/i)
-      
+
       const score = scoreMatch ? parseInt(scoreMatch[1]) : 50
       const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback provided'
-      
+
       // Update scores for all affected tabs
       setTestPciScores(prev => {
         const newScores = { ...prev }
@@ -5207,7 +5207,7 @@ FEEDBACK: [your explanation]`
         })
         return newScores
       })
-      
+
       toast.success(`Answer scored: ${score}%`)
     } catch (error) {
       toast.error('Failed to score answer')
@@ -5388,7 +5388,7 @@ FEEDBACK: [your explanation]`
     // Ensure the title follows "Lesson N" format
     newModule.title = `Lesson ${newOrder + 1}`
     newModule.lessons[0].title = `Lesson ${newOrder + 1}`
-    
+
     setModules([...modules, newModule])
     setExpandedModules(new Set([...expandedModules, newModule.id]))
     // Do NOT open modal - just create directly
@@ -6049,6 +6049,58 @@ FEEDBACK: [your explanation]`
     )
   }
 
+  const renderAssetsFolder = () => (
+    <div className="mt-4 border rounded-md">
+      <div
+        className="flex items-center justify-between p-2 bg-slate-100 cursor-pointer border-b"
+        onClick={() => setAssetsOpen(!assetsOpen)}
+      >
+        <span className="text-xs font-semibold flex items-center gap-1">
+          <FolderOpen className="w-3 h-3" /> Assets
+        </span>
+        <label className="cursor-pointer" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = Array.from(e.target.files || [])
+              const newAssets = files.map(f => ({ id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: f.name }))
+              setCourseAssets(prev => [...prev, ...newAssets])
+              e.target.value = ''
+            }}
+          />
+          <span className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
+            <Upload className="w-3 h-3" /> Upload Asset
+          </span>
+        </label>
+      </div>
+      {assetsOpen && (
+        <div className="p-2 flex flex-wrap gap-2 min-h-[50px] bg-white rounded-b-md">
+          {courseAssets.length === 0 ? (
+            <p className="text-xs text-muted-foreground w-full py-2 text-center">No assets uploaded. Upload files and drag them to the Slide editor.</p>
+          ) : (
+            courseAssets.map(asset => (
+              <div
+                key={asset.id}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
+                  e.dataTransfer.effectAllowed = 'copy'
+                }}
+                className="text-xs bg-white border border-slate-200 rounded px-2 py-1 cursor-grab shadow-sm flex items-center gap-1 hover:bg-slate-50 transition-colors"
+                title="Drag to Slide editor"
+              >
+                <FileText className="w-3 h-3 text-slate-500" />
+                {asset.name}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
+
   const updateSelectedItem = (updates: PreviewUpdatePayload) => {
     if (!selectedItem) return
     const target = resolveSelectedItem(selectedItem, modules)
@@ -6224,470 +6276,485 @@ FEEDBACK: [your explanation]`
                       items={modules.map(m => m.id)}
                       strategy={verticalListSortingStrategy}
                     >
-                    {modules.map((module, moduleIdx) => {
-                      const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
-                      const taskCount = primaryLesson.tasks?.length || 0
-                      const assessments = (primaryLesson.homework || []).filter((h) => h.category !== 'homework')
-                      const homeworkItems = (primaryLesson.homework || []).filter((h) => h.category === 'homework')
-                      const totalItems = taskCount + assessments.length + homeworkItems.length
-                      return (
-                        <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1} inlineDragHandle>
-                          <div className="group">
-                            <div
-                              className={cn(
-                                "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
-                                "bg-blue-50 hover:bg-blue-100 border border-blue-200"
-                              )}
-                              onClick={() => toggleModule(module.id)}
-                            >
-                              {expandedModules.has(module.id) ? (
-                                <ChevronDown className="h-3 w-3 text-blue-600" />
-                              ) : (
-                                <ChevronRight className="h-3 w-3 text-blue-600" />
-                              )}
-                              <Layers className="h-3 w-3 text-blue-600" />
-                              <span className="text-sm font-medium flex-1 truncate">{module.title}</span>
-                              <Badge variant="secondary" className="text-[10px] h-4">
-                                {totalItems}
-                              </Badge>
-
-                              {/* +Task Button */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-orange-600"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  addTask(module.id, primaryLesson.id)
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                                Task
-                              </Button>
-
-                              {/* +Assessment Button */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-purple-600"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  addAssessment(module.id, primaryLesson.id)
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                                Assessment
-                              </Button>
-
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  deleteModule(module.id)
-                                }}
-                              >
-                                <Trash2 className="h-3 w-3 text-red-500" />
-                              </Button>
-                            </div>
-
-                            {expandedModules.has(module.id) && (
-                              <div className="mt-1 space-y-1">
-                                {/* Tasks */}
-                                <TreeItem depth={2} isLast={false}>
-                                  <div className="flex items-center gap-1.5">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-5 w-5"
-                                      onClick={() => toggleSection(module.id, 'task')}
-                                      aria-label={isSectionCollapsed(module.id, 'task') ? 'Expand tasks' : 'Collapse tasks'}
-                                    >
-                                      {isSectionCollapsed(module.id, 'task') ? (
-                                        <ChevronRight className="h-3 w-3 text-orange-600" />
-                                      ) : (
-                                        <ChevronDown className="h-3 w-3 text-orange-600" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                </TreeItem>
-                                {!isSectionCollapsed(module.id, 'task') && (
-                                  <SortableContext
-                                    items={primaryLesson.tasks?.map(t => t.id) || []}
-                                    strategy={verticalListSortingStrategy}
-                                  >
-                                    {(primaryLesson.tasks || []).map((task, idx) => (
-                                      <SortableTreeItem key={task.id} id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
-                                        <div
-                                          className={cn(
-                                            "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
-                                            selectedItem?.type === 'task' && selectedItem?.id === task.id
-                                              ? "bg-orange-200 border-orange-400 ring-1 ring-orange-400"
-                                              : "bg-orange-50 border-orange-200 hover:bg-orange-100"
-                                          )}
-                                          onClick={() => {
-                                            // Auto-save current assessment if switching from one
-                                            if (loadedAssessmentId) {
-                                              setModules(prev => prev.map(mod => ({
-                                                ...mod,
-                                                lessons: mod.lessons.map(lesson => ({
-                                                  ...lesson,
-                                                  homework: lesson.homework.map(hw => 
-                                                    hw.id === loadedAssessmentId 
-                                                      ? { 
-                                                          ...hw, 
-                                                          title: assessmentBuilder.title,
-                                                          description: assessmentBuilder.taskContent,
-                                                          instructions: assessmentBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                      : hw
-                                                  )
-                                                }))
-                                              })))
-                                            }
-                                            // Auto-save current task if switching from another task
-                                            if (loadedTaskId && loadedTaskId !== task.id) {
-                                              setModules(prev => prev.map(mod => ({
-                                                ...mod,
-                                                lessons: mod.lessons.map(lesson => ({
-                                                  ...lesson,
-                                                  tasks: lesson.tasks.map(t => 
-                                                    t.id === loadedTaskId 
-                                                      ? { 
-                                                          ...t, 
-                                                          title: taskBuilder.title,
-                                                          description: taskBuilder.taskContent,
-                                                          instructions: taskBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                      : t
-                                                  )
-                                                }))
-                                              })))
-                                            }
-                                            setSelectedItem({ type: 'task', id: task.id })
-                                            loadTaskIntoBuilder(task)
-                                            setMainBuilderTab('task')
-                                          }}
-                                        >
-                                          <ListTodo className="h-3 w-3 text-orange-500" />
-                                          <span className="text-[10px] flex-1 truncate">
-                                            <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
-                                          </span>
-                                          <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingData(task)
-                                              setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
-                                            }}
-                                          >
-                                            Edit
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              if (!confirm(`Delete "${task.title}"?`)) return
-                                              deleteTask(module.id, primaryLesson.id, task.id)
-                                            }}
-                                          >
-                                            <Trash2 className="h-3 w-3 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </SortableTreeItem>
-                                    ))}
-                                  </SortableContext>
+                      {modules.map((module, moduleIdx) => {
+                        const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
+                        const taskCount = primaryLesson.tasks?.length || 0
+                        const assessments = (primaryLesson.homework || []).filter((h) => h.category !== 'homework')
+                        const homeworkItems = (primaryLesson.homework || []).filter((h) => h.category === 'homework')
+                        const totalItems = taskCount + assessments.length + homeworkItems.length
+                        return (
+                          <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1} inlineDragHandle>
+                            <div className="group">
+                              <div
+                                className={cn(
+                                  "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
+                                  "bg-blue-50 hover:bg-blue-100 border border-blue-200"
                                 )}
-
-                                {/* Assessments */}
-                                <TreeItem depth={2} isLast={false}>
-                                  <div className="flex items-center gap-1.5">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-5 w-5"
-                                      onClick={() => toggleSection(module.id, 'assessment')}
-                                      aria-label={isSectionCollapsed(module.id, 'assessment') ? 'Expand assessments' : 'Collapse assessments'}
-                                    >
-                                      {isSectionCollapsed(module.id, 'assessment') ? (
-                                        <ChevronRight className="h-3 w-3 text-purple-600" />
-                                      ) : (
-                                        <ChevronDown className="h-3 w-3 text-purple-600" />
-                                      )}
-                                    </Button>
-                                  </div>
-                                </TreeItem>
-                                {!isSectionCollapsed(module.id, 'assessment') && (
-                                  <SortableContext
-                                    items={assessments.map(h => h.id)}
-                                    strategy={verticalListSortingStrategy}
-                                  >
-                                    {assessments.map((hw, idx) => (
-                                      <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === assessments.length - 1}>
-                                        <div
-                                          className={cn(
-                                            "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
-                                            selectedItem?.type === 'homework' && selectedItem?.id === hw.id
-                                              ? "bg-purple-200 border-purple-400 ring-1 ring-purple-400"
-                                              : "bg-purple-50 border-purple-200 hover:bg-purple-100"
-                                          )}
-                                          onClick={() => {
-                                            // Auto-save current task if switching from one
-                                            if (loadedTaskId) {
-                                              setModules(prev => prev.map(mod => ({
-                                                ...mod,
-                                                lessons: mod.lessons.map(lesson => ({
-                                                  ...lesson,
-                                                  tasks: lesson.tasks.map(t => 
-                                                    t.id === loadedTaskId 
-                                                      ? { 
-                                                          ...t, 
-                                                          title: taskBuilder.title,
-                                                          description: taskBuilder.taskContent,
-                                                          instructions: taskBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                      : t
-                                                  )
-                                                }))
-                                              })))
-                                            }
-                                            // Auto-save current assessment if switching from another assessment
-                                            if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
-                                              setModules(prev => prev.map(mod => ({
-                                                ...mod,
-                                                lessons: mod.lessons.map(lesson => ({
-                                                  ...lesson,
-                                                  homework: lesson.homework.map(h => 
-                                                    h.id === loadedAssessmentId 
-                                                      ? { 
-                                                          ...h, 
-                                                          title: assessmentBuilder.title,
-                                                          description: assessmentBuilder.taskContent,
-                                                          instructions: assessmentBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                      : h
-                                                  )
-                                                }))
-                                              })))
-                                            }
-                                            setSelectedItem({ type: 'homework', id: hw.id })
-                                            loadAssessmentIntoBuilder(hw)
-                                            setMainBuilderTab('assessment')
-                                          }}
-                                        >
-                                          <FileQuestion className="h-3 w-3 text-purple-500" />
-                                          <span className="text-[10px] flex-1 truncate">
-                                            <span className="font-semibold text-purple-700">{idx + 1}.</span> {hw.title}
-                                          </span>
-                                          <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingData(hw)
-                                              setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
-                                            }}
-                                          >
-                                            Edit
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              if (!confirm(`Delete "${hw.title}"?`)) return
-                                              deleteAssessment(module.id, primaryLesson.id, hw.id)
-                                            }}
-                                          >
-                                            <Trash2 className="h-3 w-3 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </SortableTreeItem>
-                                    ))}
-                                  </SortableContext>
+                                onClick={() => toggleModule(module.id)}
+                              >
+                                {expandedModules.has(module.id) ? (
+                                  <ChevronDown className="h-3 w-3 text-blue-600" />
+                                ) : (
+                                  <ChevronRight className="h-3 w-3 text-blue-600" />
                                 )}
+                                <Layers className="h-3 w-3 text-blue-600" />
+                                <span className="text-sm font-medium flex-1 truncate">{module.title}</span>
+                                <Badge variant="secondary" className="text-[10px] h-4">
+                                  {totalItems}
+                                </Badge>
 
-                                {/* Homework Folder */}
-                                <TreeItem depth={2} isLast={false}>
-                                  <div className="flex items-center gap-1.5">
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-5 w-5"
-                                      onClick={() => toggleSection(module.id, 'homework')}
-                                      aria-label={isSectionCollapsed(module.id, 'homework') ? 'Expand homework' : 'Collapse homework'}
-                                    >
-                                      {isSectionCollapsed(module.id, 'homework') ? (
-                                        <ChevronRight className="h-3 w-3 text-emerald-600" />
-                                      ) : (
-                                        <ChevronDown className="h-3 w-3 text-emerald-600" />
-                                      )}
-                                    </Button>
-                                    <span className="text-xs font-medium text-emerald-700">Homework</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1 text-emerald-600"
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        addHomework(module.id, primaryLesson.id)
-                                      }}
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                      Add
-                                    </Button>
-                                  </div>
-                                </TreeItem>
-                                {!isSectionCollapsed(module.id, 'homework') && homeworkItems.length > 0 && (
-                                  <SortableContext
-                                    items={homeworkItems.map(h => h.id)}
-                                    strategy={verticalListSortingStrategy}
-                                  >
-                                    {homeworkItems.map((hw, idx) => (
-                                      <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === homeworkItems.length - 1}>
-                                        <div
-                                          className={cn(
-                                            "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
-                                            selectedItem?.type === 'homework' && selectedItem?.id === hw.id
-                                              ? "bg-emerald-200 border-emerald-400 ring-1 ring-emerald-400"
-                                              : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
-                                          )}
-                                          onClick={() => {
-                                            // Auto-save current task if switching from one
-                                            if (loadedTaskId) {
-                                              setModules(prev => prev.map(mod => ({
-                                                ...mod,
-                                                lessons: mod.lessons.map(lesson => ({
-                                                  ...lesson,
-                                                  tasks: lesson.tasks.map(t => 
-                                                    t.id === loadedTaskId 
-                                                      ? { 
-                                                          ...t, 
-                                                          title: taskBuilder.title,
-                                                          description: taskBuilder.taskContent,
-                                                          instructions: taskBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                      : t
-                                                  )
-                                                }))
-                                              })))
-                                            }
-                                            // Auto-save current assessment/homework if switching from another
-                                            if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
-                                              setModules(prev => prev.map(mod => ({
-                                                ...mod,
-                                                lessons: mod.lessons.map(lesson => ({
-                                                  ...lesson,
-                                                  homework: lesson.homework.map(h => 
-                                                    h.id === loadedAssessmentId 
-                                                      ? { 
-                                                          ...h, 
-                                                          title: assessmentBuilder.title,
-                                                          description: assessmentBuilder.taskContent,
-                                                          instructions: assessmentBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                      : h
-                                                  )
-                                                }))
-                                              })))
-                                            }
-                                            setSelectedItem({ type: 'homework', id: hw.id })
-                                            loadAssessmentIntoBuilder(hw)
-                                            setMainBuilderTab('assessment')
-                                          }}
-                                        >
-                                          <Home className="h-3 w-3 text-emerald-500" />
-                                          <span className="text-[10px] flex-1 truncate">
-                                            <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
-                                          </span>
-                                          <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingData(hw)
-                                              setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
-                                            }}
-                                          >
-                                            Edit
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              if (!confirm(`Delete "${hw.title}"?`)) return
-                                              deleteAssessment(module.id, primaryLesson.id, hw.id)
-                                            }}
-                                          >
-                                            <Trash2 className="h-3 w-3 text-red-500" />
-                                          </Button>
-                                        </div>
-                                      </SortableTreeItem>
-                                    ))}
-                                  </SortableContext>
-                                )}
+                                {/* +Task Button */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-orange-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    addTask(module.id, primaryLesson.id)
+                                  }}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                  Task
+                                </Button>
 
-                                {/* End of Module Quizzes */}
-                                {(module.moduleQuizzes || []).map((quiz, quizIdx) => (
-                                  <TreeItem key={quiz.id} depth={2} isLast={quizIdx === (module.moduleQuizzes?.length || 0) - 1}>
-                                    <div
-                                      className="flex items-center gap-1.5 py-1 px-2 rounded bg-red-100 border border-red-300 group cursor-pointer hover:bg-red-200"
-                                      onClick={() => setSelectedItem({ type: 'moduleQuiz', id: quiz.id })}
-                                    >
-                                      <FileQuestion className="h-3 w-3 text-red-600" />
-                                      <span className="text-xs font-medium flex-1 truncate">{quiz.title}</span>
-                                      <Badge variant="default" className="text-[8px] h-4 px-1 bg-red-600">Summative</Badge>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          setEditingData(quiz)
-                                          setActiveModal({ type: 'moduleQuiz', isOpen: true, moduleId: module.id, itemId: quiz.id })
-                                        }}
-                                      >
-                                        Edit
-                                      </Button>
+                                {/* +Assessment Button */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-purple-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    addAssessment(module.id, primaryLesson.id)
+                                  }}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                  Assessment
+                                </Button>
+
+                                {/* Import Button */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-blue-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setImportTarget({ moduleId: module.id, lessonId: primaryLesson.id })
+                                    setQuestionBankOpen(true)
+                                  }}
+                                >
+                                  <FolderOpen className="h-3 w-3" />
+                                  Import
+                                </Button>
+
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    deleteModule(module.id)
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                </Button>
+                              </div>
+
+                              {expandedModules.has(module.id) && (
+                                <div className="mt-1 space-y-1">
+                                  {/* Tasks */}
+                                  <TreeItem depth={2} isLast={false}>
+                                    <div className="flex items-center gap-1.5">
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          deleteModuleQuiz(module.id, quiz.id)
-                                        }}
+                                        className="h-5 w-5"
+                                        onClick={() => toggleSection(module.id, 'task')}
+                                        aria-label={isSectionCollapsed(module.id, 'task') ? 'Expand tasks' : 'Collapse tasks'}
                                       >
-                                        <Trash2 className="h-3 w-3 text-red-500" />
+                                        {isSectionCollapsed(module.id, 'task') ? (
+                                          <ChevronRight className="h-3 w-3 text-orange-600" />
+                                        ) : (
+                                          <ChevronDown className="h-3 w-3 text-orange-600" />
+                                        )}
                                       </Button>
                                     </div>
                                   </TreeItem>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </SortableTreeItem>
-                      )
-                    })}
+                                  {!isSectionCollapsed(module.id, 'task') && (
+                                    <SortableContext
+                                      items={primaryLesson.tasks?.map(t => t.id) || []}
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      {(primaryLesson.tasks || []).map((task, idx) => (
+                                        <SortableTreeItem key={task.id} id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
+                                          <div
+                                            className={cn(
+                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
+                                              selectedItem?.type === 'task' && selectedItem?.id === task.id
+                                                ? "bg-orange-200 border-orange-400 ring-1 ring-orange-400"
+                                                : "bg-orange-50 border-orange-200 hover:bg-orange-100"
+                                            )}
+                                            onClick={() => {
+                                              // Auto-save current assessment if switching from one
+                                              if (loadedAssessmentId) {
+                                                setModules(prev => prev.map(mod => ({
+                                                  ...mod,
+                                                  lessons: mod.lessons.map(lesson => ({
+                                                    ...lesson,
+                                                    homework: lesson.homework.map(hw =>
+                                                      hw.id === loadedAssessmentId
+                                                        ? {
+                                                          ...hw,
+                                                          title: assessmentBuilder.title,
+                                                          description: assessmentBuilder.taskContent,
+                                                          instructions: assessmentBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                        : hw
+                                                    )
+                                                  }))
+                                                })))
+                                              }
+                                              // Auto-save current task if switching from another task
+                                              if (loadedTaskId && loadedTaskId !== task.id) {
+                                                setModules(prev => prev.map(mod => ({
+                                                  ...mod,
+                                                  lessons: mod.lessons.map(lesson => ({
+                                                    ...lesson,
+                                                    tasks: lesson.tasks.map(t =>
+                                                      t.id === loadedTaskId
+                                                        ? {
+                                                          ...t,
+                                                          title: taskBuilder.title,
+                                                          description: taskBuilder.taskContent,
+                                                          instructions: taskBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                        : t
+                                                    )
+                                                  }))
+                                                })))
+                                              }
+                                              setSelectedItem({ type: 'task', id: task.id })
+                                              loadTaskIntoBuilder(task)
+                                              setMainBuilderTab('task')
+                                            }}
+                                          >
+                                            <ListTodo className="h-3 w-3 text-orange-500" />
+                                            <span className="text-[10px] flex-1 truncate">
+                                              <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setEditingData(task)
+                                                setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
+                                              }}
+                                            >
+                                              Edit
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                if (!confirm(`Delete "${task.title}"?`)) return
+                                                deleteTask(module.id, primaryLesson.id, task.id)
+                                              }}
+                                            >
+                                              <Trash2 className="h-3 w-3 text-red-500" />
+                                            </Button>
+                                          </div>
+                                        </SortableTreeItem>
+                                      ))}
+                                    </SortableContext>
+                                  )}
+
+                                  {/* Assessments */}
+                                  <TreeItem depth={2} isLast={false}>
+                                    <div className="flex items-center gap-1.5">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5"
+                                        onClick={() => toggleSection(module.id, 'assessment')}
+                                        aria-label={isSectionCollapsed(module.id, 'assessment') ? 'Expand assessments' : 'Collapse assessments'}
+                                      >
+                                        {isSectionCollapsed(module.id, 'assessment') ? (
+                                          <ChevronRight className="h-3 w-3 text-purple-600" />
+                                        ) : (
+                                          <ChevronDown className="h-3 w-3 text-purple-600" />
+                                        )}
+                                      </Button>
+                                    </div>
+                                  </TreeItem>
+                                  {!isSectionCollapsed(module.id, 'assessment') && (
+                                    <SortableContext
+                                      items={assessments.map(h => h.id)}
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      {assessments.map((hw, idx) => (
+                                        <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === assessments.length - 1}>
+                                          <div
+                                            className={cn(
+                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
+                                              selectedItem?.type === 'homework' && selectedItem?.id === hw.id
+                                                ? "bg-purple-200 border-purple-400 ring-1 ring-purple-400"
+                                                : "bg-purple-50 border-purple-200 hover:bg-purple-100"
+                                            )}
+                                            onClick={() => {
+                                              // Auto-save current task if switching from one
+                                              if (loadedTaskId) {
+                                                setModules(prev => prev.map(mod => ({
+                                                  ...mod,
+                                                  lessons: mod.lessons.map(lesson => ({
+                                                    ...lesson,
+                                                    tasks: lesson.tasks.map(t =>
+                                                      t.id === loadedTaskId
+                                                        ? {
+                                                          ...t,
+                                                          title: taskBuilder.title,
+                                                          description: taskBuilder.taskContent,
+                                                          instructions: taskBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                        : t
+                                                    )
+                                                  }))
+                                                })))
+                                              }
+                                              // Auto-save current assessment if switching from another assessment
+                                              if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
+                                                setModules(prev => prev.map(mod => ({
+                                                  ...mod,
+                                                  lessons: mod.lessons.map(lesson => ({
+                                                    ...lesson,
+                                                    homework: lesson.homework.map(h =>
+                                                      h.id === loadedAssessmentId
+                                                        ? {
+                                                          ...h,
+                                                          title: assessmentBuilder.title,
+                                                          description: assessmentBuilder.taskContent,
+                                                          instructions: assessmentBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                        : h
+                                                    )
+                                                  }))
+                                                })))
+                                              }
+                                              setSelectedItem({ type: 'homework', id: hw.id })
+                                              loadAssessmentIntoBuilder(hw)
+                                              setMainBuilderTab('assessment')
+                                            }}
+                                          >
+                                            <FileQuestion className="h-3 w-3 text-purple-500" />
+                                            <span className="text-[10px] flex-1 truncate">
+                                              <span className="font-semibold text-purple-700">{idx + 1}.</span> {hw.title}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setEditingData(hw)
+                                                setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                              }}
+                                            >
+                                              Edit
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                if (!confirm(`Delete "${hw.title}"?`)) return
+                                                deleteAssessment(module.id, primaryLesson.id, hw.id)
+                                              }}
+                                            >
+                                              <Trash2 className="h-3 w-3 text-red-500" />
+                                            </Button>
+                                          </div>
+                                        </SortableTreeItem>
+                                      ))}
+                                    </SortableContext>
+                                  )}
+
+                                  {/* Homework Folder */}
+                                  <TreeItem depth={2} isLast={false}>
+                                    <div className="flex items-center gap-1.5">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-5 w-5"
+                                        onClick={() => toggleSection(module.id, 'homework')}
+                                        aria-label={isSectionCollapsed(module.id, 'homework') ? 'Expand homework' : 'Collapse homework'}
+                                      >
+                                        {isSectionCollapsed(module.id, 'homework') ? (
+                                          <ChevronRight className="h-3 w-3 text-emerald-600" />
+                                        ) : (
+                                          <ChevronDown className="h-3 w-3 text-emerald-600" />
+                                        )}
+                                      </Button>
+                                      <span className="text-xs font-medium text-emerald-700">Homework</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1 text-emerald-600"
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          addHomework(module.id, primaryLesson.id)
+                                        }}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                        Add
+                                      </Button>
+                                    </div>
+                                  </TreeItem>
+                                  {!isSectionCollapsed(module.id, 'homework') && homeworkItems.length > 0 && (
+                                    <SortableContext
+                                      items={homeworkItems.map(h => h.id)}
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      {homeworkItems.map((hw, idx) => (
+                                        <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === homeworkItems.length - 1}>
+                                          <div
+                                            className={cn(
+                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
+                                              selectedItem?.type === 'homework' && selectedItem?.id === hw.id
+                                                ? "bg-emerald-200 border-emerald-400 ring-1 ring-emerald-400"
+                                                : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                                            )}
+                                            onClick={() => {
+                                              // Auto-save current task if switching from one
+                                              if (loadedTaskId) {
+                                                setModules(prev => prev.map(mod => ({
+                                                  ...mod,
+                                                  lessons: mod.lessons.map(lesson => ({
+                                                    ...lesson,
+                                                    tasks: lesson.tasks.map(t =>
+                                                      t.id === loadedTaskId
+                                                        ? {
+                                                          ...t,
+                                                          title: taskBuilder.title,
+                                                          description: taskBuilder.taskContent,
+                                                          instructions: taskBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                        : t
+                                                    )
+                                                  }))
+                                                })))
+                                              }
+                                              // Auto-save current assessment/homework if switching from another
+                                              if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
+                                                setModules(prev => prev.map(mod => ({
+                                                  ...mod,
+                                                  lessons: mod.lessons.map(lesson => ({
+                                                    ...lesson,
+                                                    homework: lesson.homework.map(h =>
+                                                      h.id === loadedAssessmentId
+                                                        ? {
+                                                          ...h,
+                                                          title: assessmentBuilder.title,
+                                                          description: assessmentBuilder.taskContent,
+                                                          instructions: assessmentBuilder.taskPci,
+                                                          sourceDocument: undefined
+                                                        }
+                                                        : h
+                                                    )
+                                                  }))
+                                                })))
+                                              }
+                                              setSelectedItem({ type: 'homework', id: hw.id })
+                                              loadAssessmentIntoBuilder(hw)
+                                              setMainBuilderTab('assessment')
+                                            }}
+                                          >
+                                            <Home className="h-3 w-3 text-emerald-500" />
+                                            <span className="text-[10px] flex-1 truncate">
+                                              <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setEditingData(hw)
+                                                setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                              }}
+                                            >
+                                              Edit
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                if (!confirm(`Delete "${hw.title}"?`)) return
+                                                deleteAssessment(module.id, primaryLesson.id, hw.id)
+                                              }}
+                                            >
+                                              <Trash2 className="h-3 w-3 text-red-500" />
+                                            </Button>
+                                          </div>
+                                        </SortableTreeItem>
+                                      ))}
+                                    </SortableContext>
+                                  )}
+
+                                  {/* End of Module Quizzes */}
+                                  {(module.moduleQuizzes || []).map((quiz, quizIdx) => (
+                                    <TreeItem key={quiz.id} depth={2} isLast={quizIdx === (module.moduleQuizzes?.length || 0) - 1}>
+                                      <div
+                                        className="flex items-center gap-1.5 py-1 px-2 rounded bg-red-100 border border-red-300 group cursor-pointer hover:bg-red-200"
+                                        onClick={() => setSelectedItem({ type: 'moduleQuiz', id: quiz.id })}
+                                      >
+                                        <FileQuestion className="h-3 w-3 text-red-600" />
+                                        <span className="text-xs font-medium flex-1 truncate">{quiz.title}</span>
+                                        <Badge variant="default" className="text-[8px] h-4 px-1 bg-red-600">Summative</Badge>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setEditingData(quiz)
+                                            setActiveModal({ type: 'moduleQuiz', isOpen: true, moduleId: module.id, itemId: quiz.id })
+                                          }}
+                                        >
+                                          Edit
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            deleteModuleQuiz(module.id, quiz.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                      </div>
+                                    </TreeItem>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </SortableTreeItem>
+                        )
+                      })}
                     </SortableContext>
 
                     {modules.length === 0 && (
@@ -6706,7 +6773,7 @@ FEEDBACK: [your explanation]`
         {/* CENTER PANEL - New Three-Section Design */}
         <div className="col-span-8">
           <div className="h-full flex flex-col space-y-4 overflow-auto">
-            
+
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
             <Card className="flex-shrink-0">
               <CardContent className="pt-4">
@@ -6727,7 +6794,7 @@ FEEDBACK: [your explanation]`
                   <TabsContent value="task" className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <Input 
+                        <Input
                           placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
                           className="font-semibold"
                           value={taskBuilder.title}
@@ -6761,16 +6828,16 @@ FEEDBACK: [your explanation]`
                             ...mod,
                             lessons: mod.lessons.map(lesson => ({
                               ...lesson,
-                              tasks: lesson.tasks.map(task => 
-                                task.id === loadedTaskId 
-                                  ? { 
-                                      ...task, 
-                                      title: taskBuilder.title,
-                                      description: taskBuilder.taskContent,
-                                      instructions: taskBuilder.taskPci,
-                                      // Clear sourceDocument so saved content takes precedence on next load
-                                      sourceDocument: undefined
-                                    }
+                              tasks: lesson.tasks.map(task =>
+                                task.id === loadedTaskId
+                                  ? {
+                                    ...task,
+                                    title: taskBuilder.title,
+                                    description: taskBuilder.taskContent,
+                                    instructions: taskBuilder.taskPci,
+                                    // Clear sourceDocument so saved content takes precedence on next load
+                                    sourceDocument: undefined
+                                  }
                                   : task
                               )
                             }))
@@ -6785,21 +6852,21 @@ FEEDBACK: [your explanation]`
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
                       <div className="flex-1">
-                        <Tabs 
-                          value={taskBuilderActiveTab} 
+                        <Tabs
+                          value={taskBuilderActiveTab}
                           onValueChange={(v) => setTaskBuilderActiveTab(v as 'content' | 'pci')}
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="content">Content</TabsTrigger>
+                            <TabsTrigger value="content">Slide</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
-                            <Textarea 
+                            <AutoTextarea
                               placeholder={taskBuilder.activeExtensionId ? "Extension content..." : "Enter task content or upload files..."}
                               className="w-full min-h-[100px]"
                               // Show task content if no extension active, otherwise show active extension's content
-                              value={taskBuilder.activeExtensionId 
+                              value={taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
                                 : taskBuilder.taskContent
                               }
@@ -6809,8 +6876,8 @@ FEEDBACK: [your explanation]`
                                   // Update extension content
                                   setTaskBuilder(prev => ({
                                     ...prev,
-                                    extensions: prev.extensions.map(ext => 
-                                      ext.id === prev.activeExtensionId 
+                                    extensions: prev.extensions.map(ext =>
+                                      ext.id === prev.activeExtensionId
                                         ? { ...ext, content: newContent }
                                         : ext
                                     )
@@ -6856,22 +6923,22 @@ FEEDBACK: [your explanation]`
                                     onChange={async (e) => {
                                       const files = e.target.files
                                       if (!files || files.length === 0) return
-                                      
+
                                       for (const file of Array.from(files)) {
                                         const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                                         try {
                                           const formData = new FormData()
                                           formData.append('file', file)
-                                          
+
                                           const response = await fetch('/api/extract-text', {
                                             method: 'POST',
                                             body: formData
                                           })
-                                          
+
                                           if (response.ok) {
                                             const data = await response.json()
                                             const extractedText = data.text || ''
-                                            
+
                                             setTaskUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                             setTaskBuilder(prev => ({
                                               ...prev,
@@ -6916,13 +6983,15 @@ FEEDBACK: [your explanation]`
                                 {/* File type hint removed */}
                               </div>
                             )}
+                            {/* Assets Folder added to Slide Tab */}
+                            {!taskBuilder.activeExtensionId && renderAssetsFolder()}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
-                            <Textarea 
+                            <AutoTextarea
                               placeholder={taskBuilder.activeExtensionId ? "Extension PCI..." : "Enter PCI configuration..."}
                               className="w-full min-h-[100px]"
                               // Show task PCI if no extension active, otherwise show active extension's PCI
-                              value={taskBuilder.activeExtensionId 
+                              value={taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
                                 : taskBuilder.taskPci
                               }
@@ -6932,8 +7001,8 @@ FEEDBACK: [your explanation]`
                                   // Update extension PCI
                                   setTaskBuilder(prev => ({
                                     ...prev,
-                                    extensions: prev.extensions.map(ext => 
-                                      ext.id === prev.activeExtensionId 
+                                    extensions: prev.extensions.map(ext =>
+                                      ext.id === prev.activeExtensionId
                                         ? { ...ext, pci: newPci }
                                         : ext
                                     )
@@ -6948,7 +7017,7 @@ FEEDBACK: [your explanation]`
                         </Tabs>
                         {/* Persistent text input with horizontal Enter button */}
                         <div className="mt-3 flex gap-2 items-start">
-                          <Textarea 
+                          <Textarea
                             placeholder={`Enter text and press Enter to add to ${taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
                             className="flex-1 min-h-[60px]"
                             value={taskBuilder.details}
@@ -6961,8 +7030,8 @@ FEEDBACK: [your explanation]`
                                     if (taskBuilder.activeExtensionId) {
                                       setTaskBuilder(prev => ({
                                         ...prev,
-                                        extensions: prev.extensions.map(ext => 
-                                          ext.id === prev.activeExtensionId 
+                                        extensions: prev.extensions.map(ext =>
+                                          ext.id === prev.activeExtensionId
                                             ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
                                             : ext
                                         ),
@@ -6979,8 +7048,8 @@ FEEDBACK: [your explanation]`
                                     if (taskBuilder.activeExtensionId) {
                                       setTaskBuilder(prev => ({
                                         ...prev,
-                                        extensions: prev.extensions.map(ext => 
-                                          ext.id === prev.activeExtensionId 
+                                        extensions: prev.extensions.map(ext =>
+                                          ext.id === prev.activeExtensionId
                                             ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
                                             : ext
                                         ),
@@ -6998,8 +7067,8 @@ FEEDBACK: [your explanation]`
                               }
                             }}
                           />
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             className="h-[60px] px-3"
                             onClick={() => {
@@ -7008,8 +7077,8 @@ FEEDBACK: [your explanation]`
                                   if (taskBuilder.activeExtensionId) {
                                     setTaskBuilder(prev => ({
                                       ...prev,
-                                      extensions: prev.extensions.map(ext => 
-                                        ext.id === prev.activeExtensionId 
+                                      extensions: prev.extensions.map(ext =>
+                                        ext.id === prev.activeExtensionId
                                           ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
                                           : ext
                                       ),
@@ -7026,8 +7095,8 @@ FEEDBACK: [your explanation]`
                                   if (taskBuilder.activeExtensionId) {
                                     setTaskBuilder(prev => ({
                                       ...prev,
-                                      extensions: prev.extensions.map(ext => 
-                                        ext.id === prev.activeExtensionId 
+                                      extensions: prev.extensions.map(ext =>
+                                        ext.id === prev.activeExtensionId
                                           ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
                                           : ext
                                       ),
@@ -7039,10 +7108,10 @@ FEEDBACK: [your explanation]`
                                       taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
                                       details: ''
                                     }))
+                                  }
                                 }
                               }
-                            }
-                          }}
+                            }}
                           >
                             <CornerDownLeft className="h-3 w-3 mr-1" />
                             Enter to {taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
@@ -7050,12 +7119,12 @@ FEEDBACK: [your explanation]`
                         </div>
                         {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => {
                               // Prefill Test PCI with content from Task Builder
-                              const content = taskBuilder.activeExtensionId 
+                              const content = taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
                                 : taskBuilder.taskContent
                               setTestPciContent({
@@ -7069,7 +7138,7 @@ FEEDBACK: [your explanation]`
                           >
                             Test
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => {
                               setLessonSelectDialog({ isOpen: true, type: 'task', title: taskBuilder.title || 'New Task' })
@@ -7080,9 +7149,9 @@ FEEDBACK: [your explanation]`
                         </div>
                       </div>
                       {/* Right panel: Extensions & DMI Tabs - resizable */}
-                      <ResizablePanel 
-                        defaultWidth={192} 
-                        minWidth={150} 
+                      <ResizablePanel
+                        defaultWidth={192}
+                        minWidth={150}
                         maxWidth={600}
                       >
                         <Tabs value={taskBuilderRightTab} onValueChange={(v) => setTaskBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
@@ -7090,21 +7159,21 @@ FEEDBACK: [your explanation]`
                             <TabsTrigger value="extensions">Extensions</TabsTrigger>
                             <TabsTrigger value="dmi">DMI</TabsTrigger>
                           </TabsList>
-                          
+
                           <TabsContent value="extensions" className="mt-0">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="w-full mb-2"
                               onClick={() => {
                                 const extNumber = taskBuilder.extensions.length + 1
                                 setTaskBuilder(prev => ({
                                   ...prev,
-                                  extensions: [...prev.extensions, { 
-                                    id: `ext-${Date.now()}`, 
-                                    name: `Extension ${extNumber}`, 
-                                    content: '', 
-                                    pci: '' 
+                                  extensions: [...prev.extensions, {
+                                    id: `ext-${Date.now()}`,
+                                    name: `Extension ${extNumber}`,
+                                    content: '',
+                                    pci: ''
                                   }]
                                 }))
                               }}
@@ -7158,13 +7227,13 @@ FEEDBACK: [your explanation]`
                               )}
                             </div>
                           </TabsContent>
-                          
+
                           <TabsContent value="dmi" className="mt-0">
-                            <DMIPanel 
-                              content={taskBuilder.activeExtensionId 
+                            <DMIPanel
+                              content={taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
                                 : taskBuilder.taskContent}
-                              pci={taskBuilder.activeExtensionId 
+                              pci={taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
                                 : taskBuilder.taskPci}
                             />
@@ -7178,7 +7247,7 @@ FEEDBACK: [your explanation]`
                   <TabsContent value="assessment" className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <Input 
+                        <Input
                           placeholder={loadedAssessmentId ? "Assessment Title" : "Select an assessment from the left sidebar to edit"}
                           className="font-semibold"
                           value={assessmentBuilder.title}
@@ -7212,16 +7281,16 @@ FEEDBACK: [your explanation]`
                             ...mod,
                             lessons: mod.lessons.map(lesson => ({
                               ...lesson,
-                              homework: lesson.homework.map(hw => 
-                                hw.id === loadedAssessmentId 
-                                  ? { 
-                                      ...hw, 
-                                      title: assessmentBuilder.title,
-                                      description: assessmentBuilder.taskContent,
-                                      instructions: assessmentBuilder.taskPci,
-                                      // Clear sourceDocument so saved content takes precedence on next load
-                                      sourceDocument: undefined
-                                    }
+                              homework: lesson.homework.map(hw =>
+                                hw.id === loadedAssessmentId
+                                  ? {
+                                    ...hw,
+                                    title: assessmentBuilder.title,
+                                    description: assessmentBuilder.taskContent,
+                                    instructions: assessmentBuilder.taskPci,
+                                    // Clear sourceDocument so saved content takes precedence on next load
+                                    sourceDocument: undefined
+                                  }
                                   : hw
                               )
                             }))
@@ -7236,20 +7305,20 @@ FEEDBACK: [your explanation]`
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
                       <div className="flex-1">
-                        <Tabs 
-                          value={assessmentBuilderActiveTab} 
+                        <Tabs
+                          value={assessmentBuilderActiveTab}
                           onValueChange={(v) => setAssessmentBuilderActiveTab(v as 'content' | 'pci')}
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="content">Content</TabsTrigger>
+                            <TabsTrigger value="content">Slide</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
-                            <Textarea 
+                            <AutoTextarea
                               placeholder={assessmentBuilder.activeExtensionId ? "Extension content..." : "Enter assessment content or upload files..."}
                               className="w-full min-h-[100px]"
-                              value={assessmentBuilder.activeExtensionId 
+                              value={assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
                                 : assessmentBuilder.taskContent
                               }
@@ -7258,8 +7327,8 @@ FEEDBACK: [your explanation]`
                                 if (assessmentBuilder.activeExtensionId) {
                                   setAssessmentBuilder(prev => ({
                                     ...prev,
-                                    extensions: prev.extensions.map(ext => 
-                                      ext.id === prev.activeExtensionId 
+                                    extensions: prev.extensions.map(ext =>
+                                      ext.id === prev.activeExtensionId
                                         ? { ...ext, content: newContent }
                                         : ext
                                     )
@@ -7304,22 +7373,22 @@ FEEDBACK: [your explanation]`
                                     onChange={async (e) => {
                                       const files = e.target.files
                                       if (!files || files.length === 0) return
-                                      
+
                                       for (const file of Array.from(files)) {
                                         const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                                         try {
                                           const formData = new FormData()
                                           formData.append('file', file)
-                                          
+
                                           const response = await fetch('/api/extract-text', {
                                             method: 'POST',
                                             body: formData
                                           })
-                                          
+
                                           if (response.ok) {
                                             const data = await response.json()
                                             const extractedText = data.text || ''
-                                            
+
                                             setAssessmentUploadedFiles(prev => [...prev, { id: fileId, name: file.name }])
                                             setAssessmentBuilder(prev => ({
                                               ...prev,
@@ -7364,12 +7433,14 @@ FEEDBACK: [your explanation]`
                                 {/* File type hint removed */}
                               </div>
                             )}
+                            {/* Assets Folder added to Slide Tab */}
+                            {!assessmentBuilder.activeExtensionId && renderAssetsFolder()}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
-                            <Textarea 
+                            <AutoTextarea
                               placeholder={assessmentBuilder.activeExtensionId ? "Extension PCI..." : "Enter PCI configuration..."}
                               className="w-full min-h-[100px]"
-                              value={assessmentBuilder.activeExtensionId 
+                              value={assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
                                 : assessmentBuilder.taskPci
                               }
@@ -7378,8 +7449,8 @@ FEEDBACK: [your explanation]`
                                 if (assessmentBuilder.activeExtensionId) {
                                   setAssessmentBuilder(prev => ({
                                     ...prev,
-                                    extensions: prev.extensions.map(ext => 
-                                      ext.id === prev.activeExtensionId 
+                                    extensions: prev.extensions.map(ext =>
+                                      ext.id === prev.activeExtensionId
                                         ? { ...ext, pci: newPci }
                                         : ext
                                     )
@@ -7393,7 +7464,7 @@ FEEDBACK: [your explanation]`
                         </Tabs>
                         {/* Persistent text input with horizontal Enter button */}
                         <div className="mt-3 flex gap-2 items-start">
-                          <Textarea 
+                          <Textarea
                             placeholder={`Enter text and press Enter to add to ${assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
                             className="flex-1 min-h-[60px]"
                             value={assessmentBuilder.details}
@@ -7406,8 +7477,8 @@ FEEDBACK: [your explanation]`
                                     if (assessmentBuilder.activeExtensionId) {
                                       setAssessmentBuilder(prev => ({
                                         ...prev,
-                                        extensions: prev.extensions.map(ext => 
-                                          ext.id === prev.activeExtensionId 
+                                        extensions: prev.extensions.map(ext =>
+                                          ext.id === prev.activeExtensionId
                                             ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
                                             : ext
                                         ),
@@ -7424,8 +7495,8 @@ FEEDBACK: [your explanation]`
                                     if (assessmentBuilder.activeExtensionId) {
                                       setAssessmentBuilder(prev => ({
                                         ...prev,
-                                        extensions: prev.extensions.map(ext => 
-                                          ext.id === prev.activeExtensionId 
+                                        extensions: prev.extensions.map(ext =>
+                                          ext.id === prev.activeExtensionId
                                             ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
                                             : ext
                                         ),
@@ -7443,8 +7514,8 @@ FEEDBACK: [your explanation]`
                               }
                             }}
                           />
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             className="h-[60px] px-3"
                             onClick={() => {
@@ -7453,8 +7524,8 @@ FEEDBACK: [your explanation]`
                                   if (assessmentBuilder.activeExtensionId) {
                                     setAssessmentBuilder(prev => ({
                                       ...prev,
-                                      extensions: prev.extensions.map(ext => 
-                                        ext.id === prev.activeExtensionId 
+                                      extensions: prev.extensions.map(ext =>
+                                        ext.id === prev.activeExtensionId
                                           ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
                                           : ext
                                       ),
@@ -7471,8 +7542,8 @@ FEEDBACK: [your explanation]`
                                   if (assessmentBuilder.activeExtensionId) {
                                     setAssessmentBuilder(prev => ({
                                       ...prev,
-                                      extensions: prev.extensions.map(ext => 
-                                        ext.id === prev.activeExtensionId 
+                                      extensions: prev.extensions.map(ext =>
+                                        ext.id === prev.activeExtensionId
                                           ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
                                           : ext
                                       ),
@@ -7493,15 +7564,14 @@ FEEDBACK: [your explanation]`
                             Enter to {assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
                           </Button>
                         </div>
-                        {/* Buttons row with Generate DMI, Test, and Save */}
+                        {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
-                          <Button variant="outline" size="sm">Generate DMI</Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => {
                               // Prefill Test PCI with content from Assessment Builder
-                              const content = assessmentBuilder.activeExtensionId 
+                              const content = assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
                                 : assessmentBuilder.taskContent
                               setTestPciContent({
@@ -7515,7 +7585,7 @@ FEEDBACK: [your explanation]`
                           >
                             Test
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => {
                               setLessonSelectDialog({ isOpen: true, type: 'assessment', title: assessmentBuilder.title || 'New Assessment' })
@@ -7526,9 +7596,9 @@ FEEDBACK: [your explanation]`
                         </div>
                       </div>
                       {/* Right panel: Extensions & DMI Tabs - resizable */}
-                      <ResizablePanel 
-                        defaultWidth={192} 
-                        minWidth={150} 
+                      <ResizablePanel
+                        defaultWidth={192}
+                        minWidth={150}
                         maxWidth={600}
                       >
                         <Tabs value={assessmentBuilderRightTab} onValueChange={(v) => setAssessmentBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
@@ -7536,21 +7606,21 @@ FEEDBACK: [your explanation]`
                             <TabsTrigger value="extensions">Extensions</TabsTrigger>
                             <TabsTrigger value="dmi">DMI</TabsTrigger>
                           </TabsList>
-                          
+
                           <TabsContent value="extensions" className="mt-0">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="w-full mb-2"
                               onClick={() => {
                                 const extNumber = assessmentBuilder.extensions.length + 1
                                 setAssessmentBuilder(prev => ({
                                   ...prev,
-                                  extensions: [...prev.extensions, { 
-                                    id: `ext-${Date.now()}`, 
-                                    name: `Extension ${extNumber}`, 
-                                    content: '', 
-                                    pci: '' 
+                                  extensions: [...prev.extensions, {
+                                    id: `ext-${Date.now()}`,
+                                    name: `Extension ${extNumber}`,
+                                    content: '',
+                                    pci: ''
                                   }]
                                 }))
                               }}
@@ -7603,13 +7673,16 @@ FEEDBACK: [your explanation]`
                               )}
                             </div>
                           </TabsContent>
-                          
+
                           <TabsContent value="dmi" className="mt-0">
-                            <DMIPanel 
-                              content={assessmentBuilder.activeExtensionId 
+                            <div className="mb-2">
+                              <Button variant="outline" size="sm" className="w-full">Generate DMI</Button>
+                            </div>
+                            <DMIPanel
+                              content={assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
                                 : assessmentBuilder.taskContent}
-                              pci={assessmentBuilder.activeExtensionId 
+                              pci={assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
                                 : assessmentBuilder.taskPci}
                             />
@@ -7634,7 +7707,7 @@ FEEDBACK: [your explanation]`
                                 <Input
                                   value={tab.label}
                                   onChange={(e) => {
-                                    setTestPciTabs(prev => prev.map(t => 
+                                    setTestPciTabs(prev => prev.map(t =>
                                       t.id === tab.id ? { ...t, label: e.target.value } : t
                                     ))
                                   }}
@@ -7646,7 +7719,7 @@ FEEDBACK: [your explanation]`
                                   autoFocus
                                 />
                               ) : (
-                                <TabsTrigger 
+                                <TabsTrigger
                                   value={tab.id}
                                   className="w-full"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
@@ -7684,7 +7757,7 @@ FEEDBACK: [your explanation]`
                       {/* Persistent text input with Enter button inline */}
                       <div className="mt-3">
                         <div className="flex gap-2">
-                          <Input 
+                          <Input
                             placeholder={testPciActiveTab === 'classroom' ? "Enter answer (goes to both students)..." : "Enter answer..."}
                             className="flex-1"
                             value={testPciInput}
@@ -7696,8 +7769,8 @@ FEEDBACK: [your explanation]`
                               }
                             }}
                           />
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             disabled={testPciLoading || !testPciInput.trim()}
                             onClick={handleTestPciSubmit}
@@ -7788,21 +7861,21 @@ FEEDBACK: [your explanation]`
           isOpen={aiAssistOpen}
           onClose={() => setAiAssistOpen(false)}
           context={aiAssistContext}
-          content={aiAssistContext === 'task' 
-            ? (taskBuilder.activeExtensionId 
-                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
-                : taskBuilder.taskContent)
-            : (assessmentBuilder.activeExtensionId 
-                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
-                : assessmentBuilder.taskContent)
+          content={aiAssistContext === 'task'
+            ? (taskBuilder.activeExtensionId
+              ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
+              : taskBuilder.taskContent)
+            : (assessmentBuilder.activeExtensionId
+              ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
+              : assessmentBuilder.taskContent)
           }
-          pci={aiAssistContext === 'task' 
-            ? (taskBuilder.activeExtensionId 
-                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
-                : taskBuilder.taskPci)
-            : (assessmentBuilder.activeExtensionId 
-                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
-                : assessmentBuilder.taskPci)
+          pci={aiAssistContext === 'task'
+            ? (taskBuilder.activeExtensionId
+              ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
+              : taskBuilder.taskPci)
+            : (assessmentBuilder.activeExtensionId
+              ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
+              : assessmentBuilder.taskPci)
           }
           title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
           messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
@@ -7813,7 +7886,7 @@ FEEDBACK: [your explanation]`
                 // Apply to active extension
                 setTaskBuilder(prev => ({
                   ...prev,
-                  extensions: prev.extensions.map(ext => 
+                  extensions: prev.extensions.map(ext =>
                     ext.id === prev.activeExtensionId ? { ...ext, content } : ext
                   )
                 }))
@@ -7825,7 +7898,7 @@ FEEDBACK: [your explanation]`
               if (assessmentBuilder.activeExtensionId) {
                 setAssessmentBuilder(prev => ({
                   ...prev,
-                  extensions: prev.extensions.map(ext => 
+                  extensions: prev.extensions.map(ext =>
                     ext.id === prev.activeExtensionId ? { ...ext, content } : ext
                   )
                 }))
@@ -7839,7 +7912,7 @@ FEEDBACK: [your explanation]`
               if (taskBuilder.activeExtensionId) {
                 setTaskBuilder(prev => ({
                   ...prev,
-                  extensions: prev.extensions.map(ext => 
+                  extensions: prev.extensions.map(ext =>
                     ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
                   )
                 }))
@@ -7850,7 +7923,7 @@ FEEDBACK: [your explanation]`
               if (assessmentBuilder.activeExtensionId) {
                 setAssessmentBuilder(prev => ({
                   ...prev,
-                  extensions: prev.extensions.map(ext => 
+                  extensions: prev.extensions.map(ext =>
                     ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
                   )
                 }))
@@ -7864,21 +7937,51 @@ FEEDBACK: [your explanation]`
         {/* Question Bank Modal */}
         <QuestionBankModal
           isOpen={questionBankOpen}
-          onClose={() => setQuestionBankOpen(false)}
+          onClose={() => {
+            setQuestionBankOpen(false)
+            setImportTarget(null)
+          }}
           onImport={(questions) => {
-            // Add imported questions to the appropriate builder
-            if (questionBankTarget === 'task') {
-              setTaskBuilder(prev => ({
-                ...prev,
-                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Question Bank]\n\n${questions}`
+            if (importTarget) {
+              // Creating a new assessment from imported content
+              const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+              newAssessment.title = 'Imported Assessment'
+              newAssessment.description = questions
+
+              setModules(prev => prev.map(mod => {
+                if (mod.id === importTarget.moduleId) {
+                  return {
+                    ...mod,
+                    lessons: mod.lessons.map(lesson => {
+                      if (lesson.id === importTarget.lessonId) {
+                        return {
+                          ...lesson,
+                          homework: [...lesson.homework, newAssessment]
+                        }
+                      }
+                      return lesson
+                    })
+                  }
+                }
+                return mod
               }))
+              setImportTarget(null)
+              toast.success('Items imported into lesson')
             } else {
-              setAssessmentBuilder(prev => ({
-                ...prev,
-                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Question Bank]\n\n${questions}`
-              }))
+              // Add imported questions to the appropriate builder target
+              if (questionBankTarget === 'task') {
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Assessment Bank]\n\n${questions}`
+                }))
+              } else {
+                setAssessmentBuilder(prev => ({
+                  ...prev,
+                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + `[Imported from Assessment Bank]\n\n${questions}`
+                }))
+              }
+              toast.success('Questions imported from Assessment Bank')
             }
-            toast.success('Questions imported from Question Bank')
           }}
         />
       </div>

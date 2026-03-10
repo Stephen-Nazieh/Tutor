@@ -38,6 +38,9 @@ const QUESTION_TYPES: { value: QuestionType; label: string; icon: string }[] = [
     { value: 'multi_select', label: 'Multi-Select', icon: '☑☑' },
     { value: 'fill_in_blank', label: 'Fill in Blank', icon: '___' },
     { value: 'matching', label: 'Matching', icon: '⇄' },
+    { value: 'task', label: 'Task', icon: '📋' },
+    { value: 'assessment', label: 'Assessment', icon: '📝' },
+    { value: 'homework', label: 'Homework', icon: '🏠' },
 ]
 
 const DIFFICULTIES: { value: QuestionDifficulty; label: string; color: string }[] = [
@@ -322,10 +325,10 @@ export default function QuestionBankPage() {
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">
                         <BookOpen className="w-6 h-6" />
-                        Question Bank
+                        Assessment Bank
                     </h1>
                     <p className="text-muted-foreground">
-                        Manage your reusable questions for quizzes and assessments
+                        Manage your reusable tasks, assessments, and homework
                     </p>
                 </div>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -635,11 +638,11 @@ export default function QuestionBankPage() {
                     <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium mb-2">No questions yet</h3>
                     <p className="text-muted-foreground mb-4">
-                        Create your first question to start building your question bank
+                        Create your first item to start building your assessment bank
                     </p>
                     <Button onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Question
+                        Add Item
                     </Button>
                 </Card>
             ) : (

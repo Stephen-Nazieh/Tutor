@@ -7,14 +7,17 @@
 // Question Bank Types
 // ============================================
 
-export type QuestionType = 
-  | 'multiple_choice' 
-  | 'true_false' 
-  | 'short_answer' 
-  | 'essay' 
-  | 'matching' 
-  | 'fill_in_blank' 
+export type QuestionType =
+  | 'multiple_choice'
+  | 'true_false'
+  | 'short_answer'
+  | 'essay'
+  | 'matching'
+  | 'fill_in_blank'
   | 'multi_select'
+  | 'task'
+  | 'assessment'
+  | 'homework'
 
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard'
 

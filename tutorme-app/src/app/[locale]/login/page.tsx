@@ -157,12 +157,7 @@ function LoginForm() {
           </Link>
         </div>
 
-        <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 flex gap-2 text-left">
-          <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-600">
-            Only one account is logged in per browser. Logging in as a different user in another tab will switch the account in all tabs. To use both a tutor and a student account at the same time, use two different browsers or an incognito/private window.
-          </p>
-        </div>
+
 
         <div className="mt-4 pt-4 border-t text-center">
           <Link

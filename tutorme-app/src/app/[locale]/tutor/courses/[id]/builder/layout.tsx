@@ -180,7 +180,7 @@ export default function CourseBuilderLayout({
   const courseId = (params?.id as string) ?? ''
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('curriculum')
-  
+
   // Groups & Schedules Modal State
   const [groupsModalOpen, setGroupsModalOpen] = useState(false)
   const [batches, setBatches] = useState<BatchItem[]>([])
@@ -275,7 +275,7 @@ export default function CourseBuilderLayout({
         setCourse(data.course)
         setCurriculumSource((data.course?.curriculumSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM')
         setOutlineSource((data.course?.outlineSource as 'SELF' | 'AI') ?? 'SELF')
-        
+
         // Load curriculum catalog for subject
         if (data.course?.subject) {
           setLoadingCatalog(true)
@@ -395,10 +395,10 @@ export default function CourseBuilderLayout({
       })
       const data = await res.json()
       if (res.ok) {
-        const newBatch: BatchItem = { 
-          ...data.batch, 
-          difficulty: 'beginner', 
-          schedule: [], 
+        const newBatch: BatchItem = {
+          ...data.batch,
+          difficulty: 'beginner',
+          schedule: [],
           enrollmentCount: 0,
           assignedCourses: [],
           courseCount: 0,
@@ -407,12 +407,12 @@ export default function CourseBuilderLayout({
         setBatches((prev) => [...prev, newBatch])
         setNewBatchName('')
         setActiveTab(newBatch.id)
-        
+
         // Also save to localStorage for My Groups page
         const storedGroups = localStorage.getItem('tutor_groups')
         const existingGroups: BatchItem[] = storedGroups ? JSON.parse(storedGroups) : []
         localStorage.setItem('tutor_groups', JSON.stringify([newBatch, ...existingGroups]))
-        
+
         toast.success(data.message ?? 'Group created')
       } else toast.error(data.error ?? 'Failed to create group')
     } catch {
@@ -621,8 +621,8 @@ export default function CourseBuilderLayout({
         {/* Back to Dashboard Button */}
         <div className="p-4 border-b">
           <div className="space-y-2">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900"
               asChild
             >
@@ -637,7 +637,7 @@ export default function CourseBuilderLayout({
               disabled={launchingLiveClass}
             >
               {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
-              {launchingLiveClass ? 'Opening Live Class…' : 'Open in Live Class'}
+              {launchingLiveClass ? 'Opening Live Class…' : 'Go Live'}
             </Button>
           </div>
         </div>
@@ -658,7 +658,7 @@ export default function CourseBuilderLayout({
           </p>
 
         </div>
-        
+
         {/* Builder Navigation */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {builderNavItems.map((item) => {
@@ -677,8 +677,8 @@ export default function CourseBuilderLayout({
                 onClick={handleClick}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left",
-                  isActive 
-                    ? "bg-blue-50 text-blue-700 font-medium" 
+                  isActive
+                    ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 )}
               >
@@ -688,15 +688,15 @@ export default function CourseBuilderLayout({
             )
           })}
         </nav>
-        
+
         {/* Quick Actions Section */}
         <div className="px-4 py-3 border-t bg-gray-50/50">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
             Quick Actions
           </p>
           <div className="space-y-1">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start gap-2 text-sm"
               asChild
             >
@@ -705,8 +705,8 @@ export default function CourseBuilderLayout({
                 Preview Course
               </Link>
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start gap-2 text-sm"
               asChild
             >
@@ -715,8 +715,8 @@ export default function CourseBuilderLayout({
                 Group Builder
               </Link>
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start gap-2 text-sm"
             >
               <Save className="h-4 w-4" />
@@ -730,8 +730,8 @@ export default function CourseBuilderLayout({
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -748,7 +748,7 @@ export default function CourseBuilderLayout({
               size="icon"
               onClick={handleOpenInLiveClass}
               disabled={launchingLiveClass}
-              title="Open in Live Class"
+              title="Go Live"
             >
               {launchingLiveClass ? <Loader2 className="h-5 w-5 animate-spin" /> : <Radio className="h-5 w-5" />}
             </Button>
@@ -770,8 +770,8 @@ export default function CourseBuilderLayout({
         <div className="lg:hidden fixed inset-0 top-16 bg-white z-40 p-4 overflow-y-auto">
           {/* Back to My Page - Mobile */}
           <div className="mb-4 pb-4 border-b">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full justify-start gap-2"
               asChild
             >
@@ -798,8 +798,8 @@ export default function CourseBuilderLayout({
                   }}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left",
-                    isActive 
-                      ? "bg-blue-50 text-blue-700 font-medium" 
+                    isActive
+                      ? "bg-blue-50 text-blue-700 font-medium"
                       : "text-gray-600 hover:bg-gray-100"
                   )}
                 >
@@ -825,10 +825,10 @@ export default function CourseBuilderLayout({
               disabled={launchingLiveClass}
             >
               {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
-              {launchingLiveClass ? 'Opening Live Class…' : 'Open in Live Class'}
+              {launchingLiveClass ? 'Opening Live Class…' : 'Go Live'}
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start gap-2"
               asChild
             >
@@ -837,8 +837,8 @@ export default function CourseBuilderLayout({
                 Preview Course
               </Link>
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start gap-2"
               asChild
             >
@@ -865,7 +865,7 @@ export default function CourseBuilderLayout({
               Group Builder
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-hidden">
             {loadingBatches ? (
               <div className="flex items-center justify-center h-full">
@@ -892,8 +892,8 @@ export default function CourseBuilderLayout({
                   <div className="flex items-center gap-2 overflow-x-auto">
                     <TabsList className="bg-transparent h-10">
                       {batches.map((batch) => (
-                        <TabsTrigger 
-                          key={batch.id} 
+                        <TabsTrigger
+                          key={batch.id}
                           value={batch.id}
                           className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
                         >
@@ -911,9 +911,9 @@ export default function CourseBuilderLayout({
                         onChange={(e) => setNewBatchName(e.target.value)}
                         className="w-[150px] h-8 text-sm"
                       />
-                      <Button 
-                        size="sm" 
-                        onClick={handleCreateBatch} 
+                      <Button
+                        size="sm"
+                        onClick={handleCreateBatch}
                         disabled={creatingBatch || !newBatchName.trim()}
                       >
                         <Plus className="h-3 w-3" />
@@ -923,9 +923,9 @@ export default function CourseBuilderLayout({
                 </div>
 
                 {batches.map((batch) => (
-                  <TabsContent 
-                    key={batch.id} 
-                    value={batch.id} 
+                  <TabsContent
+                    key={batch.id}
+                    value={batch.id}
                     className="flex-1 overflow-auto m-0 p-6"
                   >
                     <div className="max-w-4xl mx-auto space-y-6">
@@ -1058,19 +1058,19 @@ export default function CourseBuilderLayout({
                           Share this group link for students to join this specific group.
                         </p>
                         <div className="flex gap-2">
-                          <Input 
-                            readOnly 
-                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`} 
+                          <Input
+                            readOnly
+                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`}
                             className="font-mono text-sm bg-white flex-1"
                           />
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="icon" 
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
                             onClick={() => {
                               const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`
                               if (url) navigator.clipboard.writeText(url).then(() => toast.success('Group link copied'))
-                            }} 
+                            }}
                             title="Copy link"
                           >
                             <Copy className="h-4 w-4" />
@@ -1085,8 +1085,8 @@ export default function CourseBuilderLayout({
                       </div>
 
                       {/* Course Assignment Section */}
-                      <CourseAssignmentSection 
-                        batch={batch} 
+                      <CourseAssignmentSection
+                        batch={batch}
                         courseId={courseId}
                       />
 
@@ -1096,8 +1096,8 @@ export default function CourseBuilderLayout({
                           <h4 className="font-medium flex items-center gap-2">
                             Class Schedule
                           </h4>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => addScheduleSlot(batch.id)}
                           >
@@ -1170,7 +1170,7 @@ export default function CourseBuilderLayout({
                         )}
 
                         {batch.schedule.length > 0 && (
-                          <Button 
+                          <Button
                             onClick={() => handleUpdateBatchSchedule(batch.id, batch.schedule)}
                           >
                             Save Schedule
@@ -1224,7 +1224,7 @@ export default function CourseBuilderLayout({
               Curriculum & Materials
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-auto p-6">
             {loadingCourse ? (
               <div className="flex items-center justify-center h-full">
@@ -1509,7 +1509,7 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
         lessonCount: courses.find(c => c.id === courseId)?.stats.lessonCount || 0
       }
     }
-    
+
     setAssignedCourses(prev => [...prev, newAssignment])
     toast.success('Course assigned successfully!')
   }
@@ -1519,7 +1519,7 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
     toast.success('Course unassigned')
   }
 
-  const availableCourses = courses.filter(c => 
+  const availableCourses = courses.filter(c =>
     !assignedCourses.some(a => a.courseId === c.id)
   )
 
@@ -1551,8 +1551,8 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
         ) : (
           <div className="space-y-2">
             {assignedCourses.map(assignment => (
-              <div 
-                key={assignment.id} 
+              <div
+                key={assignment.id}
                 className="flex items-center justify-between p-3 bg-white rounded-lg border"
               >
                 <div className="flex-1 min-w-0">
@@ -1573,9 +1573,9 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
                   <Badge variant={assignment.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                     {assignment.status}
                   </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => handleUnassign(assignment.id)}
                   >
@@ -1594,8 +1594,8 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
           <Label className="text-sm font-medium">Available Courses</Label>
           <div className="space-y-2">
             {availableCourses.slice(0, 3).map(course => (
-              <div 
-                key={course.id} 
+              <div
+                key={course.id}
                 className="flex items-center justify-between p-3 bg-white rounded-lg border"
               >
                 <div className="flex-1 min-w-0">
@@ -1604,8 +1604,8 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
                     Will adapt to {batch.difficulty} level
                   </p>
                 </div>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => handleAssign(course.id, batch.id)}
                 >
@@ -1614,9 +1614,9 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
               </div>
             ))}
             {availableCourses.length > 3 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="w-full"
                 onClick={() => setAssignModalOpen(true)}
               >
@@ -1631,7 +1631,7 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
       <Alert className="bg-blue-50 border-blue-200">
         <BarChart3 className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-700 text-sm">
-          This group is set to <strong>{DIFFICULTY_LABELS[batch.difficulty]}</strong> level. 
+          This group is set to <strong>{DIFFICULTY_LABELS[batch.difficulty]}</strong> level.
           Assigned courses will automatically adapt their content to match this difficulty level.
         </AlertDescription>
       </Alert>
