@@ -38,7 +38,8 @@ import {
   Music,
   Palette as ArtIcon,
   Code,
-  Trophy
+  Trophy,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,19 +122,7 @@ const THEMES: Record<ColorTheme, { name: string; icon: string; colors: { primary
   },
 };
 
-// --- Categories Data ---
-const CATEGORIES = [
-  // Curriculums
-  { id: 'ap', name: 'AP', icon: BookOpen, description: 'Advanced Placement', color: 'bg-red-500', category: 'Curriculums' },
-  { id: 'ib', name: 'IB', icon: Trophy, description: 'International Baccalaureate', color: 'bg-emerald-500', category: 'Curriculums' },
-  // Standardized Tests
-  { id: 'ielts', name: 'IELTS', icon: Languages, description: 'International English Language Testing System', color: 'bg-blue-500', category: 'Standardized Tests' },
-  { id: 'toefl', name: 'TOEFL', icon: Languages, description: 'Test of English as a Foreign Language', color: 'bg-indigo-500', category: 'Standardized Tests' },
-  { id: 'sat', name: 'SAT', icon: Calculator, description: 'Scholastic Assessment Test', color: 'bg-orange-500', category: 'Standardized Tests' },
-  // College Admission Exams
-  { id: 'gre', name: 'GRE', icon: Calculator, description: 'Graduate Record Examination', color: 'bg-purple-500', category: 'College Admission Exams' },
-  { id: 'gmat', name: 'GMAT', icon: Calculator, description: 'Graduate Management Admission Test', color: 'bg-cyan-500', category: 'College Admission Exams' },
-];
+import { LANDING_CATEGORIES as CATEGORIES } from '@/lib/data/landing-categories';
 
 // --- Translations ---
 const translations: Translations = {
@@ -1206,47 +1195,85 @@ const TermsOfServiceModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClo
 // --- Categories Page Component ---
 
 const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
+
+  // Reset search when modal closes
+  useEffect(() => {
+    if (!isOpen) setSearchQuery('');
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  // Group categories by their category type
-  const groupedCategories = CATEGORIES.reduce((acc, cat) => {
+  // Filter categories first
+  const filteredCategories = CATEGORIES.filter(cat =>
+    cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    cat.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    cat.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Group filtered categories by their category type
+  const groupedCategories = filteredCategories.reduce((acc, cat) => {
     if (!acc[cat.category]) acc[cat.category] = [];
     acc[cat.category].push(cat);
     return acc;
   }, {} as Record<string, typeof CATEGORIES>);
 
-  const categoryOrder = ['Curriculums', 'Standardized Tests', 'College Admission Exams'];
+  const categoryOrder = Object.keys(groupedCategories).sort();
 
   return (
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-4xl max-h-[80vh] overflow-y-auto backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}>
-          <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
-          <h2 className={`text-3xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('viewAllCategories')}</h2>
-          <p className={`mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Explore all curriculums, standardized tests, and college admission exams available on Solocorn</p>
+        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className={`relative w-full max-w-4xl max-h-[85vh] flex flex-col backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden ${mode === 'dark' ? 'bg-zinc-900/95 border-white/10' : 'bg-white/95 border-black/10'}`}>
+          <div className="p-8 pb-4 shrink-0 relative">
+            <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
+            <h2 className={`text-3xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('viewAllCategories')}</h2>
+            <p className={`mb-6 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Explore all curriculums, standardized tests, and college admission exams available on Solocorn</p>
 
-          <div className="space-y-8">
-            {categoryOrder.map((categoryName) => (
-              groupedCategories[categoryName] && (
-                <div key={categoryName}>
-                  <h3 className={`text-lg font-semibold mb-4 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{categoryName}</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {groupedCategories[categoryName].map((cat) => (
-                      <div key={cat.id} className={`p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer ${mode === 'dark' ? 'bg-white/5 border-white/10 hover:border-emerald-500/50' : 'bg-gray-50 border-black/10 hover:border-emerald-500/50'}`}>
-                        <div className={`w-12 h-12 rounded-lg ${cat.color} flex items-center justify-center mb-3`}>
-                          <cat.icon className="w-6 h-6 text-white" />
-                        </div>
-                        <h3 className={`font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{cat.name}</h3>
-                        <p className={`text-sm mt-1 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{cat.description}</p>
+            <div className={`relative flex items-center mb-2`}>
+              <Search className={`absolute left-3 w-5 h-5 ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-400'}`} />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search an exam, country or category..."
+                className={`w-full pl-10 py-6 text-lg rounded-xl border-2 transition-all ${mode === 'dark' ? 'bg-black/20 border-white/10 text-white placeholder:text-zinc-500 focus-visible:border-emerald-500/50' : 'bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400 focus-visible:border-emerald-500/50'}`}
+              />
+            </div>
+          </div>
+
+          <div className="p-8 pt-0 overflow-y-auto w-full">
+            {filteredCategories.length === 0 ? (
+              <div className="py-12 text-center flex flex-col items-center justify-center">
+                <Search className={`w-12 h-12 mb-4 opacity-20 ${mode === 'dark' ? 'text-white' : 'text-black'}`} />
+                <p className={`text-lg font-medium ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>No categories found for "{searchQuery}"</p>
+                <p className={`text-sm mt-2 ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>Try searching with different keywords</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {categoryOrder.map((categoryName) => (
+                  groupedCategories[categoryName] && (
+                    <div key={categoryName}>
+                      <h3 className={`text-lg font-semibold mb-4 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{categoryName}</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {groupedCategories[categoryName].map((cat) => {
+                          const Icon = cat.icon;
+                          return (
+                            <div key={cat.id} className={`p-4 rounded-xl border transition-all hover:scale-105 cursor-pointer ${mode === 'dark' ? 'bg-white/5 border-white/10 hover:border-emerald-500/50' : 'bg-gray-50 border-black/10 hover:border-emerald-500/50'}`}>
+                              <div className={`w-12 h-12 rounded-lg ${cat.color} flex items-center justify-center mb-3`}>
+                                <Icon className="w-6 h-6 text-white" />
+                              </div>
+                              <h3 className={`font-bold line-clamp-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`} title={cat.name}>{cat.name}</h3>
+                              <p className={`text-sm mt-1 line-clamp-2 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`} title={cat.description}>{cat.description}</p>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            ))}
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>
