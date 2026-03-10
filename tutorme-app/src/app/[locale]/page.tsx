@@ -7,12 +7,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  UserPlus, 
-  GraduationCap, 
-  School, 
-  Building2, 
-  Mail, 
+import {
+  UserPlus,
+  GraduationCap,
+  School,
+  Building2,
+  Mail,
   ChevronRight,
   X,
   Lock,
@@ -146,7 +146,7 @@ const translations: Translations = {
     'en': 'Register', 'zh-CN': '注册', 'zh-HK': '註冊', 'es': 'Registrarse', 'fr': 'S\'inscrire',
     'de': 'Registrieren', 'ja': '登録', 'ko': '등록', 'pt': 'Registrar', 'hi': 'पंजीकरण',
   },
-  
+
   // Hero Section
   comingSoon: {
     'en': 'Coming Soon', 'zh-CN': '即将推出', 'zh-HK': '即將推出', 'es': 'Próximamente', 'fr': 'Bientôt disponible',
@@ -156,7 +156,7 @@ const translations: Translations = {
     'en': 'Launch', 'zh-CN': '启动', 'zh-HK': '啟動', 'es': 'Lanzar', 'fr': 'Lancer',
     'de': 'Starten', 'ja': 'ローンチ', 'ko': '출시', 'pt': 'Lançar', 'hi': 'लॉन्च',
   },
-  
+
   // Tutor Section
   solocornTutors: {
     'en': 'Solocorn Tutors', 'zh-CN': 'Solocorn 导师', 'zh-HK': 'Solocorn 導師', 'es': 'Tutores de Solocorn', 'fr': 'Tuteurs Solocorn',
@@ -166,7 +166,7 @@ const translations: Translations = {
     'en': 'View all Categories', 'zh-CN': '查看所有类别', 'zh-HK': '查看所有類別', 'es': 'Ver todas las categorías', 'fr': 'Voir toutes les catégories',
     'de': 'Alle Kategorien anzeigen', 'ja': 'すべてのカテゴリを表示', 'ko': '모든 카테고리 보기', 'pt': 'Ver todas as categorias', 'hi': 'सभी श्रेणियाँ देखें',
   },
-  
+
   // Special Access
   accessWithCode: {
     'en': 'Access with code', 'zh-CN': '使用代码访问', 'zh-HK': '使用代碼訪問', 'es': 'Acceso con código', 'fr': 'Accès avec code',
@@ -184,7 +184,7 @@ const translations: Translations = {
     'en': 'Invalid access code', 'zh-CN': '无效的访问代码', 'zh-HK': '無效嘅訪問代碼', 'es': 'Código de acceso inválido', 'fr': 'Code d\'accès invalide',
     'de': 'Ungültiger Zugangscode', 'ja': '無効なアクセスコード', 'ko': '잘못된 액세스 코드', 'pt': 'Código de acesso inválido', 'hi': 'अमान्य पहुंच कोड',
   },
-  
+
   // Action Cards
   becomeTutor: {
     'en': 'Pre-register to become a Solocorn Tutor', 'zh-CN': '预注册成为 Solocorn 导师', 'zh-HK': '預註冊成為 Solocorn 導師', 'es': 'Pre-regístrate para ser tutor de Solocorn', 'fr': 'Pré-inscrivez-vous pour devenir tuteur Solocorn',
@@ -246,7 +246,7 @@ const translations: Translations = {
     'en': 'Inquire', 'zh-CN': '咨询', 'zh-HK': '諮詢', 'es': 'Consultar', 'fr': 'Renseignements',
     'de': 'Anfragen', 'ja': 'お問い合わせ', 'ko': '문의', 'pt': 'Consultar', 'hi': 'पूछताछ',
   },
-  
+
   // Business Section
   businessInquiries: {
     'en': 'Business and Licensing Inquiries', 'zh-CN': '商业和许可咨询', 'zh-HK': '商業同許可諮詢', 'es': 'Consultas comerciales y de licencias', 'fr': 'Demandes commerciales et de licence',
@@ -268,7 +268,7 @@ const translations: Translations = {
     'en': 'Contact', 'zh-CN': '联系', 'zh-HK': '聯繫', 'es': 'Contactar', 'fr': 'Contacter',
     'de': 'Kontakt', 'ja': 'お問い合わせ', 'ko': '문의', 'pt': 'Contato', 'hi': 'संपर्क',
   },
-  
+
   // Footer
   footerBrand: {
     'en': 'Solocorn LLC', 'zh-CN': 'Solocorn LLC', 'zh-HK': 'Solocorn LLC', 'es': 'Solocorn LLC', 'fr': 'Solocorn LLC',
@@ -288,7 +288,7 @@ const translations: Translations = {
     'de': '© 2026 Solocorn LLC. Alle Rechte vorbehalten.', 'ja': '© 2026 Solocorn LLC. All rights reserved.', 'ko': '© 2026 Solocorn LLC. 모든 권리 보유.',
     'pt': '© 2026 Solocorn LLC. Todos os direitos reservados.', 'hi': '© 2026 Solocorn LLC। सर्वाधिकार सुरक्षित।',
   },
-  
+
   // Modal Content
   beFirst: {
     'en': 'Be the first to experience Solocorn', 'zh-CN': '成为首批体验 Solocorn 的用户', 'zh-HK': '成為首批體驗 Solocorn 嘅用戶',
@@ -502,18 +502,18 @@ const GridFloor = ({ theme }: { theme: ColorTheme }) => {
     sunset: 'rgba(245, 158, 11, 0.2)',
     galaxy: 'rgba(168, 85, 247, 0.2)',
   };
-  
+
   return (
     <div className="absolute inset-0 overflow-hidden">
       <div className="absolute bottom-0 left-0 right-0 h-2/3 origin-bottom" style={{ transform: 'perspective(500px) rotateX(60deg)' }}>
-        <motion.div 
-          className="w-full h-[200%]" 
-          style={{ 
-            backgroundImage: `linear-gradient(to right, ${gridColors[theme]} 1px, transparent 1px), linear-gradient(to bottom, ${gridColors[theme]} 1px, transparent 1px)`, 
-            backgroundSize: '60px 60px' 
-          }} 
-          animate={{ y: ['0%', '60px'] }} 
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} 
+        <motion.div
+          className="w-full h-[200%]"
+          style={{
+            backgroundImage: `linear-gradient(to right, ${gridColors[theme]} 1px, transparent 1px), linear-gradient(to bottom, ${gridColors[theme]} 1px, transparent 1px)`,
+            backgroundSize: '60px 60px'
+          }}
+          animate={{ y: ['0%', '60px'] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         />
       </div>
     </div>
@@ -527,12 +527,12 @@ const FloatingSymbol = ({ symbol, x, y, delay, theme }: { symbol: string; x: str
     sunset: 'text-amber-400/30',
     galaxy: 'text-purple-400/30',
   };
-  
+
   return (
-    <motion.div 
-      className={`absolute font-bold ${colors[theme]} select-none pointer-events-none`} 
-      style={{ left: x, top: y, fontSize: '3rem', textShadow: '0 0 20px currentColor' }} 
-      animate={{ y: [-15, 15, -15], opacity: [0.3, 0.6, 0.3], rotate: [0, 5, -5, 0] }} 
+    <motion.div
+      className={`absolute font-bold ${colors[theme]} select-none pointer-events-none`}
+      style={{ left: x, top: y, fontSize: '3rem', textShadow: '0 0 20px currentColor' }}
+      animate={{ y: [-15, 15, -15], opacity: [0.3, 0.6, 0.3], rotate: [0, 5, -5, 0] }}
       transition={{ duration: 4, delay, repeat: Infinity, ease: 'easeInOut' }}
     >
       {symbol}
@@ -547,12 +547,12 @@ const FloatingText = ({ text, x, y, delay, theme }: { text: string; x: string; y
     sunset: 'text-amber-400/20',
     galaxy: 'text-purple-400/20',
   };
-  
+
   return (
-    <motion.div 
-      className={`absolute font-bold tracking-wider ${colors[theme]} select-none pointer-events-none uppercase`} 
-      style={{ left: x, top: y, fontSize: '1.5rem', textShadow: '0 0 10px currentColor' }} 
-      animate={{ y: [-10, 10, -10], opacity: [0.15, 0.35, 0.15] }} 
+    <motion.div
+      className={`absolute font-bold tracking-wider ${colors[theme]} select-none pointer-events-none uppercase`}
+      style={{ left: x, top: y, fontSize: '1.5rem', textShadow: '0 0 10px currentColor' }}
+      animate={{ y: [-10, 10, -10], opacity: [0.15, 0.35, 0.15] }}
       transition={{ duration: 5, delay, repeat: Infinity, ease: 'easeInOut' }}
     >
       {text}
@@ -567,7 +567,7 @@ const FloatingShape = ({ Icon, x, y, delay, theme }: { Icon: any; x: string; y: 
     sunset: { border: 'border-amber-500/30', bg: 'bg-amber-500/10', text: 'text-amber-400/50', shadow: 'shadow-amber-500/20' },
     galaxy: { border: 'border-purple-500/30', bg: 'bg-purple-500/10', text: 'text-purple-400/50', shadow: 'shadow-purple-500/20' },
   };
-  
+
   return (
     <motion.div className="absolute pointer-events-none" style={{ left: x, top: y }} animate={{ y: [-20, 20, -20], rotate: [0, 360] }} transition={{ duration: 12, delay, repeat: Infinity, ease: 'linear' }}>
       <div className={`w-12 h-12 border-2 ${colors[theme].border} ${colors[theme].bg} rounded-lg backdrop-blur-sm shadow-lg ${colors[theme].shadow} flex items-center justify-center`}>
@@ -584,7 +584,7 @@ const AtomOrbit = ({ x, y, size, duration, theme }: { x: string; y: string; size
     sunset: { nucleus: 'bg-amber-400', shadow: 'shadow-amber-500/50', ring: 'border-amber-500/20', electron: 'bg-rose-400', electronShadow: 'shadow-rose-500/50' },
     galaxy: { nucleus: 'bg-purple-400', shadow: 'shadow-purple-500/50', ring: 'border-purple-500/20', electron: 'bg-pink-400', electronShadow: 'shadow-pink-500/50' },
   };
-  
+
   return (
     <div className="absolute pointer-events-none" style={{ left: x, top: y, transform: 'translate(-50%, -50%)' }}>
       <div className={`absolute w-2 h-2 ${colors[theme].nucleus} rounded-full shadow-lg ${colors[theme].shadow} left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10`} />
@@ -606,7 +606,7 @@ const ShootingStar = ({ delay, top, theme }: { delay: number; top: string; theme
     sunset: 'via-amber-400',
     galaxy: 'via-purple-400',
   };
-  
+
   return (
     <motion.div className={`absolute h-px bg-gradient-to-r from-transparent ${colors[theme]} to-transparent pointer-events-none`} style={{ width: '100px', top, left: '-100px' }} animate={{ left: ['-10%', '110%'], opacity: [0, 1, 0] }} transition={{ duration: 1.5, delay, repeat: Infinity, repeatDelay: 5, ease: 'easeOut' }} />
   );
@@ -619,7 +619,7 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
     sunset: mode === 'dark' ? 'from-orange-950 via-red-950 to-slate-900' : 'from-orange-50 via-white to-amber-100',
     galaxy: mode === 'dark' ? 'from-purple-950 via-fuchsia-950 to-slate-900' : 'from-purple-50 via-white to-fuchsia-100',
   };
-  
+
   const orbColors = {
     emerald: mode === 'dark' ? ['bg-emerald-500/20', 'bg-cyan-500/20', 'bg-purple-500/10'] : ['bg-emerald-400/30', 'bg-cyan-400/30', 'bg-purple-400/20'],
     ocean: mode === 'dark' ? ['bg-sky-500/20', 'bg-indigo-500/20', 'bg-blue-500/10'] : ['bg-sky-400/30', 'bg-indigo-400/30', 'bg-blue-400/20'],
@@ -674,7 +674,7 @@ const FuturisticBackground = ({ theme, mode }: { theme: ColorTheme; mode: ThemeM
 const LanguageSelector = ({ currentLang, onChange, theme }: { currentLang: Language; onChange: (lang: Language) => void; theme: ColorTheme }) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentLangData = LANGUAGES.find(l => l.code === currentLang);
-  
+
   const themeColors = {
     emerald: 'hover:bg-emerald-500/10 text-emerald-400',
     ocean: 'hover:bg-sky-500/10 text-sky-400',
@@ -807,8 +807,8 @@ const TutorStrip = () => (
 );
 
 const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen: boolean; onClose: () => void; type: ModalType; lang: Language; theme: ColorTheme; mode: ThemeMode }) => {
-  const [formData, setFormData] = useState({ 
-    email: '', 
+  const [formData, setFormData] = useState({
+    email: '',
     name: '',
     about: '',
     socialMedia: '',
@@ -839,8 +839,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
     <>
       <Input type="text" placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
-      <textarea 
-        placeholder="Tell us about your tutoring (500 characters max)" 
+      <textarea
+        placeholder="Tell us about your tutoring (500 characters max)"
         value={formData.about}
         onChange={(e) => setFormData({ ...formData, about: e.target.value.slice(0, 500) })}
         required
@@ -858,8 +858,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
       <h3 className={`text-xl font-bold mb-4 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Solocorn Academy</h3>
       <Input type="text" placeholder="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
-      <textarea 
-        placeholder="Tell us about your academy" 
+      <textarea
+        placeholder="Tell us about your academy"
         value={formData.about}
         onChange={(e) => setFormData({ ...formData, about: e.target.value })}
         required
@@ -879,8 +879,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
       <Input type="text" placeholder="School" value={formData.school} onChange={(e) => setFormData({ ...formData, school: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       <Input type="email" placeholder="Email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       <Input type="text" placeholder="Website" value={formData.website} onChange={(e) => setFormData({ ...formData, website: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
-      <textarea 
-        placeholder="Message (500 characters max)" 
+      <textarea
+        placeholder="Message (500 characters max)"
         value={formData.message}
         onChange={(e) => setFormData({ ...formData, message: e.target.value.slice(0, 500) })}
         required
@@ -1016,14 +1016,13 @@ const Navbar = ({ lang, onLanguageChange, theme, mode, onThemeChange, onModeChan
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
       <div className={`max-w-7xl mx-auto flex justify-between items-center backdrop-blur-md border rounded-2xl px-6 py-3 ${mode === 'dark' ? 'bg-zinc-900/60 border-white/10' : 'bg-white/60 border-black/10'}`}>
         <Link href="/" className="flex items-center gap-3">
-          <img 
-            src="/images/logo.png" 
-            alt="Solocorn" 
-            className="h-8 w-auto bg-transparent" 
+          <img
+            src="/images/logo.png"
+            alt="Solocorn"
+            className="h-8 w-auto bg-transparent"
             style={{ backgroundColor: 'transparent' }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} 
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
-          <span className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('brandName')}</span>
         </Link>
         <div className="flex items-center gap-3">
           <ThemeSelector currentTheme={theme} currentMode={mode} onThemeChange={onThemeChange} onModeChange={onModeChange} lang={lang} />
@@ -1056,26 +1055,26 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
 
   return (
     <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       >
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-        <motion.div 
-          initial={{ scale: 0.95, opacity: 0 }} 
-          animate={{ scale: 1, opacity: 1 }} 
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           className={`relative w-full max-w-md backdrop-blur-xl border rounded-2xl p-8 shadow-2xl ${mode === 'dark' ? 'bg-zinc-900/90 border-white/10' : 'bg-white/90 border-black/10'}`}
         >
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}
           >
             <X className="w-5 h-5" />
           </button>
-          
+
           {!submitted ? (
             <>
               <div className="text-center mb-6">
@@ -1085,12 +1084,12 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
                 <h3 className={`text-2xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>Contact Us</h3>
                 <p className={`text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Send us a message and we'll get back to you soon.</p>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Name</label>
-                  <Input 
-                    type="text" 
+                  <Input
+                    type="text"
                     placeholder="Your name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -1100,8 +1099,8 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Email</label>
-                  <Input 
-                    type="email" 
+                  <Input
+                    type="email"
                     placeholder="your@email.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -1111,7 +1110,7 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Message</label>
-                  <textarea 
+                  <textarea
                     placeholder="How can we help you?"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
@@ -1124,7 +1123,7 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
                   Send Message
                 </Button>
               </form>
-              
+
               <p className={`text-xs text-center mt-4 ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>
                 You can also email us directly at support@solocorn.co
               </p>
@@ -1148,7 +1147,7 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
 
 const PrivacyPolicyModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClose: () => void; mode: ThemeMode }) => {
   if (!isOpen) return null;
-  
+
   return (
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1177,7 +1176,7 @@ const PrivacyPolicyModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClos
 
 const TermsOfServiceModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClose: () => void; mode: ThemeMode }) => {
   if (!isOpen) return null;
-  
+
   return (
     <AnimatePresence>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1208,7 +1207,7 @@ const TermsOfServiceModal = ({ isOpen, onClose, mode }: { isOpen: boolean; onClo
 
 const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
-  
+
   if (!isOpen) return null;
 
   // Group categories by their category type
@@ -1228,7 +1227,7 @@ const CategoriesModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onC
           <button onClick={onClose} className={`absolute top-4 right-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}><X className="w-5 h-5" /></button>
           <h2 className={`text-3xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('viewAllCategories')}</h2>
           <p className={`mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Explore all curriculums, standardized tests, and college admission exams available on Solocorn</p>
-          
+
           <div className="space-y-8">
             {categoryOrder.map((categoryName) => (
               groupedCategories[categoryName] && (
@@ -1279,14 +1278,14 @@ export default function LandingPage() {
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} lang={language} mode={mode} />
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} mode={mode} />
       <TermsOfServiceModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} mode={mode} />
-      
+
       {/* Investor Chat */}
-      <ChatContainer 
-        language={language} 
-        themeColor={theme} 
-        mode={mode} 
-        isOpen={chatOpen} 
-        onClose={() => setChatOpen(false)} 
+      <ChatContainer
+        language={language}
+        themeColor={theme}
+        mode={mode}
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
       />
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 relative">
@@ -1299,7 +1298,7 @@ export default function LandingPage() {
             </div>
             <h1 className={`text-6xl md:text-8xl font-bold tracking-tighter mb-4 drop-shadow-2xl ${mode === 'dark' ? '' : ''}`}>{t('launch')} <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Solocorn</span></h1>
             <p className={`text-xl md:text-2xl font-medium mb-8 ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}>Live AI-Augmented Instruction Platform</p>
-            
+
             {/* Tooltip above the button */}
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -1309,7 +1308,7 @@ export default function LandingPage() {
             >
               Learn about Solocorn
             </motion.p>
-            
+
             {/* Ask Solocorn Button - glowing and active */}
             <motion.button
               onClick={() => setChatOpen(true)}
@@ -1335,7 +1334,7 @@ export default function LandingPage() {
               {t('askSolocorn')}
             </motion.button>
             <div className="mb-8"><CountdownTimer /></div>
-            
+
             {/* Register Button */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -1343,8 +1342,8 @@ export default function LandingPage() {
               transition={{ delay: 0.5 }}
               className="mb-16"
             >
-              <Button 
-                onClick={() => setModalType('register')} 
+              <Button
+                onClick={() => setModalType('register')}
                 size="lg"
                 className={`px-8 py-6 text-lg font-bold rounded-full shadow-lg transition-all hover:shadow-xl hover:scale-105 ${mode === 'dark' ? 'bg-white text-black hover:bg-emerald-400' : 'bg-zinc-900 text-white hover:bg-emerald-500'}`}
               >
@@ -1383,7 +1382,7 @@ export default function LandingPage() {
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 ${mode === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}><Building2 className={`w-8 h-8 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`} /></div>
               <h2 className={`text-4xl font-bold mb-6 ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('businessInquiries')}</h2>
               <p className={`text-lg leading-relaxed mb-8 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>{t('businessDesc')}</p>
-              <button 
+              <button
                 onClick={() => setContactModalOpen(true)}
                 className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-colors ${mode === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
               >
@@ -1402,19 +1401,19 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
             <div className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? '' : 'text-zinc-900'}`}>{t('footerBrand')}</div>
             <div className={`flex gap-8 text-sm ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}`}>
-              <button 
+              <button
                 onClick={() => setPrivacyOpen(true)}
                 className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
               >
                 {t('privacyPolicy')}
               </button>
-              <button 
+              <button
                 onClick={() => setTermsOpen(true)}
                 className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
               >
                 {t('termsOfService')}
               </button>
-              <button 
+              <button
                 onClick={() => setContactModalOpen(true)}
                 className={`hover:text-${theme}-400 transition-colors cursor-pointer bg-transparent border-0`}
               >

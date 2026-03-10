@@ -327,7 +327,6 @@ function TutorDashboardContent() {
       />
 
     </div>
-    </div >
   )
 }
 

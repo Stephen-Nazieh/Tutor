@@ -6,8 +6,6 @@ import { Clock, BookOpen, Copy, Plus, Sparkles, Video, Trash2, Users } from 'luc
 import { toast } from 'sonner'
 import { formatClassTime } from '@/lib/format-class-time'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import { formatClassTime } from '@/lib/format-class-time'
 
 export interface UpcomingClass {
   id: string
