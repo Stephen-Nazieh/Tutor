@@ -48,7 +48,7 @@ import { useRouter } from 'next/navigation';
 import { ChatContainer } from '@/components/solocorn-chat';
 
 // --- Types ---
-type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | null;
+type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | 'chat' | null;
 type Language = 'en' | 'zh-CN' | 'zh-HK' | 'es' | 'fr' | 'de' | 'ja' | 'ko' | 'pt' | 'hi';
 type ThemeMode = 'light' | 'dark';
 type ColorTheme = 'emerald' | 'ocean' | 'sunset' | 'galaxy';
@@ -908,7 +908,7 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
                 {type === 'tutor' && renderTutorForm()}
                 {type === 'academy' && renderAcademyForm()}
                 {type === 'schools' && renderSchoolsForm()}
-                {!type && renderDefaultForm()}
+                {(type === 'register' || type === 'chat' || !type) && renderDefaultForm()}
               </form>
             </>
           ) : (
@@ -1338,7 +1338,7 @@ export default function LandingPage() {
 
             {/* Ask Solocorn Button - glowing and active */}
             <motion.button
-              onClick={() => setChatOpen(true)}
+              onClick={() => setModalType('chat')}
               className={`relative inline-flex items-center gap-2 px-6 py-3 rounded-full text-lg font-semibold mb-12 transition-all ${mode === 'dark' ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-black/10 hover:bg-black/20 text-zinc-900 border border-black/20'}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
