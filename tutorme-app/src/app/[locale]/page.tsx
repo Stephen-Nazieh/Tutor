@@ -885,6 +885,16 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
     <>
       <Input type="text" placeholder={t('yourName')} value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       <Input type="email" placeholder={t('emailAddress')} value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      {type === 'chat' && (
+        <textarea
+          placeholder="Your inquiry"
+          value={formData.message}
+          onChange={(e) => setFormData({ ...formData, message: e.target.value.slice(0, 1000) })}
+          required
+          rows={3}
+          className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
+        />
+      )}
       <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>{t('notifyMe')}</Button>
     </>
   );
@@ -1008,8 +1018,7 @@ const Navbar = ({ lang, onLanguageChange, theme, mode, onThemeChange, onModeChan
           <img
             src="/images/logo.png"
             alt="Solocorn"
-            className="h-8 w-auto bg-transparent"
-            style={{ backgroundColor: 'transparent' }}
+            className={`h-8 w-auto px-1 rounded transition-colors ${mode === 'dark' ? 'bg-black' : 'bg-white'}`}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </Link>
@@ -1288,7 +1297,7 @@ export default function LandingPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [language, setLanguage] = useState<Language>('en');
   const [theme, setTheme] = useState<ColorTheme>('emerald');
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  const [mode, setMode] = useState<ThemeMode>('light');
   const [chatOpen, setChatOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
