@@ -5010,7 +5010,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   // Question Bank modal state
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
-  const [questionBankTarget, setQuestionBankTarget] = useState<'task' | 'assessment'>('task')
+  const [questionBankTarget, setQuestionBankTarget] = useState<string | null>(null)
+  const [importTypeModalData, setImportTypeModalData] = useState<{ target: { moduleId: string, lessonId: string }, items: { questionText: string, pciText: string }[] } | null>(null)
 
   // Track currently loaded item for saving back
   const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
@@ -6059,22 +6060,41 @@ FEEDBACK: [your explanation]`
         <span className="text-xs font-semibold flex items-center gap-1">
           <FolderOpen className="w-3 h-3" /> Assets
         </span>
-        <label className="cursor-pointer" onClick={(e) => e.stopPropagation()}>
-          <input
-            type="file"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              const files = Array.from(e.target.files || [])
-              const newAssets = files.map(f => ({ id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: f.name }))
-              setCourseAssets(prev => [...prev, ...newAssets])
-              e.target.value = ''
-            }}
-          />
-          <span className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
-            <Upload className="w-3 h-3" /> Upload Asset
-          </span>
-        </label>
+        <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              className="hidden"
+              accept=".ppt,.pptx"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) {
+                  toast.success('PPT uploaded. Pages being parsed into Lesson.')
+                  e.target.value = ''
+                }
+              }}
+            />
+            <span className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1 font-medium">
+              <FileText className="w-3 h-3" /> Import ppt
+            </span>
+          </label>
+          <label className="cursor-pointer">
+            <input
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files || [])
+                const newAssets = files.map(f => ({ id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: f.name }))
+                setCourseAssets(prev => [...prev, ...newAssets])
+                e.target.value = ''
+              }}
+            />
+            <span className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
+              <Upload className="w-3 h-3" /> Upload Asset
+            </span>
+          </label>
+        </div>
       </div>
       {assetsOpen && (
         <div className="p-2 flex flex-wrap gap-2 min-h-[50px] bg-white rounded-b-md">
@@ -6102,22 +6122,30 @@ FEEDBACK: [your explanation]`
     </div>
   )
 
-  const autoExtractNumbering = (target: 'task' | 'assessment') => {
-    if (target === 'task') {
-      if (!taskBuilder.taskPci.trim() && taskBuilder.taskContent.trim() && !taskBuilder.activeExtensionId) {
-        const matches = taskBuilder.taskContent.match(/^(\s*)(?:(?:\d+\.)+|\d+\.|[a-z]\.|[ivx]+\.|-|[*])\s/gim)
-        if (matches) {
-          setTaskBuilder(prev => ({ ...prev, taskPci: matches.join('\n') }))
-        }
-      }
-    } else {
-      if (!assessmentBuilder.taskPci.trim() && assessmentBuilder.taskContent.trim() && !assessmentBuilder.activeExtensionId) {
-        const matches = assessmentBuilder.taskContent.match(/^(\s*)(?:(?:\d+\.)+|\d+\.|[a-z]\.|[ivx]+\.|-|[*])\s/gim)
-        if (matches) {
-          setAssessmentBuilder(prev => ({ ...prev, taskPci: matches.join('\n') }))
-        }
+  const syncNumbering = (content: string, oldPci: string) => {
+    const markerRegex = /^(\s*)(?:(?:\d+\.)+|\d+\.|[a-zA-Z]\.|[ivxlcdmIVXLCDM]+\.|-|[*])\s/
+    const contentLines = content.split('\n')
+    const contentMarkers: string[] = []
+
+    for (const line of contentLines) {
+      const match = line.match(markerRegex)
+      if (match) {
+        contentMarkers.push(match[0])
       }
     }
+
+    if (contentMarkers.length === 0) return oldPci
+
+    const pciLines = oldPci.split('\n')
+    const pciAnswers: string[] = []
+    for (const line of pciLines) {
+      const match = line.match(markerRegex)
+      if (match) {
+        pciAnswers.push(line.substring(match[0].length))
+      }
+    }
+
+    return contentMarkers.map((marker, i) => `${marker}${pciAnswers[i] || ''}`).join('\n')
   }
 
   const updateSelectedItem = (updates: PreviewUpdatePayload) => {
@@ -6365,26 +6393,6 @@ FEEDBACK: [your explanation]`
                                   Import
                                 </Button>
 
-                                {/* PPT Button */}
-                                <label className="cursor-pointer">
-                                  <input
-                                    type="file"
-                                    className="hidden"
-                                    accept=".ppt,.pptx"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0]
-                                      if (file) {
-                                        toast.success('PPT uploaded. Pages being parsed into Lesson.')
-                                        e.target.value = ''
-                                      }
-                                    }}
-                                  />
-                                  <span className="h-6 flex items-center text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-green-600 hover:bg-slate-100 rounded">
-                                    <FileText className="h-3 w-3" />
-                                    PPT
-                                  </span>
-                                </label>
-
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -6483,6 +6491,19 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setQuestionBankTarget(`task-${task.id}`)
+                                                setImportTarget(null)
+                                                setQuestionBankOpen(true)
+                                              }}
+                                            >
+                                              Import
+                                            </Button>
                                             <Button
                                               variant="ghost"
                                               size="sm"
@@ -6596,6 +6617,19 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-purple-700">{idx + 1}.</span> {hw.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setQuestionBankTarget(`assessment-${hw.id}`)
+                                                setImportTarget(null)
+                                                setQuestionBankOpen(true)
+                                              }}
+                                            >
+                                              Import
+                                            </Button>
                                             <Button
                                               variant="ghost"
                                               size="sm"
@@ -6722,6 +6756,19 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                              onClick={(e) => {
+                                                e.stopPropagation()
+                                                setQuestionBankTarget(`homework-${hw.id}`)
+                                                setImportTarget(null)
+                                                setQuestionBankOpen(true)
+                                              }}
+                                            >
+                                              Import
+                                            </Button>
                                             <Button
                                               variant="ghost"
                                               size="sm"
@@ -6861,19 +6908,6 @@ FEEDBACK: [your explanation]`
                         AI Assist
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 text-blue-600 border-blue-200 bg-blue-50"
-                        onClick={() => {
-                          setQuestionBankTarget('task')
-                          setImportTarget(null)
-                          setQuestionBankOpen(true)
-                        }}
-                      >
-                        <FolderOpen className="h-4 w-4" />
-                        Import
-                      </Button>
-                      <Button
                         size="sm"
                         className="gap-2"
                         disabled={!loadedTaskId}
@@ -6911,7 +6945,6 @@ FEEDBACK: [your explanation]`
                         <Tabs
                           value={taskBuilderActiveTab}
                           onValueChange={(v) => {
-                            if (v === 'pci') autoExtractNumbering('task')
                             setTaskBuilderActiveTab(v as 'content' | 'pci')
                           }}
                           className="w-full"
@@ -6933,40 +6966,30 @@ FEEDBACK: [your explanation]`
                                 const newContent = e.target.value
                                 if (taskBuilder.activeExtensionId) {
                                   // Update extension content
+                                  setTaskBuilder(prev => {
+                                    const ext = prev.extensions.find(e => e.id === prev.activeExtensionId)
+                                    const newPci = ext ? syncNumbering(newContent, ext.pci) : ''
+                                    return {
+                                      ...prev,
+                                      extensions: prev.extensions.map(ext =>
+                                        ext.id === prev.activeExtensionId
+                                          ? { ...ext, content: newContent, pci: newPci }
+                                          : ext
+                                      )
+                                    }
+                                  })
+                                } else {
+                                  // Update task content and sync PCI
                                   setTaskBuilder(prev => ({
                                     ...prev,
-                                    extensions: prev.extensions.map(ext =>
-                                      ext.id === prev.activeExtensionId
-                                        ? { ...ext, content: newContent }
-                                        : ext
-                                    )
+                                    taskContent: newContent,
+                                    taskPci: syncNumbering(newContent, prev.taskPci)
                                   }))
-                                } else {
-                                  // Update task content
-                                  setTaskBuilder(prev => ({ ...prev, taskContent: newContent }))
                                 }
                               }}
                             />
                             {/* Uploaded Files List - only show for task (not extensions) */}
                             {/* Upload button - only for task (not extensions) */}
-                            {!taskBuilder.activeExtensionId && (
-                              <div className="flex items-center gap-2">
-                                {/* Question Bank Button */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-1 text-xs"
-                                  onClick={() => {
-                                    setQuestionBankTarget('task')
-                                    setQuestionBankOpen(true)
-                                  }}
-                                >
-                                  <BookOpen className="h-3 w-3" />
-                                  From Question Bank
-                                </Button>
-                                {/* File type hint removed */}
-                              </div>
-                            )}
                             {/* Assets Folder added to Slide Tab removed from here */}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
@@ -7257,19 +7280,6 @@ FEEDBACK: [your explanation]`
                         AI Assist
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2 text-blue-600 border-blue-200 bg-blue-50"
-                        onClick={() => {
-                          setQuestionBankTarget('assessment')
-                          setImportTarget(null)
-                          setQuestionBankOpen(true)
-                        }}
-                      >
-                        <FolderOpen className="h-4 w-4" />
-                        Import
-                      </Button>
-                      <Button
                         size="sm"
                         className="gap-2"
                         disabled={!loadedAssessmentId}
@@ -7307,7 +7317,6 @@ FEEDBACK: [your explanation]`
                         <Tabs
                           value={assessmentBuilderActiveTab}
                           onValueChange={(v) => {
-                            if (v === 'pci') autoExtractNumbering('assessment')
                             setAssessmentBuilderActiveTab(v as 'content' | 'pci')
                           }}
                           className="w-full"
@@ -7327,39 +7336,29 @@ FEEDBACK: [your explanation]`
                               onChange={(e) => {
                                 const newContent = e.target.value
                                 if (assessmentBuilder.activeExtensionId) {
+                                  setAssessmentBuilder(prev => {
+                                    const ext = prev.extensions.find(e => e.id === prev.activeExtensionId)
+                                    const newPci = ext ? syncNumbering(newContent, ext.pci) : ''
+                                    return {
+                                      ...prev,
+                                      extensions: prev.extensions.map(ext =>
+                                        ext.id === prev.activeExtensionId
+                                          ? { ...ext, content: newContent, pci: newPci }
+                                          : ext
+                                      )
+                                    }
+                                  })
+                                } else {
                                   setAssessmentBuilder(prev => ({
                                     ...prev,
-                                    extensions: prev.extensions.map(ext =>
-                                      ext.id === prev.activeExtensionId
-                                        ? { ...ext, content: newContent }
-                                        : ext
-                                    )
+                                    taskContent: newContent,
+                                    taskPci: syncNumbering(newContent, prev.taskPci)
                                   }))
-                                } else {
-                                  setAssessmentBuilder(prev => ({ ...prev, taskContent: newContent }))
                                 }
                               }}
                             />
                             {/* Uploaded Files List - only for assessment (not extensions) */}
                             {/* Upload button - only for assessment (not extensions) */}
-                            {!assessmentBuilder.activeExtensionId && (
-                              <div className="flex items-center gap-2">
-                                {/* Question Bank Button for Assessment */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-1 text-xs"
-                                  onClick={() => {
-                                    setQuestionBankTarget('assessment')
-                                    setQuestionBankOpen(true)
-                                  }}
-                                >
-                                  <BookOpen className="h-3 w-3" />
-                                  From Question Bank
-                                </Button>
-                                {/* File type hint removed */}
-                              </div>
-                            )}
                             {/* Assets Folder added to Slide Tab removed from here */}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
@@ -7872,50 +7871,147 @@ FEEDBACK: [your explanation]`
             const joinedPci = items.map(i => i.pciText).join('\n\n')
 
             if (importTarget) {
-              // Creating a new assessment from imported content
-              const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
-              newAssessment.title = 'Imported Assessment'
-              newAssessment.description = joinedQuestions
-              newAssessment.instructions = joinedPci
-
-              setModules(prev => prev.map(mod => {
-                if (mod.id === importTarget.moduleId) {
-                  return {
-                    ...mod,
-                    lessons: mod.lessons.map(lesson => {
-                      if (lesson.id === importTarget.lessonId) {
-                        return {
-                          ...lesson,
-                          homework: [...lesson.homework, newAssessment]
-                        }
-                      }
-                      return lesson
-                    })
-                  }
-                }
-                return mod
-              }))
+              setImportTypeModalData({ target: importTarget, items })
+              setQuestionBankOpen(false)
               setImportTarget(null)
-              toast.success('Items imported into lesson')
-            } else {
-              // Add imported questions to the appropriate builder target
-              if (questionBankTarget === 'task') {
+            } else if (questionBankTarget) {
+              const [targetType, targetId] = questionBankTarget.split('-')
+
+              setModules(prev => prev.map(mod => ({
+                ...mod,
+                lessons: mod.lessons.map(lesson => ({
+                  ...lesson,
+                  tasks: lesson.tasks.map(t => {
+                    if (targetType === 'task' && t.id === targetId) {
+                      return {
+                        ...t,
+                        description: (t.description || '') + ((t.description) ? '\n\n' : '') + joinedQuestions,
+                        instructions: (t.instructions || '') + ((t.instructions) ? '\n\n' : '') + joinedPci
+                      }
+                    }
+                    return t
+                  }),
+                  homework: lesson.homework.map(h => {
+                    if ((targetType === 'assessment' || targetType === 'homework') && h.id === targetId) {
+                      return {
+                        ...h,
+                        description: (h.description || '') + ((h.description) ? '\n\n' : '') + joinedQuestions,
+                        instructions: (h.instructions || '') + ((h.instructions) ? '\n\n' : '') + joinedPci
+                      }
+                    }
+                    return h
+                  })
+                }))
+              })))
+
+              // ALSO update task/assessmentBuilder if it's currently loaded
+              if (targetType === 'task' && loadedTaskId === targetId) {
                 setTaskBuilder(prev => ({
                   ...prev,
                   taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
                   taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
                 }))
-              } else {
+              } else if ((targetType === 'assessment' || targetType === 'homework') && loadedAssessmentId === targetId) {
                 setAssessmentBuilder(prev => ({
                   ...prev,
                   taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
                   taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
                 }))
               }
+
               toast.success('Questions imported from Assessment Bank')
             }
           }}
         />
+
+        {/* Import Type Selector Modal */}
+        <Dialog open={!!importTypeModalData} onOpenChange={(open) => !open && setImportTypeModalData(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Import as...</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-3 py-4">
+              <Button variant="outline" className="justify-start gap-2" onClick={() => {
+                if (!importTypeModalData) return
+                const { target, items } = importTypeModalData
+                const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                const joinedPci = items.map(i => i.pciText).join('\n\n')
+
+                setModules(prev => prev.map(mod => {
+                  if (mod.id !== target.moduleId) return mod
+                  return {
+                    ...mod,
+                    lessons: mod.lessons.map(lesson => {
+                      if (lesson.id !== target.lessonId) return lesson
+                      const newTask = DEFAULT_LESSON(0).tasks[0]
+                      return {
+                        ...lesson,
+                        tasks: [...lesson.tasks, { ...newTask, id: `task-${Date.now()}`, title: 'Imported Task', description: joinedQuestions, instructions: joinedPci }]
+                      }
+                    })
+                  }
+                }))
+                toast.success('Items imported as Task')
+                setImportTypeModalData(null)
+              }}>
+                <ListTodo className="h-4 w-4 text-orange-500" />
+                Task
+              </Button>
+              <Button variant="outline" className="justify-start gap-2" onClick={() => {
+                if (!importTypeModalData) return
+                const { target, items } = importTypeModalData
+                const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                const joinedPci = items.map(i => i.pciText).join('\n\n')
+
+                setModules(prev => prev.map(mod => {
+                  if (mod.id !== target.moduleId) return mod
+                  return {
+                    ...mod,
+                    lessons: mod.lessons.map(lesson => {
+                      if (lesson.id !== target.lessonId) return lesson
+                      const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+                      return {
+                        ...lesson,
+                        homework: [...lesson.homework, { ...newAssessment, id: `hw-${Date.now()}`, title: 'Imported Assessment', description: joinedQuestions, instructions: joinedPci }]
+                      }
+                    })
+                  }
+                }))
+                toast.success('Items imported as Assessment')
+                setImportTypeModalData(null)
+              }}>
+                <FileQuestion className="h-4 w-4 text-purple-500" />
+                Assessment
+              </Button>
+              <Button variant="outline" className="justify-start gap-2" onClick={() => {
+                if (!importTypeModalData) return
+                const { target, items } = importTypeModalData
+                const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                const joinedPci = items.map(i => i.pciText).join('\n\n')
+
+                setModules(prev => prev.map(mod => {
+                  if (mod.id !== target.moduleId) return mod
+                  return {
+                    ...mod,
+                    lessons: mod.lessons.map(lesson => {
+                      if (lesson.id !== target.lessonId) return lesson
+                      const newHomework = DEFAULT_HOMEWORK(0, 'homework')
+                      return {
+                        ...lesson,
+                        homework: [...lesson.homework, { ...newHomework, id: `hw-${Date.now()}`, title: 'Imported Homework', description: joinedQuestions, instructions: joinedPci }]
+                      }
+                    })
+                  }
+                }))
+                toast.success('Items imported as Homework')
+                setImportTypeModalData(null)
+              }}>
+                <Home className="h-4 w-4 text-emerald-500" />
+                Homework
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
