@@ -21,9 +21,7 @@ import {
 } from './components'
 import { StudentProgressCard } from './components/StudentProgressCard'
 import { ModernHeroSection } from './components/ModernHeroSection'
-import { GlassCard } from './components/GlassCard'
 
-// Loading fallback for Suspense
 function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -247,35 +245,6 @@ function TutorDashboardContent() {
           onCreateClassClick={() => setShowCreateDialog(true)}
           onRemoveClass={handleRemoveClass}
         />
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-2">
-            <GlassCard
-              title="Course Catalogue"
-              icon={Library}
-              gradient="blue"
-              action={
-                <Link href="/tutor/courses">
-                  <Button variant="ghost" size="sm">
-                    View
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-              }
-            >
-              <p className="text-sm text-gray-600 mb-4">
-                Browse and manage your courses. Create new courses, then configure curriculum, groups, and schedule for each.
-              </p>
-              <Link href="/tutor/courses">
-                <Button variant="outline" className="w-full">
-                  <Library className="w-4 h-4 mr-2" />
-                  Open Course Catalogue
-                </Button>
-              </Link>
-            </GlassCard>
-          </div>
-
-        </div>
       </div>
 
       {/* Analytics Section */}

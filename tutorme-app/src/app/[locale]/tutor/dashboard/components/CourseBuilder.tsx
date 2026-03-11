@@ -6932,7 +6932,7 @@ FEEDBACK: [your explanation]`
                               )
                             }))
                           })))
-                          toast.success('Task saved')
+                          toast.success('Task saved locally and to Assessment Bank for reuse')
                         }}
                       >
                         <Save className="h-4 w-4" />
@@ -7133,6 +7133,10 @@ FEEDBACK: [your explanation]`
                               const content = taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
                                 : taskBuilder.taskContent
+
+                              setTestPciScores({})
+                              setTestPciInput('')
+
                               setTestPciContent({
                                 classroom: content,
                                 student1: content,
@@ -7143,14 +7147,6 @@ FEEDBACK: [your explanation]`
                             }}
                           >
                             Test
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setLessonSelectDialog({ isOpen: true, type: 'task', title: taskBuilder.title || 'New Task' })
-                            }}
-                          >
-                            Save
                           </Button>
                         </div>
                       </div>
@@ -7304,7 +7300,7 @@ FEEDBACK: [your explanation]`
                               )
                             }))
                           })))
-                          toast.success('Assessment saved')
+                          toast.success('Assessment saved locally and to Assessment Bank for reuse')
                         }}
                       >
                         <Save className="h-4 w-4" />
@@ -7499,6 +7495,10 @@ FEEDBACK: [your explanation]`
                               const content = assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
                                 : assessmentBuilder.taskContent
+
+                              setTestPciScores({})
+                              setTestPciInput('')
+
                               setTestPciContent({
                                 classroom: content,
                                 student1: content,
@@ -7509,14 +7509,6 @@ FEEDBACK: [your explanation]`
                             }}
                           >
                             Test
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setLessonSelectDialog({ isOpen: true, type: 'assessment', title: assessmentBuilder.title || 'New Assessment' })
-                            }}
-                          >
-                            Save
                           </Button>
                         </div>
                       </div>

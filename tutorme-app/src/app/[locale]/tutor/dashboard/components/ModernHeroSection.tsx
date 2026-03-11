@@ -65,7 +65,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
 
   if (loading) {
     return (
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-white/10 rounded w-1/3" />
           <div className="h-4 bg-white/10 rounded w-1/4" />
@@ -80,12 +80,12 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-xl border border-white/5">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-2000" />
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse opacity-50" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse delay-1000 opacity-50" />
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse delay-2000 opacity-50" />
       </div>
 
       {/* Content */}
@@ -94,8 +94,8 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
         <div className="flex items-start justify-between mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-yellow-400" />
-              <span className="text-purple-300 text-sm font-medium">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <span className="text-blue-300 text-sm font-medium">
                 {greeting}, Tutor
               </span>
             </div>
@@ -126,14 +126,14 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
                 </span>
                 <span className={cn(
                   "text-lg font-bold w-8 h-8 flex items-center justify-center rounded-full mt-1",
-                  i === 0 ? "bg-purple-500 text-white" : "text-white group-hover:bg-white/10"
+                  i === 0 ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "text-white group-hover:bg-white/10"
                 )}>
                   {d.getDate()}
                 </span>
                 {/* Mock event dots */}
                 <div className="flex gap-1 mt-2 h-1.5">
-                  {i % 2 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
-                  {i % 3 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-pink-400" />}
+                  {i % 2 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+                  {i % 3 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
                 </div>
               </div>
             );
@@ -143,7 +143,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">
           <Button
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 font-medium shadow-lg border-0"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-500 hover:to-indigo-500 font-medium shadow-lg border-0"
             onClick={onCreateCourse}
           >
             <Award className="w-4 h-4 mr-2" />
