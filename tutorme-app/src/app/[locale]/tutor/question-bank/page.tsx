@@ -320,7 +320,7 @@ export default function QuestionBankPage() {
     }
 
     return (
-        <div className="container mx-auto p-6 max-w-7xl">
+        <div className="w-full p-6">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">

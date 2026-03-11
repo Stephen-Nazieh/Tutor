@@ -1985,20 +1985,44 @@ const SAMPLE_QUESTIONS: Question[] = [
 ]
 
 function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps) {
+  const [questions, setQuestions] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const [selectedQuestions, setSelectedQuestions] = useState<Set<string>>(new Set())
-  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null)
+  const [previewQuestion, setPreviewQuestion] = useState<any | null>(null)
   const [filterSubject, setFilterSubject] = useState<string>('all')
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const subjects = Array.from(new Set(SAMPLE_QUESTIONS.map(q => q.subject)))
+  useEffect(() => {
+    if (!isOpen) return
+    let active = true
+    const load = async () => {
+      setLoading(true)
+      try {
+        const res = await fetch('/api/tutor/question-bank?limit=200', { credentials: 'include' })
+        if (!res.ok) return
+        const data = await res.json()
+        const next = Array.isArray(data.questions) ? data.questions : []
+        if (active) setQuestions(next)
+      } catch {
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      active = false
+    }
+  }, [isOpen])
 
-  const filteredQuestions = SAMPLE_QUESTIONS.filter(q => {
+  const subjects = Array.from(new Set(questions.map(q => q.subject).filter(Boolean)))
+
+  const filteredQuestions = questions.filter(q => {
     const matchesSubject = filterSubject === 'all' || q.subject === filterSubject
     const matchesDifficulty = filterDifficulty === 'all' || q.difficulty === filterDifficulty
     const matchesSearch = searchQuery === '' ||
-      q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.subject.toLowerCase().includes(searchQuery.toLowerCase())
+      (q.question && q.question.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (q.subject && q.subject.toLowerCase().includes(searchQuery.toLowerCase()))
     return matchesSubject && matchesDifficulty && matchesSearch
   })
 
@@ -2012,7 +2036,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
     setSelectedQuestions(newSelected)
 
     // Set preview to the last selected question
-    const question = SAMPLE_QUESTIONS.find(q => q.id === id)
+    const question = questions.find(q => q.id === id)
     if (question && newSelected.has(id)) {
       setPreviewQuestion(question)
     } else if (newSelected.size === 0) {
@@ -2021,13 +2045,17 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
   }
 
   const handleImport = () => {
-    const selectedQList = SAMPLE_QUESTIONS.filter(q => selectedQuestions.has(q.id))
+    const selectedQList = questions.filter(q => selectedQuestions.has(q.id))
     const items = selectedQList.map((q, idx) => {
       let qText = `${idx + 1}. ${q.question}`
-      if (q.options) {
-        qText += '\n    A. ' + q.options.join('\n    ')
+      if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+        qText += '\n    - ' + q.options.join('\n    - ')
       }
-      let pciText = `${idx + 1}. ${q.correctAnswer || '[Answer goes here]'}`
+      let answerStr = q.correctAnswer
+      if (Array.isArray(q.correctAnswer)) {
+        answerStr = q.correctAnswer.join(', ')
+      }
+      let pciText = `${idx + 1}. ${answerStr || '[Answer goes here]'}`
       return { questionText: qText, pciText }
     })
 
@@ -2043,7 +2071,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
-            Question Bank
+            Assessment Bank
           </DialogTitle>
         </DialogHeader>
 
@@ -2061,7 +2089,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
             className="px-3 py-2 border rounded-md text-sm"
           >
             <option value="all">All Subjects</option>
-            {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+            {subjects.map(s => <option key={s as string} value={s as string}>{s as string}</option>)}
           </select>
           <select
             value={filterDifficulty}
@@ -2079,93 +2107,107 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
         <div className="flex-1 flex gap-4 overflow-hidden">
           {/* Left: Question List */}
           <div className="flex-1 border rounded-lg overflow-y-auto">
-            {filteredQuestions.map((question) => (
-              <div
-                key={question.id}
-                onClick={() => toggleQuestion(question.id)}
-                className={`p-3 border-b cursor-pointer transition-colors ${selectedQuestions.has(question.id)
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'hover:bg-gray-50'
-                  }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${selectedQuestions.has(question.id)
-                    ? 'bg-blue-500 border-blue-500'
-                    : 'border-gray-300'
-                    }`}>
-                    {selectedQuestions.has(question.id) && <Check className="w-3 h-3 text-white" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium line-clamp-2">{question.question}</p>
-                    <div className="flex gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">{question.subject}</Badge>
-                      <Badge variant="secondary" className="text-xs">{question.difficulty}</Badge>
-                      <Badge variant="secondary" className="text-xs">{question.type.replace('_', ' ')}</Badge>
+            {loading ? (
+              <div className="p-8 text-center text-muted-foreground">Loading bank...</div>
+            ) : filteredQuestions.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">No matched items</div>
+            ) : (
+              filteredQuestions.map((question) => (
+                <div
+                  key={question.id}
+                  onClick={() => toggleQuestion(question.id)}
+                  className={`p-3 border-b cursor-pointer transition-colors ${selectedQuestions.has(question.id)
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'hover:bg-gray-50'
+                    }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${selectedQuestions.has(question.id)
+                      ? 'bg-blue-500 border-blue-500'
+                      : 'border-gray-300'
+                      }`}>
+                      {selectedQuestions.has(question.id) && <CheckCircle className="w-3 h-3 text-white" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium line-clamp-2">{question.question}</p>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="secondary" className="text-[10px]">{question.type?.toUpperCase() || 'UNKNOWN'}</Badge>
+                        <Badge variant="outline" className="text-[10px]">{question.difficulty || 'medium'}</Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {filteredQuestions.length === 0 && (
-              <div className="p-8 text-center text-muted-foreground">
-                No questions match your filters.
-              </div>
+              ))
             )}
           </div>
 
-          {/* Right: Preview Panel */}
-          <div className="w-80 border rounded-lg p-4 bg-gray-50 overflow-y-auto">
-            <h4 className="font-semibold mb-3">Preview</h4>
+          {/* Right: Preview Area */}
+          <div className="w-[400px] border rounded-lg flex flex-col bg-gray-50">
             {previewQuestion ? (
-              <div className="space-y-3">
-                <p className="text-sm">{previewQuestion.question}</p>
-                {previewQuestion.options && (
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground">Options:</p>
-                    {previewQuestion.options.map((opt, i) => (
-                      <p key={i} className={`text-sm pl-2 ${opt === previewQuestion.correctAnswer ? 'text-green-600 font-medium' : ''}`}>
-                        {String.fromCharCode(65 + i)}. {opt} {opt === previewQuestion.correctAnswer && '✓'}
-                      </p>
+              <div className="p-4 flex-1 overflow-y-auto">
+                <div className="flex items-center gap-2 mb-4">
+                  <Badge>{previewQuestion.subject || 'No Subject'}</Badge>
+                  <Badge variant="outline">{previewQuestion.difficulty || 'medium'}</Badge>
+                  <Badge variant="secondary">{previewQuestion.points || 1} pts</Badge>
+                </div>
+                <h3 className="font-medium text-lg mb-4">{previewQuestion.question}</h3>
+
+                {previewQuestion.options && Array.isArray(previewQuestion.options) && previewQuestion.options.length > 0 && (
+                  <div className="space-y-2 mb-6">
+                    <p className="text-sm font-medium text-gray-500">Options:</p>
+                    {previewQuestion.options.map((opt: string, i: number) => (
+                      <div key={i} className="flex items-center gap-2 p-2 rounded-md bg-white border text-sm">
+                        <span className="font-medium text-gray-400 w-6">
+                          {String.fromCharCode(65 + i)}.
+                        </span>
+                        {opt}
+                      </div>
                     ))}
                   </div>
                 )}
-                <div className="pt-3 border-t space-y-1 text-xs text-muted-foreground">
-                  <p><span className="font-medium">Type:</span> {previewQuestion.type.replace('_', ' ')}</p>
-                  <p><span className="font-medium">Subject:</span> {previewQuestion.subject}</p>
-                  <p><span className="font-medium">Difficulty:</span> {previewQuestion.difficulty}</p>
+
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-2">Correct Answer:</p>
+                  <div className="p-3 bg-green-50 text-green-700 rounded-md text-sm border border-green-200">
+                    {Array.isArray(previewQuestion.correctAnswer) ? previewQuestion.correctAnswer.join(', ') : (previewQuestion.correctAnswer || 'Not specified')}
+                  </div>
                 </div>
+
+                {previewQuestion.explanation && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-500 mb-2">Explanation:</p>
+                    <p className="text-sm text-gray-700 bg-white p-3 rounded-md border">
+                      {previewQuestion.explanation}
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                Select a question from the list to preview it here.
-              </p>
-            )}
-
-            {selectedQuestions.size > 0 && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm font-medium">
-                  {selectedQuestions.size} question{selectedQuestions.size !== 1 ? 's' : ''} selected
-                </p>
+              <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+                <BookOpen className="w-12 h-12 mb-4 opacity-20" />
+                <p>Select a question from the list to preview its details</p>
               </div>
             )}
+
+            <div className="p-4 border-t bg-white flex justify-between items-center">
+              <span className="text-sm font-medium">
+                {selectedQuestions.size} selected
+              </span>
+              <Button
+                onClick={handleImport}
+                disabled={selectedQuestions.size === 0}
+                className="gap-2"
+              >
+                Import Selected
+              </Button>
+            </div>
           </div>
         </div>
-
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={handleImport}
-            disabled={selectedQuestions.size === 0}
-          >
-            Import {selectedQuestions.size > 0 && `(${selectedQuestions.size})`}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
 }
 
-// Lesson Selector Dialog
 function LessonSelectorDialog({
   isOpen,
   onClose,
