@@ -25,7 +25,7 @@ import { ModernHeroSection } from './components/ModernHeroSection'
 function DashboardSkeleton() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -216,7 +216,7 @@ function TutorDashboardContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
 
       {/* Modern Hero Section */}
       <div className="mb-8">
