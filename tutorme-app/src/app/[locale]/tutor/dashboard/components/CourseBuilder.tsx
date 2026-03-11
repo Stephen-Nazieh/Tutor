@@ -4961,6 +4961,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [importTarget, setImportTarget] = useState<{ moduleId: string, lessonId: string } | null>(null)
   const [courseAssets, setCourseAssets] = useState<{ id: string, name: string, content?: string }[]>([])
+  const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
+  const [assetToLoad, setAssetToLoad] = useState<{name: string, content?: string} | null>(null)
   const [assetsOpen, setAssetsOpen] = useState(true)
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
@@ -6111,9 +6113,15 @@ FEEDBACK: [your explanation]`
       e.preventDefault()
       let combined = ''
       for (const f of files) {
-        if (f.name.match(/\.(txt|md|csv|json)$/i) || f.type.startsWith('text/')) {
-          combined += (await f.text()) + '\n\n'
-        } else {
+        try {
+          // If it's a lightweight text file, parse as text directly. For PDF, DOCX, PPTX parse via extractTextFromFile
+          const extracted = await extractTextFromFile(f)
+          if (extracted) {
+             combined += extracted + '\n\n'
+          } else {
+             combined += `[Imported ${f.name}]\n\n`
+          }
+        } catch {
           combined += `[Imported ${f.name}]\n\n`
         }
       }
@@ -6125,31 +6133,52 @@ FEEDBACK: [your explanation]`
   const handleLoadAsset = (asset: { name: string; content?: string }) => {
     const textToInsert = asset.content || `[Asset: ${asset.name}]`
     
+    if (!selectedItem || !['task', 'assessment', 'homework'].includes(selectedItem.type)) {
+      setAssetToLoad(asset)
+      setLoadAsModalOpen(true)
+      return
+    }
+
     if (selectedItem?.type === 'task') {
       if (taskBuilder.activeExtensionId) {
         setTaskBuilder(prev => ({
           ...prev,
           extensions: prev.extensions.map(ext =>
             ext.id === prev.activeExtensionId
-              ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + textToInsert }
+              ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + textToInsert, pci: syncNumbering(ext.content + (ext.content ? '\n\n' : '') + textToInsert, ext.pci) }
               : ext
           )
         }))
       } else {
         setTaskBuilder(prev => ({
           ...prev,
-          taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+          taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
+          taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
         }))
       }
+      setMainBuilderTab('task')
       toast.success(`Loaded '${asset.name}' into Task Builder`)
-    } else if (selectedItem?.type === 'assessment') {
-      setAssessmentBuilder(prev => ({
-        ...prev,
-        taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
-      }))
+    } else if (selectedItem?.type === 'assessment' || selectedItem?.type === 'homework') {
+      if (assessmentBuilder.activeExtensionId) {
+        setAssessmentBuilder(prev => ({
+          ...prev,
+          extensions: prev.extensions.map(ext =>
+            ext.id === prev.activeExtensionId
+              ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + textToInsert, pci: syncNumbering(ext.content + (ext.content ? '\n\n' : '') + textToInsert, ext.pci) }
+              : ext
+          )
+        }))
+      } else {
+        setAssessmentBuilder(prev => ({
+          ...prev,
+          taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
+          taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+        }))
+      }
+      setMainBuilderTab('assessment')
       toast.success(`Loaded '${asset.name}' into Assessment Builder`)
     } else {
-      toast.error('Select a Task or Assessment to load asset into.')
+      toast.error('Select a Task, Assessment, or Homework to load asset into.')
     }
   }
 
@@ -6174,11 +6203,8 @@ FEEDBACK: [your explanation]`
                   files.map(async (f) => {
                     let textContent = ''
                     try {
-                      if (f.name.match(/\.(txt|md|csv|json)$/i) || f.type.startsWith('text/')) {
-                        textContent = await f.text()
-                      } else {
-                        textContent = `[Imported ${f.name}]`
-                      }
+                      const extracted = await extractTextFromFile(f)
+                      textContent = extracted || `[Imported ${f.name}]`
                     } catch {
                       textContent = `[Imported ${f.name}]`
                     }
@@ -6246,7 +6272,65 @@ FEEDBACK: [your explanation]`
           )}
         </div>
       )}
-    </div>
+    
+      <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Load as...</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <p className="text-sm text-gray-500">
+              Select how you would like to load "{assetToLoad?.name}":
+            </p>
+            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
+              setMainBuilderTab('task')
+              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+              setTaskBuilder(prev => ({
+                ...prev,
+                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
+                taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+              }))
+              toast.success(`Loaded '${assetToLoad?.name}' into Task Builder`)
+              setLoadAsModalOpen(false)
+              setAssetToLoad(null)
+            }}>
+              <ListTodo className="h-4 w-4 text-orange-500" />
+              Task
+            </Button>
+            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
+              setMainBuilderTab('assessment')
+              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+              setAssessmentBuilder(prev => ({
+                ...prev,
+                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
+                taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+              }))
+              toast.success(`Loaded '${assetToLoad?.name}' into Assessment Builder`)
+              setLoadAsModalOpen(false)
+              setAssetToLoad(null)
+            }}>
+              <FileQuestion className="h-4 w-4 text-purple-500" />
+              Assessment
+            </Button>
+            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
+              setMainBuilderTab('assessment')
+              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+              setAssessmentBuilder(prev => ({
+                ...prev,
+                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
+                taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+              }))
+              toast.success(`Loaded '${assetToLoad?.name}' into Assessment Builder (Homework)`)
+              setLoadAsModalOpen(false)
+              setAssetToLoad(null)
+            }}>
+              <FileQuestion className="h-4 w-4 text-pink-500" />
+              Homework
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+</div>
   )
 
   const syncNumbering = (content: string, oldPci: string) => {
