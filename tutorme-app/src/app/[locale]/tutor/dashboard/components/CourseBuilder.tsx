@@ -4960,7 +4960,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [outlineModalOpen, setOutlineModalOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [importTarget, setImportTarget] = useState<{ moduleId: string, lessonId: string } | null>(null)
-  const [courseAssets, setCourseAssets] = useState<{ id: string, name: string }[]>([])
+  const [courseAssets, setCourseAssets] = useState<{ id: string, name: string, content?: string }[]>([])
   const [assetsOpen, setAssetsOpen] = useState(true)
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
@@ -6093,6 +6093,66 @@ FEEDBACK: [your explanation]`
     )
   }
 
+  
+  const getAssetIcon = (name: string) => {
+    const ext = name.split('.').pop()?.toLowerCase() || ''
+    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-600" />
+    if (['pdf'].includes(ext)) return <FileText className="w-4 h-4 text-red-600" />
+    if (['xls', 'xlsx', 'csv'].includes(ext)) return <FileText className="w-4 h-4 text-green-600" />
+    if (['ppt', 'pptx'].includes(ext)) return <FileText className="w-4 h-4 text-orange-600" />
+    if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) return <FileText className="w-4 h-4 text-purple-600" />
+    if (['mp4', 'mov', 'webm'].includes(ext)) return <FileText className="w-4 h-4 text-pink-600" />
+    return <FileText className="w-4 h-4 text-slate-500" />
+  }
+
+  const handleDragFiles = async (e: React.DragEvent<HTMLTextAreaElement>, onText: (t: string) => void) => {
+    const files = Array.from(e.dataTransfer.files || [])
+    if (files.length > 0) {
+      e.preventDefault()
+      let combined = ''
+      for (const f of files) {
+        if (f.name.match(/\.(txt|md|csv|json)$/i) || f.type.startsWith('text/')) {
+          combined += (await f.text()) + '\n\n'
+        } else {
+          combined += `[Imported ${f.name}]\n\n`
+        }
+      }
+      onText(combined.trim())
+      toast.success('File(s) parsed and loaded')
+    }
+  }
+
+  const handleLoadAsset = (asset: { name: string; content?: string }) => {
+    const textToInsert = asset.content || `[Asset: ${asset.name}]`
+    
+    if (selectedItem?.type === 'task') {
+      if (taskBuilder.activeExtensionId) {
+        setTaskBuilder(prev => ({
+          ...prev,
+          extensions: prev.extensions.map(ext =>
+            ext.id === prev.activeExtensionId
+              ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + textToInsert }
+              : ext
+          )
+        }))
+      } else {
+        setTaskBuilder(prev => ({
+          ...prev,
+          taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+        }))
+      }
+      toast.success(`Loaded '${asset.name}' into Task Builder`)
+    } else if (selectedItem?.type === 'assessment') {
+      setAssessmentBuilder(prev => ({
+        ...prev,
+        taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
+      }))
+      toast.success(`Loaded '${asset.name}' into Assessment Builder`)
+    } else {
+      toast.error('Select a Task or Assessment to load asset into.')
+    }
+  }
+
   const renderAssetsFolder = () => (
     <div className="mt-4 border rounded-md">
       <div
@@ -6106,42 +6166,44 @@ FEEDBACK: [your explanation]`
           <label className="cursor-pointer">
             <input
               type="file"
-              className="hidden"
-              accept=".ppt,.pptx"
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) {
-                  toast.success('PPT uploaded. Pages being parsed into Lesson.')
-                  e.target.value = ''
-                }
-              }}
-            />
-            <span className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1 font-medium">
-              <FileText className="w-3 h-3" /> Import ppt
-            </span>
-          </label>
-          <label className="cursor-pointer">
-            <input
-              type="file"
               multiple
               className="hidden"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const files = Array.from(e.target.files || [])
-                const newAssets = files.map(f => ({ id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, name: f.name }))
-                setCourseAssets(prev => [...prev, ...newAssets])
+                const newAssets = await Promise.all(
+                  files.map(async (f) => {
+                    let textContent = ''
+                    try {
+                      if (f.name.match(/\.(txt|md|csv|json)$/i) || f.type.startsWith('text/')) {
+                        textContent = await f.text()
+                      } else {
+                        textContent = `[Imported ${f.name}]`
+                      }
+                    } catch {
+                      textContent = `[Imported ${f.name}]`
+                    }
+                    return {
+                      id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                      name: f.name,
+                      content: textContent
+                    }
+                  })
+                )
+                setCourseAssets((prev) => [...prev, ...newAssets])
+                if (files.length > 0) toast.success(`${files.length} asset(s) imported`)
                 e.target.value = ''
               }}
             />
             <span className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
-              <Upload className="w-3 h-3" /> Upload Asset
+              <Upload className="w-3 h-3" /> Import Asset
             </span>
           </label>
         </div>
       </div>
       {assetsOpen && (
-        <div className="p-2 flex flex-wrap gap-2 min-h-[50px] bg-white rounded-b-md">
+        <div className="p-2 flex flex-col gap-2 min-h-[50px] bg-white rounded-b-md">
           {courseAssets.length === 0 ? (
-            <p className="text-xs text-muted-foreground w-full py-2 text-center">No assets uploaded. Upload files and drag them to the Slide editor.</p>
+            <p className="text-xs text-muted-foreground w-full py-2 text-center">No assets imported.</p>
           ) : (
             courseAssets.map(asset => (
               <div
@@ -6151,11 +6213,34 @@ FEEDBACK: [your explanation]`
                   e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
                   e.dataTransfer.effectAllowed = 'copy'
                 }}
-                className="text-xs bg-white border border-slate-200 rounded px-2 py-1 cursor-grab shadow-sm flex items-center gap-1 hover:bg-slate-50 transition-colors"
-                title="Drag to Slide editor"
+                className="text-xs bg-white border border-slate-200 rounded px-2 py-2 cursor-grab shadow-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
+                title="Drag or load into editor"
               >
-                <FileText className="w-3 h-3 text-slate-500" />
-                {asset.name}
+                <div className="flex items-center gap-2 overflow-hidden mr-2 flex-1">
+                   {getAssetIcon(asset.name)}
+                   <span 
+                     className="truncate font-medium cursor-text flex-1" 
+                     onDoubleClick={() => {
+                       const newName = prompt('Rename asset:', asset.name);
+                       if (newName && newName.trim() !== '') {
+                         setCourseAssets(prev => prev.map(a => a.id === asset.id ? { ...a, name: newName.trim() } : a));
+                       }
+                     }} 
+                     title="Double click to rename"
+                   >
+                     {asset.name}
+                   </span>
+                </div>
+                <div className="flex gap-1 items-center shrink-0">
+                  <Button variant="outline" size="sm" className="h-6 px-2 text-[10px]" onClick={() => handleLoadAsset(asset)} title="Load into builder text area">
+                     Load
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => {
+                     setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                  }} title="Delete asset">
+                     <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             ))
           )}
@@ -6997,8 +7082,32 @@ FEEDBACK: [your explanation]`
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
-                              placeholder={taskBuilder.activeExtensionId ? "Extension content..." : "Enter task content or upload files..."}
+                              placeholder={taskBuilder.activeExtensionId ? "Extension content..." : "Enter task content or drop files here..."}
                               className="w-full min-h-[100px]"
+                              onDrop={(e: any) => handleDragFiles(e, (text) => {
+                                setTaskBuilder(prev => {
+                                  if (prev.activeExtensionId) {
+                                    const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
+                                    const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + text : text
+                                    const newPci = ext ? syncNumbering(combined, ext.pci) : ''
+                                    return {
+                                      ...prev,
+                                      extensions: prev.extensions.map(x =>
+                                        x.id === prev.activeExtensionId
+                                          ? { ...x, content: combined, pci: newPci }
+                                          : x
+                                      )
+                                    }
+                                  } else {
+                                    const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
+                                    return {
+                                      ...prev,
+                                      taskContent: combined,
+                                      taskPci: syncNumbering(combined, prev.taskPci)
+                                    }
+                                  }
+                                })
+                              })}
                               // Show task content if no extension active, otherwise show active extension's content
                               value={taskBuilder.activeExtensionId
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
@@ -7365,8 +7474,32 @@ FEEDBACK: [your explanation]`
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
-                              placeholder={assessmentBuilder.activeExtensionId ? "Extension content..." : "Enter assessment content or upload files..."}
+                              placeholder={assessmentBuilder.activeExtensionId ? "Extension content..." : "Enter assessment content or drop files here..."}
                               className="w-full min-h-[100px]"
+                              onDrop={(e: any) => handleDragFiles(e, (text) => {
+                                setAssessmentBuilder(prev => {
+                                  if (prev.activeExtensionId) {
+                                    const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
+                                    const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + text : text
+                                    const newPci = ext ? syncNumbering(combined, ext.pci) : ''
+                                    return {
+                                      ...prev,
+                                      extensions: prev.extensions.map(x =>
+                                        x.id === prev.activeExtensionId
+                                          ? { ...x, content: combined, pci: newPci }
+                                          : x
+                                      )
+                                    }
+                                  } else {
+                                    const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
+                                    return {
+                                      ...prev,
+                                      taskContent: combined,
+                                      taskPci: syncNumbering(combined, prev.taskPci)
+                                    }
+                                  }
+                                })
+                              })}
                               value={assessmentBuilder.activeExtensionId
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
                                 : assessmentBuilder.taskContent
