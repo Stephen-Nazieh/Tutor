@@ -91,6 +91,12 @@ const navItems = [
     icon: Mail,
     permission: null,
   },
+  {
+    title: 'Compliance (GDPR/COPPA)',
+    href: '/admin/compliance',
+    icon: Shield,
+    permission: null,
+  },
 ]
 
 export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {

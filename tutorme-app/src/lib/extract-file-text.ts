@@ -1,6 +1,6 @@
 // @ts-nocheck
 /**
- * Extract plain text from uploaded files: .txt, .md, .pdf, .docx, and images (OCR).
+ * Extract plain text from uploaded files: .txt, .md, .pdf, .docx, .pptx, .xlsx, images (OCR).
  * Used by the course/subject materials upload flow.
  */
 
@@ -32,13 +32,38 @@ export async function extractTextFromFile(file: File): Promise<string> {
     return extractDocxText(file)
   }
 
-  // Legacy .doc - treat as binary; we could try mammoth with .doc but support is limited
+  // Legacy .doc
   if (name.endsWith('.doc')) {
     try {
-      return extractDocxText(file)
+      return await extractDocxText(file)
     } catch {
       return readAsText(file).catch(() => '')
     }
+  }
+
+  // PowerPoint .pptx — parse via JSZip as OOXML
+  if (
+    type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
+    name.endsWith('.pptx')
+  ) {
+    return extractPptxText(file)
+  }
+
+  // Legacy .ppt — best effort zip parse, fallback to placeholder
+  if (name.endsWith('.ppt')) {
+    try {
+      return await extractPptxText(file)
+    } catch {
+      return `[PowerPoint file: ${file.name} — save as .pptx for best text extraction]`
+    }
+  }
+
+  // Excel .xlsx
+  if (
+    type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    name.endsWith('.xlsx')
+  ) {
+    return extractXlsxText(file)
   }
 
   // Images: OCR
@@ -46,14 +71,13 @@ export async function extractTextFromFile(file: File): Promise<string> {
     return extractImageText(file)
   }
 
-  // Check if file is likely binary to prevent garbled text
+  // Likely unreadable binary formats
   if (
-    name.endsWith('.ppt') || name.endsWith('.pptx') ||
-    name.endsWith('.xls') || name.endsWith('.xlsx') ||
+    name.endsWith('.xls') ||
     name.endsWith('.zip') || name.endsWith('.exe') ||
-    type.includes('zip') || type.includes('officedocument') || type.includes('ms-') || type.includes('binary')
+    type.includes('zip') || type.includes('ms-') || type.includes('binary')
   ) {
-    return `[Imported ${file.name}]`;
+    return `[Binary file: ${file.name}]`
   }
 
   // Fallback: try as text
@@ -69,9 +93,17 @@ function readAsText(file: File): Promise<string> {
   })
 }
 
+function readAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as ArrayBuffer)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsArrayBuffer(file)
+  })
+}
+
 async function extractPdfText(file: File): Promise<string> {
   const pdfjs = await import('pdfjs-dist')
-  // Worker must be same-origin (CSP blocks external scripts). Served from public/ via copy-pdf-worker script.
   if (typeof window !== 'undefined') {
     const opts = (pdfjs as { GlobalWorkerOptions?: { workerSrc?: string } }).GlobalWorkerOptions
     if (opts && !opts.workerSrc) {
@@ -96,6 +128,129 @@ async function extractDocxText(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer()
   const result = await mammoth.extractRawText({ arrayBuffer })
   return (result.value || '').trim()
+}
+
+/**
+ * Extract text from PPTX files.
+ * PPTX is an OOXML format — essentially a ZIP file containing XML slide files.
+ * Each slide is at ppt/slides/slide{N}.xml and text is in <a:t> elements.
+ */
+async function extractPptxText(file: File): Promise<string> {
+  try {
+    const JSZip = (await import('jszip')).default
+    const arrayBuffer = await readAsArrayBuffer(file)
+    const zip = await JSZip.loadAsync(arrayBuffer)
+
+    // Collect all slide files, sorted by slide number
+    const slideFiles = Object.keys(zip.files)
+      .filter(name => name.match(/^ppt\/slides\/slide\d+\.xml$/))
+      .sort((a, b) => {
+        const numA = parseInt(a.match(/\d+/)?.[0] ?? '0')
+        const numB = parseInt(b.match(/\d+/)?.[0] ?? '0')
+        return numA - numB
+      })
+
+    if (slideFiles.length === 0) {
+      // Try notes or other XML files inside ppt/
+      const fallbackFiles = Object.keys(zip.files).filter(n => n.endsWith('.xml') && n.startsWith('ppt/'))
+      if (fallbackFiles.length === 0) {
+        return `[Could not extract text from ${file.name}]`
+      }
+      slideFiles.push(...fallbackFiles.slice(0, 10))
+    }
+
+    const slideTexts: string[] = []
+
+    for (let i = 0; i < slideFiles.length; i++) {
+      const slideFile = zip.files[slideFiles[i]]
+      const xmlContent = await slideFile.async('string')
+      const slideText = extractTextFromXml(xmlContent)
+      if (slideText.trim()) {
+        slideTexts.push(`--- Slide ${i + 1} ---\n${slideText}`)
+      }
+    }
+
+    const result = slideTexts.join('\n\n').trim()
+    return result || `[No text content found in ${file.name}]`
+  } catch (err) {
+    console.error('PPTX extraction error:', err)
+    return `[Failed to extract text from ${file.name}. Try saving as PDF first.]`
+  }
+}
+
+/**
+ * Strip XML tags and extract text from <a:t> elements in OOXML slide XML.
+ * This handles the DrawingML namespace used by all Office formats.
+ */
+function extractTextFromXml(xml: string): string {
+  // Extract content from <a:t> tags (DrawingML text runs)
+  const textRuns: string[] = []
+
+  // Match all <a:t>...</a:t> content
+  const atMatches = xml.match(/<a:t[^>]*>([^<]*)<\/a:t>/g) || []
+  for (const match of atMatches) {
+    const text = match.replace(/<a:t[^>]*>/, '').replace(/<\/a:t>/, '').trim()
+    if (text) textRuns.push(text)
+  }
+
+  // Also look for <t> tags in a broader context (Word-like elements)
+  if (textRuns.length === 0) {
+    const tMatches = xml.match(/<r:t[^>]*>([^<]*)<\/r:t>/g) || []
+    for (const match of tMatches) {
+      const text = match.replace(/<r:t[^>]*>/, '').replace(/<\/r:t>/, '').trim()
+      if (text) textRuns.push(text)
+    }
+  }
+
+  // Group by paragraphs: detect paragraph breaks from <a:p> boundaries
+  // We'll do a simpler approach: extract the raw text and clean it up
+  const paragraphs: string[] = []
+  let currentParagraph: string[] = []
+
+  const paragraphXml = xml.split(/<a:p[ >]/)
+
+  for (const paraXml of paragraphXml.slice(1)) {
+    const runMatches = paraXml.match(/<a:t[^>]*>([^<]*)<\/a:t>/g) || []
+    const paraTextParts: string[] = []
+    for (const rm of runMatches) {
+      const t = rm.replace(/<a:t[^>]*>/, '').replace(/<\/a:t>/, '')
+      if (t) paraTextParts.push(t)
+    }
+    const paraText = paraTextParts.join('').trim()
+    if (paraText) {
+      paragraphs.push(paraText)
+    }
+  }
+
+  if (paragraphs.length > 0) {
+    return paragraphs.join('\n')
+  }
+
+  // Fallback: just join textRuns
+  return textRuns.join(' ')
+}
+
+/**
+ * Extract text from XLSX files using the xlsx library.
+ */
+async function extractXlsxText(file: File): Promise<string> {
+  try {
+    const XLSX = await import('xlsx')
+    const arrayBuffer = await file.arrayBuffer()
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+    const lines: string[] = []
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName]
+      const csv = XLSX.utils.sheet_to_csv(sheet)
+      if (csv.trim()) {
+        lines.push(`=== Sheet: ${sheetName} ===`)
+        lines.push(csv)
+      }
+    }
+    return lines.join('\n\n').trim() || `[No text content in ${file.name}]`
+  } catch {
+    return `[Failed to extract text from ${file.name}]`
+  }
 }
 
 async function extractImageText(file: File): Promise<string> {

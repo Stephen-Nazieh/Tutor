@@ -6131,55 +6131,9 @@ FEEDBACK: [your explanation]`
   }
 
   const handleLoadAsset = (asset: { name: string; content?: string }) => {
-    const textToInsert = asset.content || `[Asset: ${asset.name}]`
-    
-    if (!selectedItem || !['task', 'assessment', 'homework'].includes(selectedItem.type)) {
-      setAssetToLoad(asset)
-      setLoadAsModalOpen(true)
-      return
-    }
-
-    if (selectedItem?.type === 'task') {
-      if (taskBuilder.activeExtensionId) {
-        setTaskBuilder(prev => ({
-          ...prev,
-          extensions: prev.extensions.map(ext =>
-            ext.id === prev.activeExtensionId
-              ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + textToInsert, pci: syncNumbering(ext.content + (ext.content ? '\n\n' : '') + textToInsert, ext.pci) }
-              : ext
-          )
-        }))
-      } else {
-        setTaskBuilder(prev => ({
-          ...prev,
-          taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
-          taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
-        }))
-      }
-      setMainBuilderTab('task')
-      toast.success(`Loaded '${asset.name}' into Task Builder`)
-    } else if (selectedItem?.type === 'assessment' || selectedItem?.type === 'homework') {
-      if (assessmentBuilder.activeExtensionId) {
-        setAssessmentBuilder(prev => ({
-          ...prev,
-          extensions: prev.extensions.map(ext =>
-            ext.id === prev.activeExtensionId
-              ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + textToInsert, pci: syncNumbering(ext.content + (ext.content ? '\n\n' : '') + textToInsert, ext.pci) }
-              : ext
-          )
-        }))
-      } else {
-        setAssessmentBuilder(prev => ({
-          ...prev,
-          taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
-          taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
-        }))
-      }
-      setMainBuilderTab('assessment')
-      toast.success(`Loaded '${asset.name}' into Assessment Builder`)
-    } else {
-      toast.error('Select a Task, Assessment, or Homework to load asset into.')
-    }
+    // Always open the "Load as..." modal so the user can choose where to load
+    setAssetToLoad(asset)
+    setLoadAsModalOpen(true)
   }
 
   const renderAssetsFolder = () => (
