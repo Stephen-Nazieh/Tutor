@@ -210,6 +210,7 @@ export default withAuth(
           '/api/health',
           '/api/csrf',
           '/api/public',
+          '/api/landing',
           '/onboarding',
           '/u/',
           '/admin',

@@ -24,6 +24,7 @@ import {
 } from './components/Layout';
 import { RegistrationPage } from './components/RegistrationPage';
 import { ProfilePage } from './components/ProfilePage';
+import { ContactModal } from './components/ContactModal';
 
 // Main App URL configuration
 const MAIN_APP_URL = import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:3003';
@@ -31,6 +32,7 @@ const MAIN_APP_URL = import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:3003
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isContactOpen, setIsContactOpen] = useState(false);
 
   const handleRegistration = (data: any) => {
     setUserProfile({ ...data, isVerified: true });
@@ -139,13 +141,13 @@ export default function App() {
                   <p className="text-zinc-400 text-lg leading-relaxed mb-8">
                     Interested in bringing Solocorn to your organization? We offer enterprise-grade licensing and custom integration services.
                   </p>
-                  <a 
-                    href="mailto:support@solocorn.co"
+                  <button 
+                    onClick={() => setIsContactOpen(true)}
                     className="inline-flex items-center gap-3 px-8 py-4 bg-white/5 hover:bg-white/10 rounded-2xl font-bold transition-colors"
                   >
                     <Mail className="w-5 h-5" />
                     Contact support@solocorn.co
-                  </a>
+                  </button>
                 </div>
                 <div className="w-full md:w-1/3 aspect-square glass rounded-3xl flex items-center justify-center relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
@@ -161,7 +163,7 @@ export default function App() {
                 <div className="flex gap-8 text-sm text-zinc-500">
                   <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
                   <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                  <a href="#" className="hover:text-white transition-colors">Contact</a>
+                  <button onClick={() => setIsContactOpen(true)} className="hover:text-white transition-colors">Contact</button>
                 </div>
                 <div className="text-sm text-zinc-600">
                   © 2026 Solocorn. All rights reserved.
@@ -193,6 +195,9 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
     </div>
   );
 }
+

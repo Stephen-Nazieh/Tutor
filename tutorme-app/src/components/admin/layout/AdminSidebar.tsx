@@ -16,6 +16,7 @@ import {
   ScrollText,
   ChevronLeft,
   ChevronRight,
+  Mail,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -83,6 +84,12 @@ const navItems = [
     href: '/admin/audit-log',
     icon: ScrollText,
     permission: 'audit:read',
+  },
+  {
+    title: 'Landing Signups',
+    href: '/admin/landing-submissions',
+    icon: Mail,
+    permission: null,
   },
 ]
 

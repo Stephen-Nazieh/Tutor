@@ -11,9 +11,29 @@ export const RegistrationPage = ({ onSubmit }: { onSubmit: (data: any) => void }
     isVerified: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsSubmitting(true);
+    setErrorMsg('');
+    try {
+      const MAIN_APP_URL = import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:3003';
+      const res = await fetch(`${MAIN_APP_URL}/api/landing/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      if (!res.ok) {
+        throw new Error('Failed to submit application');
+      }
+      onSubmit(formData);
+    } catch (err) {
+      setErrorMsg('An error occurred while submitting. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -98,10 +118,12 @@ export const RegistrationPage = ({ onSubmit }: { onSubmit: (data: any) => void }
 
           <button 
             type="submit"
-            className="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+            disabled={isSubmitting}
+            className="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50"
           >
-            Submit Application
+            {isSubmitting ? 'Submitting...' : 'Submit Application'}
           </button>
+          {errorMsg && <p className="text-red-400 text-sm text-center mt-2">{errorMsg}</p>}
         </form>
       </div>
     </div>
