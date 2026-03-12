@@ -89,7 +89,7 @@ const quickActionSections: QuickActionSection[] = [
   {
     title: 'Build & Launch',
     items: [
-      { href: '/tutor/group-builder', label: 'Group Builder', icon: Users },
+      // Removed Group Builder
     ],
   },
   {
@@ -102,7 +102,6 @@ const quickActionSections: QuickActionSection[] = [
     title: 'Analytics',
     items: [
       { href: '/tutor/reports', label: 'Reports', icon: BarChart3 },
-      { href: '/tutor/revenue', label: 'Revenue', icon: DollarSign },
     ],
   },
 ]

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { landingSignup } from '@/lib/db/schema'
 import crypto from 'crypto'
+import { sendTutorSignupEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,13 @@ export async function POST(req: NextRequest) {
       country: country || null,
       photo: photo || null,
     })
+
+    // Send email notification
+    try {
+      await sendTutorSignupEmail({ username, bio, country })
+    } catch (emailErr) {
+      console.error('Failed to send tutor signup email:', emailErr)
+    }
 
     return NextResponse.json({ success: true, message: 'Signup collected successfully' })
   } catch (error) {

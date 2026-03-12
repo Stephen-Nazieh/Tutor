@@ -40,6 +40,8 @@ import { ScoreDistributionChart } from '@/components/analytics/score-distributio
 import { EngagementDashboard } from '@/components/reports/engagement-dashboard'
 import { StudentsNeedingAttentionCard } from '../dashboard/components/StudentsNeedingAttentionCard'
 import { StudentProgressCard } from '../dashboard/components/StudentProgressCard'
+import { RevenueDashboard } from '../dashboard/components/RevenueDashboard'
+import { DollarSign } from 'lucide-react'
 
 interface ClassOption {
   id: string
@@ -479,6 +481,10 @@ export default function TutorReports() {
                 <Activity className="h-4 w-4" />
                 Engagement
               </TabsTrigger>
+              <TabsTrigger value="revenue" className="gap-2">
+                <DollarSign className="h-4 w-4" />
+                Revenue
+              </TabsTrigger>
             </TabsList>
 
             {/* Class Overview Tab */}
@@ -714,6 +720,13 @@ export default function TutorReports() {
             {/* Engagement Tab */}
             <TabsContent value="engagement" className="space-y-6">
               <EngagementDashboard classId={selectedClassId} />
+            </TabsContent>
+
+            {/* Revenue Tab */}
+            <TabsContent value="revenue" className="h-full">
+              <div className="h-[700px] overflow-hidden">
+                <RevenueDashboard />
+              </div>
             </TabsContent>
           </Tabs>
         )}

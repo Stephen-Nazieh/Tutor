@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { landingInquiry } from '@/lib/db/schema'
 import crypto from 'crypto'
+import { sendInquiryEmail } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +19,14 @@ export async function POST(req: NextRequest) {
       email,
       message,
     })
+
+    // Send email notification - non-blocking but handled within attempt
+    try {
+      await sendInquiryEmail({ name, email, message })
+    } catch (emailErr) {
+      console.error('Failed to send inquiry email:', emailErr)
+      // We don't fail the request if email fails but DB succeeded
+    }
 
     return NextResponse.json({ success: true, message: 'Message sent successfully' })
   } catch (error) {
