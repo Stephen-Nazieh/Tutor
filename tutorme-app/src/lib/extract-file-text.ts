@@ -46,8 +46,18 @@ export async function extractTextFromFile(file: File): Promise<string> {
     return extractImageText(file)
   }
 
+  // Check if file is likely binary to prevent garbled text
+  if (
+    name.endsWith('.ppt') || name.endsWith('.pptx') ||
+    name.endsWith('.xls') || name.endsWith('.xlsx') ||
+    name.endsWith('.zip') || name.endsWith('.exe') ||
+    type.includes('zip') || type.includes('officedocument') || type.includes('ms-') || type.includes('binary')
+  ) {
+    return `[Imported ${file.name}]`;
+  }
+
   // Fallback: try as text
-  return readAsText(file).catch(() => '')
+  return readAsText(file).catch(() => `[Imported ${file.name}]`)
 }
 
 function readAsText(file: File): Promise<string> {
@@ -91,6 +101,6 @@ async function extractDocxText(file: File): Promise<string> {
 async function extractImageText(file: File): Promise<string> {
   const mod = await import('tesseract.js')
   const api = (mod as { default?: { recognize: (image: File, lang?: string, opts?: object) => Promise<{ data: { text?: string } }> }; recognize?: (image: File, lang?: string, opts?: object) => Promise<{ data: { text?: string } }> }).default ?? mod
-  const { data } = await api.recognize(file, 'eng', { logger: () => {} })
+  const { data } = await api.recognize(file, 'eng', { logger: () => { } })
   return (data?.text || '').trim()
 }

@@ -6283,14 +6283,22 @@ FEEDBACK: [your explanation]`
               Select how you would like to load "{assetToLoad?.name}":
             </p>
             <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              setMainBuilderTab('task')
+              const { moduleId, lessonId } = ensureFirstLessonContext()
+              const moduleIndex = modules.findIndex(m => m.id === moduleId)
+              const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+              const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
               const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              setTaskBuilder(prev => ({
-                ...prev,
-                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
-                taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
-              }))
-              toast.success(`Loaded '${assetToLoad?.name}' into Task Builder`)
+              
+              newTask.description = textToInsert
+              
+              const newModules = [...modules]
+              newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
+              setModules(newModules)
+              setMainBuilderTab('task')
+              setSelectedItem({ type: 'task', id: newTask.id })
+              loadTaskIntoBuilder(newTask)
+              
+              toast.success(`Created new Task and loaded '${assetToLoad?.name}'`)
               setLoadAsModalOpen(false)
               setAssetToLoad(null)
             }}>
@@ -6298,14 +6306,22 @@ FEEDBACK: [your explanation]`
               Task
             </Button>
             <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              setMainBuilderTab('assessment')
+              const { moduleId, lessonId } = ensureFirstLessonContext()
+              const moduleIndex = modules.findIndex(m => m.id === moduleId)
+              const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+              const newAssess = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
               const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              setAssessmentBuilder(prev => ({
-                ...prev,
-                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
-                taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
-              }))
-              toast.success(`Loaded '${assetToLoad?.name}' into Assessment Builder`)
+              
+              newAssess.description = textToInsert
+              
+              const newModules = [...modules]
+              newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssess)
+              setModules(newModules)
+              setMainBuilderTab('assessment')
+              setSelectedItem({ type: 'assessment', id: newAssess.id })
+              loadAssessmentIntoBuilder(newAssess)
+              
+              toast.success(`Created new Assessment and loaded '${assetToLoad?.name}'`)
               setLoadAsModalOpen(false)
               setAssetToLoad(null)
             }}>
@@ -6313,14 +6329,22 @@ FEEDBACK: [your explanation]`
               Assessment
             </Button>
             <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              setMainBuilderTab('assessment')
+              const { moduleId, lessonId } = ensureFirstLessonContext()
+              const moduleIndex = modules.findIndex(m => m.id === moduleId)
+              const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+              const newHw = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'homework')
               const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              setAssessmentBuilder(prev => ({
-                ...prev,
-                taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert,
-                taskPci: syncNumbering(prev.taskContent + (prev.taskContent ? '\n\n' : '') + textToInsert, prev.taskPci)
-              }))
-              toast.success(`Loaded '${assetToLoad?.name}' into Assessment Builder (Homework)`)
+              
+              newHw.description = textToInsert
+              
+              const newModules = [...modules]
+              newModules[moduleIndex].lessons[lessonIndex].homework.push(newHw)
+              setModules(newModules)
+              setMainBuilderTab('assessment')
+              setSelectedItem({ type: 'homework', id: newHw.id })
+              loadAssessmentIntoBuilder(newHw)
+              
+              toast.success(`Created new Homework and loaded '${assetToLoad?.name}'`)
               setLoadAsModalOpen(false)
               setAssetToLoad(null)
             }}>

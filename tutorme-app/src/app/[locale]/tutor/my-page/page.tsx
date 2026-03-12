@@ -35,6 +35,8 @@ interface DraftCourse {
   }
 }
 
+import TutorClassesPage from '../classes/page'
+
 export default function TutorMyPage() {
   const params = useParams<{ locale?: string }>()
   const router = useRouter()
@@ -270,7 +272,10 @@ export default function TutorMyPage() {
 
       {/* Tabs for Published Courses and Work in Progress */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+          <TabsTrigger value="classes">
+            My Classes
+          </TabsTrigger>
           <TabsTrigger value="public">
             Published
             {publishedCourses.length > 0 && (
@@ -458,6 +463,12 @@ export default function TutorMyPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="classes" className="space-y-4">
+          <div className="border rounded-lg bg-white overflow-hidden" style={{ minHeight: '80vh' }}>
+            <TutorClassesPage />
+          </div>
         </TabsContent>
 
         <TabsContent value="ongoing" className="space-y-4">

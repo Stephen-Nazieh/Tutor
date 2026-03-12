@@ -52,12 +52,6 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    title: 'Teaching',
-    items: [
-      { href: '/tutor/classes', label: 'My Schedules', icon: CalendarDays },
-    ],
-  },
-  {
     title: 'Content',
     items: [
       { href: '/tutor/question-bank', label: 'Assessment Bank', icon: FileText },

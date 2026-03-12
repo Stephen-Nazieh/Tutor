@@ -155,7 +155,7 @@ export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
     await tx.insert(curriculumModule).values({
       id: moduleId,
       curriculumId: newCurriculum.id,
-      title: 'Module 1',
+      title: 'Lesson 1',
       description: 'Get started',
       order: 0,
     })
