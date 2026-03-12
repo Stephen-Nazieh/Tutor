@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Textarea, AutoTextarea } from '@/components/ui/textarea'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -1326,7 +1326,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -1344,8 +1344,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea
-              value={data.description}
+            <AutoTextarea value={data.description}
               onChange={(e) => setData({ ...data, description: e.target.value })}
               placeholder="What will students learn in this module?"
               rows={3}
@@ -1385,7 +1384,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-500" />
@@ -1525,14 +1524,13 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea
-              value={data.description}
+            <AutoTextarea value={data.description}
               onChange={(e) => setData({ ...data, description: e.target.value })}
               placeholder="Brief overview of this lesson (base version)"
               rows={2}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 neon-border-inner p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
             <div className="space-y-2">
               <Label>Duration (minutes)</Label>
               <Input
@@ -1694,7 +1692,7 @@ Format your response clearly and concisely.`
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
@@ -2067,7 +2065,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[600px] flex flex-col">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2248,7 +2246,7 @@ function LessonSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -2413,7 +2411,7 @@ function AssessmentBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
@@ -2427,11 +2425,11 @@ function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
               <TabsTrigger value="edit">Edit</TabsTrigger>
               <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
             </TabsList>
-            <TabsContent value="edit" className="space-y-4 py-2">
+            <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{titleLabel} Title *</Label>
@@ -2443,8 +2441,7 @@ function AssessmentBuilderModal({
                 </div>
                 <div className="space-y-2">
                   <Label>Instructions</Label>
-                  <Textarea
-                    value={data.description}
+                  <AutoTextarea value={data.description}
                     onChange={(e) => setData({ ...data, description: e.target.value })}
                     placeholder="What should students know before starting this assessment?"
                     rows={2}
@@ -2452,14 +2449,13 @@ function AssessmentBuilderModal({
                 </div>
                 <div className="space-y-2">
                   <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
-                  <Textarea
-                    value={data.instructions}
+                  <AutoTextarea value={data.instructions}
                     onChange={(e) => setData({ ...data, instructions: e.target.value })}
                     placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
                     rows={4}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 neon-border-inner p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
                   <div className="space-y-2">
                     <Label>Submission</Label>
                     {isTask ? (
@@ -2578,8 +2574,7 @@ function AssessmentBuilderModal({
                               </Button>
                             </div>
                           </div>
-                          <Textarea
-                            value={q.question}
+                          <AutoTextarea value={q.question}
                             onChange={(e) => updateQuestion(idx, { question: e.target.value })}
                             placeholder="Enter question"
                             rows={2}
@@ -2760,7 +2755,7 @@ function AssessmentBuilderModal({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="space-y-4 py-2">
+            <TabsContent value="preview" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <h3 className="font-semibold">{data.title}</h3>
                 {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
@@ -2828,7 +2823,7 @@ function AssessmentBuilderModal({
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2958,7 +2953,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-cyan-500" />
@@ -2966,11 +2961,11 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
           </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
             <TabsTrigger value="edit">Edit</TabsTrigger>
             <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
           </TabsList>
-          <TabsContent value="edit" className="space-y-4 py-2">
+          <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Worksheet Title *</Label>
@@ -2982,8 +2977,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               </div>
               <div className="space-y-2">
                 <Label>Instructions</Label>
-                <Textarea
-                  value={data.description}
+                <AutoTextarea value={data.description}
                   onChange={(e) => setData({ ...data, description: e.target.value })}
                   placeholder="What should students know before starting this worksheet?"
                   rows={2}
@@ -2992,8 +2986,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
               <div className="space-y-2">
                 <Label>Instructions *</Label>
-                <Textarea
-                  value={data.instructions}
+                <AutoTextarea value={data.instructions}
                   onChange={(e) => setData({ ...data, instructions: e.target.value })}
                   placeholder="Detailed instructions for students"
                   rows={3}
@@ -3122,8 +3115,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                           </Button>
                         </div>
                       </div>
-                      <Textarea
-                        value={q.question}
+                      <AutoTextarea value={q.question}
                         onChange={(e) => updateQuestion(idx, { question: e.target.value })}
                         placeholder="Enter question"
                         rows={2}
@@ -3246,7 +3238,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="preview" className="space-y-4 py-2">
+          <TabsContent value="preview" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h3 className="font-semibold">{data.title}</h3>
               {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
@@ -3407,7 +3399,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
@@ -3415,11 +3407,11 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
               <TabsTrigger value="edit">Edit</TabsTrigger>
               <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
             </TabsList>
-            <TabsContent value="edit" className="space-y-4 py-2">
+            <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
@@ -3431,8 +3423,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                 </div>
                 <div className="space-y-2">
                   <Label>Instructions</Label>
-                  <Textarea
-                    value={data.description}
+                  <AutoTextarea value={data.description}
                     onChange={(e) => setData({ ...data, description: e.target.value })}
                     placeholder="What should students know before starting this exam?"
                     rows={2}
@@ -3523,8 +3514,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                             </Button>
                           </div>
                         </div>
-                        <Textarea
-                          value={q.question}
+                        <AutoTextarea value={q.question}
                           onChange={(e) => updateQuestion(idx, { question: e.target.value })}
                           placeholder="Enter question"
                           rows={2}
@@ -3629,7 +3619,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="space-y-4 py-2">
+            <TabsContent value="preview" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <h3 className="font-semibold">{data.title}</h3>
                 {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
@@ -3666,7 +3656,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -3798,7 +3788,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-teal-500" />
@@ -4706,8 +4696,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                     </Button>
                   </div>
                 </div>
-                <Textarea
-                  value={q.question}
+                <AutoTextarea value={q.question}
                   onChange={(e) => updatePreviewQuestion(idx, { question: e.target.value })}
                   placeholder="Enter question"
                   rows={2}
@@ -4876,7 +4865,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {isActivity && (
         <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
@@ -4900,7 +4889,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {/* PDF Preview Modal */}
       <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
@@ -6228,7 +6217,7 @@ FEEDBACK: [your explanation]`
       )}
     
       <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Load as...</DialogTitle>
           </DialogHeader>
@@ -7054,11 +7043,11 @@ FEEDBACK: [your explanation]`
           <div className="h-full flex flex-col space-y-4 overflow-auto">
 
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
-            <Card className="flex-shrink-0">
+            <Card className="flex-shrink-0 neon-border-indigo shadow-2xl border-none rounded-2xl overflow-hidden">
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
                     <TabsTrigger value="task" className="gap-2">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
@@ -7138,7 +7127,7 @@ FEEDBACK: [your explanation]`
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2">
+                          <TabsList className="grid w-full grid-cols-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
                             <TabsTrigger value="content">Slide</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
@@ -7370,7 +7359,7 @@ FEEDBACK: [your explanation]`
                         maxWidth={600}
                       >
                         <Tabs value={taskBuilderRightTab} onValueChange={(v) => setTaskBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
-                          <TabsList className="grid w-full grid-cols-2 mb-2">
+                          <TabsList className="grid w-full grid-cols-2 mb-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
                             <TabsTrigger value="extensions">Extensions</TabsTrigger>
                             <TabsTrigger value="dmi">DMI</TabsTrigger>
                           </TabsList>
@@ -7530,7 +7519,7 @@ FEEDBACK: [your explanation]`
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2">
+                          <TabsList className="grid w-full grid-cols-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
                             <TabsTrigger value="content">Slide</TabsTrigger>
                             <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
@@ -7756,7 +7745,7 @@ FEEDBACK: [your explanation]`
                         maxWidth={600}
                       >
                         <Tabs value={assessmentBuilderRightTab} onValueChange={(v) => setAssessmentBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
-                          <TabsList className="grid w-full grid-cols-2 mb-2">
+                          <TabsList className="grid w-full grid-cols-2 mb-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
                             <TabsTrigger value="extensions">Extensions</TabsTrigger>
                             <TabsTrigger value="dmi">DMI</TabsTrigger>
                           </TabsList>
@@ -7854,7 +7843,7 @@ FEEDBACK: [your explanation]`
                     {/* Main content with tabs */}
                     <div className="flex-1">
                       <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-3 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
                           {testPciTabs.map((tab) => (
                             <div key={tab.id} className="relative flex-1">
                               {editingTabId === tab.id ? (
@@ -8155,7 +8144,7 @@ FEEDBACK: [your explanation]`
 
         {/* Import Type Selector Modal */}
         <Dialog open={!!importTypeModalData} onOpenChange={(open) => !open && setImportTypeModalData(null)}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>Import as...</DialogTitle>
             </DialogHeader>

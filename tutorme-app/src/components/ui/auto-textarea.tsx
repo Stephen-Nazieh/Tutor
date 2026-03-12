@@ -131,6 +131,25 @@ export const AutoTextarea = React.forwardRef<HTMLTextAreaElement, AutoTextareaPr
             }
         }
 
+        React.useEffect(() => {
+            const target = internalRef.current || (ref as any)?.current
+            if (target) {
+                const manualHeight = props.style?.height
+                target.style.height = "auto"
+                const autoHeight = target.scrollHeight
+                if (manualHeight && typeof manualHeight === 'string') {
+                    const manualPx = parseInt(manualHeight)
+                    if (!isNaN(manualPx) && manualPx > autoHeight) {
+                        target.style.height = `${manualPx}px`
+                    } else {
+                        target.style.height = `${autoHeight}px`
+                    }
+                } else {
+                    target.style.height = `${autoHeight}px`
+                }
+            }
+        }, [value, props.style?.height])
+
         return (
             <div className="relative w-full">
                 <Textarea

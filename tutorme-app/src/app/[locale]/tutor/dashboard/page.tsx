@@ -16,6 +16,7 @@ import {
   UpcomingClassesCard,
   StudentsNeedingAttentionCard,
   InteractiveCalendar,
+  AIInsightsCard,
   type UpcomingClass,
   type StudentNeedingAttention,
 } from './components'
@@ -237,21 +238,26 @@ function TutorDashboardContent() {
       )}
 
       {/* Modern Grid Layout - Full Width */}
-      <div className="space-y-6">
-        <UpcomingClassesCard
-          classes={classes}
-          formatDate={formatDate}
-          loading={loading}
-          onCreateClassClick={() => setShowCreateDialog(true)}
-          onRemoveClass={handleRemoveClass}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <UpcomingClassesCard
+            classes={classes}
+            formatDate={formatDate}
+            loading={loading}
+            onCreateClassClick={() => setShowCreateDialog(true)}
+            onRemoveClass={handleRemoveClass}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <StudentsNeedingAttentionCard students={students} loading={loading} />
+        </div>
       </div>
 
       {/* Analytics Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Analytics overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="neon-border">
+          <Card className="neon-border border-none shadow-xl bg-white/95 backdrop-blur-md">
             <CardContent className="pt-6">
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
@@ -259,7 +265,7 @@ function TutorDashboardContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="neon-border-indigo">
+          <Card className="neon-border-indigo border-none shadow-xl bg-white/95 backdrop-blur-md">
             <CardContent className="pt-6">
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
@@ -267,8 +273,8 @@ function TutorDashboardContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="neon-border-purple">
-            <CardContent className="pt-6">
+          <Card className="neon-border-purple border-none shadow-xl bg-white/95 backdrop-blur-md">
+           <CardContent className="pt-6">
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>
                 <p className="text-4xl font-bold mt-2 text-purple-600">85%</p>
@@ -276,6 +282,15 @@ function TutorDashboardContent() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-8">
+        <div className="lg:col-span-1">
+          <AIInsightsCard />
+        </div>
+        <div className="lg:col-span-2">
+          <StudentProgressCard students={allStudents} loading={loading} />
         </div>
       </div>
 

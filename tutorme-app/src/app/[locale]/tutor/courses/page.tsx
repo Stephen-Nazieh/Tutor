@@ -52,7 +52,7 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md overflow-hidden">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
@@ -87,7 +87,7 @@ export default function CoursesPage() {
               {allCourses
                 .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.subject.toLowerCase().includes(searchQuery.toLowerCase()))
                 .map((course) => (
-                  <Card key={course.id} className="hover:shadow-md transition-shadow">
+                  <Card key={course.id} className="hover:shadow-2xl transition-all border-none neon-border-inner bg-white/60 hover:bg-white backdrop-blur-sm">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">

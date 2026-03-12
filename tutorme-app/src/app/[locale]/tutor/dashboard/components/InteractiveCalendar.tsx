@@ -488,7 +488,7 @@ export function InteractiveCalendar({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <Card className="h-full neon-border">
+      <Card className="h-full neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -669,7 +669,7 @@ export function InteractiveCalendar({
 
         {/* Event Detail Dialog */}
         <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="sm:max-w-lg neon-border-indigo">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl">
             {selectedEvent && (
               <>
                 <DialogHeader>
@@ -1001,8 +1001,8 @@ function DroppableHour({ date, hour, children, className }: { date: Date; hour: 
 
 function MonthView({ days, events, onDateClick, onEventClick, isToday, getEventsForDate, conflicts }: any) {
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="grid grid-cols-7 bg-gray-50 border-b">
+    <div className="border-none rounded-lg overflow-hidden neon-border-inner shadow-lg">
+      <div className="grid grid-cols-7 bg-white/50 border-b border-gray-100">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
             {day}
@@ -1083,7 +1083,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
   const hours = Array.from({ length: 12 }, (_, i) => i + 8)
 
   return (
-    <div className="flex border rounded-lg overflow-hidden">
+    <div className="flex border-none rounded-lg overflow-hidden neon-border-inner shadow-lg bg-white/50">
       <div className="w-16 border-r bg-gray-50">
         <div className="h-12 border-b" />
         {hours.map((hour) => (
@@ -1150,7 +1150,7 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
   ).sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
 
   return (
-    <div className="flex border rounded-lg overflow-hidden">
+    <div className="flex border-none rounded-lg overflow-hidden neon-border-inner shadow-lg bg-white/50">
       <div className="w-20 border-r bg-gray-50">
         {hours.map((hour) => (
           <div key={hour} className="h-20 border-b px-2 py-2 text-sm text-gray-600 text-right">
@@ -1211,7 +1211,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
 
       <div className="space-y-4">
         {days.map((day, dayIndex) => (
-          <div key={day} className="border rounded-lg p-4">
+          <div key={day} className="border-none rounded-lg p-4 neon-border-inner bg-white/50">
             <h4 className="font-medium mb-3">{day}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {availability

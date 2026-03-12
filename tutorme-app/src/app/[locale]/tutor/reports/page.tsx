@@ -93,7 +93,7 @@ interface Student {
 export default function TutorReports() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('revenue')
   const [classData, setClassData] = useState<ClassReportData | null>(null)
   const [students, setStudents] = useState<Student[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -399,12 +399,16 @@ export default function TutorReports() {
 
         {/* Global Dashboard Reports */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
-          <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
+          <div className="neon-border-indigo rounded-xl overflow-hidden">
+            <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
+          </div>
+          <div className="neon-border-purple rounded-xl overflow-hidden">
+            <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
+          </div>
         </div>
 
         {/* Class Selector */}
-        <Card className="mb-6">
+        <Card className="mb-6 neon-border">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <div className="flex items-center gap-2">
@@ -442,56 +446,69 @@ export default function TutorReports() {
           </CardContent>
         </Card>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          </div>
-        ) : !selectedClassId ? (
-          <Card className="py-12">
-            <CardContent className="text-center">
-              <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No Class Selected</h3>
-              <p className="text-gray-500">
-                Please select a class or course from the dropdown above to view reports.
-              </p>
-            </CardContent>
-          </Card>
-        ) : students.length === 0 ? (
-          <Card className="py-12">
-            <CardContent className="text-center">
-              <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No Students Yet</h3>
-              <p className="text-gray-500">
-                This {selectedClassInfo?.type || 'class'} doesn&apos;t have any enrolled students yet.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="overview" className="gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Class Overview
-              </TabsTrigger>
-              <TabsTrigger value="students" className="gap-2">
-                <Users className="h-4 w-4" />
-                All Students
-              </TabsTrigger>
-              <TabsTrigger value="engagement" className="gap-2">
-                <Activity className="h-4 w-4" />
-                Engagement
-              </TabsTrigger>
-              <TabsTrigger value="revenue" className="gap-2">
-                <DollarSign className="h-4 w-4" />
-                Revenue
-              </TabsTrigger>
-            </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6 neon-border-inner p-1">
+            <TabsTrigger value="revenue" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Revenue Insights
+            </TabsTrigger>
+            <TabsTrigger value="overview" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Class Performance
+            </TabsTrigger>
+            <TabsTrigger value="students" className="gap-2">
+              <Users className="h-4 w-4" />
+              Student Roster
+            </TabsTrigger>
+            <TabsTrigger value="engagement" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Engagement
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Revenue Tab - Accessible even without class selection for global overview */}
+          <TabsContent value="revenue" className="h-full">
+            <div className="h-[800px] overflow-hidden neon-border-indigo rounded-xl bg-white">
+              <RevenueDashboard />
+            </div>
+          </TabsContent>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            </div>
+          ) : !selectedClassId ? (
+            <div className="py-12">
+              <Card className="neon-border-inner">
+                <CardContent className="text-center py-12">
+                  <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">No Class Selected</h3>
+                  <p className="text-gray-500">
+                    Please select a class or course from the dropdown above to view performance metrics.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : students.length === 0 ? (
+            <div className="py-12">
+              <Card className="neon-border-inner">
+                <CardContent className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">No Students Yet</h3>
+                  <p className="text-gray-500">
+                    This {selectedClassInfo?.type || 'class'} doesn&apos;t have any enrolled students yet.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <>
 
             {/* Class Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
+                <Card className="neon-border-inner">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -502,7 +519,7 @@ export default function TutorReports() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="neon-border-inner">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -513,7 +530,7 @@ export default function TutorReports() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="neon-border-inner">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -526,7 +543,7 @@ export default function TutorReports() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="neon-border-inner">
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -543,7 +560,7 @@ export default function TutorReports() {
 
               {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
+                <Card className="neon-border-indigo border-none h-full">
                   <CardHeader>
                     <CardTitle>Score Distribution</CardTitle>
                     <CardDescription>Distribution of student scores across the class</CardDescription>
@@ -553,7 +570,7 @@ export default function TutorReports() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="neon-border-indigo border-none h-full">
                   <CardHeader>
                     <CardTitle>Performance Clusters</CardTitle>
                     <CardDescription>Student grouping by performance level</CardDescription>
@@ -582,7 +599,7 @@ export default function TutorReports() {
 
               {/* Student Lists */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
+                <Card className="neon-border-indigo border-none shadow-lg">
                   <CardHeader>
                     <CardTitle>Top Performers</CardTitle>
                     <CardDescription>Students with highest scores</CardDescription>
@@ -620,7 +637,7 @@ export default function TutorReports() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="neon-border-indigo border-none shadow-lg">
                   <CardHeader>
                     <CardTitle>Needs Attention</CardTitle>
                     <CardDescription>Students who may need additional support</CardDescription>
@@ -652,7 +669,7 @@ export default function TutorReports() {
 
             {/* All Students Tab */}
             <TabsContent value="students" className="space-y-6">
-              <Card>
+              <Card className="neon-border-indigo border-none shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -722,14 +739,9 @@ export default function TutorReports() {
               <EngagementDashboard classId={selectedClassId} />
             </TabsContent>
 
-            {/* Revenue Tab */}
-            <TabsContent value="revenue" className="h-full">
-              <div className="h-[700px] overflow-hidden">
-                <RevenueDashboard />
-              </div>
-            </TabsContent>
-          </Tabs>
-        )}
+            </>
+          )}
+        </Tabs>
       </div>
     </div>
   )

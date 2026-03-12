@@ -147,7 +147,7 @@ export function CreateClassDialog({ open, onOpenChange, onClassCreated, redirect
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" aria-busy={creating} aria-describedby={apiError ? 'create-class-api-error' : undefined}>
+      <DialogContent className="sm:max-w-[500px] neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md" aria-busy={creating} aria-describedby={apiError ? 'create-class-api-error' : undefined}>
         <DialogHeader>
           <DialogTitle>Create New Class</DialogTitle>
           <DialogDescription>Schedule a new live class session for your students.</DialogDescription>
