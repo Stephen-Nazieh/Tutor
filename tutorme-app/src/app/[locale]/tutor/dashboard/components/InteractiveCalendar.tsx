@@ -488,7 +488,7 @@ export function InteractiveCalendar({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <Card className="h-full">
+      <Card className="h-full neon-border">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
@@ -557,7 +557,7 @@ export function InteractiveCalendar({
               </Select>
 
               {/* View Toggle */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
                 {(['month', 'week', 'day', 'availability'] as CalendarView[]).map((v) => (
                   <button
                     key={v}
@@ -669,7 +669,7 @@ export function InteractiveCalendar({
 
         {/* Event Detail Dialog */}
         <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-lg neon-border-indigo">
             {selectedEvent && (
               <>
                 <DialogHeader>

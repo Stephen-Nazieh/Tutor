@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils'
 
 export interface UpcomingClass {
   id: string
+  curriculumId?: string
   title: string
   subject: string
   scheduledAt: string
@@ -157,7 +158,7 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden neon-border-purple">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-blue-500" />
@@ -290,7 +291,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
     : classes[0]
 
   return (
-    <Card>
+    <Card className="neon-border overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2" title="Scheduled and active classes">
           <Clock className="w-5 h-5 text-blue-500" />
@@ -327,7 +328,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
             )}
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row border rounded-xl overflow-hidden shadow-sm">
+          <div className="flex flex-col md:flex-row border rounded-xl overflow-hidden shadow-sm neon-border">
             {/* Left Column: Classes List */}
             <div className="w-full md:w-[45%] flex flex-col bg-gray-50/50 border-r border-gray-200">
               <div className="p-4 border-b border-gray-200 bg-gray-50/80 font-semibold text-gray-700 text-sm">
@@ -370,7 +371,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
               </div>
               <div className="p-4 flex-1">
                 {selectedClass ? (
-                  <div className="rounded-xl flex flex-col bg-white border border-gray-100 shadow-sm overflow-hidden h-fit">
+                  <div className="rounded-xl flex flex-col bg-white border border-gray-100 shadow-sm overflow-hidden h-fit neon-border-indigo">
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
@@ -408,7 +409,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-blue-500 h-2 rounded-full"
+                            className="bg-blue-500 h-2 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                             style={{ 
                               width: `${Math.min(100, Math.max(0, (selectedClass.enrolledStudents / (selectedClass.maxStudents || 1)) * 100))}%` 
                             }}
@@ -417,13 +418,30 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
                       </div>
 
                       <div className="flex flex-col gap-3">
-                        <Link href={`/tutor/live-class/${selectedClass.id}`} className="w-full">
-                          <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md" size="lg">
-                            <Video className="w-5 h-5 mr-2" />
-                            Enter Live Room
-                          </Button>
-                        </Link>
-                        <div className="flex gap-2">
+                        <div className="grid grid-cols-2 gap-3">
+                          <Link href={`/tutor/live-class/${selectedClass.id}`} className="col-span-2">
+                            <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg" size="lg">
+                              <Video className="w-5 h-5 mr-2" />
+                              Enter Live Room
+                            </Button>
+                          </Link>
+                          
+                          {selectedClass.curriculumId ? (
+                            <Link href={`/tutor/courses/${selectedClass.curriculumId}`} className="col-span-2">
+                               <Button variant="outline" className="w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-semibold">
+                                 <BookOpen className="w-4 h-4 mr-2" />
+                                 View Course Details
+                               </Button>
+                            </Link>
+                          ) : (
+                            <Link href={`/tutor/classes`} className="col-span-2">
+                               <Button variant="outline" className="w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-semibold">
+                                 <Sparkles className="w-4 h-4 mr-2" />
+                                 View Class Details
+                               </Button>
+                            </Link>
+                          )}
+
                           <Button
                             variant="outline"
                             className="flex-1"

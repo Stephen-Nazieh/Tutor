@@ -34,6 +34,7 @@ export const GET = withAuth(async (req, session) => {
 
   const classes = sessions.map((s) => ({
     id: s.id,
+    curriculumId: s.curriculumId,
     title: s.title,
     subject: s.subject,
     scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),

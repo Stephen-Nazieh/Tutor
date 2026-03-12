@@ -87,4 +87,36 @@
   .safe-right {
     padding-right: env(safe-area-inset-right, 0);
   }
+
+  /* Neon Border Utilities */
+  .neon-border {
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2), inset 0 0 5px rgba(59, 130, 246, 0.1) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .neon-border:hover {
+    border-color: rgba(59, 130, 246, 0.6) !important;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 10px rgba(59, 130, 246, 0.2) !important;
+  }
+
+  .neon-border-indigo {
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2), inset 0 0 5px rgba(99, 102, 241, 0.1) !important;
+  }
+
+  .neon-border-indigo:hover {
+    border-color: rgba(99, 102, 241, 0.6) !important;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), inset 0 0 10px rgba(99, 102, 241, 0.2) !important;
+  }
+
+  .neon-border-purple {
+    border: 1px solid rgba(168, 85, 247, 0.3) !important;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.2), inset 0 0 5px rgba(168, 85, 247, 0.1) !important;
+  }
+
+  .neon-border-purple:hover {
+    border-color: rgba(168, 85, 247, 0.6) !important;
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), inset 0 0 10px rgba(168, 85, 247, 0.2) !important;
+  }
 }

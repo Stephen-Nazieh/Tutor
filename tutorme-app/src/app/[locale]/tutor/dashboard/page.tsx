@@ -251,7 +251,7 @@ function TutorDashboardContent() {
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Analytics overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
+          <Card className="neon-border">
             <CardContent className="pt-6">
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
@@ -259,7 +259,7 @@ function TutorDashboardContent() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="neon-border-indigo">
             <CardContent className="pt-6">
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
@@ -267,7 +267,7 @@ function TutorDashboardContent() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="neon-border-purple">
             <CardContent className="pt-6">
               <div className="text-center">
                 <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>

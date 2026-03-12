@@ -20,7 +20,7 @@ interface Props {
 export function StudentsNeedingAttentionCard({ students, loading }: Props) {
   const router = useRouter()
   return (
-    <Card>
+    <Card className="neon-border">
       <CardHeader>
         <CardTitle>Students Needing Attention</CardTitle>
       </CardHeader>
@@ -45,17 +45,17 @@ export function StudentsNeedingAttentionCard({ students, loading }: Props) {
         ) : (
           <div className="space-y-3">
             {students.map((s) => (
-              <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg hover:border-blue-400 transition-colors bg-white shadow-sm neon-border">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold bg-gray-100 text-gray-700">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold bg-blue-50 text-blue-700">
                     {s.initial}
                   </div>
                   <div>
-                    <p className="font-medium">{s.name}</p>
-                    <p className="text-sm text-gray-600">{s.issue}</p>
+                    <p className="font-medium text-gray-900">{s.name}</p>
+                    <p className="text-sm text-gray-500">{s.issue}</p>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => router.push(`/tutor/reports/${s.id}`)}>
+                <Button size="sm" variant="outline" className="border-blue-200 hover:bg-blue-50 text-blue-700" onClick={() => router.push(`/tutor/reports/${s.id}`)}>
                   View Details
                 </Button>
               </div>
