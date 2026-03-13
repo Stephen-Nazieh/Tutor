@@ -16,7 +16,6 @@ import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dash
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { PublishStatusBadge } from '@/components/tutor/PublishButton'
-import { CoursePitchSection } from '@/components/tutor/CoursePitchSection'
 
 interface CourseData {
   id: string
@@ -272,8 +271,6 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
           />
         )}
 
-        {/* Course Pitch Section - Now at the BOTTOM */}
-        {courseId && <CoursePitchSection courseId={courseId} />}
       </div>
     </div>
   )

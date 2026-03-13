@@ -81,8 +81,6 @@ import {
   Play,
   Lock,
   Unlock,
-  Eye,
-  EyeOff,
   Shield,
   Loader2,
   BarChart3,
@@ -5023,9 +5021,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Right panel tabs for Task Builder (Extensions / DMI)
   const [taskBuilderRightTab, setTaskBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
 
-  // Right panel tabs for Assessment Builder (Extensions / DMI)
-  const [assessmentBuilderRightTab, setAssessmentBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
-
   // Main builder tab (task vs assessment)
   const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
 
@@ -5217,9 +5212,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       ? (taskBuilder.activeExtensionId
         ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
         : taskBuilder.taskPci)
-      : (assessmentBuilder.activeExtensionId
-        ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
-        : assessmentBuilder.taskPci)
+      : assessmentBuilder.taskPci
 
     // Determine which tabs to update
     const tabsToUpdate: string[] = []
@@ -6479,12 +6472,13 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                   </CardTitle>
                   <Button
                     variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
+                    size="sm"
+                    className="h-8 gap-2 text-xs"
                     onClick={() => setLeftPanelHidden(true)}
                     title="Hide course panel"
                   >
-                    <EyeOff className="h-4 w-4" />
+                    <LayoutTemplate className="h-4 w-4" />
+                    Hide Panel
                   </Button>
                 </div>
               </CardHeader>
@@ -7070,7 +7064,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                   className="gap-2"
                   onClick={() => setLeftPanelHidden(false)}
                 >
-                  <Eye className="h-4 w-4" />
+                  <LayoutTemplate className="h-4 w-4" />
                   Show Course Panel
                 </Button>
               </div>
@@ -7384,62 +7378,30 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
-                              placeholder={assessmentBuilder.activeExtensionId ? "Extension content..." : "Enter assessment content or drop files here..."}
+                              placeholder="Enter assessment content or drop files here..."
                               className="w-full min-h-[100px]"
                               onDrop={(e: any) => handleDragFiles(e, (text) => {
                                 setAssessmentBuilder(prev => {
-                                  if (prev.activeExtensionId) {
-                                    const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
-                                    const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + text : text
-                                    const newPci = ext ? syncNumbering(combined, ext.pci) : ''
-                                    return {
-                                      ...prev,
-                                      extensions: prev.extensions.map(x =>
-                                        x.id === prev.activeExtensionId
-                                          ? { ...x, content: combined, pci: newPci }
-                                          : x
-                                      )
-                                    }
-                                  } else {
-                                    const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
-                                    return {
-                                      ...prev,
-                                      taskContent: combined,
-                                      taskPci: syncNumbering(combined, prev.taskPci)
-                                    }
+                                  const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
+                                  return {
+                                    ...prev,
+                                    taskContent: combined,
+                                    taskPci: syncNumbering(combined, prev.taskPci)
                                   }
                                 })
                               })}
-                              value={assessmentBuilder.activeExtensionId
-                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
-                                : assessmentBuilder.taskContent
-                              }
+                              value={assessmentBuilder.taskContent}
                               onChange={(e: any) => {
                                 const newContent = e.target.value
                                 // Auto-create assessment if none loaded
-                                if (!loadedAssessmentId && !assessmentBuilder.activeExtensionId) {
+                                if (!loadedAssessmentId) {
                                   autoCreateAssessment()
                                 }
-                                if (assessmentBuilder.activeExtensionId) {
-                                  setAssessmentBuilder(prev => {
-                                    const ext = prev.extensions.find(e => e.id === prev.activeExtensionId)
-                                    const newPci = ext ? syncNumbering(newContent, ext.pci) : ''
-                                    return {
-                                      ...prev,
-                                      extensions: prev.extensions.map(ext =>
-                                        ext.id === prev.activeExtensionId
-                                          ? { ...ext, content: newContent, pci: newPci }
-                                          : ext
-                                      )
-                                    }
-                                  })
-                                } else {
-                                  setAssessmentBuilder(prev => ({
-                                    ...prev,
-                                    taskContent: newContent,
-                                    taskPci: syncNumbering(newContent, prev.taskPci)
-                                  }))
-                                }
+                                setAssessmentBuilder(prev => ({
+                                  ...prev,
+                                  taskContent: newContent,
+                                  taskPci: syncNumbering(newContent, prev.taskPci)
+                                }))
                               }}
                             />
                             {/* Uploaded Files List - only for assessment (not extensions) */}
@@ -7448,30 +7410,16 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <AutoTextarea
-                              placeholder={assessmentBuilder.activeExtensionId ? "Extension PCI..." : "Enter PCI configuration..."}
+                              placeholder="Enter PCI configuration..."
                               className="w-full min-h-[100px]"
-                              value={assessmentBuilder.activeExtensionId
-                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
-                                : assessmentBuilder.taskPci
-                              }
+                              value={assessmentBuilder.taskPci}
                               onChange={(e: any) => {
                                 const newPci = e.target.value
                                 // Auto-create assessment if none loaded
-                                if (!loadedAssessmentId && !assessmentBuilder.activeExtensionId) {
+                                if (!loadedAssessmentId) {
                                   autoCreateAssessment()
                                 }
-                                if (assessmentBuilder.activeExtensionId) {
-                                  setAssessmentBuilder(prev => ({
-                                    ...prev,
-                                    extensions: prev.extensions.map(ext =>
-                                      ext.id === prev.activeExtensionId
-                                        ? { ...ext, pci: newPci }
-                                        : ext
-                                    )
-                                  }))
-                                } else {
-                                  setAssessmentBuilder(prev => ({ ...prev, taskPci: newPci }))
-                                }
+                                setAssessmentBuilder(prev => ({ ...prev, taskPci: newPci }))
                               }}
                             />
                           </TabsContent>
@@ -7483,9 +7431,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                             size="sm"
                             onClick={() => {
                               // Prefill Test PCI with content from Assessment Builder
-                              const content = assessmentBuilder.activeExtensionId
-                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
-                                : assessmentBuilder.taskContent
+                              const content = assessmentBuilder.taskContent
 
                               setTestPciScores({})
                               setTestPciInput('')
@@ -7503,102 +7449,22 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           </Button>
                         </div>
                       </div>
-                      {/* Right panel: Extensions & DMI Tabs - resizable */}
+                      {/* Right panel: DMI - resizable */}
                       <ResizablePanel
                         defaultWidth={192}
                         minWidth={150}
                         maxWidth={600}
                       >
-                        <Tabs value={assessmentBuilderRightTab} onValueChange={(v) => setAssessmentBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
-                          <TabsList className="grid w-full grid-cols-2 mb-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="extensions" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Extensions</TabsTrigger>
-                            <TabsTrigger value="dmi" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">DMI</TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="extensions" className="mt-0">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mb-2"
-                              onClick={() => {
-                                const extNumber = assessmentBuilder.extensions.length + 1
-                                setAssessmentBuilder(prev => ({
-                                  ...prev,
-                                  extensions: [...prev.extensions, {
-                                    id: `ext-${Date.now()}`,
-                                    name: `Extension ${extNumber}`,
-                                    content: '',
-                                    pci: ''
-                                  }]
-                                }))
-                              }}
-                            >
-                              Add Extension
-                            </Button>
-                            <div className="mb-2">
-                              <p className="text-xs text-muted-foreground truncate">{assessmentBuilder.title || 'Assessment'}</p>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
-                              {assessmentBuilder.extensions.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No extensions added</p>
-                              ) : (
-                                assessmentBuilder.extensions.map((ext) => (
-                                  <div key={ext.id} className="flex items-center gap-1 group">
-                                    <Button
-                                      variant={assessmentBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
-                                      size="sm"
-                                      className="flex-1 justify-start text-xs"
-                                      onClick={() => {
-                                        if (assessmentBuilder.activeExtensionId === ext.id) {
-                                          setAssessmentBuilder(prev => ({ ...prev, activeExtensionId: null }))
-                                        } else {
-                                          setAssessmentBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
-                                        }
-                                      }}
-                                    >
-                                      <FileText className="h-3 w-3 mr-1" />
-                                      {ext.name}
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                      onClick={(e: any) => {
-                                        e.stopPropagation()
-                                        if (confirm(`Delete "${ext.name}"?`)) {
-                                          setAssessmentBuilder(prev => ({
-                                            ...prev,
-                                            extensions: prev.extensions.filter(e => e.id !== ext.id),
-                                            activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
-                                          }))
-                                        }
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                    </Button>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="dmi" className="mt-0">
-                            <div className="mb-2">
-                              <Button variant="outline" size="sm" className="w-full" onClick={() => handleGenerateDMI('assessment')}>
-                                <Sparkles className="h-3 w-3 mr-2" />
-                                Generate DMI
-                              </Button>
-                            </div>
-                            <DMIPanel
-                              content={assessmentBuilder.activeExtensionId
-                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || assessmentBuilder.taskContent
-                                : assessmentBuilder.taskContent}
-                              pci={assessmentBuilder.activeExtensionId
-                                ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || assessmentBuilder.taskPci
-                                : assessmentBuilder.taskPci}
-                            />
-                          </TabsContent>
-                        </Tabs>
+                        <div className="mb-2">
+                          <Button variant="outline" size="sm" className="w-full" onClick={() => handleGenerateDMI('assessment')}>
+                            <Sparkles className="h-3 w-3 mr-2" />
+                            Generate DMI
+                          </Button>
+                        </div>
+                        <DMIPanel
+                          content={assessmentBuilder.taskContent}
+                          pci={assessmentBuilder.taskPci}
+                        />
                       </ResizablePanel>
                     </div>
                   </TabsContent>
@@ -7692,13 +7558,6 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                         </div>
                       </div>
                     </div>
-                    {/* Right panel: DMI - resizable */}
-                    <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={600}>
-                      <h4 className="text-sm font-medium mb-2">Digital Marking Interface (DMI)</h4>
-                      <div className="p-3 bg-slate-50 rounded-lg min-h-[120px]">
-                        <p className="text-xs text-muted-foreground">DMI content</p>
-                      </div>
-                    </ResizablePanel>
                   </div>
                 </div>
               </CardContent>
@@ -7776,17 +7635,13 @@ Please provide DMI entries as a JSON array with objects containing "questionText
             ? (taskBuilder.activeExtensionId
               ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
               : taskBuilder.taskContent)
-            : (assessmentBuilder.activeExtensionId
-              ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
-              : assessmentBuilder.taskContent)
+            : assessmentBuilder.taskContent
           }
           pci={aiAssistContext === 'task'
             ? (taskBuilder.activeExtensionId
               ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
               : taskBuilder.taskPci)
-            : (assessmentBuilder.activeExtensionId
-              ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
-              : assessmentBuilder.taskPci)
+            : assessmentBuilder.taskPci
           }
           title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
           messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
@@ -7806,16 +7661,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                 setTaskBuilder(prev => ({ ...prev, taskContent: content }))
               }
             } else {
-              if (assessmentBuilder.activeExtensionId) {
-                setAssessmentBuilder(prev => ({
-                  ...prev,
-                  extensions: prev.extensions.map(ext =>
-                    ext.id === prev.activeExtensionId ? { ...ext, content } : ext
-                  )
-                }))
-              } else {
-                setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
-              }
+              setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
             }
           }}
           onApplyPci={(pci) => {
@@ -7831,16 +7677,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                 setTaskBuilder(prev => ({ ...prev, taskPci: pci }))
               }
             } else {
-              if (assessmentBuilder.activeExtensionId) {
-                setAssessmentBuilder(prev => ({
-                  ...prev,
-                  extensions: prev.extensions.map(ext =>
-                    ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
-                  )
-                }))
-              } else {
-                setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
-              }
+              setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
             }
           }}
         />
