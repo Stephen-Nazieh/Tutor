@@ -256,33 +256,25 @@ function TutorDashboardContent() {
       {/* Analytics Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Analytics overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="neon-border border-none shadow-xl bg-white/95 backdrop-blur-md">
-            <CardContent className="pt-6">
-              <div className="text-center">
+        <Card className="neon-border border-none shadow-xl bg-white/95 backdrop-blur-md">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+              <div className="text-center py-2 md:py-0">
                 <h3 className="text-lg font-medium text-gray-500">Active Courses</h3>
                 <p className="text-4xl font-bold mt-2 text-blue-600">{stats.totalClasses}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="neon-border-indigo border-none shadow-xl bg-white/95 backdrop-blur-md">
-            <CardContent className="pt-6">
-              <div className="text-center">
+              <div className="text-center py-2 md:py-0 md:px-6">
                 <h3 className="text-lg font-medium text-gray-500">Active Students</h3>
                 <p className="text-4xl font-bold mt-2 text-green-600">{stats.totalStudents}</p>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="neon-border-purple border-none shadow-xl bg-white/95 backdrop-blur-md">
-           <CardContent className="pt-6">
-              <div className="text-center">
+              <div className="text-center py-2 md:py-0 md:px-6">
                 <h3 className="text-lg font-medium text-gray-500">Engagement Rate</h3>
                 <p className="text-4xl font-bold mt-2 text-purple-600">85%</p>
                 <p className="text-sm text-gray-400 mt-1">Task/Assessment completion</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-8">

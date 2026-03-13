@@ -492,16 +492,6 @@ export function InteractiveCalendar({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <CardTitle className="text-xl flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5 text-blue-500" />
-                Calendar
-                {notifications.length > 0 && (
-                  <Badge variant="destructive" className="text-xs">
-                    <Bell className="w-3 h-3 mr-1" />
-                    {notifications.length}
-                  </Badge>
-                )}
-              </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={() => navigateMonth(-1)}>
                   <ChevronLeft className="w-4 h-4" />
@@ -516,9 +506,6 @@ export function InteractiveCalendar({
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today
               </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
               {/* Calendar Integrations */}
               <Button
                 variant="outline"
@@ -541,7 +528,15 @@ export function InteractiveCalendar({
                 <Layers className="w-4 h-4 mr-2" />
                 Batch
               </Button>
+              {notifications.length > 0 && (
+                <Badge variant="destructive" className="text-xs">
+                  <Bell className="w-3 h-3 mr-1" />
+                  {notifications.length}
+                </Badge>
+              )}
+            </div>
 
+            <div className="flex items-center gap-2">
               {/* Filters */}
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="w-36">
@@ -571,11 +566,6 @@ export function InteractiveCalendar({
                   </button>
                 ))}
               </div>
-
-              <Button onClick={() => onCreateClass?.(selectedDate || new Date())}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add
-              </Button>
             </div>
           </div>
 

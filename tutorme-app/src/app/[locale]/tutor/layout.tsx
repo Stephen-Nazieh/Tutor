@@ -66,9 +66,8 @@ const navSections: NavSection[] = [
   {
     title: 'People',
     items: [
-      { href: '/tutor/students', label: 'Students', icon: Users },
       { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
-      { href: '/tutor/groups', label: 'My Groups', icon: Users },
+      { href: '/tutor/groups', label: 'Students & Groups', icon: Users },
     ],
   },
   {
@@ -246,16 +245,7 @@ export default function TutorLayout({
                       </Link>
                     )
                   })}
-                  {/* Course Builder Link */}
-                  {section.title === 'Build & Launch' && (
-                    <Link
-                      href="/tutor/courses/new"
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm text-gray-600 hover:bg-gray-100"
-                    >
-                      <Wand2 className="h-4 w-4" />
-                      <span>Course Builder</span>
-                    </Link>
-                  )}
+    
                 </div>
               </div>
             ))}
@@ -364,17 +354,7 @@ export default function TutorLayout({
                         </Link>
                       )
                     })}
-                    {/* Course Builder Link - Mobile */}
-                    {section.title === 'Build & Launch' && (
-                      <Link
-                        href="/tutor/courses/new"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-600 hover:bg-gray-100"
-                      >
-                        <Wand2 className="h-5 w-5" />
-                        <span>Course Builder</span>
-                      </Link>
-                    )}
+
                   </div>
                 </div>
               ))}

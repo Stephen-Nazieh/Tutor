@@ -226,10 +226,10 @@ export default function MyGroupsPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Users className="h-6 w-6 text-blue-500" />
-            My Groups
+            Students & Groups
           </h1>
           <p className="text-muted-foreground">
-            View and manage all your teaching groups
+            View and manage all your students and teaching groups
           </p>
         </div>
         <Button onClick={handleCreateGroup} className="gap-2">
@@ -239,61 +239,57 @@ export default function MyGroupsPage() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{groups.length}</p>
-                <p className="text-xs text-muted-foreground">Total Groups</p>
-              </div>
+            <div className="grid grid-cols-2 divide-x divide-gray-100">
+              <Link href="/tutor/groups/list" className="flex items-center gap-3 pr-4 hover:bg-gray-50/50 transition-colors rounded-l-lg">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Users className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{groups.length}</p>
+                  <p className="text-xs text-muted-foreground">Total Groups</p>
+                </div>
+              </Link>
+              <Link href="/tutor/students/list" className="flex items-center gap-3 pl-4 hover:bg-gray-50/50 transition-colors rounded-r-lg">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <GraduationCap className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {groups.reduce((acc, g) => acc + g.enrollmentCount, 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Total Students</p>
+                </div>
+              </Link>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <GraduationCap className="h-5 w-5 text-green-600" />
+            <div className="grid grid-cols-2 divide-x divide-gray-100">
+              <div className="flex items-center gap-3 pr-4">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <BookOpen className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {groups.reduce((acc, g) => acc + g.courseCount, 0)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Assigned Courses</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {groups.reduce((acc, g) => acc + g.enrollmentCount, 0)}
-                </p>
-                <p className="text-xs text-muted-foreground">Total Students</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <BookOpen className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {groups.reduce((acc, g) => acc + g.courseCount, 0)}
-                </p>
-                <p className="text-xs text-muted-foreground">Assigned Courses</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <Radio className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {groups.filter(g => g.isLive).length}
-                </p>
-                <p className="text-xs text-muted-foreground">Live Groups</p>
+              <div className="flex items-center gap-3 pl-4">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <Radio className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {groups.filter(g => g.isLive).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Live Groups</p>
+                </div>
               </div>
             </div>
           </CardContent>

@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { UserNav } from '@/components/user-nav'
 import {
-  ArrowLeft,
   LayoutDashboard,
   BookOpen,
   Layers,
@@ -20,8 +19,6 @@ import {
   Settings,
   Sparkles,
   ChevronLeft,
-  Menu,
-  X,
   Save,
   Eye,
   Users,
@@ -615,15 +612,14 @@ export default function CourseBuilderLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Builder Left Navigation - Desktop */}
-      <aside className="w-64 bg-white border-r sticky top-0 h-screen hidden lg:flex flex-col z-40">
-        {/* Back to Dashboard Button */}
-        <div className="p-4 border-b">
-          <div className="space-y-2">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Top Navigation Header */}
+      <header className="bg-white border-b sticky top-0 z-50">
+        <div className="flex items-center justify-between h-16 px-4">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-2 text-gray-600 hover:text-gray-900"
+              className="justify-start gap-2 text-gray-600 hover:text-gray-900"
               asChild
             >
               <Link href="/tutor/my-page">
@@ -631,228 +627,96 @@ export default function CourseBuilderLayout({
                 Back to My Page
               </Link>
             </Button>
-            <Button
-              className="w-full justify-start gap-2 bg-blue-600 hover:bg-blue-700"
-              onClick={handleOpenInLiveClass}
-              disabled={launchingLiveClass}
-            >
-              {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
-              {launchingLiveClass ? 'Opening Live Class…' : 'Go Live'}
-            </Button>
-          </div>
-        </div>
-
-        {/* Course Info */}
-        <div className="p-4 border-b bg-gray-50/50">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Editing Course
-            </p>
+            <div className="h-6 w-px bg-gray-200" />
+            <h1 className="font-semibold text-gray-900 truncate max-w-[200px]" title={course?.name || `Course ${courseId.slice(0, 8)}`}>
+              {course?.name || `Course ${courseId.slice(0, 8)}...`}
+            </h1>
             {course && <PublishStatusBadge isPublished={course.isPublished} />}
           </div>
-          <h2 className="font-medium text-gray-900 truncate" title={course?.name || `Course ${courseId.slice(0, 8)}`}>
-            {course?.name || `Course ${courseId.slice(0, 8)}...`}
-          </h2>
-          <p className="text-xs text-gray-500 mt-1">
-            Course Builder 2.0
-          </p>
-
-        </div>
-
-        {/* Builder Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {builderNavItems.map((item) => {
-            const Icon = item.icon
-            const isActive = currentSection === item.id
-            const handleClick = () => {
-              if (item.id === 'curriculum') {
-                setCurriculumModalOpen(true)
-              } else {
-                setActiveSection(item.id)
-              }
-            }
-            return (
-              <button
-                key={item.id}
-                onClick={handleClick}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left",
-                  isActive
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span className="font-medium text-sm">{item.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-
-        {/* Quick Actions Section */}
-        <div className="px-4 py-3 border-t bg-gray-50/50">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
-            Quick Actions
-          </p>
-          <div className="space-y-1">
+          
+          <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 text-sm"
+              variant="outline"
+              size="sm"
+              asChild
+            >
+              <Link href="/tutor/question-bank">
+                <FileText className="h-4 w-4 mr-2" />
+                Assessment Bank
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               asChild
             >
               <Link href={`/tutor/courses/${courseId}`}>
-                <Eye className="h-4 w-4" />
-                Preview Course
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
               </Link>
             </Button>
             <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 text-sm"
-              asChild
+              variant="outline"
+              size="sm"
             >
-              <Link href="/tutor/group-builder">
-                <Users className="h-4 w-4" />
-                Group Builder
-              </Link>
+              <Save className="h-4 w-4 mr-2" />
+              Save
             </Button>
             <Button
-              variant="ghost"
-              className="w-full justify-start gap-2 text-sm"
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleOpenInLiveClass}
+              disabled={launchingLiveClass}
             >
-              <Save className="h-4 w-4" />
-              Save Changes
+              {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Radio className="h-4 w-4 mr-2" />}
+              {launchingLiveClass ? 'Opening…' : 'Go Live'}
             </Button>
+            <div className="h-6 w-px bg-gray-200 ml-2" />
+            <UserNav />
           </div>
         </div>
-      </aside>
+      </header>
 
-      {/* Mobile Header */}
+      {/* Mobile Header - Simplified */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="justify-start gap-2 text-gray-600"
+              asChild
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              <Link href="/tutor/my-page">
+                <ChevronLeft className="h-4 w-4" />
+                <span className="font-semibold text-gray-900">Back</span>
+              </Link>
             </Button>
-            <Link href="/tutor/dashboard" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4 text-gray-500" />
-              <span className="font-semibold text-gray-900">Builder</span>
-            </Link>
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleOpenInLiveClass}
-              disabled={launchingLiveClass}
-              title="Go Live"
+              variant="outline"
+              size="sm"
+              asChild
             >
-              {launchingLiveClass ? <Loader2 className="h-5 w-5 animate-spin" /> : <Radio className="h-5 w-5" />}
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/tutor/group-builder">
-                <Users className="h-5 w-5" />
+              <Link href="/tutor/question-bank">
+                <FileText className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="icon">
-              <Save className="h-5 w-5" />
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={handleOpenInLiveClass}
+              disabled={launchingLiveClass}
+            >
+              {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
             </Button>
             <UserNav />
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-white z-40 p-4 overflow-y-auto">
-          {/* Back to My Page - Mobile */}
-          <div className="mb-4 pb-4 border-b">
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2"
-              asChild
-            >
-              <Link href="/tutor/my-page" onClick={() => setMobileMenuOpen(false)}>
-                <LayoutDashboard className="h-4 w-4" />
-                Back to My Page
-              </Link>
-            </Button>
-          </div>
-
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-            Builder Sections
-          </p>
-          <nav className="space-y-1">
-            {builderNavItems.map((item) => {
-              const Icon = item.icon
-              const isActive = currentSection === item.id
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveSection(item.id)
-                    setMobileMenuOpen(false)
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors text-left",
-                    isActive
-                      ? "bg-blue-50 text-blue-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              )
-            })}
-          </nav>
-
-          {/* Quick Actions - Mobile */}
-          <div className="mt-6 pt-6 border-t space-y-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-              Quick Actions
-            </p>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2"
-              onClick={async () => {
-                setMobileMenuOpen(false)
-                await handleOpenInLiveClass()
-              }}
-              disabled={launchingLiveClass}
-            >
-              {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
-              {launchingLiveClass ? 'Opening Live Class…' : 'Go Live'}
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2"
-              asChild
-            >
-              <Link href={`/tutor/courses/${courseId}`} onClick={() => setMobileMenuOpen(false)}>
-                <Eye className="h-4 w-4" />
-                Preview Course
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-2"
-              asChild
-            >
-              <Link href="/tutor/group-builder" onClick={() => setMobileMenuOpen(false)}>
-                <Users className="h-4 w-4" />
-                Group Builder
-              </Link>
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
-      <main className="flex-1 pt-16 lg:pt-0 min-h-screen">
+      <main className="flex-1 min-h-screen">
         {children}
       </main>
 
