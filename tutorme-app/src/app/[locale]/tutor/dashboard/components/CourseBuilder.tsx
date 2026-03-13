@@ -5646,11 +5646,6 @@ Please provide DMI entries as a JSON array with objects containing "questionText
 
   const assetsLesson = modules[0]?.lessons?.[0] ?? null
 
-  const applyAiSuggestion = useCallback((suggestion: (typeof AI_SUGGESTIONS)[number]) => {
-    setAiPrompt(`Suggestion: ${suggestion.title}. ${suggestion.description}`)
-    toast.success(`Applied suggestion: ${suggestion.title}`)
-  }, [])
-
   const applyTemplate = useCallback((template: (typeof CONTENT_TEMPLATES)[number]) => {
     if (template.category === 'lesson') {
       addModule()
