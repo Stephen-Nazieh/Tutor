@@ -1322,7 +1322,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -1380,7 +1380,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-500" />
@@ -1526,7 +1526,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
               rows={2}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4 neon-border-inner p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
+          <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
             <div className="space-y-2">
               <Label>Duration (minutes)</Label>
               <Input
@@ -1688,7 +1688,7 @@ Format your response clearly and concisely.`
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
@@ -2061,7 +2061,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2242,7 +2242,7 @@ function LessonSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-md border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -2407,7 +2407,7 @@ function AssessmentBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
@@ -2421,11 +2421,11 @@ function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
+              <TabsTrigger value="edit" className=" transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className=" transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
-            <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+            <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{titleLabel} Title *</Label>
@@ -2451,7 +2451,7 @@ function AssessmentBuilderModal({
                     rows={4}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 neon-border-inner p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
                   <div className="space-y-2">
                     <Label>Submission</Label>
                     {isTask ? (
@@ -2751,7 +2751,7 @@ function AssessmentBuilderModal({
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+            <TabsContent value="preview" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <h3 className="font-semibold">{data.title}</h3>
                 {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
@@ -2819,7 +2819,7 @@ function AssessmentBuilderModal({
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2949,7 +2949,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-cyan-500" />
@@ -2957,11 +2957,11 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
           </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-            <TabsTrigger value="edit" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
-            <TabsTrigger value="preview" className="data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
+            <TabsTrigger value="edit" className=" transition-all duration-200">Edit</TabsTrigger>
+            <TabsTrigger value="preview" className=" transition-all duration-200">Preview (student view)</TabsTrigger>
           </TabsList>
-          <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+          <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Worksheet Title *</Label>
@@ -3234,7 +3234,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="preview" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+          <TabsContent value="preview" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
               <h3 className="font-semibold">{data.title}</h3>
               {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
@@ -3395,7 +3395,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
@@ -3403,11 +3403,11 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
+              <TabsTrigger value="edit" className=" transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className=" transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
-            <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+            <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
@@ -3615,7 +3615,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+            <TabsContent value="preview" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <h3 className="font-semibold">{data.title}</h3>
                 {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
@@ -3652,7 +3652,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -3784,7 +3784,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-teal-500" />
@@ -4854,7 +4854,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {isActivity && (
         <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
@@ -4878,7 +4878,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {/* PDF Preview Modal */}
       <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
@@ -4986,6 +4986,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     extensions: [] as { id: string; name: string; content: string; pci: string }[],
     activeExtensionId: null as string | null,
   })
+
+  const [taskPciMessages, setTaskPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  const [assessmentPciMessages, setAssessmentPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  const [taskPciInput, setTaskPciInput] = useState('')
+  const [assessmentPciInput, setAssessmentPciInput] = useState('')
+  const [taskPciLoading, setTaskPciLoading] = useState(false)
+  const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
 
   // AI Assist Agent state - separate for task and assessment
   const [aiAssistOpen, setAiAssistOpen] = useState(false)
@@ -5198,6 +5205,82 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }
     return url
   }, [])
+
+  const formatPciTranscript = (messages: { role: 'user' | 'assistant'; content: string }[]) =>
+    messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
+
+  const buildPciPrompt = (type: 'task' | 'assessment', messages: { role: 'user' | 'assistant'; content: string }[], userInput: string) => {
+    const content = type === 'task'
+      ? (taskBuilder.activeExtensionId
+        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
+        : taskBuilder.taskContent)
+      : assessmentBuilder.taskContent
+    const history = messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
+    return `You are a PCI assistant helping a tutor create processing instructions through a chat conversation.\n\nContent:\n${content || '(empty)'}\n\nConversation so far:\n${history || '(none)'}\n\nUser: ${userInput}\n\nRespond with the next assistant message only. Keep it concise and helpful.`
+  }
+
+  const handlePciSend = async (type: 'task' | 'assessment') => {
+    const isTask = type === 'task'
+    const input = isTask ? taskPciInput : assessmentPciInput
+    const loading = isTask ? taskPciLoading : assessmentPciLoading
+    if (!input.trim() || loading) return
+
+    if (isTask && !loadedTaskId) autoCreateTask()
+    if (!isTask && !loadedAssessmentId) autoCreateAssessment()
+
+    const userMessage = input.trim()
+    if (isTask) setTaskPciInput('') 
+    else setAssessmentPciInput('')
+
+    const nextMessages = (isTask ? taskPciMessages : assessmentPciMessages).concat({ role: 'user', content: userMessage })
+    if (isTask) {
+      setTaskPciMessages(nextMessages)
+      setTaskBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(nextMessages) }))
+      setTaskPciLoading(true)
+    } else {
+      setAssessmentPciMessages(nextMessages)
+      setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(nextMessages) }))
+      setAssessmentPciLoading(true)
+    }
+
+    try {
+      const prompt = buildPciPrompt(type, nextMessages, userMessage)
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.4
+        })
+      })
+      if (!response.ok) throw new Error('Failed to get AI response')
+      const data = await response.json()
+      const assistantMessage = { role: 'assistant' as const, content: data.content || 'Unable to respond.' }
+      if (isTask) {
+        const updated = nextMessages.concat(assistantMessage)
+        setTaskPciMessages(updated)
+        setTaskBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+      } else {
+        const updated = nextMessages.concat(assistantMessage)
+        setAssessmentPciMessages(updated)
+        setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+      }
+    } catch (error) {
+      const errorMessage = { role: 'assistant' as const, content: 'Sorry, there was an error processing your request. Please try again.' }
+      if (isTask) {
+        const updated = nextMessages.concat(errorMessage)
+        setTaskPciMessages(updated)
+        setTaskBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+      } else {
+        const updated = nextMessages.concat(errorMessage)
+        setAssessmentPciMessages(updated)
+        setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+      }
+    } finally {
+      if (isTask) setTaskPciLoading(false)
+      else setAssessmentPciLoading(false)
+    }
+  }
 
   // Handle Test PCI answer submission with AI scoring
   const handleTestPciSubmit = async () => {
@@ -6303,7 +6386,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       )}
     
       <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
-        <DialogContent className="sm:max-w-md neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="sm:max-w-md border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Load as...</DialogTitle>
           </DialogHeader>
@@ -6385,32 +6468,6 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       </Dialog>
 </div>
   )
-
-  const syncNumbering = (content: string, oldPci: string) => {
-    const markerRegex = /^(\s*)(?:(?:\d+\.)+|\d+\.|[a-zA-Z]\.|[ivxlcdmIVXLCDM]+\.|-|[*])\s/
-    const contentLines = content.split('\n')
-    const contentMarkers: string[] = []
-
-    for (const line of contentLines) {
-      const match = line.match(markerRegex)
-      if (match) {
-        contentMarkers.push(match[0])
-      }
-    }
-
-    if (contentMarkers.length === 0) return oldPci
-
-    const pciLines = oldPci.split('\n')
-    const pciAnswers: string[] = []
-    for (const line of pciLines) {
-      const match = line.match(markerRegex)
-      if (match) {
-        pciAnswers.push(line.substring(match[0].length))
-      }
-    }
-
-    return contentMarkers.map((marker, i) => `${marker}${pciAnswers[i] || ''}`).join('\n')
-  }
 
   const updateSelectedItem = (updates: PreviewUpdatePayload) => {
     if (!selectedItem) return
@@ -7057,7 +7114,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
         <div className={cn(leftPanelHidden ? "col-span-12" : "col-span-8")}>
           <div className="h-full flex flex-col space-y-4 overflow-auto">
             {leftPanelHidden && (
-              <div className="flex justify-end">
+              <div className="flex justify-start">
                 <Button
                   variant="outline"
                   size="sm"
@@ -7071,16 +7128,16 @@ Please provide DMI entries as a JSON array with objects containing "questionText
             )}
 
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
-            <Card className="flex-shrink-0 neon-border-indigo shadow-2xl border-none rounded-2xl overflow-hidden">
+            <Card className="flex-shrink-0 border rounded-2xl overflow-hidden">
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
-                  <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                    <TabsTrigger value="task" className="gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
+                  <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl border bg-white">
+                    <TabsTrigger value="task" className="gap-2">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
                     </TabsTrigger>
-                    <TabsTrigger value="assessment" className="gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
+                    <TabsTrigger value="assessment" className="gap-2">
                       <FileQuestion className="h-4 w-4 text-purple-500" />
                       Assessment Builder
                     </TabsTrigger>
@@ -7113,9 +7170,9 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="content" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Slide</TabsTrigger>
-                            <TabsTrigger value="pci" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">PCI</TabsTrigger>
+                          <TabsList className="grid w-full grid-cols-2 p-1 rounded-xl border bg-white">
+                            <TabsTrigger value="content">Slide</TabsTrigger>
+                            <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7126,12 +7183,11 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                   if (prev.activeExtensionId) {
                                     const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
                                     const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + text : text
-                                    const newPci = ext ? syncNumbering(combined, ext.pci) : ''
                                     return {
                                       ...prev,
                                       extensions: prev.extensions.map(x =>
                                         x.id === prev.activeExtensionId
-                                          ? { ...x, content: combined, pci: newPci }
+                                          ? { ...x, content: combined }
                                           : x
                                       )
                                     }
@@ -7139,8 +7195,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                     const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
                                     return {
                                       ...prev,
-                                      taskContent: combined,
-                                      taskPci: syncNumbering(combined, prev.taskPci)
+                                      taskContent: combined
                                     }
                                   }
                                 })
@@ -7159,23 +7214,20 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                 if (taskBuilder.activeExtensionId) {
                                   // Update extension content
                                   setTaskBuilder(prev => {
-                                    const ext = prev.extensions.find(e => e.id === prev.activeExtensionId)
-                                    const newPci = ext ? syncNumbering(newContent, ext.pci) : ''
                                     return {
                                       ...prev,
                                       extensions: prev.extensions.map(ext =>
                                         ext.id === prev.activeExtensionId
-                                          ? { ...ext, content: newContent, pci: newPci }
+                                          ? { ...ext, content: newContent }
                                           : ext
                                       )
                                     }
                                   })
                                 } else {
-                                  // Update task content and sync PCI
+                                  // Update task content
                                   setTaskBuilder(prev => ({
                                     ...prev,
-                                    taskContent: newContent,
-                                    taskPci: syncNumbering(newContent, prev.taskPci)
+                                    taskContent: newContent
                                   }))
                                 }
                               }}
@@ -7185,36 +7237,56 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                             {/* Assets Folder added to Slide Tab removed from here */}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
-                            <AutoTextarea
-                              placeholder={taskBuilder.activeExtensionId ? "Extension PCI..." : "Enter PCI configuration..."}
-                              className="w-full min-h-[100px]"
-                              // Show task PCI if no extension active, otherwise show active extension's PCI
-                              value={taskBuilder.activeExtensionId
-                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
-                                : taskBuilder.taskPci
-                              }
-                              onChange={(e: any) => {
-                                const newPci = e.target.value
-                                // Auto-create task if none loaded
-                                if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                  autoCreateTask()
-                                }
-                                if (taskBuilder.activeExtensionId) {
-                                  // Update extension PCI
-                                  setTaskBuilder(prev => ({
-                                    ...prev,
-                                    extensions: prev.extensions.map(ext =>
-                                      ext.id === prev.activeExtensionId
-                                        ? { ...ext, pci: newPci }
-                                        : ext
-                                    )
-                                  }))
-                                } else {
-                                  // Update task PCI
-                                  setTaskBuilder(prev => ({ ...prev, taskPci: newPci }))
-                                }
-                              }}
-                            />
+                            <div className="rounded-lg border bg-white">
+                              <div className="max-h-[260px] overflow-y-auto p-3 space-y-3">
+                                {taskPciMessages.length === 0 && (
+                                  <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
+                                )}
+                                {taskPciMessages.map((msg, idx) => (
+                                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user'
+                                      ? 'bg-blue-50 text-gray-900'
+                                      : 'bg-gray-100 text-gray-800'
+                                      }`}>
+                                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {taskPciLoading && (
+                                  <div className="flex justify-start">
+                                    <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <span className="text-xs text-gray-600">Thinking...</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="border-t p-2">
+                                <div className="flex gap-2 items-end">
+                                  <AutoTextarea
+                                    placeholder="Ask the PCI assistant..."
+                                    className="w-full min-h-[44px]"
+                                    value={taskPciInput}
+                                    onChange={(e: any) => setTaskPciInput(e.target.value)}
+                                    onKeyDown={(e: any) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault()
+                                        handlePciSend('task')
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9"
+                                    disabled={taskPciLoading || !taskPciInput.trim()}
+                                    onClick={() => handlePciSend('task')}
+                                  >
+                                    {taskPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
                           </TabsContent>
                         </Tabs>
                         {/* Buttons row with Test and Save */}
@@ -7251,9 +7323,9 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                         maxWidth={600}
                       >
                         <Tabs value={taskBuilderRightTab} onValueChange={(v) => setTaskBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
-                          <TabsList className="grid w-full grid-cols-2 mb-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="extensions" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Extensions</TabsTrigger>
-                            <TabsTrigger value="dmi" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">DMI</TabsTrigger>
+                          <TabsList className="grid w-full grid-cols-2 mb-2 p-1 rounded-xl border bg-white">
+                            <TabsTrigger value="extensions">Extensions</TabsTrigger>
+                            <TabsTrigger value="dmi">DMI</TabsTrigger>
                           </TabsList>
 
                           <TabsContent value="extensions" className="mt-0">
@@ -7372,9 +7444,9 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="content" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Slide</TabsTrigger>
-                            <TabsTrigger value="pci" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">PCI</TabsTrigger>
+                          <TabsList className="grid w-full grid-cols-2 p-1 rounded-xl border bg-white">
+                            <TabsTrigger value="content">Slide</TabsTrigger>
+                            <TabsTrigger value="pci">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7385,8 +7457,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                   const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
                                   return {
                                     ...prev,
-                                    taskContent: combined,
-                                    taskPci: syncNumbering(combined, prev.taskPci)
+                                    taskContent: combined
                                   }
                                 })
                               })}
@@ -7399,8 +7470,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                 }
                                 setAssessmentBuilder(prev => ({
                                   ...prev,
-                                  taskContent: newContent,
-                                  taskPci: syncNumbering(newContent, prev.taskPci)
+                                  taskContent: newContent
                                 }))
                               }}
                             />
@@ -7409,19 +7479,56 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                             {/* Assets Folder added to Slide Tab removed from here */}
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
-                            <AutoTextarea
-                              placeholder="Enter PCI configuration..."
-                              className="w-full min-h-[100px]"
-                              value={assessmentBuilder.taskPci}
-                              onChange={(e: any) => {
-                                const newPci = e.target.value
-                                // Auto-create assessment if none loaded
-                                if (!loadedAssessmentId) {
-                                  autoCreateAssessment()
-                                }
-                                setAssessmentBuilder(prev => ({ ...prev, taskPci: newPci }))
-                              }}
-                            />
+                            <div className="rounded-lg border bg-white">
+                              <div className="max-h-[260px] overflow-y-auto p-3 space-y-3">
+                                {assessmentPciMessages.length === 0 && (
+                                  <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
+                                )}
+                                {assessmentPciMessages.map((msg, idx) => (
+                                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user'
+                                      ? 'bg-blue-50 text-gray-900'
+                                      : 'bg-gray-100 text-gray-800'
+                                      }`}>
+                                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {assessmentPciLoading && (
+                                  <div className="flex justify-start">
+                                    <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <span className="text-xs text-gray-600">Thinking...</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="border-t p-2">
+                                <div className="flex gap-2 items-end">
+                                  <AutoTextarea
+                                    placeholder="Ask the PCI assistant..."
+                                    className="w-full min-h-[44px]"
+                                    value={assessmentPciInput}
+                                    onChange={(e: any) => setAssessmentPciInput(e.target.value)}
+                                    onKeyDown={(e: any) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault()
+                                        handlePciSend('assessment')
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9"
+                                    disabled={assessmentPciLoading || !assessmentPciInput.trim()}
+                                    onClick={() => handlePciSend('assessment')}
+                                  >
+                                    {assessmentPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
                           </TabsContent>
                         </Tabs>
                         {/* Buttons row with Test and Save */}
@@ -7471,13 +7578,13 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                 </Tabs>
 
                 {/* Test PCI Section - Persistent below the tabs */}
-                <div className="mt-6 pt-6 border-t-4 border-blue-400 shadow-[0_-4px_15px_rgba(59,130,246,0.4)] neon-border-inner rounded-t-lg px-2">
+                <div className="mt-6 pt-6 border-t px-2">
                   <CardTitle className="text-base font-semibold mb-3">Test PCI</CardTitle>
                   <div className="flex gap-4">
                     {/* Main content with tabs */}
                     <div className="flex-1">
                       <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
+                        <TabsList className="grid w-full grid-cols-3 p-1 rounded-xl border bg-white">
                           {testPciTabs.map((tab) => (
                             <div key={tab.id} className="relative flex-1">
                               {editingTabId === tab.id ? (
@@ -7498,7 +7605,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                               ) : (
                                 <TabsTrigger
                                   value={tab.id}
-                                  className="w-full data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+                                  className="w-full"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
                                 >
                                   {tab.label}
@@ -7749,7 +7856,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
 
         {/* Import Type Selector Modal */}
         <Dialog open={!!importTypeModalData} onOpenChange={(open) => !open && setImportTypeModalData(null)}>
-          <DialogContent className="sm:max-w-md neon-border-indigo border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="sm:max-w-md border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>Import as...</DialogTitle>
             </DialogHeader>
