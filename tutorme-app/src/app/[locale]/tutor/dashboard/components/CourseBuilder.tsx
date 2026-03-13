@@ -2426,8 +2426,8 @@ function AssessmentBuilderModal({
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit">Edit</TabsTrigger>
-              <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
+              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -2962,8 +2962,8 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
+            <TabsTrigger value="edit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
+            <TabsTrigger value="preview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
           </TabsList>
           <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="space-y-4 py-4">
@@ -3408,8 +3408,8 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit">Edit</TabsTrigger>
-              <TabsTrigger value="preview">Preview (student view)</TabsTrigger>
+              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -7048,11 +7048,11 @@ FEEDBACK: [your explanation]`
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
                   <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                    <TabsTrigger value="task" className="gap-2">
+                    <TabsTrigger value="task" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
                     </TabsTrigger>
-                    <TabsTrigger value="assessment" className="gap-2">
+                    <TabsTrigger value="assessment" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
                       <FileQuestion className="h-4 w-4 text-purple-500" />
                       Assessment Builder
                     </TabsTrigger>
@@ -7128,8 +7128,8 @@ FEEDBACK: [your explanation]`
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="content">Slide</TabsTrigger>
-                            <TabsTrigger value="pci">PCI</TabsTrigger>
+                            <TabsTrigger value="content" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Slide</TabsTrigger>
+                            <TabsTrigger value="pci" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7223,108 +7223,6 @@ FEEDBACK: [your explanation]`
                             />
                           </TabsContent>
                         </Tabs>
-                        {/* Persistent text input with horizontal Enter button */}
-                        <div className="mt-3 flex gap-2 items-start">
-                          <Textarea
-                            placeholder={`Enter text and press Enter to add to ${taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
-                            className="flex-1 min-h-[60px]"
-                            value={taskBuilder.details}
-                            onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
-                            onKeyDown={(e: any) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                if (taskBuilder.details.trim()) {
-                                  if (taskBuilderActiveTab === 'content') {
-                                    if (taskBuilder.activeExtensionId) {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.map(ext =>
-                                          ext.id === prev.activeExtensionId
-                                            ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
-                                            : ext
-                                        ),
-                                        details: ''
-                                      }))
-                                    } else {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
-                                        details: ''
-                                      }))
-                                    }
-                                  } else {
-                                    if (taskBuilder.activeExtensionId) {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.map(ext =>
-                                          ext.id === prev.activeExtensionId
-                                            ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
-                                            : ext
-                                        ),
-                                        details: ''
-                                      }))
-                                    } else {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
-                                        details: ''
-                                      }))
-                                    }
-                                  }
-                                }
-                              }
-                            }}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-[60px] px-3"
-                            onClick={() => {
-                              if (taskBuilder.details.trim()) {
-                                if (taskBuilderActiveTab === 'content') {
-                                  if (taskBuilder.activeExtensionId) {
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      extensions: prev.extensions.map(ext =>
-                                        ext.id === prev.activeExtensionId
-                                          ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
-                                          : ext
-                                      ),
-                                      details: ''
-                                    }))
-                                  } else {
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
-                                  }
-                                } else {
-                                  if (taskBuilder.activeExtensionId) {
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      extensions: prev.extensions.map(ext =>
-                                        ext.id === prev.activeExtensionId
-                                          ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
-                                          : ext
-                                      ),
-                                      details: ''
-                                    }))
-                                  } else {
-                                    setTaskBuilder(prev => ({
-                                      ...prev,
-                                      taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
-                                  }
-                                }
-                              }
-                            }}
-                          >
-                            <CornerDownLeft className="h-3 w-3 mr-1" />
-                            Enter to {taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
-                          </Button>
-                        </div>
                         {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
                           <Button
@@ -7360,8 +7258,8 @@ FEEDBACK: [your explanation]`
                       >
                         <Tabs value={taskBuilderRightTab} onValueChange={(v) => setTaskBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
                           <TabsList className="grid w-full grid-cols-2 mb-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="extensions">Extensions</TabsTrigger>
-                            <TabsTrigger value="dmi">DMI</TabsTrigger>
+                            <TabsTrigger value="extensions" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Extensions</TabsTrigger>
+                            <TabsTrigger value="dmi" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">DMI</TabsTrigger>
                           </TabsList>
 
                           <TabsContent value="extensions" className="mt-0">
@@ -7609,108 +7507,6 @@ FEEDBACK: [your explanation]`
                             />
                           </TabsContent>
                         </Tabs>
-                        {/* Persistent text input with horizontal Enter button */}
-                        <div className="mt-3 flex gap-2 items-start">
-                          <Textarea
-                            placeholder={`Enter text and press Enter to add to ${assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
-                            className="flex-1 min-h-[60px]"
-                            value={assessmentBuilder.details}
-                            onChange={(e: any) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
-                            onKeyDown={(e: any) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                if (assessmentBuilder.details.trim()) {
-                                  if (assessmentBuilderActiveTab === 'content') {
-                                    if (assessmentBuilder.activeExtensionId) {
-                                      setAssessmentBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.map(ext =>
-                                          ext.id === prev.activeExtensionId
-                                            ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
-                                            : ext
-                                        ),
-                                        details: ''
-                                      }))
-                                    } else {
-                                      setAssessmentBuilder(prev => ({
-                                        ...prev,
-                                        taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
-                                        details: ''
-                                      }))
-                                    }
-                                  } else {
-                                    if (assessmentBuilder.activeExtensionId) {
-                                      setAssessmentBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.map(ext =>
-                                          ext.id === prev.activeExtensionId
-                                            ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
-                                            : ext
-                                        ),
-                                        details: ''
-                                      }))
-                                    } else {
-                                      setAssessmentBuilder(prev => ({
-                                        ...prev,
-                                        taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
-                                        details: ''
-                                      }))
-                                    }
-                                  }
-                                }
-                              }
-                            }}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-[60px] px-3"
-                            onClick={() => {
-                              if (assessmentBuilder.details.trim()) {
-                                if (assessmentBuilderActiveTab === 'content') {
-                                  if (assessmentBuilder.activeExtensionId) {
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      extensions: prev.extensions.map(ext =>
-                                        ext.id === prev.activeExtensionId
-                                          ? { ...ext, content: ext.content + (ext.content ? '\n\n' : '') + prev.details }
-                                          : ext
-                                      ),
-                                      details: ''
-                                    }))
-                                  } else {
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
-                                  }
-                                } else {
-                                  if (assessmentBuilder.activeExtensionId) {
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      extensions: prev.extensions.map(ext =>
-                                        ext.id === prev.activeExtensionId
-                                          ? { ...ext, pci: ext.pci + (ext.pci ? '\n\n' : '') + prev.details }
-                                          : ext
-                                      ),
-                                      details: ''
-                                    }))
-                                  } else {
-                                    setAssessmentBuilder(prev => ({
-                                      ...prev,
-                                      taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + prev.details,
-                                      details: ''
-                                    }))
-                                  }
-                                }
-                              }
-                            }}
-                          >
-                            <CornerDownLeft className="h-3 w-3 mr-1" />
-                            Enter to {assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'}
-                          </Button>
-                        </div>
                         {/* Buttons row with Test and Save */}
                         <div className="flex gap-2 mt-3">
                           <Button
@@ -7837,7 +7633,7 @@ FEEDBACK: [your explanation]`
                 </Tabs>
 
                 {/* Test PCI Section - Persistent below the tabs */}
-                <div className="mt-6 pt-6 border-t">
+                <div className="mt-6 pt-6 border-t-4 border-blue-400 shadow-[0_-4px_15px_rgba(59,130,246,0.4)] neon-border-inner rounded-t-lg px-2">
                   <CardTitle className="text-base font-semibold mb-3">Test PCI</CardTitle>
                   <div className="flex gap-4">
                     {/* Main content with tabs */}
@@ -7864,7 +7660,7 @@ FEEDBACK: [your explanation]`
                               ) : (
                                 <TabsTrigger
                                   value={tab.id}
-                                  className="w-full"
+                                  className="w-full data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
                                 >
                                   {tab.label}
