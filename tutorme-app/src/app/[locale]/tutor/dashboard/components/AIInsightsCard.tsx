@@ -14,11 +14,11 @@ export function AIInsightsCard() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="p-3 bg-yellow-50 rounded-lg border border-slate-200
+          <div className="p-3 bg-yellow-50 rounded-lg border border-slate-200">
             <p className="text-sm font-medium text-yellow-800">Attention Needed</p>
             <p className="text-sm text-yellow-700 mt-1">3 students struggling with systems of equations</p>
           </div>
-          <div className="p-3 bg-green-50 rounded-lg border border-slate-200
+          <div className="p-3 bg-green-50 rounded-lg border border-slate-200">
             <p className="text-sm font-medium text-green-800">Good Progress</p>
             <p className="text-sm text-green-700 mt-1">85% mastered linear equations</p>
           </div>

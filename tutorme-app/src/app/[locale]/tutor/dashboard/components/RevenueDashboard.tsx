@@ -291,11 +291,11 @@ export function RevenueDashboard({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-gray-50 rounded-lg border border-slate-200
+                <div className="p-3 bg-gray-50 rounded-lg border border-slate-200">
                   <p className="text-lg font-bold">{totalBookings}</p>
                   <p className="text-xs text-gray-500">Bookings</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg border border-slate-200
+                <div className="p-3 bg-gray-50 rounded-lg border border-slate-200">
                   <p className="text-lg font-bold">{formatCurrency(avgBookingValue)}</p>
                   <p className="text-xs text-gray-500">Avg Value</p>
                 </div>

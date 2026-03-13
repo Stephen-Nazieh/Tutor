@@ -158,7 +158,7 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden border border-slate-200
+      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden border border-slate-200">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-blue-500" />
