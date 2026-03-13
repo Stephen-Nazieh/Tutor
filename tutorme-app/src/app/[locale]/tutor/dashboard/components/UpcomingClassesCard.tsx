@@ -158,7 +158,7 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden neon-border-purple">
+      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden border border-slate-200
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-blue-500" />
@@ -291,7 +291,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
     : classes[0]
 
   return (
-    <Card className="neon-border-indigo border-none overflow-hidden shadow-2xl bg-white/95 backdrop-blur-md">
+    <Card className="border border-slate-200 overflow-hidden shadow-2xl bg-white/95 backdrop-blur-md">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2" title="Scheduled and active classes">
           <Clock className="w-5 h-5 text-blue-500" />
@@ -328,7 +328,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
             )}
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row border-none rounded-2xl overflow-hidden shadow-lg neon-border-inner bg-white/80">
+          <div className="flex flex-col md:flex-row border border-slate-200 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white/80">
             {/* Left Column: Classes List */}
             <div className="w-full md:w-[45%] flex flex-col bg-gray-50/50 border-r border-gray-200">
               <div className="p-4 border-b border-gray-200 bg-gray-50/80 font-semibold text-gray-700 text-sm">
@@ -371,7 +371,7 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
               </div>
               <div className="p-4 flex-1">
                 {selectedClass ? (
-                  <div className="rounded-2xl flex flex-col bg-white/90 border-none shadow-xl overflow-hidden h-fit neon-border-inner backdrop-blur-sm">
+                  <div className="rounded-2xl flex flex-col bg-white/90 border border-slate-200 shadow-xl overflow-hidden h-fit border border-slate-200 backdrop-blur-sm">
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b">
                       <div className="flex items-center gap-2 mb-3">
                         <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">

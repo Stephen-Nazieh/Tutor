@@ -20,7 +20,7 @@ interface Props {
 export function StudentsNeedingAttentionCard({ students, loading }: Props) {
   const router = useRouter()
   return (
-    <Card className="neon-border-orange border-none shadow-xl bg-white/95 backdrop-blur-md">
+    <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
       <CardHeader>
         <CardTitle>Students Needing Attention</CardTitle>
       </CardHeader>
@@ -45,7 +45,7 @@ export function StudentsNeedingAttentionCard({ students, loading }: Props) {
         ) : (
           <div className="space-y-3">
             {students.map((s) => (
-               <div key={s.id} className="flex items-center justify-between p-3 border-none rounded-lg hover:shadow-md transition-all bg-white/50 neon-border-inner shadow-sm">
+               <div key={s.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:shadow-md transition-all bg-white/50 border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center font-semibold bg-blue-50 text-blue-700">
                     {s.initial}

@@ -80,7 +80,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl border-none neon-border-indigo">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl border border-slate-200
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-40">
         <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse opacity-50" />
@@ -115,7 +115,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
         </div>
 
         {/* One Week Calendar Schedule */}
-        <div className="grid grid-cols-7 gap-2 mb-8 bg-white/5 backdrop-blur-md border-none rounded-2xl p-4 neon-border-inner shadow-2xl">
+        <div className="grid grid-cols-7 gap-2 mb-8 bg-white/5 backdrop-blur-md border border-slate-200 rounded-2xl p-4 border border-slate-200 shadow-2xl">
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date(currentTime);
             d.setDate(currentTime.getDate() + i);
@@ -188,7 +188,7 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, sublabel, trend, trendUp, color }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border-none p-4 hover:bg-white/10 transition-all cursor-pointer neon-border-inner shadow-2xl">
+    <div className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-slate-200 p-4 hover:bg-white/10 transition-all cursor-pointer border border-slate-200 shadow-2xl">
       <div className={cn("absolute top-0 right-0 w-20 h-20 bg-gradient-to-br opacity-20 rounded-bl-full", color)} />
       <div className="relative">
         <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center mb-3", color)}>

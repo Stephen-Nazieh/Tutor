@@ -138,6 +138,7 @@ export interface VisibleDocumentPayload {
 export interface Task extends WithDifficultyVariants {
   id: string
   title: string
+  shortDescription?: string
   description: string
   instructions: string
   extensions?: Array<{ id: string; name: string; content: string; pci: string }>
@@ -411,6 +412,7 @@ const DEFAULT_WORKSHEET = (order: number): Worksheet => ({
 const DEFAULT_TASK = (order: number): Task => ({
   id: `task-${generateId()}`,
   title: `Task ${order + 1}`,
+  shortDescription: '',
   description: '',
   instructions: '',
   extensions: [],
@@ -1324,7 +1326,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -1382,7 +1384,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-500" />
@@ -1690,7 +1692,7 @@ Format your response clearly and concisely.`
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
@@ -2063,7 +2065,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2244,7 +2246,7 @@ function LessonSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-md border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -2409,7 +2411,7 @@ function AssessmentBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
@@ -2821,7 +2823,7 @@ function AssessmentBuilderModal({
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2951,7 +2953,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-cyan-500" />
@@ -3397,7 +3399,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
@@ -3654,7 +3656,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -3786,7 +3788,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-teal-500" />
@@ -4856,7 +4858,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {isActivity && (
         <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
@@ -4880,7 +4882,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {/* PDF Preview Modal */}
       <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
@@ -5048,7 +5050,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       title: task.title || '',
       taskContent: content,
       taskPci: task.instructions || '',
-      details: '',
+      details: task.shortDescription || '',
       extensions: task.extensions ? [...task.extensions] : [],
       activeExtensionId,
     })
@@ -5146,6 +5148,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
               ? {
                 ...task,
                 title: taskBuilder.title,
+                shortDescription: taskBuilder.details,
                 description: taskBuilder.taskContent,
                 instructions: taskBuilder.taskPci,
                 extensions: taskBuilder.extensions,
@@ -5158,7 +5161,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }, 1000) // Auto-save after 1 second of inactivity
 
     return () => clearTimeout(timeoutId)
-  }, [taskBuilder.title, taskBuilder.taskContent, taskBuilder.taskPci, taskBuilder.extensions, loadedTaskId])
+  }, [taskBuilder.title, taskBuilder.details, taskBuilder.taskContent, taskBuilder.taskPci, taskBuilder.extensions, loadedTaskId])
 
   // Auto-save assessment on the fly (debounced)
   useEffect(() => {
@@ -5689,7 +5692,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       title: newTask.title,
       taskContent: '',
       taskPci: '',
-      details: '',
+      details: newTask.shortDescription || '',
       extensions: [],
       activeExtensionId: null,
     })
@@ -6451,7 +6454,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       )}
     
       <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
-        <DialogContent className="sm:max-w-md border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="sm:max-w-md border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Load as...</DialogTitle>
           </DialogHeader>
@@ -6641,6 +6644,15 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       })
     )
   }
+
+  const activeTaskExtensionIndex = taskBuilder.activeExtensionId
+    ? taskBuilder.extensions.findIndex(ext => ext.id === taskBuilder.activeExtensionId)
+    : -1
+  const activeTaskExtensionLabel = activeTaskExtensionIndex >= 0 ? `Extension ${activeTaskExtensionIndex + 1}` : null
+  const taskHeaderTitle = activeTaskExtensionLabel
+    ? `${taskBuilder.title || 'Task'} ${activeTaskExtensionLabel}`
+    : (taskBuilder.title || 'Task')
+  const taskHeaderDescription = taskBuilder.details || 'Add a short description'
 
   const handleSaveAll = () => {
     if (!onSave) return
@@ -7056,6 +7068,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                         ? {
                                                           ...t,
                                                           title: taskBuilder.title,
+                                                          shortDescription: taskBuilder.details,
                                                           description: taskBuilder.taskContent,
                                                           instructions: taskBuilder.taskPci,
                                                           extensions: taskBuilder.extensions,
@@ -7196,6 +7209,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                         ? {
                                                           ...t,
                                                           title: taskBuilder.title,
+                                                          shortDescription: taskBuilder.details,
                                                           description: taskBuilder.taskContent,
                                                           instructions: taskBuilder.taskPci,
                                                           extensions: taskBuilder.extensions,
@@ -7378,18 +7392,27 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                   <TabsContent value="task" className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <Input
-                          placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
-                          className="font-semibold"
-                          value={taskBuilder.title}
-                          onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
-                          disabled={!loadedTaskId}
-                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Input
+                            placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
+                            className="font-semibold"
+                            value={taskBuilder.title}
+                            onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
+                            disabled={!loadedTaskId}
+                          />
+                          <Input
+                            placeholder={loadedTaskId ? "Description" : "Select a task to edit description"}
+                            value={taskBuilder.details}
+                            onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
+                            disabled={!loadedTaskId}
+                          />
+                        </div>
                         {loadedTaskId && (
-                          <p className="text-xs text-muted-foreground mt-1">Editing: {taskBuilder.title || 'Untitled Task'}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Editing: {taskHeaderTitle}: {taskHeaderDescription}
+                          </p>
                         )}
                       </div>
-
                     </div>
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
@@ -8088,7 +8111,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
 
         {/* Import Type Selector Modal */}
         <Dialog open={!!importTypeModalData} onOpenChange={(open) => !open && setImportTypeModalData(null)}>
-          <DialogContent className="sm:max-w-md border-none shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="sm:max-w-md border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>Import as...</DialogTitle>
             </DialogHeader>

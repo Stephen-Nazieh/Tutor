@@ -99,7 +99,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
 
   if (loading) {
     return (
-      <Card className="neon-border-indigo border-none shadow-xl bg-white/95 backdrop-blur-md">
+      <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
         <CardContent className="p-6">
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
@@ -112,7 +112,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
   }
 
   return (
-    <Card className="neon-border-indigo border-none shadow-xl bg-white/95 backdrop-blur-md">
+    <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
       <CardHeader className="space-y-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
@@ -157,7 +157,7 @@ export function StudentProgressCard({ students = [], loading }: StudentProgressC
           filtered.map((student) => {
             const row = progressRows[student.id]
             return (
-               <div key={student.id} className="rounded-lg border-none p-3 space-y-2 neon-border-inner bg-white/50">
+               <div key={student.id} className="rounded-lg border border-slate-200 p-3 space-y-2 border border-slate-200 bg-white/50">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{student.name}</p>

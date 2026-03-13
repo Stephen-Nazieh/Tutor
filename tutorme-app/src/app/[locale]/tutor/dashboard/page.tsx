@@ -248,7 +248,7 @@ function TutorDashboardContent() {
       {/* Analytics Section */}
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Analytics overview</h2>
-        <Card className="neon-border border-none shadow-xl bg-white/95 backdrop-blur-md">
+        <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
               <div className="text-center py-2 md:py-0">

@@ -45,7 +45,7 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <Card className="neon-border border-none shadow-lg">
+      <Card className="border border-slate-200 shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -59,7 +59,7 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="neon-border-indigo border-none shadow-lg">
+      <Card className="border border-slate-200 shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -73,7 +73,7 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="neon-border-purple border-none shadow-lg">
+      <Card className="border border-slate-200 shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -87,7 +87,7 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="neon-border-orange border-none shadow-lg">
+      <Card className="border border-slate-200 shadow-lg">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
