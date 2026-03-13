@@ -4946,6 +4946,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+  const [collapsedTaskExtensions, setCollapsedTaskExtensions] = useState<Set<string>>(new Set())
 
   const objectUrlsRef = useRef<string[]>([])
 
@@ -6614,6 +6615,17 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     onSave(modules, { developmentMode: devMode, previewDifficulty })
   }
 
+  const isExtensionsCollapsed = (taskId: string) => collapsedTaskExtensions.has(taskId)
+
+  const toggleExtensions = (taskId: string) => {
+    setCollapsedTaskExtensions(prev => {
+      const next = new Set(prev)
+      if (next.has(taskId)) next.delete(taskId)
+      else next.add(taskId)
+      return next
+    })
+  }
+
   return (
     <div className={cn("space-y-4", panelMode === 'live-class' && "pt-3")}>
       <div className="grid grid-cols-12 gap-6">
@@ -6882,22 +6894,67 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                           </SortableTreeItem>
                                         {loadedTaskId === task.id && taskBuilder.extensions.length > 0 && (
                                           <div className="ml-6 mt-1 space-y-1">
-                                            {taskBuilder.extensions.map((ext, extIdx) => (
-                                              <div
-                                                key={ext.id}
-                                                className={cn(
-                                                  "flex items-center gap-2 rounded px-2 py-1 text-[10px] cursor-pointer border",
-                                                  taskBuilder.activeExtensionId === ext.id
-                                                    ? "bg-orange-100 border-orange-300"
-                                                    : "bg-white border-orange-100 hover:bg-orange-50"
-                                                )}
-                                                onClick={() => setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))}
-                                              >
-                                                <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                                                <span className="font-semibold text-orange-700">{idx + 1}.{extIdx + 1}</span>
-                                                <span className="flex-1 truncate text-muted-foreground">{ext.name}</span>
+                                            <div
+                                              className="flex items-center gap-2 rounded px-2 py-1 text-[10px] border bg-white cursor-pointer"
+                                              onClick={() => toggleExtensions(task.id)}
+                                            >
+                                              {isExtensionsCollapsed(task.id) ? (
+                                                <ChevronRight className="h-3 w-3 text-orange-600" />
+                                              ) : (
+                                                <ChevronDown className="h-3 w-3 text-orange-600" />
+                                              )}
+                                              <FolderOpen className="h-3 w-3 text-orange-600" />
+                                              <span className="font-semibold text-orange-700">Extensions</span>
+                                              <span className="text-muted-foreground">({taskBuilder.extensions.length})</span>
+                                            </div>
+                                            {!isExtensionsCollapsed(task.id) && (
+                                              <div className="ml-4 space-y-1">
+                                                {taskBuilder.extensions.map((ext, extIdx) => (
+                                                  <div
+                                                    key={ext.id}
+                                                    className={cn(
+                                                      "flex items-center gap-2 rounded px-2 py-1 text-[10px] cursor-pointer border group/extension",
+                                                      taskBuilder.activeExtensionId === ext.id
+                                                        ? "bg-orange-100 border-orange-300"
+                                                        : "bg-white border-orange-100 hover:bg-orange-50"
+                                                    )}
+                                                    onClick={() => setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))}
+                                                  >
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                                                    <span className="font-semibold text-orange-700">{idx + 1}.{extIdx + 1}</span>
+                                                    <span className="flex-1 truncate text-muted-foreground">{ext.name}</span>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover/extension:opacity-100 px-1"
+                                                      onClick={(e: any) => {
+                                                        e.stopPropagation()
+                                                        setQuestionBankTarget(`extension-${ext.id}`)
+                                                        setQuestionBankOpen(true)
+                                                      }}
+                                                    >
+                                                      Import
+                                                    </Button>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
+                                                      onClick={(e: any) => {
+                                                        e.stopPropagation()
+                                                        if (!confirm(`Delete "${ext.name}"?`)) return
+                                                        setTaskBuilder(prev => ({
+                                                          ...prev,
+                                                          extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                                          activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
+                                                        }))
+                                                      }}
+                                                    >
+                                                      <Trash2 className="h-3 w-3 text-red-500" />
+                                                    </Button>
+                                                  </div>
+                                                ))}
                                               </div>
-                                            ))}
+                                            )}
                                           </div>
                                         )}
                                         </div>
@@ -7939,6 +7996,19 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                   ...prev,
                   taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
                   taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
+                }))
+              } else if (targetType === 'extension') {
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext =>
+                    ext.id === targetId
+                      ? {
+                        ...ext,
+                        content: (ext.content || '') + (ext.content ? '\n\n' : '') + joinedQuestions,
+                        pci: (ext.pci || '') + (ext.pci ? '\n\n' : '') + joinedPci
+                      }
+                      : ext
+                  )
                 }))
               } else if ((targetType === 'assessment' || targetType === 'homework') && loadedAssessmentId === targetId) {
                 setAssessmentBuilder(prev => ({
