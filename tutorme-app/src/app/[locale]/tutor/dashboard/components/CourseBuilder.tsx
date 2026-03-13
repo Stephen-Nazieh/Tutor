@@ -5075,6 +5075,66 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     setAssessmentUploadedFiles(assessment.sourceDocument ? [{ id: 'source', name: assessment.sourceDocument.fileName }] : [])
   }, [])
 
+  // Load tutor assets from API on mount
+  useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        const res = await fetch('/api/tutor/assets', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.assets && Array.isArray(data.assets)) {
+            setCourseAssets(data.assets)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load tutor assets:', error)
+      }
+    }
+    loadAssets()
+  }, [])
+
+  // Save tutor assets to API when they change (debounced)
+  const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const saveAssetsToApi = useCallback(async (assets: typeof courseAssets) => {
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/tutor/assets', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ assets }),
+      })
+
+      if (!res.ok) {
+        console.error('Failed to save tutor assets')
+      }
+    } catch (error) {
+      console.error('Error saving tutor assets:', error)
+    }
+  }, [])
+
+  // Debounced assets save
+  useEffect(() => {
+    if (saveAssetsTimeoutRef.current) {
+      clearTimeout(saveAssetsTimeoutRef.current)
+    }
+    saveAssetsTimeoutRef.current = setTimeout(() => {
+      saveAssetsToApi(courseAssets)
+    }, 2000) // Save after 2 seconds of inactivity
+
+    return () => {
+      if (saveAssetsTimeoutRef.current) {
+        clearTimeout(saveAssetsTimeoutRef.current)
+      }
+    }
+  }, [courseAssets, saveAssetsToApi])
+
   // Auto-save task on the fly (debounced)
   useEffect(() => {
     if (!loadedTaskId) return

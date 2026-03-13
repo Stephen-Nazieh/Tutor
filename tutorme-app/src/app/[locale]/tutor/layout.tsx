@@ -9,28 +9,15 @@ import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import {
   LayoutDashboard,
-  Calendar,
-  CalendarDays,
-  GraduationCap,
   Users,
   BarChart3,
   MessageSquare,
-  DollarSign,
   Sparkles,
   Settings,
   Menu,
   X,
-  Video,
-  Zap,
-  Wand2,
   Bell,
-  FolderOpen,
   HelpCircle,
-  CalendarPlus,
-  FilePlus,
-  Palette,
-  BookOpen,
-  FileText,
   Globe,
   PanelLeftClose,
   PanelLeftOpen
@@ -38,71 +25,15 @@ import {
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-// Main Navigation - Grouped by category
-interface NavSection {
-  title: string
-  items: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[]
-}
-
-const navSections: NavSection[] = [
-  {
-    title: 'Overview',
-    items: [
-      { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: 'Content',
-    items: [
-      { href: '/tutor/question-bank', label: 'Assessment Bank', icon: FileText },
-    ],
-  },
-  {
-    title: 'Profile',
-    items: [
-      { href: '/tutor/my-page', label: 'My Page', icon: Globe },
-    ],
-  },
-  {
-    title: 'People',
-    items: [
-      { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
-      { href: '/tutor/groups', label: 'Students & Groups', icon: Users },
-    ],
-  },
-  {
-    title: 'Support',
-    items: [
-      { href: '/tutor/help', label: 'Help & Support', icon: HelpCircle },
-    ],
-  },
-]
-
-// Quick Actions - Grouped by category
-interface QuickActionSection {
-  title: string
-  items: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }[]
-}
-
-const quickActionSections: QuickActionSection[] = [
-  {
-    title: 'Build & Launch',
-    items: [
-      // Removed Group Builder
-    ],
-  },
-  {
-    title: 'AI & Tools',
-    items: [
-      { href: '/tutor/ai-assistant', label: 'AI Teaching Assistant', icon: Sparkles },
-    ],
-  },
-  {
-    title: 'Analytics',
-    items: [
-      { href: '/tutor/reports', label: 'Reports', icon: BarChart3 },
-    ],
-  },
+// Main Navigation - Flat list (no groups)
+const navItems = [
+  { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/tutor/my-page', label: 'My Page', icon: Globe },
+  { href: '/tutor/groups', label: 'Students & Groups', icon: Users },
+  { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/tutor/ai-assistant', label: 'AI Teaching Assistant', icon: Sparkles },
+  { href: '/tutor/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/tutor/help', label: 'Help & Support', icon: HelpCircle },
 ]
 
 
@@ -183,74 +114,27 @@ export default function TutorLayout({
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
-          {navSections.map((section) => (
-            <div key={section.title}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
-                {section.title}
-              </p>
-              <div className="space-y-0.5">
-                {section.items.map((item) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                        isActive
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                      )}
-                    >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
-                      <span className="font-medium text-sm">{item.label}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
+        <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                  isActive
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                )}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium text-sm">{item.label}</span>
+              </Link>
+            )
+          })}
         </nav>
-
-        {/* Quick Actions Section */}
-        <div className="px-4 py-3 border-t bg-gray-50/50">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-            Quick Actions
-          </p>
-          <div className="space-y-3">
-            {quickActionSections.map((section) => (
-              <div key={section.title}>
-                <p className="text-xs text-gray-500 mb-1 px-3">
-                  {section.title}
-                </p>
-                <div className="space-y-0.5">
-                  {section.items.map((item) => {
-                    const Icon = item.icon
-                    const isActive = pathname === item.href || pathname.startsWith(item.href.split('?')[0] + '/')
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm",
-                          isActive
-                            ? "bg-blue-50 text-blue-700 font-medium"
-                            : "text-gray-600 hover:bg-gray-100"
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span>{item.label}</span>
-                      </Link>
-                    )
-                  })}
-    
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="p-4 border-t space-y-2">
           <Link href="/tutor/settings">
@@ -296,70 +180,28 @@ export default function TutorLayout({
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-16 bg-white z-40 p-4 overflow-y-auto">
-          <nav className="space-y-4">
-            {navSections.map((section) => (
-              <div key={section.title}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">
-                  {section.title}
-                </p>
-                <div className="space-y-0.5">
-                  {section.items.map((item) => {
-                    const Icon = item.icon
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
-                          isActive
-                            ? "bg-blue-50 text-blue-700 font-medium"
-                            : "text-gray-600 hover:bg-gray-100"
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span className="font-medium">{item.label}</span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+          <nav className="space-y-0.5">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors",
+                    isActive
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-gray-600 hover:bg-gray-100"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+              )
+            })}
           </nav>
-
-          {/* Quick Actions - Mobile */}
-          <div className="mt-6 pt-6 border-t">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">
-              Quick Actions
-            </p>
-            <div className="space-y-3">
-              {quickActionSections.map((section) => (
-                <div key={section.title}>
-                  <p className="text-xs text-gray-500 mb-1 px-3">
-                    {section.title}
-                  </p>
-                  <div className="space-y-0.5">
-                    {section.items.map((item) => {
-                      const Icon = item.icon
-                      return (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-600 hover:bg-gray-100"
-                        >
-                          <Icon className="h-5 w-5" />
-                          <span>{item.label}</span>
-                        </Link>
-                      )
-                    })}
-
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 

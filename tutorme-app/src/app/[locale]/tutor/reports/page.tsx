@@ -33,6 +33,7 @@ import {
   FileText,
   FileSpreadsheet,
   FileIcon,
+  LayoutDashboard,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -94,7 +95,7 @@ interface Student {
 export default function TutorReports() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('revenue')
+  const [activeTab, setActiveTab] = useState('overview')
   const [classData, setClassData] = useState<ClassReportData | null>(null)
   const [students, setStudents] = useState<Student[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -398,21 +399,6 @@ export default function TutorReports() {
           </DropdownMenu>
         </div>
 
-        {/* Global Dashboard Reports */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="neon-border-indigo rounded-xl overflow-hidden">
-            <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
-          </div>
-          <div className="neon-border-purple rounded-xl overflow-hidden">
-            <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
-          </div>
-        </div>
-
-        {/* AI Insights */}
-        <div className="mb-8">
-          <AIInsightsCard />
-        </div>
-
         {/* Class Selector */}
         <Card className="mb-6 neon-border">
           <CardContent className="pt-6">
@@ -453,12 +439,16 @@ export default function TutorReports() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 neon-border-inner p-1">
+          <TabsList className="mb-6 neon-border-inner p-1 flex-wrap h-auto">
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
             <TabsTrigger value="revenue" className="gap-2">
               <DollarSign className="h-4 w-4" />
               Revenue Insights
             </TabsTrigger>
-            <TabsTrigger value="overview" className="gap-2">
+            <TabsTrigger value="performance" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Class Performance
             </TabsTrigger>
@@ -471,6 +461,21 @@ export default function TutorReports() {
               Engagement
             </TabsTrigger>
           </TabsList>
+
+          {/* Overview Tab - Global Dashboard Reports */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="neon-border-indigo rounded-xl overflow-hidden">
+                <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
+              </div>
+              <div className="neon-border-purple rounded-xl overflow-hidden">
+                <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
+              </div>
+            </div>
+            <div className="neon-border rounded-xl overflow-hidden">
+              <AIInsightsCard />
+            </div>
+          </TabsContent>
 
           {/* Revenue Tab - Accessible even without class selection for global overview */}
           <TabsContent value="revenue" className="h-full">
@@ -510,8 +515,8 @@ export default function TutorReports() {
           ) : (
             <>
 
-            {/* Class Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
+            {/* Class Performance Tab */}
+            <TabsContent value="performance" className="space-y-6">
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="neon-border-inner">

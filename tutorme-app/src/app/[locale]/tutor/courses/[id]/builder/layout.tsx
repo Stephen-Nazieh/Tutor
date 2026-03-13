@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { UserNav } from '@/components/user-nav'
+
 import {
   LayoutDashboard,
   BookOpen,
@@ -664,8 +664,6 @@ export default function CourseBuilderLayout({
               {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Radio className="h-4 w-4 mr-2" />}
               {launchingLiveClass ? 'Opening…' : 'Go Live'}
             </Button>
-            <div className="h-6 w-px bg-gray-200 ml-2" />
-            <UserNav />
           </div>
         </div>
       </header>
@@ -703,7 +701,6 @@ export default function CourseBuilderLayout({
             >
               {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
             </Button>
-            <UserNav />
           </div>
         </div>
       </div>

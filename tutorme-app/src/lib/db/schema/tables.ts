@@ -2065,3 +2065,24 @@ export const builderTaskVersion = pgTable('BuilderTaskVersion', {
   BuilderTaskVersion_taskId_idx: index('BuilderTaskVersion_taskId_idx').on(table.taskId),
   BuilderTaskVersion_taskId_version_idx: index('BuilderTaskVersion_taskId_version_idx').on(table.taskId, table.version)
 }))
+
+
+// ============================================
+// TUTOR ASSETS TABLE - For Course Builder Assets
+// ============================================
+
+export const tutorAsset = pgTable('TutorAsset', {
+  id: text('id').primaryKey().notNull(),
+  tutorId: text('tutorId').notNull(),
+  name: text('name').notNull(),
+  content: text('content'), // Extracted text content
+  url: text('url'), // File URL if stored externally
+  mimeType: text('mimeType'), // File MIME type
+  size: integer('size'), // File size in bytes
+  metadata: jsonb('metadata'), // Additional flexible metadata
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().$onUpdate(() => new Date())
+}, (table) => ({
+  TutorAsset_tutorId_idx: index('TutorAsset_tutorId_idx').on(table.tutorId),
+  TutorAsset_tutorId_createdAt_idx: index('TutorAsset_tutorId_createdAt_idx').on(table.tutorId, table.createdAt)
+}))
