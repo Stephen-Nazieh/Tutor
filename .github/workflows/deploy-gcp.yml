@@ -22,11 +22,11 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Setup NodeJS for testing/linting beforehand if needed
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: "npm"
@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies & Typecheck
         working-directory: ./tutorme-app
         run: |
-          npm ci
+          npm install
           npm run typecheck
           npm run lint || true # Remove `|| true` to enforce strict lint passing
 
