@@ -7507,8 +7507,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="content">Slide</TabsTrigger>
-                            <TabsTrigger value="pci">PCI</TabsTrigger>
+                            <TabsTrigger value="content" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Slide</TabsTrigger>
+                            <TabsTrigger value="pci" className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7639,8 +7639,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                       >
                         <Tabs value={assessmentBuilderRightTab} onValueChange={(v) => setAssessmentBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
                           <TabsList className="grid w-full grid-cols-2 mb-2 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                            <TabsTrigger value="extensions">Extensions</TabsTrigger>
-                            <TabsTrigger value="dmi">DMI</TabsTrigger>
+                            <TabsTrigger value="extensions" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">Extensions</TabsTrigger>
+                            <TabsTrigger value="dmi" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200">DMI</TabsTrigger>
                           </TabsList>
 
                           <TabsContent value="extensions" className="mt-0">
