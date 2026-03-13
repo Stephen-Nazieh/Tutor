@@ -5269,7 +5269,7 @@ FEEDBACK: [your explanation]`
     setIsGenerating(true)
     try {
       const referenceTexts = await Promise.all(
-        attachedFiles.map(async (file) => {
+        attachedFiles.map(async (file: any) => {
           try {
             return await extractTextFromFile(file)
           } catch {
@@ -6143,7 +6143,7 @@ FEEDBACK: [your explanation]`
               onChange={async (e: any) => {
                 const files = Array.from(e.target.files || [])
                 const newAssets = await Promise.all(
-                  files.map(async (f) => {
+                  files.map(async (f: any) => {
                     let textContent = ''
                     try {
                       const extracted = await extractTextFromFile(f)
