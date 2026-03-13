@@ -681,7 +681,7 @@ export default function TutorReports() {
                       <Input
                         placeholder="Search students..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e: any) => setSearchQuery(e.target.value)}
                         className="pl-10"
                       />
                     </div>

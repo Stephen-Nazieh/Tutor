@@ -177,7 +177,7 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
               placeholder="Search students or groups..."
               className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: any) => setSearchQuery(e.target.value)}
             />
           </div>
 

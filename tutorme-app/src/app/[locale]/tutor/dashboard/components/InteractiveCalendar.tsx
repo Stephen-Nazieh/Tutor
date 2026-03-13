@@ -229,7 +229,7 @@ function DraggableEvent({
         event.status === 'cancelled' && "opacity-50",
         hasConflict && "ring-2 ring-red-500 ring-offset-1"
       )}
-      onClick={(e) => {
+      onClick={(e: any) => {
         e.stopPropagation()
         onClick()
       }}
@@ -790,7 +790,7 @@ export function InteractiveCalendar({
             </DialogHeader>
 
             <div className="space-y-3 py-4">
-              {getEventsForDate(selectedDate || new Date()).map((event) => (
+              {getEventsForDate(selectedDate || new Date()).map((event: any) => (
                 <div
                   key={event.id}
                   className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
@@ -1041,7 +1041,7 @@ function MonthView({ days, events, onDateClick, onEventClick, isToday, getEvents
                           event.status === 'cancelled' && "opacity-50 line-through",
                           hasConflict && "ring-1 ring-red-400"
                         )}
-                        onClick={(e) => {
+                        onClick={(e: any) => {
                           e.stopPropagation()
                           onEventClick(event)
                         }}
@@ -1334,7 +1334,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
               <Label>Class Title</Label>
               <Input
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e: any) => setTitle(e.target.value)}
                 placeholder="e.g., Advanced Math"
               />
             </div>
@@ -1359,7 +1359,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
               <Input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e: any) => setStartDate(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -1367,7 +1367,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
               <Input
                 type="time"
                 value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                onChange={(e: any) => setStartTime(e.target.value)}
               />
             </div>
           </div>
@@ -1378,7 +1378,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
               <Input
                 type="number"
                 value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
+                onChange={(e: any) => setDuration(Number(e.target.value))}
                 min={15}
                 step={15}
               />
@@ -1388,7 +1388,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
               <Input
                 type="number"
                 value={maxStudents}
-                onChange={(e) => setMaxStudents(Number(e.target.value))}
+                onChange={(e: any) => setMaxStudents(Number(e.target.value))}
                 min={1}
               />
             </div>
@@ -1397,7 +1397,7 @@ function BatchClassModal({ open, onClose, onCreate }: BatchClassModalProps) {
               <Input
                 type="number"
                 value={occurrences}
-                onChange={(e) => setOccurrences(Number(e.target.value))}
+                onChange={(e: any) => setOccurrences(Number(e.target.value))}
                 min={1}
                 max={52}
               />

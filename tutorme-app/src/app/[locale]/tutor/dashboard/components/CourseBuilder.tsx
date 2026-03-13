@@ -27,7 +27,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea, AutoTextarea } from '@/components/ui/textarea'
+import { Textarea } from '@/components/ui/textarea'
 import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -935,13 +935,13 @@ function MatchingPairsEditor({
           <div key={`pair-${idx}`} className="grid grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
             <Input
               value={pair.left}
-              onChange={(e) => updatePair(idx, 'left', e.target.value)}
+              onChange={(e: any) => updatePair(idx, 'left', e.target.value)}
               placeholder={`Left ${idx + 1}`}
             />
             <div className="text-xs text-muted-foreground">↔</div>
             <Input
               value={pair.right}
-              onChange={(e) => updatePair(idx, 'right', e.target.value)}
+              onChange={(e: any) => updatePair(idx, 'right', e.target.value)}
               placeholder={`Right ${idx + 1}`}
             />
             <Button
@@ -1103,7 +1103,7 @@ function ManualQuestionComposer({
       <Label className="text-xs font-medium">Write a new question</Label>
       <Textarea
         value={questionText}
-        onChange={(e) => setQuestionText(e.target.value)}
+        onChange={(e: any) => setQuestionText(e.target.value)}
         placeholder="Type a question here to add it directly and save to question bank."
         rows={2}
       />
@@ -1267,7 +1267,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
               type="file"
               className="hidden"
               accept=".pdf,.txt,.md,.doc,.docx,image/*"
-              onChange={(e) => {
+              onChange={(e: any) => {
                 handleImport(e.target.files)
                 e.currentTarget.value = ''
               }}
@@ -1292,7 +1292,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
           </div>
           <Textarea
             value={source.extractedText}
-            onChange={(e) =>
+            onChange={(e: any) =>
               setData({
                 ...data,
                 sourceDocument: {
@@ -1338,14 +1338,14 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
             <Label>Lesson Title *</Label>
             <Input
               value={data.title}
-              onChange={(e) => setData({ ...data, title: e.target.value })}
+              onChange={(e: any) => setData({ ...data, title: e.target.value })}
               placeholder="Enter module title"
             />
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
             <AutoTextarea value={data.description}
-              onChange={(e) => setData({ ...data, description: e.target.value })}
+              onChange={(e: any) => setData({ ...data, description: e.target.value })}
               placeholder="What will students learn in this module?"
               rows={3}
             />
@@ -1493,19 +1493,19 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
                       <Input
                         placeholder={`${activeVariant} title (optional)`}
                         value={data.variants?.[activeVariant]?.title || ''}
-                        onChange={(e) => updateVariant(activeVariant, { title: e.target.value })}
+                        onChange={(e: any) => updateVariant(activeVariant, { title: e.target.value })}
                       />
                       <Textarea
                         placeholder={`${activeVariant} description (optional)`}
                         value={data.variants?.[activeVariant]?.description || ''}
-                        onChange={(e) => updateVariant(activeVariant, { description: e.target.value })}
+                        onChange={(e: any) => updateVariant(activeVariant, { description: e.target.value })}
                         rows={2}
                       />
                       <Input
                         type="number"
                         placeholder={`${activeVariant} duration in minutes`}
                         value={data.variants?.[activeVariant]?.duration || ''}
-                        onChange={(e) => updateVariant(activeVariant, { duration: parseInt(e.target.value) || undefined })}
+                        onChange={(e: any) => updateVariant(activeVariant, { duration: parseInt(e.target.value) || undefined })}
                       />
                     </div>
                   )}
@@ -1518,14 +1518,14 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
             <Label>Lesson Title *</Label>
             <Input
               value={data.title}
-              onChange={(e) => setData({ ...data, title: e.target.value })}
+              onChange={(e: any) => setData({ ...data, title: e.target.value })}
               placeholder="Enter lesson title (base version)"
             />
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
             <AutoTextarea value={data.description}
-              onChange={(e) => setData({ ...data, description: e.target.value })}
+              onChange={(e: any) => setData({ ...data, description: e.target.value })}
               placeholder="Brief overview of this lesson (base version)"
               rows={2}
             />
@@ -1536,7 +1536,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
               <Input
                 type="number"
                 value={data.duration}
-                onChange={(e) => setData({ ...data, duration: parseInt(e.target.value) || 45 })}
+                onChange={(e: any) => setData({ ...data, duration: parseInt(e.target.value) || 45 })}
               />
             </div>
             <div className="space-y-2">
@@ -1560,7 +1560,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
                     <input
                       type="checkbox"
                       checked={data.prerequisites?.includes(lesson.id)}
-                      onChange={(e) => {
+                      onChange={(e: any) => {
                         const prereqs = data.prerequisites || []
                         if (e.target.checked) {
                           setData({ ...data, prerequisites: [...prereqs, lesson.id] })
@@ -1726,10 +1726,10 @@ Format your response clearly and concisely.`
           <div className="flex gap-2">
             <Textarea
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e: any) => setInput(e.target.value)}
               placeholder="Ask me anything about your content or PCI instructions..."
               className="flex-1 min-h-[80px]"
-              onKeyDown={(e) => {
+              onKeyDown={(e: any) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
                   handleSend()
@@ -1882,7 +1882,7 @@ function DMIPanel({ content, pci }: DMIPanelProps) {
                     <div className="space-y-1">
                       <textarea
                         value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
+                        onChange={(e: any) => setEditValue(e.target.value)}
                         className="w-full text-xs border rounded p-1 resize-none"
                         rows={2}
                       />
@@ -2078,12 +2078,12 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
           <Input
             placeholder="Search questions..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: any) => setSearchQuery(e.target.value)}
             className="flex-1"
           />
           <select
             value={filterSubject}
-            onChange={(e) => setFilterSubject(e.target.value)}
+            onChange={(e: any) => setFilterSubject(e.target.value)}
             className="px-3 py-2 border rounded-md text-sm"
           >
             <option value="all">All Subjects</option>
@@ -2091,7 +2091,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
           </select>
           <select
             value={filterDifficulty}
-            onChange={(e) => setFilterDifficulty(e.target.value)}
+            onChange={(e: any) => setFilterDifficulty(e.target.value)}
             className="px-3 py-2 border rounded-md text-sm"
           >
             <option value="all">All Difficulties</option>
@@ -2435,14 +2435,14 @@ function AssessmentBuilderModal({
                   <Label>{titleLabel} Title *</Label>
                   <Input
                     value={data.title}
-                    onChange={(e) => setData({ ...data, title: e.target.value })}
+                    onChange={(e: any) => setData({ ...data, title: e.target.value })}
                     placeholder={`e.g., ${titleLabel} 1`}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Instructions</Label>
                   <AutoTextarea value={data.description}
-                    onChange={(e) => setData({ ...data, description: e.target.value })}
+                    onChange={(e: any) => setData({ ...data, description: e.target.value })}
                     placeholder="What should students know before starting this assessment?"
                     rows={2}
                   />
@@ -2450,7 +2450,7 @@ function AssessmentBuilderModal({
                 <div className="space-y-2">
                   <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
                   <AutoTextarea value={data.instructions}
-                    onChange={(e) => setData({ ...data, instructions: e.target.value })}
+                    onChange={(e: any) => setData({ ...data, instructions: e.target.value })}
                     placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
                     rows={4}
                   />
@@ -2556,7 +2556,7 @@ function AssessmentBuilderModal({
                                 <input
                                   type="checkbox"
                                   checked={q.extendEnabled ?? false}
-                                  onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                                  onChange={(e: any) => updateQuestion(idx, { extendEnabled: e.target.checked })}
                                 />
                                 Extend
                               </label>
@@ -2566,7 +2566,7 @@ function AssessmentBuilderModal({
                                 type="number"
                                 className="w-20 h-8"
                                 value={q.points}
-                                onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                                onChange={(e: any) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
                               />
                               <span className="text-sm text-muted-foreground">pts</span>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
@@ -2575,7 +2575,7 @@ function AssessmentBuilderModal({
                             </div>
                           </div>
                           <AutoTextarea value={q.question}
-                            onChange={(e) => updateQuestion(idx, { question: e.target.value })}
+                            onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
                             placeholder="Enter question"
                             rows={2}
                           />
@@ -2591,7 +2591,7 @@ function AssessmentBuilderModal({
                                   />
                                   <Input
                                     value={opt}
-                                    onChange={(e) => {
+                                    onChange={(e: any) => {
                                       const newOptions = [...q.options!]
                                       newOptions[optIdx] = e.target.value
                                       updateQuestion(idx, { options: newOptions })
@@ -2613,7 +2613,7 @@ function AssessmentBuilderModal({
                                     <input
                                       type="checkbox"
                                       checked={checked}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         const next = new Set(selectedAnswers)
                                         if (e.target.checked) next.add(opt)
                                         else next.delete(opt)
@@ -2622,7 +2622,7 @@ function AssessmentBuilderModal({
                                     />
                                     <Input
                                       value={opt}
-                                      onChange={(e) => {
+                                      onChange={(e: any) => {
                                         const newOptions = [...q.options!]
                                         newOptions[optIdx] = e.target.value
                                         updateQuestion(idx, { options: newOptions })
@@ -2671,7 +2671,7 @@ function AssessmentBuilderModal({
                           )}
                           <Textarea
                             value={q.explanation || ''}
-                            onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+                            onChange={(e: any) => updateQuestion(idx, { explanation: e.target.value })}
                             placeholder="Explanation (shown after answering)"
                             rows={2}
                             className="text-sm"
@@ -2699,7 +2699,7 @@ function AssessmentBuilderModal({
                           min={0}
                           max={100}
                           value={(data as Assessment).latePenalty}
-                          onChange={(e) => setData({ ...(data as Assessment), latePenalty: parseInt(e.target.value) || 0 })}
+                          onChange={(e: any) => setData({ ...(data as Assessment), latePenalty: parseInt(e.target.value) || 0 })}
                         />
                         <p className="text-xs text-muted-foreground">Percentage deducted for late submissions</p>
                       </div>
@@ -2730,7 +2730,7 @@ function AssessmentBuilderModal({
                     <div className="space-y-3">
                       <Textarea
                         value={data.answerKey || ''}
-                        onChange={(e) => setData({ ...data, answerKey: e.target.value })}
+                        onChange={(e: any) => setData({ ...data, answerKey: e.target.value })}
                         placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
                         rows={4}
                         className="border-amber-200 bg-amber-50/30"
@@ -2772,7 +2772,7 @@ function AssessmentBuilderModal({
                     <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
                     <Textarea
                       value={data.sourceDocument.extractedText}
-                      onChange={(e) => setData({
+                      onChange={(e: any) => setData({
                         ...data,
                         sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
                       })}
@@ -2971,14 +2971,14 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                 <Label>Worksheet Title *</Label>
                 <Input
                   value={data.title}
-                  onChange={(e) => setData({ ...data, title: e.target.value })}
+                  onChange={(e: any) => setData({ ...data, title: e.target.value })}
                   placeholder="e.g., Practice Problems - Chapter 3"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Instructions</Label>
                 <AutoTextarea value={data.description}
-                  onChange={(e) => setData({ ...data, description: e.target.value })}
+                  onChange={(e: any) => setData({ ...data, description: e.target.value })}
                   placeholder="What should students know before starting this worksheet?"
                   rows={2}
                 />
@@ -2987,7 +2987,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               <div className="space-y-2">
                 <Label>Instructions *</Label>
                 <AutoTextarea value={data.instructions}
-                  onChange={(e) => setData({ ...data, instructions: e.target.value })}
+                  onChange={(e: any) => setData({ ...data, instructions: e.target.value })}
                   placeholder="Detailed instructions for students"
                   rows={3}
                 />
@@ -2998,7 +2998,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <Input
                     type="number"
                     value={data.estimatedMinutes}
-                    onChange={(e) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 20 })}
+                    onChange={(e: any) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 20 })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -3006,7 +3006,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <Input
                     type="number"
                     value={data.points}
-                    onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 15 })}
+                    onChange={(e: any) => setData({ ...data, points: parseInt(e.target.value) || 15 })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -3016,7 +3016,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     min={0}
                     max={100}
                     value={data.passingScore}
-                    onChange={(e) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
+                    onChange={(e: any) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -3025,7 +3025,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     type="number"
                     min={1}
                     value={data.maxAttempts}
-                    onChange={(e) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
+                    onChange={(e: any) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
                     disabled={!data.allowMultipleAttempts}
                   />
                 </div>
@@ -3097,7 +3097,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                             <input
                               type="checkbox"
                               checked={q.extendEnabled ?? false}
-                              onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                              onChange={(e: any) => updateQuestion(idx, { extendEnabled: e.target.checked })}
                             />
                             Extend
                           </label>
@@ -3107,7 +3107,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                             type="number"
                             className="w-20 h-8"
                             value={q.points}
-                            onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                            onChange={(e: any) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
                           />
                           <span className="text-sm text-muted-foreground">pts</span>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
@@ -3116,7 +3116,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                         </div>
                       </div>
                       <AutoTextarea value={q.question}
-                        onChange={(e) => updateQuestion(idx, { question: e.target.value })}
+                        onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
                         placeholder="Enter question"
                         rows={2}
                       />
@@ -3132,7 +3132,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                               />
                               <Input
                                 value={opt}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                   const newOptions = [...q.options!]
                                   newOptions[optIdx] = e.target.value
                                   updateQuestion(idx, { options: newOptions })
@@ -3180,7 +3180,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       )}
                       <Textarea
                         value={q.explanation || ''}
-                        onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+                        onChange={(e: any) => updateQuestion(idx, { explanation: e.target.value })}
                         placeholder="Explanation (shown after answering)"
                         rows={2}
                         className="text-sm"
@@ -3213,7 +3213,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <div className="space-y-3">
                     <Textarea
                       value={data.answerKey || ''}
-                      onChange={(e) => setData({ ...data, answerKey: e.target.value })}
+                      onChange={(e: any) => setData({ ...data, answerKey: e.target.value })}
                       placeholder="Enter the complete answer key here. This is ONLY visible to instructors."
                       rows={4}
                       className="border-amber-200 bg-amber-50/30"
@@ -3250,7 +3250,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
                   <Textarea
                     value={data.sourceDocument.extractedText}
-                    onChange={(e) => setData({
+                    onChange={(e: any) => setData({
                       ...data,
                       sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
                     })}
@@ -3266,7 +3266,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     <Input
                       type="number"
                       value={data.estimatedMinutes}
-                      onChange={(e) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 30 })}
+                      onChange={(e: any) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 30 })}
                     />
                   </div>
                   <div className="space-y-1">
@@ -3274,7 +3274,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     <Input
                       type="number"
                       value={data.points}
-                      onChange={(e) => setData({ ...data, points: parseInt(e.target.value) || 20 })}
+                      onChange={(e: any) => setData({ ...data, points: parseInt(e.target.value) || 20 })}
                     />
                   </div>
                   <div className="space-y-1">
@@ -3284,7 +3284,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       min={0}
                       max={100}
                       value={data.passingScore}
-                      onChange={(e) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
+                      onChange={(e: any) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
                     />
                   </div>
                   <div className="space-y-1">
@@ -3293,7 +3293,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       type="number"
                       min={1}
                       value={data.maxAttempts}
-                      onChange={(e) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
+                      onChange={(e: any) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
                       disabled={!data.allowMultipleAttempts}
                     />
                   </div>
@@ -3417,14 +3417,14 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                   <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
                   <Input
                     value={data.title}
-                    onChange={(e) => setData({ ...data, title: e.target.value })}
+                    onChange={(e: any) => setData({ ...data, title: e.target.value })}
                     placeholder={isModuleQuiz ? "e.g., Lesson 1 Comprehensive Exam" : "e.g., Lesson 1 Assessment"}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Instructions</Label>
                   <AutoTextarea value={data.description}
-                    onChange={(e) => setData({ ...data, description: e.target.value })}
+                    onChange={(e: any) => setData({ ...data, description: e.target.value })}
                     placeholder="What should students know before starting this exam?"
                     rows={2}
                   />
@@ -3496,7 +3496,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                               <input
                                 type="checkbox"
                                 checked={q.extendEnabled ?? false}
-                                onChange={(e) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                                onChange={(e: any) => updateQuestion(idx, { extendEnabled: e.target.checked })}
                               />
                               Extend
                             </label>
@@ -3506,7 +3506,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                               type="number"
                               className="w-20 h-8"
                               value={q.points}
-                              onChange={(e) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                              onChange={(e: any) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
                             />
                             <span className="text-sm text-muted-foreground">pts</span>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
@@ -3515,7 +3515,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                           </div>
                         </div>
                         <AutoTextarea value={q.question}
-                          onChange={(e) => updateQuestion(idx, { question: e.target.value })}
+                          onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
                           placeholder="Enter question"
                           rows={2}
                         />
@@ -3531,7 +3531,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                                 />
                                 <Input
                                   value={opt}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     const newOptions = [...q.options!]
                                     newOptions[optIdx] = e.target.value
                                     updateQuestion(idx, { options: newOptions })
@@ -3579,7 +3579,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                         )}
                         <Textarea
                           value={q.explanation || ''}
-                          onChange={(e) => updateQuestion(idx, { explanation: e.target.value })}
+                          onChange={(e: any) => updateQuestion(idx, { explanation: e.target.value })}
                           placeholder="Explanation (shown after answering)"
                           rows={2}
                           className="text-sm"
@@ -3628,7 +3628,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                     <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
                     <Textarea
                       value={data.sourceDocument.extractedText}
-                      onChange={(e) => setData({
+                      onChange={(e: any) => setData({
                         ...data,
                         sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
                       })}
@@ -3722,7 +3722,7 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
       <Input
         placeholder="Search questions..."
         value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        onChange={(e: any) => setFilter(e.target.value)}
         className="w-full"
       />
       <div className="border rounded-lg max-h-[400px] overflow-y-auto">
@@ -3800,7 +3800,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
             <Label>Content Title *</Label>
             <Input
               value={data.title}
-              onChange={(e) => setData({ ...data, title: e.target.value })}
+              onChange={(e: any) => setData({ ...data, title: e.target.value })}
               placeholder="e.g., Introduction to the Topic"
             />
           </div>
@@ -3826,7 +3826,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
                 <Label>Content Body</Label>
                 <Textarea
                   value={data.body || ''}
-                  onChange={(e) => setData({ ...data, body: e.target.value })}
+                  onChange={(e: any) => setData({ ...data, body: e.target.value })}
                   placeholder="Enter your lesson content here..."
                   rows={10}
                 />
@@ -3838,7 +3838,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
               <Label>URL / Embed Code</Label>
               <Input
                 value={data.url || ''}
-                onChange={(e) => setData({ ...data, url: e.target.value })}
+                onChange={(e: any) => setData({ ...data, url: e.target.value })}
                 placeholder={data.type === 'embed' ? "Paste iframe or embed code" : "https://..."}
               />
             </div>
@@ -3848,7 +3848,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
             <Input
               type="number"
               value={data.duration || ''}
-              onChange={(e) => setData({ ...data, duration: parseInt(e.target.value) || undefined })}
+              onChange={(e: any) => setData({ ...data, duration: parseInt(e.target.value) || undefined })}
               placeholder="e.g., 15"
             />
           </div>
@@ -3857,7 +3857,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
             <Input
               type="number"
               value={data.order}
-              onChange={(e) => setData({ ...data, order: parseInt(e.target.value) || 0 })}
+              onChange={(e: any) => setData({ ...data, order: parseInt(e.target.value) || 0 })}
               min={0}
             />
           </div>
@@ -4670,7 +4670,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                       <input
                         type="checkbox"
                         checked={q.extendEnabled ?? false}
-                        onChange={(e) => updatePreviewQuestion(idx, { extendEnabled: e.target.checked })}
+                        onChange={(e: any) => updatePreviewQuestion(idx, { extendEnabled: e.target.checked })}
                       />
                       Extend
                     </label>
@@ -4680,7 +4680,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                       type="number"
                       className="w-20 h-8"
                       value={q.points}
-                      onChange={(e) => updatePreviewQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                      onChange={(e: any) => updatePreviewQuestion(idx, { points: parseInt(e.target.value) || 1 })}
                     />
                     <span className="text-sm text-muted-foreground">pts</span>
                     <Button
@@ -4697,7 +4697,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                   </div>
                 </div>
                 <AutoTextarea value={q.question}
-                  onChange={(e) => updatePreviewQuestion(idx, { question: e.target.value })}
+                  onChange={(e: any) => updatePreviewQuestion(idx, { question: e.target.value })}
                   placeholder="Enter question"
                   rows={2}
                 />
@@ -4713,7 +4713,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                             <input
                               type="checkbox"
                               checked={checked}
-                              onChange={(e) => {
+                              onChange={(e: any) => {
                                 const next = new Set(selectedAnswers)
                                 if (e.target.checked) next.add(opt)
                                 else next.delete(opt)
@@ -4730,7 +4730,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                           )}
                           <Input
                             value={options[optIdx]}
-                            onChange={(e) => {
+                            onChange={(e: any) => {
                               const nextOptions = [...options]
                               nextOptions[optIdx] = e.target.value
                               updatePreviewQuestion(idx, { options: nextOptions })
@@ -4779,7 +4779,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                 )}
                 <Textarea
                   value={q.explanation || ''}
-                  onChange={(e) => updatePreviewQuestion(idx, { explanation: e.target.value })}
+                  onChange={(e: any) => updatePreviewQuestion(idx, { explanation: e.target.value })}
                   placeholder="Explanation (shown after answering)"
                   rows={2}
                   className="text-sm"
@@ -4827,7 +4827,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </div>
           <Textarea
             value={resourceText}
-            onChange={(e) => setResourceText(e.target.value)}
+            onChange={(e: any) => setResourceText(e.target.value)}
             rows={8}
             placeholder="Edit imported content..."
           />
@@ -6134,13 +6134,13 @@ FEEDBACK: [your explanation]`
         <span className="text-xs font-semibold flex items-center gap-1">
           <FolderOpen className="w-3 h-3" /> Assets
         </span>
-        <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3" onClick={(e: any) => e.stopPropagation()}>
           <label className="cursor-pointer">
             <input
               type="file"
               multiple
               className="hidden"
-              onChange={async (e) => {
+              onChange={async (e: any) => {
                 const files = Array.from(e.target.files || [])
                 const newAssets = await Promise.all(
                   files.map(async (f) => {
@@ -6178,7 +6178,7 @@ FEEDBACK: [your explanation]`
               <div
                 key={asset.id}
                 draggable
-                onDragStart={(e) => {
+                onDragStart={(e: any) => {
                   e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
                   e.dataTransfer.effectAllowed = 'copy'
                 }}
@@ -6418,10 +6418,10 @@ FEEDBACK: [your explanation]`
 
                   <Textarea
                     value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onChange={(e: any) => setAiPrompt(e.target.value)}
                     placeholder="Describe what you want to create... e.g., 'Create a 4-week Python course for beginners with hands-on projects'"
                     className="min-h-[80px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
-                    onKeyDown={(e) => {
+                    onKeyDown={(e: any) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault()
                         handleSendPrompt()
@@ -6533,7 +6533,7 @@ FEEDBACK: [your explanation]`
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-orange-600"
-                                  onClick={(e) => {
+                                  onClick={(e: any) => {
                                     e.stopPropagation()
                                     addTask(module.id, primaryLesson.id)
                                   }}
@@ -6547,7 +6547,7 @@ FEEDBACK: [your explanation]`
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-purple-600"
-                                  onClick={(e) => {
+                                  onClick={(e: any) => {
                                     e.stopPropagation()
                                     addAssessment(module.id, primaryLesson.id)
                                   }}
@@ -6561,7 +6561,7 @@ FEEDBACK: [your explanation]`
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-blue-600"
-                                  onClick={(e) => {
+                                  onClick={(e: any) => {
                                     e.stopPropagation()
                                     setImportTarget({ moduleId: module.id, lessonId: primaryLesson.id })
                                     setQuestionBankOpen(true)
@@ -6575,7 +6575,7 @@ FEEDBACK: [your explanation]`
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                  onClick={(e) => {
+                                  onClick={(e: any) => {
                                     e.stopPropagation()
                                     deleteModule(module.id)
                                   }}
@@ -6673,7 +6673,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="sm"
                                               className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 setQuestionBankTarget(`task-${task.id}`)
                                                 setImportTarget(null)
@@ -6686,7 +6686,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="sm"
                                               className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 setEditingData(task)
                                                 setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
@@ -6698,7 +6698,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="icon"
                                               className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 if (!confirm(`Delete "${task.title}"?`)) return
                                                 deleteTask(module.id, primaryLesson.id, task.id)
@@ -6799,7 +6799,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="sm"
                                               className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 setQuestionBankTarget(`assessment-${hw.id}`)
                                                 setImportTarget(null)
@@ -6812,7 +6812,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="sm"
                                               className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 setEditingData(hw)
                                                 setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
@@ -6824,7 +6824,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="icon"
                                               className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 if (!confirm(`Delete "${hw.title}"?`)) return
                                                 deleteAssessment(module.id, primaryLesson.id, hw.id)
@@ -6859,7 +6859,7 @@ FEEDBACK: [your explanation]`
                                         variant="ghost"
                                         size="sm"
                                         className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1 text-emerald-600"
-                                        onClick={(e) => {
+                                        onClick={(e: any) => {
                                           e.stopPropagation()
                                           addHomework(module.id, primaryLesson.id)
                                         }}
@@ -6938,7 +6938,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="sm"
                                               className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 setQuestionBankTarget(`homework-${hw.id}`)
                                                 setImportTarget(null)
@@ -6951,7 +6951,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="sm"
                                               className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 setEditingData(hw)
                                                 setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
@@ -6963,7 +6963,7 @@ FEEDBACK: [your explanation]`
                                               variant="ghost"
                                               size="icon"
                                               className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e) => {
+                                              onClick={(e: any) => {
                                                 e.stopPropagation()
                                                 if (!confirm(`Delete "${hw.title}"?`)) return
                                                 deleteAssessment(module.id, primaryLesson.id, hw.id)
@@ -6991,7 +6991,7 @@ FEEDBACK: [your explanation]`
                                           variant="ghost"
                                           size="sm"
                                           className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1"
-                                          onClick={(e) => {
+                                          onClick={(e: any) => {
                                             e.stopPropagation()
                                             setEditingData(quiz)
                                             setActiveModal({ type: 'moduleQuiz', isOpen: true, moduleId: module.id, itemId: quiz.id })
@@ -7003,7 +7003,7 @@ FEEDBACK: [your explanation]`
                                           variant="ghost"
                                           size="icon"
                                           className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                                          onClick={(e) => {
+                                          onClick={(e: any) => {
                                             e.stopPropagation()
                                             deleteModuleQuiz(module.id, quiz.id)
                                           }}
@@ -7066,7 +7066,7 @@ FEEDBACK: [your explanation]`
                           placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
                           className="font-semibold"
                           value={taskBuilder.title}
-                          onChange={(e) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
+                          onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
                           disabled={!loadedTaskId}
                         />
                         {loadedTaskId && (
@@ -7164,7 +7164,7 @@ FEEDBACK: [your explanation]`
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
                                 : taskBuilder.taskContent
                               }
-                              onChange={(e) => {
+                              onChange={(e: any) => {
                                 const newContent = e.target.value
                                 if (taskBuilder.activeExtensionId) {
                                   // Update extension content
@@ -7203,7 +7203,7 @@ FEEDBACK: [your explanation]`
                                 ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
                                 : taskBuilder.taskPci
                               }
-                              onChange={(e) => {
+                              onChange={(e: any) => {
                                 const newPci = e.target.value
                                 if (taskBuilder.activeExtensionId) {
                                   // Update extension PCI
@@ -7229,8 +7229,8 @@ FEEDBACK: [your explanation]`
                             placeholder={`Enter text and press Enter to add to ${taskBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
                             className="flex-1 min-h-[60px]"
                             value={taskBuilder.details}
-                            onChange={(e) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
-                            onKeyDown={(e) => {
+                            onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
+                            onKeyDown={(e: any) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault()
                                 if (taskBuilder.details.trim()) {
@@ -7413,7 +7413,7 @@ FEEDBACK: [your explanation]`
                                       variant="ghost"
                                       size="icon"
                                       className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                      onClick={(e) => {
+                                      onClick={(e: any) => {
                                         e.stopPropagation()
                                         if (confirm(`Delete "${ext.name}"?`)) {
                                           setTaskBuilder(prev => ({
@@ -7458,7 +7458,7 @@ FEEDBACK: [your explanation]`
                           placeholder={loadedAssessmentId ? "Assessment Title" : "Select an assessment from the left sidebar to edit"}
                           className="font-semibold"
                           value={assessmentBuilder.title}
-                          onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))}
+                          onChange={(e: any) => setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))}
                           disabled={!loadedAssessmentId}
                         />
                         {loadedAssessmentId && (
@@ -7555,7 +7555,7 @@ FEEDBACK: [your explanation]`
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.content || ''
                                 : assessmentBuilder.taskContent
                               }
-                              onChange={(e) => {
+                              onChange={(e: any) => {
                                 const newContent = e.target.value
                                 if (assessmentBuilder.activeExtensionId) {
                                   setAssessmentBuilder(prev => {
@@ -7591,7 +7591,7 @@ FEEDBACK: [your explanation]`
                                 ? assessmentBuilder.extensions.find(e => e.id === assessmentBuilder.activeExtensionId)?.pci || ''
                                 : assessmentBuilder.taskPci
                               }
-                              onChange={(e) => {
+                              onChange={(e: any) => {
                                 const newPci = e.target.value
                                 if (assessmentBuilder.activeExtensionId) {
                                   setAssessmentBuilder(prev => ({
@@ -7615,8 +7615,8 @@ FEEDBACK: [your explanation]`
                             placeholder={`Enter text and press Enter to add to ${assessmentBuilderActiveTab === 'content' ? 'Content' : 'PCI'} tab...`}
                             className="flex-1 min-h-[60px]"
                             value={assessmentBuilder.details}
-                            onChange={(e) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
-                            onKeyDown={(e) => {
+                            onChange={(e: any) => setAssessmentBuilder(prev => ({ ...prev, details: e.target.value }))}
+                            onKeyDown={(e: any) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault()
                                 if (assessmentBuilder.details.trim()) {
@@ -7798,7 +7798,7 @@ FEEDBACK: [your explanation]`
                                       variant="ghost"
                                       size="icon"
                                       className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                      onClick={(e) => {
+                                      onClick={(e: any) => {
                                         e.stopPropagation()
                                         if (confirm(`Delete "${ext.name}"?`)) {
                                           setAssessmentBuilder(prev => ({
@@ -7849,13 +7849,13 @@ FEEDBACK: [your explanation]`
                               {editingTabId === tab.id ? (
                                 <Input
                                   value={tab.label}
-                                  onChange={(e) => {
+                                  onChange={(e: any) => {
                                     setTestPciTabs(prev => prev.map(t =>
                                       t.id === tab.id ? { ...t, label: e.target.value } : t
                                     ))
                                   }}
                                   onBlur={() => setEditingTabId(null)}
-                                  onKeyDown={(e) => {
+                                  onKeyDown={(e: any) => {
                                     if (e.key === 'Enter') setEditingTabId(null)
                                   }}
                                   className="h-8 text-xs font-medium text-center"
@@ -7904,8 +7904,8 @@ FEEDBACK: [your explanation]`
                             placeholder={testPciActiveTab === 'classroom' ? "Enter answer (goes to both students)..." : "Enter answer..."}
                             className="flex-1"
                             value={testPciInput}
-                            onChange={(e) => setTestPciInput(e.target.value)}
-                            onKeyDown={(e) => {
+                            onChange={(e: any) => setTestPciInput(e.target.value)}
+                            onKeyDown={(e: any) => {
                               if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
                                 e.preventDefault()
                                 handleTestPciSubmit()
