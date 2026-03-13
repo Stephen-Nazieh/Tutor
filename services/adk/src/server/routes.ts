@@ -7,8 +7,17 @@ import { contentGeneratorAgent } from '../agents/content-generator'
 import { briefingAgent } from '../agents/briefing'
 import { liveMonitorAgent } from '../agents/live-monitor'
 import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema } from '../validation/schemas'
+import {
+  briefingOutputSchema,
+  contentOutputSchema,
+  gradingOutputSchema,
+  liveMonitorOutputSchema,
+  tutorOutputSchema,
+} from '../validation/output-schemas'
 import { appendMessage } from '../tools/conversations'
 import { logError } from '../observability/logging'
+import { z } from 'zod'
+import { buildEssayGradingPrompt, buildMathGradingPrompt } from '../prompts/grading'
 
 const router = Router()
 const sessionService = new InMemorySessionService()
@@ -32,6 +41,28 @@ async function runAgent(agent: any, userId: string, sessionId: string, message: 
   return ''
 }
 
+function extractJsonPayload(text: string): string | null {
+  const trimmed = text.trim()
+  const fenceMatch = trimmed.match(/^```(?:json)?\\s*([\\s\\S]*?)\\s*```$/)
+  const candidate = fenceMatch ? fenceMatch[1] : trimmed
+  const start = candidate.indexOf('{')
+  const end = candidate.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) return null
+  return candidate.slice(start, end + 1)
+}
+
+function parseStructuredOutput<T>(text: string, schema: z.ZodSchema<T>): T | null {
+  const payload = extractJsonPayload(text)
+  if (!payload) return null
+  try {
+    const parsed = JSON.parse(payload)
+    const result = schema.safeParse(parsed)
+    return result.success ? result.data : null
+  } catch {
+    return null
+  }
+}
+
 router.get('/v1/status', (_req, res) => {
   res.json({
     providers: {
@@ -51,8 +82,10 @@ router.post('/v1/chat', async (req, res) => {
   try {
     await appendMessage(sessionId, 'user', message)
     const response = await runAgent(tutorAgent, studentId, sessionId, message)
-    await appendMessage(sessionId, 'assistant', response)
-    res.json({ response, conversationId: sessionId })
+    const parsed = parseStructuredOutput(response, tutorOutputSchema)
+    const finalResponse = parsed?.response ?? response
+    await appendMessage(sessionId, 'assistant', finalResponse)
+    res.json({ response: finalResponse, conversationId: sessionId, parsed })
   } catch (error) {
     logError('Tutor agent failed', error)
     res.status(500).json({ error: 'Tutor agent failed' })
@@ -63,11 +96,12 @@ router.post('/v1/grading/essay', async (req, res) => {
   const parsed = essaySchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
 
-  const prompt = `Grade this essay using the rubric. Output JSON matching the schema.\n\nQuestion: ${parsed.data.essayQuestion}\nRubric: ${parsed.data.rubric.join(', ')}\nEssay: ${parsed.data.studentEssay}\nMax Points: ${parsed.data.maxPoints}`
+  const prompt = buildEssayGradingPrompt(parsed.data)
 
   try {
     const response = await runAgent(gradingAgent, 'system', 'grading', prompt)
-    res.json({ response })
+    const parsed = parseStructuredOutput(response, gradingOutputSchema)
+    res.json({ response, parsed })
   } catch (error) {
     logError('Essay grading failed', error)
     res.status(500).json({ error: 'Essay grading failed' })
@@ -78,11 +112,12 @@ router.post('/v1/grading/math', async (req, res) => {
   const parsed = mathSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
 
-  const prompt = `Grade this math submission. Output JSON matching the schema.\n\nProblem: ${parsed.data.problem}\nCorrect Answer: ${parsed.data.correctAnswer}\nCorrect Steps: ${parsed.data.correctSteps.join(' | ')}\nStudent Work: ${parsed.data.studentWork}\nMax Points: ${parsed.data.maxPoints}`
+  const prompt = buildMathGradingPrompt(parsed.data)
 
   try {
     const response = await runAgent(gradingAgent, 'system', 'grading', prompt)
-    res.json({ response })
+    const parsed = parseStructuredOutput(response, gradingOutputSchema)
+    res.json({ response, parsed })
   } catch (error) {
     logError('Math grading failed', error)
     res.status(500).json({ error: 'Math grading failed' })
@@ -95,7 +130,8 @@ router.post('/v1/content/generate', async (req, res) => {
 
   try {
     const response = await runAgent(contentGeneratorAgent, 'system', 'content', parsed.data.prompt)
-    res.json({ response })
+    const parsedOutput = parseStructuredOutput(response, contentOutputSchema)
+    res.json({ response, parsed: parsedOutput })
   } catch (error) {
     logError('Content generation failed', error)
     res.status(500).json({ error: 'Content generation failed' })
@@ -108,7 +144,8 @@ router.post('/v1/llm/generate', async (req, res) => {
 
   try {
     const response = await runAgent(contentGeneratorAgent, 'system', 'llm-generate', parsed.data.prompt)
-    res.json({ response })
+    const parsedOutput = parseStructuredOutput(response, contentOutputSchema)
+    res.json({ response, parsed: parsedOutput })
   } catch (error) {
     logError('LLM generate failed', error)
     res.status(500).json({ error: 'LLM generate failed' })
@@ -125,7 +162,8 @@ router.post('/v1/llm/chat', async (req, res) => {
 
   try {
     const response = await runAgent(contentGeneratorAgent, 'system', 'llm-chat', prompt)
-    res.json({ response })
+    const parsedOutput = parseStructuredOutput(response, contentOutputSchema)
+    res.json({ response, parsed: parsedOutput })
   } catch (error) {
     logError('LLM chat failed', error)
     res.status(500).json({ error: 'LLM chat failed' })
@@ -138,7 +176,8 @@ router.post('/v1/briefing', async (req, res) => {
 
   try {
     const response = await runAgent(briefingAgent, 'system', 'briefing', parsed.data.prompt)
-    res.json({ response })
+    const parsedOutput = parseStructuredOutput(response, briefingOutputSchema)
+    res.json({ response, parsed: parsedOutput })
   } catch (error) {
     logError('Briefing failed', error)
     res.status(500).json({ error: 'Briefing failed' })
@@ -151,7 +190,8 @@ router.post('/v1/live-monitor', async (req, res) => {
 
   try {
     const response = await runAgent(liveMonitorAgent, 'system', 'live-monitor', parsed.data.prompt)
-    res.json({ response })
+    const parsedOutput = parseStructuredOutput(response, liveMonitorOutputSchema)
+    res.json({ response, parsed: parsedOutput })
   } catch (error) {
     logError('Live monitor failed', error)
     res.status(500).json({ error: 'Live monitor failed' })

@@ -1,18 +1,22 @@
-import { Agent } from '@google/adk'
+import { LlmAgent, FunctionTool } from '@google/adk'
 import { tutorAgent } from '../tutor'
 import { gradingAgent } from '../grading'
 import { contentGeneratorAgent } from '../content-generator'
 import { briefingAgent } from '../briefing'
 import { liveMonitorAgent } from '../live-monitor'
+import { buildSupervisorInstruction } from './prompts'
+import { logAgentEvent } from '../../tools/agent-events'
 
-export const supervisorAgent = new Agent({
+export const supervisorAgent = new LlmAgent({
   name: 'solocorn_supervisor',
   description: 'Routes requests to specialized agents.',
-  instruction: `Route the request to the most appropriate specialist agent.
-- TutorAgent: student tutoring chat
-- GradingAgent: grading submissions
-- ContentGeneratorAgent: generate quizzes or lessons
-- BriefingAgent: tutor briefings
-- LiveMonitorAgent: live session monitoring`,
+  instruction: buildSupervisorInstruction(),
+  tools: [
+    new FunctionTool({
+      name: 'logAgentEvent',
+      description: 'Log a routing event for observability.',
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    }),
+  ],
   subAgents: [tutorAgent, gradingAgent, contentGeneratorAgent, briefingAgent, liveMonitorAgent],
 })

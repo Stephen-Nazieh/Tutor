@@ -3,13 +3,14 @@ import { getStudentProfile } from '../../tools/student'
 import { getCurriculum } from '../../tools/curriculum'
 import { getProgressSnapshot } from '../../tools/progress'
 import { appendMessage, getConversation } from '../../tools/conversations'
+import { logAgentEvent } from '../../tools/agent-events'
 import { buildTutorInstruction } from './prompts'
 
 export const tutorAgent = new LlmAgent({
   name: 'tutor_agent',
   model: process.env.ADK_MODEL || 'gemini-2.5-flash',
   description: 'Socratic tutor for student questions',
-  instruction: buildTutorInstruction('the student’s subject'),
+  instruction: buildTutorInstruction("the student's subject"),
   tools: [
     new FunctionTool({
       name: 'getStudentProfile',
@@ -37,6 +38,11 @@ export const tutorAgent = new LlmAgent({
       description: 'Append a message to conversation history.',
       func: async ({ conversationId, role, content }: { conversationId: string; role: 'user' | 'assistant'; content: string }) =>
         appendMessage(conversationId, role, content),
+    }),
+    new FunctionTool({
+      name: 'logAgentEvent',
+      description: 'Log a tutoring event for observability.',
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
     }),
   ],
 })

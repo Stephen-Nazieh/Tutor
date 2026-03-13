@@ -1,5 +1,8 @@
 interface AdkResponse {
   response: string
+  parsed?: {
+    text?: string
+  } | null
 }
 
 function buildHeaders() {
@@ -19,7 +22,7 @@ export async function adkGenerate(prompt: string): Promise<string> {
   })
   if (!res.ok) throw new Error(`ADK generate failed: ${res.status}`)
   const data = (await res.json()) as AdkResponse
-  return data.response
+  return data.parsed?.text ?? data.response
 }
 
 export async function adkChat(messages: Array<{ role: string; content: string }>): Promise<string> {
@@ -32,7 +35,7 @@ export async function adkChat(messages: Array<{ role: string; content: string }>
   })
   if (!res.ok) throw new Error(`ADK chat failed: ${res.status}`)
   const data = (await res.json()) as AdkResponse
-  return data.response
+  return data.parsed?.text ?? data.response
 }
 
 export async function adkTutorChat(params: {

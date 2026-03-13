@@ -78,8 +78,6 @@ import {
   Gamepad2,
   Code,
   Send,
-  Paperclip,
-  Mic,
   Play,
   Lock,
   Unlock,
@@ -4945,15 +4943,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [courseAssets, setCourseAssets] = useState<{ id: string, name: string, content?: string }[]>([])
   const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
   const [assetToLoad, setAssetToLoad] = useState<{name: string, content?: string} | null>(null)
+  const [leftPanelHidden, setLeftPanelHidden] = useState(false)
   const [assetsOpen, setAssetsOpen] = useState(true)
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
 
-  // AI Prompt state
-  const [aiPrompt, setAiPrompt] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
   const objectUrlsRef = useRef<string[]>([])
 
   // State for lesson selection dialog
@@ -5312,62 +5307,6 @@ FEEDBACK: [your explanation]`
     }
   }
 
-  const handleSendPrompt = async () => {
-    if (!aiPrompt.trim() && attachedFiles.length === 0) return
-    if (!courseId) {
-      toast.error('Course ID is required to generate structure')
-      return
-    }
-
-    setIsGenerating(true)
-    try {
-      const referenceTexts = await Promise.all(
-        attachedFiles.map(async (file: any) => {
-          try {
-            return await extractTextFromFile(file)
-          } catch {
-            return ''
-          }
-        })
-      )
-
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      const res = await fetch(`/api/tutor/courses/${courseId}/builder-generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          prompt: aiPrompt,
-          references: referenceTexts.filter((text) => text.trim().length > 0),
-        }),
-      })
-
-      const payload = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(payload?.error || 'Failed to generate course structure')
-      }
-
-      const generatedModules = mapGeneratedModulesToBuilder(payload.modules ?? [])
-      if (generatedModules.length === 0) {
-        throw new Error('AI generation returned empty modules')
-      }
-
-      setModules(normalizeModulesForAssessments(generatedModules))
-      toast.success('Complete course structure generated')
-      setAiPrompt('')
-      setAttachedFiles([])
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to generate course')
-    } finally {
-      setIsGenerating(false)
-    }
-  }
 
   // Generate DMI using AI with Slide and PCI content
   const handleGenerateDMI = async (type: 'task' | 'assessment') => {
@@ -5437,18 +5376,6 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to generate DMI')
     }
-  }
-
-  const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) {
-      setAttachedFiles(prev => [...prev, ...Array.from(files)])
-    }
-    e.target.value = ''
-  }
-
-  const removeAttachedFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   useEffect(() => {
@@ -6546,91 +6473,27 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     <div className={cn("space-y-4", panelMode === 'live-class' && "pt-3")}>
       <div className="grid grid-cols-12 gap-6">
         {/* LEFT PANEL - Course Structure */}
-        <div className="col-span-4">
-          <Card className="h-full flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Sparkles className="h-5 w-5 text-amber-500" />
-                  Course Builder
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0 flex-1 flex flex-col">
-              {/* AI Prompt Input - LLM Style */}
-              <div className="mb-4 space-y-2">
-                <div className="relative border rounded-xl bg-white shadow-sm">
-                  {/* Attached Files */}
-                  {attachedFiles.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-2 border-b bg-gray-50 rounded-t-xl">
-                      {attachedFiles.map((file, idx) => (
-                        <div key={idx} className="flex items-center gap-1 bg-white border rounded-lg px-2 py-1 text-xs">
-                          <FileText className="h-3 w-3 text-blue-500" />
-                          <span className="truncate max-w-[80px]">{file.name}</span>
-                          <button
-                            onClick={() => removeAttachedFile(idx)}
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <Textarea
-                    value={aiPrompt}
-                    onChange={(e: any) => setAiPrompt(e.target.value)}
-                    placeholder="Describe what you want to create... e.g., 'Create a 4-week Python course for beginners with hands-on projects'"
-                    className="min-h-[80px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
-                    onKeyDown={(e: any) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        handleSendPrompt()
-                      }
-                    }}
-                  />
-
-                  <div className="flex items-center justify-between p-2 border-t">
-                    <div className="flex items-center gap-1">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          multiple
-                          className="hidden"
-                          onChange={handleFileAttach}
-                          accept=".pdf,.doc,.docx,.txt,.md,.ppt,.pptx,.xls,.xlsx,image/*,video/*"
-                        />
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" type="button">
-                          <Paperclip className="h-4 w-4 text-gray-500" />
-                        </Button>
-                      </label>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" type="button">
-                        <Mic className="h-4 w-4 text-gray-500" />
-                      </Button>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      onClick={handleSendPrompt}
-                      disabled={isGenerating || (!aiPrompt.trim() && attachedFiles.length === 0)}
-                      className="gap-1"
-                    >
-                      {isGenerating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                      {isGenerating ? 'Generating...' : 'Generate'}
-                    </Button>
-                  </div>
+        {!leftPanelHidden && (
+          <div className="col-span-4">
+            <Card className="h-full flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Sparkles className="h-5 w-5 text-amber-500" />
+                    Course Builder
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setLeftPanelHidden(true)}
+                    title="Hide course panel"
+                  >
+                    <EyeOff className="h-4 w-4" />
+                  </Button>
                 </div>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  AI will generate lessons, tasks, and assessments based on your description
-                </p>
-              </div>
-
+              </CardHeader>
+            <CardContent className="pt-0 flex-1 flex flex-col">
               <ScrollArea className="flex-1">
                 <DndContext
                   sensors={sensors}
@@ -7199,10 +7062,24 @@ Please provide DMI entries as a JSON array with objects containing "questionText
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* CENTER PANEL - New Three-Section Design */}
-        <div className="col-span-8">
+        <div className={cn(leftPanelHidden ? "col-span-12" : "col-span-8")}>
           <div className="h-full flex flex-col space-y-4 overflow-auto">
+            {leftPanelHidden && (
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setLeftPanelHidden(false)}
+                >
+                  <Eye className="h-4 w-4" />
+                  Show Course Panel
+                </Button>
+              </div>
+            )}
 
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
             <Card className="flex-shrink-0 neon-border-indigo shadow-2xl border-none rounded-2xl overflow-hidden">
