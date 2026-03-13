@@ -2717,7 +2717,7 @@ function AssessmentBuilderModal({
                         className="h-7 text-xs gap-1"
                         onClick={() => setShowAnswerKey(!showAnswerKey)}
                       >
-                        {showAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                        {showAnswerKey ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                         {showAnswerKey ? 'Hide' : 'Show'}
                       </Button>
                     </div>
@@ -3200,7 +3200,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       className="h-7 text-xs gap-1"
                       onClick={() => setShowAnswerKey(!showAnswerKey)}
                     >
-                      {showAnswerKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                      {showAnswerKey ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                       {showAnswerKey ? 'Hide' : 'Show'}
                     </Button>
                   </div>
@@ -4589,7 +4589,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </Button>
           {questions.length > 0 && (
             <Button variant="outline" size="sm" onClick={() => setStudentPreviewOpen(true)} className="gap-1">
-              <Eye className="h-3 w-3" />
+              <Unlock className="h-3 w-3" />
               Student View
             </Button>
           )}
@@ -4600,7 +4600,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               disabled={publishing || questions.length === 0}
               className="gap-1"
             >
-              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : (isAssigned ? <Eye className="h-3 w-3" /> : <Send className="h-3 w-3" />)}
+              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : (isAssigned ? <Unlock className="h-3 w-3" /> : <Send className="h-3 w-3" />)}
               {isAssigned ? 'View' : (showLiveShareAction ? 'Assign' : 'Publish & Assign')}
             </Button>
           )}
