@@ -8,6 +8,6 @@ vi.mock('@google/genai', () => ({
       generateContent: async () => ({ text: '' }),
     }
   },
-}), { virtual: true })
+}))
 
-process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/tutorme'
+process.env.DATABASE_URL ||= 'postgresql://example.com:5432/tutorme'

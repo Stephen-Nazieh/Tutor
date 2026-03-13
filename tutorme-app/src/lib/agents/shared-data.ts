@@ -378,8 +378,8 @@ export async function getLiveSession(sessionId: string): Promise<LiveSession | n
     students: [],
     subject: session.subject,
     status: session.status as LiveSession['status'],
-    startTime: session.startTime,
-    endTime: session.endTime || undefined,
+    startTime: session.startedAt || session.scheduledAt || new Date(),
+    endTime: session.endedAt || undefined,
     engagement: new Map(),
     confusionAlerts: [],
     participation: new Map()
