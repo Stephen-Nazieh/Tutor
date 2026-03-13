@@ -7,15 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { generateTutorResponse, Solocornssage } from '@/lib/ai/tutor-service'
+import { tutorChat } from '@/lib/agents'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
-
-// In-memory conversation storage (use Redis in production)
-const conversationStore = new Map<string, Solocornssage[]>()
-const MAX_CONVERSATIONS = 500
 
 const AIChatRequestSchema = z.object({
   message: z.string().min(1).max(2000),
@@ -30,60 +26,32 @@ export async function POST(request: NextRequest) {
     if (rateLimitResponse) return rateLimitResponse
 
     const session = await getServerSession(authOptions, request)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const body = await request.json().catch(() => null)
     const parsed = AIChatRequestSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
-    const { message, subject, context, conversationId } = parsed.data
+    const { message, subject, context: _context, conversationId } = parsed.data
 
     const safeMessage = AISecurityManager.sanitizeAiInput(message)
     if (!safeMessage) {
       return NextResponse.json({ error: 'Invalid or empty message after sanitization' }, { status: 400 })
     }
 
-    // Get or initialize conversation history
-    const userId = session?.user?.id || 'anonymous'
-    const convoKey = conversationId || `${userId}-${subject}`
-    
-    let conversationHistory = conversationStore.get(convoKey) || []
-    
-    // Add user message to history (sanitized)
-    conversationHistory.push({
-      role: 'user',
-      content: safeMessage
-    })
-    
-    // Keep only last 10 messages for context
-    if (conversationHistory.length > 10) {
-      conversationHistory = conversationHistory.slice(-10)
-    }
+    const convoKey = conversationId || `${session.user.id}:${subject}`
 
-    // Generate subject-aware response
-    const ctx = context as Record<string, unknown>
-    const response = await generateTutorResponse(safeMessage, {
+    const response = await tutorChat({
+      studentId: session.user.id,
       subject,
-      currentTopic: (ctx.videoTitle as string) || (ctx.topic as string),
-      conversationHistory,
-      knowledgeGraph: ctx.knowledgeGraph,
-      recentQuizAttempts: ctx.recentQuizAttempts as any[]
+      message: safeMessage,
+      conversationId: convoKey
     })
-
-    // Add assistant response to history
-    conversationHistory.push({
-      role: 'assistant',
-      content: response.message
-    })
-    
-    // Store updated history
-    conversationStore.set(convoKey, conversationHistory)
-    if (conversationStore.size > MAX_CONVERSATIONS) {
-      const oldestKey = conversationStore.keys().next().value
-      if (oldestKey) conversationStore.delete(oldestKey)
-    }
 
     // Validate AI response before returning
-    const validation = await AISecurityManager.validateAiResponse(response.message)
+    const validation = await AISecurityManager.validateAiResponse(response.content)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
       return handleApiError(
         new Error('AI response failed security validation'),
@@ -93,11 +61,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      response: response.message,
+      response: response.content,
+      conversationId: convoKey,
+      provider: response.provider,
+      latencyMs: response.latencyMs,
       hintType: response.hintType,
       relevantConcepts: response.relevantConcepts,
-      suggestedNextSteps: response.suggestedNextSteps,
-      conversationId: convoKey
+      suggestedNextSteps: response.suggestedNextSteps
     })
   } catch (error) {
     console.error('AI chat error:', error)

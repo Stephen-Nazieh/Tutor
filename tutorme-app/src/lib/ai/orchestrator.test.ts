@@ -17,7 +17,7 @@ describe('ai/orchestrator', () => {
       const result = await generateWithFallback('Hello world')
       expect(result.content).toContain('[MOCK AI RESPONSE]')
       expect(result.content).toContain('Hello world')
-      expect(result.provider).toBe('ollama')
+      expect(result.provider).toBe('kimi')
       expect(result.latencyMs).toBeGreaterThanOrEqual(0)
     })
 
@@ -34,7 +34,7 @@ describe('ai/orchestrator', () => {
       expect(result).toHaveProperty('provider')
       expect(result).toHaveProperty('latencyMs')
       expect(typeof result.content).toBe('string')
-      expect(['ollama', 'kimi', 'zhipu']).toContain(result.provider)
+      expect(['kimi', 'gemini']).toContain(result.provider)
     })
   })
 })

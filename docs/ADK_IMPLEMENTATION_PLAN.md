@@ -24,8 +24,8 @@ This document outlines the migration from Solocorn's custom agent framework to *
 └─────────────────────────────────────────────────────────────┘
          ↓                    ↓
    ┌─────────────┐    ┌─────────────┐
-   │  Kimi API   │    │  Fallbacks  │
-   │  (Primary)  │    │(Ollama/Zhipu)│
+   │  Kimi API   │    │  Fallback  │
+   │  (Primary)  │    │  (Gemini)  │
    └─────────────┘    └─────────────┘
 ```
 

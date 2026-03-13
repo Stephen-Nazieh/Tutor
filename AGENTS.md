@@ -35,7 +35,7 @@ Solocorn (also known as CogniClass) is an AI-human hybrid tutoring platform that
 | **Cache** | Redis | 7 | Sessions, caching, real-time state |
 | **Auth** | NextAuth.js | 4.24.13 | JWT-based authentication |
 | **i18n** | next-intl | 4.8.3 | Internationalization (10 languages) |
-| **AI/LLM** | Ollama + Kimi + Zhipu | - | AI provider fallback chain |
+| **AI/LLM** | Kimi + Gemini | - | AI provider fallback chain |
 | **Video** | Daily.co | 0.87.0 | Video conferencing |
 | **Whiteboard** | tldraw + Yjs + Fabric.js | - | Collaborative whiteboard |
 | **Validation** | Zod | 4.3.6 | Schema validation |
@@ -97,10 +97,9 @@ Solocornkimi/
 │   │
 │   ├── lib/                      # Utility code & business logic
 │   │   ├── ai/                   # AI provider implementations
-│   │   │   ├── ollama.ts         # Local LLM (primary)
-│   │   │   ├── kimi.ts           # Moonshot AI fallback
-│   │   │   ├── zhipu.ts          # Zhipu AI fallback
-│   │   │   ├── orchestrator.ts   # Provider fallback chain
+│   │   │   ├── kimi.ts           # Kimi K2.5 API integration
+│   │   │   ├── gemini.ts         # Gemini API integration
+│   │   │   ├── orchestrator.ts   # Provider fallback chain (compat)
 │   │   │   ├── prompts.ts        # AI prompts
 │   │   │   └── teaching-prompts/ # Modular prompt system
 │   │   ├── api/                  # API utilities
@@ -166,7 +165,7 @@ Solocornkimi/
 ├── docs/                         # Project documentation
 │
 ├── server.ts                     # Custom Next.js server with Socket.io
-├── docker-compose.yml            # Postgres + Redis + PgBouncer + Ollama
+├── docker-compose.yml            # Postgres + Redis + PgBouncer
 ├── next.config.mjs               # Next.js configuration with CSP
 ├── tailwind.config.ts            # Tailwind + design tokens
 ├── tsconfig.json                 # TypeScript configuration
@@ -260,7 +259,6 @@ npm run db:check            # Check database health
 npm run docker:up           # Start all Docker containers
 npm run docker:down         # Stop Docker containers
 npm run docker:logs         # View container logs
-npm run ollama:pull         # Pull Llama 3.1 model to Ollama
 
 # Testing
 npm run test                # Run Vitest unit tests
@@ -313,17 +311,18 @@ DIRECT_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
 REDIS_URL="redis://localhost:6379"
 
 # =============================================================================
-# AI Providers (Priority: Ollama -> Kimi -> Zhipu)
+# AI Providers (Priority: Kimi -> Gemini)
 # =============================================================================
 
-# Ollama (Local LLM)
-OLLAMA_URL="http://localhost:11434"
-
-# Kimi K2.5 (Moonshot AI) - Primary API fallback
+# Kimi K2.5 (Moonshot AI) - Primary
 KIMI_API_KEY="your_kimi_api_key_here"
 
-# Zhipu AI (GLM models) - Secondary API fallback
-ZHIPU_API_KEY="your_zhipu_api_key_here"
+# Gemini (Google) - Fallback
+GEMINI_API_KEY="your_gemini_api_key_here"
+
+# ADK Service (optional)
+ADK_BASE_URL="http://localhost:4310"
+ADK_AUTH_TOKEN="dev-token"
 
 # =============================================================================
 # Video Conferencing (Daily.co)
@@ -438,7 +437,6 @@ The project uses **Drizzle ORM** as the primary ORM (new code) while maintaining
 - **PostgreSQL** (port 5433): Direct connection for application (via launcher script)
 - **PgBouncer** (port 6432): Connection pooler for production scaling
 - **Redis** (port 6379): Caching and real-time state
-- **Ollama** (port 11434): Local LLM inference
 
 ---
 
@@ -510,13 +508,13 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
 // Always use orchestrator for AI calls, not direct providers
 import { generateWithFallback, chatWithFallback } from '@/lib/ai/orchestrator'
 
-// Generate with automatic fallback (Ollama -> Kimi -> Zhipu)
+// Generate with automatic fallback (Kimi -> Gemini)
 const result = await generateWithFallback(prompt, { temperature: 0.7 })
 
 // Chat with history
 const response = await chatWithFallback(messages, { maxTokens: 2048 })
 
-// Response format: { content: string, provider: 'ollama'|'kimi'|'zhipu', latencyMs: number }
+// Response format: { content: string, provider: 'kimi'|'gemini', latencyMs: number }
 
 // MOCK MODE for testing without AI providers
 if (process.env.MOCK_AI === 'true') {
@@ -691,11 +689,10 @@ Configured in both `next.config.mjs` and `middleware.ts`:
 
 ### Local-First AI Strategy
 
-1. **Ollama (local Llama 3.1)** is always the first choice
-2. **Kimi K2.5** is the first fallback for complex reasoning
-3. **Zhipu GLM** is the second fallback
-4. All AI calls go through `orchestrator.ts` which handles this chain
-5. Set `MOCK_AI=true` for testing without AI providers
+1. **Kimi K2.5** is always the first choice
+2. **Gemini** is the fallback
+3. All AI calls go through `orchestrator.ts` which handles this chain
+4. Set `MOCK_AI=true` for testing without AI providers
 
 ### Socratic Method Requirement
 
@@ -836,18 +833,11 @@ docker restart tutorme-pgbouncer
 npm run db:check
 ```
 
-### Ollama not responding
+### Kimi or Gemini API errors
 
-```bash
-# Pull model manually
-docker exec tutorme-ollama ollama pull llama3.1
-
-# Check logs
-docker logs tutorme-ollama
-
-# Test availability
-curl http://localhost:11434/api/tags
-```
+- Verify `KIMI_API_KEY` and/or `GEMINI_API_KEY` in `.env.local`
+- Check server logs for provider errors or rate limits
+- Set `MOCK_AI=true` to test without external providers
 
 ### Socket.io connection issues
 
@@ -886,7 +876,6 @@ cat ts_errors.log
 - **NextAuth.js**: https://next-auth.js.org
 - **Socket.io**: https://socket.io/docs/
 - **next-intl**: https://next-intl-docs.vercel.app/
-- **Ollama**: https://github.com/ollama/ollama
+- **Gemini**: https://ai.google.dev/gemini-api/docs
 - **Daily.co**: https://docs.daily.co/
 - **Kimi API**: https://platform.moonshot.cn/docs
-- **Zhipu API**: https://open.bigmodel.cn/dev/howuse/model

@@ -50,7 +50,6 @@
     "db:check:win": "scripts\\check-db.bat",
     "copy-pdf-worker": "node scripts/copy-pdf-worker.js",
     "postinstall": "node scripts/copy-pdf-worker.js 2>/dev/null || true; echo 'Run npm run db:migrate manually if needed'",
-    "ollama:pull": "docker exec tutorme-ollama ollama pull llama3.1",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f"
@@ -109,7 +108,6 @@
     "next-auth": "^4.24.13",
     "next-intl": "^4.8.3",
     "nodemailer": "^7.0.13",
-    "ollama": "^0.6.3",
     "openai": "^6.19.0",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",

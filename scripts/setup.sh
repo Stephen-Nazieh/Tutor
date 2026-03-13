@@ -336,28 +336,9 @@ services:
     volumes:
       - redis_data:/data
 
-  # Ollama AI (Local LLM)
-  ollama:
-    image: ollama/ollama:latest
-    container_name: tutorme-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    # For GPU support (Linux only), uncomment:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
 volumes:
   postgres_data:
   redis_data:
-  ollama_data:
 DOCKER
 
 print_status "Docker Compose created"
@@ -371,8 +352,8 @@ DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5432/tutorme"
 REDIS_URL="redis://localhost:6379"
 
 # AI
-OLLAMA_URL="http://localhost:11434"
-ZHIPU_API_KEY="your_zhipu_api_key_here"
+KIMI_API_KEY="your_kimi_api_key_here"
+GEMINI_API_KEY="your_gemini_api_key_here"
 
 # Video (Daily.co - get from https://dashboard.daily.co)
 DAILY_API_KEY="your_daily_api_key_here"
@@ -499,92 +480,6 @@ export interface StudentState {
 }
 TYPES
 
-# Create AI clients
-cat > lib/ai/ollama.ts << 'OLLAMA'
-import { Ollama } from 'ollama'
-
-const ollama = new Ollama({ host: process.env.OLLAMA_URL || 'http://localhost:11434' })
-
-export async function generateWithOllama(prompt: string, model: string = 'llama3.1') {
-  try {
-    const response = await ollama.generate({
-      model,
-      prompt,
-      stream: false,
-    })
-    return response.response
-  } catch (error) {
-    console.error('Ollama generation error:', error)
-    throw error
-  }
-}
-
-export async function chatWithOllama(messages: Array<{ role: string; content: string }>, model: string = 'llama3.1') {
-  try {
-    const response = await ollama.chat({
-      model,
-      messages: messages.map(m => ({
-        role: m.role as 'user' | 'assistant' | 'system',
-        content: m.content,
-      })),
-      stream: false,
-    })
-    return response.message.content
-  } catch (error) {
-    console.error('Ollama chat error:', error)
-    throw error
-  }
-}
-
-export async function pullModel(model: string = 'llama3.1') {
-  try {
-    await ollama.pull({ model })
-    console.log(`Model ${model} pulled successfully`)
-  } catch (error) {
-    console.error('Failed to pull model:', error)
-    throw error
-  }
-}
-OLLAMA
-
-cat > lib/ai/zhipu.ts << 'ZHIPU'
-import OpenAI from 'openai'
-
-const client = new OpenAI({
-  apiKey: process.env.ZHIPU_API_KEY,
-  baseURL: 'https://open.bigmodel.cn/api/paas/v4/',
-})
-
-export async function generateWithZhipu(prompt: string, model: string = 'glm-4-flash') {
-  try {
-    const response = await client.chat.completions.create({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-    })
-    return response.choices[0]?.message?.content || ''
-  } catch (error) {
-    console.error('Zhipu generation error:', error)
-    throw error
-  }
-}
-
-export async function chatWithZhipu(messages: Array<{ role: string; content: string }>, model: string = 'glm-4-flash') {
-  try {
-    const response = await client.chat.completions.create({
-      model,
-      messages: messages.map(m => ({
-        role: m.role as 'user' | 'assistant' | 'system',
-        content: m.content,
-      })),
-    })
-    return response.choices[0]?.message?.content || ''
-  } catch (error) {
-    console.error('Zhipu chat error:', error)
-    throw error
-  }
-}
-ZHIPU
-
 cat > lib/ai/prompts.ts << 'PROMPTS'
 export const socraticTutorPrompt = (params: {
   subject: string
@@ -702,9 +597,6 @@ if ! docker ps | grep -q tutorme-db; then
     # Generate Prisma client
     npx prisma generate
     
-    # Pull Ollama model
-    echo "Checking Ollama model..."
-    docker exec tutorme-ollama ollama pull llama3.1 || echo "Model pull will happen on first use"
 fi
 
 echo ""
@@ -1051,7 +943,7 @@ components/
 ├── whiteboard/      # Collaborative whiteboard
 └── quiz/            # Quiz components
 lib/
-├── ai/              # AI clients (Ollama, Zhipu)
+├── ai/              # AI clients (Kimi, Gemini)
 ├── db/              # Database client
 ├── realtime/        # Socket.io setup
 └── video/           # Video provider abstraction
@@ -1063,7 +955,8 @@ prisma/
 
 Copy `.env.example` to `.env.local` and fill in your API keys:
 
-- `ZHIPU_API_KEY` - Get from https://open.bigmodel.cn
+- `KIMI_API_KEY` - Get from https://platform.moonshot.cn/docs
+- `GEMINI_API_KEY` - Get from https://ai.google.dev/gemini-api/docs
 - `DAILY_API_KEY` - Get from https://dashboard.daily.co
 - `WECHAT_APP_ID` and `WECHAT_APP_SECRET` - Get from https://open.weixin.qq.com
 

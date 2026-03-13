@@ -75,8 +75,8 @@ export async function generateTutorResponse(
 
   // Inject Student Context (Shared Brain)
   if (studentContext) {
-    fullPrompt += `## Student Context (SHARED BRAIN)\n`
-    fullPrompt += `Name: ${studentContext.profile.name} (${studentContext.profile.level})\n`
+    fullPrompt += `## Student Context (SHARED BRAIN - ANONYMIZED)\n`
+    fullPrompt += `Level: ${studentContext.profile.level}\n`
     fullPrompt += `Learning Style: ${studentContext.profile.learningStyle}\n`
     fullPrompt += `Current Mood: ${studentContext.state.currentMood}\n`
 

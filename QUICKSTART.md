@@ -87,7 +87,7 @@ The setup script (`scripts/setup.sh`) automatically:
 1. ✅ Creates Next.js 14 project with TypeScript
 2. ✅ Sets up Tailwind CSS and shadcn/ui components
 3. ✅ Installs all dependencies (30+ packages)
-4. ✅ Creates Docker Compose configuration (Postgres, Redis, Ollama AI)
+4. ✅ Creates Docker Compose configuration (Postgres, Redis)
 5. ✅ Sets up Prisma database schema
 6. ✅ Creates environment configuration files
 7. ✅ Generates helper scripts

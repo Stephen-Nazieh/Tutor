@@ -16,7 +16,7 @@ const roomTranscripts = new Map<string, any[]>()
 const MOCK_STUDENT_ID = 'student-1'
 profiles.set(MOCK_STUDENT_ID, {
     id: MOCK_STUDENT_ID,
-    name: 'Sarah Chen',
+    name: 'Student-1',
     age: 16,
     level: 'B1',
     learningStyle: 'visual',

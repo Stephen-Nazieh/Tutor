@@ -86,7 +86,7 @@ An AI-human hybrid tutoring platform with:
 | Frontend | Next.js 14 + TypeScript + Tailwind CSS + shadcn/ui |
 | Backend | Node.js + Express + Socket.io |
 | Database | PostgreSQL + Redis |
-| AI | Ollama (local) + Zhipu AI (fallback) |
+| AI | Kimi K2.5 + Gemini (fallback) |
 | Video | Daily.co (abstracted for Tencent TRTC later) |
 | Whiteboard | tldraw + Yjs |
 | Auth | NextAuth.js (WeChat OAuth) |
@@ -129,7 +129,7 @@ After 15 weeks, you'll have:
 
 ## 📝 Notes for Development
 
-- Always use local LLM first (Ollama), Zhipu only as fallback
+- Use Kimi K2.5 as primary with Gemini as fallback
 - Chinese i18n from day one (zh-CN primary, English secondary)
 - Mobile-responsive design
 - No PII in AI prompts

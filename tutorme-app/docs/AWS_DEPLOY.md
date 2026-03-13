@@ -52,7 +52,8 @@ Note the **Elastic IP** and **Instance ID** from the stack outputs.
   REDIS_URL=redis://localhost:6379
   NEXTAUTH_SECRET=your_secret_min_32_chars
   NEXTAUTH_URL=https://your-domain.com
-  OLLAMA_URL=http://localhost:11434
+  KIMI_API_KEY=your_kimi_api_key_here
+  GEMINI_API_KEY=your_gemini_api_key_here
   # Add other vars from .env.example
   ENVEOF'
   ```

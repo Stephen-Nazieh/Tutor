@@ -156,32 +156,232 @@ export interface Tutor {
   totalSessions: number;
 }
 
-// Data access functions (implementations would connect to DB)
-export async function getStudent(studentId: string): Promise<Student | null> {
-  // Implementation: Fetch from database
-  return null;
+import { cache } from '@/lib/db'
+import {
+  curriculum as curriculumTable,
+  curriculumLesson,
+  curriculumModule,
+  liveSession as liveSessionTable,
+  studentPerformance,
+  user
+} from '@/lib/db/schema'
+import { and, desc, eq, inArray } from 'drizzle-orm'
+
+const CONVERSATION_TTL_SECONDS = 60 * 60 * 24 // 24 hours
+const CONVERSATION_PREFIX = 'ai:conversation:'
+const MAX_CONVERSATION_MESSAGES = 50
+
+function buildConversationKey(studentId: string, subject: string, conversationId?: string): string {
+  return `${CONVERSATION_PREFIX}${conversationId || `${studentId}:${subject}`}`
 }
 
-export async function getConversation(studentId: string, subject: string): Promise<Conversation | null> {
-  // Implementation: Fetch from database
-  return null;
+function normalizeLearningLevel(grade?: string | null): Student['currentLevel'] {
+  const value = (grade || '').toLowerCase()
+  if (value.includes('advanced') || value.includes('ap')) return 'advanced'
+  if (value.includes('intermediate') || value.includes('middle')) return 'intermediate'
+  return 'beginner'
+}
+
+async function getDb() {
+  const { drizzleDb } = await import('@/lib/db/drizzle')
+  return drizzleDb
+}
+
+// Data access functions
+export async function getStudent(studentId: string): Promise<Student | null> {
+  const db = await getDb()
+  const userRow = await db.query.user.findFirst({
+    where: eq(user.id, studentId),
+    with: {
+      profile: true,
+      gamification: true,
+      achievements: true
+    }
+  })
+
+  if (!userRow) return null
+
+  const performance = await db
+    .select()
+    .from(studentPerformance)
+    .where(eq(studentPerformance.studentId, studentId))
+    .orderBy(desc(studentPerformance.updatedAt))
+    .limit(1)
+
+  const learningStyle =
+    performance[0]?.learningStyle || userRow.profile?.learningGoals?.[0] || 'mixed'
+
+  return {
+    id: userRow.id,
+    name: userRow.profile?.name || 'Student',
+    email: userRow.email,
+    grade: userRow.profile?.gradeLevel || 'unknown',
+    subjects: userRow.profile?.subjectsOfInterest || [],
+    learningStyle: (learningStyle as Student['learningStyle']) || 'mixed',
+    currentLevel: normalizeLearningLevel(userRow.profile?.gradeLevel),
+    xp: userRow.gamification?.xp ?? 0,
+    streak: userRow.gamification?.streakDays ?? 0,
+    achievements: (userRow.achievements || []).map((a) => a.title),
+    lastActive: userRow.updatedAt
+  }
+}
+
+export async function getConversation(
+  studentId: string,
+  subject: string,
+  conversationId?: string
+): Promise<Conversation | null> {
+  const key = buildConversationKey(studentId, subject, conversationId)
+  const existing = await cache.get<Conversation>(key)
+  if (existing) return existing
+
+  const now = new Date()
+  const conversation: Conversation = {
+    id: conversationId || `${studentId}:${subject}`,
+    studentId,
+    subject,
+    messages: [],
+    summary: '',
+    createdAt: now,
+    updatedAt: now
+  }
+
+  await cache.set(key, conversation, CONVERSATION_TTL_SECONDS)
+  return conversation
 }
 
 export async function saveMessage(conversationId: string, message: Message): Promise<void> {
-  // Implementation: Save to database
+  const key = `${CONVERSATION_PREFIX}${conversationId}`
+  const existing = await cache.get<Conversation>(key)
+  if (!existing) {
+    const [parsedStudentId, parsedSubject] = conversationId.split(':')
+    await cache.set(
+      key,
+      {
+        id: conversationId,
+        studentId: parsedStudentId || 'unknown',
+        subject: parsedSubject || 'general',
+        messages: [message],
+        summary: '',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      CONVERSATION_TTL_SECONDS
+    )
+    return
+  }
+
+  const messages = [...existing.messages, message].slice(-MAX_CONVERSATION_MESSAGES)
+  const updated: Conversation = {
+    ...existing,
+    messages,
+    updatedAt: new Date()
+  }
+
+  await cache.set(key, updated, CONVERSATION_TTL_SECONDS)
 }
 
 export async function getCurriculum(subject: string, grade: string): Promise<Curriculum | null> {
-  // Implementation: Fetch from database
-  return null;
+  const db = await getDb()
+  const curriculumRow = await db
+    .select()
+    .from(curriculumTable)
+    .where(
+      and(
+        eq(curriculumTable.subject, subject),
+        eq(curriculumTable.isPublished, true)
+      )
+    )
+    .limit(1)
+
+  if (!curriculumRow[0]) return null
+
+  const modules = await db
+    .select()
+    .from(curriculumModule)
+    .where(eq(curriculumModule.curriculumId, curriculumRow[0].id))
+    .orderBy(curriculumModule.order)
+
+  const moduleIds = modules.map((m) => m.id)
+  const lessons = moduleIds.length
+    ? await db
+        .select()
+        .from(curriculumLesson)
+        .where(inArray(curriculumLesson.moduleId, moduleIds))
+        .orderBy(curriculumLesson.order)
+    : []
+
+  return {
+    id: curriculumRow[0].id,
+    subject: curriculumRow[0].subject,
+    grade,
+    learningObjectives: curriculumRow[0].categories || [],
+    modules: modules.map((m) => ({
+      id: m.id,
+      title: m.title,
+      description: m.description || '',
+      order: m.order,
+      lessons: lessons
+        .filter((lesson) => lesson.moduleId === m.id)
+        .map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          content: lesson.description || '',
+          difficulty: (lesson.difficulty as Lesson['difficulty']) || 'medium',
+          estimatedTime: lesson.duration,
+          prerequisites: lesson.prerequisiteLessonIds || []
+        }))
+    }))
+  }
 }
 
 export async function getProgress(studentId: string, lessonId: string): Promise<ProgressData | null> {
-  // Implementation: Fetch from database
-  return null;
+  const db = await getDb()
+  const performance = await db
+    .select()
+    .from(studentPerformance)
+    .where(eq(studentPerformance.studentId, studentId))
+    .orderBy(desc(studentPerformance.updatedAt))
+    .limit(1)
+
+  if (!performance[0]) return null
+
+  const strengths = Array.isArray(performance[0].strengths) ? performance[0].strengths : []
+  const weaknesses = Array.isArray(performance[0].weaknesses) ? performance[0].weaknesses : []
+
+  return {
+    studentId,
+    lessonId,
+    completion: Math.round(performance[0].completionRate * 100),
+    quizScores: [],
+    timeSpent: 0,
+    struggles: weaknesses.map((w) => (typeof w === 'string' ? w : JSON.stringify(w))),
+    strengths: strengths.map((s) => (typeof s === 'string' ? s : JSON.stringify(s))),
+    lastUpdated: performance[0].updatedAt
+  }
 }
 
 export async function getLiveSession(sessionId: string): Promise<LiveSession | null> {
-  // Implementation: Fetch from database
-  return null;
+  const db = await getDb()
+  const sessions = await db
+    .select()
+    .from(liveSessionTable)
+    .where(eq(liveSessionTable.id, sessionId))
+    .limit(1)
+
+  const session = sessions[0]
+  if (!session) return null
+
+  return {
+    id: session.id,
+    tutorId: session.tutorId,
+    students: [],
+    subject: session.subject,
+    status: session.status as LiveSession['status'],
+    startTime: session.startTime,
+    endTime: session.endTime || undefined,
+    engagement: new Map(),
+    confusionAlerts: [],
+    participation: new Map()
+  }
 }

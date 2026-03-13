@@ -169,7 +169,7 @@ export function buildFeedbackTonePrompt(
   baseFeedback: string,
   score: number,
   maxScore: number,
-  studentName: string,
+  studentLabel: string,
   isStruggling: boolean
 ): string {
   const percentage = (score / maxScore) * 100;
@@ -187,7 +187,7 @@ export function buildFeedbackTonePrompt(
       : 'Supportive but direct about gaps. Clear action items for improvement.';
   }
   
-  return `Rewrite this feedback for ${studentName} in a ${tone}
+  return `Rewrite this feedback for ${studentLabel} in a ${tone}
 
 ORIGINAL FEEDBACK:
 ${baseFeedback}

@@ -3,65 +3,55 @@
 ## Overview
 Solocorn uses a multi-provider AI system with automatic fallback for tutoring, content generation, and real-time assistance.
 
+## ADK Service (New)
+All production AI calls can be routed through the Google ADK service in `services/adk/`.
+The main app uses `ADK_BASE_URL` and `ADK_AUTH_TOKEN` to proxy AI requests to ADK agents.
+
 ## AI Provider Chain (Updated: Kimi Primary)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     AI ORCHESTRATOR                              │
-│              (src/lib/ai/orchestrator.ts)                       │
+│            (src/lib/agents/orchestrator-llm.ts)                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  Priority 1: Kimi K2.5 (Moonshot AI)  ◄── PRIMARY (You set key) │
-│  Priority 2: Ollama (Local Llama 3.1) ◄── Fallback if Kimi fails│
-│  Priority 3: Zhipu GLM-4              ◄── Final fallback         │
+│  Priority 2: Gemini (Google)          ◄── Fallback              │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      AI SERVICES                                 │
+│                        AGENTS LAYER                               │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Tutor Service      (src/lib/ai/tutor-service.ts)             │
-│  • Modular Tutor      (src/lib/ai/modular-tutor.ts)             │
-│  • Task Generator     (src/lib/ai/task-generator.ts)             │
-│  • Memory Service     (src/lib/ai/memory-service.ts)             │
+│  • Tutor Agent        (src/lib/agents/tutor)                     │
+│  • Content Generator  (src/lib/agents/content-generator)         │
+│  • Grading Agent      (src/lib/agents/grading)                   │
+│  • Briefing Agent     (src/lib/agents/briefing)                  │
+│  • Live Monitor       (src/lib/agents/live-monitor)              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Folder Structure
 
 ```
+tutorme-app/src/lib/agents/
+│
+├── orchestrator-llm.ts      # Provider fallback (Kimi -> Gemini)
+├── orchestrator.ts          # Agent orchestration entry
+├── shared-data.ts           # Shared data access layer
+├── tutor/                   # Tutor agent
+├── content-generator/       # Content generation agent
+├── grading/                 # Grading agent
+├── briefing/                # Tutor briefing agent
+└── live-monitor/            # Live monitoring agent
+
 tutorme-app/src/lib/ai/
 │
-├── orchestrator.ts          # Main entry - manages provider fallback
-├── kimi.ts                  # Kimi K2.5 API integration (PRIMARY)
-├── ollama.ts                # Local Ollama integration (FALLBACK)
-├── zhipu.ts                 # Zhipu GLM API integration (FALLBACK)
-│
-├── tutor-service.ts         # High-level tutoring interface
-├── modular-tutor.ts         # Subject-specific tutoring logic
-├── task-generator.ts        # Quiz/assessment generation
-├── memory-service.ts        # Conversation memory/context
+├── kimi.ts                  # Kimi K2.5 API integration
+├── gemini.ts                # Gemini API integration
+├── tutor-service.ts         # Legacy tutor service (compat)
+├── memory-service.ts        # Legacy memory service (compat)
 ├── prompts.ts               # Base prompt templates
-│
-├── teaching-prompts/        # Modular prompt system
-│   ├── index.ts
-│   ├── core-identity.ts     # AI personality definition
-│   ├── prompt-builder.ts    # Dynamic prompt construction
-│   ├── personalities.ts     # Different tutor personalities
-│   ├── common.ts            # Shared prompts
-│   ├── math.ts              # Math-specific prompts
-│   ├── english.ts           # English-specific prompts
-│   └── gamification-context.ts  # XP/achievement context
-│
-├── subjects/                # Subject-specific AI logic
-│   ├── index.ts
-│   ├── types.ts
-│   ├── mathematics.ts
-│   ├── physics.ts
-│   ├── chemistry.ts
-│   └── english.ts
-│
-└── types/
-    └── context.ts           # TypeScript types for AI context
+└── subjects/                # Subject-specific tutoring logic
 ```
 
 ## UI Components (AI Chat Interface)
@@ -150,14 +140,15 @@ User clicks "Ask AI" in UI
 # PRIMARY - Kimi (Moonshot AI)
 KIMI_API_KEY=your_kimi_api_key_here
 
-# FALLBACK 1 - Ollama (Local)
-OLLAMA_URL=http://localhost:11434
-
-# FALLBACK 2 - Zhipu AI
-ZHIPU_API_KEY=your_zhipu_api_key_here
+# FALLBACK - Gemini
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional - Mock mode for testing
 MOCK_AI=true
+
+# ADK Service (Optional)
+ADK_BASE_URL=http://localhost:4310
+ADK_AUTH_TOKEN=dev-token
 ```
 
 ## Key Files to Know

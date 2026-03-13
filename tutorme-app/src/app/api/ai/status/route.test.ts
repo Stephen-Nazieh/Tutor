@@ -48,15 +48,14 @@ describe('GET /api/ai/status', () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'u1', role: 'TUTOR' },
     })
-    mocks.getAIProvidersStatus.mockResolvedValue([{ name: 'ollama', available: true }])
+    mocks.getAIProvidersStatus.mockResolvedValue([{ name: 'kimi', available: true }])
 
     const req = new Request('http://localhost/api/ai/status')
     const res = await GET(req as unknown as NextRequest)
 
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.providers).toEqual([{ name: 'ollama', available: true }])
+    expect(body.providers).toEqual([{ name: 'kimi', available: true }])
     expect(typeof body.timestamp).toBe('string')
   })
 })
-

@@ -126,13 +126,6 @@ certbot --nginx -d solocorn.co -d www.solocorn.co --non-interactive --agree-tos 
     echo "Run manually later: sudo certbot --nginx -d solocorn.co -d www.solocorn.co"
 }
 
-# Pull Ollama model
-echo "Pulling Ollama model (this will take several minutes)..."
-docker-compose -f docker-compose.prod.yml exec -T ollama ollama pull llama3.1 || {
-    echo "Warning: Failed to pull Ollama model. You can do this manually later:"
-    echo "  docker-compose -f docker-compose.prod.yml exec ollama ollama pull llama3.1"
-}
-
 # Setup auto-renewal for SSL
 echo "Setting up SSL auto-renewal..."
 (cat crontab -l 2>/dev/null; echo "0 3 * * * /usr/bin/certbot renew --quiet --nginx") | crontab -

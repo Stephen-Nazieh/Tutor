@@ -51,7 +51,6 @@ const providerTypes = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'anthropic', label: 'Anthropic' },
   { value: 'google', label: 'Google' },
-  { value: 'ollama', label: 'Ollama (Local)' },
   { value: 'custom', label: 'Custom' },
 ]
 

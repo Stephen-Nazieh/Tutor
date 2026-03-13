@@ -102,9 +102,7 @@ CREATE TABLE IF NOT EXISTS privacy_policy_versions (
 -- Seed default third-party audit records
 INSERT INTO third_party_audits (id, service_name, category, data_processed, gdpr_compliant, coppa_compliant, ferpa_compliant, dpa_signed, no_training_clause, privacy_policy_url, notes, last_audited_at)
 VALUES
-  ('tp-ollama', 'Ollama (Local LLM)', 'ai_provider', '["chat_messages", "session_context"]', TRUE, TRUE, TRUE, TRUE, TRUE, 'https://ollama.ai/privacy', 'Self-hosted — no external data transfer. All inference is local.', NOW()),
   ('tp-kimi', 'Kimi K2.5 (Moonshot AI)', 'ai_provider', '["chat_messages"]', FALSE, FALSE, FALSE, FALSE, FALSE, 'https://moonshot.cn/privacy', 'Action required: Obtain DPA from Moonshot AI. Verify no-training clause.', NOW()),
-  ('tp-zhipu', 'Zhipu GLM (Zhipu AI)', 'ai_provider', '["chat_messages"]', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 'Action required: Obtain DPA from Zhipu AI. Verify no-training clause.', NOW()),
   ('tp-dailyco', 'Daily.co', 'video', '["video_streams", "participant_metadata"]', TRUE, FALSE, FALSE, TRUE, FALSE, 'https://www.daily.co/privacy', 'COPPA compliance: Verify handling of minors in video sessions.', NOW()),
   ('tp-sentry', 'Sentry', 'monitoring', '["error_traces", "stack_traces"]', TRUE, FALSE, FALSE, FALSE, FALSE, 'https://sentry.io/privacy/', 'Configure PII scrubbing in Sentry settings. Do not log raw student data in errors.', NOW()),
   ('tp-nextauth', 'NextAuth.js', 'auth', '["email", "session_tokens"]', TRUE, TRUE, TRUE, TRUE, TRUE, 'https://next-auth.js.org/security', 'Open source, self-hosted. JWT tokens, no third-party data transfer.', NOW())

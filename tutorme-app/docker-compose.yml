@@ -136,24 +136,6 @@ services:
     profiles:
       - dev
 
-  # Ollama AI (Local LLM)
-  ollama:
-    image: ollama/ollama:latest
-    container_name: tutorme-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    # For GPU support (Linux only), uncomment:
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
   # PostgreSQL Exporter - Metrics for monitoring (optional)
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -183,7 +165,6 @@ services:
       DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
       DATABASE_POOL_URL: "postgresql://postgres:postgres_password@pgbouncer:6432/tutorme"
       REDIS_URL: "redis://redis:6379"
-      OLLAMA_URL: "http://ollama:11434"
       NODE_ENV: production
     depends_on:
       db:
@@ -198,4 +179,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  ollama_data:

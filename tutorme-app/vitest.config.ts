@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@google/genai': path.resolve(__dirname, './src/__tests__/mocks/google-genai.ts'),
     },
   },
 })

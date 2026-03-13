@@ -2,15 +2,15 @@
  * AI Orchestrator
  * Manages AI providers with fallback chain:
  * 1. Kimi K2.5 (Moonshot AI) - PRIMARY
- * 2. Ollama (local Llama 3.1) - Fallback 1
- * 3. Zhipu GLM - Fallback 2
+ * 2. Gemini (Google) - Fallback
  * 
  * Response caching for repeated prompts (5 min TTL)
  */
 
-import { generateWithGemini, chatWithGemini, isGeminiAvailable } from '@/lib/ai/gemini'
+import { generateWithGemini, chatWithGemini } from '@/lib/ai/gemini'
 import { generateWithKimi, chatWithKimi } from '@/lib/ai/kimi'
 import { cache } from '@/lib/db'
+import { adkGenerate, adkChat } from '@/lib/adk-client'
 
 type AIProvider = 'kimi' | 'gemini'
 
@@ -59,8 +59,6 @@ export async function generateWithFallback(
     if (cached) return { ...cached, latencyMs: Date.now() - startTime }
   }
 
-  const timeout = options.timeoutMs || 30000 // 30 second default timeout for Kimi
-
   // MOCK MODE (for verification/testing without keys)
   if (process.env.MOCK_AI === 'true') {
     return {
@@ -71,6 +69,21 @@ export async function generateWithFallback(
   }
 
   // Try Kimi FIRST (now primary)
+  if (process.env.ADK_BASE_URL) {
+    try {
+      const content = await adkGenerate(prompt)
+      const result = {
+        content,
+        provider: 'kimi' as AIProvider,
+        latencyMs: Date.now() - startTime,
+      }
+      if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
+      return result
+    } catch (error) {
+      console.log('ADK generate failed, trying direct providers:', error)
+    }
+  }
+
   if (process.env.KIMI_API_KEY) {
     try {
       const content = await generateWithKimi(prompt, {
@@ -86,7 +99,7 @@ export async function generateWithFallback(
       if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
       return result
     } catch (error) {
-      console.log('Kimi failed, trying Ollama:', error)
+      console.log('Kimi failed, trying Gemini:', error)
     }
   }
 
@@ -108,7 +121,7 @@ export async function generateWithFallback(
     }
   }
 
-  throw new Error('No AI providers configured. Please set KIMI_API_KEY.')
+  throw new Error('No AI providers configured. Please set KIMI_API_KEY or GEMINI_API_KEY.')
 }
 
 /**
@@ -127,8 +140,6 @@ export async function chatWithFallback(
     if (cached) return { ...cached, latencyMs: Date.now() - startTime }
   }
 
-  const timeout = options.timeoutMs || 30000
-
   // MOCK MODE
   if (process.env.MOCK_AI === 'true') {
     return {
@@ -139,6 +150,21 @@ export async function chatWithFallback(
   }
 
   // Try Kimi FIRST
+  if (process.env.ADK_BASE_URL) {
+    try {
+      const content = await adkChat(messages)
+      const result = {
+        content,
+        provider: 'kimi' as AIProvider,
+        latencyMs: Date.now() - startTime,
+      }
+      if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
+      return result
+    } catch (error) {
+      console.log('ADK chat failed, trying direct providers:', error)
+    }
+  }
+
   if (process.env.KIMI_API_KEY) {
     try {
       const content = await chatWithKimi(messages, {
@@ -154,7 +180,7 @@ export async function chatWithFallback(
       if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
       return result
     } catch (error) {
-      console.log('Kimi failed, trying Ollama:', error)
+      console.log('Kimi failed, trying Gemini:', error)
     }
   }
 
@@ -176,7 +202,7 @@ export async function chatWithFallback(
     }
   }
 
-  throw new Error('No AI providers configured. Please set KIMI_API_KEY.')
+  throw new Error('No AI providers configured. Please set KIMI_API_KEY or GEMINI_API_KEY.')
 }
 
 /**

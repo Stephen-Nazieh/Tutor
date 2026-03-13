@@ -408,14 +408,13 @@ export default function CompliancePage() {
                   <Shield className="h-4 w-4" /> Configured AI Data Policy
                 </h4>
                 <p className="text-xs text-blue-700">
-                  All AI providers (Ollama, Kimi, Zhipu) are configured with the <strong>no-training</strong> system instruction.
+                  All AI providers (Kimi, Gemini) are configured with the <strong>no-training</strong> system instruction.
                   Student and tutor data is explicitly marked as not available for model training. This is stated in our Privacy Policy.
                 </p>
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
                   {[
-                    { name: 'Ollama (Local)', note: '✅ Self-hosted — no external data transfer' },
                     { name: 'Kimi K2.5', note: '⚠️ Verify DPA with Moonshot AI' },
-                    { name: 'Zhipu GLM', note: '⚠️ Verify DPA with Zhipu AI' },
+                    { name: 'Gemini', note: '⚠️ Verify DPA with Google' },
                   ].map(ai => (
                     <div key={ai.name} className="text-xs bg-white rounded p-2 border border-blue-100">
                       <div className="font-medium">{ai.name}</div>

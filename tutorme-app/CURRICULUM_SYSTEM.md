@@ -220,5 +220,5 @@ npx prisma studio
 ### AI Generation Fails
 
 - Check Kimi API key in `.env.local`
-- Verify Ollama is running (fallback)
+- Verify Gemini API key is set (fallback)
 - Check logs in server console

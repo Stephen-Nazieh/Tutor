@@ -25,6 +25,7 @@ import {
   saveMessage 
 } from '../shared-data';
 import { buildSystemPrompt, buildHintPrompt, buildExplanationPrompt } from './prompts/system-prompt';
+import { findRelevantConcepts } from '@/lib/ai/subjects';
 
 export interface TutorRequest {
   studentId: string;
@@ -38,6 +39,9 @@ export interface TutorResponse {
   provider: string;
   latencyMs: number;
   intent?: string;
+  hintType?: 'socratic' | 'direct' | 'encouragement' | 'clarification';
+  relevantConcepts?: string[];
+  suggestedNextSteps?: string[];
 }
 
 /**
@@ -55,7 +59,7 @@ export async function tutorChat(request: TutorRequest): Promise<TutorResponse> {
   // FETCH DATA (READ access only)
   const [student, conversation, curriculum, progress] = await Promise.all([
     getStudent(request.studentId),
-    getConversation(request.studentId, request.subject),
+    getConversation(request.studentId, request.subject, request.conversationId),
     getCurriculum(request.subject, 'default'),
     getProgress(request.studentId, 'current')
   ]);
@@ -84,12 +88,28 @@ export async function tutorChat(request: TutorRequest): Promise<TutorResponse> {
     })) || []),
     { role: 'user' as const, content: request.message }
   ];
+
+  if (conversation) {
+    await saveMessage(conversation.id, {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: request.message,
+      timestamp: new Date(),
+      metadata: {
+        intent: analyzeIntent(request.message)
+      }
+    });
+  }
   
   // Call AI (uses Kimi as primary)
   const result = await chatWithFallback(messages, {
     temperature: 0.7,
     maxTokens: 2048
   });
+
+  const hintType = classifyHintType(result.content);
+  const relevantConcepts = findRelevantConcepts(request.subject, request.message);
+  const suggestedNextSteps = extractNextSteps(result.content);
   
   // SAVE TO DATABASE (WRITE access)
   if (conversation) {
@@ -108,7 +128,10 @@ export async function tutorChat(request: TutorRequest): Promise<TutorResponse> {
   return {
     content: result.content,
     provider: result.provider,
-    latencyMs: Date.now() - startTime
+    latencyMs: Date.now() - startTime,
+    hintType,
+    relevantConcepts,
+    suggestedNextSteps
   };
 }
 
@@ -175,4 +198,42 @@ export function analyzeIntent(message: string): string {
     return 'checking_understanding';
   }
   return 'general_chat';
+}
+
+function classifyHintType(message: string): TutorResponse['hintType'] {
+  const lower = message.toLowerCase();
+
+  if (lower.includes('?') && (lower.includes('what') || lower.includes('how') || lower.includes('why'))) {
+    return 'socratic';
+  }
+  if (lower.includes('try') || lower.includes('consider') || lower.includes('think about')) {
+    return 'socratic';
+  }
+  if (lower.includes('well done') || lower.includes('great') || lower.includes('excellent')) {
+    return 'encouragement';
+  }
+  if (lower.includes('let me explain') || lower.includes("here's how")) {
+    return 'direct';
+  }
+
+  return 'clarification';
+}
+
+function extractNextSteps(message: string): string[] | undefined {
+  const patterns = [
+    /try (to |)([^.]+)/i,
+    /next, ([^.]+)/i,
+    /you could ([^.]+)/i,
+    /consider ([^.]+)/i
+  ];
+
+  const steps: string[] = [];
+  patterns.forEach((pattern) => {
+    const match = message.match(pattern);
+    if (match) {
+      steps.push(match[0]);
+    }
+  });
+
+  return steps.length > 0 ? steps : undefined;
 }

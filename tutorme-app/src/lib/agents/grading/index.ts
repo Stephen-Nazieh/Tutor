@@ -29,6 +29,14 @@ import {
   GradingResult 
 } from './prompts/grader-prompts';
 
+function tryParseJson<T>(content: string): T | null {
+  try {
+    return JSON.parse(content) as T;
+  } catch {
+    return null;
+  }
+}
+
 export interface BatchGradingRequest {
   quizId: string;
   studentId: string;
@@ -84,14 +92,15 @@ export async function gradeShortAnswer(
   });
   
   try {
-    const grading: GradingResult = JSON.parse(result.content);
+    const grading = tryParseJson<GradingResult>(result.content);
+    if (!grading) throw new Error('Invalid grading JSON');
     
     // Adjust feedback tone based on performance
     const adjustedFeedback = await adjustFeedbackTone(
       grading.feedback,
       grading.score,
       question.points,
-      student.name,
+      'Student',
       false
     );
     
@@ -148,12 +157,26 @@ export async function gradeEssay(
     maxTokens: 2000
   });
   
-  try {
-    return JSON.parse(result.content);
-  } catch (error) {
-    console.error('Failed to parse essay grading:', error);
-    throw new Error('Failed to grade essay');
-  }
+  const parsed = tryParseJson<{
+    totalScore: number;
+    rubricScores: Array<{ criterion: string; score: number; comment: string }>;
+    overallFeedback: string;
+    strengths: string[];
+    improvements: string[];
+    isPassing: boolean;
+  }>(result.content);
+
+  if (parsed) return parsed;
+
+  console.error('Failed to parse essay grading:', result.content);
+  return {
+    totalScore: 0,
+    rubricScores: rubric.map((criterion) => ({ criterion, score: 0, comment: 'Auto-grading failed.' })),
+    overallFeedback: 'Unable to auto-grade this essay. A tutor will review it.',
+    strengths: [],
+    improvements: ['Await tutor feedback'],
+    isPassing: false,
+  };
 }
 
 /**
@@ -188,12 +211,26 @@ export async function gradeMathProblem(
     maxTokens: 1500
   });
   
-  try {
-    return JSON.parse(result.content);
-  } catch (error) {
-    console.error('Failed to parse math grading:', error);
-    throw new Error('Failed to grade math problem');
-  }
+  const parsed = tryParseJson<{
+    score: number;
+    stepBreakdown: Array<{ step: number; correct: boolean; feedback: string }>;
+    finalAnswerCorrect: boolean;
+    errorType: 'calculation' | 'conceptual' | 'missing_step' | 'none';
+    feedback: string;
+    hints: string[];
+  }>(result.content);
+
+  if (parsed) return parsed;
+
+  console.error('Failed to parse math grading:', result.content);
+  return {
+    score: 0,
+    stepBreakdown: [],
+    finalAnswerCorrect: false,
+    errorType: 'none',
+    feedback: 'Unable to auto-grade this submission. A tutor will review it.',
+    hints: ['Try again and show each step clearly.'],
+  };
 }
 
 /**
