@@ -2421,9 +2421,9 @@ function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit" className=" transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className=" transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+              <TabsTrigger value="edit" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -2957,9 +2957,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
           </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-            <TabsTrigger value="edit" className=" transition-all duration-200">Edit</TabsTrigger>
-            <TabsTrigger value="preview" className=" transition-all duration-200">Preview (student view)</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+            <TabsTrigger value="edit" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
+            <TabsTrigger value="preview" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
           </TabsList>
           <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="space-y-4 py-4">
@@ -3403,9 +3403,9 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit" className=" transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className=" transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+              <TabsTrigger value="edit" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -5024,9 +5024,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   // Active tab tracking for Enter button
   const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
   const [assessmentBuilderActiveTab, setAssessmentBuilderActiveTab] = useState<'content' | 'pci'>('content')
-
-  // Right panel tabs for Task Builder (Extensions / DMI)
-  const [taskBuilderRightTab, setTaskBuilderRightTab] = useState<'extensions' | 'dmi'>('extensions')
 
   // Main builder tab (task vs assessment)
   const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
@@ -6779,6 +6776,26 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                             </Button>
                                           </div>
                                         </SortableTreeItem>
+                                        {loadedTaskId === task.id && taskBuilder.extensions.length > 0 && (
+                                          <div className="ml-6 mt-1 space-y-1">
+                                            {taskBuilder.extensions.map((ext, extIdx) => (
+                                              <div
+                                                key={ext.id}
+                                                className={cn(
+                                                  "flex items-center gap-2 rounded px-2 py-1 text-[10px] cursor-pointer border",
+                                                  taskBuilder.activeExtensionId === ext.id
+                                                    ? "bg-orange-100 border-orange-300"
+                                                    : "bg-white border-orange-100 hover:bg-orange-50"
+                                                )}
+                                                onClick={() => setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))}
+                                              >
+                                                <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                                                <span className="font-semibold text-orange-700">{idx + 1}.{extIdx + 1}</span>
+                                                <span className="flex-1 truncate text-muted-foreground">{ext.name}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
                                       ))}
                                     </SortableContext>
                                   )}
@@ -7132,12 +7149,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
-                  <TabsList className="grid w-full grid-cols-2 mb-4 p-1 rounded-xl border bg-white">
-                    <TabsTrigger value="task" className="gap-2">
+                  <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+                    <TabsTrigger value="task" className="gap-2 border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
                     </TabsTrigger>
-                    <TabsTrigger value="assessment" className="gap-2">
+                    <TabsTrigger value="assessment" className="gap-2 border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
                       <FileQuestion className="h-4 w-4 text-purple-500" />
                       Assessment Builder
                     </TabsTrigger>
@@ -7170,9 +7187,9 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2 p-1 rounded-xl border bg-white">
-                            <TabsTrigger value="content">Slide</TabsTrigger>
-                            <TabsTrigger value="pci">PCI</TabsTrigger>
+                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-gray-50">
+                            <TabsTrigger value="content" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
+                            <TabsTrigger value="pci" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7316,103 +7333,79 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           </Button>
                         </div>
                       </div>
-                      {/* Right panel: Extensions & DMI Tabs - resizable */}
+                      {/* Right panel: Extensions - resizable */}
                       <ResizablePanel
                         defaultWidth={192}
                         minWidth={150}
                         maxWidth={600}
                       >
-                        <Tabs value={taskBuilderRightTab} onValueChange={(v) => setTaskBuilderRightTab(v as 'extensions' | 'dmi')} className="w-full">
-                          <TabsList className="grid w-full grid-cols-2 mb-2 p-1 rounded-xl border bg-white">
-                            <TabsTrigger value="extensions">Extensions</TabsTrigger>
-                            <TabsTrigger value="dmi">DMI</TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="extensions" className="mt-0">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mb-2"
-                              onClick={() => {
-                                const extNumber = taskBuilder.extensions.length + 1
-                                setTaskBuilder(prev => ({
-                                  ...prev,
-                                  extensions: [...prev.extensions, {
-                                    id: `ext-${Date.now()}`,
-                                    name: `Extension ${extNumber}`,
-                                    content: '',
-                                    pci: ''
-                                  }]
-                                }))
-                              }}
-                            >
-                              Add Extension
-                            </Button>
-                            <div className="mb-2">
-                              <p className="text-xs text-muted-foreground truncate">{taskBuilder.title || 'Task'}</p>
-                            </div>
-                            <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
-                              {taskBuilder.extensions.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No extensions added</p>
-                              ) : (
-                                taskBuilder.extensions.map((ext) => (
-                                  <div key={ext.id} className="flex items-center gap-1 group">
-                                    <Button
-                                      variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
-                                      size="sm"
-                                      className="flex-1 justify-start text-xs"
-                                      onClick={() => {
-                                        // Simply toggle which content is being viewed
-                                        if (taskBuilder.activeExtensionId === ext.id) {
-                                          setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
-                                        } else {
-                                          setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
-                                        }
-                                      }}
-                                    >
-                                      <FileText className="h-3 w-3 mr-1" />
-                                      {ext.name}
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                      onClick={(e: any) => {
-                                        e.stopPropagation()
-                                        if (confirm(`Delete "${ext.name}"?`)) {
-                                          setTaskBuilder(prev => ({
-                                            ...prev,
-                                            extensions: prev.extensions.filter(e => e.id !== ext.id),
-                                            activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
-                                          }))
-                                        }
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3 text-red-500" />
-                                    </Button>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="dmi" className="mt-0">
-                            <div className="mb-2">
-                              <Button variant="outline" size="sm" className="w-full" onClick={() => handleGenerateDMI('task')}>
-                                <Sparkles className="h-3 w-3 mr-2" />
-                                Generate DMI
-                              </Button>
-                            </div>
-                            <DMIPanel
-                              content={taskBuilder.activeExtensionId
-                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
-                                : taskBuilder.taskContent}
-                              pci={taskBuilder.activeExtensionId
-                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
-                                : taskBuilder.taskPci}
-                            />
-                          </TabsContent>
-                        </Tabs>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mb-2"
+                          onClick={() => {
+                            if (!loadedTaskId) return
+                            const extNumber = taskBuilder.extensions.length + 1
+                            const newExtension = {
+                              id: `ext-${Date.now()}`,
+                              name: `Extension ${extNumber}`,
+                              content: '',
+                              pci: ''
+                            }
+                            setTaskBuilder(prev => ({
+                              ...prev,
+                              extensions: [...prev.extensions, newExtension],
+                              activeExtensionId: newExtension.id
+                            }))
+                          }}
+                        >
+                          Extensions
+                        </Button>
+                        <div className="mb-2">
+                          <p className="text-xs text-muted-foreground truncate">{taskBuilder.title || 'Task'}</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
+                          {taskBuilder.extensions.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">No extensions added</p>
+                          ) : (
+                            taskBuilder.extensions.map((ext) => (
+                              <div key={ext.id} className="flex items-center gap-1 group">
+                                <Button
+                                  variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
+                                  size="sm"
+                                  className="flex-1 justify-start text-xs"
+                                  onClick={() => {
+                                    if (taskBuilder.activeExtensionId === ext.id) {
+                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
+                                    } else {
+                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
+                                    }
+                                  }}
+                                >
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  {ext.name}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                  onClick={(e: any) => {
+                                    e.stopPropagation()
+                                    if (confirm(`Delete "${ext.name}"?`)) {
+                                      setTaskBuilder(prev => ({
+                                        ...prev,
+                                        extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                        activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
+                                      }))
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                </Button>
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </ResizablePanel>
                     </div>
                   </TabsContent>
@@ -7444,9 +7437,9 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2 p-1 rounded-xl border bg-white">
-                            <TabsTrigger value="content">Slide</TabsTrigger>
-                            <TabsTrigger value="pci">PCI</TabsTrigger>
+                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-gray-50">
+                            <TabsTrigger value="content" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
+                            <TabsTrigger value="pci" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7584,7 +7577,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                     {/* Main content with tabs */}
                     <div className="flex-1">
                       <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 p-1 rounded-xl border bg-white">
+                        <TabsList className="grid w-full grid-cols-3 gap-1 p-1 rounded-xl border bg-gray-50">
                           {testPciTabs.map((tab) => (
                             <div key={tab.id} className="relative flex-1">
                               {editingTabId === tab.id ? (
@@ -7605,7 +7598,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                               ) : (
                                 <TabsTrigger
                                   value={tab.id}
-                                  className="w-full"
+                                  className="w-full border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
                                 >
                                   {tab.label}
