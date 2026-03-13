@@ -369,11 +369,11 @@ export function RevenueDashboard({
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="p-3 bg-green-50 rounded-xl border border-slate-200
+              <div className="p-3 bg-green-50 rounded-xl border border-slate-200">
                 <p className="text-xs text-green-600 mb-1">Available Balance</p>
                 <p className="text-xl font-bold text-green-800">{formatCurrency(availableBalance)}</p>
               </div>
-              <div className="p-3 bg-blue-50 rounded-xl border border-slate-200
+              <div className="p-3 bg-blue-50 rounded-xl border border-slate-200">
                 <p className="text-xs text-blue-600 mb-1">This Month</p>
                 <div className="flex items-center gap-2">
                   <p className="text-xl font-bold text-blue-800">{formatCurrency(thisMonthRevenue)}</p>
@@ -402,19 +402,19 @@ export function RevenueDashboard({
                   <div className="space-y-4">
                     {/* Key Metrics */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200
+                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200">
                         <p className="text-lg font-bold">{totalBookings}</p>
                         <p className="text-xs text-gray-500">Total Bookings</p>
                       </div>
-                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200
+                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200">
                         <p className="text-lg font-bold">{formatCurrency(avgBookingValue)}</p>
                         <p className="text-xs text-gray-500">Avg Booking Value</p>
                       </div>
-                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200
+                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200">
                         <p className="text-lg font-bold">{courses.length}</p>
                         <p className="text-xs text-gray-500">Active Courses</p>
                       </div>
-                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200
+                      <div className="p-3 bg-white rounded-lg text-center border border-slate-200">
                         <p className="text-lg font-bold">4.7</p>
                         <p className="text-xs text-gray-500">Avg Rating</p>
                       </div>
