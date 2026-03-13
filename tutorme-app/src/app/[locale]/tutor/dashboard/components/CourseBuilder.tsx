@@ -140,6 +140,7 @@ export interface Task extends WithDifficultyVariants {
   title: string
   description: string
   instructions: string
+  extensions?: Array<{ id: string; name: string; content: string; pci: string }>
   estimatedMinutes: number
   points: number
   submissionType: 'text' | 'file' | 'link' | 'none' | 'questions'
@@ -412,6 +413,7 @@ const DEFAULT_TASK = (order: number): Task => ({
   title: `Task ${order + 1}`,
   description: '',
   instructions: '',
+  extensions: [],
   estimatedMinutes: 15,
   points: 10,
   submissionType: 'text',
@@ -5039,7 +5041,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
 
   // Load task data into taskBuilder
-  const loadTaskIntoBuilder = useCallback((task: Task) => {
+  const loadTaskIntoBuilder = useCallback((task: Task, activeExtensionId: string | null = null) => {
     // Prioritize description over sourceDocument - description holds edited content
     const content = task.description || task.sourceDocument?.extractedText || ''
     setTaskBuilder({
@@ -5047,8 +5049,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       taskContent: content,
       taskPci: task.instructions || '',
       details: '',
-      extensions: [],
-      activeExtensionId: null,
+      extensions: task.extensions ? [...task.extensions] : [],
+      activeExtensionId,
     })
     setLoadedTaskId(task.id)
     setTaskUploadedFiles(task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : [])
@@ -5146,6 +5148,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                 title: taskBuilder.title,
                 description: taskBuilder.taskContent,
                 instructions: taskBuilder.taskPci,
+                extensions: taskBuilder.extensions,
                 sourceDocument: undefined
               }
               : task
@@ -5155,7 +5158,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }, 1000) // Auto-save after 1 second of inactivity
 
     return () => clearTimeout(timeoutId)
-  }, [taskBuilder.title, taskBuilder.taskContent, taskBuilder.taskPci, loadedTaskId])
+  }, [taskBuilder.title, taskBuilder.taskContent, taskBuilder.taskPci, taskBuilder.extensions, loadedTaskId])
 
   // Auto-save assessment on the fly (debounced)
   useEffect(() => {
@@ -6488,6 +6491,24 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                     ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
                   )
                 }))
+                if (loadedTaskId) {
+                  setModules(prev => prev.map(mod => ({
+                    ...mod,
+                    lessons: mod.lessons.map(lesson => ({
+                      ...lesson,
+                      tasks: lesson.tasks.map(t =>
+                        t.id === loadedTaskId
+                          ? {
+                            ...t,
+                            extensions: (t.extensions || []).map(ext =>
+                              ext.id === taskBuilder.activeExtensionId ? { ...ext, content: textToInsert } : ext
+                            )
+                          }
+                          : t
+                      )
+                    }))
+                  })))
+                }
                 setMainBuilderTab('task')
                 toast.success(`Loaded '${assetToLoad?.name}' into extension`)
                 setLoadAsModalOpen(false)
@@ -6510,6 +6531,17 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                 extensions: [...prev.extensions, newExtension],
                 activeExtensionId: newExtension.id
               }))
+              setModules(prev => prev.map(mod => ({
+                ...mod,
+                lessons: mod.lessons.map(lesson => ({
+                  ...lesson,
+                  tasks: lesson.tasks.map(t =>
+                    t.id === loadedTaskId
+                      ? { ...t, extensions: [...(t.extensions || []), newExtension] }
+                      : t
+                  )
+                }))
+              })))
               setMainBuilderTab('task')
               toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
               setLoadAsModalOpen(false)
@@ -6831,14 +6863,15 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                     ...lesson,
                                                     tasks: lesson.tasks.map(t =>
                                                       t.id === loadedTaskId
-                                                        ? {
-                                                          ...t,
-                                                          title: taskBuilder.title,
-                                                          description: taskBuilder.taskContent,
-                                                          instructions: taskBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                        : t
+        ? {
+          ...t,
+          title: taskBuilder.title,
+          description: taskBuilder.taskContent,
+          instructions: taskBuilder.taskPci,
+          extensions: taskBuilder.extensions,
+          sourceDocument: undefined
+        }
+        : t
                                                     )
                                                   }))
                                                 })))
@@ -6918,7 +6951,11 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                         ? "bg-orange-100 border-orange-300"
                                                         : "bg-white border-orange-100 hover:bg-orange-50"
                                                     )}
-                                                    onClick={() => setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))}
+                                                    onClick={() => {
+                                                      setSelectedItem({ type: 'task', id: task.id })
+                                                      loadTaskIntoBuilder(task, ext.id)
+                                                      setMainBuilderTab('task')
+                                                    }}
                                                   >
                                                     <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
                                                     <span className="font-semibold text-orange-700">{idx + 1}.{extIdx + 1}</span>
@@ -6947,6 +6984,19 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                           extensions: prev.extensions.filter(e => e.id !== ext.id),
                                                           activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
                                                         }))
+                                                        if (loadedTaskId) {
+                                                          setModules(prev => prev.map(mod => ({
+                                                            ...mod,
+                                                            lessons: mod.lessons.map(lesson => ({
+                                                              ...lesson,
+                                                              tasks: lesson.tasks.map(t =>
+                                                                t.id === loadedTaskId
+                                                                  ? { ...t, extensions: (t.extensions || []).filter(e => e.id !== ext.id) }
+                                                                  : t
+                                                              )
+                                                            }))
+                                                          })))
+                                                        }
                                                       }}
                                                     >
                                                       <Trash2 className="h-3 w-3 text-red-500" />
@@ -7008,6 +7058,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                           title: taskBuilder.title,
                                                           description: taskBuilder.taskContent,
                                                           instructions: taskBuilder.taskPci,
+                                                          extensions: taskBuilder.extensions,
                                                           sourceDocument: undefined
                                                         }
                                                         : t
@@ -7147,6 +7198,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                           title: taskBuilder.title,
                                                           description: taskBuilder.taskContent,
                                                           instructions: taskBuilder.taskPci,
+                                                          extensions: taskBuilder.extensions,
                                                           sourceDocument: undefined
                                                         }
                                                         : t
@@ -7520,6 +7572,17 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                               extensions: [...prev.extensions, newExtension],
                               activeExtensionId: newExtension.id
                             }))
+                            setModules(prev => prev.map(mod => ({
+                              ...mod,
+                              lessons: mod.lessons.map(lesson => ({
+                                ...lesson,
+                                tasks: lesson.tasks.map(t =>
+                                  t.id === loadedTaskId
+                                    ? { ...t, extensions: [...(t.extensions || []), newExtension] }
+                                    : t
+                                )
+                              }))
+                            })))
                           }}
                         >
                           Extensions
