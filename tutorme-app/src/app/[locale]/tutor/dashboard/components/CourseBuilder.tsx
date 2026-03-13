@@ -2426,8 +2426,8 @@ function AssessmentBuilderModal({
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
+              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -2962,8 +2962,8 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-            <TabsTrigger value="edit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
-            <TabsTrigger value="preview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsTrigger value="edit" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
+            <TabsTrigger value="preview" className="data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
           </TabsList>
           <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="space-y-4 py-4">
@@ -3408,8 +3408,8 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
+              <TabsTrigger value="edit" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 neon-border-indigo shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -4848,14 +4848,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </div>
         </div>
       )}
-      {onSaveAll && (
-        <div className="flex justify-end border-t pt-3">
-          <Button size="sm" onClick={onSaveAll} className="gap-1">
-            <Save className="h-3 w-3" />
-            Save
-          </Button>
-        </div>
-      )}
+
       {studentPreviewOpen && questions.length > 0 && (
         <StudentPreviewModal
           questions={questions}
@@ -5316,6 +5309,76 @@ FEEDBACK: [your explanation]`
     }
   }
 
+  // Generate DMI using AI with Slide and PCI content
+  const handleGenerateDMI = async (type: 'task' | 'assessment') => {
+    const isTask = type === 'task'
+    const builder = isTask ? taskBuilder : assessmentBuilder
+    const content = builder.activeExtensionId
+      ? builder.extensions.find(e => e.id === builder.activeExtensionId)?.content || builder.taskContent
+      : builder.taskContent
+    const pci = builder.activeExtensionId
+      ? builder.extensions.find(e => e.id === builder.activeExtensionId)?.pci || builder.taskPci
+      : builder.taskPci
+
+    if (!content.trim() && !pci.trim()) {
+      toast.error('Please add some content or PCI instructions first')
+      return
+    }
+
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: `You are a DMI (Differentiated Measurement Index) generator for educational content. 
+Given the Slide content and PCI (Processing Content Instructions), generate appropriate DMI entries.
+Each DMI entry should include:
+- questionText: The question or task text
+- answer: The expected answer or solution
+
+Return your response as a JSON array of DMI entries.`
+            },
+            {
+              role: 'user',
+              content: `Generate DMI entries for the following ${type}:
+
+SLIDE CONTENT:
+${content || '(empty)'}
+
+PCI INSTRUCTIONS:
+${pci || '(empty)'}
+
+Please provide DMI entries as a JSON array with objects containing "questionText" and "answer" fields.`
+            }
+          ],
+          temperature: 0.7
+        }),
+      })
+
+      if (!res.ok) throw new Error('Failed to generate DMI')
+
+      const data = await res.json()
+      toast.success('DMI generated successfully')
+      
+      // The DMIPanel will receive the content and display it
+      // We could store the generated DMI in state if needed
+      console.log('Generated DMI:', data.content)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to generate DMI')
+    }
+  }
+
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files) {
@@ -5545,6 +5608,54 @@ FEEDBACK: [your explanation]`
       lessonId: nextModules[0].lessons[0].id,
     }
   }, [expandedModules, modules])
+
+  // Auto-create task when typing in Task Builder without loaded task
+  const autoCreateTask = useCallback(() => {
+    const { moduleId, lessonId } = ensureFirstLessonContext()
+    const moduleIndex = modules.findIndex(m => m.id === moduleId)
+    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+    if (moduleIndex === -1 || lessonIndex === -1) return null
+
+    const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
+    const newModules = [...modules]
+    newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
+    setModules(newModules)
+    setLoadedTaskId(newTask.id)
+    setTaskBuilder({
+      title: newTask.title,
+      taskContent: '',
+      taskPci: '',
+      details: '',
+      extensions: [],
+      activeExtensionId: null,
+    })
+    toast.success('New task created')
+    return newTask
+  }, [modules, ensureFirstLessonContext])
+
+  // Auto-create assessment when typing in Assessment Builder without loaded assessment
+  const autoCreateAssessment = useCallback(() => {
+    const { moduleId, lessonId } = ensureFirstLessonContext()
+    const moduleIndex = modules.findIndex(m => m.id === moduleId)
+    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+    if (moduleIndex === -1 || lessonIndex === -1) return null
+
+    const newAssessment = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
+    const newModules = [...modules]
+    newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
+    setModules(newModules)
+    setLoadedAssessmentId(newAssessment.id)
+    setAssessmentBuilder({
+      title: newAssessment.title,
+      taskContent: '',
+      taskPci: '',
+      details: '',
+      extensions: [],
+      activeExtensionId: null,
+    })
+    toast.success('New assessment created')
+    return newAssessment
+  }, [modules, ensureFirstLessonContext])
 
   const assetsLesson = modules[0]?.lessons?.[0] ?? null
 
@@ -6381,17 +6492,8 @@ FEEDBACK: [your explanation]`
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Sparkles className="h-5 w-5 text-amber-500" />
-                  Start here!
+                  Course Builder
                 </CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setAiPanelOpen(!aiPanelOpen)}
-                >
-                  <Wand2 className="h-4 w-4" />
-                  AI Assist
-                </Button>
               </div>
             </CardHeader>
             <CardContent className="pt-0 flex-1 flex flex-col">
@@ -7048,11 +7150,11 @@ FEEDBACK: [your explanation]`
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
                   <TabsList className="grid w-full grid-cols-2 mb-4 neon-border-inner p-1 rounded-xl shadow-lg bg-white/50 backdrop-blur-sm">
-                    <TabsTrigger value="task" className="gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
+                    <TabsTrigger value="task" className="gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
                     </TabsTrigger>
-                    <TabsTrigger value="assessment" className="gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
+                    <TabsTrigger value="assessment" className="gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200">
                       <FileQuestion className="h-4 w-4 text-purple-500" />
                       Assessment Builder
                     </TabsTrigger>
@@ -7073,49 +7175,7 @@ FEEDBACK: [your explanation]`
                           <p className="text-xs text-muted-foreground mt-1">Editing: {taskBuilder.title || 'Untitled Task'}</p>
                         )}
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => {
-                          setAiAssistContext('task')
-                          setAiAssistOpen(true)
-                        }}
-                      >
-                        <Sparkles className="h-4 w-4 text-amber-500" />
-                        AI Assist
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="gap-2"
-                        disabled={!loadedTaskId}
-                        onClick={() => {
-                          if (!loadedTaskId) return
-                          // Save task builder content back to the task
-                          setModules(prev => prev.map(mod => ({
-                            ...mod,
-                            lessons: mod.lessons.map(lesson => ({
-                              ...lesson,
-                              tasks: lesson.tasks.map(task =>
-                                task.id === loadedTaskId
-                                  ? {
-                                    ...task,
-                                    title: taskBuilder.title,
-                                    description: taskBuilder.taskContent,
-                                    instructions: taskBuilder.taskPci,
-                                    // Clear sourceDocument so saved content takes precedence on next load
-                                    sourceDocument: undefined
-                                  }
-                                  : task
-                              )
-                            }))
-                          })))
-                          toast.success('Task saved locally and to Assessment Bank for reuse')
-                        }}
-                      >
-                        <Save className="h-4 w-4" />
-                        Save
-                      </Button>
+
                     </div>
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
@@ -7166,6 +7226,10 @@ FEEDBACK: [your explanation]`
                               }
                               onChange={(e: any) => {
                                 const newContent = e.target.value
+                                // Auto-create task if none loaded
+                                if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                  autoCreateTask()
+                                }
                                 if (taskBuilder.activeExtensionId) {
                                   // Update extension content
                                   setTaskBuilder(prev => {
@@ -7205,6 +7269,10 @@ FEEDBACK: [your explanation]`
                               }
                               onChange={(e: any) => {
                                 const newPci = e.target.value
+                                // Auto-create task if none loaded
+                                if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                  autoCreateTask()
+                                }
                                 if (taskBuilder.activeExtensionId) {
                                   // Update extension PCI
                                   setTaskBuilder(prev => ({
@@ -7332,7 +7400,10 @@ FEEDBACK: [your explanation]`
 
                           <TabsContent value="dmi" className="mt-0">
                             <div className="mb-2">
-                              <Button variant="outline" size="sm" className="w-full">Generate DMI</Button>
+                              <Button variant="outline" size="sm" className="w-full" onClick={() => handleGenerateDMI('task')}>
+                                <Sparkles className="h-3 w-3 mr-2" />
+                                Generate DMI
+                              </Button>
                             </div>
                             <DMIPanel
                               content={taskBuilder.activeExtensionId
@@ -7363,49 +7434,7 @@ FEEDBACK: [your explanation]`
                           <p className="text-xs text-muted-foreground mt-1">Editing: {assessmentBuilder.title || 'Untitled Assessment'}</p>
                         )}
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => {
-                          setAiAssistContext('assessment')
-                          setAiAssistOpen(true)
-                        }}
-                      >
-                        <Sparkles className="h-4 w-4 text-amber-500" />
-                        AI Assist
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="gap-2"
-                        disabled={!loadedAssessmentId}
-                        onClick={() => {
-                          if (!loadedAssessmentId) return
-                          // Save assessment builder content back to the assessment
-                          setModules(prev => prev.map(mod => ({
-                            ...mod,
-                            lessons: mod.lessons.map(lesson => ({
-                              ...lesson,
-                              homework: lesson.homework.map(hw =>
-                                hw.id === loadedAssessmentId
-                                  ? {
-                                    ...hw,
-                                    title: assessmentBuilder.title,
-                                    description: assessmentBuilder.taskContent,
-                                    instructions: assessmentBuilder.taskPci,
-                                    // Clear sourceDocument so saved content takes precedence on next load
-                                    sourceDocument: undefined
-                                  }
-                                  : hw
-                              )
-                            }))
-                          })))
-                          toast.success('Assessment saved locally and to Assessment Bank for reuse')
-                        }}
-                      >
-                        <Save className="h-4 w-4" />
-                        Save
-                      </Button>
+
                     </div>
                     <div className="flex gap-4">
                       {/* Main content with tabs */}
@@ -7455,6 +7484,10 @@ FEEDBACK: [your explanation]`
                               }
                               onChange={(e: any) => {
                                 const newContent = e.target.value
+                                // Auto-create assessment if none loaded
+                                if (!loadedAssessmentId && !assessmentBuilder.activeExtensionId) {
+                                  autoCreateAssessment()
+                                }
                                 if (assessmentBuilder.activeExtensionId) {
                                   setAssessmentBuilder(prev => {
                                     const ext = prev.extensions.find(e => e.id === prev.activeExtensionId)
@@ -7491,6 +7524,10 @@ FEEDBACK: [your explanation]`
                               }
                               onChange={(e: any) => {
                                 const newPci = e.target.value
+                                // Auto-create assessment if none loaded
+                                if (!loadedAssessmentId && !assessmentBuilder.activeExtensionId) {
+                                  autoCreateAssessment()
+                                }
                                 if (assessmentBuilder.activeExtensionId) {
                                   setAssessmentBuilder(prev => ({
                                     ...prev,
@@ -7615,7 +7652,10 @@ FEEDBACK: [your explanation]`
 
                           <TabsContent value="dmi" className="mt-0">
                             <div className="mb-2">
-                              <Button variant="outline" size="sm" className="w-full">Generate DMI</Button>
+                              <Button variant="outline" size="sm" className="w-full" onClick={() => handleGenerateDMI('assessment')}>
+                                <Sparkles className="h-3 w-3 mr-2" />
+                                Generate DMI
+                              </Button>
                             </div>
                             <DMIPanel
                               content={assessmentBuilder.activeExtensionId
@@ -7660,7 +7700,7 @@ FEEDBACK: [your explanation]`
                               ) : (
                                 <TabsTrigger
                                   value={tab.id}
-                                  className="w-full data-[state=active]:bg-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
+                                  className="w-full data-[state=active]:bg-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
                                 >
                                   {tab.label}

@@ -40,6 +40,7 @@ import { ScoreDistributionChart } from '@/components/analytics/score-distributio
 import { EngagementDashboard } from '@/components/reports/engagement-dashboard'
 import { StudentsNeedingAttentionCard } from '../dashboard/components/StudentsNeedingAttentionCard'
 import { StudentProgressCard } from '../dashboard/components/StudentProgressCard'
+import { AIInsightsCard } from '../dashboard/components/AIInsightsCard'
 import { RevenueDashboard } from '../dashboard/components/RevenueDashboard'
 import { DollarSign } from 'lucide-react'
 
@@ -405,6 +406,11 @@ export default function TutorReports() {
           <div className="neon-border-purple rounded-xl overflow-hidden">
             <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
           </div>
+        </div>
+
+        {/* AI Insights */}
+        <div className="mb-8">
+          <AIInsightsCard />
         </div>
 
         {/* Class Selector */}

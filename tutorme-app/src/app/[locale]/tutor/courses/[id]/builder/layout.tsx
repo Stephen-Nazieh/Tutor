@@ -656,13 +656,6 @@ export default function CourseBuilderLayout({
               </Link>
             </Button>
             <Button
-              variant="outline"
-              size="sm"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
-            <Button
               size="sm"
               className="bg-blue-600 hover:bg-blue-700"
               onClick={handleOpenInLiveClass}

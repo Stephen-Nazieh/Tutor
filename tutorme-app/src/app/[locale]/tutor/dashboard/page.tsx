@@ -14,13 +14,10 @@ import {
   CreateClassDialog,
   StatsCards,
   UpcomingClassesCard,
-  StudentsNeedingAttentionCard,
   InteractiveCalendar,
-  AIInsightsCard,
   type UpcomingClass,
   type StudentNeedingAttention,
 } from './components'
-import { StudentProgressCard } from './components/StudentProgressCard'
 import { ModernHeroSection } from './components/ModernHeroSection'
 
 function DashboardSkeleton() {
@@ -238,19 +235,14 @@ function TutorDashboardContent() {
       )}
 
       {/* Modern Grid Layout - Full Width */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
-          <UpcomingClassesCard
-            classes={classes}
-            formatDate={formatDate}
-            loading={loading}
-            onCreateClassClick={() => setShowCreateDialog(true)}
-            onRemoveClass={handleRemoveClass}
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <StudentsNeedingAttentionCard students={students} loading={loading} />
-        </div>
+      <div className="mb-8">
+        <UpcomingClassesCard
+          classes={classes}
+          formatDate={formatDate}
+          loading={loading}
+          onCreateClassClick={() => setShowCreateDialog(true)}
+          onRemoveClass={handleRemoveClass}
+        />
       </div>
 
       {/* Analytics Section */}
@@ -277,14 +269,7 @@ function TutorDashboardContent() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-8">
-        <div className="lg:col-span-1">
-          <AIInsightsCard />
-        </div>
-        <div className="lg:col-span-2">
-          <StudentProgressCard students={allStudents} loading={loading} />
-        </div>
-      </div>
+
 
       {/* Interactive Calendar */}
       <InteractiveCalendar
