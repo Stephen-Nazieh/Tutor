@@ -5762,6 +5762,32 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     const activeId = active.id as string
     const overId = over.id as string
 
+    const findTaskLocation = (id: string) => {
+      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+          const taskIndex = modules[mIdx].lessons[lIdx].tasks.findIndex(t => t.id === id)
+          if (taskIndex !== -1) return { mIdx, lIdx, taskIndex }
+        }
+      }
+      return null
+    }
+
+    const findHomeworkLocation = (id: string) => {
+      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+          const hwIndex = modules[mIdx].lessons[lIdx].homework.findIndex(h => h.id === id)
+          if (hwIndex !== -1) return { mIdx, lIdx, hwIndex }
+        }
+      }
+      return null
+    }
+
+    const findLessonByModuleId = (id: string) => {
+      const moduleIndex = modules.findIndex(m => m.id === id)
+      if (moduleIndex === -1) return null
+      return { mIdx: moduleIndex, lIdx: 0 }
+    }
+
     // Check if dragging a module
     const activeModuleIndex = modules.findIndex(m => m.id === activeId)
     const overModuleIndex = modules.findIndex(m => m.id === overId)
@@ -5835,6 +5861,25 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       }
     }
 
+    // Move task across lessons
+    const taskSource = findTaskLocation(activeId)
+    if (taskSource) {
+      const targetTaskLocation = findTaskLocation(overId)
+      const targetLesson = targetTaskLocation
+        ? { mIdx: targetTaskLocation.mIdx, lIdx: targetTaskLocation.lIdx }
+        : findLessonByModuleId(overId)
+      if (targetLesson && (taskSource.mIdx !== targetLesson.mIdx || taskSource.lIdx !== targetLesson.lIdx)) {
+        const newModules = [...modules]
+        const sourceTasks = newModules[taskSource.mIdx].lessons[taskSource.lIdx].tasks
+        const [movedTask] = sourceTasks.splice(taskSource.taskIndex, 1)
+        const targetTasks = newModules[targetLesson.mIdx].lessons[targetLesson.lIdx].tasks
+        const insertIndex = targetTaskLocation ? targetTasks.findIndex(t => t.id === overId) : targetTasks.length
+        targetTasks.splice(insertIndex === -1 ? targetTasks.length : insertIndex, 0, movedTask)
+        setModules(newModules)
+        return
+      }
+    }
+
     // Check if dragging homework within a lesson
     for (let mIdx = 0; mIdx < modules.length; mIdx++) {
       for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
@@ -5852,6 +5897,25 @@ Please provide DMI entries as a JSON array with objects containing "questionText
           setModules(newModules)
           return
         }
+      }
+    }
+
+    // Move homework/assessment across lessons
+    const hwSource = findHomeworkLocation(activeId)
+    if (hwSource) {
+      const targetHwLocation = findHomeworkLocation(overId)
+      const targetLesson = targetHwLocation
+        ? { mIdx: targetHwLocation.mIdx, lIdx: targetHwLocation.lIdx }
+        : findLessonByModuleId(overId)
+      if (targetLesson && (hwSource.mIdx !== targetLesson.mIdx || hwSource.lIdx !== targetLesson.lIdx)) {
+        const newModules = [...modules]
+        const sourceHomework = newModules[hwSource.mIdx].lessons[hwSource.lIdx].homework
+        const [movedHw] = sourceHomework.splice(hwSource.hwIndex, 1)
+        const targetHomework = newModules[targetLesson.mIdx].lessons[targetLesson.lIdx].homework
+        const insertIndex = targetHwLocation ? targetHomework.findIndex(h => h.id === overId) : targetHomework.length
+        targetHomework.splice(insertIndex === -1 ? targetHomework.length : insertIndex, 0, movedHw)
+        setModules(newModules)
+        return
       }
     }
 
@@ -6678,7 +6742,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                       strategy={verticalListSortingStrategy}
                                     >
                                       {(primaryLesson.tasks || []).map((task, idx) => (
-                                        <SortableTreeItem key={task.id} id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
+                                        <div key={task.id} className="contents">
+                                          <SortableTreeItem id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
                                           <div
                                             className={cn(
                                               "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
@@ -6775,7 +6840,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                               <Trash2 className="h-3 w-3 text-red-500" />
                                             </Button>
                                           </div>
-                                        </SortableTreeItem>
+                                          </SortableTreeItem>
                                         {loadedTaskId === task.id && taskBuilder.extensions.length > 0 && (
                                           <div className="ml-6 mt-1 space-y-1">
                                             {taskBuilder.extensions.map((ext, extIdx) => (
@@ -6796,6 +6861,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                             ))}
                                           </div>
                                         )}
+                                        </div>
                                       ))}
                                     </SortableContext>
                                   )}
@@ -7343,6 +7409,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           variant="outline"
                           size="sm"
                           className="w-full mb-2"
+                          disabled={!loadedTaskId}
                           onClick={() => {
                             if (!loadedTaskId) return
                             const extNumber = taskBuilder.extensions.length + 1
