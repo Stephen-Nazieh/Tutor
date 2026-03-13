@@ -14,6 +14,7 @@ services:
     depends_on:
       - db
       - redis
+      - adk-service
     networks:
       - tutorme-network
     restart: unless-stopped
@@ -21,7 +22,26 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost:3003/api/health"]
       interval: 30s
       timeout: 3s
-      retries: 3
+    retries: 3
+
+  adk-service:
+    build:
+      context: ../services/adk
+      dockerfile: dockerfile
+    ports:
+      - "4310:4310"
+    env_file:
+      - .env.production
+    environment:
+      - PORT=4310
+      - DATABASE_URL=postgresql://tutorme:2mp1Uw2VjbkJFDb4@db:5432/tutorme
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    networks:
+      - tutorme-network
+    restart: unless-stopped
 
   db:
     image: postgres:16-alpine

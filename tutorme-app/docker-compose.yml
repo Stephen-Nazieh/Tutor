@@ -165,11 +165,37 @@ services:
       DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
       DATABASE_POOL_URL: "postgresql://postgres:postgres_password@pgbouncer:6432/tutorme"
       REDIS_URL: "redis://redis:6379"
+      ADK_BASE_URL: "http://adk-service:4310"
+      ADK_AUTH_TOKEN: "dev-token"
       NODE_ENV: production
     depends_on:
       db:
         condition: service_healthy
       pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - prod
+
+  # ADK Service
+  adk-service:
+    build:
+      context: ../services/adk
+      dockerfile: dockerfile
+    container_name: tutorme-adk
+    restart: unless-stopped
+    ports:
+      - "4310:4310"
+    environment:
+      PORT: 4310
+      DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
+      REDIS_URL: "redis://redis:6379"
+      ADK_AUTH_TOKEN: "dev-token"
+      GEMINI_API_KEY: "${GEMINI_API_KEY}"
+      KIMI_API_KEY: "${KIMI_API_KEY}"
+    depends_on:
+      db:
         condition: service_healthy
       redis:
         condition: service_healthy

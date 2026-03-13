@@ -3,12 +3,13 @@ import { getStudentProfile } from '../../tools/student'
 import { getCurriculum } from '../../tools/curriculum'
 import { getProgressSnapshot } from '../../tools/progress'
 import { appendMessage, getConversation } from '../../tools/conversations'
+import { buildTutorInstruction } from './prompts'
 
 export const tutorAgent = new LlmAgent({
   name: 'tutor_agent',
   model: process.env.ADK_MODEL || 'gemini-2.5-flash',
   description: 'Socratic tutor for student questions',
-  instruction: `You are Solocorn, a Socratic tutor. Never give direct answers. Use questions to guide students. Never reveal private data.`,
+  instruction: buildTutorInstruction('the student’s subject'),
   tools: [
     new FunctionTool({
       name: 'getStudentProfile',

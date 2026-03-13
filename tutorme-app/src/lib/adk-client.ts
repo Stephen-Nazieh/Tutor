@@ -2,16 +2,15 @@ interface AdkResponse {
   response: string
 }
 
-const baseUrl = process.env.ADK_BASE_URL
-const authToken = process.env.ADK_AUTH_TOKEN
-
 function buildHeaders() {
+  const authToken = process.env.ADK_AUTH_TOKEN
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (authToken) headers.Authorization = `Bearer ${authToken}`
   return headers
 }
 
 export async function adkGenerate(prompt: string): Promise<string> {
+  const baseUrl = process.env.ADK_BASE_URL
   if (!baseUrl) throw new Error('ADK_BASE_URL not configured')
   const res = await fetch(`${baseUrl}/v1/llm/generate`, {
     method: 'POST',
@@ -24,6 +23,7 @@ export async function adkGenerate(prompt: string): Promise<string> {
 }
 
 export async function adkChat(messages: Array<{ role: string; content: string }>): Promise<string> {
+  const baseUrl = process.env.ADK_BASE_URL
   if (!baseUrl) throw new Error('ADK_BASE_URL not configured')
   const res = await fetch(`${baseUrl}/v1/llm/chat`, {
     method: 'POST',
@@ -41,6 +41,7 @@ export async function adkTutorChat(params: {
   message: string
   conversationId?: string
 }) {
+  const baseUrl = process.env.ADK_BASE_URL
   if (!baseUrl) throw new Error('ADK_BASE_URL not configured')
   const res = await fetch(`${baseUrl}/v1/chat`, {
     method: 'POST',
