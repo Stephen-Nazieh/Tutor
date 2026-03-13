@@ -34,7 +34,7 @@ Due to the complexity of the codebase (e.g., `CourseBuilder.tsx` at ~8,200 lines
 3.  **UI Performance**: Monitor if multiple `backdrop-blur` layers on nested modals cause lag on lower-end devices.
 
 ## ⚠️ Critical Fixes (Post-Deployment Issues)
-- **TypeScript Strict Mode**: Fixed multiple "Parameter 'e' implicitly has an 'any' type" errors by explicitly typing event parameters in `CourseBuilder.tsx`, `Reports/page.tsx`, and other dashboard components.
+- **TypeScript Strict Mode**: Fixed multiple "Parameter 'e' implicitly has an 'any' type" errors. Also fixed "unknown" type errors in File/Asset upload handlers within `CourseBuilder.tsx` by explicitly typing the mapped file parameters.
 - **Import Resolution**: Resolved a duplicate identifier error for `AutoTextarea` where it was incorrectly being imported from `textarea.tsx` instead of its dedicated `auto-textarea.tsx` file.
 
 ---
