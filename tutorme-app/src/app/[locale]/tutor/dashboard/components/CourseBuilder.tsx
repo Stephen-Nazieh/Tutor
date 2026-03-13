@@ -6479,6 +6479,45 @@ Please provide DMI entries as a JSON array with objects containing "questionText
               Task
             </Button>
             <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
+              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+              if (taskBuilder.activeExtensionId) {
+                setTaskBuilder(prev => ({
+                  ...prev,
+                  extensions: prev.extensions.map(ext =>
+                    ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
+                  )
+                }))
+                setMainBuilderTab('task')
+                toast.success(`Loaded '${assetToLoad?.name}' into extension`)
+                setLoadAsModalOpen(false)
+                setAssetToLoad(null)
+                return
+              }
+              if (!loadedTaskId) {
+                toast.error('Select a task to add an extension')
+                return
+              }
+              const extNumber = taskBuilder.extensions.length + 1
+              const newExtension = {
+                id: `ext-${Date.now()}`,
+                name: `Extension ${extNumber}`,
+                content: textToInsert,
+                pci: ''
+              }
+              setTaskBuilder(prev => ({
+                ...prev,
+                extensions: [...prev.extensions, newExtension],
+                activeExtensionId: newExtension.id
+              }))
+              setMainBuilderTab('task')
+              toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
+              setLoadAsModalOpen(false)
+              setAssetToLoad(null)
+            }}>
+              <Layers2 className="h-4 w-4 text-orange-500" />
+              Extensions
+            </Button>
+            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
               const { moduleId, lessonId } = ensureFirstLessonContext()
               const moduleIndex = modules.findIndex(m => m.id === moduleId)
               const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
