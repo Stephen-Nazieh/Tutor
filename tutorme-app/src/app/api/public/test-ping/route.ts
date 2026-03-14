@@ -6,9 +6,14 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
+  const isProd = process.env.NODE_ENV === 'production'
+  const allowPublicTests = process.env.ALLOW_PUBLIC_TEST_ENDPOINTS === 'true'
+  if (isProd && !allowPublicTests) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   // Test 1: Check if we can reach the Kimi API base URL
   try {
-    console.log('Testing connectivity to Kimi API...')
     const response = await fetch('https://api.moonshot.cn/v1/models', {
       method: 'GET',
       headers: {
@@ -20,16 +25,12 @@ export async function GET() {
       status: 'ok',
       kimiApiReachable: response.ok,
       kimiApiStatus: response.status,
-      envKeyExists: !!process.env.KIMI_API_KEY,
-      keyLength: process.env.KIMI_API_KEY?.length || 0,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error('Ping test error:', error)
     return NextResponse.json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error',
-      envKeyExists: !!process.env.KIMI_API_KEY,
       timestamp: new Date().toISOString()
     }, { status: 500 })
   }

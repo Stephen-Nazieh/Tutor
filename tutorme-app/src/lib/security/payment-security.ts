@@ -6,7 +6,7 @@
  */
 
 import { drizzleDb } from '@/lib/db/drizzle'
-import { payment, clinicBooking } from '@/lib/db/schema'
+import { payment, clinicBooking, user as userTable } from '@/lib/db/schema'
 import { eq, and, gte, desc, sql, inArray, or } from 'drizzle-orm'
 import { ValidationError, ForbiddenError } from '@/lib/api/middleware'
 import { securityLogger } from '@/lib/security/logging'
@@ -49,6 +49,9 @@ export class PaymentSecurityValidator {
     'tempmail.com',
     '10minutemail.com'
   ])
+
+  private static readonly WEBHOOK_REPLAY_TTL_MS = 5 * 60 * 1000
+  private static webhookReplayCache = new Map<string, number>()
 
   /**
    * Validate payment creation with comprehensive fraud detection
@@ -511,7 +514,34 @@ export class PaymentSecurityValidator {
     isSuspicious: boolean
     warning: string
   }> {
-    // This is a placeholder implementation - in production, use detailed analytics
+    try {
+      const dayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      const [row] = await drizzleDb
+        .select({
+          count: sql<number>`count(*)`
+        })
+        .from(payment)
+        .where(and(
+          gte(payment.createdAt, dayCutoff),
+          eq(payment.currency, currency),
+          eq(payment.amount, amount),
+          sql`((${payment.metadata}->>'studentId') = ${studentId} OR (${payment.metadata}->>'payerId') = ${studentId})`
+        ))
+        .limit(1)
+
+      const count = row?.count ?? 0
+      if (count >= 3) {
+        return { isSuspicious: true, warning: 'Repeated payment amount within 24 hours' }
+      }
+    } catch (error) {
+      securityLogger.logEvent({
+        eventType: 'AMOUNT_FREQUENCY_CHECK_ERROR',
+        description: 'Failed to check amount frequency',
+        severity: 'LOW',
+        metadata: { error: error.message, studentId }
+      })
+    }
+
     return { isSuspicious: false, warning: '' }
   }
 
@@ -520,8 +550,52 @@ export class PaymentSecurityValidator {
     issues: string[]
     fraudLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   }> {
-    // This is a placeholder implementation - in production, use detailed user profiling
-    return { isSuspicious: false, issues: [], fraudLevel: 'LOW' }
+    const issues: string[] = []
+    let fraudLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW'
+
+    if (!studentId) {
+      return { isSuspicious: true, issues: ['Missing student id'], fraudLevel: 'HIGH' }
+    }
+
+    if (email) {
+      const domain = email.split('@')[1]?.toLowerCase() || ''
+      if (domain && this.SUSPICIOUS_DOMAINS.has(domain)) {
+        issues.push('Suspicious email domain detected')
+        fraudLevel = this.upgradeFraudLevel(fraudLevel, 'MEDIUM')
+      }
+    }
+
+    try {
+      const [userRow] = await drizzleDb
+        .select({ createdAt: userTable.createdAt, email: userTable.email })
+        .from(userTable)
+        .where(eq(userTable.id, studentId))
+        .limit(1)
+
+      if (!userRow) {
+        issues.push('Student record not found')
+        fraudLevel = this.upgradeFraudLevel(fraudLevel, 'HIGH')
+      } else {
+        const accountAgeMs = Date.now() - userRow.createdAt.getTime()
+        if (accountAgeMs < 60 * 60 * 1000) {
+          issues.push('New account created within last hour')
+          fraudLevel = this.upgradeFraudLevel(fraudLevel, 'MEDIUM')
+        }
+        if (email && userRow.email && userRow.email.toLowerCase() !== email.toLowerCase()) {
+          issues.push('Email mismatch between session and stored user')
+          fraudLevel = this.upgradeFraudLevel(fraudLevel, 'MEDIUM')
+        }
+      }
+    } catch (error) {
+      securityLogger.logEvent({
+        eventType: 'USER_PROFILE_VALIDATION_ERROR',
+        description: 'User profile validation failed',
+        severity: 'LOW',
+        metadata: { error: error.message, studentId }
+      })
+    }
+
+    return { isSuspicious: issues.length > 0, issues, fraudLevel }
   }
 
   private static async checkForDuplicates(data: {
@@ -533,13 +607,48 @@ export class PaymentSecurityValidator {
     isDuplicate: boolean
     existingPayment?: any
   }> {
-    // This is a placeholder implementation - in production, implement duplicate detection
+    try {
+      const cutoff = new Date(Date.now() - this.FRAUD_THRESHOLDS.DUPLICATE_TIME_LIMIT)
+      const [existing] = await drizzleDb
+        .select()
+        .from(payment)
+        .where(and(
+          gte(payment.createdAt, cutoff),
+          eq(payment.amount, data.amount),
+          eq(payment.currency, data.currency),
+          sql`((${payment.metadata}->>'studentId') = ${data.studentId} OR (${payment.metadata}->>'payerId') = ${data.studentId})`
+        ))
+        .limit(1)
+
+      if (existing) {
+        return { isDuplicate: true, existingPayment: existing }
+      }
+    } catch (error) {
+      securityLogger.logEvent({
+        eventType: 'DUPLICATE_CHECK_ERROR',
+        description: 'Failed to check duplicate payments',
+        severity: 'LOW',
+        metadata: { error: error.message, studentId: data.studentId }
+      })
+    }
+
     return { isDuplicate: false }
   }
 
   private static async validateGatewaySpecific(gateway: string, data: any): Promise<string[]> {
-    // This is a placeholder implementation - in production, implement gateway-specific rules
-    return []
+    const warnings: string[] = []
+    const normalized = gateway.toUpperCase()
+    const supported = ['HITPAY', 'AIRWALLEX', 'WECHAT', 'ALIPAY']
+    if (!supported.includes(normalized)) {
+      warnings.push(`Unsupported gateway: ${gateway}`)
+    }
+    if (typeof data?.currency === 'string' && data.currency.length > 5) {
+      warnings.push('Unusual currency code length')
+    }
+    if (typeof data?.amount === 'number' && data.amount > this.FRAUD_THRESHOLDS.MAX_AMOUNT) {
+      warnings.push('Payment amount exceeds configured maximum threshold')
+    }
+    return warnings
   }
 
   private static validateWebhookIP(ipAddress: string): string[] {
@@ -565,12 +674,75 @@ export class PaymentSecurityValidator {
     isValid: boolean
     errors: string[]
   }> {
-    // This is a placeholder implementation - in production, implement proper HMAC/RSA validation
-    return { isValid: true, errors: [] }
+    const errors: string[] = []
+    const signature = request.signature || ''
+    if (!signature) {
+      return { isValid: false, errors: ['Missing signature'] }
+    }
+
+    const gateway = request.gateway.toUpperCase()
+    try {
+      if (gateway === 'HITPAY') {
+        const salt = process.env.HITPAY_SALT
+        if (!salt) {
+          return { isValid: false, errors: ['HITPAY_SALT not configured'] }
+        }
+        const expected = crypto.createHmac('sha256', salt).update(request.body).digest('hex')
+        if (expected.toLowerCase() === signature.toLowerCase()) {
+          return { isValid: true, errors: [] }
+        }
+        if (expected.length !== signature.length) {
+          return { isValid: false, errors: ['Invalid Hitpay signature'] }
+        }
+        const isValid = crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+        if (!isValid) errors.push('Invalid Hitpay signature')
+        return { isValid, errors }
+      }
+
+      if (gateway === 'AIRWALLEX') {
+        const timestamp = request.headers['x-timestamp'] || request.headers['x-airwallex-timestamp'] || ''
+        if (!timestamp) {
+          return { isValid: false, errors: ['Missing Airwallex timestamp'] }
+        }
+        const secret = process.env.AIRWALLEX_WEBHOOK_SECRET
+        if (!secret) {
+          return { isValid: false, errors: ['AIRWALLEX_WEBHOOK_SECRET not configured'] }
+        }
+        const expected = crypto.createHmac('sha256', secret).update(`${timestamp}${request.body}`).digest('hex')
+        if (expected.toLowerCase() === signature.toLowerCase()) {
+          return { isValid: true, errors: [] }
+        }
+        if (expected.length !== signature.length) {
+          return { isValid: false, errors: ['Invalid Airwallex signature'] }
+        }
+        const isValid = crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+        if (!isValid) errors.push('Invalid Airwallex signature')
+        return { isValid, errors }
+      }
+
+      errors.push('Unsupported gateway signature validation')
+      return { isValid: false, errors }
+    } catch (error) {
+      errors.push(error.message || 'Signature validation error')
+      return { isValid: false, errors }
+    }
   }
 
   private static async checkRecentWebhookUsage(urlPath: string, body: string): Promise<boolean> {
-    // This is a placeholder implementation - in production, implement usage tracking
+    const now = Date.now()
+    const key = crypto.createHash('sha256').update(`${urlPath}:${body}`).digest('hex')
+    const existing = this.webhookReplayCache.get(key)
+    if (existing && now - existing < this.WEBHOOK_REPLAY_TTL_MS) {
+      return true
+    }
+    this.webhookReplayCache.set(key, now)
+    if (this.webhookReplayCache.size > 5000) {
+      for (const [k, ts] of this.webhookReplayCache.entries()) {
+        if (now - ts > this.WEBHOOK_REPLAY_TTL_MS) {
+          this.webhookReplayCache.delete(k)
+        }
+      }
+    }
     return false
   }
 
@@ -578,19 +750,31 @@ export class PaymentSecurityValidator {
     isValid: boolean
     hash?: string
   }> {
-    // This is a placeholder implementation - in production, implement integrity checks
-    return { isValid: true }
+    if (!body) return { isValid: false }
+    const hash = crypto.createHash('sha256').update(body).digest('hex')
+    return { isValid: Boolean(hash), hash }
   }
 
   // Public export functions for compatibility
   static async createStudentHash(studentId: string): Promise<string> {
     // Import the function from AI security - create simplified version here for dependency management
     const crypto = require('crypto')
-    const secret = process.env.NEXTAUTH_SECRET || 'default_secret'
+    const secret = process.env.NEXTAUTH_SECRET
+    if (!secret || secret === 'default_secret') {
+      if (process.env.NODE_ENV === 'production') {
+        securityLogger.logEvent({
+          eventType: 'STUDENT_HASH_CONFIG_ERROR',
+          description: 'Missing NEXTAUTH_SECRET for payment hashing in production',
+          severity: 'HIGH'
+        })
+        return 'anonymous_student'
+      }
+    }
+    const hashSecret = secret || 'dev-secret'
     return crypto
       .createHash('sha256')
       .update(studentId)
-      .update(secret)
+      .update(hashSecret)
       .digest('hex')
       .substring(0, 16)
   }
@@ -615,5 +799,16 @@ export class PaymentSecurityValidator {
 }
 
 // Export convenience functions
-export const { validatePaymentCreation, validateWebhook } = PaymentSecurityValidator
+export const validatePaymentCreation = (
+  ...args: Parameters<typeof PaymentSecurityValidator.validatePaymentCreation>
+) => PaymentSecurityValidator.validatePaymentCreation(...args)
+
+export const validateWebhook = (
+  ...args: Parameters<typeof PaymentSecurityValidator.validateWebhook>
+) => PaymentSecurityValidator.validateWebhook(...args)
+
 export { PaymentSecurityValidator as default }
+
+export function resetWebhookReplayCache(): void {
+  ;(PaymentSecurityValidator as any).webhookReplayCache?.clear?.()
+}

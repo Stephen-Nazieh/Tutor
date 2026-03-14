@@ -171,7 +171,7 @@ export default function TutorMyPage() {
           <Button onClick={() => router.push('/tutor/courses/new')}>
             Create New Course
           </Button>
-          {publicPath && (
+          {publicPath && normalizedUsername && (
             <Button variant="outline" size="sm" asChild>
               <Link href={publicPath} target="_blank">
                 <ExternalLink className="h-4 w-4 mr-1.5" />
@@ -239,7 +239,7 @@ export default function TutorMyPage() {
                 </div>
               </div>
             )}
-            {publicHandleUrl && (
+            {publicHandleUrl && normalizedUsername && (
               <div className="flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 p-2.5 text-sm">
                 <span className="font-medium shrink-0">@ Handle</span>
                 <span className="break-all text-muted-foreground flex-1 min-w-0">{publicHandleUrl}</span>
@@ -254,11 +254,6 @@ export default function TutorMyPage() {
                     }}
                   >
                     <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-7" asChild>
-                    <Link href={publicHandlePath} target="_blank">
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Link>
                   </Button>
                 </div>
               </div>

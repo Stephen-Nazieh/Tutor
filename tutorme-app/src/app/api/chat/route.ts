@@ -5,16 +5,42 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { checkRateLimit, getClientIdentifier } from '@/lib/chat/rate-limit';
+import { checkRateLimitPreset } from '@/lib/security/rate-limit';
 import { streamAIResponse, buildMessages, ChatMessage } from '@/lib/chat/providers';
 import { ERROR_RESPONSES, RATE_LIMIT_RESPONSES } from '@/lib/chat/system-prompt';
+import { getServerSession, authOptions } from '@/lib/auth';
 
-// CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+function getAllowedOrigins(): string[] {
+  const productionOrigin = process.env.NEXT_PUBLIC_APP_URL;
+  const envOrigins = (process.env.CHAT_ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const devOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:3003',
+  ];
+  if (productionOrigin) {
+    return [productionOrigin, ...envOrigins, ...devOrigins];
+  }
+  return [...envOrigins, ...devOrigins];
+}
+
+function isOriginAllowed(origin: string | null): boolean {
+  if (!origin) return true;
+  return getAllowedOrigins().includes(origin);
+}
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  if (!origin || !isOriginAllowed(origin)) return {};
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin',
+  };
+}
 
 // Request schema
 const ChatRequestSchema = z.object({
@@ -26,17 +52,40 @@ const ChatRequestSchema = z.object({
   language: z.string().default('en'),
 });
 
-export async function OPTIONS() {
-  return new Response(null, { 
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  if (origin && !isOriginAllowed(origin)) {
+    return new Response(
+      JSON.stringify({ error: 'CORS not allowed' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  return new Response(null, {
     status: 204,
-    headers: corsHeaders 
+    headers: buildCorsHeaders(origin),
   });
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+  if (origin && !isOriginAllowed(origin)) {
+    return new Response(
+      JSON.stringify({ error: 'CORS not allowed' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+  const corsHeaders = buildCorsHeaders(origin);
+
+  const session = await getServerSession(authOptions, request)
+  if (!session?.user?.id) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
   // Check rate limit
-  const clientId = getClientIdentifier(request);
-  const rateLimit = checkRateLimit(clientId);
+  const rateLimit = await checkRateLimitPreset(request, 'aiGenerate');
   
   if (!rateLimit.allowed) {
     const lang = request.headers.get('accept-language')?.split(',')[0] || 'en';
@@ -50,7 +99,7 @@ export async function POST(request: NextRequest) {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json',
-          'X-RateLimit-Reset': rateLimit.resetTime.toString()
+          'X-RateLimit-Reset': rateLimit.resetAt.toString()
         } 
       }
     );

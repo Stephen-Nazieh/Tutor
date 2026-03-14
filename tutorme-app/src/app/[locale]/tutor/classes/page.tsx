@@ -42,7 +42,7 @@ interface TutorClass {
   status: 'scheduled' | 'live' | 'completed' | 'cancelled' | 'upcoming' | 'active'
 }
 
-type FilterStatus = 'all' | 'live' | 'upcoming' | 'scheduled' | 'past'
+type FilterStatus = 'all' | 'live' | 'upcoming' | 'scheduled' | 'completed'
 
 function copyJoinLink(classId: string) {
   const url = typeof window !== 'undefined' ? `${window.location.origin}/tutor/live-class/${classId}` : ''
@@ -157,7 +157,8 @@ export default function TutorClassesPage() {
         live: categorizedClasses.live,
         upcoming: categorizedClasses.upcoming,
         scheduled: categorizedClasses.scheduled,
-        past: categorizedClasses.past
+        past: categorizedClasses.past,
+        completed: categorizedClasses.past
       }
       filtered = categoryMap[filterStatus] || classes
     }
@@ -322,13 +323,9 @@ export default function TutorClassesPage() {
                 <>
                   <Play className="w-4 h-4 mr-1" /> Enter
                 </>
-              ) : isUpcoming ? (
-                <>
-                  <Zap className="w-4 h-4 mr-1" /> Prepare
-                </>
               ) : (
                 <>
-                  <ChevronRight className="w-4 h-4 mr-1" /> View
+                  <Play className="w-4 h-4 mr-1" /> Go Live
                 </>
               )}
             </Button>
@@ -363,9 +360,9 @@ export default function TutorClassesPage() {
         {/* Title & Quick Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold">My Classes</h1>
+            <h1 className="text-2xl font-bold">Coming up</h1>
             <p className="text-sm text-gray-500">
-              Manage your classes and start live sessions
+              Your upcoming classes and live sessions
             </p>
           </div>
           <div className="flex gap-2">
@@ -418,7 +415,7 @@ export default function TutorClassesPage() {
             />
           </div>
           <div className="flex gap-2">
-            {(['all', 'live', 'upcoming', 'scheduled', 'past'] as FilterStatus[]).map((status) => (
+            {(['all', 'live', 'upcoming', 'scheduled', 'completed'] as FilterStatus[]).map((status) => (
               <Button
                 key={status}
                 variant={filterStatus === status ? 'default' : 'outline'}
@@ -429,10 +426,10 @@ export default function TutorClassesPage() {
                 {status === 'live' && categorizedClasses.live.length > 0 && (
                   <span className="w-2 h-2 bg-red-500 rounded-full mr-1 animate-pulse" />
                 )}
-                {status}
+                {status === 'completed' ? 'Completed' : status}
                 {status !== 'all' && (
                   <span className="ml-1 text-xs opacity-70">
-                    ({categorizedClasses[status]?.length || 0})
+                    ({categorizedClasses[status === 'completed' ? 'past' : status]?.length || 0})
                   </span>
                 )}
               </Button>
@@ -514,13 +511,13 @@ export default function TutorClassesPage() {
               </Card>
             )}
 
-            {/* PAST Section */}
-            {(filterStatus === 'all' || filterStatus === 'past') && categorizedClasses.past.length > 0 && (
+            {/* COMPLETED Section */}
+            {(filterStatus === 'all' || filterStatus === 'completed') && categorizedClasses.past.length > 0 && (
               <Card className="opacity-75">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-gray-500">
                     <Clock className="w-5 h-5" />
-                    Past Classes ({categorizedClasses.past.length})
+                    Completed ({categorizedClasses.past.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -533,7 +530,11 @@ export default function TutorClassesPage() {
             {filteredClasses.length === 0 && classes.length > 0 && (
               <div className="text-center py-12">
                 <Filter className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600">No classes match your filter</p>
+                <p className="text-gray-600">
+                  {filterStatus === 'completed' 
+                    ? 'No completed classes yet' 
+                    : 'No classes match your filter'}
+                </p>
                 <Button variant="outline" className="mt-2" onClick={() => {setFilterStatus('all'); setSearchQuery('')}}>
                   Clear Filters
                 </Button>
@@ -629,7 +630,7 @@ export default function TutorClassesPage() {
                         </p>
                       </div>
                       <Link href={`/tutor/live-class/${event.id}`}>
-                        <Button size="sm">View</Button>
+                        <Button size="sm"><Play className="w-3 h-3 mr-1" /> Go Live</Button>
                       </Link>
                     </div>
                   ))

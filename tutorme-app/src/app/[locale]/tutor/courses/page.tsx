@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Search, Filter, BookOpen, Clock, ChevronRight, GraduationCap } from 'lucide-react'
+import { Search, Filter, BookOpen, Clock, ChevronRight, GraduationCap, Pencil, Play } from 'lucide-react'
 
 export default function CoursesPage() {
   const router = useRouter()
@@ -124,11 +124,24 @@ export default function CoursesPage() {
                         </div>
                       </div>
 
+                      {/* Price */}
+                      <div className="mb-4">
+                        <span className="text-lg font-bold text-blue-600">
+                          {course.price ? `$${course.price}` : 'Free'}
+                        </span>
+                      </div>
+
                       <div className="flex gap-2">
-                        <Button asChild className="flex-1">
+                        <Button asChild variant="outline" size="sm" className="flex-1">
                           <Link href={`/tutor/courses/${course.id}/builder`}>
-                            Open Builder
-                            <ChevronRight className="h-4 w-4 ml-1" />
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button asChild size="sm" className="flex-1">
+                          <Link href={`/tutor/classes?course=${course.id}`}>
+                            <Play className="h-4 w-4 mr-1" />
+                            Go Live
                           </Link>
                         </Button>
                       </div>

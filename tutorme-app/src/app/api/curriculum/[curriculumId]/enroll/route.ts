@@ -14,9 +14,11 @@ import {
   courseBatch,
   curriculumEnrollment,
   curriculumProgress,
+  user,
 } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
+import { notify } from '@/lib/notifications/notify'
 
 export const POST = withCsrf(withAuth(async (req, session, context) => {
   const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
@@ -159,6 +161,29 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
       )
     )
     .limit(1)
+
+  // Notify the tutor about the new enrollment
+  if (curriculumRow.creatorId) {
+    const [student] = await drizzleDb
+      .select({ name: user.name, email: user.email })
+      .from(user)
+      .where(eq(user.id, session.user.id))
+      .limit(1)
+
+    void notify({
+      userId: curriculumRow.creatorId,
+      type: 'enrollment',
+      title: 'New Student Enrollment',
+      message: `${student?.name || 'A new student'} has enrolled in your course "${curriculumRow.name}"`,
+      data: {
+        curriculumId,
+        curriculumName: curriculumRow.name,
+        studentId: session.user.id,
+        studentName: student?.name,
+      },
+      actionUrl: `/tutor/courses/${curriculumId}/enrollments`,
+    })
+  }
 
   return NextResponse.json({
     success: true,

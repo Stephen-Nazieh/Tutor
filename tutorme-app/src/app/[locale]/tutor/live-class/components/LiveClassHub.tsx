@@ -9,12 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+
 import { toast } from 'sonner'
 import { StudentList } from './StudentList'
 import { UnifiedBreakoutManager, UnifiedBreakoutModal } from './breakout'
@@ -29,17 +24,11 @@ import {
   EngagementDashboard,
   EngagementMetrics as EngagementMetricType
 } from '@/components/class/engagement'
-import { 
-  CommandPalette, 
-  useCommandPalette, 
-  createClassroomActions,
-  CommandAction 
-} from '@/components/class/command-palette'
+
 import type { LiveStudent, BreakoutRoom, HandRaise, ChatMessage, EngagementMetrics, Alert } from '../types'
 import { 
   Users,
   LayoutGrid,
-  BarChart3,
   Radio,
   Mic,
   MicOff,
@@ -50,13 +39,11 @@ import {
   ArrowLeft,
   TrendingUp,
   BarChart2,
-  Wrench,
-  Command,
-  ChevronRight,
   ChevronLeft,
   MessageCircle,
   Sparkles,
   LogOut,
+  LayoutTemplate,
 } from 'lucide-react'
 
 interface LiveClassHubProps {
@@ -216,9 +203,6 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
     }, 1000)
     return () => clearInterval(interval)
   }, [isRecording])
-
-  // Command Palette
-  const { isOpen: isCommandPaletteOpen, setIsOpen: setCommandPaletteOpen } = useCommandPalette('cmd+k')
 
   // Load and start class session — only once per (sessionId, userId) to avoid refresh when session reference flickers or student joins
   useEffect(() => {
@@ -402,56 +386,6 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
       toast.error(error instanceof Error ? error.message : 'Recording action failed')
     }
   }, [generateReplayArtifact, isRecording, persistRecordingState])
-
-  const commandActions: CommandAction[] = useMemo(() => {
-    return createClassroomActions({
-      isAudioEnabled: !isMuted,
-      isVideoEnabled: !isVideoOff,
-      isScreenSharing,
-      isRecording,
-      studentsRaisingHands: handRaises.filter(h => h.status === 'pending').length,
-      onToggleAudio: () => {
-        setIsMuted(!isMuted)
-        toast.success(isMuted ? 'Microphone unmuted' : 'Microphone muted')
-      },
-      onToggleVideo: () => {
-        setIsVideoOff(!isVideoOff)
-        toast.success(isVideoOff ? 'Video started' : 'Video stopped')
-      },
-      onToggleScreenShare: () => {
-        setIsScreenSharing(!isScreenSharing)
-        toast.success(isScreenSharing ? 'Screen sharing stopped' : 'Screen sharing started')
-      },
-      onToggleRecording: () => {
-        void handleToggleRecording()
-      },
-      onMuteAll: () => {
-        toast.success('All students muted')
-      },
-      onCallAttention: () => {
-        toast.success('Attention request sent to all students')
-      },
-      onOpenWhiteboard: () => {
-        toast.info('Whiteboard opened')
-      },
-      onOpenBreakouts: () => {
-        toast.info('Navigate to Rooms tab for breakout management')
-      },
-      onOpenEngagement: () => {
-        setShowEngagementPanel(true)
-        toast.success('Engagement Dashboard opened')
-      },
-      onOpenPolls: () => {
-        toast.info('Navigate to Polls tab to create polls')
-      },
-      onSendBroadcast: () => {
-        toast.info('Use Chat Monitor to send messages')
-      },
-      onLeaveClass: () => {
-        setShowEndClassDialog(true)
-      }
-    })
-  }, [isMuted, isVideoOff, isScreenSharing, isRecording, handRaises, handleToggleRecording])
 
   // Handlers
   const handleCallOn = useCallback((studentId: string) => {
@@ -649,42 +583,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Tools Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1"
-              >
-                <Wrench className="h-4 w-4" />
-                <span className="hidden sm:inline">Tools</span>
-                <ChevronRight className="h-3 w-3 opacity-80 rotate-90" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={() => setCommandPaletteOpen(true)}
-                className="gap-2"
-              >
-                <Command className="h-4 w-4" />
-                Command Palette
-                <kbd className="ml-auto text-[10px] bg-muted px-1 rounded">⌘K</kbd>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowEngagementPanel(!showEngagementPanel)}
-                className="gap-2"
-              >
-                <BarChart3 className="h-4 w-4" />
-                Engagement Dashboard
-                {showEngagementPanel && <span className="ml-auto text-green-600">✓</span>}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          {/* Media Controls */}
+          {/* Media Controls -->
           <div className="flex items-center gap-2">
             <Button
               variant={isMuted ? 'destructive' : 'outline'}
@@ -744,12 +643,8 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             <div className="w-full overflow-x-auto pb-1">
               <TabsList className="inline-flex min-w-max bg-muted p-1 rounded-lg gap-1">
               <TabsTrigger value="students" onClick={() => setActiveTab('students')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <Users className="w-3 h-3" />
-                Students
-              </TabsTrigger>
-              <TabsTrigger value="progress" onClick={() => setActiveTab('progress')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <TrendingUp className="w-3 h-3" />
-                Progress
+                <LayoutTemplate className="w-3 h-3" />
+                Students & Progress
               </TabsTrigger>
               <TabsTrigger value="rooms" onClick={() => setActiveTab('rooms')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
                 <LayoutGrid className="w-3 h-3" />
@@ -767,25 +662,39 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             </div>
 
             <TabsContent value="students" className="flex-1 mt-4 overflow-hidden">
-              <StudentList 
-                students={students}
-                breakoutRooms={breakoutRooms}
-                onCallOn={handleCallOn}
-                onAssignToRoom={handleAssignToRoom}
-                onRemoveFromRoom={handleRemoveFromRoom}
-                onPushHint={handlePushHint}
-                onSendNudge={handleSendNudge}
-                onInviteToBreakout={handleInviteToBreakout}
-              />
-            </TabsContent>
-
-            <TabsContent value="progress" className="flex-1 mt-4 overflow-hidden">
-              <div className="h-full overflow-auto space-y-6">
-                <StudentProgressPanel 
-                  students={students}
-                  classDuration={metrics?.classDuration || 0}
-                />
-                {metrics && <LiveAnalytics metrics={metrics} alerts={alerts} />}
+              <div className="h-full overflow-auto">
+                <div className="space-y-6 pb-6">
+                  {/* Progress Section */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4" />
+                      Class Progress
+                    </h3>
+                    <StudentProgressPanel 
+                      students={students}
+                      classDuration={metrics?.classDuration || 0}
+                    />
+                    {metrics && <LiveAnalytics metrics={metrics} alerts={alerts} />}
+                  </div>
+                  
+                  {/* Students List Section */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Students ({students.length})
+                    </h3>
+                    <StudentList 
+                      students={students}
+                      breakoutRooms={breakoutRooms}
+                      onCallOn={handleCallOn}
+                      onAssignToRoom={handleAssignToRoom}
+                      onRemoveFromRoom={handleRemoveFromRoom}
+                      onPushHint={handlePushHint}
+                      onSendNudge={handleSendNudge}
+                      onInviteToBreakout={handleInviteToBreakout}
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
@@ -943,14 +852,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         onExtendTime={handleExtendTime}
       />
 
-      {/* Command Palette */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setCommandPaletteOpen(false)}
-        actions={commandActions}
-      />
-
-      {/* End Class Dialog */}
+      {/* End Class Dialog -->
       <Dialog open={showEndClassDialog} onOpenChange={setShowEndClassDialog}>
         <DialogContent>
           <DialogHeader>

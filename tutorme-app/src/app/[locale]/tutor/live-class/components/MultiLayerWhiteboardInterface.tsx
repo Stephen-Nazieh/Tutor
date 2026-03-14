@@ -13,7 +13,7 @@ import { useSimpleSocket } from '@/hooks/use-simple-socket'
 import { LiveSharedDocumentModal, LiveSharedDocument, type LiveDocumentCollaborationPolicy } from './LiveSharedDocumentModal'
 import { WhiteboardAssignmentOverlay } from './WhiteboardAssignmentOverlay'
 import type { VisibleDocumentPayload } from '../../dashboard/components/CourseBuilder'
-import { Layers, Users, Radio, Eye } from 'lucide-react'
+import { Layers, Users, Radio, Eye, ChevronLeft, ChevronRight, PanelRight, PanelRightClose } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface MultiLayerStudent {
@@ -57,6 +57,7 @@ export function MultiLayerWhiteboardInterface({
   const [shares, setShares] = useState<Record<string, LiveSharedDocument>>({})
   const [activeShareId, setActiveShareId] = useState<string | null>(null)
   const [uploadingPersonalDoc, setUploadingPersonalDoc] = useState(false)
+  const [showControls, setShowControls] = useState(true)
   const announcedSharesRef = useRef<Set<string>>(new Set())
 
   const connectedStudents = useMemo(
@@ -224,86 +225,110 @@ export function MultiLayerWhiteboardInterface({
   if (isTutor) {
     return (
       <>
-        <div className="h-full grid grid-cols-1 xl:grid-cols-[1fr_300px] gap-4">
-          <div className="min-h-0 relative">
-            <TutorWhiteboardManager
-              roomId={roomId}
-              sessionId={sessionId}
-              initialCourseId={initialCourseId}
-              classSubject={classSubject}
-              students={students.map((student) => ({ id: student.id, name: student.name }))}
-              onDocumentVisibleToStudents={handleShareRequestFromBuilder}
-            />
-            {/* Assignment Overlay - appears on whiteboard when content is assigned */}
-            <WhiteboardAssignmentOverlay
-              share={activeShare}
-              onClose={() => setActiveShareId(null)}
-              canManageShare={canManageActiveShare}
-              onVisibilityChange={(visible) => {
-                if (!activeShare || !canManageActiveShare) return
-                publishShare({ ...activeShare, visibleToAll: visible, active: visible })
-              }}
-              onCollaborationPolicyChange={updateActiveSharePolicy}
-              onRevealAnswersChange={(revealed) => {
-                if (!activeShare || !canManageActiveShare) return
-                publishShare({ ...activeShare, revealAnswersToStudents: revealed })
-              }}
-              onAiGradingChange={(enabled) => {
-                if (!activeShare || !canManageActiveShare) return
-                publishShare({ ...activeShare, isAiGraded: enabled })
-              }}
-              onTimeLimitChange={(minutes) => {
-                if (!activeShare || !canManageActiveShare) return
-                publishShare({ ...activeShare, timeLimit: minutes })
-              }}
-            />
+        <div className="h-full relative">
+          {/* Toggle button - positioned at the right edge */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowControls(!showControls)}
+            className="absolute top-2 right-2 z-50 bg-white/90 hover:bg-white shadow-sm border"
+          >
+            {showControls ? (
+              <>
+                <PanelRightClose className="w-4 h-4 mr-1" />
+                <span className="text-xs">Hide</span>
+              </>
+            ) : (
+              <>
+                <PanelRight className="w-4 h-4 mr-1" />
+                <span className="text-xs">Controls</span>
+              </>
+            )}
+          </Button>
+
+          <div className={`h-full grid gap-4 transition-all duration-300 ${showControls ? 'grid-cols-1 xl:grid-cols-[1fr_300px]' : 'grid-cols-1'}`}>
+            <div className="min-h-0 relative">
+              <TutorWhiteboardManager
+                roomId={roomId}
+                sessionId={sessionId}
+                initialCourseId={initialCourseId}
+                classSubject={classSubject}
+                students={students.map((student) => ({ id: student.id, name: student.name }))}
+                onDocumentVisibleToStudents={handleShareRequestFromBuilder}
+              />
+              {/* Assignment Overlay - appears on whiteboard when content is assigned */}
+              <WhiteboardAssignmentOverlay
+                share={activeShare}
+                onClose={() => setActiveShareId(null)}
+                canManageShare={canManageActiveShare}
+                onVisibilityChange={(visible) => {
+                  if (!activeShare || !canManageActiveShare) return
+                  publishShare({ ...activeShare, visibleToAll: visible, active: visible })
+                }}
+                onCollaborationPolicyChange={updateActiveSharePolicy}
+                onRevealAnswersChange={(revealed) => {
+                  if (!activeShare || !canManageActiveShare) return
+                  publishShare({ ...activeShare, revealAnswersToStudents: revealed })
+                }}
+                onAiGradingChange={(enabled) => {
+                  if (!activeShare || !canManageActiveShare) return
+                  publishShare({ ...activeShare, isAiGraded: enabled })
+                }}
+                onTimeLimitChange={(minutes) => {
+                  if (!activeShare || !canManageActiveShare) return
+                  publishShare({ ...activeShare, timeLimit: minutes })
+                }}
+              />
+            </div>
+
+            {showControls && (
+              <Card className="min-h-0 overflow-hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-blue-600" />
+                    Multi-Layer Controls
+                  </CardTitle>
+                  <CardDescription>
+                    Broadcast your board and monitor student boards in real time.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between p-2 rounded-md bg-gray-50 border">
+                    <span className="text-gray-600">Socket</span>
+                    <Badge variant={isSocketConnected ? 'default' : 'secondary'}>
+                      {isSocketConnected ? 'Connected' : 'Offline'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-md bg-gray-50 border">
+                    <span className="text-gray-600 flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      Online Students
+                    </span>
+                    <span className="font-medium">{connectedStudents}</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-md bg-gray-50 border">
+                    <span className="text-gray-600">Total Boards</span>
+                    <span className="font-medium">{students.length + 1}</span>
+                  </div>
+
+                  <div className="pt-2 space-y-2 text-xs text-gray-600">
+                    <p className="flex items-start gap-1">
+                      <Radio className="w-3 h-3 mt-0.5 text-red-500" />
+                      <strong>Broadcast</strong>: send your whiteboard to all students in real time.
+                    </p>
+                    <p className="flex items-start gap-1">
+                      <Eye className="w-3 h-3 mt-0.5 text-blue-500" />
+                      <strong>Lock Student Layers</strong>: prevent students from drawing until you unlock.
+                    </p>
+                    <p className="flex items-start gap-1">
+                      <Eye className="w-3 h-3 mt-0.5 text-muted-foreground" />
+                      Switch to <strong>Students</strong> to review individual work quickly.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
-
-          <Card className="min-h-0 overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Layers className="w-4 h-4 text-blue-600" />
-                Multi-Layer Controls
-              </CardTitle>
-              <CardDescription>
-                Broadcast your board and monitor student boards in real time.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center justify-between p-2 rounded-md bg-gray-50 border">
-                <span className="text-gray-600">Socket</span>
-                <Badge variant={isSocketConnected ? 'default' : 'secondary'}>
-                  {isSocketConnected ? 'Connected' : 'Offline'}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-md bg-gray-50 border">
-                <span className="text-gray-600 flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  Online Students
-                </span>
-                <span className="font-medium">{connectedStudents}</span>
-              </div>
-              <div className="flex items-center justify-between p-2 rounded-md bg-gray-50 border">
-                <span className="text-gray-600">Total Boards</span>
-                <span className="font-medium">{students.length + 1}</span>
-              </div>
-
-              <div className="pt-2 space-y-2 text-xs text-gray-600">
-                <p className="flex items-start gap-1">
-                  <Radio className="w-3 h-3 mt-0.5 text-red-500" />
-                  <strong>Broadcast</strong>: send your whiteboard to all students in real time.
-                </p>
-                <p className="flex items-start gap-1">
-                  <Eye className="w-3 h-3 mt-0.5 text-blue-500" />
-                  <strong>Lock Student Layers</strong>: prevent students from drawing until you unlock.
-                </p>
-                <p className="flex items-start gap-1">
-                  <Eye className="w-3 h-3 mt-0.5 text-muted-foreground" />
-                  Switch to <strong>Students</strong> to review individual work quickly.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
       <LiveSharedDocumentModal

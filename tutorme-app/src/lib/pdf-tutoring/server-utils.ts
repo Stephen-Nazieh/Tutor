@@ -1,10 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { generateWithFallback } from '@/lib/ai/orchestrator'
 
+const SERVER_MODULE_LOADERS: Record<string, () => Promise<unknown>> = {
+  unpdf: () => import('unpdf'),
+  'pdf-parse': () => import('pdf-parse'),
+  sharp: () => import('sharp'),
+  'pdf-lib': () => import('pdf-lib'),
+}
+
 export async function loadOptionalServerModule<T = any>(moduleName: string): Promise<T | null> {
+  const loader = SERVER_MODULE_LOADERS[moduleName]
+  if (!loader) return null
   try {
-    const importer = new Function('name', 'return import(name)') as (name: string) => Promise<T>
-    return await importer(moduleName)
+    return (await loader()) as T
   } catch {
     return null
   }

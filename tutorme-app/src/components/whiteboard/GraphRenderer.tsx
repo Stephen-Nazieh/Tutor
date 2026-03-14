@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { GraphElement, PlottedFunction } from '@/types/math-whiteboard'
+import { compileExpression } from '@/lib/math/expression'
 
 // Load Plotly script dynamically
 let plotlyPromise: Promise<void> | null = null
@@ -28,45 +29,6 @@ const loadPlotly = (): Promise<void> => {
   return plotlyPromise
 }
 
-// Parse mathematical expression to JavaScript function
-const parseExpression = (expression: string): ((x: number) => number | null) => {
-  try {
-    // Replace common math functions
-    let processed = expression
-      .replace(/\^/g, '**')
-      .replace(/sin/g, 'Math.sin')
-      .replace(/cos/g, 'Math.cos')
-      .replace(/tan/g, 'Math.tan')
-      .replace(/asin/g, 'Math.asin')
-      .replace(/acos/g, 'Math.acos')
-      .replace(/atan/g, 'Math.atan')
-      .replace(/sinh/g, 'Math.sinh')
-      .replace(/cosh/g, 'Math.cosh')
-      .replace(/tanh/g, 'Math.tanh')
-      .replace(/sqrt/g, 'Math.sqrt')
-      .replace(/abs/g, 'Math.abs')
-      .replace(/log/g, 'Math.log10')
-      .replace(/ln/g, 'Math.log')
-      .replace(/exp/g, 'Math.exp')
-      .replace(/pi/gi, 'Math.PI')
-      .replace(/e(?![a-z])/gi, 'Math.E')
-      .replace(/floor/g, 'Math.floor')
-      .replace(/ceil/g, 'Math.ceil')
-      .replace(/round/g, 'Math.round')
-    
-    // Create function
-    return new Function('x', `
-      try {
-        return ${processed}
-      } catch {
-        return null
-      }
-    `) as (x: number) => number | null
-  } catch {
-    return () => null
-  }
-}
-
 // Generate data points for a function
 const generateFunctionData = (
   func: PlottedFunction,
@@ -74,7 +36,7 @@ const generateFunctionData = (
   xMax: number,
   points: number = 500
 ): { x: number[]; y: number[] } => {
-  const fn = parseExpression(func.expression)
+  const fn = compileExpression(func.expression)
   const x: number[] = []
   const y: number[] = []
   

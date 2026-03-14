@@ -16,6 +16,8 @@ async function generateWithKimi(messages: KimiMessage[]): Promise<string> {
   const apiKey = process.env.KIMI_API_KEY
   if (!apiKey) throw new Error('KIMI_API_KEY not configured')
 
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 20_000)
   const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -28,7 +30,8 @@ async function generateWithKimi(messages: KimiMessage[]): Promise<string> {
       temperature: 1,
       max_tokens: 2048,
     }),
-  })
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeoutId))
 
   if (!response.ok) {
     const error = await response.text()

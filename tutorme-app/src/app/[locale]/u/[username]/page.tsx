@@ -202,8 +202,15 @@ export default function PublicTutorPage() {
                 <Heart className={`mr-2 h-4 w-4 ${isFavorited ? 'fill-white' : ''}`} />
                 {isFavorited ? 'Favorited' : 'Add to Favorites'}
               </Button>
-              <Button asChild variant="outline">
-                <Link href={`/@${tutor.username}`}>Share @handle</Link>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  const handleUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/@${tutor.username}`
+                  navigator.clipboard.writeText(handleUrl)
+                  toast.success('@handle link copied to clipboard!')
+                }}
+              >
+                Share @handle
               </Button>
               <Button asChild>
                 <Link href={`/${locale}/student/tutors`}>

@@ -179,7 +179,6 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
   const [reviewStudentId, setReviewStudentId] = useState<string | null>(null)
   const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false)
   const [timelinePreviewIndex, setTimelinePreviewIndex] = useState<number | null>(null)
-  const [showHighContrast, setShowHighContrast] = useState(false)
   const [pages, setPages] = useState<Array<{ id: string; label: string }>>([{ id: DEFAULT_PAGE_ID, label: 'Page 1' }])
   const [activePageId, setActivePageId] = useState(DEFAULT_PAGE_ID)
   
@@ -2134,13 +2133,6 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
           <Button variant="outline" size="sm" onClick={() => clearMyWhiteboard(activePageId)}>
             <Trash2 className="mr-1 h-4 w-4" /> Clear
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowHighContrast((prev) => !prev)}
-          >
-            {showHighContrast ? 'Standard' : 'High Contrast'}
-          </Button>
           <Button variant="outline" size="sm" title="Broadcast current viewport focus to class" onClick={broadcastViewport}>
             Broadcast View
           </Button>
@@ -2163,9 +2155,6 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
               {selectedStrokeIds.size} selected
             </Badge>
           )}
-          <Badge variant="outline" className="text-xs">
-            CP {namedCheckpoints.length}
-          </Badge>
         </div>
       </div>
       
@@ -2184,7 +2173,7 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
             
             <TabsContent value="my-board" className="h-full m-0">
               <div className="h-full p-4">
-                <div ref={boardViewportRef} className={cn("relative w-full h-full", showHighContrast && "contrast-125 saturate-150")}>
+                <div ref={boardViewportRef} className="relative w-full h-full">
                   <div className="absolute left-2 top-14 z-20">
                     <CourseStructureLinkPanel
                       initialCourseId={initialCourseId}

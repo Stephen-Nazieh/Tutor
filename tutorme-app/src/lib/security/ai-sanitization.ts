@@ -150,13 +150,24 @@ export class AISecurityManager {
 
     try {
       // Use student's unique ID + system secret for consistent hashing
-      const secret = process.env.NEXTAUTH_SECRET || 'default_secret'
+      const secret = process.env.NEXTAUTH_SECRET
+      if (!secret || secret === 'default_secret') {
+        if (process.env.NODE_ENV === 'production') {
+          securityLogger.logEvent({
+            eventType: 'STUDENT_HASH_CONFIG_ERROR',
+            description: 'Missing NEXTAUTH_SECRET for student hashing in production',
+            severity: 'HIGH'
+          })
+          return 'anonymous_student'
+        }
+      }
+      const hashSecret = secret || 'dev-secret'
       
       // Create deterministic hash for consistent anonymization
       return crypto
         .createHash('sha256')
         .update(studentId)
-        .update(secret)
+        .update(hashSecret)
         .digest('hex')
         .substring(0, 16) // 16-character anonymized ID
 

@@ -12,10 +12,15 @@ import { usePdfCollabSocket } from '@/hooks/use-pdf-collab-socket'
 import { percentToPx, pxToPercent } from '@/lib/pdf-tutoring/coordinates'
 import type { PdfCanvasEventPayload, PdfViewMode, PercentFabricObject } from '@/lib/pdf-tutoring/types'
 
+const CLIENT_MODULE_LOADERS: Record<string, () => Promise<unknown>> = {
+  fabric: () => import('fabric'),
+}
+
 async function loadOptionalModule(moduleName: string): Promise<any | null> {
+  const loader = CLIENT_MODULE_LOADERS[moduleName]
+  if (!loader) return null
   try {
-    const importer = new Function('name', 'return import(name)') as (name: string) => Promise<any>
-    return await importer(moduleName)
+    return await loader()
   } catch {
     return null
   }
