@@ -24,9 +24,6 @@ import {
   Triangle,
   Circle,
   Square,
-  Sun,
-  Moon,
-  Palette,
   Send,
   MessageCircle,
   BookOpen,
@@ -699,60 +696,6 @@ const LanguageSelector = ({ currentLang, onChange, theme }: { currentLang: Langu
   );
 };
 
-const ThemeSelector = ({ currentTheme, currentMode, onThemeChange, onModeChange, lang }: { currentTheme: ColorTheme; currentMode: ThemeMode; onThemeChange: (theme: ColorTheme) => void; onModeChange: (mode: ThemeMode) => void; lang: Language }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
-
-  return (
-    <div className="relative">
-      <button onClick={() => setIsOpen(!isOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm">
-        <Palette className="w-4 h-4" />
-        <span className="hidden sm:inline">{THEMES[currentTheme].icon} {THEMES[currentTheme].name}</span>
-        <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute right-0 top-full mt-2 w-64 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-              <div className="p-3 border-b border-white/10">
-                <p className="text-xs text-zinc-500 mb-2">{currentMode === 'dark' ? t('darkMode') : t('lightMode')}</p>
-                <div className="flex gap-2">
-                  <button onClick={() => onModeChange('light')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${currentMode === 'light' ? 'bg-amber-500/20 text-amber-400' : 'hover:bg-white/5 text-zinc-400'}`}>
-                    <Sun className="w-4 h-4" />
-                    <span className="text-sm">{t('lightMode')}</span>
-                  </button>
-                  <button onClick={() => onModeChange('dark')} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${currentMode === 'dark' ? 'bg-indigo-500/20 text-indigo-400' : 'hover:bg-white/5 text-zinc-400'}`}>
-                    <Moon className="w-4 h-4" />
-                    <span className="text-sm">{t('darkMode')}</span>
-                  </button>
-                </div>
-              </div>
-              <div className="p-2">
-                <p className="text-xs text-zinc-500 px-2 py-1">{t('selectTheme')}</p>
-                {(Object.keys(THEMES) as ColorTheme[]).map((themeKey) => (
-                  <button key={themeKey} onClick={() => { onThemeChange(themeKey); setIsOpen(false); }} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-white/5 transition-colors ${currentTheme === themeKey ? 'bg-white/10' : ''}`}>
-                    <span className="text-xl">{THEMES[themeKey].icon}</span>
-                    <div>
-                      <p className="text-sm font-medium text-white">{THEMES[themeKey].name}</p>
-                      <div className="flex gap-1 mt-1">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: THEMES[themeKey].colors.primary }} />
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: THEMES[themeKey].colors.secondary }} />
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: THEMES[themeKey].colors.accent }} />
-                      </div>
-                    </div>
-                    {currentTheme === themeKey && <CheckCircle className="w-4 h-4 ml-auto text-emerald-400" />}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
 const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 5, minutes: 45, seconds: 30 });
   useEffect(() => {
@@ -1037,7 +980,7 @@ const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick, theme, mode 
   );
 };
 
-const Navbar = ({ lang, onLanguageChange, theme, mode, onThemeChange, onModeChange }: { lang: Language; onLanguageChange: (lang: Language) => void; theme: ColorTheme; mode: ThemeMode; onThemeChange: (theme: ColorTheme) => void; onModeChange: (mode: ThemeMode) => void }) => {
+const Navbar = ({ lang, onLanguageChange, theme, mode }: { lang: Language; onLanguageChange: (lang: Language) => void; theme: ColorTheme; mode: ThemeMode }) => {
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
   return (
@@ -1052,7 +995,6 @@ const Navbar = ({ lang, onLanguageChange, theme, mode, onThemeChange, onModeChan
           />
         </Link>
         <div className="flex items-center gap-3">
-          <ThemeSelector currentTheme={theme} currentMode={mode} onThemeChange={onThemeChange} onModeChange={onModeChange} lang={lang} />
           <LanguageSelector currentLang={lang} onChange={onLanguageChange} theme={theme} />
         </div>
       </div>
@@ -1357,8 +1299,8 @@ export default function LandingPage() {
   const [modalType, setModalType] = useState<ModalType>(null);
   const [showCategories, setShowCategories] = useState(false);
   const [language, setLanguage] = useState<Language>('en');
-  const [theme, setTheme] = useState<ColorTheme>('emerald');
-  const [mode, setMode] = useState<ThemeMode>('light');
+  const [theme] = useState<ColorTheme>('emerald');
+  const [mode] = useState<ThemeMode>('light');
   const [chatOpen, setChatOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -1369,7 +1311,7 @@ export default function LandingPage() {
   return (
     <div className={`min-h-screen relative ${mode === 'dark' ? 'text-zinc-100' : 'text-zinc-900'}`}>
       <FuturisticBackground theme={theme} mode={mode} />
-      <Navbar lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} onThemeChange={setTheme} onModeChange={setMode} />
+      <Navbar lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} />
       <ComingSoonModal isOpen={modalType !== null} onClose={() => setModalType(null)} type={modalType} lang={language} theme={theme} mode={mode} />
       <CategoriesModal isOpen={showCategories} onClose={() => setShowCategories(false)} lang={language} mode={mode} />
       <ContactModal isOpen={contactModalOpen} onClose={() => setContactModalOpen(false)} lang={language} mode={mode} />
