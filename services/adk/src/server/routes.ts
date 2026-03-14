@@ -1,13 +1,15 @@
 import { Router } from 'express'
 import { InMemorySessionService, Runner, isFinalResponse } from '@google/adk'
 import { createUserContent } from '@google/genai'
-import { tutorAgent } from '../agents/tutor'
-import { gradingAgent } from '../agents/grading'
-import { contentGeneratorAgent } from '../agents/content-generator'
-import { briefingAgent } from '../agents/briefing'
-import { liveMonitorAgent } from '../agents/live-monitor'
-import { pciMasterAgent } from '../agents/pci-master'
-import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema, pciMasterSchema } from '../validation/schemas'
+
+// Relative imports updated with .js extensions for ESM compatibility
+import { tutorAgent } from '../agents/tutor/index.js'
+import { gradingAgent } from '../agents/grading/index.js'
+import { contentGeneratorAgent } from '../agents/content-generator/index.js'
+import { briefingAgent } from '../agents/briefing/index.js'
+import { liveMonitorAgent } from '../agents/live-monitor/index.js'
+import { pciMasterAgent } from '../agents/pci-master/index.js'
+import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema, pciMasterSchema } from '../validation/schemas.js'
 import {
   briefingOutputSchema,
   contentOutputSchema,
@@ -15,18 +17,19 @@ import {
   liveMonitorOutputSchema,
   tutorOutputSchema,
   pciMasterOutputSchema,
-} from '../validation/output-schemas'
-import { appendMessage } from '../tools/conversations'
-import { logError } from '../observability/logging'
+} from '../validation/output-schemas.js'
+import { appendMessage } from '../tools/conversations.js'
+import { logError } from '../observability/logging.js'
 import { z } from 'zod'
-import { buildEssayGradingPrompt, buildMathGradingPrompt } from '../prompts/grading'
+import { buildEssayGradingPrompt, buildMathGradingPrompt } from '../prompts/grading.js'
 
 const router = Router()
 const sessionService = new InMemorySessionService()
 
 async function runAgent(agent: any, userId: string, sessionId: string, message: string): Promise<string> {
-  const runner = new Runner({ agent, sessionService })
-  await sessionService.createSession({ appName: 'solocorn', userId, sessionId })
+  // Standardized appName for consistency
+  const runner = new Runner({ agent, sessionService, appName: 'solocorn-adk' })
+  await sessionService.createSession({ appName: 'solocorn-adk', userId, sessionId })
 
   const events = runner.runAsync({
     userId,
@@ -36,8 +39,9 @@ async function runAgent(agent: any, userId: string, sessionId: string, message: 
 
   for await (const event of events) {
     if (isFinalResponse(event)) {
-      const part = event.content.parts?.[0]
-      return part?.text || ''
+      // Fixed: Variable 'part' is now properly declared with const
+      const part = event.content?.parts?.[0]; 
+      return part?.text || '';
     }
   }
   return ''
