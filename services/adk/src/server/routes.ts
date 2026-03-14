@@ -25,7 +25,7 @@ async function generateWithKimi(messages: KimiMessage[]): Promise<string> {
     body: JSON.stringify({
       model: 'kimi-k2.5',
       messages,
-      temperature: 0.7,
+      temperature: 1,
       max_tokens: 2048,
     }),
   })
