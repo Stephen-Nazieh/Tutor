@@ -84,8 +84,8 @@ router.post('/v1/pci-master', async (req, res) => {
   const contextParts = [
     context?.type && `Type: ${context.type}`,
     context?.title && `Title: ${context.title}`,
-    context?.slideContent && `Slide Content:\n${context.slideContent}`,
-    context?.currentPci && `Current PCI:\n${context.currentPci}`,
+    context?.content && `Content:\n${context.content}`,
+    context?.pci && `Current PCI:\n${context.pci}`,
   ].filter(Boolean)
 
   const contextBlock = contextParts.join('\n\n')
