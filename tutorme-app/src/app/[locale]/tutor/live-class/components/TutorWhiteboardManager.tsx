@@ -36,7 +36,6 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  Download,
   Sparkles,
   Clock3,
   Grid3X3,
@@ -51,7 +50,6 @@ import {
   Highlighter,
   Dot,
   Move,
-  FileUp,
   WandSparkles,
   Copy,
   BringToFront,
@@ -62,7 +60,6 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Gauge,
   ChevronDown,
   Shapes
 } from 'lucide-react'
@@ -158,8 +155,8 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
   const [connectorDrag, setConnectorDrag] = useState<ConnectorDragState>(null)
   const dragStartRef = useRef<DrawPoint | null>(null)
   const selectionSnapshotRef = useRef<Map<string, DrawPoint[]>>(new Map())
-  const [snapEnabled, setSnapEnabled] = useState(true)
-  const [gridVisible, setGridVisible] = useState(true)
+  const [snapEnabled, setSnapEnabled] = useState(false)
+  const [gridVisible, setGridVisible] = useState(false)
   const [gridSize, setGridSize] = useState(20)
   const [checkpointName, setCheckpointName] = useState('')
   const [namedCheckpoints, setNamedCheckpoints] = useState<Array<{ id: string; name: string; createdAt: number }>>([])
@@ -171,7 +168,7 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
     align: 'left',
   })
   const [pdfPage, setPdfPage] = useState(1)
-  const [showMiniMap, setShowMiniMap] = useState(true)
+  const [showMiniMap, setShowMiniMap] = useState(false)
   const [showPerfHud, setShowPerfHud] = useState(false)
   const [fps, setFps] = useState(0)
   const [branchNameInput, setBranchNameInput] = useState('')
@@ -2105,41 +2102,6 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
               </Button>
             </div>
           )}
-          <div className="flex items-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
-            <input
-              value={branchNameInput}
-              onChange={(e) => setBranchNameInput(e.target.value)}
-              placeholder="Branch name"
-              className="h-7 w-28 rounded border px-2 text-xs"
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => {
-                if (!branchNameInput.trim()) return
-                createBoardBranch(branchNameInput)
-                setBranchNameInput('')
-              }}
-              title="Create board branch"
-            >
-              Branch
-            </Button>
-            {availableBranches.length > 0 && (
-              <select
-                className="h-7 rounded border px-2 text-xs"
-                onChange={(e) => e.target.value && switchBoardBranch(e.target.value)}
-                defaultValue=""
-                aria-label="Switch board branch"
-              >
-                <option value="" disabled>Switch branch</option>
-                {availableBranches.map((branch) => (
-                  <option key={branch} value={branch}>{branch}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
           <div className="ml-auto flex items-center gap-1 rounded-md border bg-white px-1 py-1 shadow-sm">
             <Button
               variant="ghost"
@@ -2179,53 +2141,8 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
           >
             {showHighContrast ? 'Standard' : 'High Contrast'}
           </Button>
-          <Button variant={snapEnabled ? 'default' : 'outline'} size="sm" title="Toggle snap-to-grid" onClick={() => setSnapEnabled((prev) => !prev)}>
-            Snap
-          </Button>
-          <Button variant={gridVisible ? 'default' : 'outline'} size="sm" title="Show or hide grid" onClick={() => setGridVisible((prev) => !prev)}>
-            Grid
-          </Button>
-          <div className="flex items-center gap-2 rounded-lg border bg-white px-2 py-1 shadow-sm">
-            <span className="text-xs text-slate-500">Grid</span>
-            <Slider value={[gridSize]} onValueChange={([value]) => setGridSize(value)} min={8} max={64} step={2} className="w-20" />
-            <span className="w-7 text-xs font-medium text-slate-600">{gridSize}</span>
-          </div>
-          <label className="inline-flex">
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (!file) return
-                const src = URL.createObjectURL(file)
-                setImportedAsset({ kind: file.type.includes('pdf') ? 'pdf' : 'image', src, name: file.name })
-                setPdfPage(1)
-                logAudit('Imported asset', file.name)
-                event.currentTarget.value = ''
-              }}
-            />
-            <span className="inline-flex h-9 cursor-pointer items-center rounded-md border px-3 text-sm">
-              <FileUp className="mr-1 h-4 w-4" /> Import
-            </span>
-          </label>
-          <Button variant="outline" size="sm" title="Export full whiteboard page" onClick={exportCurrentBoard}>
-            <Download className="mr-1 h-4 w-4" /> Export
-          </Button>
-          <Button variant="outline" size="sm" title="Export as SVG vectors" onClick={exportSvg}>
-            <Download className="mr-1 h-4 w-4" /> SVG
-          </Button>
-          <Button variant="outline" size="sm" title="Export current selection" onClick={exportSelection} disabled={!selectedBounds}>
-            <Download className="mr-1 h-4 w-4" /> Export Sel
-          </Button>
           <Button variant="outline" size="sm" title="Broadcast current viewport focus to class" onClick={broadcastViewport}>
             Broadcast View
-          </Button>
-          <Button variant={showMiniMap ? 'default' : 'outline'} size="sm" title="Toggle collaboration minimap" onClick={() => setShowMiniMap((prev) => !prev)}>
-            Minimap
-          </Button>
-          <Button variant={showPerfHud ? 'default' : 'outline'} size="sm" title="Toggle performance HUD" onClick={() => setShowPerfHud((prev) => !prev)}>
-            <Gauge className="mr-1 h-4 w-4" /> Perf
           </Button>
           <div className="flex items-center gap-2 rounded-lg border bg-white px-2 py-1 shadow-sm">
             <input
@@ -2526,7 +2443,7 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
                   <div className="rounded-md border p-2">
                     <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
                       <Clock3 className="w-4 h-4" />
-                      Timeline + Export
+                      Timeline
                     </div>
                     <div className="space-y-2 text-xs">
                       <p>{snapshots.length} snapshots in timeline</p>
@@ -2553,10 +2470,6 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" onClick={requestSnapshotTimeline}>
                           Refresh Timeline
-                        </Button>
-                        <Button size="sm" onClick={exportCurrentBoard}>
-                          <Download className="w-3.5 h-3.5 mr-1" />
-                          Export Attach
                         </Button>
                       </div>
                     </div>

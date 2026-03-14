@@ -1358,7 +1358,7 @@ export default function LandingPage() {
   const [showCategories, setShowCategories] = useState(false);
   const [language, setLanguage] = useState<Language>('en');
   const [theme, setTheme] = useState<ColorTheme>('emerald');
-  const [mode, setMode] = useState<ThemeMode>('dark');
+  const [mode, setMode] = useState<ThemeMode>('light');
   const [chatOpen, setChatOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);

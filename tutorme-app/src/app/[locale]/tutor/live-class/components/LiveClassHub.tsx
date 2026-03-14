@@ -198,7 +198,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [showEngagementPanel, setShowEngagementPanel] = useState(false)
   const [showEndClassDialog, setShowEndClassDialog] = useState(false)
   const [showRecordingNotice, setShowRecordingNotice] = useState(false)
-  const [activeTab, setActiveTab] = useState('students')
+  const [activeTab, setActiveTab] = useState('whiteboard')
   const [activeBreakoutRoom, setActiveBreakoutRoom] = useState<BreakoutRoom | null>(null)
   const [isBreakoutModalOpen, setIsBreakoutModalOpen] = useState(false)
   const autoRecordingStartedRef = useRef(false)
