@@ -49,7 +49,7 @@ gcloud run deploy adk-service \
   --region $REGION \
   --allow-unauthenticated \
   --port 8080 \
-  --set-env-vars="GEMINI_API_KEY=$GEMINI_API_KEY,KIMI_API_KEY=$KIMI_API_KEY,ADK_AUTH_TOKEN=$ADK_AUTH_TOKEN,PORT=8080,ADK_MODEL=gemini-2.5-flash" \
+  --set-env-vars="GEMINI_API_KEY=$GEMINI_API_KEY,KIMI_API_KEY=$KIMI_API_KEY,ADK_AUTH_TOKEN=$ADK_AUTH_TOKEN,ADK_MODEL=gemini-2.5-flash" \
   --memory 1Gi \
   --cpu 1 \
   --max-instances 10 \
