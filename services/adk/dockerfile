@@ -5,5 +5,7 @@ RUN npm install --omit=dev
 COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
-EXPOSE 4310
+# Cloud Run sets PORT env var, app should use it
+ENV PORT=8080
+EXPOSE 8080
 CMD ["node", "dist/server/index.js"]
