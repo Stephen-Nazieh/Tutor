@@ -1754,168 +1754,91 @@ Format your response clearly and concisely.`
 // --- DMI Panel Component ---
 
 interface DMIPanelProps {
-  content: string
-  pci: string
+  items: DMIQuestion[]
+  onItemsChange: (items: DMIQuestion[]) => void
 }
 
-interface DMIAnswer {
+interface DMIQuestion {
+  id: string
   questionNumber: number
   questionText: string
   answer: string
-  isGenerated: boolean
 }
 
-function DMIPanel({ content, pci }: DMIPanelProps) {
-  const [answers, setAnswers] = useState<DMIAnswer[]>([])
-  const [editingAnswer, setEditingAnswer] = useState<number | null>(null)
-  const [editValue, setEditValue] = useState('')
+function DMIPanel({ items, onItemsChange }: DMIPanelProps) {
+  const [previewOpen, setPreviewOpen] = useState(false)
 
-  // Parse questions from content and extract/generate answers
-  useEffect(() => {
-    const parseContent = () => {
-      if (!content.trim()) {
-        setAnswers([])
-        return
-      }
-
-      // Split content into potential questions
-      const lines = content.split('\n').filter(line => line.trim())
-      const questionLines: { number: number; text: string }[] = []
-
-      lines.forEach((line) => {
-        // Match patterns like "1.", "Q1:", "Question 1:", etc.
-        const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
-        if (match) {
-          questionLines.push({
-            number: parseInt(match[1]),
-            text: match[2].trim()
-          })
-        }
-      })
-
-      // If no numbered questions found, try to split by double newlines
-      if (questionLines.length === 0) {
-        const chunks = content.split(/\n\n+/).filter(c => c.trim().length > 10)
-        chunks.forEach((chunk, idx) => {
-          const firstLine = chunk.split('\n')[0].trim()
-          if (firstLine.length > 5) {
-            questionLines.push({
-              number: idx + 1,
-              text: firstLine.substring(0, 100) + (firstLine.length > 100 ? '...' : '')
-            })
-          }
-        })
-      }
-
-      // Try to extract answers from PCI
-      const pciAnswers = new Map<number, string>()
-      if (pci.trim()) {
-        const pciLines = pci.split('\n')
-        pciLines.forEach(line => {
-          // Match answer patterns in PCI like "A: answer", "Answer 1: ...", "1. answer"
-          const match = line.match(/^(?:A(?:nswer)?[:\s]*)?(\d+)[:.)\s]+(.+)$/i)
-          if (match) {
-            pciAnswers.set(parseInt(match[1]), match[2].trim())
-          }
-        })
-      }
-
-      // Build answers array
-      const newAnswers: DMIAnswer[] = questionLines.map(q => ({
-        questionNumber: q.number,
-        questionText: q.text,
-        answer: pciAnswers.get(q.number) || '[AI will generate answer]',
-        isGenerated: !pciAnswers.has(q.number)
-      }))
-
-      setAnswers(newAnswers)
-    }
-
-    parseContent()
-  }, [content, pci])
-
-  const handleEdit = (index: number) => {
-    setEditingAnswer(index)
-    setEditValue(answers[index].answer)
-  }
-
-  const handleSave = (index: number) => {
-    const newAnswers = [...answers]
-    newAnswers[index].answer = editValue
-    newAnswers[index].isGenerated = false
-    setAnswers(newAnswers)
-    setEditingAnswer(null)
-  }
-
-  const handleCancel = () => {
-    setEditingAnswer(null)
-    setEditValue('')
-  }
-
-  if (!content.trim()) {
+  if (items.length === 0) {
     return (
       <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
         <h4 className="text-sm font-medium mb-2">Digital Marking Interface</h4>
-        <p className="text-xs text-muted-foreground">Add content in the Content tab to generate answers</p>
+        <p className="text-xs text-muted-foreground">Click "Generate DMI" to create a student answer form from the Slide tab.</p>
       </div>
     )
   }
 
   return (
-    <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
+    <div className="p-3 bg-slate-50 rounded-lg min-h-[150px] flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium">Digital Marking Interface</h4>
       </div>
 
       <div className="space-y-2 max-h-[300px] overflow-y-auto">
-        {answers.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No questions detected in content</p>
-        ) : (
-          answers.map((item, idx) => (
-            <div key={idx} className="bg-white rounded border p-2">
-              <div className="flex items-start gap-2">
-                <span className="text-xs font-medium text-blue-600 mt-0.5">Q{item.questionNumber}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground truncate mb-1">{item.questionText}</p>
-
-                  {editingAnswer === idx ? (
-                    <div className="space-y-1">
-                      <textarea
-                        value={editValue}
-                        onChange={(e: any) => setEditValue(e.target.value)}
-                        className="w-full text-xs border rounded p-1 resize-none"
-                        rows={2}
-                      />
-                      <div className="flex gap-1">
-                        <Button size="sm" className="h-5 text-[10px] px-2" onClick={() => handleSave(idx)}>Save</Button>
-                        <Button size="sm" variant="ghost" className="h-5 text-[10px] px-2" onClick={handleCancel}>Cancel</Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start justify-between gap-2">
-                      <p className={`text-xs ${item.isGenerated ? 'text-amber-600 italic' : 'text-green-700'}`}>
-                        A: {item.answer}
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-5 text-[10px] px-1 shrink-0"
-                        onClick={() => handleEdit(idx)}
-                      >
-                        Edit
-                      </Button>
-                    </div>
-                  )}
-                </div>
+        {items.map((item, idx) => (
+          <div key={item.id} className="bg-white rounded border p-2">
+            <div className="flex items-start gap-2">
+              <span className="text-xs font-medium text-blue-600 mt-0.5">Q{item.questionNumber}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-700 mb-2">{item.questionText}</p>
+                <textarea
+                  value={item.answer}
+                  onChange={(e: any) => {
+                    const next = items.map((q, qIdx) =>
+                      qIdx === idx ? { ...q, answer: e.target.value } : q
+                    )
+                    onItemsChange(next)
+                  }}
+                  className="w-full text-xs border rounded p-2 resize-y min-h-[60px]"
+                  placeholder="Student answer..."
+                />
               </div>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
 
-      <p className="text-[10px] text-muted-foreground mt-2">
-        {answers.some(a => a.isGenerated) ? 'Yellow answers need to be filled. Green are from PCI.' : 'All answers are from PCI'}
-      </p>
+      <div className="mt-3 flex items-center gap-2">
+        <Button size="sm" variant="outline" onClick={() => setPreviewOpen(true)}>
+          Preview
+        </Button>
+        <Button size="sm" onClick={() => toast.success('DMI deployed')}>
+          Deploy
+        </Button>
+      </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>DMI Preview</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {items.map((item) => (
+              <div key={item.id} className="rounded border p-3 bg-white">
+                <p className="text-sm font-medium mb-2">Q{item.questionNumber}. {item.questionText}</p>
+                <textarea
+                  className="w-full text-sm border rounded p-2 resize-y min-h-[80px]"
+                  placeholder="Student answer..."
+                />
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button onClick={() => toast.success('DMI deployed')}>
+              Deploy
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -5027,6 +4950,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [testPciLoading, setTestPciLoading] = useState(false)
   const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
   const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
+  const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
+  const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
 
   // Active tab tracking for Enter button
   const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
@@ -5092,12 +5017,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
         return acc
       }, {})
     )
-    setTaskExtensionPciInputs(
-      (task.extensions || []).reduce<Record<string, string>>((acc, ext) => {
-        acc[ext.id] = ''
-        return acc
-      }, {})
-    )
+    setTaskExtensionPciInputs(prev => {
+      const next = { ...prev }
+      for (const ext of task.extensions || []) {
+        if (next[ext.id] === undefined) next[ext.id] = ''
+      }
+      return next
+    })
     setLoadedTaskId(task.id)
     setTaskUploadedFiles(task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : [])
   }, [])
@@ -5493,74 +5419,57 @@ FEEDBACK: [your explanation]`
   }
 
 
-  // Generate DMI using AI with Slide and PCI content
+  // Generate DMI using Slide content
   const handleGenerateDMI = async (type: 'task' | 'assessment') => {
     const isTask = type === 'task'
     const builder = isTask ? taskBuilder : assessmentBuilder
-    const content = builder.activeExtensionId
-      ? builder.extensions.find(e => e.id === builder.activeExtensionId)?.content || builder.taskContent
-      : builder.taskContent
-    const pci = builder.activeExtensionId
-      ? builder.extensions.find(e => e.id === builder.activeExtensionId)?.pci || builder.taskPci
-      : builder.taskPci
+    const content = builder.taskContent
 
-    if (!content.trim() && !pci.trim()) {
-      toast.error('Please add some content or PCI instructions first')
+    if (!content.trim()) {
+      toast.error('Please add slide content first')
       return
     }
 
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
+    const lines = content.split('\n').filter(line => line.trim())
+    const questionLines: { number: number; text: string }[] = []
 
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: `You are a DMI (Differentiated Measurement Index) generator for educational content. 
-Given the Slide content and PCI (Processing Content Instructions), generate appropriate DMI entries.
-Each DMI entry should include:
-- questionText: The question or task text
-- answer: The expected answer or solution
+    lines.forEach((line) => {
+      const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
+      if (match) {
+        questionLines.push({
+          number: parseInt(match[1]),
+          text: match[2].trim()
+        })
+      }
+    })
 
-Return your response as a JSON array of DMI entries.`
-            },
-            {
-              role: 'user',
-              content: `Generate DMI entries for the following ${type}:
-
-SLIDE CONTENT:
-${content || '(empty)'}
-
-PCI INSTRUCTIONS:
-${pci || '(empty)'}
-
-Please provide DMI entries as a JSON array with objects containing "questionText" and "answer" fields.`
-            }
-          ],
-          temperature: 0.7
-        }),
+    if (questionLines.length === 0) {
+      const chunks = content.split(/\n\n+/).filter(c => c.trim().length > 10)
+      chunks.forEach((chunk, idx) => {
+        const firstLine = chunk.split('\n')[0].trim()
+        if (firstLine.length > 5) {
+          questionLines.push({
+            number: idx + 1,
+            text: firstLine
+          })
+        }
       })
-
-      if (!res.ok) throw new Error('Failed to generate DMI')
-
-      const data = await res.json()
-      toast.success('DMI generated successfully')
-      
-      // The DMIPanel will receive the content and display it
-      // We could store the generated DMI in state if needed
-      console.log('Generated DMI:', data.content)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to generate DMI')
     }
+
+    const items: DMIQuestion[] = questionLines.map(q => ({
+      id: `dmi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      questionNumber: q.number,
+      questionText: q.text,
+      answer: ''
+    }))
+
+    if (isTask) {
+      setTaskDmiItems(items)
+    } else {
+      setAssessmentDmiItems(items)
+    }
+
+    toast.success('DMI form created from Slide content')
   }
 
   useEffect(() => {
@@ -5650,6 +5559,19 @@ Please provide DMI entries as a JSON array with objects containing "questionText
   const isSectionCollapsed = (moduleId: string, section: 'task' | 'assessment' | 'homework') =>
     collapsedSections.has(`${moduleId}:${section}`)
 
+  const ensureSectionExpanded = (moduleId: string, section: 'task' | 'assessment' | 'homework') => {
+    setExpandedModules(prev => {
+      const next = new Set(prev)
+      next.add(moduleId)
+      return next
+    })
+    setCollapsedSections(prev => {
+      const next = new Set(prev)
+      next.delete(`${moduleId}:${section}`)
+      return next
+    })
+  }
+
   // Add handlers
   const addModule = () => {
     // Create a new module (lesson) directly without opening modal
@@ -5677,10 +5599,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       lessonIndex = newModules[moduleIndex].lessons.length - 1
     }
 
+    const isFirstTask = modules[moduleIndex].lessons[lessonIndex].tasks.length === 0
     const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
     const newModules = [...modules]
     newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
     setModules(newModules)
+    if (isFirstTask) ensureSectionExpanded(moduleId, 'task')
     setEditingData(newTask)
     setActiveModal({ type: 'task', isOpen: true, moduleId, lessonId })
   }
@@ -5714,10 +5638,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       lessonIndex = newModules[moduleIndex].lessons.length - 1
     }
 
+    const isFirstAssessment = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
     const newAssessment = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
     const newModules = [...modules]
     newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
     setModules(newModules)
+    if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
     // Just add to list without opening modal - same as addTask behavior
     toast.success('Assessment added')
   }
@@ -5734,10 +5660,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
       lessonIndex = newModules[moduleIndex].lessons.length - 1
     }
 
+    const isFirstHomework = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
     const newHomework = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'homework')
     const newModules = [...modules]
     newModules[moduleIndex].lessons[lessonIndex].homework.push(newHomework)
     setModules(newModules)
+    if (isFirstHomework) ensureSectionExpanded(moduleId, 'homework')
     setEditingData(newHomework)
     setActiveModal({ type: 'homework', isOpen: true, moduleId, lessonId })
   }
@@ -5788,10 +5716,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
     if (moduleIndex === -1 || lessonIndex === -1) return null
 
+    const isFirstTask = modules[moduleIndex].lessons[lessonIndex].tasks.length === 0
     const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
     const newModules = [...modules]
     newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
     setModules(newModules)
+    if (isFirstTask) ensureSectionExpanded(moduleId, 'task')
     setLoadedTaskId(newTask.id)
     setTaskBuilder({
       title: newTask.title,
@@ -5812,10 +5742,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
     if (moduleIndex === -1 || lessonIndex === -1) return null
 
+    const isFirstAssessment = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
     const newAssessment = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
     const newModules = [...modules]
     newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
     setModules(newModules)
+    if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
     setLoadedAssessmentId(newAssessment.id)
     setAssessmentBuilder({
       title: newAssessment.title,
@@ -7053,7 +6985,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                           </div>
                                           </SortableTreeItem>
                                         {loadedTaskId === task.id && taskBuilder.extensions.length > 0 && (
-                                          <div className="ml-6 mt-1 space-y-1">
+                                          <div className="ml-8 mt-1 space-y-1 border-l border-orange-200 pl-3">
                                             <div
                                               className="flex items-center gap-2 rounded px-2 py-1 text-[10px] border bg-white cursor-pointer"
                                               onClick={() => toggleExtensions(task.id)}
@@ -7068,7 +7000,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                               <span className="text-muted-foreground">({taskBuilder.extensions.length})</span>
                                             </div>
                                             {!isExtensionsCollapsed(task.id) && (
-                                              <div className="ml-4 space-y-1">
+                                              <div className="ml-3 space-y-1">
                                                 {taskBuilder.extensions.map((ext, extIdx) => (
                                                   <div
                                                     key={ext.id}
@@ -7961,8 +7893,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           </Button>
                         </div>
                         <DMIPanel
-                          content={assessmentBuilder.taskContent}
-                          pci={assessmentBuilder.taskPci}
+                          items={assessmentDmiItems}
+                          onItemsChange={setAssessmentDmiItems}
                         />
                       </ResizablePanel>
                     </div>
