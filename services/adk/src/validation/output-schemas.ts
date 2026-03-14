@@ -55,3 +55,10 @@ export const liveMonitorOutputSchema = z.object({
   overallUnderstanding: z.number(),
   confidence: z.number().min(0).max(1).optional(),
 })
+
+export const pciMasterOutputSchema = z.object({
+  response: z.string(),
+  suggestedPci: z.string().optional(),
+  suggestedContent: z.string().optional(),
+  followUpQuestion: z.string().optional(),
+})

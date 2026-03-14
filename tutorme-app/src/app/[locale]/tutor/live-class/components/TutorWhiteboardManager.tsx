@@ -66,7 +66,7 @@ import {
 import { useLiveClassWhiteboard, WhiteboardStroke } from '@/hooks/use-live-class-whiteboard'
 import { cn } from '@/lib/utils'
 import { CourseStructureLinkPanel } from './CourseStructureLinkPanel'
-import { PDFTutoringWorkbench } from '@/components/pdf-tutoring/PDFTutoringWorkbench'
+
 import type { VisibleDocumentPayload } from '../../dashboard/components/CourseBuilder'
 
 type Tool =
@@ -2181,9 +2181,8 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
               <TabsTrigger value="my-board">My Board</TabsTrigger>
               <TabsTrigger value="student-boards">
                 <Users className="w-4 h-4 mr-2" />
-                Students ({activeStudentBoards.length})
+                Student Boards ({activeStudentBoards.length})
               </TabsTrigger>
-              <TabsTrigger value="pdf-board">PDF Tutoring</TabsTrigger>
             </TabsList>
             
             <TabsContent value="my-board" className="h-full m-0">
@@ -2746,12 +2745,6 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
                   )}
                 </div>
               </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="pdf-board" className="h-full m-0">
-              <div className="h-full overflow-auto p-4">
-                <PDFTutoringWorkbench roomId={`${roomId}:pdf`} />
-              </div>
             </TabsContent>
           </Tabs>
         </div>

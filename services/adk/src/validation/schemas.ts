@@ -34,3 +34,18 @@ export const briefingSchema = z.object({
 export const liveMonitorSchema = z.object({
   prompt: z.string(),
 })
+
+export const pciMasterSchema = z.object({
+  userId: z.string().min(1),
+  sessionId: z.string().optional(),
+  message: z.string().min(1),
+  context: z
+    .object({
+      type: z.enum(['task', 'assessment']).optional(),
+      title: z.string().optional(),
+      content: z.string().optional(),
+      pci: z.string().optional(),
+      extensionName: z.string().optional(),
+    })
+    .optional(),
+})

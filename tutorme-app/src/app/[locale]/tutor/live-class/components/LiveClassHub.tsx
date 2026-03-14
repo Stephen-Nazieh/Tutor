@@ -736,10 +736,6 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                 <Wrench className="w-3 h-3" />
                 Whiteboard
               </TabsTrigger>
-              <TabsTrigger value="analytics" onClick={() => setActiveTab('analytics')} className="gap-1 data-[state=active]:bg-white data-[state=active]:shadow-sm text-xs whitespace-nowrap">
-                <BarChart3 className="w-3 h-3" />
-                Analytics
-              </TabsTrigger>
               </TabsList>
             </div>
 
@@ -757,10 +753,13 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             </TabsContent>
 
             <TabsContent value="progress" className="flex-1 mt-4 overflow-hidden">
-              <StudentProgressPanel 
-                students={students}
-                classDuration={metrics?.classDuration || 0}
-              />
+              <div className="h-full overflow-auto space-y-6">
+                <StudentProgressPanel 
+                  students={students}
+                  classDuration={metrics?.classDuration || 0}
+                />
+                {metrics && <LiveAnalytics metrics={metrics} alerts={alerts} />}
+              </div>
             </TabsContent>
 
             <TabsContent value="rooms" className="flex-1 mt-4 overflow-hidden">
@@ -799,11 +798,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
               />
             </TabsContent>
 
-            <TabsContent value="analytics" className="flex-1 mt-4 overflow-hidden">
-              <div className="h-full overflow-auto">
-                {metrics && <LiveAnalytics metrics={metrics} alerts={alerts} />}
-              </div>
-            </TabsContent>
+
           </Tabs>
         </div>
 

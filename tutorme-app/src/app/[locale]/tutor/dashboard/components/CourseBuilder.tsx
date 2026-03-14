@@ -5213,16 +5213,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const formatPciTranscript = (messages: { role: 'user' | 'assistant'; content: string }[]) =>
     messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
 
-  const buildPciPrompt = (type: 'task' | 'assessment', messages: { role: 'user' | 'assistant'; content: string }[], userInput: string) => {
-    const content = type === 'task'
-      ? (taskBuilder.activeExtensionId
-        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
-        : taskBuilder.taskContent)
-      : assessmentBuilder.taskContent
-    const history = messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
-    return `You are a PCI assistant helping a tutor create processing instructions through a chat conversation.\n\nContent:\n${content || '(empty)'}\n\nConversation so far:\n${history || '(none)'}\n\nUser: ${userInput}\n\nRespond with the next assistant message only. Keep it concise and helpful.`
-  }
-
   const handlePciSend = async (type: 'task' | 'assessment') => {
     const isTask = type === 'task'
     const input = isTask ? taskPciInput : assessmentPciInput
@@ -5248,18 +5238,41 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }
 
     try {
-      const prompt = buildPciPrompt(type, nextMessages, userMessage)
-      const response = await fetch('/api/ai/chat', {
+      const content = isTask
+        ? (taskBuilder.activeExtensionId
+          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
+          : taskBuilder.taskContent)
+        : assessmentBuilder.taskContent
+      const pci = isTask
+        ? (taskBuilder.activeExtensionId
+          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
+          : taskBuilder.taskPci)
+        : assessmentBuilder.taskPci
+      const sessionId = isTask
+        ? (loadedTaskId ? `pci-task:${loadedTaskId}` : undefined)
+        : (loadedAssessmentId ? `pci-assessment:${loadedAssessmentId}` : undefined)
+      const extensionName = isTask && taskBuilder.activeExtensionId
+        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
+        : undefined
+
+      const response = await fetch('/api/ai/pci-master', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.4
+          message: userMessage,
+          sessionId,
+          context: {
+            type,
+            title: isTask ? taskBuilder.title : assessmentBuilder.title,
+            content,
+            pci,
+            extensionName,
+          },
         })
       })
       if (!response.ok) throw new Error('Failed to get AI response')
       const data = await response.json()
-      const assistantMessage = { role: 'assistant' as const, content: data.content || 'Unable to respond.' }
+      const assistantMessage = { role: 'assistant' as const, content: data.response || 'Unable to respond.' }
       if (isTask) {
         const updated = nextMessages.concat(assistantMessage)
         setTaskPciMessages(updated)

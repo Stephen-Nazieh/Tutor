@@ -6,13 +6,15 @@ import { gradingAgent } from '../agents/grading'
 import { contentGeneratorAgent } from '../agents/content-generator'
 import { briefingAgent } from '../agents/briefing'
 import { liveMonitorAgent } from '../agents/live-monitor'
-import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema } from '../validation/schemas'
+import { pciMasterAgent } from '../agents/pci-master'
+import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema, pciMasterSchema } from '../validation/schemas'
 import {
   briefingOutputSchema,
   contentOutputSchema,
   gradingOutputSchema,
   liveMonitorOutputSchema,
   tutorOutputSchema,
+  pciMasterOutputSchema,
 } from '../validation/output-schemas'
 import { appendMessage } from '../tools/conversations'
 import { logError } from '../observability/logging'
@@ -195,6 +197,39 @@ router.post('/v1/live-monitor', async (req, res) => {
   } catch (error) {
     logError('Live monitor failed', error)
     res.status(500).json({ error: 'Live monitor failed' })
+  }
+})
+
+router.post('/v1/pci-master', async (req, res) => {
+  const parsed = pciMasterSchema.safeParse(req.body)
+  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
+
+  const { userId, sessionId, message, context } = parsed.data
+  const convoId = sessionId || `pci:${userId}`
+  const contextBlock = context
+    ? [
+        context.type ? `Type: ${context.type}` : null,
+        context.title ? `Title: ${context.title}` : null,
+        context.extensionName ? `Extension: ${context.extensionName}` : null,
+        `Content:\n${context.content || '(empty)'}`,
+        `Current PCI:\n${context.pci || '(empty)'}`,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    : ''
+
+  const finalMessage = contextBlock ? `Context:\n${contextBlock}\n\nUser: ${message}` : message
+
+  try {
+    await appendMessage(convoId, 'user', message)
+    const response = await runAgent(pciMasterAgent, userId, convoId, finalMessage)
+    const parsedOutput = parseStructuredOutput(response, pciMasterOutputSchema)
+    const finalResponse = parsedOutput?.response ?? response
+    await appendMessage(convoId, 'assistant', finalResponse)
+    res.json({ response: finalResponse, conversationId: convoId, parsed: parsedOutput })
+  } catch (error) {
+    logError('PCI Master failed', error)
+    res.status(500).json({ error: 'PCI Master failed' })
   }
 })
 
