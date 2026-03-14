@@ -467,7 +467,7 @@ export default function TutorClassesPage() {
         ) : (
           <div className="space-y-6">
             {/* LIVE NOW Section */}
-            {categorizedClasses.live.length > 0 && filterStatus !== 'scheduled' && filterStatus !== 'past' && (
+            {categorizedClasses.live.length > 0 && filterStatus !== 'scheduled' && filterStatus !== 'completed' && (
               <Card className="border-red-200">
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-red-600">
@@ -482,7 +482,7 @@ export default function TutorClassesPage() {
             )}
 
             {/* UPCOMING Section */}
-            {categorizedClasses.upcoming.length > 0 && filterStatus !== 'live' && filterStatus !== 'past' && (
+            {categorizedClasses.upcoming.length > 0 && filterStatus !== 'live' && filterStatus !== 'completed' && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2">

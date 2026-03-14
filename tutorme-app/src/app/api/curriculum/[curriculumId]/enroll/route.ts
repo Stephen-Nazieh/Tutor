@@ -14,7 +14,7 @@ import {
   courseBatch,
   curriculumEnrollment,
   curriculumProgress,
-  user,
+  profile,
 } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
@@ -164,22 +164,22 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
 
   // Notify the tutor about the new enrollment
   if (curriculumRow.creatorId) {
-    const [student] = await drizzleDb
-      .select({ name: user.name, email: user.email })
-      .from(user)
-      .where(eq(user.id, session.user.id))
+    const [studentProfile] = await drizzleDb
+      .select({ name: profile.name })
+      .from(profile)
+      .where(eq(profile.userId, session.user.id))
       .limit(1)
 
     void notify({
       userId: curriculumRow.creatorId,
       type: 'enrollment',
       title: 'New Student Enrollment',
-      message: `${student?.name || 'A new student'} has enrolled in your course "${curriculumRow.name}"`,
+      message: `${studentProfile?.name || 'A new student'} has enrolled in your course "${curriculumRow.name}"`,
       data: {
         curriculumId,
         curriculumName: curriculumRow.name,
         studentId: session.user.id,
-        studentName: student?.name,
+        studentName: studentProfile?.name,
       },
       actionUrl: `/tutor/courses/${curriculumId}/enrollments`,
     })

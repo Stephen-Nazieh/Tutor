@@ -40,10 +40,12 @@ import {
   TrendingUp,
   BarChart2,
   ChevronLeft,
+  ChevronRight,
   MessageCircle,
   Sparkles,
   LogOut,
   LayoutTemplate,
+  Wrench,
 } from 'lucide-react'
 
 interface LiveClassHubProps {
@@ -583,7 +585,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
 
           <Separator orientation="vertical" className="h-6" />
 
-          {/* Media Controls -->
+          {/* Media Controls */}
           <div className="flex items-center gap-2">
             <Button
               variant={isMuted ? 'destructive' : 'outline'}
@@ -852,7 +854,7 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         onExtendTime={handleExtendTime}
       />
 
-      {/* End Class Dialog -->
+      {/* End Class Dialog */}
       <Dialog open={showEndClassDialog} onOpenChange={setShowEndClassDialog}>
         <DialogContent>
           <DialogHeader>
