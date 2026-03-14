@@ -26,7 +26,8 @@ import {
   Globe,
   FileText,
   Compass,
-  Heart
+  Heart,
+  Briefcase
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -45,12 +46,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/student/tutors', label: 'Find Tutors', icon: Compass },
       { href: '/student/courses', label: 'My Courses', icon: GraduationCap },
-      { href: '/student/favorites', label: 'My Favorites', icon: Heart },
-      { href: '/student/assignments', label: 'Assignments', icon: ClipboardList },
-      { href: '/student/quizzes', label: 'Quizzes', icon: FileText },
-      { href: '/student/missed-lessons', label: 'Missed Lessons', icon: Video },
-      { href: '/student/lesson-replays', label: 'Lesson Replays', icon: Video },
-      { href: '/student/scores', label: 'Scores', icon: Trophy },
+      { href: '/student/work', label: 'My Work', icon: Briefcase },
     ],
   },
   {
@@ -58,7 +54,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/student/missions', label: 'Missions', icon: Target },
       { href: '/student/worlds', label: 'Worlds', icon: Globe },
-      { href: '/student/skills', label: 'My Skills', icon: Radar },
       { href: '/student/progress', label: 'Progress', icon: BarChart3 },
     ],
   },
@@ -66,7 +61,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     label: 'Inbox & support',
     items: [
       { href: '/student/notifications', label: 'Notifications', icon: Bell },
-      { href: '/student/resources', label: 'Resources', icon: FolderOpen },
       { href: '/student/help', label: 'Help', icon: HelpCircle },
     ],
   },
