@@ -4993,8 +4993,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   })
 
   const [taskPciMessages, setTaskPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  const [taskExtensionPciMessages, setTaskExtensionPciMessages] = useState<Record<string, { role: 'user' | 'assistant'; content: string }[]>>({})
+  const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
   const [assessmentPciMessages, setAssessmentPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
   const [taskPciInput, setTaskPciInput] = useState('')
+  const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
   const [assessmentPciInput, setAssessmentPciInput] = useState('')
   const [taskPciLoading, setTaskPciLoading] = useState(false)
   const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
@@ -5043,6 +5046,35 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
 
   // Load task data into taskBuilder
+  const parsePciTranscript = (text: string) => {
+    if (!text?.trim()) return [] as { role: 'user' | 'assistant'; content: string }[]
+    const lines = text.split('\n')
+    const messages: { role: 'user' | 'assistant'; content: string }[] = []
+    let current: { role: 'user' | 'assistant'; content: string } | null = null
+    for (const line of lines) {
+      const trimmed = line.trim()
+      const userMatch = trimmed.match(/^User:\s*(.*)$/i)
+      const assistantMatch = trimmed.match(/^Assistant:\s*(.*)$/i)
+      if (userMatch) {
+        if (current) messages.push(current)
+        current = { role: 'user', content: userMatch[1] }
+        continue
+      }
+      if (assistantMatch) {
+        if (current) messages.push(current)
+        current = { role: 'assistant', content: assistantMatch[1] }
+        continue
+      }
+      if (current) {
+        current.content = `${current.content}\n${line}`
+      } else if (trimmed) {
+        current = { role: 'assistant', content: trimmed }
+      }
+    }
+    if (current) messages.push(current)
+    return messages
+  }
+
   const loadTaskIntoBuilder = useCallback((task: Task, activeExtensionId: string | null = null) => {
     // Prioritize description over sourceDocument - description holds edited content
     const content = task.description || task.sourceDocument?.extractedText || ''
@@ -5054,6 +5086,19 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       extensions: (task.extensions || []).map(ext => ({ ...ext, description: ext.description || '' })),
       activeExtensionId,
     })
+    setTaskPciMessages(parsePciTranscript(task.instructions || ''))
+    setTaskExtensionPciMessages(
+      (task.extensions || []).reduce<Record<string, { role: 'user' | 'assistant'; content: string }[]>>((acc, ext) => {
+        acc[ext.id] = parsePciTranscript(ext.pci || '')
+        return acc
+      }, {})
+    )
+    setTaskExtensionPciInputs(
+      (task.extensions || []).reduce<Record<string, string>>((acc, ext) => {
+        acc[ext.id] = ''
+        return acc
+      }, {})
+    )
     setLoadedTaskId(task.id)
     setTaskUploadedFiles(task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : [])
   }, [])
@@ -5215,7 +5260,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   const handlePciSend = async (type: 'task' | 'assessment') => {
     const isTask = type === 'task'
-    const input = isTask ? taskPciInput : assessmentPciInput
+    const activeTaskInput = taskBuilder.activeExtensionId
+      ? (taskExtensionPciInputs[taskBuilder.activeExtensionId] || '')
+      : taskPciInput
+    const input = isTask ? activeTaskInput : assessmentPciInput
     const loading = isTask ? taskPciLoading : assessmentPciLoading
     if (!input.trim() || loading) return
 
@@ -5223,10 +5271,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     if (!isTask && !loadedAssessmentId) autoCreateAssessment()
 
     const userMessage = input.trim()
-    if (isTask) setTaskPciInput('') 
+    if (isTask) {
+      if (taskBuilder.activeExtensionId) {
+        setTaskExtensionPciInputs(prev => ({
+          ...prev,
+          [taskBuilder.activeExtensionId as string]: '',
+        }))
+      } else {
+        setTaskPciInput('')
+      }
+    }
     else setAssessmentPciInput('')
 
-    const nextMessages = (isTask ? taskPciMessages : assessmentPciMessages).concat({ role: 'user', content: userMessage })
+    const currentTaskMessages = taskBuilder.activeExtensionId
+      ? (taskExtensionPciMessages[taskBuilder.activeExtensionId] || [])
+      : taskPciMessages
+    const nextMessages = (isTask ? currentTaskMessages : assessmentPciMessages).concat({ role: 'user', content: userMessage })
     const updateTaskPciFromMessages = (messages: { role: 'user' | 'assistant'; content: string }[]) => {
       setTaskBuilder(prev => {
         if (prev.activeExtensionId) {
@@ -5242,7 +5302,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }
 
     if (isTask) {
-      setTaskPciMessages(nextMessages)
+      if (taskBuilder.activeExtensionId) {
+        setTaskExtensionPciMessages(prev => ({
+          ...prev,
+          [taskBuilder.activeExtensionId as string]: nextMessages,
+        }))
+      } else {
+        setTaskPciMessages(nextMessages)
+      }
       updateTaskPciFromMessages(nextMessages)
       setTaskPciLoading(true)
     } else {
@@ -5287,7 +5354,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       const assistantMessage = { role: 'assistant' as const, content: data.response || 'Unable to respond.' }
       if (isTask) {
         const updated = nextMessages.concat(assistantMessage)
-        setTaskPciMessages(updated)
+        if (taskBuilder.activeExtensionId) {
+          setTaskExtensionPciMessages(prev => ({
+            ...prev,
+            [taskBuilder.activeExtensionId as string]: updated,
+          }))
+        } else {
+          setTaskPciMessages(updated)
+        }
         updateTaskPciFromMessages(updated)
       } else {
         const updated = nextMessages.concat(assistantMessage)
@@ -5298,7 +5372,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       const errorMessage = { role: 'assistant' as const, content: 'Sorry, there was an error processing your request. Please try again.' }
       if (isTask) {
         const updated = nextMessages.concat(errorMessage)
-        setTaskPciMessages(updated)
+        if (taskBuilder.activeExtensionId) {
+          setTaskExtensionPciMessages(prev => ({
+            ...prev,
+            [taskBuilder.activeExtensionId as string]: updated,
+          }))
+        } else {
+          setTaskPciMessages(updated)
+        }
         updateTaskPciFromMessages(updated)
       } else {
         const updated = nextMessages.concat(errorMessage)
@@ -6555,6 +6636,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                 content: textToInsert,
                 pci: ''
               }
+              setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
+              setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
               setTaskBuilder(prev => ({
                 ...prev,
                 extensions: [...prev.extensions, newExtension],
@@ -6674,6 +6757,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
   const activeTaskExtension = taskBuilder.activeExtensionId
     ? taskBuilder.extensions.find(ext => ext.id === taskBuilder.activeExtensionId)
     : null
+  const activeTaskPciMessages = taskBuilder.activeExtensionId
+    ? (taskExtensionPciMessages[taskBuilder.activeExtensionId] || [])
+    : taskPciMessages
+  const activeTaskPciInput = taskBuilder.activeExtensionId
+    ? (taskExtensionPciInputs[taskBuilder.activeExtensionId] || '')
+    : taskPciInput
   const taskHeaderTitle = activeTaskExtension
     ? `${taskBuilder.title || 'Task'} ${activeTaskExtension.name}`
     : (taskBuilder.title || 'Task')
@@ -7018,6 +7107,16 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                                       onClick={(e: any) => {
                                                         e.stopPropagation()
                                                         if (!confirm(`Delete "${ext.name}"?`)) return
+                                                        setTaskExtensionPciMessages(prev => {
+                                                          const next = { ...prev }
+                                                          delete next[ext.id]
+                                                          return next
+                                                        })
+                                                        setTaskExtensionPciInputs(prev => {
+                                                          const next = { ...prev }
+                                                          delete next[ext.id]
+                                                          return next
+                                                        })
                                                         setTaskBuilder(prev => ({
                                                           ...prev,
                                                           extensions: prev.extensions.filter(e => e.id !== ext.id),
@@ -7532,10 +7631,10 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           <TabsContent value="pci" className="mt-2">
                             <div className="rounded-lg border bg-white">
                               <div className="max-h-[260px] overflow-y-auto p-3 space-y-3">
-                                {taskPciMessages.length === 0 && (
+                                {activeTaskPciMessages.length === 0 && (
                                   <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
                                 )}
-                                {taskPciMessages.map((msg, idx) => (
+                                {activeTaskPciMessages.map((msg, idx) => (
                                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user'
                                       ? 'bg-blue-50 text-gray-900'
@@ -7559,8 +7658,18 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                   <AutoTextarea
                                     placeholder="Ask the PCI assistant..."
                                     className="w-full min-h-[44px]"
-                                    value={taskPciInput}
-                                    onChange={(e: any) => setTaskPciInput(e.target.value)}
+                                    value={activeTaskPciInput}
+                                    onChange={(e: any) => {
+                                      const value = e.target.value
+                                      if (taskBuilder.activeExtensionId) {
+                                        setTaskExtensionPciInputs(prev => ({
+                                          ...prev,
+                                          [taskBuilder.activeExtensionId as string]: value,
+                                        }))
+                                      } else {
+                                        setTaskPciInput(value)
+                                      }
+                                    }}
                                     onKeyDown={(e: any) => {
                                       if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault()
@@ -7572,7 +7681,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                     variant="outline"
                                     size="sm"
                                     className="h-9"
-                                    disabled={taskPciLoading || !taskPciInput.trim()}
+                                    disabled={taskPciLoading || !activeTaskPciInput.trim()}
                                     onClick={() => handlePciSend('task')}
                                   >
                                     {taskPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
@@ -7630,6 +7739,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                                 content: '',
                                 pci: ''
                               }
+                              setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
+                              setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
                             setTaskBuilder(prev => ({
                               ...prev,
                               extensions: [...prev.extensions, newExtension],

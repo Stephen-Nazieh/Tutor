@@ -53,6 +53,9 @@ import {
   Wrench,
   Command,
   ChevronRight,
+  ChevronLeft,
+  MessageCircle,
+  Sparkles,
   LogOut,
 } from 'lucide-react'
 
@@ -155,10 +158,34 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [metrics, setMetrics] = useState<EngagementMetrics | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
+  const [panelSeenCounts, setPanelSeenCounts] = useState({ messages: 0, handRaises: 0, alerts: 0 })
   const [classTitle, setClassTitle] = useState('Live Class')
   const [classSubject, setClassSubject] = useState('General')
   const [classRoomId, setClassRoomId] = useState<string | null>(null)
   const [linkedCourseId, setLinkedCourseId] = useState<string | null>(null)
+
+  const pendingHandRaises = handRaises.length
+  const totalMessages = messages.length
+  const socraticAlerts = alerts.length
+
+  useEffect(() => {
+    if (!rightPanelCollapsed) {
+      setPanelSeenCounts({
+        messages: totalMessages,
+        handRaises: pendingHandRaises,
+        alerts: socraticAlerts,
+      })
+    }
+  }, [rightPanelCollapsed, totalMessages, pendingHandRaises, socraticAlerts])
+
+  const panelNotificationCounts = {
+    messages: Math.max(0, totalMessages - panelSeenCounts.messages),
+    handRaises: Math.max(0, pendingHandRaises - panelSeenCounts.handRaises),
+    alerts: Math.max(0, socraticAlerts - panelSeenCounts.alerts),
+  }
+  const hasPanelNotifications =
+    panelNotificationCounts.messages + panelNotificationCounts.handRaises + panelNotificationCounts.alerts > 0
   
   // Media controls
   const [isMuted, setIsMuted] = useState(false)
@@ -803,39 +830,88 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
         </div>
 
         {/* Right Panel - Sidebar */}
-        <div className="w-[400px] p-4 pl-0 flex flex-col gap-4 overflow-hidden">
-          {/* AI Teaching Assistant - Top Priority */}
-          <div className="h-[40%] min-h-0">
-            <AITeachingAssistant 
-              students={students}
-              metrics={metrics}
-              classDuration={metrics?.classDuration || 0}
-              currentTopic={classSubject}
-            />
-          </div>
-          
-          {/* Hand Raise Queue */}
-          <div className="flex-1 min-h-0">
-            <HandRaiseQueue 
-              handRaises={handRaises}
-              onAcknowledge={handleAcknowledgeHand}
-              onAnswer={(handId) => {
-                const hand = handRaises.find(h => h.id === handId)
-                if (hand) handleCallOn(hand.studentId)
-              }}
-            />
-          </div>
+        <div className={rightPanelCollapsed ? "w-12" : "w-[400px]"}> 
+          {rightPanelCollapsed ? (
+            <div className="h-full flex flex-col items-center gap-3 py-4 border-l bg-white/80">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setRightPanelCollapsed(false)}
+                aria-label="Expand assistant panel"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              {hasPanelNotifications && (
+                <div className="flex flex-col items-center gap-2">
+                  {panelNotificationCounts.messages > 0 && (
+                    <div className="flex flex-col items-center gap-1">
+                      <MessageCircle className="h-4 w-4 text-blue-600" />
+                      <Badge variant="secondary" className="text-[10px]">{panelNotificationCounts.messages}</Badge>
+                    </div>
+                  )}
+                  {panelNotificationCounts.handRaises > 0 && (
+                    <div className="flex flex-col items-center gap-1">
+                      <Hand className="h-4 w-4 text-orange-600" />
+                      <Badge variant="secondary" className="text-[10px]">{panelNotificationCounts.handRaises}</Badge>
+                    </div>
+                  )}
+                  {panelNotificationCounts.alerts > 0 && (
+                    <div className="flex flex-col items-center gap-1">
+                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      <Badge variant="secondary" className="text-[10px]">{panelNotificationCounts.alerts}</Badge>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 pl-0 flex flex-col gap-4 overflow-hidden h-full">
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setRightPanelCollapsed(true)}
+                  aria-label="Collapse assistant panel"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              {/* AI Teaching Assistant - Top Priority */}
+              <div className="h-[40%] min-h-0">
+                <AITeachingAssistant 
+                  students={students}
+                  metrics={metrics}
+                  classDuration={metrics?.classDuration || 0}
+                  currentTopic={classSubject}
+                />
+              </div>
+              
+              {/* Hand Raise Queue */}
+              <div className="flex-1 min-h-0">
+                <HandRaiseQueue 
+                  handRaises={handRaises}
+                  onAcknowledge={handleAcknowledgeHand}
+                  onAnswer={(handId) => {
+                    const hand = handRaises.find(h => h.id === handId)
+                    if (hand) handleCallOn(hand.studentId)
+                  }}
+                />
+              </div>
 
-          {/* Chat Monitor */}
-          <div className="flex-1 min-h-0">
-            <ChatMonitor 
-              messages={messages}
-              students={students}
-              socket={socket}
-              roomId={sessionId}
-              onPinMessage={handlePinMessage}
-            />
-          </div>
+              {/* Chat Monitor */}
+              <div className="flex-1 min-h-0">
+                <ChatMonitor 
+                  messages={messages}
+                  students={students}
+                  socket={socket}
+                  roomId={sessionId}
+                  onPinMessage={handlePinMessage}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Engagement Dashboard - Overlay Panel */}
