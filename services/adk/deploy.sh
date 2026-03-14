@@ -9,7 +9,6 @@ echo "=== ADK Service Deployment ==="
 # Configuration
 export PROJECT_ID=project-29e0fd29-a707-458c-bd1
 export REGION=us-central1
-export GEMINI_API_KEY=AIzaSyD9_nL-qo3pVEPsBY5kAm6bSeSxGwrOhxo
 export KIMI_API_KEY=sk-nNHM3NxzlQI9DwwHoV92tEBplEiP8lBguvocsS3MLPWm0BFI
 
 # Generate ADK auth token
@@ -49,7 +48,7 @@ gcloud run deploy adk-service \
   --region $REGION \
   --allow-unauthenticated \
   --port 8080 \
-  --set-env-vars="GEMINI_API_KEY=$GEMINI_API_KEY,KIMI_API_KEY=$KIMI_API_KEY,ADK_AUTH_TOKEN=$ADK_AUTH_TOKEN,ADK_MODEL=gemini-2.5-flash" \
+  --set-env-vars="KIMI_API_KEY=$KIMI_API_KEY,ADK_AUTH_TOKEN=$ADK_AUTH_TOKEN,ADK_MODEL=kimi-k2.5" \
   --memory 1Gi \
   --cpu 1 \
   --max-instances 10 \

@@ -192,7 +192,6 @@ services:
       DATABASE_URL: "postgresql://postgres:postgres_password@db:5432/tutorme"
       REDIS_URL: "redis://redis:6379"
       ADK_AUTH_TOKEN: "dev-token"
-      GEMINI_API_KEY: "${GEMINI_API_KEY}"
       KIMI_API_KEY: "${KIMI_API_KEY}"
     depends_on:
       db:

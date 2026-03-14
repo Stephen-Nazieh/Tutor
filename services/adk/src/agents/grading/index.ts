@@ -4,7 +4,7 @@ import { buildGradingInstruction } from './prompts.js'
 
 export const gradingAgent = new LlmAgent({
   name: 'grading_agent',
-  model: process.env.ADK_MODEL || 'gemini-2.5-flash',
+  model: process.env.ADK_MODEL || 'kimi-k2.5',
   description: 'Grades student submissions with rubric-based scoring.',
   instruction: buildGradingInstruction(),
   tools: [

@@ -5,7 +5,7 @@ import { buildPciMasterInstruction } from './prompts.js'
 
 export const pciMasterAgent = new LlmAgent({
   name: 'pci_master_agent',
-  model: process.env.ADK_MODEL || 'gemini-2.5-flash',
+  model: process.env.ADK_MODEL || 'kimi-k2.5',
   description: 'PCI Master agent for crafting and refining PCI instructions.',
   instruction: buildPciMasterInstruction(),
   tools: [

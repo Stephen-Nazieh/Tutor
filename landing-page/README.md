@@ -34,8 +34,6 @@ Edit `.env.local`:
 # Main App URL - The Next.js Solocorn application
 VITE_MAIN_APP_URL=http://localhost:3003
 
-# Gemini API Key (for AI features)
-GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### 3. Start the Landing Page

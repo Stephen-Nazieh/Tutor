@@ -15,7 +15,6 @@ The main app uses `ADK_BASE_URL` and `ADK_AUTH_TOKEN` to proxy AI requests to AD
 │            (src/lib/agents/orchestrator-llm.ts)                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  Priority 1: Kimi K2.5 (Moonshot AI)  ◄── PRIMARY (You set key) │
-│  Priority 2: Gemini (Google)          ◄── Fallback              │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -35,7 +34,6 @@ The main app uses `ADK_BASE_URL` and `ADK_AUTH_TOKEN` to proxy AI requests to AD
 ```
 tutorme-app/src/lib/agents/
 │
-├── orchestrator-llm.ts      # Provider fallback (Kimi -> Gemini)
 ├── orchestrator.ts          # Agent orchestration entry
 ├── shared-data.ts           # Shared data access layer
 ├── tutor/                   # Tutor agent
@@ -47,7 +45,6 @@ tutorme-app/src/lib/agents/
 tutorme-app/src/lib/ai/
 │
 ├── kimi.ts                  # Kimi K2.5 API integration
-├── gemini.ts                # Gemini API integration
 ├── tutor-service.ts         # Legacy tutor service (compat)
 ├── memory-service.ts        # Legacy memory service (compat)
 ├── prompts.ts               # Base prompt templates
@@ -140,8 +137,6 @@ User clicks "Ask AI" in UI
 # PRIMARY - Kimi (Moonshot AI)
 KIMI_API_KEY=your_kimi_api_key_here
 
-# FALLBACK - Gemini
-GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional - Mock mode for testing
 MOCK_AI=true

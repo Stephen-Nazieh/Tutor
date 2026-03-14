@@ -21,8 +21,7 @@ export REGION=us-central1  # or your preferred region
 export ADK_AUTH_TOKEN=$(openssl rand -base64 32)
 echo "Your ADK_AUTH_TOKEN: $ADK_AUTH_TOKEN"
 
-# Your API keys
-export GEMINI_API_KEY=your-gemini-api-key
+# Your API key
 export KIMI_API_KEY=your-kimi-api-key
 ```
 
@@ -41,7 +40,7 @@ gcloud run deploy adk-service \
   --region $REGION \
   --allow-unauthenticated \
   --port 8080 \
-  --set-env-vars="GEMINI_API_KEY=$GEMINI_API_KEY,KIMI_API_KEY=$KIMI_API_KEY,ADK_AUTH_TOKEN=$ADK_AUTH_TOKEN,PORT=8080,ADK_MODEL=gemini-2.5-flash" \
+  --set-env-vars="KIMI_API_KEY=$KIMI_API_KEY,ADK_AUTH_TOKEN=$ADK_AUTH_TOKEN,PORT=8080,ADK_MODEL=kimi-k2.5" \
   --memory 1Gi \
   --cpu 1 \
   --max-instances 10 \
@@ -90,8 +89,7 @@ The service listens on the `PORT` environment variable (Cloud Run sets this). Th
 - Include `Authorization: Bearer <token>` header in requests
 
 ### Model Errors
-- Check that `GEMINI_API_KEY` and/or `KIMI_API_KEY` are set correctly
-- The service will fall back between models if one fails
+- Check that `KIMI_API_KEY` is set correctly
 
 ### View Logs
 ```bash
@@ -102,7 +100,7 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Next.js App   │────▶│  ADK Service    │────▶│  Gemini/Kimi    │
+│   Next.js App   │────▶│  ADK Service    │────▶│  Kimi API       │
 │  (Cloud Run)    │     │  (Cloud Run)    │     │   APIs          │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
         │                        │

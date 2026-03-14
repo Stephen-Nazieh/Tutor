@@ -4,7 +4,7 @@ import { buildBriefingInstruction } from './prompts.js'
 
 export const briefingAgent = new LlmAgent({
   name: 'briefing_agent',
-  model: process.env.ADK_MODEL || 'gemini-2.5-flash',
+  model: process.env.ADK_MODEL || 'kimi-k2.5',
   description: 'Summarizes class progress and briefing for tutors.',
   instruction: buildBriefingInstruction(),
   tools: [

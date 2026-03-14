@@ -148,7 +148,6 @@ echo DATABASE_URL="postgresql://tutorme:tutorme_password@localhost:5432/tutorme"
 echo REDIS_URL="redis://localhost:6379"
 echo.
 echo # AI
-echo GEMINI_API_KEY="your_gemini_api_key_here"
 echo.
 echo # Video
 echo DAILY_API_KEY="your_daily_api_key_here"

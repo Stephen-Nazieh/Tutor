@@ -25,7 +25,6 @@ This document outlines the migration from Solocorn's custom agent framework to *
          ↓                    ↓
    ┌─────────────┐    ┌─────────────┐
    │  Kimi API   │    │  Fallback  │
-   │  (Primary)  │    │  (Gemini)  │
    └─────────────┘    └─────────────┘
 ```
 
@@ -73,7 +72,6 @@ This document outlines the migration from Solocorn's custom agent framework to *
 ```typescript
 {
   name: 'solocorn_supervisor',
-  model: 'gemini-2.0-flash', // or 'kimi-k2.5' via custom client
   description: 'Routes tutoring requests to specialized agents',
   instruction: `You are the Solocorn AI Supervisor. 
     Analyze the user's intent and delegate to the appropriate specialist:
@@ -97,7 +95,6 @@ This document outlines the migration from Solocorn's custom agent framework to *
 ```typescript
 {
   name: 'tutor_agent',
-  model: 'gemini-2.0-flash',
   description: 'Socratic AI tutor for student learning',
   instruction: `You are a Socratic tutor using the Solocorn platform.
     NEVER give direct answers. Guide students to discover solutions.
@@ -155,7 +152,6 @@ UI Input → SupervisorAgent → TutorAgent → Tool Calls → LLM → Stream Re
 ```typescript
 {
   name: 'grading_agent',
-  model: 'gemini-2.0-flash',
   description: 'Auto-grades submissions with detailed feedback',
   instruction: `You are the Solocorn Grading Agent.
     Grade submissions fairly and provide constructive feedback.
@@ -217,7 +213,6 @@ Submission → SupervisorAgent → GradingAgent → Tool Calls → LLM → JSON 
 ```typescript
 {
   name: 'content_generator_agent',
-  model: 'gemini-2.0-flash',
   description: 'Generates educational content for courses',
   instruction: `You are the Solocorn Content Generator.
     Create high-quality educational content aligned with curriculum standards.
@@ -274,7 +269,6 @@ Submission → SupervisorAgent → GradingAgent → Tool Calls → LLM → JSON 
 ```typescript
 {
   name: 'briefing_agent',
-  model: 'gemini-2.0-flash',
   description: 'Prepares tutors with pre-class insights',
   instruction: `You are the Solocorn Briefing Agent.
     Analyze class data and prepare actionable insights for tutors.
@@ -323,7 +317,6 @@ Submission → SupervisorAgent → GradingAgent → Tool Calls → LLM → JSON 
 ```typescript
 {
   name: 'live_monitor_agent',
-  model: 'gemini-2.0-flash',
   description: 'Real-time classroom monitoring (1:50 ratio)',
   instruction: `You are the Solocorn Live Monitor.
     Analyze real-time classroom data and alert tutors to issues.
@@ -865,8 +858,6 @@ ADK_PROJECT_ID=your-gcp-project
 ADK_LOCATION=us-central1
 
 # Model Configuration (ADK supports these natively)
-ADK_DEFAULT_MODEL=gemini-2.0-flash
-ADK_FALLBACK_MODEL=gemini-1.5-flash
 
 # For custom Kimi integration
 KIMI_API_KEY=your-kimi-key

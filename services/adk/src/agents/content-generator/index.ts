@@ -4,7 +4,7 @@ import { buildContentGeneratorInstruction } from './prompts.js'
 
 export const contentGeneratorAgent = new LlmAgent({
   name: 'content_generator_agent',
-  model: process.env.ADK_MODEL || 'gemini-2.5-flash',
+  model: process.env.ADK_MODEL || 'kimi-k2.5',
   description: 'Generates learning content and quiz items.',
   instruction: buildContentGeneratorInstruction(),
   tools: [

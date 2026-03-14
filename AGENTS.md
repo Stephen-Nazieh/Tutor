@@ -35,7 +35,6 @@ Solocorn (also known as CogniClass) is an AI-human hybrid tutoring platform that
 | **Cache** | Redis | 7 | Sessions, caching, real-time state |
 | **Auth** | NextAuth.js | 4.24.13 | JWT-based authentication |
 | **i18n** | next-intl | 4.8.3 | Internationalization (10 languages) |
-| **AI/LLM** | Kimi + Gemini | - | AI provider fallback chain |
 | **Video** | Daily.co | 0.87.0 | Video conferencing |
 | **Whiteboard** | tldraw + Yjs + Fabric.js | - | Collaborative whiteboard |
 | **Validation** | Zod | 4.3.6 | Schema validation |
@@ -98,7 +97,6 @@ Solocornkimi/
 │   ├── lib/                      # Utility code & business logic
 │   │   ├── ai/                   # AI provider implementations
 │   │   │   ├── kimi.ts           # Kimi K2.5 API integration
-│   │   │   ├── gemini.ts         # Gemini API integration
 │   │   │   ├── orchestrator.ts   # Provider fallback chain (compat)
 │   │   │   ├── prompts.ts        # AI prompts
 │   │   │   └── teaching-prompts/ # Modular prompt system
@@ -311,14 +309,11 @@ DIRECT_URL="postgresql://tutorme:tutorme_password@localhost:5433/tutorme"
 REDIS_URL="redis://localhost:6379"
 
 # =============================================================================
-# AI Providers (Priority: Kimi -> Gemini)
 # =============================================================================
 
 # Kimi K2.5 (Moonshot AI) - Primary
 KIMI_API_KEY="your_kimi_api_key_here"
 
-# Gemini (Google) - Fallback
-GEMINI_API_KEY="your_gemini_api_key_here"
 
 # ADK Service (optional)
 ADK_BASE_URL="http://localhost:4310"
@@ -508,13 +503,11 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
 // Always use orchestrator for AI calls, not direct providers
 import { generateWithFallback, chatWithFallback } from '@/lib/ai/orchestrator'
 
-// Generate with automatic fallback (Kimi -> Gemini)
 const result = await generateWithFallback(prompt, { temperature: 0.7 })
 
 // Chat with history
 const response = await chatWithFallback(messages, { maxTokens: 2048 })
 
-// Response format: { content: string, provider: 'kimi'|'gemini', latencyMs: number }
 
 // MOCK MODE for testing without AI providers
 if (process.env.MOCK_AI === 'true') {
@@ -690,7 +683,6 @@ Configured in both `next.config.mjs` and `middleware.ts`:
 ### Local-First AI Strategy
 
 1. **Kimi K2.5** is always the first choice
-2. **Gemini** is the fallback
 3. All AI calls go through `orchestrator.ts` which handles this chain
 4. Set `MOCK_AI=true` for testing without AI providers
 
@@ -833,9 +825,7 @@ docker restart tutorme-pgbouncer
 npm run db:check
 ```
 
-### Kimi or Gemini API errors
 
-- Verify `KIMI_API_KEY` and/or `GEMINI_API_KEY` in `.env.local`
 - Check server logs for provider errors or rate limits
 - Set `MOCK_AI=true` to test without external providers
 
@@ -876,6 +866,5 @@ cat ts_errors.log
 - **NextAuth.js**: https://next-auth.js.org
 - **Socket.io**: https://socket.io/docs/
 - **next-intl**: https://next-intl-docs.vercel.app/
-- **Gemini**: https://ai.google.dev/gemini-api/docs
 - **Daily.co**: https://docs.daily.co/
 - **Kimi API**: https://platform.moonshot.cn/docs

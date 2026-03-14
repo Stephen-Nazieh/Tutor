@@ -4,7 +4,7 @@ import { buildLiveMonitorInstruction } from './prompts.js'
 
 export const liveMonitorAgent = new LlmAgent({
   name: 'live_monitor_agent',
-  model: process.env.ADK_MODEL || 'gemini-2.5-flash',
+  model: process.env.ADK_MODEL || 'kimi-k2.5',
   description: 'Analyzes live class engagement and flags issues.',
   instruction: buildLiveMonitorInstruction(),
   tools: [

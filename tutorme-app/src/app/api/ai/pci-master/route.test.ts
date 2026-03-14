@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 
 const mocks = vi.hoisted(() => ({
@@ -41,9 +41,12 @@ vi.mock('@/lib/security/ai-sanitization', () => ({
 import { POST } from './route'
 
 describe('/api/ai/pci-master', () => {
+  const originalFetch = global.fetch
+
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.ADK_BASE_URL = 'http://adk.example'
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, status: 200 }) as typeof fetch
     mocks.withRateLimitPreset.mockResolvedValue({ response: null })
     mocks.sanitizeAiInput.mockImplementation((msg: string) => msg)
     mocks.validateAiResponse.mockResolvedValue({ isValid: true, issues: [], severity: 'LOW' })
@@ -53,6 +56,10 @@ describe('/api/ai/pci-master', () => {
       parsed: null,
     })
     mocks.generateWithFallback.mockResolvedValue({ content: 'fallback', provider: 'kimi', latencyMs: 10 })
+  })
+
+  afterEach(() => {
+    global.fetch = originalFetch
   })
 
   it('uses tutor realm session when available', async () => {

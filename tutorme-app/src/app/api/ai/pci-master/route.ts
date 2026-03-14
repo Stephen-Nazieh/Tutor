@@ -49,6 +49,38 @@ function truncate(value: string | undefined, max: number): string | undefined {
   return `${value.slice(0, max)}\n...[TRUNCATED]`
 }
 
+function buildAdkHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  const token = process.env.ADK_AUTH_TOKEN
+  if (token) headers.Authorization = `Bearer ${token}`
+  return headers
+}
+
+async function probeAdk(baseUrl: string): Promise<{
+  ok: boolean
+  status: 'ok' | 'unreachable' | 'auth_failed' | 'auth_missing' | 'error'
+  httpStatus?: number
+}> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 3000)
+  const url = `${baseUrl.replace(/\\/$/, '')}/v1/status`
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: buildAdkHeaders(),
+      signal: controller.signal,
+    })
+    if (res.ok) return { ok: true, status: 'ok' }
+    if (res.status === 401 || res.status === 403) return { ok: false, status: 'auth_failed', httpStatus: res.status }
+    if (res.status === 503) return { ok: false, status: 'auth_missing', httpStatus: res.status }
+    return { ok: false, status: 'error', httpStatus: res.status }
+  } catch {
+    return { ok: false, status: 'unreachable' }
+  } finally {
+    clearTimeout(timeoutId)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
@@ -84,8 +116,37 @@ export async function POST(request: NextRequest) {
       ? `Context:\n${contextBlock}\n\nUser: ${safeMessage}`
       : `User: ${safeMessage}`
 
+    const adkBaseUrl = process.env.ADK_BASE_URL?.trim()
+    const hasLocalProvider = !!process.env.KIMI_API_KEY || process.env.MOCK_AI === 'true'
     let response: { response: string; conversationId?: string; parsed?: { response?: string } | null }
-    if (process.env.ADK_BASE_URL) {
+
+    if (adkBaseUrl) {
+      const probe = await probeAdk(adkBaseUrl)
+      if (!probe.ok) {
+        if (!hasLocalProvider) {
+          const message =
+            probe.status === 'unreachable'
+              ? 'ADK unreachable'
+              : probe.status === 'auth_failed'
+                ? 'ADK auth failed'
+                : probe.status === 'auth_missing'
+                  ? 'ADK auth not configured'
+                  : 'ADK error'
+          return NextResponse.json(
+            { error: message, status: `adk_${probe.status}` },
+            { status: 503 }
+          )
+        }
+        console.warn('ADK probe failed; using local provider fallback:', probe)
+      }
+    } else if (!hasLocalProvider) {
+      return NextResponse.json(
+        { error: 'No AI providers configured', status: 'no_providers' },
+        { status: 503 }
+      )
+    }
+
+    if (adkBaseUrl) {
       try {
         response = await adkPciMasterChat({
           userId: session.user.id,
@@ -94,6 +155,12 @@ export async function POST(request: NextRequest) {
           context,
         })
       } catch (error) {
+        if (!hasLocalProvider) {
+          return NextResponse.json(
+            { error: 'ADK provider error', status: 'adk_error' },
+            { status: 502 }
+          )
+        }
         console.warn('ADK PCI master failed, falling back to local providers:', error)
         const fallback = await generateWithFallback(
           `System:\n${SYSTEM_PROMPT}\n\n${userPrompt}`,

@@ -353,7 +353,6 @@ REDIS_URL="redis://localhost:6379"
 
 # AI
 KIMI_API_KEY="your_kimi_api_key_here"
-GEMINI_API_KEY="your_gemini_api_key_here"
 
 # Video (Daily.co - get from https://dashboard.daily.co)
 DAILY_API_KEY="your_daily_api_key_here"
@@ -943,7 +942,6 @@ components/
 ├── whiteboard/      # Collaborative whiteboard
 └── quiz/            # Quiz components
 lib/
-├── ai/              # AI clients (Kimi, Gemini)
 ├── db/              # Database client
 ├── realtime/        # Socket.io setup
 └── video/           # Video provider abstraction
@@ -956,7 +954,6 @@ prisma/
 Copy `.env.example` to `.env.local` and fill in your API keys:
 
 - `KIMI_API_KEY` - Get from https://platform.moonshot.cn/docs
-- `GEMINI_API_KEY` - Get from https://ai.google.dev/gemini-api/docs
 - `DAILY_API_KEY` - Get from https://dashboard.daily.co
 - `WECHAT_APP_ID` and `WECHAT_APP_SECRET` - Get from https://open.weixin.qq.com
 

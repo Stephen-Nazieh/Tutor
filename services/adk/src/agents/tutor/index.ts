@@ -8,7 +8,7 @@ import { buildTutorInstruction } from './prompts.js'
 
 export const tutorAgent = new LlmAgent({
   name: 'tutor_agent',
-  model: process.env.ADK_MODEL || 'gemini-2.5-flash',
+  model: process.env.ADK_MODEL || 'kimi-k2.5',
   description: 'Socratic tutor for student questions',
   instruction: buildTutorInstruction("the student's subject"),
   tools: [

@@ -2,17 +2,15 @@
  * AI Orchestrator
  * Manages AI providers with fallback chain:
  * 1. Kimi K2.5 (Moonshot AI) - PRIMARY
- * 2. Gemini (Google) - Fallback
  * 
  * Response caching for repeated prompts (5 min TTL)
  */
 
-import { generateWithGemini, chatWithGemini } from '@/lib/ai/gemini'
 import { generateWithKimi, chatWithKimi } from '@/lib/ai/kimi'
 import { cache } from '@/lib/db'
 import { adkGenerate, adkChat } from '@/lib/adk-client'
 
-type AIProvider = 'kimi' | 'gemini'
+type AIProvider = 'kimi'
 
 interface AIOptions {
   temperature?: number
@@ -44,7 +42,7 @@ function cacheKeyForChat(messages: Array<{ role: string; content: string }>): st
 
 /**
  * Generate text with automatic fallback
- * Priority: Kimi -> Gemini
+ * Priority: Kimi
  * Kimi is now PRIMARY provider
  */
 export async function generateWithFallback(
@@ -99,34 +97,15 @@ export async function generateWithFallback(
       if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
       return result
     } catch (error) {
-      console.log('Kimi failed, trying Gemini:', error)
+      console.log('Kimi failed:', error)
     }
   }
-
-  // Fallback 1: Gemini
-  if (process.env.GEMINI_API_KEY) {
-    try {
-      const content = await generateWithGemini(prompt, options)
-
-      const result = {
-        content: content || '',
-        provider: 'gemini' as AIProvider,
-        latencyMs: Date.now() - startTime,
-      }
-      if (!options.skipCache) await cache.set(cacheKeyForPrompt(prompt), result, AI_CACHE_TTL)
-      return result
-    } catch (error) {
-      console.error('All AI providers failed:', error)
-      throw new Error('All AI providers unavailable. Please try again later.')
-    }
-  }
-
-  throw new Error('No AI providers configured. Please set KIMI_API_KEY or GEMINI_API_KEY.')
+  throw new Error('No AI providers configured. Please set KIMI_API_KEY.')
 }
 
 /**
  * Chat with automatic fallback
- * Priority: Kimi -> Gemini
+ * Priority: Kimi
  */
 export async function chatWithFallback(
   messages: Array<{ role: string; content: string }>,
@@ -180,29 +159,10 @@ export async function chatWithFallback(
       if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
       return result
     } catch (error) {
-      console.log('Kimi failed, trying Gemini:', error)
+      console.log('Kimi failed:', error)
     }
   }
-
-  // Fallback 1: Gemini
-  if (process.env.GEMINI_API_KEY) {
-    try {
-      const content = await chatWithGemini(messages, options)
-
-      const result = {
-        content: content || '',
-        provider: 'gemini' as AIProvider,
-        latencyMs: Date.now() - startTime,
-      }
-      if (!options.skipCache) await cache.set(cacheKeyForChat(messages), result, AI_CACHE_TTL)
-      return result
-    } catch (error) {
-      console.error('All AI providers failed:', error)
-      throw new Error('All AI providers unavailable. Please try again later.')
-    }
-  }
-
-  throw new Error('No AI providers configured. Please set KIMI_API_KEY or GEMINI_API_KEY.')
+  throw new Error('No AI providers configured. Please set KIMI_API_KEY.')
 }
 
 /**
@@ -227,21 +187,12 @@ export async function* streamWithFallback(
 export async function getAIProvidersStatus(): Promise<
   Array<{ name: AIProvider; available: boolean; latencyMs?: number }>
 > {
-  const results = []
-
-  // Check Kimi first
-  results.push({
-    name: 'kimi' as AIProvider,
-    available: !!process.env.KIMI_API_KEY,
-  })
-
-  // Check Gemini
-  results.push({
-    name: 'gemini' as AIProvider,
-    available: !!process.env.GEMINI_API_KEY,
-  })
-
-  return results
+  return [
+    {
+      name: 'kimi' as AIProvider,
+      available: !!process.env.KIMI_API_KEY,
+    },
+  ]
 }
 
 /**
@@ -259,12 +210,6 @@ export async function generateWithProvider(
       return {
         content: await generateWithKimi(prompt, { ...options, model: 'kimi-k2.5' }),
         provider: 'kimi',
-        latencyMs: Date.now() - startTime,
-      }
-    case 'gemini':
-      return {
-        content: await generateWithGemini(prompt, options) || '',
-        provider: 'gemini',
         latencyMs: Date.now() - startTime,
       }
     default:

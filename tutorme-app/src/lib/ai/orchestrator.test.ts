@@ -34,7 +34,7 @@ describe('ai/orchestrator', () => {
       expect(result).toHaveProperty('provider')
       expect(result).toHaveProperty('latencyMs')
       expect(typeof result.content).toBe('string')
-      expect(['kimi', 'gemini']).toContain(result.provider)
+      expect(['kimi']).toContain(result.provider)
     })
   })
 })
