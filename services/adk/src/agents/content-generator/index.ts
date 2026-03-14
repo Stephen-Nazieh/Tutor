@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events'
-import { buildContentGeneratorInstruction } from './prompts'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildContentGeneratorInstruction } from './prompts.js'
 
 export const contentGeneratorAgent = new LlmAgent({
   name: 'content_generator_agent',
@@ -11,7 +11,7 @@ export const contentGeneratorAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a content generation event for observability.',
-      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
-    }),
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    } as any),
   ],
 })

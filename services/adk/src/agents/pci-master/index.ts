@@ -1,7 +1,7 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events'
-import { getConversation, appendMessage } from '../../tools/conversations'
-import { buildPciMasterInstruction } from './prompts'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { getConversation, appendMessage } from '../../tools/conversations.js'
+import { buildPciMasterInstruction } from './prompts.js'
 
 export const pciMasterAgent = new LlmAgent({
   name: 'pci_master_agent',
@@ -12,18 +12,18 @@ export const pciMasterAgent = new LlmAgent({
     new FunctionTool({
       name: 'getConversation',
       description: 'Fetch recent PCI conversation history.',
-      fn: async ({
+      func: async ({
         userId,
         sessionId,
       }: {
         userId: string
         sessionId: string
       }) => getConversation(userId, 'pci', sessionId),
-    }),
+    } as any),
     new FunctionTool({
       name: 'appendMessage',
       description: 'Append a PCI message to conversation history.',
-      fn: async ({
+      func: async ({
         sessionId,
         role,
         content,
@@ -32,11 +32,11 @@ export const pciMasterAgent = new LlmAgent({
         role: 'user' | 'assistant'
         content: string
       }) => appendMessage(sessionId, role, content),
-    }),
+    } as any),
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a PCI event for observability.',
-      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
-    }),
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    } as any),
   ],
 })

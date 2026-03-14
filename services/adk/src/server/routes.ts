@@ -102,7 +102,7 @@ router.post('/v1/grading/essay', async (req, res) => {
   const parsed = essaySchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
 
-  const prompt = buildEssayGradingPrompt(parsed.data)
+  const prompt = buildEssayGradingPrompt(parsed.data.essayQuestion!)
 
   try {
     const response = await runAgent(gradingAgent, 'system', 'grading', prompt)
@@ -118,7 +118,7 @@ router.post('/v1/grading/math', async (req, res) => {
   const parsed = mathSchema.safeParse(req.body)
   if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
 
-  const prompt = buildMathGradingPrompt(parsed.data)
+  const prompt = buildMathGradingPrompt(parsed.data.problem!)
 
   try {
     const response = await runAgent(gradingAgent, 'system', 'grading', prompt)

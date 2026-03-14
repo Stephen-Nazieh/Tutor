@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events'
-import { buildBriefingInstruction } from './prompts'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildBriefingInstruction } from './prompts.js'
 
 export const briefingAgent = new LlmAgent({
   name: 'briefing_agent',
@@ -11,7 +11,7 @@ export const briefingAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a briefing event for observability.',
-      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
-    }),
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    } as any),
   ],
 })

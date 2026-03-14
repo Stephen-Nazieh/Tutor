@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events'
-import { buildLiveMonitorInstruction } from './prompts'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildLiveMonitorInstruction } from './prompts.js'
 
 export const liveMonitorAgent = new LlmAgent({
   name: 'live_monitor_agent',
@@ -11,7 +11,7 @@ export const liveMonitorAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a live monitoring event for observability.',
-      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
-    }),
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    } as any),
   ],
 })

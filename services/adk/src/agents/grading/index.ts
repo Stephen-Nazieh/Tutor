@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events'
-import { buildGradingInstruction } from './prompts'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildGradingInstruction } from './prompts.js'
 
 export const gradingAgent = new LlmAgent({
   name: 'grading_agent',
@@ -11,7 +11,7 @@ export const gradingAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a grading event for observability.',
-      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
-    }),
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    } as any),
   ],
 })

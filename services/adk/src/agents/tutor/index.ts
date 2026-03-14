@@ -1,10 +1,10 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { getStudentProfile } from '../../tools/student'
-import { getCurriculum } from '../../tools/curriculum'
-import { getProgressSnapshot } from '../../tools/progress'
-import { appendMessage, getConversation } from '../../tools/conversations'
-import { logAgentEvent } from '../../tools/agent-events'
-import { buildTutorInstruction } from './prompts'
+import { getStudentProfile } from '../../tools/student.js'
+import { getCurriculum } from '../../tools/curriculum.js'
+import { getProgressSnapshot } from '../../tools/progress.js'
+import { appendMessage, getConversation } from '../../tools/conversations.js'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildTutorInstruction } from './prompts.js'
 
 export const tutorAgent = new LlmAgent({
   name: 'tutor_agent',
@@ -15,34 +15,34 @@ export const tutorAgent = new LlmAgent({
     new FunctionTool({
       name: 'getStudentProfile',
       description: 'Fetch student profile (anonymized).',
-      fn: async ({ studentId }: { studentId: string }) => getStudentProfile(studentId),
-    }),
+      func: async ({ studentId }: { studentId: string }) => getStudentProfile(studentId),
+    } as any),
     new FunctionTool({
       name: 'getCurriculum',
       description: 'Fetch curriculum for subject.',
-      fn: async ({ subject }: { subject: string }) => getCurriculum(subject),
-    }),
+      func: async ({ subject }: { subject: string }) => getCurriculum(subject),
+    } as any),
     new FunctionTool({
       name: 'getProgressSnapshot',
       description: 'Fetch progress snapshot for student.',
-      fn: async ({ studentId }: { studentId: string }) => getProgressSnapshot(studentId),
-    }),
+      func: async ({ studentId }: { studentId: string }) => getProgressSnapshot(studentId),
+    } as any),
     new FunctionTool({
       name: 'getConversation',
       description: 'Fetch recent conversation history.',
-      fn: async ({ studentId, subject, conversationId }: { studentId: string; subject: string; conversationId?: string }) =>
+      func: async ({ studentId, subject, conversationId }: { studentId: string; subject: string; conversationId?: string }) =>
         getConversation(studentId, subject, conversationId),
-    }),
+    } as any),
     new FunctionTool({
       name: 'appendMessage',
       description: 'Append a message to conversation history.',
-      fn: async ({ conversationId, role, content }: { conversationId: string; role: 'user' | 'assistant'; content: string }) =>
+      func: async ({ conversationId, role, content }: { conversationId: string; role: 'user' | 'assistant'; content: string }) =>
         appendMessage(conversationId, role, content),
-    }),
+    } as any),
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a tutoring event for observability.',
-      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
-    }),
+      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+    } as any),
   ],
 })
