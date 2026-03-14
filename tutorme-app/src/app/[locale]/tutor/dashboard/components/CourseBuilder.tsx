@@ -142,6 +142,7 @@ export interface Task extends WithDifficultyVariants {
   description: string
   instructions: string
   extensions?: Array<{ id: string; name: string; description?: string; content: string; pci: string }>
+  dmiItems?: DMIQuestion[]
   estimatedMinutes: number
   points: number
   submissionType: 'text' | 'file' | 'link' | 'none' | 'questions'
@@ -165,6 +166,7 @@ export interface Assessment extends WithDifficultyVariants {
   title: string
   description: string
   instructions: string
+  dmiItems?: DMIQuestion[]
   category?: 'assessment' | 'homework'
   dueDate?: string
   estimatedMinutes: number
@@ -5010,6 +5012,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       extensions: (task.extensions || []).map(ext => ({ ...ext, description: ext.description || '' })),
       activeExtensionId,
     })
+    setTaskDmiItems(task.dmiItems || [])
     setTaskPciMessages(parsePciTranscript(task.instructions || ''))
     setTaskExtensionPciMessages(
       (task.extensions || []).reduce<Record<string, { role: 'user' | 'assistant'; content: string }[]>>((acc, ext) => {
@@ -5040,6 +5043,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       extensions: [],
       activeExtensionId: null,
     })
+    setAssessmentDmiItems(assessment.dmiItems || [])
     setLoadedAssessmentId(assessment.id)
     setAssessmentUploadedFiles(assessment.sourceDocument ? [{ id: 'source', name: assessment.sourceDocument.fileName }] : [])
   }, [])
@@ -5122,6 +5126,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                 description: taskBuilder.taskContent,
                 instructions: taskBuilder.taskPci,
                 extensions: taskBuilder.extensions,
+                dmiItems: taskDmiItems,
                 sourceDocument: undefined
               }
               : task
@@ -5131,7 +5136,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }, 1000) // Auto-save after 1 second of inactivity
 
     return () => clearTimeout(timeoutId)
-  }, [taskBuilder.title, taskBuilder.details, taskBuilder.taskContent, taskBuilder.taskPci, taskBuilder.extensions, loadedTaskId])
+  }, [taskBuilder.title, taskBuilder.details, taskBuilder.taskContent, taskBuilder.taskPci, taskBuilder.extensions, taskDmiItems, loadedTaskId])
 
   // Auto-save assessment on the fly (debounced)
   useEffect(() => {
@@ -5149,6 +5154,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
                 title: assessmentBuilder.title,
                 description: assessmentBuilder.taskContent,
                 instructions: assessmentBuilder.taskPci,
+                dmiItems: assessmentDmiItems,
                 sourceDocument: undefined
               }
               : hw
@@ -5158,7 +5164,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }, 1000) // Auto-save after 1 second of inactivity
 
     return () => clearTimeout(timeoutId)
-  }, [assessmentBuilder.title, assessmentBuilder.taskContent, assessmentBuilder.taskPci, loadedAssessmentId])
+  }, [assessmentBuilder.title, assessmentBuilder.taskContent, assessmentBuilder.taskPci, assessmentDmiItems, loadedAssessmentId])
 
   // Dev mode state for saving (declared early for ref access)
   const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
@@ -6907,6 +6913,7 @@ FEEDBACK: [your explanation]`
                                                           title: assessmentBuilder.title,
                                                           description: assessmentBuilder.taskContent,
                                                           instructions: assessmentBuilder.taskPci,
+                                                          dmiItems: assessmentDmiItems,
                                                           sourceDocument: undefined
                                                         }
                                                         : hw
@@ -6928,6 +6935,7 @@ FEEDBACK: [your explanation]`
           description: taskBuilder.taskContent,
           instructions: taskBuilder.taskPci,
           extensions: taskBuilder.extensions,
+          dmiItems: taskDmiItems,
           sourceDocument: undefined
         }
         : t
