@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events.js'
-import { buildLiveMonitorInstruction } from './prompts.js'
+import { logAgentEvent } from '../../tools/agent-events.js.js'
+import { buildLiveMonitorInstruction } from './prompts.js.js'
 
 export const liveMonitorAgent = new LlmAgent({
   name: 'live_monitor_agent',

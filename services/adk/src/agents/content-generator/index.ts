@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events.js'
-import { buildContentGeneratorInstruction } from './prompts.js'
+import { logAgentEvent } from '../../tools/agent-events.js.js'
+import { buildContentGeneratorInstruction } from './prompts.js.js'
 
 export const contentGeneratorAgent = new LlmAgent({
   name: 'content_generator_agent',

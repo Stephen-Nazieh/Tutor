@@ -1,4 +1,4 @@
-import { getCache, setCache } from '../adapters/cache/redis'
+import { getCache, setCache } from '../adapters/cache/redis.js'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface ConversationMessage {

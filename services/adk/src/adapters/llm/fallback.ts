@@ -1,5 +1,5 @@
-import { generateWithGemini } from './gemini'
-import { generateWithKimi } from './kimi'
+import { generateWithGemini } from './gemini.js'
+import { generateWithKimi } from './kimi.js'
 
 export async function generateWithFallback(prompt: string, options: { temperature?: number; maxTokens?: number; systemPrompt?: string } = {}) {
   if (process.env.KIMI_API_KEY) {

@@ -1,4 +1,4 @@
-import { logInfo } from '../observability/logging'
+import { logInfo } from '../observability/logging.js'
 
 export async function logAgentEvent(input: {
   agent: string

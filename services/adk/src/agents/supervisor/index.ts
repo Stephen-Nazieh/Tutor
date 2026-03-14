@@ -1,11 +1,11 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { tutorAgent } from '../tutor/index.js'
-import { gradingAgent } from '../grading/index.js'
-import { contentGeneratorAgent } from '../content-generator/index.js'
-import { briefingAgent } from '../briefing/index.js'
-import { liveMonitorAgent } from '../live-monitor/index.js'
-import { buildSupervisorInstruction } from './prompts.js'
-import { logAgentEvent } from '../../tools/agent-events.js'
+import { tutorAgent } from '../tutor/index.js.js'
+import { gradingAgent } from '../grading/index.js.js'
+import { contentGeneratorAgent } from '../content-generator/index.js.js'
+import { briefingAgent } from '../briefing/index.js.js'
+import { liveMonitorAgent } from '../live-monitor/index.js.js'
+import { buildSupervisorInstruction } from './prompts.js.js'
+import { logAgentEvent } from '../../tools/agent-events.js.js'
 
 export const supervisorAgent = new LlmAgent({
   name: 'solocorn_supervisor',

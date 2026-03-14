@@ -1,8 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import router from './routes.js' // Added .js
-import { requireAuth } from './auth-middleware.js' // Added .js
+import router from './routes.js.js' // Added .js
+import { requireAuth } from './auth-middleware.js.js' // Added .js
 
 dotenv.config()
 

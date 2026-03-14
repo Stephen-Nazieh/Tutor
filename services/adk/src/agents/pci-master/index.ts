@@ -1,7 +1,7 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events.js'
-import { getConversation, appendMessage } from '../../tools/conversations.js'
-import { buildPciMasterInstruction } from './prompts.js'
+import { logAgentEvent } from '../../tools/agent-events.js.js'
+import { getConversation, appendMessage } from '../../tools/conversations.js.js'
+import { buildPciMasterInstruction } from './prompts.js.js'
 
 export const pciMasterAgent = new LlmAgent({
   name: 'pci_master_agent',

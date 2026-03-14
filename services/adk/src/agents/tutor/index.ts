@@ -1,10 +1,10 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { getStudentProfile } from '../../tools/student.js'
-import { getCurriculum } from '../../tools/curriculum.js'
-import { getProgressSnapshot } from '../../tools/progress.js'
-import { appendMessage, getConversation } from '../../tools/conversations.js'
-import { logAgentEvent } from '../../tools/agent-events.js'
-import { buildTutorInstruction } from './prompts.js'
+import { getStudentProfile } from '../../tools/student.js.js'
+import { getCurriculum } from '../../tools/curriculum.js.js'
+import { getProgressSnapshot } from '../../tools/progress.js.js'
+import { appendMessage, getConversation } from '../../tools/conversations.js.js'
+import { logAgentEvent } from '../../tools/agent-events.js.js'
+import { buildTutorInstruction } from './prompts.js.js'
 
 export const tutorAgent = new LlmAgent({
   name: 'tutor_agent',

@@ -1,4 +1,4 @@
-import { query } from '../adapters/db/drizzle'
+import { query } from '../adapters/db/drizzle.js'
 
 export interface StudentProfile {
   id: string
