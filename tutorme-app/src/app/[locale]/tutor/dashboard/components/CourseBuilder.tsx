@@ -4925,6 +4925,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [assessmentPciInput, setAssessmentPciInput] = useState('')
   const [taskPciLoading, setTaskPciLoading] = useState(false)
   const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
+  const [taskPciErrorHint, setTaskPciErrorHint] = useState('')
+  const [assessmentPciErrorHint, setAssessmentPciErrorHint] = useState('')
 
   // AI Assist Agent state - separate for task and assessment
   const [aiAssistOpen, setAiAssistOpen] = useState(false)
@@ -5212,7 +5214,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
         setTaskPciInput('')
       }
     }
-    else setAssessmentPciInput('')
+    else {
+      setAssessmentPciInput('')
+    }
 
     const currentTaskMessages = taskBuilder.activeExtensionId
       ? (taskExtensionPciMessages[taskBuilder.activeExtensionId] || [])
@@ -5307,10 +5311,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           setTaskPciMessages(updated)
         }
         updateTaskPciFromMessages(updated)
+        setTaskPciErrorHint('')
       } else {
         const updated = nextMessages.concat(assistantMessage)
         setAssessmentPciMessages(updated)
         setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+        setAssessmentPciErrorHint('')
       }
     } catch (error) {
       const message =
@@ -5318,6 +5324,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           ? `PCI Assistant error: ${error.message}`
           : 'PCI Assistant error. Please try again.'
       toast.error(message)
+      const hint =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Unable to reach the PCI assistant. Please try again.'
+      if (isTask) setTaskPciErrorHint(hint)
+      else setAssessmentPciErrorHint(hint)
       const errorMessage = { role: 'assistant' as const, content: 'Sorry, there was an error processing your request. Please try again.' }
       if (isTask) {
         const updated = nextMessages.concat(errorMessage)
@@ -7611,6 +7623,11 @@ FEEDBACK: [your explanation]`
                                 )}
                               </div>
                               <div className="border-t p-2">
+                                {taskPciErrorHint && (
+                                  <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                    PCI assistant error: {taskPciErrorHint}
+                                  </div>
+                                )}
                                 <div className="flex gap-2 items-end">
                                   <AutoTextarea
                                     placeholder="Ask the PCI assistant..."
@@ -7854,6 +7871,11 @@ FEEDBACK: [your explanation]`
                                 )}
                               </div>
                               <div className="border-t p-2">
+                                {assessmentPciErrorHint && (
+                                  <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                    PCI assistant error: {assessmentPciErrorHint}
+                                  </div>
+                                )}
                                 <div className="flex gap-2 items-end">
                                   <AutoTextarea
                                     placeholder="Ask the PCI assistant..."
