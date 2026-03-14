@@ -32,7 +32,12 @@ gcloud config set project $PROJECT_ID
 echo ""
 echo "=== Building Container Image ==="
 cd services/adk
-gcloud builds submit --tag gcr.io/$PROJECT_ID/adk-service
+# Ensure we're in the right directory with Dockerfile
+if [ ! -f "Dockerfile" ]; then
+    echo "ERROR: Dockerfile not found in services/adk/"
+    exit 1
+fi
+gcloud builds submit . --tag gcr.io/$PROJECT_ID/adk-service
 
 # Deploy to Cloud Run
 echo ""
