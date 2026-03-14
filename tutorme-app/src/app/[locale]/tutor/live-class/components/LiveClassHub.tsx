@@ -9,15 +9,16 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { toast } from 'sonner'
 import { StudentList } from './StudentList'
 import { UnifiedBreakoutManager, UnifiedBreakoutModal } from './breakout'
 import { HandRaiseQueue } from './HandRaiseQueue'
 import { ChatMonitor } from './ChatMonitor'
-import { LiveAnalytics } from './LiveAnalytics'
+
 import { AITeachingAssistant } from './AITeachingAssistant'
-import { StudentProgressPanel } from './StudentProgressPanel'
+
 import { MultiLayerWhiteboardInterface } from './MultiLayerWhiteboardInterface'
 import { QuickPollPanel } from '@/components/polls'
 import { 
@@ -46,6 +47,7 @@ import {
   LogOut,
   LayoutTemplate,
   Wrench,
+  Layers,
 } from 'lucide-react'
 
 interface LiveClassHubProps {
@@ -664,40 +666,16 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
             </div>
 
             <TabsContent value="students" className="flex-1 mt-4 overflow-hidden">
-              <div className="h-full overflow-auto">
-                <div className="space-y-6 pb-6">
-                  {/* Progress Section */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      Class Progress
-                    </h3>
-                    <StudentProgressPanel 
-                      students={students}
-                      classDuration={metrics?.classDuration || 0}
-                    />
-                    {metrics && <LiveAnalytics metrics={metrics} alerts={alerts} />}
-                  </div>
-                  
-                  {/* Students List Section */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Students ({students.length})
-                    </h3>
-                    <StudentList 
-                      students={students}
-                      breakoutRooms={breakoutRooms}
-                      onCallOn={handleCallOn}
-                      onAssignToRoom={handleAssignToRoom}
-                      onRemoveFromRoom={handleRemoveFromRoom}
-                      onPushHint={handlePushHint}
-                      onSendNudge={handleSendNudge}
-                      onInviteToBreakout={handleInviteToBreakout}
-                    />
-                  </div>
-                </div>
-              </div>
+              <StudentList 
+                students={students}
+                breakoutRooms={breakoutRooms}
+                onCallOn={handleCallOn}
+                onAssignToRoom={handleAssignToRoom}
+                onRemoveFromRoom={handleRemoveFromRoom}
+                onPushHint={handlePushHint}
+                onSendNudge={handleSendNudge}
+                onInviteToBreakout={handleInviteToBreakout}
+              />
             </TabsContent>
 
             <TabsContent value="rooms" className="flex-1 mt-4 overflow-hidden">
@@ -789,6 +767,33 @@ export function LiveClassHub({ sessionId }: LiveClassHubProps) {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
+              
+              {/* Multi-Layer Controls */}
+              <Card className="shrink-0">
+                <CardHeader className="py-2 px-3">
+                  <CardTitle className="text-xs flex items-center gap-1.5 text-muted-foreground">
+                    <Layers className="w-3 h-3" />
+                    Whiteboard Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="py-2 px-3 pt-0 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Socket</span>
+                    <Badge variant={socket ? 'default' : 'secondary'} className="text-[10px] h-4">
+                      {socket ? 'Connected' : 'Offline'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Online</span>
+                    <span className="font-medium">{onlineCount}/{students.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Boards</span>
+                    <span className="font-medium">{students.length + 1}</span>
+                  </div>
+                </CardContent>
+              </Card>
+              
               {/* AI Teaching Assistant - Top Priority */}
               <div className="h-[40%] min-h-0">
                 <AITeachingAssistant 
