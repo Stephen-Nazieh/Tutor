@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -245,6 +245,7 @@ function CoursesPageContent() {
     description: string | null
     subject: string
     difficulty: string
+    estimatedHours: number
     moduleCount: number
     lessonCount: number
     tutorName?: string
