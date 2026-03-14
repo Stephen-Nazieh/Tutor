@@ -990,7 +990,7 @@ const Navbar = ({ lang, onLanguageChange, theme, mode }: { lang: Language; onLan
           <img
             src="/images/logo.png"
             alt="Solocorn"
-            className={`h-8 w-auto px-1 rounded transition-colors ${mode === 'dark' ? 'bg-black' : 'bg-white'}`}
+            className="h-8 w-auto px-1 rounded transition-colors"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         </Link>
