@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Slider } from '@/components/ui/slider'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Dialog,
@@ -61,7 +62,9 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Gauge
+  Gauge,
+  ChevronDown,
+  Shapes
 } from 'lucide-react'
 import { useLiveClassWhiteboard, WhiteboardStroke } from '@/hooks/use-live-class-whiteboard'
 import { cn } from '@/lib/utils'
@@ -1799,37 +1802,91 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
       {/* Toolbar */}
       <div className="space-y-2 border-b bg-slate-50/95 px-4 py-2 backdrop-blur">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
-            {[
-              { id: 'pencil', icon: Pencil, label: 'Pencil' },
-              { id: 'pen', icon: PenLine, label: 'Pen' },
-              { id: 'marker', icon: Dot, label: 'Marker' },
-              { id: 'highlighter', icon: Highlighter, label: 'Highlighter' },
-              { id: 'calligraphy', icon: MinusCircle, label: 'Calligraphy' },
-              { id: 'eraser', icon: Eraser, label: 'Eraser' },
-            ].map(({ id, icon: Icon, label }) => (
+          {/* Drawing Tools Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
               <button
-                key={id}
-                onClick={() => setTool(id as Tool)}
                 className={cn(
-                  "rounded-md px-2 py-1.5 transition-colors",
-                  tool === id ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100'
+                  "flex items-center gap-1 rounded-lg border bg-white px-3 py-1.5 shadow-sm transition-colors hover:bg-slate-50",
+                  freeDrawTools.has(tool) ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-700'
                 )}
-                title={label}
+                title="Drawing Tools"
               >
-                <Icon className="h-4 w-4" />
+                <Pencil className="h-4 w-4" />
+                <span className="text-sm">Tools</span>
+                <ChevronDown className="h-3 w-3 ml-1" />
               </button>
-            ))}
-          </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <div className="flex flex-col gap-1">
+                {[
+                  { id: 'pencil', icon: Pencil, label: 'Pencil' },
+                  { id: 'pen', icon: PenLine, label: 'Pen' },
+                  { id: 'marker', icon: Dot, label: 'Marker' },
+                  { id: 'highlighter', icon: Highlighter, label: 'Highlighter' },
+                  { id: 'calligraphy', icon: MinusCircle, label: 'Calligraphy' },
+                  { id: 'eraser', icon: Eraser, label: 'Eraser' },
+                ].map(({ id, icon: Icon, label }) => (
+                  <button
+                    key={id}
+                    onClick={() => setTool(id as Tool)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                      tool === id ? 'bg-blue-100 text-blue-700' : 'text-slate-600 hover:bg-slate-100'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
+          {/* Shapes Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1 rounded-lg border bg-white px-3 py-1.5 shadow-sm transition-colors hover:bg-slate-50",
+                  shapeTools.has(tool) ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-700'
+                )}
+                title="Shapes"
+              >
+                <Shapes className="h-4 w-4" />
+                <span className="text-sm">Shapes</span>
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <div className="grid grid-cols-2 gap-1">
+                {[
+                  { id: 'line', icon: Minus, label: 'Line' },
+                  { id: 'arrow', icon: ArrowRight, label: 'Arrow' },
+                  { id: 'rectangle', icon: RectangleHorizontal, label: 'Rectangle' },
+                  { id: 'circle', icon: Circle, label: 'Circle' },
+                  { id: 'triangle', icon: Triangle, label: 'Triangle' },
+                  { id: 'connector', icon: Link2, label: 'Connector' },
+                ].map(({ id, icon: Icon, label }) => (
+                  <button
+                    key={id}
+                    onClick={() => setTool(id as Tool)}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                      tool === id ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Other Tools */}
           <div className="flex items-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
             {[
-              { id: 'line', icon: Minus, label: 'Line' },
-              { id: 'arrow', icon: ArrowRight, label: 'Arrow' },
-              { id: 'rectangle', icon: RectangleHorizontal, label: 'Rectangle' },
-              { id: 'circle', icon: Circle, label: 'Circle' },
-              { id: 'triangle', icon: Triangle, label: 'Triangle' },
-              { id: 'connector', icon: Link2, label: 'Connector' },
               { id: 'text', icon: Type, label: 'Text' },
               { id: 'laser', icon: Ban, label: 'Laser Pointer' },
               { id: 'select', icon: MousePointer2, label: 'Select' },
@@ -1849,30 +1906,53 @@ export function TutorWhiteboardManager({ roomId, sessionId, initialCourseId, cla
             ))}
           </div>
 
-          <div className="flex items-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
-            {COLORS.map((c) => (
+          {/* Colors Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
               <button
-                key={c}
-                onClick={() => setColor(c)}
-                className={cn(
-                  "h-6 w-6 rounded-full border transition-all",
-                  color === c ? 'scale-110 border-slate-600' : 'border-transparent'
-                )}
-                style={{ backgroundColor: c }}
-                title={c}
-              />
-            ))}
-            <input
-              type="color"
-              value={customColor}
-              onChange={(e) => {
-                setCustomColor(e.target.value)
-                setColor(e.target.value)
-              }}
-              className="h-6 w-8 cursor-pointer rounded border bg-transparent p-0"
-              title="Custom color"
-            />
-          </div>
+                className="flex items-center gap-1 rounded-lg border bg-white px-3 py-1.5 shadow-sm transition-colors hover:bg-slate-50 text-slate-700"
+                title="Colors"
+              >
+                <div 
+                  className="h-4 w-4 rounded-full border"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-sm">Color</span>
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3" align="start">
+              <div className="space-y-3">
+                <div className="grid grid-cols-5 gap-2">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setColor(c)}
+                      className={cn(
+                        "h-8 w-8 rounded-full border-2 transition-all",
+                        color === c ? 'border-slate-600 scale-110' : 'border-transparent hover:scale-105'
+                      )}
+                      style={{ backgroundColor: c }}
+                      title={c}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <span className="text-xs text-slate-500">Custom:</span>
+                  <input
+                    type="color"
+                    value={customColor}
+                    onChange={(e) => {
+                      setCustomColor(e.target.value)
+                      setColor(e.target.value)
+                    }}
+                    className="h-8 w-8 cursor-pointer rounded border bg-transparent p-0"
+                    title="Custom color"
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <div className="flex items-center gap-2 rounded-lg border bg-white px-2 py-1 shadow-sm">
             <span className="text-xs text-slate-500">Stroke</span>

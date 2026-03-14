@@ -12,7 +12,6 @@ import {
   Users,
   BarChart3,
   MessageSquare,
-  Sparkles,
   Settings,
   Menu,
   X,
@@ -31,7 +30,6 @@ const navItems = [
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
   { href: '/tutor/groups', label: 'Students & Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/tutor/ai-assistant', label: 'AI Teaching Assistant', icon: Sparkles },
   { href: '/tutor/reports', label: 'Reports', icon: BarChart3 },
   { href: '/tutor/help', label: 'Help & Support', icon: HelpCircle },
 ]
@@ -96,7 +94,7 @@ export default function TutorLayout({
 
       {/* Left Navigation Sidebar - Desktop */}
       <aside className={cn(
-        "bg-white border-r sticky top-0 h-screen z-40 transition-all duration-300 hidden lg:flex flex-col neon-border",
+        "bg-white border-r sticky top-0 h-screen z-40 transition-all duration-300 hidden lg:flex flex-col",
         desktopNavOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full overflow-hidden border-r-0"
       )}>
         <div className="p-4 border-b flex items-center justify-between min-w-[256px]">
@@ -156,7 +154,7 @@ export default function TutorLayout({
       </aside>
 
       {/* Mobile Navigation Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50 neon-border-indigo">
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-3">
             <Button
