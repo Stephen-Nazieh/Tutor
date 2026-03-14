@@ -806,12 +806,37 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Early bird signup:', { type, ...formData });
-    setSubmitted(true);
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: type || 'register',
+          ...formData
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        setError(data.error || 'Failed to submit. Please try again.');
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const themeColors = {
@@ -837,7 +862,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
         className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
       />
       <Input type="text" placeholder="Social media (optional)" value={formData.socialMedia} onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
-      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>Confirm</Button>
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      <Button type="submit" disabled={loading} className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary} disabled:opacity-50 disabled:cursor-not-allowed`}>{loading ? 'Submitting...' : 'Confirm'}</Button>
     </>
   );
 
@@ -857,7 +883,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
       />
       <Input type="text" placeholder="Social media (optional)" value={formData.socialMedia} onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       <p className={`text-xs ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}>Unsubscribe at anytime</p>
-      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>Confirm</Button>
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      <Button type="submit" disabled={loading} className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary} disabled:opacity-50 disabled:cursor-not-allowed`}>{loading ? 'Submitting...' : 'Confirm'}</Button>
     </>
   );
 
@@ -876,7 +903,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
         rows={3}
         className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
       />
-      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>Confirm</Button>
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      <Button type="submit" disabled={loading} className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary} disabled:opacity-50 disabled:cursor-not-allowed`}>{loading ? 'Submitting...' : 'Confirm'}</Button>
     </>
   );
 
@@ -895,7 +923,8 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
           className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
         />
       )}
-      <Button type="submit" className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary}`}>{t('notifyMe')}</Button>
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      <Button type="submit" disabled={loading} className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary} disabled:opacity-50 disabled:cursor-not-allowed`}>{loading ? 'Submitting...' : t('notifyMe')}</Button>
     </>
   );
 
@@ -1036,17 +1065,42 @@ const Navbar = ({ lang, onLanguageChange, theme, mode, onThemeChange, onModeChan
 const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClose: () => void; lang: Language; mode: ThemeMode }) => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', message: '' });
-      onClose();
-    }, 2000);
+    setLoading(true);
+    setError('');
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'contact',
+          ...formData
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({ name: '', email: '', message: '' });
+          onClose();
+        }, 3000);
+      } else {
+        setError(data.error || 'Failed to send message. Please try again.');
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -1117,8 +1171,15 @@ const ContactModal = ({ isOpen, onClose, lang, mode }: { isOpen: boolean; onClos
                     className={`w-full border rounded-lg px-3 py-2 resize-none ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
                   />
                 </div>
-                <Button type="submit" className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl">
-                  Send Message
+                {error && (
+                  <p className="text-red-500 text-sm text-center">{error}</p>
+                )}
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
 

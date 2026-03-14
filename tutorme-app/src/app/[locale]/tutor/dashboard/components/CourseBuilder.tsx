@@ -141,7 +141,7 @@ export interface Task extends WithDifficultyVariants {
   shortDescription?: string
   description: string
   instructions: string
-  extensions?: Array<{ id: string; name: string; content: string; pci: string }>
+  extensions?: Array<{ id: string; name: string; description?: string; content: string; pci: string }>
   estimatedMinutes: number
   points: number
   submissionType: 'text' | 'file' | 'link' | 'none' | 'questions'
@@ -4979,7 +4979,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     taskPci: '', // Base task PCI (never overwritten by extensions)
     details: '',
     // Extensions have their own content stored separately
-    extensions: [] as { id: string; name: string; content: string; pci: string }[],
+    extensions: [] as { id: string; name: string; description?: string; content: string; pci: string }[],
     activeExtensionId: null as string | null, // null = viewing task, string = viewing extension
   })
 
@@ -4988,7 +4988,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     taskContent: '',
     taskPci: '',
     details: '',
-    extensions: [] as { id: string; name: string; content: string; pci: string }[],
+    extensions: [] as { id: string; name: string; description?: string; content: string; pci: string }[],
     activeExtensionId: null as string | null,
   })
 
@@ -5051,7 +5051,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       taskContent: content,
       taskPci: task.instructions || '',
       details: task.shortDescription || '',
-      extensions: task.extensions ? [...task.extensions] : [],
+      extensions: (task.extensions || []).map(ext => ({ ...ext, description: ext.description || '' })),
       activeExtensionId,
     })
     setLoadedTaskId(task.id)
@@ -5227,9 +5227,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     else setAssessmentPciInput('')
 
     const nextMessages = (isTask ? taskPciMessages : assessmentPciMessages).concat({ role: 'user', content: userMessage })
+    const updateTaskPciFromMessages = (messages: { role: 'user' | 'assistant'; content: string }[]) => {
+      setTaskBuilder(prev => {
+        if (prev.activeExtensionId) {
+          return {
+            ...prev,
+            extensions: prev.extensions.map(ext =>
+              ext.id === prev.activeExtensionId ? { ...ext, pci: formatPciTranscript(messages) } : ext
+            )
+          }
+        }
+        return { ...prev, taskPci: formatPciTranscript(messages) }
+      })
+    }
+
     if (isTask) {
       setTaskPciMessages(nextMessages)
-      setTaskBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(nextMessages) }))
+      updateTaskPciFromMessages(nextMessages)
       setTaskPciLoading(true)
     } else {
       setAssessmentPciMessages(nextMessages)
@@ -5239,9 +5253,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
     try {
       const slideContent = isTask
-        ? (taskBuilder.activeExtensionId
-          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
-          : taskBuilder.taskContent)
+        ? taskBuilder.taskContent
         : assessmentBuilder.taskContent
       const pci = isTask
         ? (taskBuilder.activeExtensionId
@@ -5276,7 +5288,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       if (isTask) {
         const updated = nextMessages.concat(assistantMessage)
         setTaskPciMessages(updated)
-        setTaskBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+        updateTaskPciFromMessages(updated)
       } else {
         const updated = nextMessages.concat(assistantMessage)
         setAssessmentPciMessages(updated)
@@ -5287,7 +5299,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
       if (isTask) {
         const updated = nextMessages.concat(errorMessage)
         setTaskPciMessages(updated)
-        setTaskBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+        updateTaskPciFromMessages(updated)
       } else {
         const updated = nextMessages.concat(errorMessage)
         setAssessmentPciMessages(updated)
@@ -6539,6 +6551,7 @@ Please provide DMI entries as a JSON array with objects containing "questionText
               const newExtension = {
                 id: `ext-${Date.now()}`,
                 name: `Extension ${extNumber}`,
+                description: '',
                 content: textToInsert,
                 pci: ''
               }
@@ -6658,14 +6671,15 @@ Please provide DMI entries as a JSON array with objects containing "questionText
     )
   }
 
-  const activeTaskExtensionIndex = taskBuilder.activeExtensionId
-    ? taskBuilder.extensions.findIndex(ext => ext.id === taskBuilder.activeExtensionId)
-    : -1
-  const activeTaskExtensionLabel = activeTaskExtensionIndex >= 0 ? `Extension ${activeTaskExtensionIndex + 1}` : null
-  const taskHeaderTitle = activeTaskExtensionLabel
-    ? `${taskBuilder.title || 'Task'} ${activeTaskExtensionLabel}`
+  const activeTaskExtension = taskBuilder.activeExtensionId
+    ? taskBuilder.extensions.find(ext => ext.id === taskBuilder.activeExtensionId)
+    : null
+  const taskHeaderTitle = activeTaskExtension
+    ? `${taskBuilder.title || 'Task'} ${activeTaskExtension.name}`
     : (taskBuilder.title || 'Task')
-  const taskHeaderDescription = taskBuilder.details || 'Add a short description'
+  const taskHeaderDescription = activeTaskExtension
+    ? (activeTaskExtension.description || 'Add a short description')
+    : (taskBuilder.details || 'Add a short description')
 
   const handleSaveAll = () => {
     if (!onSave) return
@@ -7409,14 +7423,26 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           <Input
                             placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
                             className="font-semibold"
-                            value={taskBuilder.title}
+                            value={taskBuilder.activeExtensionId ? taskHeaderTitle : taskBuilder.title}
                             onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
-                            disabled={!loadedTaskId}
+                            disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
                           />
                           <Input
-                            placeholder={loadedTaskId ? "Description" : "Select a task to edit description"}
-                            value={taskBuilder.details}
-                            onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, details: e.target.value }))}
+                            placeholder={loadedTaskId ? (taskBuilder.activeExtensionId ? "Extension Description" : "Description") : "Select a task to edit description"}
+                            value={taskBuilder.activeExtensionId ? (activeTaskExtension?.description || '') : taskBuilder.details}
+                            onChange={(e: any) => {
+                              const value = e.target.value
+                              if (taskBuilder.activeExtensionId) {
+                                setTaskBuilder(prev => ({
+                                  ...prev,
+                                  extensions: prev.extensions.map(ext =>
+                                    ext.id === prev.activeExtensionId ? { ...ext, description: value } : ext
+                                  )
+                                }))
+                              } else {
+                                setTaskBuilder(prev => ({ ...prev, details: value }))
+                              }
+                            }}
                             disabled={!loadedTaskId}
                           />
                         </div>
@@ -7597,12 +7623,13 @@ Please provide DMI entries as a JSON array with objects containing "questionText
                           onClick={() => {
                             if (!loadedTaskId) return
                             const extNumber = taskBuilder.extensions.length + 1
-                            const newExtension = {
-                              id: `ext-${Date.now()}`,
-                              name: `Extension ${extNumber}`,
-                              content: '',
-                              pci: ''
-                            }
+                              const newExtension = {
+                                id: `ext-${Date.now()}`,
+                                name: `Extension ${extNumber}`,
+                                description: '',
+                                content: '',
+                                pci: ''
+                              }
                             setTaskBuilder(prev => ({
                               ...prev,
                               extensions: [...prev.extensions, newExtension],
