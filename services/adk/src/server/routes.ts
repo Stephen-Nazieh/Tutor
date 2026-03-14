@@ -1,71 +1,53 @@
 import { Router } from 'express'
-import { InMemorySessionService, Runner, isFinalResponse } from '@google/adk'
-import { createUserContent } from '@google/genai'
-
-// Relative imports updated with .js extensions for ESM compatibility
-import { tutorAgent } from '../agents/tutor/index.js'
-import { gradingAgent } from '../agents/grading/index.js'
-import { contentGeneratorAgent } from '../agents/content-generator/index.js'
-import { briefingAgent } from '../agents/briefing/index.js'
-import { liveMonitorAgent } from '../agents/live-monitor/index.js'
-import { pciMasterAgent } from '../agents/pci-master/index.js'
-import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema, pciMasterSchema } from '../validation/schemas.js'
-import {
-  briefingOutputSchema,
-  contentOutputSchema,
-  gradingOutputSchema,
-  liveMonitorOutputSchema,
-  tutorOutputSchema,
-  pciMasterOutputSchema,
-} from '../validation/output-schemas.js'
-import { appendMessage } from '../tools/conversations.js'
+import { pciMasterOutputSchema } from '../validation/output-schemas.js'
+import { appendMessage, getConversation } from '../tools/conversations.js'
 import { logError } from '../observability/logging.js'
+import { pciMasterSchema } from '../validation/schemas.js'
 import { z } from 'zod'
-import { buildEssayGradingPrompt, buildMathGradingPrompt } from '../prompts/grading.js'
 
 const router = Router()
-const sessionService = new InMemorySessionService()
 
-async function runAgent(agent: any, userId: string, sessionId: string, message: string): Promise<string> {
-  // Standardized appName for consistency
-  const runner = new Runner({ agent, sessionService, appName: 'solocorn-adk' })
-  await sessionService.createSession({ appName: 'solocorn-adk', userId, sessionId })
-
-  const events = runner.runAsync({
-    userId,
-    sessionId,
-    newMessage: createUserContent(message),
-  })
-
-  for await (const event of events) {
-    console.log('Event:', JSON.stringify(event, null, 2))
-    if (isFinalResponse(event)) {
-      // Fixed: Variable 'part' is now properly declared with const
-      const part = event.content?.parts?.[0]; 
-      const text = part?.text || '';
-      console.log('Final response text:', text)
-      return text;
-    }
-  }
-  console.log('No final response found')
-  return ''
+interface KimiMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
 }
 
-function extractJsonPayload(text: string): string | null {
+async function generateWithKimi(messages: KimiMessage[]): Promise<string> {
+  const apiKey = process.env.KIMI_API_KEY
+  if (!apiKey) throw new Error('KIMI_API_KEY not configured')
+
+  const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'kimi-k2.5',
+      messages,
+      temperature: 0.7,
+      max_tokens: 2048,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Kimi API error: ${response.status} - ${error}`)
+  }
+
+  const data = await response.json() as { choices: Array<{ message: { content: string } }> }
+  return data.choices?.[0]?.message?.content || ''
+}
+
+function parseStructuredOutput<T>(text: string, schema: z.ZodSchema<T>): T | null {
   const trimmed = text.trim()
   const fenceMatch = trimmed.match(/^```(?:json)?\\s*([\\s\\S]*?)\\s*```$/)
   const candidate = fenceMatch ? fenceMatch[1] : trimmed
   const start = candidate.indexOf('{')
   const end = candidate.lastIndexOf('}')
   if (start === -1 || end === -1 || end <= start) return null
-  return candidate.slice(start, end + 1)
-}
-
-function parseStructuredOutput<T>(text: string, schema: z.ZodSchema<T>): T | null {
-  const payload = extractJsonPayload(text)
-  if (!payload) return null
   try {
-    const parsed = JSON.parse(payload)
+    const parsed = JSON.parse(candidate.slice(start, end + 1))
     const result = schema.safeParse(parsed)
     return result.success ? result.data : null
   } catch {
@@ -73,171 +55,111 @@ function parseStructuredOutput<T>(text: string, schema: z.ZodSchema<T>): T | nul
   }
 }
 
+router.get('/health', (_req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    service: 'adk-service'
+  })
+})
+
 router.get('/v1/status', (_req, res) => {
   res.json({
-    providers: {
-      kimi: { available: !!process.env.KIMI_API_KEY, name: 'Kimi K2.5' },
-      gemini: { available: !!process.env.GEMINI_API_KEY, name: 'Gemini' },
-    },
+    provider: 'kimi',
+    available: !!process.env.KIMI_API_KEY,
     timestamp: new Date().toISOString(),
   })
 })
 
-router.post('/v1/chat', async (req, res) => {
-  const parsed = chatSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-  const { studentId, subject, message, conversationId } = parsed.data
-  const sessionId = conversationId || `${studentId}:${subject}`
-
-  try {
-    await appendMessage(sessionId, 'user', message)
-    const response = await runAgent(tutorAgent, studentId, sessionId, message)
-    const parsed = parseStructuredOutput(response, tutorOutputSchema)
-    const finalResponse = parsed?.response ?? response
-    await appendMessage(sessionId, 'assistant', finalResponse)
-    res.json({ response: finalResponse, conversationId: sessionId, parsed })
-  } catch (error) {
-    logError('Tutor agent failed', error)
-    res.status(500).json({ error: 'Tutor agent failed' })
-  }
-})
-
-router.post('/v1/grading/essay', async (req, res) => {
-  const parsed = essaySchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-
-  const prompt = buildEssayGradingPrompt(parsed.data as { essayQuestion: string; rubric: string[]; studentEssay: string; maxPoints: number })
-
-  try {
-    const response = await runAgent(gradingAgent, 'system', 'grading', prompt)
-    const parsed = parseStructuredOutput(response, gradingOutputSchema)
-    res.json({ response, parsed })
-  } catch (error) {
-    logError('Essay grading failed', error)
-    res.status(500).json({ error: 'Essay grading failed' })
-  }
-})
-
-router.post('/v1/grading/math', async (req, res) => {
-  const parsed = mathSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-
-  const prompt = buildMathGradingPrompt(parsed.data as { problem: string; correctAnswer: string; correctSteps: string[]; studentWork: string; maxPoints: number })
-
-  try {
-    const response = await runAgent(gradingAgent, 'system', 'grading', prompt)
-    const parsed = parseStructuredOutput(response, gradingOutputSchema)
-    res.json({ response, parsed })
-  } catch (error) {
-    logError('Math grading failed', error)
-    res.status(500).json({ error: 'Math grading failed' })
-  }
-})
-
-router.post('/v1/content/generate', async (req, res) => {
-  const parsed = contentSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-
-  try {
-    const response = await runAgent(contentGeneratorAgent, 'system', 'content', parsed.data.prompt)
-    const parsedOutput = parseStructuredOutput(response, contentOutputSchema)
-    res.json({ response, parsed: parsedOutput })
-  } catch (error) {
-    logError('Content generation failed', error)
-    res.status(500).json({ error: 'Content generation failed' })
-  }
-})
-
-router.post('/v1/llm/generate', async (req, res) => {
-  const parsed = contentSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-
-  try {
-    const response = await runAgent(contentGeneratorAgent, 'system', 'llm-generate', parsed.data.prompt)
-    const parsedOutput = parseStructuredOutput(response, contentOutputSchema)
-    res.json({ response, parsed: parsedOutput })
-  } catch (error) {
-    logError('LLM generate failed', error)
-    res.status(500).json({ error: 'LLM generate failed' })
-  }
-})
-
-router.post('/v1/llm/chat', async (req, res) => {
-  const parsed = req.body?.messages ? req.body : null
-  if (!parsed || !Array.isArray(parsed.messages)) return res.status(400).json({ error: 'Invalid request' })
-
-  const prompt = parsed.messages
-    .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)
-    .join('\\n')
-
-  try {
-    const response = await runAgent(contentGeneratorAgent, 'system', 'llm-chat', prompt)
-    const parsedOutput = parseStructuredOutput(response, contentOutputSchema)
-    res.json({ response, parsed: parsedOutput })
-  } catch (error) {
-    logError('LLM chat failed', error)
-    res.status(500).json({ error: 'LLM chat failed' })
-  }
-})
-
-router.post('/v1/briefing', async (req, res) => {
-  const parsed = briefingSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-
-  try {
-    const response = await runAgent(briefingAgent, 'system', 'briefing', parsed.data.prompt)
-    const parsedOutput = parseStructuredOutput(response, briefingOutputSchema)
-    res.json({ response, parsed: parsedOutput })
-  } catch (error) {
-    logError('Briefing failed', error)
-    res.status(500).json({ error: 'Briefing failed' })
-  }
-})
-
-router.post('/v1/live-monitor', async (req, res) => {
-  const parsed = liveMonitorSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
-
-  try {
-    const response = await runAgent(liveMonitorAgent, 'system', 'live-monitor', parsed.data.prompt)
-    const parsedOutput = parseStructuredOutput(response, liveMonitorOutputSchema)
-    res.json({ response, parsed: parsedOutput })
-  } catch (error) {
-    logError('Live monitor failed', error)
-    res.status(500).json({ error: 'Live monitor failed' })
-  }
-})
-
 router.post('/v1/pci-master', async (req, res) => {
   const parsed = pciMasterSchema.safeParse(req.body)
-  if (!parsed.success) return res.status(400).json({ error: 'Invalid request' })
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Invalid request', details: parsed.error })
+  }
 
-  const { userId, sessionId, message, context } = parsed.data
-  const convoId = sessionId || `pci:${userId}`
-  const contextBlock = context
-    ? [
-        context.type ? `Type: ${context.type}` : null,
-        context.title ? `Title: ${context.title}` : null,
-        context.extensionName ? `Extension: ${context.extensionName}` : null,
-        `Slide Content:\n${context.content || '(empty)'}`,
-        `Current PCI:\n${context.pci || '(empty)'}`,
-      ]
-        .filter(Boolean)
-        .join('\n')
-    : ''
+  const { userId, message, context } = parsed.data
+  const convoId = `pci:${userId}`
 
-  const finalMessage = contextBlock ? `Context:\n${contextBlock}\n\nUser: ${message}` : message
+  // Build context block
+  const contextParts = [
+    context?.type && `Type: ${context.type}`,
+    context?.title && `Title: ${context.title}`,
+    context?.slideContent && `Slide Content:\n${context.slideContent}`,
+    context?.currentPci && `Current PCI:\n${context.currentPci}`,
+  ].filter(Boolean)
+
+  const contextBlock = contextParts.join('\n\n')
+
+  // Get conversation history
+  const conversation = await getConversation(userId, 'pci', convoId)
+  const historyText = conversation.messages
+    .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+    .join('\n\n')
+
+  // Build system prompt
+  const systemPrompt = `You are a PCI (Pedagogically Correct Instruction) Master - an expert educational AI that crafts and refines Socratic-style instructions.
+
+Your role:
+1. Help students discover answers through guided questioning (never give direct answers)
+2. Adapt your approach based on the content type (task, assessment, or concept)
+3. Use the conversation history to maintain context
+4. Provide clear, encouraging, and thought-provoking guidance
+
+Respond in JSON format with this structure:
+{
+  "response": "your Socratic response here",
+  "followUpQuestions": ["question 1", "question 2"],
+  "suggestedResources": ["resource 1", "resource 2"],
+  "difficulty": "easy|medium|hard",
+  "confidence": 0.8
+}`
+
+  // Build user message
+  const userPrompt = contextBlock 
+    ? `Context:\n${contextBlock}\n\nConversation History:\n${historyText}\n\nUser: ${message}`
+    : `Conversation History:\n${historyText}\n\nUser: ${message}`
 
   try {
+    // Call Kimi API directly
+    const aiResponse = await generateWithKimi([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ])
+
+    // Parse structured output
+    const parsedOutput = parseStructuredOutput(aiResponse, pciMasterOutputSchema)
+    const finalResponse = parsedOutput?.response ?? aiResponse
+
+    // Save messages
     await appendMessage(convoId, 'user', message)
-    const response = await runAgent(pciMasterAgent, userId, convoId, finalMessage)
-    const parsedOutput = parseStructuredOutput(response, pciMasterOutputSchema)
-    const finalResponse = parsedOutput?.response ?? response
     await appendMessage(convoId, 'assistant', finalResponse)
-    res.json({ response: finalResponse, conversationId: convoId, parsed: parsedOutput })
+
+    res.json({ 
+      response: finalResponse, 
+      conversationId: convoId, 
+      parsed: parsedOutput 
+    })
   } catch (error) {
+    console.error('PCI Master error:', error)
     logError('PCI Master failed', error)
-    res.status(500).json({ error: 'PCI Master failed' })
+    res.status(500).json({ error: 'PCI Master failed', message: (error as Error).message })
+  }
+})
+
+// Simple chat endpoint for testing
+router.post('/v1/chat', async (req, res) => {
+  const { message } = req.body
+  if (!message) return res.status(400).json({ error: 'Message required' })
+
+  try {
+    const response = await generateWithKimi([
+      { role: 'system', content: 'You are a helpful educational tutor using the Socratic method. Guide students to discover answers through questioning.' },
+      { role: 'user', content: message }
+    ])
+    res.json({ response })
+  } catch (error) {
+    console.error('Chat error:', error)
+    res.status(500).json({ error: 'Chat failed', message: (error as Error).message })
   }
 })
 
