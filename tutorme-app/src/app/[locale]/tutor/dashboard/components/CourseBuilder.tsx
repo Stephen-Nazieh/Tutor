@@ -5280,7 +5280,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           },
         })
       })
-      if (!response.ok) throw new Error('Failed to get AI response')
+      if (!response.ok) {
+        let errorMessage = `Failed to get AI response (${response.status})`
+        try {
+          const errorBody = await response.json()
+          if (errorBody?.error) {
+            errorMessage = errorBody.errorId
+              ? `${errorBody.error} (Error ID: ${errorBody.errorId})`
+              : errorBody.error
+          }
+        } catch {
+          // ignore JSON parse failures
+        }
+        throw new Error(errorMessage)
+      }
       const data = await response.json()
       const assistantMessage = { role: 'assistant' as const, content: data.response || 'Unable to respond.' }
       if (isTask) {
@@ -5300,6 +5313,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
         setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
       }
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? `PCI Assistant error: ${error.message}`
+          : 'PCI Assistant error. Please try again.'
+      toast.error(message)
       const errorMessage = { role: 'assistant' as const, content: 'Sorry, there was an error processing your request. Please try again.' }
       if (isTask) {
         const updated = nextMessages.concat(errorMessage)

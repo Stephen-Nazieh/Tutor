@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   getSessionForRealm: vi.fn(),
   adkPciMasterChat: vi.fn(),
+  generateWithFallback: vi.fn(),
   sanitizeAiInput: vi.fn(),
   validateAiResponse: vi.fn(),
 }))
@@ -26,6 +27,10 @@ vi.mock('@/lib/adk-client', () => ({
   adkPciMasterChat: mocks.adkPciMasterChat,
 }))
 
+vi.mock('@/lib/agents', () => ({
+  generateWithFallback: mocks.generateWithFallback,
+}))
+
 vi.mock('@/lib/security/ai-sanitization', () => ({
   AISecurityManager: {
     sanitizeAiInput: mocks.sanitizeAiInput,
@@ -38,6 +43,7 @@ import { POST } from './route'
 describe('/api/ai/pci-master', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.ADK_BASE_URL = 'http://adk.example'
     mocks.withRateLimitPreset.mockResolvedValue({ response: null })
     mocks.sanitizeAiInput.mockImplementation((msg: string) => msg)
     mocks.validateAiResponse.mockResolvedValue({ isValid: true, issues: [], severity: 'LOW' })
@@ -46,6 +52,7 @@ describe('/api/ai/pci-master', () => {
       conversationId: 'c1',
       parsed: null,
     })
+    mocks.generateWithFallback.mockResolvedValue({ content: 'fallback', provider: 'kimi', latencyMs: 10 })
   })
 
   it('uses tutor realm session when available', async () => {
