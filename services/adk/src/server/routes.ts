@@ -211,7 +211,7 @@ router.post('/v1/pci-master', async (req, res) => {
         context.type ? `Type: ${context.type}` : null,
         context.title ? `Title: ${context.title}` : null,
         context.extensionName ? `Extension: ${context.extensionName}` : null,
-        `Content:\n${context.content || '(empty)'}`,
+        `Slide Content:\n${context.content || '(empty)'}`,
         `Current PCI:\n${context.pci || '(empty)'}`,
       ]
         .filter(Boolean)

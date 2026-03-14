@@ -5238,7 +5238,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     }
 
     try {
-      const content = isTask
+      const slideContent = isTask
         ? (taskBuilder.activeExtensionId
           ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
           : taskBuilder.taskContent)
@@ -5264,7 +5264,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
           context: {
             type,
             title: isTask ? taskBuilder.title : assessmentBuilder.title,
-            content,
+            content: slideContent,
             pci,
             extensionName,
           },
@@ -6684,12 +6684,12 @@ Please provide DMI entries as a JSON array with objects containing "questionText
   }
 
   return (
-    <div className={cn("space-y-4", panelMode === 'live-class' && "pt-3")}>
-      <div className="grid grid-cols-12 gap-6">
+    <div className={cn("space-y-4 flex-1 flex flex-col min-h-0", panelMode === 'live-class' && "pt-3")}>
+      <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
         {/* LEFT PANEL - Course Structure */}
         {!leftPanelHidden && (
-          <div className="col-span-4">
-            <Card className="h-full flex flex-col">
+          <div className="col-span-4 flex flex-col min-h-0">
+            <Card className="flex-1 flex flex-col min-h-0">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-base">
@@ -7369,8 +7369,8 @@ Please provide DMI entries as a JSON array with objects containing "questionText
         )}
 
         {/* CENTER PANEL - New Three-Section Design */}
-        <div className={cn(leftPanelHidden ? "col-span-12" : "col-span-8")}>
-          <div className="h-full flex flex-col space-y-4 overflow-auto">
+        <div className={cn("flex flex-col min-h-0", leftPanelHidden ? "col-span-12" : "col-span-8")}>
+          <div className="flex-1 flex flex-col space-y-4 overflow-auto">
             {leftPanelHidden && (
               <div className="flex justify-start">
                 <Button
