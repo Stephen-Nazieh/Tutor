@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession, authOptions } from '@/lib/auth'
+import { getServerSession, getSessionForRealm, authOptions } from '@/lib/auth'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { adkPciMasterChat } from '@/lib/adk-client'
@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
     const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
     if (rateLimitResponse) return rateLimitResponse
 
-    const session = await getServerSession(authOptions, request)
+    const session =
+      (await getSessionForRealm(request, 'tutor')) ?? (await getServerSession(authOptions, request))
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
