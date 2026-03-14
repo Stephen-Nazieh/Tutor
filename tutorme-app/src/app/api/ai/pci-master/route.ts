@@ -63,7 +63,7 @@ async function probeAdk(baseUrl: string): Promise<{
 }> {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 3000)
-  const url = `${baseUrl.replace(/\\/$/, '')}/v1/status`
+  const url = `${baseUrl.replace(/\/$/, '')}/v1/status`
   try {
     const res = await fetch(url, {
       method: 'GET',
