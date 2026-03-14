@@ -4997,7 +4997,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
   const [assessmentPciMessages, setAssessmentPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
   const [taskPciInput, setTaskPciInput] = useState('')
-  const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
   const [assessmentPciInput, setAssessmentPciInput] = useState('')
   const [taskPciLoading, setTaskPciLoading] = useState(false)
   const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
