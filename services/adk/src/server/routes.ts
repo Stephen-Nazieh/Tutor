@@ -38,12 +38,16 @@ async function runAgent(agent: any, userId: string, sessionId: string, message: 
   })
 
   for await (const event of events) {
+    console.log('Event:', JSON.stringify(event, null, 2))
     if (isFinalResponse(event)) {
       // Fixed: Variable 'part' is now properly declared with const
       const part = event.content?.parts?.[0]; 
-      return part?.text || '';
+      const text = part?.text || '';
+      console.log('Final response text:', text)
+      return text;
     }
   }
+  console.log('No final response found')
   return ''
 }
 
