@@ -1,4 +1,4 @@
-import Redis from 'ioredis'
+import { Redis } from 'ioredis'
 
 const memory = new Map<string, { value: unknown; expiresAt: number }>()
 let client: Redis | null = null
