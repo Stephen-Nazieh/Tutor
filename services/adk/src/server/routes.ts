@@ -3,13 +3,13 @@ import { InMemorySessionService, Runner, isFinalResponse } from '@google/adk'
 import { createUserContent } from '@google/genai'
 
 // Relative imports updated with .js extensions for ESM compatibility
-import { tutorAgent } from '../agents/tutor/index.js.js'
-import { gradingAgent } from '../agents/grading/index.js.js'
-import { contentGeneratorAgent } from '../agents/content-generator/index.js.js'
-import { briefingAgent } from '../agents/briefing/index.js.js'
-import { liveMonitorAgent } from '../agents/live-monitor/index.js.js'
-import { pciMasterAgent } from '../agents/pci-master/index.js.js'
-import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema, pciMasterSchema } from '../validation/schemas.js.js'
+import { tutorAgent } from '../agents/tutor/index.js'
+import { gradingAgent } from '../agents/grading/index.js'
+import { contentGeneratorAgent } from '../agents/content-generator/index.js'
+import { briefingAgent } from '../agents/briefing/index.js'
+import { liveMonitorAgent } from '../agents/live-monitor/index.js'
+import { pciMasterAgent } from '../agents/pci-master/index.js'
+import { chatSchema, essaySchema, mathSchema, contentSchema, briefingSchema, liveMonitorSchema, pciMasterSchema } from '../validation/schemas.js'
 import {
   briefingOutputSchema,
   contentOutputSchema,
@@ -17,11 +17,11 @@ import {
   liveMonitorOutputSchema,
   tutorOutputSchema,
   pciMasterOutputSchema,
-} from '../validation/output-schemas.js.js'
-import { appendMessage } from '../tools/conversations.js.js'
-import { logError } from '../observability/logging.js.js'
+} from '../validation/output-schemas.js'
+import { appendMessage } from '../tools/conversations.js'
+import { logError } from '../observability/logging.js'
 import { z } from 'zod'
-import { buildEssayGradingPrompt, buildMathGradingPrompt } from '../prompts/grading.js.js'
+import { buildEssayGradingPrompt, buildMathGradingPrompt } from '../prompts/grading.js'
 
 const router = Router()
 const sessionService = new InMemorySessionService()

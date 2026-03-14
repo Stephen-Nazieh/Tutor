@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events.js.js'
-import { buildGradingInstruction } from './prompts.js.js'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildGradingInstruction } from './prompts.js'
 
 export const gradingAgent = new LlmAgent({
   name: 'grading_agent',

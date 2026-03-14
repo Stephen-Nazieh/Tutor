@@ -1,6 +1,6 @@
 import { LlmAgent, FunctionTool } from '@google/adk'
-import { logAgentEvent } from '../../tools/agent-events.js.js'
-import { buildBriefingInstruction } from './prompts.js.js'
+import { logAgentEvent } from '../../tools/agent-events.js'
+import { buildBriefingInstruction } from './prompts.js'
 
 export const briefingAgent = new LlmAgent({
   name: 'briefing_agent',
