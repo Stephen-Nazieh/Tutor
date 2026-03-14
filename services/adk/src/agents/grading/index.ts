@@ -11,7 +11,7 @@ export const gradingAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a grading event for observability.',
-      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
     }),
   ],
 })

@@ -12,7 +12,7 @@ export const pciMasterAgent = new LlmAgent({
     new FunctionTool({
       name: 'getConversation',
       description: 'Fetch recent PCI conversation history.',
-      func: async ({
+      fn: async ({
         userId,
         sessionId,
       }: {
@@ -23,7 +23,7 @@ export const pciMasterAgent = new LlmAgent({
     new FunctionTool({
       name: 'appendMessage',
       description: 'Append a PCI message to conversation history.',
-      func: async ({
+      fn: async ({
         sessionId,
         role,
         content,
@@ -36,7 +36,7 @@ export const pciMasterAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a PCI event for observability.',
-      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
     }),
   ],
 })

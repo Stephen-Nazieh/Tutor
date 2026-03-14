@@ -15,34 +15,34 @@ export const tutorAgent = new LlmAgent({
     new FunctionTool({
       name: 'getStudentProfile',
       description: 'Fetch student profile (anonymized).',
-      func: async ({ studentId }: { studentId: string }) => getStudentProfile(studentId),
+      fn: async ({ studentId }: { studentId: string }) => getStudentProfile(studentId),
     }),
     new FunctionTool({
       name: 'getCurriculum',
       description: 'Fetch curriculum for subject.',
-      func: async ({ subject }: { subject: string }) => getCurriculum(subject),
+      fn: async ({ subject }: { subject: string }) => getCurriculum(subject),
     }),
     new FunctionTool({
       name: 'getProgressSnapshot',
       description: 'Fetch progress snapshot for student.',
-      func: async ({ studentId }: { studentId: string }) => getProgressSnapshot(studentId),
+      fn: async ({ studentId }: { studentId: string }) => getProgressSnapshot(studentId),
     }),
     new FunctionTool({
       name: 'getConversation',
       description: 'Fetch recent conversation history.',
-      func: async ({ studentId, subject, conversationId }: { studentId: string; subject: string; conversationId?: string }) =>
+      fn: async ({ studentId, subject, conversationId }: { studentId: string; subject: string; conversationId?: string }) =>
         getConversation(studentId, subject, conversationId),
     }),
     new FunctionTool({
       name: 'appendMessage',
       description: 'Append a message to conversation history.',
-      func: async ({ conversationId, role, content }: { conversationId: string; role: 'user' | 'assistant'; content: string }) =>
+      fn: async ({ conversationId, role, content }: { conversationId: string; role: 'user' | 'assistant'; content: string }) =>
         appendMessage(conversationId, role, content),
     }),
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a tutoring event for observability.',
-      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
     }),
   ],
 })

@@ -11,7 +11,7 @@ export const liveMonitorAgent = new LlmAgent({
     new FunctionTool({
       name: 'logAgentEvent',
       description: 'Log a live monitoring event for observability.',
-      func: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
+      fn: async (input: { agent: string; event: string; detail?: Record<string, unknown> }) => logAgentEvent(input),
     }),
   ],
 })
