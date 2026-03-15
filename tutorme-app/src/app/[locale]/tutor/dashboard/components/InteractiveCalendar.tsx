@@ -180,18 +180,33 @@ const generateDemoEvents = (): CalendarEvent[] => {
   return events
 }
 
-const generateAvailability = (): AvailabilityBlock[] => [
-  { id: '1', dayOfWeek: 1, startTime: '09:00', endTime: '12:00', isAvailable: true },
-  { id: '2', dayOfWeek: 1, startTime: '14:00', endTime: '18:00', isAvailable: true },
-  { id: '3', dayOfWeek: 2, startTime: '09:00', endTime: '12:00', isAvailable: true },
-  { id: '4', dayOfWeek: 2, startTime: '14:00', endTime: '18:00', isAvailable: true },
-  { id: '5', dayOfWeek: 3, startTime: '09:00', endTime: '12:00', isAvailable: true },
-  { id: '6', dayOfWeek: 3, startTime: '14:00', endTime: '18:00', isAvailable: true },
-  { id: '7', dayOfWeek: 4, startTime: '09:00', endTime: '12:00', isAvailable: true },
-  { id: '8', dayOfWeek: 4, startTime: '14:00', endTime: '18:00', isAvailable: true },
-  { id: '9', dayOfWeek: 5, startTime: '09:00', endTime: '12:00', isAvailable: true },
-  { id: '10', dayOfWeek: 5, startTime: '14:00', endTime: '17:00', isAvailable: true },
-]
+const generateAvailability = (): AvailabilityBlock[] => {
+  const slots: AvailabilityBlock[] = []
+  const startMinutes = 7 * 60
+  const endMinutes = 22 * 60
+
+  const formatTime = (minutes: number) => {
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  }
+
+  for (let day = 1; day <= 7; day += 1) {
+    for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+      const startTime = formatTime(minutes)
+      const endTime = formatTime(minutes + 30)
+      slots.push({
+        id: `${day}-${startTime}`,
+        dayOfWeek: day,
+        startTime,
+        endTime,
+        isAvailable: false,
+      })
+    }
+  }
+
+  return slots
+}
 
 type CalendarView = 'month' | 'week' | 'day' | 'availability'
 

@@ -836,7 +836,7 @@ export default function TutorMyPage() {
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => router.push(`/tutor/courses/${course.id}`)}>
                             <DollarSign className="h-4 w-4 mr-1" />
-                            Price
+                            Publish
                           </Button>
                           <Button
                             size="sm"

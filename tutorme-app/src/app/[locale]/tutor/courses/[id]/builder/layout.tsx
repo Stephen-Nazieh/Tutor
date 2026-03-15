@@ -652,7 +652,7 @@ export default function CourseBuilderLayout({
             >
               <Link href={`/tutor/courses/${courseId}`}>
                 <Eye className="h-4 w-4 mr-2" />
-                Preview
+                Publish
               </Link>
             </Button>
             <Button
