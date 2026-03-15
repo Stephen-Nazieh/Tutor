@@ -246,8 +246,8 @@ function TutorDashboardContent() {
       </div>
 
       {/* Analytics Section */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold">Analytics overview</h2>
+      <div className="space-y-4 mb-8">
+        <h2 className="text-xl font-bold">Analytics</h2>
         <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
@@ -272,12 +272,14 @@ function TutorDashboardContent() {
 
 
       {/* Interactive Calendar */}
-      <InteractiveCalendar
-        onEventClick={(event) => console.log('Event clicked:', event)}
-        onDateClick={(date) => console.log('Date clicked:', date)}
-        onCreateClass={(date) => setShowCreateDialog(true)}
-        loading={loading}
-      />
+      <div className="mt-8">
+        <InteractiveCalendar
+          onEventClick={(event) => console.log('Event clicked:', event)}
+          onDateClick={(date) => console.log('Date clicked:', date)}
+          onCreateClass={(date) => setShowCreateDialog(true)}
+          loading={loading}
+        />
+      </div>
 
       {/* Create Class Dialog */}
       <CreateClassDialog

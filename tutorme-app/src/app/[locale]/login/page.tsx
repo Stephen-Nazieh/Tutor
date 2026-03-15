@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, Info, Loader2 } from 'lucide-react'
+import { AlertCircle, Info, Loader2, Eye, EyeOff } from 'lucide-react'
 
 function LoginForm() {
   const router = useRouter()
@@ -26,6 +26,7 @@ function LoginForm() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -119,21 +120,39 @@ function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-            />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                href="/forgot-password"
+                className="text-sm text-[#1D4ED8] hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-[#1D4ED8] hover:bg-[#1e40af]"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -151,13 +170,11 @@ function LoginForm() {
           <span className="text-gray-600">Don&apos;t have an account?</span>{' '}
           <Link
             href="/register"
-            className="text-blue-600 hover:underline"
+            className="text-[#1D4ED8] hover:underline font-medium"
           >
             Sign up
           </Link>
         </div>
-
-
 
         <div className="mt-4 pt-4 border-t text-center">
           <Link
@@ -183,7 +200,7 @@ function LoginFormFallback() {
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#1D4ED8]" />
         </div>
       </CardContent>
     </Card>
@@ -192,7 +209,7 @@ function LoginFormFallback() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4 safe-top safe-bottom">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4 safe-top safe-bottom">
       <Suspense fallback={<LoginFormFallback />}>
         <LoginForm />
       </Suspense>

@@ -32,36 +32,6 @@ type SocialLinks = {
   facebook: string
 }
 
-const CERTIFICATE_OPTIONS = [
-  'PGCE',
-  'QTS',
-  'TEFL',
-  'TESOL',
-  'CELTA',
-  'DELTA',
-  'State Teaching License',
-  'IB Educator Certificate',
-  'Cambridge Teaching Knowledge Test (TKT)',
-  'Cambridge ICELT',
-  'Cambridge DELTA Module 1',
-  'Cambridge DELTA Module 2',
-  'Cambridge DELTA Module 3',
-  'ESL Endorsement',
-  'Special Education Certification',
-  'STEM Teaching Certification',
-  'AP Teacher Training',
-  'GCSE Teaching Certification',
-  'A-Level Teaching Certification',
-  'SAT/ACT Tutor Certification',
-  'Montessori Certification',
-  'Waldorf Certification',
-  'EdD',
-  'MEd',
-  'Instructional Coaching Certificate',
-  'Professional Teaching License',
-  'National Board Certification (NBCT)',
-]
-
 const REGION_OPTIONS = [
   'Worldwide',
   'Africa',
@@ -76,228 +46,49 @@ const REGION_OPTIONS = [
 
 const REGION_COUNTRY_MAP: Record<string, string[]> = {
   Africa: [
-    'Algeria',
-    'Angola',
-    'Benin',
-    'Botswana',
-    'Burkina Faso',
-    'Burundi',
-    'Cabo Verde',
-    'Cameroon',
-    'Central African Republic',
-    'Chad',
-    'Comoros',
-    'Congo (Congo-Brazzaville)',
-    'Congo (DRC)',
-    "Côte d’Ivoire",
-    'Djibouti',
-    'Egypt',
-    'Equatorial Guinea',
-    'Eritrea',
-    'Eswatini',
-    'Ethiopia',
-    'Gabon',
-    'Gambia',
-    'Ghana',
-    'Guinea',
-    'Guinea-Bissau',
-    'Kenya',
-    'Lesotho',
-    'Liberia',
-    'Libya',
-    'Madagascar',
-    'Malawi',
-    'Mali',
-    'Mauritania',
-    'Mauritius',
-    'Morocco',
-    'Mozambique',
-    'Namibia',
-    'Niger',
-    'Nigeria',
-    'Rwanda',
-    'Sao Tome and Principe',
-    'Senegal',
-    'Seychelles',
-    'Sierra Leone',
-    'Somalia',
-    'South Africa',
-    'South Sudan',
-    'Sudan',
-    'Tanzania',
-    'Togo',
-    'Tunisia',
-    'Uganda',
-    'Zambia',
-    'Zimbabwe',
-    'Western Sahara',
+    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon',
+    'Central African Republic', 'Chad', 'Comoros', 'Congo (Congo-Brazzaville)', 'Congo (DRC)',
+    "Côte d'Ivoire", 'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia',
+    'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya',
+    'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia',
+    'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone',
+    'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda',
+    'Zambia', 'Zimbabwe', 'Western Sahara',
   ],
   Asia: [
-    'Afghanistan',
-    'Armenia',
-    'Azerbaijan',
-    'Bahrain',
-    'Bangladesh',
-    'Bhutan',
-    'Brunei',
-    'Cambodia',
-    'China',
-    'Georgia',
-    'India',
-    'Indonesia',
-    'Japan',
-    'Kazakhstan',
-    'Kyrgyzstan',
-    'Laos',
-    'Malaysia',
-    'Maldives',
-    'Mongolia',
-    'Myanmar (Burma)',
-    'Nepal',
-    'North Korea',
-    'Pakistan',
-    'Philippines',
-    'Singapore',
-    'South Korea',
-    'Sri Lanka',
-    'Taiwan',
-    'Tajikistan',
-    'Thailand',
-    'Timor-Leste',
-    'Turkmenistan',
-    'Uzbekistan',
-    'Vietnam',
+    'Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Brunei', 'Cambodia',
+    'China', 'Georgia', 'India', 'Indonesia', 'Japan', 'Kazakhstan', 'Kyrgyzstan', 'Laos', 'Malaysia',
+    'Maldives', 'Mongolia', 'Myanmar (Burma)', 'Nepal', 'North Korea', 'Pakistan', 'Philippines',
+    'Singapore', 'South Korea', 'Sri Lanka', 'Taiwan', 'Tajikistan', 'Thailand', 'Timor-Leste',
+    'Turkmenistan', 'Uzbekistan', 'Vietnam',
   ],
   Europe: [
-    'Albania',
-    'Andorra',
-    'Austria',
-    'Belarus',
-    'Belgium',
-    'Bosnia and Herzegovina',
-    'Bulgaria',
-    'Croatia',
-    'Cyprus',
-    'Czechia',
-    'Denmark',
-    'Estonia',
-    'Finland',
-    'France',
-    'Germany',
-    'Greece',
-    'Hungary',
-    'Iceland',
-    'Ireland',
-    'Italy',
-    'Kosovo',
-    'Latvia',
-    'Liechtenstein',
-    'Lithuania',
-    'Luxembourg',
-    'Malta',
-    'Moldova',
-    'Monaco',
-    'Montenegro',
-    'Netherlands',
-    'North Macedonia',
-    'Norway',
-    'Poland',
-    'Portugal',
-    'Romania',
-    'Russia',
-    'San Marino',
-    'Serbia',
-    'Slovakia',
-    'Slovenia',
-    'Spain',
-    'Sweden',
-    'Switzerland',
-    'Ukraine',
-    'United Kingdom',
-    'Vatican City',
+    'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria',
+    'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece',
+    'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Liechtenstein', 'Lithuania',
+    'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia',
+    'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'San Marino', 'Serbia', 'Slovakia',
+    'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom', 'Vatican City',
   ],
   'North America': [
-    'Antigua and Barbuda',
-    'Bahamas',
-    'Barbados',
-    'Belize',
-    'Canada',
-    'Costa Rica',
-    'Cuba',
-    'Dominica',
-    'Dominican Republic',
-    'El Salvador',
-    'Grenada',
-    'Guatemala',
-    'Haiti',
-    'Honduras',
-    'Jamaica',
-    'Mexico',
-    'Nicaragua',
-    'Panama',
-    'Saint Kitts and Nevis',
-    'Saint Lucia',
-    'Saint Vincent and the Grenadines',
-    'Trinidad and Tobago',
-    'United States',
-    'Puerto Rico',
-    'Greenland',
-    'Bermuda',
+    'Antigua and Barbuda', 'Bahamas', 'Barbados', 'Belize', 'Canada', 'Costa Rica', 'Cuba', 'Dominica',
+    'Dominican Republic', 'El Salvador', 'Grenada', 'Guatemala', 'Haiti', 'Honduras', 'Jamaica',
+    'Mexico', 'Nicaragua', 'Panama', 'Saint Kitts and Nevis', 'Saint Lucia',
+    'Saint Vincent and the Grenadines', 'Trinidad and Tobago', 'United States', 'Puerto Rico',
+    'Greenland', 'Bermuda',
   ],
   'South America': [
-    'Argentina',
-    'Bolivia',
-    'Brazil',
-    'Chile',
-    'Colombia',
-    'Ecuador',
-    'Guyana',
-    'Paraguay',
-    'Peru',
-    'Suriname',
-    'Uruguay',
-    'Venezuela',
-    'Falkland Islands',
+    'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Guyana', 'Paraguay', 'Peru',
+    'Suriname', 'Uruguay', 'Venezuela', 'Falkland Islands',
   ],
   Oceania: [
-    'Australia',
-    'Fiji',
-    'Kiribati',
-    'Marshall Islands',
-    'Micronesia',
-    'Nauru',
-    'New Zealand',
-    'Palau',
-    'Papua New Guinea',
-    'Samoa',
-    'Solomon Islands',
-    'Tonga',
-    'Tuvalu',
-    'Vanuatu',
-    'New Caledonia',
-    'French Polynesia',
-    'Guam',
-    'American Samoa',
+    'Australia', 'Fiji', 'Kiribati', 'Marshall Islands', 'Micronesia', 'Nauru', 'New Zealand', 'Palau',
+    'Papua New Guinea', 'Samoa', 'Solomon Islands', 'Tonga', 'Tuvalu', 'Vanuatu', 'New Caledonia',
+    'French Polynesia', 'Guam', 'American Samoa',
   ],
   'Middle East': [
-    'Algeria',
-    'Bahrain',
-    'Egypt',
-    'Iran',
-    'Iraq',
-    'Israel',
-    'Jordan',
-    'Kuwait',
-    'Lebanon',
-    'Libya',
-    'Oman',
-    'Palestine',
-    'Qatar',
-    'Saudi Arabia',
-    'Syria',
-    'Turkey',
-    'United Arab Emirates',
-    'Yemen',
+    'Algeria', 'Bahrain', 'Egypt', 'Iran', 'Iraq', 'Israel', 'Jordan', 'Kuwait', 'Lebanon', 'Libya',
+    'Oman', 'Palestine', 'Qatar', 'Saudi Arabia', 'Syria', 'Turkey', 'United Arab Emirates', 'Yemen',
   ],
 }
 
@@ -321,7 +112,6 @@ export default function TutorRegistrationPage() {
     status: 'idle',
   })
   const [usernameTouched, setUsernameTouched] = useState(false)
-  const [customCertificate, setCustomCertificate] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -334,12 +124,7 @@ export default function TutorRegistrationPage() {
     lastName: '',
     legalName: '',
     countryOfResidence: '',
-    phoneCountryCode: '+1',
-    phoneNumber: '',
     educationLevel: '',
-    hasTeachingCertificate: false,
-    teachingCertificates: [] as string[],
-    certificateSubjects: '',
     tutoringExperienceRange: '',
     globalExams: {
       standardizedEnglish: [],
@@ -373,7 +158,6 @@ export default function TutorRegistrationPage() {
     categories.push(...formData.globalExams.undergradAdmissions)
     categories.push(...formData.globalExams.apAdvancedPlacement)
     categories.push(...formData.globalExams.internationalAS)
-
     return Array.from(new Set(categories))
   }, [formData.globalExams])
 
@@ -406,7 +190,6 @@ export default function TutorRegistrationPage() {
       nextCountries = prev.tutoringCountries.includes(country)
         ? prev.tutoringCountries.filter((c) => c !== country)
         : [...prev.tutoringCountries, country]
-
       return {
         ...prev,
         tutoringCountries: nextCountries,
@@ -423,11 +206,9 @@ export default function TutorRegistrationPage() {
         }))
         return ['Worldwide']
       }
-
       let next = prev.includes(region)
         ? prev.filter((item) => item !== region)
         : [...prev.filter((item) => item !== 'Worldwide'), region]
-
       if (!next.length) {
         next = []
       }
@@ -435,45 +216,16 @@ export default function TutorRegistrationPage() {
     })
   }
 
-  const toggleCertificate = (certificate: string) => {
-    setFormData((prev) => {
-      const exists = prev.teachingCertificates.includes(certificate)
-      return {
-        ...prev,
-        teachingCertificates: exists
-          ? prev.teachingCertificates.filter((c) => c !== certificate)
-          : [...prev.teachingCertificates, certificate],
-      }
-    })
-  }
-
-  const addCustomCertificate = () => {
-    const trimmed = customCertificate.trim()
-    if (!trimmed) return
-    setFormData((prev) => {
-      const next = prev.teachingCertificates.includes(trimmed)
-        ? prev.teachingCertificates
-        : [...prev.teachingCertificates, trimmed]
-      return { ...prev, teachingCertificates: next }
-    })
-    setCustomCertificate('')
-  }
-
+  // Updated: No dots allowed, use underscores instead
   const normalizeUsernameInput = (value: string) =>
     value
       .trim()
       .replace(/^@+/, '')
       .toLowerCase()
-      .replace(/[^a-z0-9._]/g, '')
-      .replace(/\.+/g, '.')
-      .replace(/^\\.|\\.$/g, '')
+      .replace(/[^a-z0-9_]/g, '')
+      .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
       .slice(0, 30)
-
-  const suggestUsername = () => {
-    const base = `${formData.firstName}.${formData.lastName}`.replace(/\\s+/g, '.').toLowerCase()
-    const candidate = normalizeUsernameInput(base || formData.email.split('@')[0] || 'tutor')
-    return candidate || 'solocorn'
-  }
 
   const checkUsernameAvailability = async (value: string) => {
     const normalized = normalizeUsernameInput(value)
@@ -527,14 +279,6 @@ export default function TutorRegistrationPage() {
     setUsernameTouched(true)
     setUsernameStatus({ status: 'idle' })
   }
-
-  useEffect(() => {
-    if (usernameTouched) return
-    const suggested = suggestUsername()
-    if (suggested && suggested !== formData.username) {
-      setFormData((prev) => ({ ...prev, username: suggested }))
-    }
-  }, [formData.firstName, formData.lastName, formData.email, usernameTouched])
 
   useEffect(() => {
     const email = formData.email.trim()
@@ -604,38 +348,10 @@ export default function TutorRegistrationPage() {
       toast.error('Country of residence is required')
       return false
     }
-    if (!formData.phoneNumber) {
-      toast.error('Phone number is required')
-      return false
-    }
-    if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phoneNumber)) {
-      toast.error('Valid phone number required')
-      return false
-    }
     return true
   }
 
   const validateStepTwo = () => {
-    if (!formData.educationLevel) {
-      toast.error('Education level is required')
-      return false
-    }
-    if (!formData.tutoringExperienceRange) {
-      toast.error('Tutoring experience is required')
-      return false
-    }
-    return true
-  }
-
-  const validateStepThree = () => {
-    if (formData.hasTeachingCertificate && formData.teachingCertificates.length === 0) {
-      toast.error('Select at least one teaching certificate')
-      return false
-    }
-    return true
-  }
-
-  const validateStepFour = () => {
     if (categorySelections.length === 0) {
       toast.error('Select at least one tutoring category')
       return false
@@ -647,7 +363,7 @@ export default function TutorRegistrationPage() {
     return true
   }
 
-  const validateStepFive = () => {
+  const validateStepThree = () => {
     if (!formData.username) {
       toast.error('Username is required')
       return false
@@ -680,9 +396,6 @@ export default function TutorRegistrationPage() {
 
     setIsLoading(true)
     try {
-      const certificateName = formData.hasTeachingCertificate
-        ? formData.teachingCertificates.join(', ')
-        : undefined
       const payload = {
         role: 'TUTOR',
         email: formData.email,
@@ -699,12 +412,7 @@ export default function TutorRegistrationPage() {
           lastName: formData.lastName,
           legalName: formData.legalName,
           countryOfResidence: formData.countryOfResidence,
-          phoneCountryCode: formData.phoneCountryCode,
-          phoneNumber: formData.phoneNumber,
           educationLevel: formData.educationLevel,
-          hasTeachingCertificate: formData.hasTeachingCertificate,
-          certificateName,
-          certificateSubjects: formData.certificateSubjects,
           tutoringExperienceRange: formData.tutoringExperienceRange,
           globalExams: formData.globalExams,
           tutoringCountries: formData.tutoringCountries,
@@ -742,18 +450,17 @@ export default function TutorRegistrationPage() {
     }
   }
 
+  // Updated steps - removed Credentials (step 2) and Certifications (step 3)
   const steps = [
     { number: 1, title: 'Account' },
-    { number: 2, title: 'Credentials' },
-    { number: 3, title: 'Certifications' },
-    { number: 4, title: 'Tutoring' },
-    { number: 5, title: 'Profile' },
-    { number: 6, title: 'Review' },
-    { number: 7, title: 'Terms' },
+    { number: 2, title: 'Tutoring' },
+    { number: 3, title: 'Profile' },
+    { number: 4, title: 'Review' },
+    { number: 5, title: 'Terms' },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Link href="/register" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
           <ArrowLeft className="h-4 w-4 mr-1" />
@@ -761,20 +468,20 @@ export default function TutorRegistrationPage() {
         </Link>
 
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-            <GraduationCap className="h-8 w-8 text-purple-600" />
+          <div className="mx-auto w-16 h-16 bg-[#F17623]/10 rounded-full flex items-center justify-center mb-4">
+            <GraduationCap className="h-8 w-8 text-[#F17623]" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Become a Solocorn Tutor</h1>
+          <h1 className="text-3xl font-bold text-[#1F2933]">Become a Solocorn Tutor</h1>
           <p className="text-gray-600 mt-2">Complete your application to start tutoring on the platform</p>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
           {steps.map((s) => (
             <div key={s.number} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= s.number ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${step >= s.number ? 'bg-[#F17623] text-white' : 'bg-gray-200 text-gray-500'}`}>
                 {s.number}
               </div>
-              <span className={`text-sm ${step >= s.number ? 'text-purple-600' : 'text-gray-400'}`}>{s.title}</span>
+              <span className={`text-sm ${step >= s.number ? 'text-[#F17623]' : 'text-gray-400'}`}>{s.title}</span>
             </div>
           ))}
         </div>
@@ -783,21 +490,17 @@ export default function TutorRegistrationPage() {
           <CardHeader>
             <CardTitle>
               {step === 1 && 'Become a Solocorn Tutor'}
-              {step === 2 && 'Teaching Expertise – Credentials'}
-              {step === 3 && 'Teaching Expertise – Certifications'}
-              {step === 4 && 'Tutoring'}
-              {step === 5 && 'Your Profile'}
-              {step === 6 && 'Review'}
-              {step === 7 && 'Terms and Agreements'}
+              {step === 2 && 'Tutoring'}
+              {step === 3 && 'Profile'}
+              {step === 4 && 'Review'}
+              {step === 5 && 'Terms and Agreements'}
             </CardTitle>
             <CardDescription>
               {step === 1 && 'Tell us who you are'}
-              {step === 2 && 'This information will not be made public'}
-              {step === 3 && 'Select the teaching certificates you hold'}
-              {step === 4 && 'Select the exams, subjects, and countries you tutor'}
-              {step === 5 && 'Set up your Solocorn presence'}
-              {step === 6 && 'Review your application before registering'}
-              {step === 7 && 'Accept the terms to finalize your application'}
+              {step === 2 && 'Select the exams, subjects, and countries you tutor'}
+              {step === 3 && 'Complete your profile information'}
+              {step === 4 && 'Review your application before registering'}
+              {step === 5 && 'Accept the terms to finalize your application'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -821,6 +524,10 @@ export default function TutorRegistrationPage() {
                 <div className="space-y-2">
                   <Label>Email</Label>
                   <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="tutor@example.com" />
+                  {emailStatus.status === 'checking' && <p className="text-xs text-gray-500">Checking availability...</p>}
+                  {emailStatus.status === 'available' && <p className="text-xs text-green-600">{emailStatus.message}</p>}
+                  {emailStatus.status === 'taken' && <p className="text-xs text-red-600">{emailStatus.message}</p>}
+                  {emailStatus.status === 'invalid' && <p className="text-xs text-red-600">{emailStatus.message}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -831,12 +538,12 @@ export default function TutorRegistrationPage() {
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        placeholder="••••••••"
+                        placeholder="Create a password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -850,12 +557,12 @@ export default function TutorRegistrationPage() {
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        placeholder="••••••••"
+                        placeholder="Confirm your password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                         aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                       >
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -870,11 +577,9 @@ export default function TutorRegistrationPage() {
                   <Select
                     value={formData.countryOfResidence}
                     onValueChange={(value) => {
-                      const match = findCountryByName(value)
                       setFormData((prev) => ({
                         ...prev,
                         countryOfResidence: value,
-                        phoneCountryCode: match?.dialCode ?? prev.phoneCountryCode,
                       }))
                     }}
                   >
@@ -891,24 +596,9 @@ export default function TutorRegistrationPage() {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-[140px_1fr] gap-4 items-end">
-                  <div className="space-y-2">
-                    <Label>Area Code</Label>
-                    <Input value={formData.phoneCountryCode} readOnly />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone Number</Label>
-                    <Input
-                      value={formData.phoneNumber}
-                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      placeholder="(555) 123-4567"
-                    />
-                  </div>
-                </div>
-
                 <div className="flex gap-3">
                   <Button
-                    className="flex-1"
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
                     onClick={async () => {
                       if (await validateStepOne()) setStep(2)
                     }}
@@ -921,124 +611,6 @@ export default function TutorRegistrationPage() {
 
             {step === 2 && (
               <>
-                <div className="space-y-2">
-                  <Label>Education</Label>
-                  <Select value={formData.educationLevel} onValueChange={(value) => setFormData({ ...formData, educationLevel: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select education level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['High School Diploma', 'Bachelor', 'Masters', 'PhD'].map((level) => (
-                        <SelectItem key={level} value={level}>{level}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>How long have you tutored?</Label>
-                  <Select value={formData.tutoringExperienceRange} onValueChange={(value) => setFormData({ ...formData, tutoringExperienceRange: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select experience range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {['0-2', '3-5', '6-10', '10+'].map((range) => (
-                        <SelectItem key={range} value={range}>{range} years</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
-                    Back
-                  </Button>
-                  <Button className="flex-1" onClick={() => validateStepTwo() && setStep(3)}>
-                    Next
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {step === 3 && (
-              <>
-                <div className="space-y-2">
-                  <Label>Do you have a teaching certificate?</Label>
-                  <Select
-                    value={formData.hasTeachingCertificate ? 'yes' : 'no'}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        hasTeachingCertificate: value === 'yes',
-                        teachingCertificates: value === 'yes' ? prev.teachingCertificates : [],
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.hasTeachingCertificate && (
-                  <>
-                    <div className="space-y-3">
-                      <Label>Teaching Certificates (select all that apply)</Label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {CERTIFICATE_OPTIONS.map((certificate) => (
-                          <label key={certificate} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={formData.teachingCertificates.includes(certificate)}
-                              onCheckedChange={() => toggleCertificate(certificate)}
-                            />
-                            {certificate}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Add a new certificate</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={customCertificate}
-                          onChange={(e) => setCustomCertificate(e.target.value)}
-                          placeholder="e.g. TESL Diploma"
-                        />
-                        <Button type="button" variant="outline" onClick={addCustomCertificate}>
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>What are you qualified to teach?</Label>
-                      <Input
-                        value={formData.certificateSubjects}
-                        onChange={(e) => setFormData({ ...formData, certificateSubjects: e.target.value })}
-                        placeholder="e.g. GCSE Maths, IELTS, AP Physics"
-                      />
-                    </div>
-                  </>
-                )}
-
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
-                    Back
-                  </Button>
-                  <Button className="flex-1" onClick={() => validateStepThree() && setStep(4)}>
-                    Next
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {step === 4 && (
-              <>
                 <div className="space-y-4">
                   <Label>Categories (aggregated for search)</Label>
                   <div className="flex flex-wrap gap-2">
@@ -1046,7 +618,7 @@ export default function TutorRegistrationPage() {
                       <p className="text-sm text-gray-500">No categories selected yet.</p>
                     )}
                     {categorySelections.map((category) => (
-                      <span key={category} className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">
+                      <span key={category} className="px-3 py-1 text-xs bg-[#4FD1C5]/20 text-[#1F2933] rounded-full">
                         {category}
                       </span>
                     ))}
@@ -1143,22 +715,22 @@ export default function TutorRegistrationPage() {
                     </PopoverContent>
                   </Popover>
                   {selectedRegions.length > 0 && !selectedRegions.includes('Worldwide') && availableCountries.length === 0 && (
-                    <p className="text-xs text-gray-500">No countries mapped for those regions yet. Try adding “Other” or “Worldwide”.</p>
+                    <p className="text-xs text-gray-500">No countries mapped for those regions yet. Try adding "Other" or "Worldwide".</p>
                   )}
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={() => validateStepFour() && setStep(5)}>
+                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={() => validateStepTwo() && setStep(3)}>
                     Next
                   </Button>
                 </div>
               </>
             )}
 
-            {step === 5 && (
+            {step === 3 && (
               <>
                 <div className="space-y-2">
                   <Label>Solocorn Username</Label>
@@ -1173,7 +745,7 @@ export default function TutorRegistrationPage() {
                           setUsernameTouched(true)
                           setUsernameStatus({ status: 'idle' })
                         }}
-                        placeholder="solocorn.tutor"
+                        placeholder="your_username"
                       />
                     </div>
                   </div>
@@ -1187,16 +759,17 @@ export default function TutorRegistrationPage() {
                     <div className="text-xs text-red-600">
                       <p>{usernameStatus.message}</p>
                       {usernameStatus.suggestion && (
-                        <button className="text-purple-600 underline" type="button" onClick={applySuggestion}>
+                        <button className="text-[#1D4ED8] underline" type="button" onClick={applySuggestion}>
                           Use {usernameStatus.suggestion}
                         </button>
                       )}
                     </div>
                   )}
+                  <p className="text-xs text-gray-500">Only letters, numbers, and underscores allowed</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Photo Upload</Label>
+                  <Label>Your Photo</Label>
                   <Input
                     type="file"
                     accept="image/*"
@@ -1209,7 +782,7 @@ export default function TutorRegistrationPage() {
                   <Input
                     value={formData.legalName}
                     onChange={(e) => setFormData({ ...formData, legalName: e.target.value })}
-                    placeholder="As per verification documents"
+                    placeholder="Enter your full legal name"
                   />
                 </div>
 
@@ -1247,21 +820,20 @@ export default function TutorRegistrationPage() {
                     placeholder="Describe your tutoring service (500 characters max)"
                   />
                   <p className="text-xs text-gray-500">{formData.serviceDescription.length}/500</p>
-                  <p className="text-xs text-gray-500">This information must match verification documents.</p>
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={() => validateStepFive() && setStep(6)}>
+                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={() => validateStepThree() && setStep(4)}>
                     Next
                   </Button>
                 </div>
               </>
             )}
 
-            {step === 6 && (
+            {step === 4 && (
               <>
                 <div className="space-y-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
@@ -1308,17 +880,17 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(5)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={() => setStep(7)}>
+                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={() => setStep(5)}>
                     Register
                   </Button>
                 </div>
               </>
             )}
 
-            {step === 7 && (
+            {step === 5 && (
               <>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
@@ -1334,10 +906,10 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(6)}>
+                  <Button variant="outline" className="flex-1" onClick={() => setStep(4)}>
                     Back
                   </Button>
-                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={handleSubmit} disabled={isLoading || !formData.agreeToTerms}>
+                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={handleSubmit} disabled={isLoading || !formData.agreeToTerms}>
                     {isLoading ? 'Submitting...' : 'Complete Registration'}
                   </Button>
                 </div>

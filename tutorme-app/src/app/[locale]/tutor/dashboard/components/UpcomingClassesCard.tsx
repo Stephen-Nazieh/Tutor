@@ -5,15 +5,15 @@ import { Button } from '@/components/ui/button'
 import { 
   Clock, 
   BookOpen, 
-  Copy, 
   Plus, 
-  Sparkles, 
-  Video, 
-  Trash2, 
   Users, 
-  Share2, 
   Loader2,
-  User as UserIcon
+  User as UserIcon,
+  ExternalLink,
+  Share2,
+  Copy,
+  Video,
+  Sparkles
 } from 'lucide-react'
 import {
   Dialog,
@@ -39,6 +39,8 @@ export interface UpcomingClass {
   maxStudents: number
   enrolledStudents: number
   status: string
+  sessionNo?: number
+  totalSessions?: number
 }
 
 interface UpcomingClassesCardProps {
@@ -283,12 +285,15 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
 }
 
 export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClassClick, onRemoveClass }: UpcomingClassesCardProps) {
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+  const [selectedClass, setSelectedClass] = useState<UpcomingClass | null>(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
-  
-  const selectedClass = selectedClassId 
-    ? classes.find(c => c.id === selectedClassId) 
-    : classes[0]
+
+  // Add mock session numbers for display
+  const classesWithSessions = classes.map((cls, index) => ({
+    ...cls,
+    sessionNo: cls.sessionNo || (index % 4) + 1,
+    totalSessions: cls.totalSessions || 12
+  }))
 
   return (
     <Card className="border border-slate-200 overflow-hidden shadow-2xl bg-white/95 backdrop-blur-md">
@@ -328,158 +333,174 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
             )}
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row border border-slate-200 rounded-2xl overflow-hidden shadow-lg border border-slate-200 bg-white/80">
-            {/* Left Column: Classes List */}
-            <div className="w-full md:w-[45%] flex flex-col bg-gray-50/50 border-r border-gray-200">
-              <div className="p-4 border-b border-gray-200 bg-gray-50/80 font-semibold text-gray-700 text-sm">
-                Classes List
-              </div>
-              <div className="space-y-1 max-h-[500px] overflow-y-auto p-3">
-                {classes.map((cls) => {
-                  const time = formatClassTime(cls.scheduledAt)
-                  const isSelected = selectedClass?.id === cls.id
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Session No.</th>
+                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classesWithSessions.map((cls) => {
+                  const time = formatClassTime(cls.scheduledAt, cls.duration)
                   return (
-                    <div
-                      key={cls.id}
-                      onClick={() => setSelectedClassId(cls.id)}
-                      className={cn(
-                        "cursor-pointer flex items-center justify-between p-3 rounded-lg transition-colors border max-w-full",
-                        isSelected ? "border-blue-500 bg-blue-50/80 shadow-sm" : "border-transparent hover:bg-white hover:border-gray-200"
-                      )}
+                    <tr 
+                      key={cls.id} 
+                      className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors"
                     >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className={cn("w-9 h-9 rounded-md flex items-center justify-center shrink-0", isSelected ? "bg-blue-100" : "bg-gray-200")}>
-                          <BookOpen className={cn("w-4 h-4", isSelected ? "text-blue-600" : "text-gray-500")} />
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-md bg-blue-100 flex items-center justify-center shrink-0">
+                            <BookOpen className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm text-gray-900">{cls.title}</p>
+                            <p className="text-xs text-gray-500">{cls.subject}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1 overflow-hidden">
-                          <h3 className="font-medium text-sm truncate">{cls.title}</h3>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">
-                            {cls.subject} • {time.formatted}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                      </td>
+                      <td className="py-4 px-4 text-sm text-gray-700">
+                        {formatDate(cls.scheduledAt)}
+                      </td>
+                      <td className="py-4 px-4 text-sm text-gray-700">
+                        {time.timeRange}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium">
+                          {cls.sessionNo}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-center text-sm text-gray-700">
+                        {cls.totalSessions}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          onClick={() => setSelectedClass(cls)}
+                        >
+                          Open
+                          <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                        </Button>
+                      </td>
+                    </tr>
                   )
                 })}
-              </div>
-            </div>
-
-            {/* Right Column: Class Preview Panel */}
-            <div className="w-full md:w-[55%] flex flex-col bg-white">
-              <div className="p-4 border-b border-gray-200 bg-white font-semibold text-gray-700 text-sm mb-0">
-                Class Preview
-              </div>
-              <div className="p-4 flex-1">
-                {selectedClass ? (
-                  <div className="rounded-2xl flex flex-col bg-white/90 border border-slate-200 shadow-xl overflow-hidden h-fit border border-slate-200 backdrop-blur-sm">
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
-                          {selectedClass.status || 'Scheduled'}
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium">
-                          {selectedClass.subject}
-                        </span>
-                      </div>
-                      <h2 className="text-xl font-bold text-gray-900 leading-tight mb-2">
-                        {selectedClass.title}
-                      </h2>
-                      <div className="flex items-center text-sm text-gray-600 gap-4 mt-4">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span>
-                            {formatClassTime(selectedClass.scheduledAt).formatted}
-                            <span className="text-gray-400 ml-1">({selectedClass.duration}m)</span>
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Users className="w-4 h-4 text-gray-400" />
-                          <span>{selectedClass.enrolledStudents}/{selectedClass.maxStudents} seats</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700">Enrollment</span>
-                          <span className="text-sm text-gray-500">
-                            {Math.round((selectedClass.enrolledStudents / (selectedClass.maxStudents || 1)) * 100)}% Full
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-500 h-2 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                            style={{ 
-                              width: `${Math.min(100, Math.max(0, (selectedClass.enrolledStudents / (selectedClass.maxStudents || 1)) * 100))}%` 
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-3">
-                        <div className="grid grid-cols-2 gap-3">
-                          <Link href={`/tutor/live-class/${selectedClass.id}`} className="col-span-2">
-                            <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg" size="lg">
-                              <Video className="w-5 h-5 mr-2" />
-                              Enter Live Room
-                            </Button>
-                          </Link>
-                          
-                          {selectedClass.curriculumId ? (
-                            <Link href={`/tutor/courses/${selectedClass.curriculumId}`} className="col-span-2">
-                               <Button variant="outline" className="w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-semibold">
-                                 <BookOpen className="w-4 h-4 mr-2" />
-                                 View Course Details
-                               </Button>
-                            </Link>
-                          ) : (
-                            <Link href={`/tutor/classes`} className="col-span-2">
-                               <Button variant="outline" className="w-full border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-semibold">
-                                 <Sparkles className="w-4 h-4 mr-2" />
-                                 View Class Details
-                               </Button>
-                            </Link>
-                          )}
-
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => copyJoinLink(selectedClass.id)}
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Copy Link
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => setIsShareModalOpen(true)}
-                          >
-                            <Share2 className="w-4 h-4 mr-2 text-blue-500" />
-                            Share
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center p-8 text-center text-gray-500">
-                    <p>Select a class to preview its details</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Share Dialog */}
-            {selectedClass && (
-              <ShareDialog
-                open={isShareModalOpen}
-                onOpenChange={setIsShareModalOpen}
-                classId={selectedClass.id}
-                classTitle={selectedClass.title}
-              />
-            )}
+              </tbody>
+            </table>
           </div>
+        )}
+
+        {/* Class Detail Modal */}
+        <Dialog open={!!selectedClass} onOpenChange={() => setSelectedClass(null)}>
+          <DialogContent className="sm:max-w-md border border-slate-200">
+            <DialogHeader>
+              <DialogTitle>{selectedClass?.title}</DialogTitle>
+              <DialogDescription>
+                {selectedClass?.subject}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedClass && (
+              <div className="space-y-4 py-4">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Clock className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {formatDate(selectedClass.scheduledAt)}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {formatClassTime(selectedClass.scheduledAt).formatted} • {selectedClass.duration} min
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Users className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {selectedClass.enrolledStudents}/{selectedClass.maxStudents} students
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedClass.maxStudents - selectedClass.enrolledStudents} spots remaining
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-gray-500" />
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Session {selectedClass.sessionNo || 1} of {selectedClass.totalSessions || 12}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Total Sessions: {selectedClass.totalSessions || 12}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <Link href={`/tutor/live-class/${selectedClass.id}`}>
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
+                      <Video className="w-4 h-4 mr-2" />
+                      Enter Live Room
+                    </Button>
+                  </Link>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => copyJoinLink(selectedClass.id)}
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Link
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setIsShareModalOpen(true)}
+                    >
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                  
+                  {selectedClass.curriculumId ? (
+                    <Link href={`/tutor/courses/${selectedClass.curriculumId}`}>
+                      <Button variant="outline" className="w-full">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        View Course Details
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/tutor/classes">
+                      <Button variant="outline" className="w-full">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        View Class Details
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Share Dialog */}
+        {selectedClass && (
+          <ShareDialog
+            open={isShareModalOpen}
+            onOpenChange={setIsShareModalOpen}
+            classId={selectedClass.id}
+            classTitle={selectedClass.title}
+          />
         )}
       </CardContent>
     </Card>

@@ -37,7 +37,7 @@ import {
   Clock,
   Users,
   Plus,
-  MapPin,
+  BookOpen,
   Video,
   MoreVertical,
   Edit,
@@ -707,7 +707,7 @@ export function InteractiveCalendar({
                       <Users className="w-5 h-5 text-gray-500" />
                       <div>
                         <p className="font-medium">
-                          {selectedEvent.studentCount} / {selectedEvent.maxStudents} students enrolled
+                          {selectedEvent.studentCount} / {selectedEvent.maxStudents} students
                         </p>
                         <p className="text-sm text-gray-500">
                           {selectedEvent.maxStudents && selectedEvent.studentCount &&
@@ -717,16 +717,20 @@ export function InteractiveCalendar({
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    {selectedEvent.isOnline ? (
-                      <Video className="w-5 h-5 text-gray-500" />
-                    ) : (
-                      <MapPin className="w-5 h-5 text-gray-500" />
-                    )}
-                    <p className="font-medium">
-                      {selectedEvent.isOnline ? 'Online Class' : 'In-Person'}
-                    </p>
-                  </div>
+                  {/* Session Info */}
+                  {selectedEvent.type === 'class' && (
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                      <BookOpen className="w-5 h-5 text-gray-500" />
+                      <div>
+                        <p className="font-medium">
+                          Session {selectedEvent.isRecurring ? '1' : '1'} of 12
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Total Sessions: 12
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Conflict Warning in Detail */}
                   {showConflictWarning.find(e => e.id === selectedEvent.id) && (
@@ -741,21 +745,15 @@ export function InteractiveCalendar({
                   <Button variant="outline" onClick={() => setSelectedEvent(null)}>
                     Close
                   </Button>
-                  {selectedEvent.isRecurring && (
-                    <Button variant="outline">
-                      <Repeat className="w-4 h-4 mr-2" />
-                      Edit Series
-                    </Button>
-                  )}
                   <Button
                     className="bg-gradient-to-r from-purple-600 to-blue-600"
                     onClick={() => {
-                      toast.success('Joining class...')
+                      toast.success('Opening class...')
                       setSelectedEvent(null)
                     }}
                   >
-                    <Video className="w-4 h-4 mr-2" />
-                    Join Class
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Open
                   </Button>
                 </DialogFooter>
               </>

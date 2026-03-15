@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import {
   Calendar,
@@ -13,13 +13,13 @@ import {
   Clock,
   Sparkles,
   ArrowRight,
-  Activity,
   BookOpen,
   Award,
   Video,
   Plus
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 interface ModernHeroSectionProps {
   stats?: {
@@ -33,9 +33,19 @@ interface ModernHeroSectionProps {
   onCreateCourse?: () => void
 }
 
+interface ClassEvent {
+  id: string
+  title: string
+  time: string
+  duration: number
+  subject: string
+}
+
 export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHeroSectionProps) {
+  const { data: session } = useSession()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [selectedDay, setSelectedDay] = useState<{date: Date, events: ClassEvent[]} | null>(null)
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -46,6 +56,34 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
     const timer = setInterval(() => setCurrentTime(new Date()), 60000)
     return () => clearInterval(timer)
   }, [])
+
+  // Generate mock class events for the 7-day calendar
+  const generateClassEvents = (date: Date): ClassEvent[] => {
+    const dayOfWeek = date.getDay()
+    const events: ClassEvent[] = []
+    
+    // Add some scheduled classes based on day
+    if (dayOfWeek === 1 || dayOfWeek === 3) {
+      events.push({ id: '1', title: 'Mathematics', time: '3:00 PM - 4:00 PM', duration: 60, subject: 'Mathematics' })
+    }
+    if (dayOfWeek === 2 || dayOfWeek === 4) {
+      events.push({ id: '2', title: 'Physics', time: '2:00 PM - 3:30 PM', duration: 90, subject: 'Physics' })
+    }
+    if (dayOfWeek === 5) {
+      events.push({ id: '3', title: 'Chemistry', time: '10:00 AM - 11:00 AM', duration: 60, subject: 'Chemistry' })
+    }
+    
+    return events
+  }
+
+  const handleDayClick = (date: Date) => {
+    const events = generateClassEvents(date)
+    setSelectedDay({ date, events })
+  }
+
+  const getDayClasses = (date: Date): ClassEvent[] => {
+    return generateClassEvents(date)
+  }
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
@@ -96,7 +134,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-amber-400" />
               <span className="text-blue-300 text-sm font-medium">
-                {greeting}, Tutor
+                {greeting}, @{session?.user?.name || session?.user?.email?.split('@')[0] || 'Tutor'}
               </span>
             </div>
             <h1 className="text-4xl font-bold text-white mb-2">
@@ -106,12 +144,6 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
               {formatDate(currentTime)} • {formatTime(currentTime)}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
-              <Activity className="w-3 h-3 mr-1" />
-              Live
-            </Badge>
-          </div>
         </div>
 
         {/* One Week Calendar Schedule */}
@@ -119,8 +151,15 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date(currentTime);
             d.setDate(currentTime.getDate() + i);
+            const dayClasses = getDayClasses(d);
+            const hasClasses = dayClasses.length > 0;
+            
             return (
-              <div key={i} className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group">
+              <div 
+                key={i} 
+                onClick={() => handleDayClick(d)}
+                className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
+              >
                 <span className="text-slate-400 text-xs font-medium mb-1">
                   {d.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
@@ -130,15 +169,68 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
                 )}>
                   {d.getDate()}
                 </span>
-                {/* Mock event dots */}
-                <div className="flex gap-1 mt-2 h-1.5">
-                  {i % 2 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
-                  {i % 3 === 0 && <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />}
+                {/* Show class times instead of dots */}
+                <div className="flex flex-col items-center mt-2 gap-0.5">
+                  {dayClasses.slice(0, 1).map((cls, idx) => (
+                    <span key={idx} className="text-[10px] text-cyan-400 font-medium">
+                      {cls.time}
+                    </span>
+                  ))}
+                  {dayClasses.length > 1 && (
+                    <span className="text-[8px] text-slate-400">+{dayClasses.length - 1} more</span>
+                  )}
+                  {!hasClasses && (
+                    <div className="flex gap-1 h-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-600/50" />
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
+
+        {/* Day Detail Modal */}
+        <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
+          <DialogContent className="sm:max-w-md border border-slate-200">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedDay?.date.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedDay && selectedDay.events.length > 0 
+                  ? `${selectedDay.events.length} class${selectedDay.events.length > 1 ? 'es' : ''} scheduled`
+                  : 'No classes scheduled'
+                }
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-3 py-4">
+              {selectedDay?.events.map((event) => (
+                <div key={event.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{event.title}</p>
+                    <p className="text-sm text-gray-500">{event.time} • {event.duration} min</p>
+                  </div>
+                </div>
+              ))}
+              
+              {(!selectedDay || selectedDay.events.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No classes scheduled for this day</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">

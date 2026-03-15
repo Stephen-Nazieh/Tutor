@@ -13,8 +13,6 @@ import { toast } from 'sonner'
 import {
   ArrowLeft,
   BookOpen,
-  Copy,
-  Check,
   Eye,
   EyeOff,
 } from 'lucide-react'
@@ -95,7 +93,7 @@ export default function StudentRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-lg mx-auto">
         <Link
           href="/register"
@@ -106,10 +104,10 @@ export default function StudentRegistrationPage() {
         </Link>
 
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <BookOpen className="h-8 w-8 text-blue-600" />
+          <div className="mx-auto w-16 h-16 bg-[#4FD1C5]/20 rounded-full flex items-center justify-center mb-4">
+            <BookOpen className="h-8 w-8 text-[#4FD1C5]" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Student Registration</h1>
+          <h1 className="text-3xl font-bold text-[#1F2933]">Student Registration</h1>
           <p className="text-gray-600 mt-2">
             Create an account to start learning with AI tutors and live classes
           </p>
@@ -117,7 +115,7 @@ export default function StudentRegistrationPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Create Your Account</CardTitle>
+            <CardTitle className="text-[#1F2933]">Create Your Account</CardTitle>
             <CardDescription>
               You will receive a unique Student ID to share with your parent for account linking
             </CardDescription>
@@ -183,12 +181,12 @@ export default function StudentRegistrationPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="••••••••"
+                    placeholder="Create password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -203,12 +201,12 @@ export default function StudentRegistrationPage() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    placeholder="••••••••"
+                    placeholder="Confirm password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -236,7 +234,7 @@ export default function StudentRegistrationPage() {
             </div>
 
             <Button
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-[#4FD1C5] hover:bg-[#3bc4b2]"
               onClick={handleSubmit}
               disabled={isLoading}
             >
@@ -247,7 +245,7 @@ export default function StudentRegistrationPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
+          <Link href="/login" className="text-[#1D4ED8] hover:underline font-medium">
             Sign in
           </Link>
         </p>

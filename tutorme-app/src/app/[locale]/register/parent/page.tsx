@@ -336,7 +336,7 @@ export default function ParentRegistrationPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -344,7 +344,7 @@ export default function ParentRegistrationPage() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Registration
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Parent Registration</h1>
+          <h1 className="text-3xl font-bold text-[#1F2933]">Parent Registration</h1>
           <p className="text-gray-600 mt-2">Create an account to manage your children&apos;s learning journey</p>
         </div>
 
@@ -354,15 +354,15 @@ export default function ParentRegistrationPage() {
             <div key={s.number} className="flex items-center">
               <div className={`
                 flex items-center justify-center w-10 h-10 rounded-full font-semibold text-sm
-                ${step >= s.number ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'}
+                ${step >= s.number ? 'bg-[#1D4ED8] text-white' : 'bg-gray-200 text-gray-500'}
               `}>
                 <s.icon className="h-5 w-5" />
               </div>
-              <span className={`ml-2 text-sm font-medium ${step >= s.number ? 'text-blue-600' : 'text-gray-500'}`}>
+              <span className={`ml-2 text-sm font-medium ${step >= s.number ? 'text-[#1D4ED8]' : 'text-gray-500'}`}>
                 {s.title}
               </span>
               {index < steps.length - 1 && (
-                <div className={`w-12 h-0.5 mx-4 ${step > s.number ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                <div className={`w-12 h-0.5 mx-4 ${step > s.number ? 'bg-[#1D4ED8]' : 'bg-gray-200'}`} />
               )}
             </div>
           ))}
@@ -771,7 +771,7 @@ export default function ParentRegistrationPage() {
                     void handleSubmit()
                   }}
                   disabled={isLoading}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-[#4FD1C5] hover:bg-[#3bc4b2]"
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </Button>
