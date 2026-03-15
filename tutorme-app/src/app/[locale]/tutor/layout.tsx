@@ -38,7 +38,7 @@ const navItems = [
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
-  { href: '/tutor/learning', label: 'Learning', icon: GraduationCap, inactive: true },
+  { href: '/tutor/training', label: 'Training', icon: GraduationCap },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle },
 ]
 

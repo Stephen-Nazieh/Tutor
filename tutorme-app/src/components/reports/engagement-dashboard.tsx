@@ -44,7 +44,11 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
   const [period, setPeriod] = useState(30)
 
   useEffect(() => {
-    if (!classId) return
+    if (!classId) {
+      setEngagement(null)
+      setIsLoading(false)
+      return
+    }
 
     fetchEngagementData()
   }, [classId, period])
@@ -111,6 +115,18 @@ export function EngagementDashboard({ classId }: EngagementDashboardProps) {
     if (score >= 70) return 'High'
     if (score >= 50) return 'Medium'
     return 'Low'
+  }
+
+  if (!classId) {
+    return (
+      <Card className="py-12">
+        <CardContent className="text-center">
+          <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-700">No Class Selected</h3>
+          <p className="text-gray-500">Select a course or class above to view engagement metrics.</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (isLoading) {

@@ -426,17 +426,9 @@ export default function TutorReports() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 flex-wrap h-auto">
-            <TabsTrigger value="overview" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
             <TabsTrigger value="revenue" className="gap-2">
               <DollarSign className="h-4 w-4" />
               Revenue Insights
-            </TabsTrigger>
-            <TabsTrigger value="performance" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Class Performance
             </TabsTrigger>
             <TabsTrigger value="students" className="gap-2">
               <Users className="h-4 w-4" />
@@ -446,131 +438,17 @@ export default function TutorReports() {
               <Activity className="h-4 w-4" />
               Engagement
             </TabsTrigger>
-            <TabsTrigger value="courses-classes" className="gap-2">
+            <TabsTrigger value="overview" className="gap-2">
               <BookOpen className="h-4 w-4" />
-              Courses & Classes
+              Overview
             </TabsTrigger>
           </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
-              <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
-            </div>
-            <AIInsightsCard />
-          </TabsContent>
 
           {/* Revenue Tab */}
           <TabsContent value="revenue" className="h-full">
             <div className="h-[800px] overflow-hidden rounded-xl bg-white">
               <RevenueDashboard />
             </div>
-          </TabsContent>
-
-          {/* Performance Tab */}
-          <TabsContent value="performance" className="space-y-6">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-              </div>
-            ) : !selectedClassId ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">No Class Selected</h3>
-                  <p className="text-gray-500">
-                    Please select a class or course from the dropdown above to view performance metrics.
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Total Students</p>
-                          <p className="text-3xl font-bold">{classData?.summary.totalStudents || 0}</p>
-                        </div>
-                        <Users className="h-8 w-8 text-blue-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Average Score</p>
-                          <p className="text-3xl font-bold">{classData?.summary.averageScore || 0}%</p>
-                        </div>
-                        <TrendingUp className="h-8 w-8 text-green-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Advanced Students</p>
-                          <p className="text-3xl font-bold text-green-600">{classData?.summary.advancedCount || 0}</p>
-                        </div>
-                        <Award className="h-8 w-8 text-green-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">Need Support</p>
-                          <p className="text-3xl font-bold text-red-600">{classData?.summary.strugglingCount || 0}</p>
-                        </div>
-                        <AlertTriangle className="h-8 w-8 text-red-500" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Score Distribution</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ScoreDistributionChart data={classData?.charts.scoreDistribution || []} />
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Student Clusters</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {classData?.charts.clusterDistribution.map((cluster) => (
-                          <div key={cluster.name} className="flex items-center gap-4">
-                            <div className="w-32 font-medium">{cluster.name}</div>
-                            <div className="flex-1 h-8 bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full transition-all duration-500"
-                                style={{
-                                  width: `${(cluster.count / (classData.summary.totalStudents || 1)) * 100}%`,
-                                  backgroundColor: cluster.color
-                                }}
-                              />
-                            </div>
-                            <div className="w-12 text-right font-medium">{cluster.count}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </>
-            )}
           </TabsContent>
 
           {/* Students Tab */}
@@ -706,7 +584,7 @@ function CoursesAndClassesTab() {
   }
 
   return (
-    <TabsContent value="courses-classes" className="space-y-6">
+    <TabsContent value="overview" className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Side - Course List */}
         <Card>
