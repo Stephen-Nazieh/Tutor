@@ -19,7 +19,12 @@ import {
   HelpCircle,
   Globe,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  BookOpen,
+  GraduationCap,
+  Wrench,
+  LogOut,
+  User,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -28,10 +33,16 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
-  { href: '/tutor/groups', label: 'Students & Groups', icon: Users },
+  { href: '/tutor/courses', label: 'Course Builder', icon: Wrench },
+  { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/tutor/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/tutor/help', label: 'Help & Support', icon: HelpCircle },
+  { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
+  { href: '/tutor/learning', label: 'Learning', icon: GraduationCap, inactive: true },
+  { href: '/tutor/support', label: 'Support', icon: HelpCircle },
+]
+
+const bottomNavItems = [
+  { href: '/tutor/settings', label: 'Account', icon: User },
 ]
 
 
@@ -74,7 +85,10 @@ export default function TutorLayout({
   // Live class should be immersive full-screen experience
   const isLiveClass = pathname?.includes('/live-class/') && pathname?.split('/live-class/')[1]?.length > 0
 
-  if (isCourseBuilder || isLiveClass) {
+  // Check if we're on My Page - hide sidebar and show back button instead
+  const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
+
+  if (isCourseBuilder || isLiveClass || isMyPage) {
     return <>{children}</>
   }
 
@@ -98,7 +112,7 @@ export default function TutorLayout({
         desktopNavOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full overflow-hidden border-r-0"
       )}>
         <div className="p-4 border-b flex items-center justify-between min-w-[256px]">
-          <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
+          <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={() => setDesktopNavOpen(false)} title="Hide Navigation text-gray-400">
               <PanelLeftClose className="h-4 w-4" />
@@ -122,6 +136,7 @@ export default function TutorLayout({
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                  item.inactive && "pointer-events-none opacity-50",
                   isActive
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
@@ -134,22 +149,33 @@ export default function TutorLayout({
           })}
         </nav>
 
-        <div className="p-4 border-t space-y-2">
-          <Link href="/tutor/settings">
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3",
-                pathname === '/tutor/settings' && "bg-blue-50 text-blue-700"
-              )}
-            >
-              <Settings className="h-5 w-5" />
-              Settings
-            </Button>
-          </Link>
-          <div className="pt-2">
-            <UserNav />
-          </div>
+        <div className="p-4 border-t space-y-1">
+          {bottomNavItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm",
+                  isActive
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                )}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className="font-medium">{item.label}</span>
+              </Link>
+            )
+          })}
+          <button
+            onClick={() => {}}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full"
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <span className="font-medium">Logout</span>
+          </button>
         </div>
       </aside>
 
@@ -164,7 +190,7 @@ export default function TutorLayout({
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-            <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
+            <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/tutor/settings">

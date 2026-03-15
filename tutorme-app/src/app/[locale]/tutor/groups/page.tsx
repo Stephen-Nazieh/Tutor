@@ -226,10 +226,10 @@ export default function MyGroupsPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Users className="h-6 w-6 text-blue-500" />
-            Students & Groups
+            Groups
           </h1>
           <p className="text-muted-foreground">
-            View and manage all your students and teaching groups
+            View and manage all your teaching groups
           </p>
         </div>
         <Button onClick={handleCreateGroup} className="gap-2">

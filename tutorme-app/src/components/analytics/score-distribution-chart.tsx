@@ -7,6 +7,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ClientOnly } from '@/components/common/ClientOnly'
 
 interface ScoreDistributionChartProps {
   data: {
@@ -33,42 +34,44 @@ export function ScoreDistributionChart({
         )}
       </CardHeader>
       <CardContent>
-        <div className="h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis 
-                dataKey="range" 
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-              />
-              <YAxis 
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                allowDecimals={false}
-              />
-              <Tooltip 
-                formatter={(value) => [`${value} 人`, '人数']}
-                contentStyle={{ 
-                  borderRadius: '8px', 
-                  border: 'none', 
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
-                }}
-              />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                {data.map((entry, index) => {
-                  const colors = [
-                    '#ef4444', // red for 0-59
-                    '#f97316', // orange for 60-69
-                    '#eab308', // yellow for 70-79
-                    '#22c55e', // green for 80-89
-                    '#10b981', // emerald for 90-100
-                  ]
-                  return <Cell key={`cell-${index}`} fill={colors[index] || '#3b82f6'} />
-                })}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="h-[250px] min-h-[250px]">
+          <ClientOnly fallback={<div className="h-full w-full" />}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis 
+                  dataKey="range" 
+                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip 
+                  formatter={(value) => [`${value} 人`, '人数']}
+                  contentStyle={{ 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                  }}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {data.map((entry, index) => {
+                    const colors = [
+                      '#ef4444', // red for 0-59
+                      '#f97316', // orange for 60-69
+                      '#eab308', // yellow for 70-79
+                      '#22c55e', // green for 80-89
+                      '#10b981', // emerald for 90-100
+                    ]
+                    return <Cell key={`cell-${index}`} fill={colors[index] || '#3b82f6'} />
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ClientOnly>
         </div>
         <div className="flex justify-center gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">

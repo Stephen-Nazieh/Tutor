@@ -38,6 +38,7 @@ import {
     Pie,
     Legend,
 } from 'recharts'
+import { ClientOnly } from '@/components/common/ClientOnly'
 
 // ---- Types ----
 
@@ -306,20 +307,22 @@ export default function TaskAnalyticsPage() {
                                     <CardDescription>How students scored across ranges</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={scoreDistribution}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                                <XAxis dataKey="range" fontSize={12} />
-                                                <YAxis allowDecimals={false} fontSize={12} />
-                                                <Tooltip />
-                                                <Bar dataKey="count" name="Students" radius={[4, 4, 0, 0]}>
-                                                    {scoreDistribution.map((_entry, index) => (
-                                                        <Cell key={index} fill={DIST_COLORS[index]} />
-                                                    ))}
-                                                </Bar>
-                                            </BarChart>
-                                        </ResponsiveContainer>
+                                    <div className="h-64 min-h-[16rem]">
+                                        <ClientOnly fallback={<div className="h-full w-full" />}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={scoreDistribution}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                                    <XAxis dataKey="range" fontSize={12} />
+                                                    <YAxis allowDecimals={false} fontSize={12} />
+                                                    <Tooltip />
+                                                    <Bar dataKey="count" name="Students" radius={[4, 4, 0, 0]}>
+                                                        {scoreDistribution.map((_entry, index) => (
+                                                            <Cell key={index} fill={DIST_COLORS[index]} />
+                                                        ))}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </ClientOnly>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -331,27 +334,29 @@ export default function TaskAnalyticsPage() {
                                     <CardDescription>Correct vs incorrect across all questions</CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={pieData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={90}
-                                                    paddingAngle={4}
-                                                    dataKey="value"
-                                                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                                                >
-                                                    {pieData.map((entry, index) => (
-                                                        <Cell key={index} fill={entry.color} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip />
-                                                <Legend />
-                                            </PieChart>
-                                        </ResponsiveContainer>
+                                    <div className="h-64 min-h-[16rem]">
+                                        <ClientOnly fallback={<div className="h-full w-full" />}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={pieData}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={60}
+                                                        outerRadius={90}
+                                                        paddingAngle={4}
+                                                        dataKey="value"
+                                                        label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                                                    >
+                                                        {pieData.map((entry, index) => (
+                                                            <Cell key={index} fill={entry.color} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </ClientOnly>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -376,29 +381,31 @@ export default function TaskAnalyticsPage() {
                                         <CardDescription>Percentage of students who answered each question correctly</CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="h-72">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart
-                                                    data={questionStats.map((q, i) => ({
-                                                        name: `Q${i + 1}`,
-                                                        correctRate: q.correctRate,
-                                                        fill: q.needsReview ? '#ef4444' : q.correctRate >= 80 ? '#22c55e' : '#eab308',
-                                                    }))}
-                                                >
-                                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                                    <XAxis dataKey="name" fontSize={12} />
-                                                    <YAxis domain={[0, 100]} fontSize={12} unit="%" />
-                                                    <Tooltip formatter={(v) => `${v ?? 0}%`} />
-                                                    <Bar dataKey="correctRate" name="Correct %" radius={[4, 4, 0, 0]}>
-                                                        {questionStats.map((q, i) => (
-                                                            <Cell
-                                                                key={i}
-                                                                fill={q.needsReview ? '#ef4444' : q.correctRate >= 80 ? '#22c55e' : '#eab308'}
-                                                            />
-                                                        ))}
-                                                    </Bar>
-                                                </BarChart>
-                                            </ResponsiveContainer>
+                                        <div className="h-72 min-h-[18rem]">
+                                            <ClientOnly fallback={<div className="h-full w-full" />}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <BarChart
+                                                        data={questionStats.map((q, i) => ({
+                                                            name: `Q${i + 1}`,
+                                                            correctRate: q.correctRate,
+                                                            fill: q.needsReview ? '#ef4444' : q.correctRate >= 80 ? '#22c55e' : '#eab308',
+                                                        }))}
+                                                    >
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                                        <XAxis dataKey="name" fontSize={12} />
+                                                        <YAxis domain={[0, 100]} fontSize={12} unit="%" />
+                                                        <Tooltip formatter={(v) => `${v ?? 0}%`} />
+                                                        <Bar dataKey="correctRate" name="Correct %" radius={[4, 4, 0, 0]}>
+                                                            {questionStats.map((q, i) => (
+                                                                <Cell
+                                                                    key={i}
+                                                                    fill={q.needsReview ? '#ef4444' : q.correctRate >= 80 ? '#22c55e' : '#eab308'}
+                                                                />
+                                                            ))}
+                                                        </Bar>
+                                                    </BarChart>
+                                                </ResponsiveContainer>
+                                            </ClientOnly>
                                         </div>
                                     </CardContent>
                                 </Card>

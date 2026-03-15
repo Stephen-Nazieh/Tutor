@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, BookOpen, Award, Calendar } from 'lucide-react'
+import { ClientOnly } from '@/components/common/ClientOnly'
 
 const progressData = [
   { month: 'Sep', math: 65, science: 70, english: 75 },
@@ -118,18 +119,20 @@ export default function ParentProgressPage() {
               <CardTitle>Progress Over Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={progressData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="math" stroke="#3b82f6" name="Mathematics" />
-                    <Line type="monotone" dataKey="science" stroke="#10b981" name="Science" />
-                    <Line type="monotone" dataKey="english" stroke="#f59e0b" name="English" />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div className="h-[300px] min-h-[300px]">
+                <ClientOnly fallback={<div className="h-full w-full" />}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={progressData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="math" stroke="#3b82f6" name="Mathematics" />
+                      <Line type="monotone" dataKey="science" stroke="#10b981" name="Science" />
+                      <Line type="monotone" dataKey="english" stroke="#f59e0b" name="English" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ClientOnly>
               </div>
             </CardContent>
           </Card>

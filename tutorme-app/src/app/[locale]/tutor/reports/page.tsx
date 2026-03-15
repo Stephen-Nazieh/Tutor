@@ -365,7 +365,7 @@ export default function TutorReports() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Reports & Analytics</h1>
+              <h1 className="text-2xl font-bold">Analytics</h1>
               <p className="text-gray-500">Track student performance and class progress</p>
             </div>
           </div>

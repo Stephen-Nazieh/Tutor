@@ -1,5 +1,9 @@
 import { withSentryConfig } from '@sentry/nextjs'
 import createNextIntlPlugin from 'next-intl/plugin'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
@@ -15,6 +19,9 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
+  },
+  turbopack: {
+    root: __dirname,
   },
   serverExternalPackages: ['pg', 'pg-native'],
   async headers() {

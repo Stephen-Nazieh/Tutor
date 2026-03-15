@@ -7,6 +7,7 @@
 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ClientOnly } from '@/components/common/ClientOnly'
 
 interface PerformanceTrendChartProps {
   data: {
@@ -38,60 +39,62 @@ export function PerformanceTrendChart({
         )}
       </CardHeader>
       <CardContent>
-        <div className="h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-              />
-              <YAxis 
-                domain={[0, 100]}
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickFormatter={(value) => `${value}%`}
-              />
-              <Tooltip 
-                formatter={(value, name) => {
-                  const label = name === 'score' ? '成绩' : '班级平均'
-                  return [`${Number(value).toFixed(1)}%`, label]
-                }}
-                contentStyle={{ 
-                  borderRadius: '8px', 
-                  border: 'none', 
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
-                }}
-              />
-              <ReferenceLine 
-                y={average} 
-                stroke="#888" 
-                strokeDasharray="3 3" 
-                label={{ value: `平均: ${average.toFixed(1)}%`, position: 'right' }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="score" 
-                stroke="#3b82f6" 
-                strokeWidth={2}
-                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-                name="score"
-              />
-              {showClassAverage && (
+        <div className="h-[250px] min-h-[250px]">
+          <ClientOnly fallback={<div className="h-full w-full" />}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                />
+                <YAxis 
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    const label = name === 'score' ? '成绩' : '班级平均'
+                    return [`${Number(value).toFixed(1)}%`, label]
+                  }}
+                  contentStyle={{ 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                  }}
+                />
+                <ReferenceLine 
+                  y={average} 
+                  stroke="#888" 
+                  strokeDasharray="3 3" 
+                  label={{ value: `平均: ${average.toFixed(1)}%`, position: 'right' }}
+                />
                 <Line 
                   type="monotone" 
-                  dataKey="classAverage" 
-                  stroke="#22c55e" 
+                  dataKey="score" 
+                  stroke="#3b82f6" 
                   strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  name="classAverage"
+                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+                  name="score"
                 />
-              )}
-            </LineChart>
-          </ResponsiveContainer>
+                {showClassAverage && (
+                  <Line 
+                    type="monotone" 
+                    dataKey="classAverage" 
+                    stroke="#22c55e" 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={false}
+                    name="classAverage"
+                  />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
+          </ClientOnly>
         </div>
         <div className="flex justify-center gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">

@@ -7,6 +7,7 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ClientOnly } from '@/components/common/ClientOnly'
 
 interface TopicMasteryChartProps {
   data: {
@@ -47,55 +48,57 @@ export function TopicMasteryChart({
         </p>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
-              data={data} 
-              layout="vertical"
-              margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-              <XAxis 
-                type="number" 
-                domain={[0, 100]}
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickFormatter={(value) => `${value}%`}
-              />
-              <YAxis 
-                type="category" 
-                dataKey="topic"
-                tick={{ fontSize: 11 }}
-                width={75}
-                axisLine={false}
-              />
-              <Tooltip 
-                formatter={(value, name, props) => {
-                  const mastery = Number(value)
-                  const label = getMasteryLabel(mastery)
-                  return [`${mastery.toFixed(1)}% - ${label}`, '掌握度']
-                }}
-                contentStyle={{ 
-                  borderRadius: '8px', 
-                  border: 'none', 
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
-                }}
-              />
-              {showTarget && (
-                <ReferenceLine 
-                  x={80} 
-                  stroke="#22c55e" 
-                  strokeDasharray="3 3"
-                  label={{ value: '掌握目标', position: 'top' }}
+        <div className="h-[300px] min-h-[300px]">
+          <ClientOnly fallback={<div className="h-full w-full" />}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={data} 
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                <XAxis 
+                  type="number" 
+                  domain={[0, 100]}
+                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                  tickFormatter={(value) => `${value}%`}
                 />
-              )}
-              <Bar dataKey="mastery" radius={[0, 4, 4, 0]}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getMasteryColor(entry.mastery)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                <YAxis 
+                  type="category" 
+                  dataKey="topic"
+                  tick={{ fontSize: 11 }}
+                  width={75}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  formatter={(value, name, props) => {
+                    const mastery = Number(value)
+                    const label = getMasteryLabel(mastery)
+                    return [`${mastery.toFixed(1)}% - ${label}`, '掌握度']
+                  }}
+                  contentStyle={{ 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                  }}
+                />
+                {showTarget && (
+                  <ReferenceLine 
+                    x={80} 
+                    stroke="#22c55e" 
+                    strokeDasharray="3 3"
+                    label={{ value: '掌握目标', position: 'top' }}
+                  />
+                )}
+                <Bar dataKey="mastery" radius={[0, 4, 4, 0]}>
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={getMasteryColor(entry.mastery)} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ClientOnly>
         </div>
         <div className="flex justify-center gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">
