@@ -1249,7 +1249,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
                   <h4 className="font-medium">{day}</h4>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {dayBlocks.filter((b) => b.isAvailable).length} selected
+                  {dayBlocks.filter((b: AvailabilityBlock) => b.isAvailable).length} selected
                 </span>
               </button>
               {isExpanded && (
