@@ -1399,7 +1399,7 @@ export default function LandingPage() {
               <h2 className={`text-3xl font-bold drop-shadow-lg ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>{t('solocornTutors')}</h2>
               {/* Description removed as requested */}
             </div>
-            <button onClick={() => setShowCategories(true)} className={`text-sm font-bold flex items-center gap-1 hover:underline ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('viewAllCategories')} <ChevronRight className="w-4 h-4" /></button>
+            <Link href="/categories" className={`text-sm font-bold flex items-center gap-1 hover:underline ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}>{t('viewAllCategories')} <ChevronRight className="w-4 h-4" /></Link>
           </div>
           <TutorStrip />
         </section>

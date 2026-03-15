@@ -21,29 +21,135 @@ import {
   Check,
   X,
   ChevronRight,
-  Sparkles,
-  School
+  School,
+  Award
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-  REGIONS,
-  GLOBAL_EXAM_CATEGORIES,
-  OTHER_COUNTRY,
-  type ExamCategory,
-  type SubjectCourse,
-  getCategoriesForCountry,
-  getCountryByCode,
-  type Country
-} from '@/lib/tutoring/categories-new'
 
-// Reorganize global categories into tabs as per Categories.docx
-const GLOBAL_EXAMS_ONLY: ExamCategory[] = [
+// Region and Country data from Categories.docx
+interface Country {
+  code: string
+  name: string
+}
+
+interface Region {
+  id: string
+  name: string
+  countries: Country[]
+}
+
+const REGIONS: Region[] = [
   {
+    id: 'asia',
+    name: 'Asia',
+    countries: [
+      { code: 'HK', name: 'Hong Kong' },
+      { code: 'KR', name: 'Korea' },
+      { code: 'SG', name: 'Singapore' },
+      { code: 'JP', name: 'Japan' },
+      { code: 'TH', name: 'Thailand' },
+      { code: 'IN', name: 'India' },
+      { code: 'VN', name: 'Vietnam' },
+      { code: 'TW', name: 'Taiwan' },
+      { code: 'MY', name: 'Malaysia' },
+      { code: 'ID', name: 'Indonesia' },
+      { code: 'PH', name: 'Philippines' },
+      { code: 'IL', name: 'Israel' },
+    ]
+  },
+  {
+    id: 'middle-east',
+    name: 'Middle East',
+    countries: [
+      { code: 'SA', name: 'Saudi Arabia' },
+      { code: 'QA', name: 'Qatar' },
+      { code: 'KW', name: 'Kuwait' },
+      { code: 'OM', name: 'Oman' },
+    ]
+  },
+  {
+    id: 'europe',
+    name: 'Europe',
+    countries: [
+      { code: 'GB', name: 'United Kingdom' },
+      { code: 'DE', name: 'Germany' },
+      { code: 'FR', name: 'France' },
+      { code: 'NL', name: 'Netherlands' },
+      { code: 'BE', name: 'Belgium' },
+      { code: 'CH', name: 'Switzerland' },
+      { code: 'IT', name: 'Italy' },
+      { code: 'ES', name: 'Spain' },
+      { code: 'IE', name: 'Ireland' },
+      { code: 'PT', name: 'Portugal' },
+      { code: 'AT', name: 'Austria' },
+      { code: 'PL', name: 'Poland' },
+      { code: 'CZ', name: 'Czech Republic' },
+      { code: 'HU', name: 'Hungary' },
+      { code: 'RO', name: 'Romania' },
+      { code: 'GR', name: 'Greece' },
+      { code: 'TR', name: 'Turkey' },
+    ]
+  },
+  {
+    id: 'oceania',
+    name: 'Oceania',
+    countries: [
+      { code: 'AU', name: 'Australia' },
+      { code: 'NZ', name: 'New Zealand' },
+    ]
+  },
+  {
+    id: 'north-america',
+    name: 'North America',
+    countries: [
+      { code: 'US', name: 'United States' },
+      { code: 'CA', name: 'Canada' },
+      { code: 'MX', name: 'Mexico' },
+      { code: 'CR', name: 'Costa Rica' },
+      { code: 'PA', name: 'Panama' },
+      { code: 'DO', name: 'Dominican Republic' },
+    ]
+  },
+  {
+    id: 'south-america',
+    name: 'South America',
+    countries: [
+      { code: 'BR', name: 'Brazil' },
+      { code: 'CL', name: 'Chile' },
+      { code: 'PE', name: 'Peru' },
+      { code: 'CO', name: 'Colombia' },
+      { code: 'AR', name: 'Argentina' },
+      { code: 'UY', name: 'Uruguay' },
+      { code: 'EC', name: 'Ecuador' },
+    ]
+  },
+  {
+    id: 'africa',
+    name: 'Africa',
+    countries: [
+      { code: 'NG', name: 'Nigeria' },
+      { code: 'KE', name: 'Kenya' },
+      { code: 'GH', name: 'Ghana' },
+      { code: 'EG', name: 'Egypt' },
+      { code: 'MA', name: 'Morocco' },
+      { code: 'TN', name: 'Tunisia' },
+      { code: 'BW', name: 'Botswana' },
+      { code: 'NA', name: 'Namibia' },
+      { code: 'ZA', name: 'South Africa' },
+    ]
+  }
+]
+
+const NOT_LISTED_COUNTRY: Country = { code: 'OTHER', name: 'Not Listed' }
+
+// Global Exams Categories - From Categories.docx first table
+const GLOBAL_EXAMS_CATEGORIES = {
+  'admission-exams': {
     id: 'admission-exams',
     label: 'Admission Exams',
     exams: ['SAT', 'ACT']
   },
-  {
+  'english-proficiency': {
     id: 'english-proficiency',
     label: 'English Proficiency',
     exams: [
@@ -53,15 +159,16 @@ const GLOBAL_EXAMS_ONLY: ExamCategory[] = [
       'TOEIC', 'MET', 'EIKEN'
     ]
   },
-  {
+  'postgraduate-exams': {
     id: 'postgraduate-exams',
     label: 'Postgraduate Exams',
     exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT']
   }
-]
+}
 
-const AP_CATEGORIES: ExamCategory[] = [
-  {
+// AP Categories
+const AP_CATEGORIES = {
+  'ap-stem': {
     id: 'ap-stem',
     label: 'AP - STEM',
     exams: [
@@ -71,7 +178,7 @@ const AP_CATEGORIES: ExamCategory[] = [
       'AP Environmental Science', 'AP Computer Science A', 'AP Computer Science Principles'
     ]
   },
-  {
+  'ap-humanities': {
     id: 'ap-humanities',
     label: 'AP - Humanities',
     exams: [
@@ -82,7 +189,7 @@ const AP_CATEGORIES: ExamCategory[] = [
       'AP Comparative Government and Politics', 'AP United States Government and Politics'
     ]
   },
-  {
+  'ap-languages': {
     id: 'ap-languages',
     label: 'AP - Languages',
     exams: [
@@ -92,7 +199,7 @@ const AP_CATEGORIES: ExamCategory[] = [
       'AP Spanish Language and Culture', 'AP Spanish Literature and Culture'
     ]
   },
-  {
+  'ap-art': {
     id: 'ap-art',
     label: 'AP - Art',
     exams: [
@@ -100,10 +207,11 @@ const AP_CATEGORIES: ExamCategory[] = [
       'AP Studio Art: 2-D Art and Design', 'AP Studio Art: 3-D Art and Design', 'AP Drawing'
     ]
   }
-]
+}
 
-const A_LEVEL_CATEGORIES: ExamCategory[] = [
-  {
+// A Level Categories
+const A_LEVEL_CATEGORIES = {
+  'as-courses': {
     id: 'as-courses',
     label: 'AS Level Courses',
     exams: [
@@ -116,7 +224,7 @@ const A_LEVEL_CATEGORIES: ExamCategory[] = [
       'AS Level Art and Design', 'AS Level Media Studies'
     ]
   },
-  {
+  'a-level-courses': {
     id: 'a-level-courses',
     label: 'A Level Courses',
     exams: [
@@ -129,10 +237,11 @@ const A_LEVEL_CATEGORIES: ExamCategory[] = [
       'A Level Art and Design', 'A Level Media Studies'
     ]
   }
-]
+}
 
-const IB_CATEGORIES: ExamCategory[] = [
-  {
+// IB Categories
+const IB_CATEGORIES = {
+  'ib-courses': {
     id: 'ib-courses',
     label: 'IB Courses',
     exams: [
@@ -143,7 +252,42 @@ const IB_CATEGORIES: ExamCategory[] = [
       'IB Language B Courses', 'IB Visual Arts', 'IB Theory of Knowledge (TOK)', 'IB Extended Essay (EE)'
     ]
   }
-]
+}
+
+// Subject Categories (S tab)
+const SUBJECT_CATEGORIES = {
+  'mathematics': {
+    id: 'mathematics',
+    label: 'Mathematics',
+    exams: ['Algebra', 'Geometry', 'Calculus', 'Statistics', 'Trigonometry', 'Linear Algebra']
+  },
+  'sciences': {
+    id: 'sciences',
+    label: 'Sciences',
+    exams: ['Physics', 'Chemistry', 'Biology', 'Earth Science', 'Environmental Science']
+  },
+  'languages': {
+    id: 'languages',
+    label: 'Languages',
+    exams: ['English', 'Chinese', 'Spanish', 'French', 'German', 'Japanese', 'Korean']
+  },
+  'humanities': {
+    id: 'humanities',
+    label: 'Humanities',
+    exams: ['History', 'Geography', 'Economics', 'Psychology', 'Sociology', 'Philosophy']
+  },
+  'arts': {
+    id: 'arts',
+    label: 'Arts',
+    exams: ['Visual Arts', 'Music', 'Drama', 'Film Studies']
+  }
+}
+
+interface ExamCategory {
+  id: string
+  label: string
+  exams: string[]
+}
 
 export default function CategoriesPage() {
   const [selectedRegion, setSelectedRegion] = useState<string>('')
@@ -152,42 +296,19 @@ export default function CategoriesPage() {
   const [activeTab, setActiveTab] = useState('global')
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Get selected country object
-  const selectedCountry = useMemo(() => {
-    if (!selectedCountryCode) return null
-    if (selectedCountryCode === 'OTHER') return OTHER_COUNTRY
-    return getCountryByCode(selectedCountryCode)
-  }, [selectedCountryCode])
-
   // Get countries for selected region
   const availableCountries = useMemo(() => {
     if (!selectedRegion) return []
     const region = REGIONS.find(r => r.id === selectedRegion)
-    if (!region) return []
-    return [...region.countries, OTHER_COUNTRY]
+    return region ? [...region.countries, NOT_LISTED_COUNTRY] : [NOT_LISTED_COUNTRY]
   }, [selectedRegion])
 
-  // Get categories for selected country
-  const { national: nationalCategories } = useMemo(() => {
-    return getCategoriesForCountry(selectedCountryCode)
-  }, [selectedCountryCode])
-
-  // Get subject courses for selected country
-  const subjectCourses = useMemo(() => {
-    return selectedCountry?.subjectCourses || []
-  }, [selectedCountry])
-
-  // Prefix exams with country name for "country-specific" feel
-  const getPrefixedExamName = (exam: string): string => {
-    if (!selectedCountry || selectedCountry.code === 'OTHER') return exam
-    // Don't prefix if already contains country/region name
-    if (exam.includes(selectedCountry.name)) return exam
-    // For English proficiency exams, add country prefix
-    if (['IELTS', 'TOEFL', 'SAT', 'ACT', 'GRE', 'GMAT'].some(e => exam.includes(e))) {
-      return `${selectedCountry.name} - ${exam}`
-    }
-    return exam
-  }
+  // Get selected country name
+  const selectedCountry = useMemo(() => {
+    if (!selectedCountryCode) return null
+    if (selectedCountryCode === 'OTHER') return NOT_LISTED_COUNTRY
+    return availableCountries.find(c => c.code === selectedCountryCode)
+  }, [selectedCountryCode, availableCountries])
 
   // Toggle category selection
   const toggleCategory = (category: string) => {
@@ -216,10 +337,9 @@ export default function CategoriesPage() {
     setSelectedCategories(prev => prev.filter(c => !exams.includes(c)))
   }
 
-  // Filter categories based on search
-  const filterBySearch = (exams: string[]) => {
-    if (!searchQuery) return exams
-    return exams.filter(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+  // Remove single category
+  const removeCategory = (category: string) => {
+    setSelectedCategories(prev => prev.filter(c => c !== category))
   }
 
   // Clear all selections
@@ -227,9 +347,77 @@ export default function CategoriesPage() {
     setSelectedCategories([])
   }
 
-  // Remove single category
-  const removeCategory = (category: string) => {
-    setSelectedCategories(prev => prev.filter(c => c !== category))
+  // Filter exams based on search
+  const filterExams = (exams: string[]) => {
+    if (!searchQuery) return exams
+    return exams.filter(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+  }
+
+  // Render category section
+  const renderCategorySection = (category: ExamCategory) => {
+    const filteredExams = filterExams(category.exams)
+    if (filteredExams.length === 0) return null
+
+    const selectedCount = filteredExams.filter(exam => selectedCategories.includes(exam)).length
+
+    return (
+      <div key={category.id} className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+            <h4 className="font-semibold text-gray-900">{category.label}</h4>
+            {selectedCount > 0 && (
+              <Badge variant="secondary" className="text-xs bg-[#4FD1C5]/20 text-[#1F2933]">
+                {selectedCount}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => selectAllInCategory(category.exams)}
+              className="h-7 text-xs text-[#1D4ED8] hover:text-[#1e40af]"
+            >
+              All
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => clearAllInCategory(category.exams)}
+              className="h-7 text-xs text-gray-500 hover:text-gray-700"
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {filteredExams.map(exam => (
+            <label
+              key={exam}
+              className={cn(
+                "flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors",
+                selectedCategories.includes(exam) 
+                  ? "bg-[#4FD1C5]/10 border border-[#4FD1C5]/30" 
+                  : "hover:bg-gray-50 border border-transparent"
+              )}
+            >
+              <Checkbox
+                checked={selectedCategories.includes(exam)}
+                onCheckedChange={() => toggleCategory(exam)}
+              />
+              <span className={cn(
+                "text-sm",
+                selectedCategories.includes(exam) ? "text-[#1F2933] font-medium" : "text-gray-700"
+              )}>
+                {exam}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -266,7 +454,7 @@ export default function CategoriesPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column - Category Selector */}
+          {/* Left Column - Region, Country & Categories */}
           <div className="lg:col-span-3 space-y-6">
             {/* Region & Country Dropdowns */}
             <Card>
@@ -334,14 +522,13 @@ export default function CategoriesPage() {
             <Card className="h-[600px] flex flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
                 <CardHeader className="pb-0">
-                  <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
+                  <TabsList className="grid grid-cols-5 w-full">
                     <TabsTrigger value="global" className="text-xs md:text-sm">
                       <Globe className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                      <span className="hidden sm:inline">Global</span>
-                      <span className="sm:hidden">Global</span>
+                      Global Exams
                     </TabsTrigger>
                     <TabsTrigger value="ap" className="text-xs md:text-sm">
-                      <School className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <Award className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
                       AP
                     </TabsTrigger>
                     <TabsTrigger value="alevel" className="text-xs md:text-sm">
@@ -353,16 +540,8 @@ export default function CategoriesPage() {
                       IB
                     </TabsTrigger>
                     <TabsTrigger value="subject" className="text-xs md:text-sm">
-                      <Sparkles className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                      Subject
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="national" 
-                      className="text-xs md:text-sm"
-                      disabled={!selectedCountryCode || selectedCountryCode === 'OTHER' || nationalCategories.length === 0}
-                    >
-                      <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                      National
+                      <School className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      S
                     </TabsTrigger>
                   </TabsList>
                 </CardHeader>
@@ -381,22 +560,13 @@ export default function CategoriesPage() {
 
                   {/* Tab Contents */}
                   <div className="h-[calc(100%-60px)]">
-                    {/* Global Exams Tab */}
+                    {/* Global Exams Tab - Shows Admission, English Proficiency, Postgraduate */}
                     <TabsContent value="global" className="h-full m-0">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {GLOBAL_EXAMS_ONLY.map(category => (
-                            <ExamCategorySection
-                              key={category.id}
-                              category={category}
-                              selectedCategories={selectedCategories}
-                              onToggle={toggleCategory}
-                              onSelectAll={() => selectAllInCategory(category.exams)}
-                              onClearAll={() => clearAllInCategory(category.exams)}
-                              searchQuery={searchQuery}
-                              getPrefixedExamName={getPrefixedExamName}
-                            />
-                          ))}
+                          {renderCategorySection(GLOBAL_EXAMS_CATEGORIES['admission-exams'])}
+                          {renderCategorySection(GLOBAL_EXAMS_CATEGORIES['english-proficiency'])}
+                          {renderCategorySection(GLOBAL_EXAMS_CATEGORIES['postgraduate-exams'])}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -405,18 +575,7 @@ export default function CategoriesPage() {
                     <TabsContent value="ap" className="h-full m-0">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {AP_CATEGORIES.map(category => (
-                            <ExamCategorySection
-                              key={category.id}
-                              category={category}
-                              selectedCategories={selectedCategories}
-                              onToggle={toggleCategory}
-                              onSelectAll={() => selectAllInCategory(category.exams)}
-                              onClearAll={() => clearAllInCategory(category.exams)}
-                              searchQuery={searchQuery}
-                              getPrefixedExamName={getPrefixedExamName}
-                            />
-                          ))}
+                          {Object.values(AP_CATEGORIES).map(renderCategorySection)}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -425,18 +584,7 @@ export default function CategoriesPage() {
                     <TabsContent value="alevel" className="h-full m-0">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {A_LEVEL_CATEGORIES.map(category => (
-                            <ExamCategorySection
-                              key={category.id}
-                              category={category}
-                              selectedCategories={selectedCategories}
-                              onToggle={toggleCategory}
-                              onSelectAll={() => selectAllInCategory(category.exams)}
-                              onClearAll={() => clearAllInCategory(category.exams)}
-                              searchQuery={searchQuery}
-                              getPrefixedExamName={getPrefixedExamName}
-                            />
-                          ))}
+                          {Object.values(A_LEVEL_CATEGORIES).map(renderCategorySection)}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -445,87 +593,16 @@ export default function CategoriesPage() {
                     <TabsContent value="ib" className="h-full m-0">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {IB_CATEGORIES.map(category => (
-                            <ExamCategorySection
-                              key={category.id}
-                              category={category}
-                              selectedCategories={selectedCategories}
-                              onToggle={toggleCategory}
-                              onSelectAll={() => selectAllInCategory(category.exams)}
-                              onClearAll={() => clearAllInCategory(category.exams)}
-                              searchQuery={searchQuery}
-                              getPrefixedExamName={getPrefixedExamName}
-                            />
-                          ))}
+                          {Object.values(IB_CATEGORIES).map(renderCategorySection)}
                         </div>
                       </ScrollArea>
                     </TabsContent>
 
-                    {/* Subject Tab */}
+                    {/* Subject (S) Tab */}
                     <TabsContent value="subject" className="h-full m-0">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {!selectedCountryCode ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <School className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                              <p>Please select a country to view subject courses.</p>
-                            </div>
-                          ) : subjectCourses.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <School className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                              <p>No subject courses available for {selectedCountry?.name || 'this country'}.</p>
-                            </div>
-                          ) : (
-                            subjectCourses.map((course, idx) => (
-                              <SubjectCourseSection
-                                key={idx}
-                                course={course}
-                                selectedCategories={selectedCategories}
-                                onToggle={toggleCategory}
-                                onSelectAll={() => selectAllInCategory(course.subjects)}
-                                onClearAll={() => clearAllInCategory(course.subjects)}
-                                searchQuery={searchQuery}
-                              />
-                            ))
-                          )}
-                        </div>
-                      </ScrollArea>
-                    </TabsContent>
-
-                    {/* National Tab */}
-                    <TabsContent value="national" className="h-full m-0">
-                      <ScrollArea className="h-full pr-4">
-                        <div className="space-y-6 pb-4">
-                          {!selectedCountryCode ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <MapPin className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                              <p>Please select a country to view national exams.</p>
-                            </div>
-                          ) : selectedCountryCode === 'OTHER' ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <MapPin className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                              <p>&quot;Not Listed&quot; countries do not have specific national exams.</p>
-                              <p className="text-sm mt-1">Please use Global Exams, AP, A Level, or IB tabs instead.</p>
-                            </div>
-                          ) : nationalCategories.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <MapPin className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                              <p>No national exams available for {selectedCountry?.name} yet.</p>
-                            </div>
-                          ) : (
-                            nationalCategories.map(category => (
-                              <ExamCategorySection
-                                key={category.id}
-                                category={category}
-                                selectedCategories={selectedCategories}
-                                onToggle={toggleCategory}
-                                onSelectAll={() => selectAllInCategory(category.exams)}
-                                onClearAll={() => clearAllInCategory(category.exams)}
-                                searchQuery={searchQuery}
-                                getPrefixedExamName={(e) => e}
-                              />
-                            ))
-                          )}
+                          {Object.values(SUBJECT_CATEGORIES).map(renderCategorySection)}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -605,180 +682,6 @@ export default function CategoriesPage() {
           </div>
         </div>
       </main>
-    </div>
-  )
-}
-
-// Exam Category Section Component
-interface ExamCategorySectionProps {
-  category: ExamCategory
-  selectedCategories: string[]
-  onToggle: (exam: string) => void
-  onSelectAll: () => void
-  onClearAll: () => void
-  searchQuery: string
-  getPrefixedExamName?: (exam: string) => string
-}
-
-function ExamCategorySection({
-  category,
-  selectedCategories,
-  onToggle,
-  onSelectAll,
-  onClearAll,
-  searchQuery,
-  getPrefixedExamName = (e) => e
-}: ExamCategorySectionProps) {
-  const filteredExams = searchQuery 
-    ? category.exams.filter(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
-    : category.exams
-
-  if (filteredExams.length === 0) return null
-
-  const selectedCount = filteredExams.filter(exam => selectedCategories.includes(exam)).length
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
-          <h4 className="font-semibold text-gray-900">{category.label}</h4>
-          {selectedCount > 0 && (
-            <Badge variant="secondary" className="text-xs bg-[#4FD1C5]/20 text-[#1F2933]">
-              {selectedCount}
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSelectAll}
-            className="h-7 text-xs text-[#1D4ED8] hover:text-[#1e40af]"
-          >
-            All
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClearAll}
-            className="h-7 text-xs text-gray-500 hover:text-gray-700"
-          >
-            Clear
-          </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {filteredExams.map(exam => (
-          <label
-            key={exam}
-            className={cn(
-              "flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors",
-              selectedCategories.includes(exam) 
-                ? "bg-[#4FD1C5]/10 border border-[#4FD1C5]/30" 
-                : "hover:bg-gray-50 border border-transparent"
-            )}
-          >
-            <Checkbox
-              checked={selectedCategories.includes(exam)}
-              onCheckedChange={() => onToggle(exam)}
-            />
-            <span className={cn(
-              "text-sm",
-              selectedCategories.includes(exam) ? "text-[#1F2933] font-medium" : "text-gray-700"
-            )}>
-              {getPrefixedExamName(exam)}
-            </span>
-          </label>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Subject Course Section Component
-interface SubjectCourseSectionProps {
-  course: SubjectCourse
-  selectedCategories: string[]
-  onToggle: (subject: string) => void
-  onSelectAll: () => void
-  onClearAll: () => void
-  searchQuery: string
-}
-
-function SubjectCourseSection({
-  course,
-  selectedCategories,
-  onToggle,
-  onSelectAll,
-  onClearAll,
-  searchQuery
-}: SubjectCourseSectionProps) {
-  const filteredSubjects = searchQuery 
-    ? course.subjects.filter(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
-    : course.subjects
-
-  if (filteredSubjects.length === 0) return null
-
-  const selectedCount = filteredSubjects.filter(s => selectedCategories.includes(s)).length
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <School className="h-4 w-4 text-[#F17623]" />
-          <h4 className="font-semibold text-gray-900">{course.gradeLevel}</h4>
-          {selectedCount > 0 && (
-            <Badge variant="secondary" className="text-xs bg-[#4FD1C5]/20 text-[#1F2933]">
-              {selectedCount}
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onSelectAll}
-            className="h-7 text-xs text-[#1D4ED8] hover:text-[#1e40af]"
-          >
-            All
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClearAll}
-            className="h-7 text-xs text-gray-500 hover:text-gray-700"
-          >
-            Clear
-          </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {filteredSubjects.map(subject => (
-          <label
-            key={subject}
-            className={cn(
-              "flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors",
-              selectedCategories.includes(subject) 
-                ? "bg-[#4FD1C5]/10 border border-[#4FD1C5]/30" 
-                : "hover:bg-gray-50 border border-transparent"
-            )}
-          >
-            <Checkbox
-              checked={selectedCategories.includes(subject)}
-              onCheckedChange={() => onToggle(subject)}
-            />
-            <span className={cn(
-              "text-sm",
-              selectedCategories.includes(subject) ? "text-[#1F2933] font-medium" : "text-gray-700"
-            )}>
-              {subject}
-            </span>
-          </label>
-        ))}
-      </div>
     </div>
   )
 }
