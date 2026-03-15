@@ -96,7 +96,10 @@ export default function TutorLayout({
   // Check if we're on My Page - hide sidebar and show back button instead
   const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
 
-  if (isCourseBuilder || isLiveClass || isMyPage) {
+  // Lesson Bank should use a focused layout without the sidebar
+  const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
+
+  if (isCourseBuilder || isLiveClass || isMyPage || isLessonBank) {
     return <>{children}</>
   }
 

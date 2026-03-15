@@ -16,6 +16,7 @@ import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dash
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { PublishStatusBadge } from '@/components/tutor/PublishButton'
+import { MyPageTabsSection } from '@/components/tutor/MyPageTabsSection'
 
 interface CourseData {
   id: string
@@ -190,10 +191,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
                   {loading ? 'Loading...' : (course?.name ?? 'Course Builder 2.0')}
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  <Link href="/tutor/my-page?tab=drafts" className="hover:text-blue-600 hover:underline">
-                    ← Back to Work in Progress
-                  </Link>
-                  {saving && <span className="ml-2 text-blue-600">• Saving...</span>}
+                  {saving && <span className="text-blue-600">Saving...</span>}
                 </p>
               </div>
             </div>
@@ -262,13 +260,28 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         ) : (
-          <CourseBuilder
-            ref={courseBuilderRef}
-            courseId={courseId}
-            courseName={course?.name}
-            initialModules={loadedModules ?? undefined}
-            onSave={handleSave}
-          />
+          <>
+            <CourseBuilder
+              ref={courseBuilderRef}
+              courseId={courseId}
+              courseName={course?.name}
+              initialModules={loadedModules ?? undefined}
+              onSave={handleSave}
+            />
+            <div className="mt-10">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">My Page</CardTitle>
+                  <CardDescription>
+                    Manage your published courses, classes, and work in progress directly from the builder.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <MyPageTabsSection />
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
 
       </div>

@@ -7629,7 +7629,7 @@ FEEDBACK: [your explanation]`
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <div className="rounded-lg border bg-white">
-                              <div className="max-h-[1300px] min-h-[1300px] overflow-y-auto p-3 space-y-3">
+                              <div className="max-h-[300px] min-h-[300px] overflow-y-auto p-3 space-y-3">
                                 {activeTaskPciMessages.length === 0 && (
                                   <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
                                 )}
@@ -7877,7 +7877,7 @@ FEEDBACK: [your explanation]`
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <div className="rounded-lg border bg-white">
-                              <div className="max-h-[1300px] min-h-[1300px] overflow-y-auto p-3 space-y-3">
+                              <div className="max-h-[300px] min-h-[300px] overflow-y-auto p-3 space-y-3">
                                 {assessmentPciMessages.length === 0 && (
                                   <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
                                 )}
@@ -7978,10 +7978,16 @@ FEEDBACK: [your explanation]`
                     </div>
                   </TabsContent>
                 </Tabs>
+              </CardContent>
+            </Card>
 
-                {/* Test PCI Section - Persistent below the tabs */}
-                <div className="mt-6 pt-6 border-t px-2">
-                  <CardTitle className="text-base font-semibold mb-3">Test PCI</CardTitle>
+            {/* Test PCI Section - Separate Card */}
+            <Card className="flex-shrink-0 border rounded-2xl overflow-hidden mt-6">
+              <CardContent className="pt-4">
+                <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  Test PCI
+                </CardTitle>
                   <div className="flex gap-4">
                     {/* Main content with tabs */}
                     <div className="flex-1">
@@ -8068,7 +8074,6 @@ FEEDBACK: [your explanation]`
                       </div>
                     </div>
                   </div>
-                </div>
               </CardContent>
             </Card>
 

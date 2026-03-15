@@ -1,9 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, BookOpen, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, BookOpen, Save } from 'lucide-react'
 import { CourseBuilder } from '../dashboard/components/CourseBuilder'
 import type { CourseBuilderRef, Module } from '../dashboard/components/CourseBuilder'
 
@@ -53,7 +54,13 @@ export default function LessonBankPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/tutor/dashboard">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
             <h1 className="text-xl font-semibold flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               Lesson Bank

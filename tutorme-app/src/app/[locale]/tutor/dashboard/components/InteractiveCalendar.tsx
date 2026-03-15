@@ -33,6 +33,7 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Calendar as CalendarIcon,
   Clock,
   Users,
@@ -1213,6 +1214,9 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
 
 function AvailabilityView({ availability, onToggle, onSave }: any) {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(days.map((day) => [day, true]))
+  )
 
   return (
     <div className="space-y-6">
@@ -1224,36 +1228,58 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
       </div>
 
       <div className="space-y-4">
-        {days.map((day, dayIndex) => (
-          <div key={day} className="border border-slate-200 rounded-lg p-4 border border-slate-200 bg-white/50">
-            <h4 className="font-medium mb-3">{day}</h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {availability
-                .filter((block: AvailabilityBlock) => block.dayOfWeek === dayIndex + 1)
-                .map((block: AvailabilityBlock) => (
-                  <div
-                    key={block.id}
-                    className={cn(
-                      "p-3 rounded-lg border cursor-pointer transition-all",
-                      block.isAvailable
-                        ? "bg-green-50 border-green-200"
-                        : "bg-gray-50 border-gray-200 opacity-50"
-                    )}
-                    onClick={() => onToggle(block.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{block.startTime} - {block.endTime}</span>
-                      {block.isAvailable ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <X className="w-5 h-5 text-gray-400" />
+        {days.map((day, dayIndex) => {
+          const isExpanded = expandedDays[day]
+          const dayBlocks = availability.filter((block: AvailabilityBlock) => block.dayOfWeek === dayIndex + 1)
+          return (
+            <div key={day} className="border border-slate-200 rounded-lg p-4 bg-white/50">
+              <button
+                type="button"
+                className="w-full flex items-center justify-between text-left"
+                onClick={() =>
+                  setExpandedDays((prev) => ({ ...prev, [day]: !prev[day] }))
+                }
+              >
+                <div className="flex items-center gap-2">
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                  )}
+                  <h4 className="font-medium">{day}</h4>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {dayBlocks.filter((b) => b.isAvailable).length} selected
+                </span>
+              </button>
+              {isExpanded && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                  {dayBlocks.map((block: AvailabilityBlock) => (
+                    <div
+                      key={block.id}
+                      className={cn(
+                        "p-3 rounded-lg border cursor-pointer transition-all",
+                        block.isAvailable
+                          ? "bg-green-50 border-green-200"
+                          : "bg-gray-50 border-gray-200 opacity-50"
                       )}
+                      onClick={() => onToggle(block.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{block.startTime} - {block.endTime}</span>
+                        {block.isAvailable ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <X className="w-5 h-5 text-gray-400" />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <div className="flex justify-end gap-3">
