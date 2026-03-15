@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils'
 const navItems = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
-  { href: '/tutor/courses', label: 'Course Builder', icon: Wrench },
+  { href: '/tutor/course-builder', label: 'Course Builder', icon: Wrench },
   { href: '/tutor/lessons', label: 'Lesson Bank', icon: BookOpen },
   { href: '/tutor/groups', label: 'Groups', icon: Users },
   { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },

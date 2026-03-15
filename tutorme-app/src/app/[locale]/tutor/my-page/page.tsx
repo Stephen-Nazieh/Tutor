@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
-import { Copy, ExternalLink, Edit, DollarSign, LayoutGrid, List, Search, Filter, BookOpen, Clock, ChevronRight, GraduationCap, ArrowLeft, Sparkles, MessageSquare } from 'lucide-react'
+import { Copy, ExternalLink, Edit, DollarSign, LayoutGrid, List, Search, Filter, BookOpen, Clock, ChevronRight, GraduationCap, ArrowLeft, Sparkles, MessageSquare, Pencil, Play } from 'lucide-react'
 import { AIChat } from '@/components/ai/AIChat'
 
 interface PublicCourse {
@@ -27,19 +27,14 @@ interface PublicCourse {
   assessments?: number
   avgScore?: number
   completionRate?: number
-}
-
-interface DraftCourse {
-  id: string
-  name: string
-  description?: string | null
-  subject: string
   isPublished: boolean
   updatedAt: string
-  type: 'course' | 'class'
-  _count: {
+  _count?: {
     lessons: number
+    enrollments?: number
   }
+  price?: number | null
+  estimatedHours?: number
 }
 
 interface ClassItem {
@@ -61,58 +56,41 @@ export default function TutorMyPage() {
   const [saving, setSaving] = useState(false)
   const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
-  const [publishedCourses, setPublishedCourses] = useState<PublicCourse[]>([])
-  const [buildingItems, setBuildingItems] = useState<DraftCourse[]>([])
+  const [allCourses, setAllCourses] = useState<PublicCourse[]>([])
   const [classes, setClasses] = useState<ClassItem[]>([])
   const [completedItems, setCompletedItems] = useState<PublicCourse[]>([])
   const [activeTab, setActiveTab] = useState(initialTab)
-  const [draftViewMode, setDraftViewMode] = useState<'grid' | 'list'>('list')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
-  const [chatQuery, setChatQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     let active = true
     const load = async () => {
       setLoading(true)
       try {
-        // Load public profile and published courses
+        // Load public profile
         const res = await fetch('/api/tutor/public-profile', { credentials: 'include' })
         if (!res.ok) throw new Error('Failed to load public profile')
         const data = await res.json()
         if (!active) return
         setUsername(data?.profile?.username || '')
         setBio(data?.profile?.bio || '')
-        
-        // Published courses (active)
-        const published = (data?.courses || []).map((c: any) => ({
-          ...c,
-          publishedAt: c.updatedAt,
-          sessions: Math.floor(Math.random() * 20) + 5,
-          tasks: Math.floor(Math.random() * 50) + 10,
-          assessments: Math.floor(Math.random() * 10) + 2,
-          avgScore: Math.floor(Math.random() * 30) + 70,
-          completionRate: Math.floor(Math.random() * 40) + 60,
-        }))
-        setPublishedCourses(published)
 
-        // Load all courses for building tab
+        // Load all courses (published and drafts) - same as /tutor/courses
         const coursesRes = await fetch('/api/tutor/courses', { credentials: 'include' })
         if (coursesRes.ok) {
           const coursesData = await coursesRes.json()
-          const drafts = (coursesData.courses || [])
-            .filter((c: any) => !c.isPublished)
-            .map((c: any) => ({
-              id: c.id,
-              name: c.name,
-              description: c.description,
-              subject: c.subject,
-              isPublished: c.isPublished,
-              updatedAt: c.updatedAt,
-              type: 'course' as const,
-              _count: c._count || { lessons: 0 }
-            }))
-            .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-          setBuildingItems(drafts)
+          const courses = (coursesData.courses || []).map((c: any) => ({
+            ...c,
+            publishedAt: c.updatedAt,
+            sessions: Math.floor(Math.random() * 20) + 5,
+            tasks: Math.floor(Math.random() * 50) + 10,
+            assessments: Math.floor(Math.random() * 10) + 2,
+            avgScore: Math.floor(Math.random() * 30) + 70,
+            completionRate: Math.floor(Math.random() * 40) + 60,
+          }))
+          setAllCourses(courses)
         }
 
         // Load classes
@@ -130,7 +108,7 @@ export default function TutorMyPage() {
         }
 
         // Completed courses (mock for now)
-        setCompletedItems(published.slice().reverse())
+        setCompletedItems([])
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
       } finally {
@@ -152,6 +130,15 @@ export default function TutorMyPage() {
     () => (typeof window !== 'undefined' && publicPath ? `${window.location.origin}${publicPath}` : publicPath),
     [publicPath]
   )
+
+  // Filter courses based on search
+  const filteredCourses = allCourses.filter(course =>
+    course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    course.subject.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const publishedCourses = filteredCourses.filter(c => c.isPublished)
+  const draftCourses = filteredCourses.filter(c => !c.isPublished)
 
   const save = async () => {
     setSaving(true)
@@ -193,8 +180,8 @@ export default function TutorMyPage() {
 
   const selectedCourse = useMemo(() => {
     if (!selectedCourseId) return null
-    return publishedCourses.find(c => c.id === selectedCourseId) || null
-  }, [selectedCourseId, publishedCourses])
+    return allCourses.find(c => c.id === selectedCourseId) || null
+  }, [selectedCourseId, allCourses])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -294,14 +281,14 @@ export default function TutorMyPage() {
           </CardContent>
         </Card>
 
-        {/* Tabs for Published Courses and Work in Progress */}
+        {/* Tabs for Courses, Classes, and Completed */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
             <TabsTrigger value="courses">
               Courses
-              {publishedCourses.length > 0 && (
+              {allCourses.length > 0 && (
                 <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {publishedCourses.length}
+                  {allCourses.length}
                 </span>
               )}
             </TabsTrigger>
@@ -310,14 +297,6 @@ export default function TutorMyPage() {
               {classes.length > 0 && (
                 <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
                   {classes.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="building">
-              Building
-              {buildingItems.length > 0 && (
-                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {buildingItems.length}
                 </span>
               )}
             </TabsTrigger>
@@ -332,40 +311,225 @@ export default function TutorMyPage() {
           </TabsList>
 
           <TabsContent value="courses" className="space-y-4">
+            {/* Search and Filter Bar */}
             <Card>
-              <CardHeader>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle>Courses ({publishedCourses.length})</CardTitle>
-                    <CardDescription>Published and active courses visible on your public page.</CardDescription>
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      placeholder="Search courses..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  <Button onClick={() => router.push('/tutor/courses/new')} className="w-fit">
-                    Create Course
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {publishedCourses.map((course) => (
-                  <div 
-                    key={course.id} 
-                    className={`rounded border p-3 cursor-pointer transition-colors ${selectedCourseId === course.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}`}
-                    onClick={() => setSelectedCourseId(course.id === selectedCourseId ? null : course.id)}
-                  >
-                    <div className="font-medium">{course.name}</div>
-                    <div className="text-sm text-muted-foreground">{course.description || 'No description'}</div>
-                    <div className="mt-2 flex gap-2">
-                      <Badge variant="secondary">{course.subject}</Badge>
-                      {course.gradeLevel ? <Badge variant="outline">{course.gradeLevel}</Badge> : null}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center border rounded-md p-1 bg-muted/50">
+                      <Button
+                        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-9 px-2"
+                        onClick={() => setViewMode('grid')}
+                      >
+                        <LayoutGrid className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-9 px-2"
+                        onClick={() => setViewMode('list')}
+                      >
+                        <List className="h-4 w-4" />
+                      </Button>
                     </div>
+                    <Button variant="outline" className="gap-2">
+                      <Filter className="h-4 w-4" />
+                      Filter
+                    </Button>
+                    <Button onClick={() => router.push('/tutor/courses/new')}>
+                      Create Course
+                    </Button>
                   </div>
-                ))}
-                {publishedCourses.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No published courses yet.
-                  </p>
-                )}
+                </div>
               </CardContent>
             </Card>
+
+            {/* Course Grid/List */}
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Loading courses...</p>
+              </div>
+            ) : filteredCourses.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">No courses yet</h3>
+                  <Button onClick={() => router.push('/tutor/courses/new')}>
+                    Create New Course
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : viewMode === 'list' ? (
+              <div className="space-y-3">
+                {filteredCourses.map((course) => (
+                  <Card 
+                    key={course.id} 
+                    className={`hover:shadow-md transition-shadow cursor-pointer ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => setSelectedCourseId(course.id === selectedCourseId ? null : course.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-4 flex-1 min-w-0">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <BookOpen className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-medium truncate">{course.name}</h3>
+                              <Badge variant={course.isPublished ? 'default' : 'secondary'}>
+                                {course.isPublished ? 'Published' : 'Draft'}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                              {course.description || 'No description'}
+                            </p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <Badge variant="outline">{course.subject}</Badge>
+                              {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
+                              {course.difficulty && <Badge variant="outline" className="capitalize">{course.difficulty}</Badge>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 ml-4">
+                          <div className="hidden md:flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{course.estimatedHours || 0}h</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <BookOpen className="h-4 w-4" />
+                              <span>{course._count?.lessons || 0} lessons</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <GraduationCap className="h-4 w-4" />
+                              <span>{course._count?.enrollments || 0} students</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-lg font-bold text-blue-600">
+                              {course.price ? `$${course.price}` : 'Free'}
+                            </span>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(`/tutor/courses/${course.id}/builder`)
+                              }}
+                            >
+                              <Pencil className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(`/tutor/classes?course=${course.id}`)
+                              }}
+                            >
+                              <Play className="h-4 w-4 mr-1" />
+                              Go Live
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCourses.map((course) => (
+                  <Card 
+                    key={course.id} 
+                    className={`hover:shadow-2xl transition-all border-none neon-border-inner bg-white/60 hover:bg-white backdrop-blur-sm cursor-pointer ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => setSelectedCourseId(course.id === selectedCourseId ? null : course.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <BookOpen className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <Badge variant={course.isPublished ? 'default' : 'secondary'}>
+                          {course.isPublished ? 'Published' : 'Draft'}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg mt-3">{course.name}</CardTitle>
+                      <CardDescription className="line-clamp-2">
+                        {course.description || 'No description'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <Badge variant="outline">{course.subject}</Badge>
+                        {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
+                        {course.difficulty && <Badge variant="outline" className="capitalize">{course.difficulty}</Badge>}
+                      </div>
+
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{course.estimatedHours || 0}h</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <BookOpen className="h-4 w-4" />
+                          <span>{course._count?.lessons || 0} lessons</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <GraduationCap className="h-4 w-4" />
+                          <span>{course._count?.enrollments || 0} students</span>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <span className="text-lg font-bold text-blue-600">
+                          {course.price ? `$${course.price}` : 'Free'}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/tutor/courses/${course.id}/builder`)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/tutor/classes?course=${course.id}`)
+                          }}
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          Go Live
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             {/* Analytics Section for Selected Course */}
             {selectedCourse && (
@@ -423,14 +587,26 @@ export default function TutorMyPage() {
           <TabsContent value="classes" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Classes ({classes.length})</CardTitle>
-                <CardDescription>Scheduled individual classes.</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Classes ({classes.length})</CardTitle>
+                    <CardDescription>Scheduled individual classes.</CardDescription>
+                  </div>
+                  <Button onClick={() => router.push('/tutor/classes/new')}>
+                    Schedule Class
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {classes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No scheduled classes yet.
-                  </p>
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">
+                      No scheduled classes yet.
+                    </p>
+                    <Button onClick={() => router.push('/tutor/classes/new')}>
+                      Schedule Your First Class
+                    </Button>
+                  </div>
                 ) : (
                   classes.map((cls) => (
                     <div key={cls.id} className="rounded border p-3 hover:bg-gray-50">
@@ -446,137 +622,6 @@ export default function TutorMyPage() {
                       </div>
                     </div>
                   ))
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="building" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Building</CardTitle>
-                    <CardDescription>
-                      Courses and classes being developed (most recent first).
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center border rounded-md p-1 bg-muted/50">
-                      <Button
-                        variant={draftViewMode === 'grid' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="h-7 px-2"
-                        onClick={() => setDraftViewMode('grid')}
-                      >
-                        <LayoutGrid className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={draftViewMode === 'list' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="h-7 px-2"
-                        onClick={() => setDraftViewMode('list')}
-                      >
-                        <List className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <Button asChild>
-                      <Link href="/tutor/courses/new">+ New</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {buildingItems.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">
-                      No items in progress. Start building!
-                    </p>
-                    <Button onClick={() => router.push('/tutor/courses/new')}>
-                      Create New
-                    </Button>
-                  </div>
-                ) : draftViewMode === 'list' ? (
-                  <div className="space-y-3">
-                    {buildingItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between rounded border p-4 hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium truncate">{item.name}</span>
-                            <Badge variant="secondary">{item.subject}</Badge>
-                            <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
-                              {item.type === 'course' ? 'Draft' : 'Planning'}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {item.description || 'No description'}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {item._count.lessons} lessons • Last edited {formatDate(item.updatedAt)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <Button size="sm" asChild>
-                            <Link href={`/tutor/courses/${item.id}/builder`}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/tutor/courses/${item.id}`}>
-                              <DollarSign className="h-4 w-4 mr-1" />
-                              Price
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {buildingItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded border p-4 hover:bg-muted/50 transition-colors flex flex-col"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <span className="font-medium truncate">{item.name}</span>
-                            <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 shrink-0">
-                              {item.type === 'course' ? 'Draft' : 'Planning'}
-                            </Badge>
-                          </div>
-                          <Badge variant="secondary" className="mb-2">{item.subject}</Badge>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {item.description || 'No description'}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-3">
-                            {item._count.lessons} lessons
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Last edited {formatDate(item.updatedAt)}
-                          </p>
-                        </div>
-                        <div className="flex flex-col gap-2 mt-4 pt-3 border-t">
-                          <Button size="sm" asChild className="w-full">
-                            <Link href={`/tutor/courses/${item.id}/builder`}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button size="sm" variant="outline" asChild className="w-full">
-                            <Link href={`/tutor/courses/${item.id}`}>
-                              <DollarSign className="h-4 w-4 mr-1" />
-                              Price
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </CardContent>
             </Card>

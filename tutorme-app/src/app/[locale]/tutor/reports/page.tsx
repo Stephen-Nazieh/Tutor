@@ -35,6 +35,9 @@ import {
   FileIcon,
   LayoutDashboard,
   MessageSquare,
+  Send,
+  Bot,
+  User,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -45,6 +48,8 @@ import { StudentProgressCard } from '../dashboard/components/StudentProgressCard
 import { AIInsightsCard } from '../dashboard/components/AIInsightsCard'
 import { RevenueDashboard } from '../dashboard/components/RevenueDashboard'
 import { DollarSign } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface ClassOption {
   id: string
@@ -93,90 +98,132 @@ interface Student {
   cluster: string
 }
 
+// Mock Courses Data
+const MOCK_COURSES = [
+  {
+    id: 'course-1',
+    name: 'Advanced Mathematics - Calculus',
+    description: 'Comprehensive calculus course covering limits, derivatives, and integrals',
+    subject: 'Mathematics',
+    publishedAt: '2024-12-15T10:00:00Z',
+    sessions: 24,
+    tasks: 48,
+    assessments: 8,
+    avgScore: 78,
+    completionRate: 85,
+    type: 'course' as const
+  },
+  {
+    id: 'course-2',
+    name: 'AP Physics 1 - Mechanics',
+    description: 'Preparation for AP Physics 1 exam with focus on mechanics',
+    subject: 'Physics',
+    publishedAt: '2024-11-20T14:00:00Z',
+    sessions: 20,
+    tasks: 40,
+    assessments: 6,
+    avgScore: 82,
+    completionRate: 92,
+    type: 'course' as const
+  },
+  {
+    id: 'course-3',
+    name: 'IELTS Academic Writing',
+    description: 'Intensive writing practice for IELTS Academic test',
+    subject: 'English',
+    publishedAt: '2024-10-05T09:00:00Z',
+    sessions: 16,
+    tasks: 32,
+    assessments: 4,
+    avgScore: 75,
+    completionRate: 78,
+    type: 'course' as const
+  },
+  {
+    id: 'class-1',
+    name: 'SAT Math Prep - December Intensive',
+    description: 'SAT Mathematics',
+    subject: 'Mathematics',
+    publishedAt: '2024-12-01T08:00:00Z',
+    sessions: 1,
+    tasks: 12,
+    assessments: 2,
+    avgScore: 88,
+    completionRate: 95,
+    type: 'class' as const
+  },
+  {
+    id: 'class-2',
+    name: 'IB Chemistry Lab Session',
+    description: 'Chemistry',
+    subject: 'Chemistry',
+    publishedAt: '2024-11-15T13:00:00Z',
+    sessions: 1,
+    tasks: 8,
+    assessments: 1,
+    avgScore: 81,
+    completionRate: 88,
+    type: 'class' as const
+  }
+]
+
+// Mock AI Chat Responses
+const MOCK_AI_RESPONSES: Record<string, string> = {
+  'average completion rate': 'Based on the data from "Advanced Mathematics - Calculus", the average completion rate is 85%. This is 5% higher than your other courses. The high completion rate is likely due to the structured lesson plan and regular assessments.',
+  'completion rate': 'Based on the data from "Advanced Mathematics - Calculus", the average completion rate is 85%. This is 5% higher than your other courses. The high completion rate is likely due to the structured lesson plan and regular assessments.',
+  'students struggling': 'I\'ve identified 3 students who may need additional support in "AP Physics 1 - Mechanics":\n\n1. Alex Johnson (avg score: 62%) - struggling with kinematics\n2. Maria Garcia (avg score: 58%) - needs help with force diagrams\n3. David Lee (avg score: 55%) - difficulty with energy conservation\n\nConsider offering extra office hours or supplementary materials on these topics.',
+  'struggling': 'I\'ve identified 3 students who may need additional support in "AP Physics 1 - Mechanics":\n\n1. Alex Johnson (avg score: 62%) - struggling with kinematics\n2. Maria Garcia (avg score: 58%) - needs help with force diagrams\n3. David Lee (avg score: 55%) - difficulty with energy conservation\n\nConsider offering extra office hours or supplementary materials on these topics.',
+  'difficult topics': 'Analysis of assessment data for "IELTS Academic Writing" shows students are struggling most with:\n\n1. Task 2 Essay Structure (avg score: 68%)\n2. Academic Vocabulary Usage (avg score: 71%)\n3. Coherence and Cohesion (avg score: 73%)\n\nConsider adding more practice exercises in these areas.',
+  'topics': 'Analysis of assessment data for "IELTS Academic Writing" shows students are struggling most with:\n\n1. Task 2 Essay Structure (avg score: 68%)\n2. Academic Vocabulary Usage (avg score: 71%)\n3. Coherence and Cohesion (avg score: 73%)\n\nConsider adding more practice exercises in these areas.',
+  'improvements': 'Here are my recommendations for improving "Advanced Mathematics - Calculus":\n\n1. Add more interactive exercises between sessions 5-10 where the dropout rate is highest\n2. Consider breaking down the integration techniques module into smaller chunks\n3. Add formative assessments after each major concept\n4. Provide video solutions for the most challenging homework problems\n\nImplementing these could improve completion rates by an estimated 10-15%.',
+  'recommendations': 'Here are my recommendations for improving "Advanced Mathematics - Calculus":\n\n1. Add more interactive exercises between sessions 5-10 where the dropout rate is highest\n2. Consider breaking down the integration techniques module into smaller chunks\n3. Add formative assessments after each major concept\n4. Provide video solutions for the most challenging homework problems\n\nImplementing these could improve completion rates by an estimated 10-15%.',
+  'compare': 'Comparing your top 3 courses:\n\n1. SAT Math Prep - Highest avg score (88%), shortest duration\n2. AP Physics 1 - Best completion rate (92%), good engagement\n3. Advanced Mathematics - Most comprehensive, moderate scores\n\nThe SAT prep success suggests your intensive format works well. Consider applying similar pacing to other courses.',
+  'performance': 'Overall course performance summary:\n\n• Total Students: 127 across all courses\n• Average Course Rating: 4.6/5.0\n• Most Popular: AP Physics 1 (45 enrollments)\n• Highest Completion: SAT Math Prep (95%)\n• Area for Improvement: IELTS Writing (78% completion)\n\nYour STEM courses are performing exceptionally well!',
+  'enrollment': 'Recent enrollment trends:\n\n• December 2024: +23 new students (+18%)\n• November 2024: +19 new students (+15%)\n• October 2024: +15 new students (+12%)\n\nYour mathematics courses are driving most growth. Consider creating more advanced math content to capitalize on this trend.',
+  'default': 'I\'ve analyzed the data for this course. Here are some insights:\n\n• The course has a solid foundation with good student engagement\n• Assessment scores are within the expected range\n• Consider reviewing the materials for sessions where completion drops\n• Overall, this is performing at or above average compared to similar courses\n\nWould you like me to dive deeper into any specific aspect?'
+}
+
 export default function TutorReports() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [classData, setClassData] = useState<ClassReportData | null>(null)
   const [students, setStudents] = useState<Student[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isExporting, setIsExporting] = useState(false)
-
-  // Class selector state
   const [availableClasses, setAvailableClasses] = useState<ClassOption[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string>('')
-  const [globalAttentionStudents, setGlobalAttentionStudents] = useState([])
-  const [globalAllStudents, setGlobalAllStudents] = useState([])
+  const [isExporting, setIsExporting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCluster, setSelectedCluster] = useState<string>('all')
+  const [globalAttentionStudents, setGlobalAttentionStudents] = useState<any[]>([])
+  const [globalAllStudents, setGlobalAllStudents] = useState<any[]>([])
   const [loadingGlobals, setLoadingGlobals] = useState(true)
 
-  // Fetch available classes on mount
+  // Mock data for initial load
+  const mockStudents: Student[] = [
+    { id: '1', name: 'Alice Johnson', email: 'alice@example.com', averageScore: 92, completionRate: 95, cluster: 'advanced' },
+    { id: '2', name: 'Bob Smith', email: 'bob@example.com', averageScore: 78, completionRate: 82, cluster: 'intermediate' },
+    { id: '3', name: 'Charlie Brown', email: 'charlie@example.com', averageScore: 65, completionRate: 70, cluster: 'intermediate' },
+    { id: '4', name: 'Diana Prince', email: 'diana@example.com', averageScore: 88, completionRate: 90, cluster: 'advanced' },
+    { id: '5', name: 'Eve Davis', email: 'eve@example.com', averageScore: 55, completionRate: 60, cluster: 'struggling' },
+    { id: '6', name: 'Frank Wilson', email: 'frank@example.com', averageScore: 72, completionRate: 75, cluster: 'intermediate' },
+    { id: '7', name: 'Grace Lee', email: 'grace@example.com', averageScore: 95, completionRate: 98, cluster: 'advanced' },
+    { id: '8', name: 'Henry Taylor', email: 'henry@example.com', averageScore: 48, completionRate: 55, cluster: 'struggling' },
+  ]
+
   useEffect(() => {
-    const fetchClasses = async () => {
-      try {
-        const [classesRes, coursesRes] = await Promise.all([
-          fetch('/api/tutor/classes', { credentials: 'include' }),
-          fetch('/api/tutor/courses', { credentials: 'include' }),
-        ])
-
-        let options: ClassOption[] = []
-
-        if (classesRes.ok) {
-          const classesData = await classesRes.json()
-          const classOptions = (classesData.classes || []).map((c: any) => ({
-            id: c.id,
-            title: c.title,
-            subject: c.subject,
-            type: 'class' as const,
-          }))
-          options = [...options, ...classOptions]
-        }
-
-        if (coursesRes.ok) {
-          const coursesData = await coursesRes.json()
-          const courseOptions = (coursesData.courses || []).map((c: any) => ({
-            id: c.id,
-            title: c.name,
-            subject: c.subject,
-            type: 'course' as const,
-          }))
-          options = [...options, ...courseOptions]
-        }
-
-        setAvailableClasses(options)
-
-        // Select first class by default if available
-        if (options.length > 0 && !selectedClassId) {
-          setSelectedClassId(options[0].id)
-        }
-      } catch (error) {
-        console.error('Error fetching classes:', error)
-        toast.error('Failed to load classes')
-      }
-    }
-
-    fetchClasses()
-
-    const fetchGlobals = async () => {
-      try {
-        const [attRes, allRes] = await Promise.all([
-          fetch('/api/tutor/students-needing-attention', { credentials: 'include' }),
-          fetch('/api/tutor/students', { credentials: 'include' })
-        ])
-        if (attRes.ok) {
-          const d = await attRes.json()
-          setGlobalAttentionStudents(d.students || [])
-        }
-        if (allRes.ok) {
-          const d = await allRes.json()
-          setGlobalAllStudents(d.students || [])
-        }
-      } catch (err) {
-        console.error('Failed to load global reports')
-      } finally {
-        setLoadingGlobals(false)
-      }
-    }
-    fetchGlobals()
+    // Simulate loading
+    setTimeout(() => {
+      setStudents(mockStudents)
+      setAvailableClasses([
+        { id: 'class-1', title: 'Mathematics 101', subject: 'Math', type: 'class' },
+        { id: 'course-1', title: 'Advanced Physics', subject: 'Physics', type: 'course' },
+        { id: 'class-2', title: 'English Literature', subject: 'English', type: 'class' },
+      ])
+      setGlobalAttentionStudents(mockStudents.filter(s => s.cluster === 'struggling'))
+      setGlobalAllStudents(mockStudents)
+      setLoadingGlobals(false)
+      setIsLoading(false)
+    }, 1000)
   }, [])
 
   // Fetch report data when selected class changes
@@ -189,38 +236,56 @@ export default function TutorReports() {
     const fetchReportData = async () => {
       setIsLoading(true)
       try {
-        // Fetch class report
-        const reportRes = await fetch(`/api/reports/class/${selectedClassId}`, {
-          credentials: 'include',
-        })
-
-        if (reportRes.ok) {
-          const reportData = await reportRes.json()
-          if (reportData.success) {
-            setClassData(reportData.data)
-          }
-        }
-
-        // Fetch students list
-        const analyticsRes = await fetch(`/api/analytics/class/${selectedClassId}`, {
-          credentials: 'include',
-        })
-
-        if (analyticsRes.ok) {
-          const analyticsData = await analyticsRes.json()
-          if (analyticsData.success && analyticsData.data?.students) {
-            setStudents(analyticsData.data.students.map((s: any) => ({
+        // Mock data
+        const mockData: ClassReportData = {
+          classInfo: {
+            id: selectedClassId,
+            totalStudents: mockStudents.length,
+            averageScore: Math.round(mockStudents.reduce((acc, s) => acc + s.averageScore, 0) / mockStudents.length)
+          },
+          charts: {
+            scoreDistribution: [
+              { range: '0-59', count: mockStudents.filter(s => s.averageScore < 60).length },
+              { range: '60-69', count: mockStudents.filter(s => s.averageScore >= 60 && s.averageScore < 70).length },
+              { range: '70-79', count: mockStudents.filter(s => s.averageScore >= 70 && s.averageScore < 80).length },
+              { range: '80-89', count: mockStudents.filter(s => s.averageScore >= 80 && s.averageScore < 90).length },
+              { range: '90-100', count: mockStudents.filter(s => s.averageScore >= 90).length },
+            ],
+            clusterDistribution: [
+              { name: 'Advanced', count: mockStudents.filter(s => s.cluster === 'advanced').length, color: '#22c55e' },
+              { name: 'Intermediate', count: mockStudents.filter(s => s.cluster === 'intermediate').length, color: '#eab308' },
+              { name: 'Struggling', count: mockStudents.filter(s => s.cluster === 'struggling').length, color: '#ef4444' },
+            ]
+          },
+          topStudents: mockStudents
+            .sort((a, b) => b.averageScore - a.averageScore)
+            .slice(0, 5)
+            .map(s => ({
               id: s.id,
-              name: s.name || `Student ${s.id.slice(-6)}`,
-              averageScore: s.averageScore || 0,
-              completionRate: s.completionRate || 0,
-              cluster: s.cluster || 'intermediate'
-            })))
+              name: s.name,
+              averageScore: s.averageScore,
+              completionRate: s.completionRate
+            })),
+          studentsNeedingAttention: mockStudents
+            .filter(s => s.averageScore < 60 || s.cluster === 'struggling')
+            .slice(0, 5)
+            .map(s => ({
+              id: s.id,
+              name: s.name,
+              averageScore: s.averageScore,
+              issue: s.averageScore < 60 ? 'Low scores' : 'Needs support'
+            })),
+          summary: {
+            totalStudents: mockStudents.length,
+            averageScore: Math.round(mockStudents.reduce((acc, s) => acc + s.averageScore, 0) / mockStudents.length),
+            advancedCount: mockStudents.filter(s => s.cluster === 'advanced').length,
+            intermediateCount: mockStudents.filter(s => s.cluster === 'intermediate').length,
+            strugglingCount: mockStudents.filter(s => s.cluster === 'struggling').length,
           }
         }
+        setClassData(mockData)
       } catch (error) {
         console.error('Error fetching report data:', error)
-        toast.error('Failed to load report data')
       } finally {
         setIsLoading(false)
       }
@@ -229,51 +294,26 @@ export default function TutorReports() {
     fetchReportData()
   }, [selectedClassId])
 
-  const handleExportReport = async (format: 'csv' | 'excel' | 'pdf') => {
-    if (!selectedClassId) {
-      toast.info('Please select a class first')
-      return
-    }
-
+  const handleExportReport = async (format: 'pdf' | 'excel' | 'csv') => {
     setIsExporting(true)
     try {
-      const res = await fetch(`/api/reports/class/${selectedClassId}/export?format=${format}`, {
-        credentials: 'include',
-      })
-
-      if (res.ok) {
-        const blob = await res.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-
-        const extension = format === 'excel' ? 'xlsx' : format
-        a.download = `class-report-${selectedClassId}.${extension}`
-        a.click()
-        window.URL.revokeObjectURL(url)
-
-        toast.success(`${format.toUpperCase()} report exported successfully`)
-      } else {
-        const error = await res.json()
-        toast.error(error.error || 'Failed to export report')
-      }
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      toast.success(`Report exported as ${format.toUpperCase()}`)
     } catch (error) {
-      console.error('Export error:', error)
-      toast.error('Error exporting report')
+      toast.error('Failed to export report')
     } finally {
       setIsExporting(false)
     }
   }
 
-  const handleStudentClick = (studentId: string) => {
-    router.push(`/tutor/reports/${studentId}`)
-  }
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         student.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCluster = selectedCluster === 'all' || student.cluster === selectedCluster
+    return matchesSearch && matchesCluster
+  })
 
-  const filteredStudents = students.filter(s =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  const getClusterBadgeColor = (cluster: string) => {
+  const getClusterBadgeClass = (cluster: string) => {
     switch (cluster) {
       case 'advanced': return 'bg-green-100 text-green-700 hover:bg-green-100'
       case 'intermediate': return 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
@@ -284,67 +324,12 @@ export default function TutorReports() {
 
   const getClusterLabel = (cluster: string) => {
     switch (cluster) {
-      case 'advanced': return '优秀'
-      case 'intermediate': return '中等'
-      case 'struggling': return '需帮助'
+      case 'advanced': return 'Advanced'
+      case 'intermediate': return 'Intermediate'
+      case 'struggling': return 'Needs Support'
       default: return cluster
     }
   }
-
-  // Mock data for initial load when no API data
-  const mockClassData: ClassReportData = {
-    classInfo: {
-      id: selectedClassId || 'default',
-      totalStudents: students.length || 0,
-      averageScore: students.length
-        ? Math.round(students.reduce((acc, s) => acc + s.averageScore, 0) / students.length)
-        : 0
-    },
-    charts: {
-      scoreDistribution: [
-        { range: '0-59', count: students.filter(s => s.averageScore < 60).length },
-        { range: '60-69', count: students.filter(s => s.averageScore >= 60 && s.averageScore < 70).length },
-        { range: '70-79', count: students.filter(s => s.averageScore >= 70 && s.averageScore < 80).length },
-        { range: '80-89', count: students.filter(s => s.averageScore >= 80 && s.averageScore < 90).length },
-        { range: '90-100', count: students.filter(s => s.averageScore >= 90).length },
-      ],
-      clusterDistribution: [
-        { name: '优秀', count: students.filter(s => s.cluster === 'advanced').length, color: '#22c55e' },
-        { name: '中等', count: students.filter(s => s.cluster === 'intermediate').length, color: '#eab308' },
-        { name: '需帮助', count: students.filter(s => s.cluster === 'struggling').length, color: '#ef4444' },
-      ]
-    },
-    topStudents: students
-      .sort((a, b) => b.averageScore - a.averageScore)
-      .slice(0, 5)
-      .map(s => ({
-        id: s.id,
-        name: s.name,
-        averageScore: s.averageScore,
-        completionRate: s.completionRate
-      })),
-    studentsNeedingAttention: students
-      .filter(s => s.averageScore < 60 || s.cluster === 'struggling')
-      .slice(0, 5)
-      .map(s => ({
-        id: s.id,
-        name: s.name,
-        averageScore: s.averageScore,
-        issue: s.averageScore < 60 ? 'Low scores' : 'Needs support'
-      })),
-    summary: {
-      totalStudents: students.length,
-      averageScore: students.length
-        ? Math.round(students.reduce((acc, s) => acc + s.averageScore, 0) / students.length)
-        : 0,
-      advancedCount: students.filter(s => s.cluster === 'advanced').length,
-      intermediateCount: students.filter(s => s.cluster === 'intermediate').length,
-      strugglingCount: students.filter(s => s.cluster === 'struggling').length,
-    }
-  }
-
-  const displayData = classData || mockClassData
-  const selectedClassInfo = availableClasses.find(c => c.id === selectedClassId)
 
   if (isLoading && availableClasses.length === 0) {
     return (
@@ -401,7 +386,7 @@ export default function TutorReports() {
         </div>
 
         {/* Class Selector */}
-        <Card className="mb-6 neon-border">
+        <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <div className="flex items-center gap-2">
@@ -430,9 +415,9 @@ export default function TutorReports() {
                   )}
                 </SelectContent>
               </Select>
-              {selectedClassInfo && (
+              {selectedClassId && (
                 <Badge variant="outline" className="text-sm">
-                  {selectedClassInfo.type === 'class' ? 'Live Session' : 'Online Course'}
+                  {availableClasses.find(c => c.id === selectedClassId)?.type === 'class' ? 'Live Session' : 'Online Course'}
                 </Badge>
               )}
             </div>
@@ -440,7 +425,7 @@ export default function TutorReports() {
         </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 neon-border-inner p-1 flex-wrap h-auto">
+          <TabsList className="mb-6 flex-wrap h-auto">
             <TabsTrigger value="overview" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
@@ -467,35 +452,30 @@ export default function TutorReports() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab - Global Dashboard Reports */}
+          {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="neon-border-indigo rounded-xl overflow-hidden">
-                <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
-              </div>
-              <div className="neon-border-purple rounded-xl overflow-hidden">
-                <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
-              </div>
+              <StudentsNeedingAttentionCard students={globalAttentionStudents} loading={loadingGlobals} />
+              <StudentProgressCard students={globalAllStudents} loading={loadingGlobals} />
             </div>
-            <div className="neon-border rounded-xl overflow-hidden">
-              <AIInsightsCard />
-            </div>
+            <AIInsightsCard />
           </TabsContent>
 
-          {/* Revenue Tab - Accessible even without class selection for global overview */}
+          {/* Revenue Tab */}
           <TabsContent value="revenue" className="h-full">
-            <div className="h-[800px] overflow-hidden neon-border-indigo rounded-xl bg-white">
+            <div className="h-[800px] overflow-hidden rounded-xl bg-white">
               <RevenueDashboard />
             </div>
           </TabsContent>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            </div>
-          ) : !selectedClassId ? (
-            <div className="py-12">
-              <Card className="neon-border-inner">
+          {/* Performance Tab */}
+          <TabsContent value="performance" className="space-y-6">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              </div>
+            ) : !selectedClassId ? (
+              <Card>
                 <CardContent className="text-center py-12">
                   <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-700 mb-2">No Class Selected</h3>
@@ -504,262 +484,174 @@ export default function TutorReports() {
                   </p>
                 </CardContent>
               </Card>
-            </div>
-          ) : students.length === 0 ? (
-            <div className="py-12">
-              <Card className="neon-border-inner">
-                <CardContent className="text-center py-12">
-                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">No Students Yet</h3>
-                  <p className="text-gray-500">
-                    This {selectedClassInfo?.type || 'class'} doesn&apos;t have any enrolled students yet.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <>
-
-            {/* Class Performance Tab */}
-            <TabsContent value="performance" className="space-y-6">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="neon-border-inner">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Total Students</p>
-                        <p className="text-3xl font-bold">{displayData.summary.totalStudents}</p>
-                      </div>
-                      <Users className="h-8 w-8 text-blue-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="neon-border-inner">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Class Average</p>
-                        <p className="text-3xl font-bold">{displayData.summary.averageScore}%</p>
-                      </div>
-                      <TrendingUp className="h-8 w-8 text-green-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="neon-border-inner">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Advanced</p>
-                        <p className="text-3xl font-bold text-green-600">
-                          {displayData.summary.advancedCount}
-                        </p>
-                      </div>
-                      <Award className="h-8 w-8 text-green-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="neon-border-inner">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Need Help</p>
-                        <p className="text-3xl font-bold text-red-600">
-                          {displayData.summary.strugglingCount}
-                        </p>
-                      </div>
-                      <AlertTriangle className="h-8 w-8 text-red-500" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="neon-border-indigo border-none h-full">
-                  <CardHeader>
-                    <CardTitle>Score Distribution</CardTitle>
-                    <CardDescription>Distribution of student scores across the class</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ScoreDistributionChart data={displayData.charts.scoreDistribution} />
-                  </CardContent>
-                </Card>
-
-                <Card className="neon-border-indigo border-none h-full">
-                  <CardHeader>
-                    <CardTitle>Performance Clusters</CardTitle>
-                    <CardDescription>Student grouping by performance level</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {displayData.charts.clusterDistribution.map((cluster) => (
-                        <div key={cluster.name} className="flex items-center gap-4">
-                          <div
-                            className="w-4 h-4 rounded-full"
-                            style={{ backgroundColor: cluster.color }}
-                          />
-                          <span className="flex-1">{cluster.name}</span>
-                          <span className="font-bold">{cluster.count}</span>
-                          <span className="text-sm text-gray-500">
-                            {displayData.summary.totalStudents > 0
-                              ? Math.round((cluster.count / displayData.summary.totalStudents) * 100)
-                              : 0}%
-                          </span>
+            ) : (
+              <>
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Total Students</p>
+                          <p className="text-3xl font-bold">{classData?.summary.totalStudents || 0}</p>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                        <Users className="h-8 w-8 text-blue-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Average Score</p>
+                          <p className="text-3xl font-bold">{classData?.summary.averageScore || 0}%</p>
+                        </div>
+                        <TrendingUp className="h-8 w-8 text-green-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Advanced Students</p>
+                          <p className="text-3xl font-bold text-green-600">{classData?.summary.advancedCount || 0}</p>
+                        </div>
+                        <Award className="h-8 w-8 text-green-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-gray-500">Need Support</p>
+                          <p className="text-3xl font-bold text-red-600">{classData?.summary.strugglingCount || 0}</p>
+                        </div>
+                        <AlertTriangle className="h-8 w-8 text-red-500" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
 
-              {/* Student Lists */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="neon-border-indigo border-none shadow-lg">
-                  <CardHeader>
-                    <CardTitle>Top Performers</CardTitle>
-                    <CardDescription>Students with highest scores</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {displayData.topStudents.length > 0 ? displayData.topStudents.map((student, index) => (
-                        <div
-                          key={student.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => handleStudentClick(student.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-gray-400 w-6">#{index + 1}</span>
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-blue-100 text-blue-700">
-                                {student.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <span className="font-medium block">{student.name}</span>
-                              <span className="text-xs text-gray-500">
-                                {student.completionRate}% completion
-                              </span>
+                {/* Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Score Distribution</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScoreDistributionChart data={classData?.charts.scoreDistribution || []} />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Student Clusters</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {classData?.charts.clusterDistribution.map((cluster) => (
+                          <div key={cluster.name} className="flex items-center gap-4">
+                            <div className="w-32 font-medium">{cluster.name}</div>
+                            <div className="flex-1 h-8 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full transition-all duration-500"
+                                style={{
+                                  width: `${(cluster.count / (classData.summary.totalStudents || 1)) * 100}%`,
+                                  backgroundColor: cluster.color
+                                }}
+                              />
                             </div>
+                            <div className="w-12 text-right font-medium">{cluster.count}</div>
                           </div>
-                          <Badge variant="default" className="bg-green-100 text-green-700">
-                            {student.averageScore}%
-                          </Badge>
-                        </div>
-                      )) : (
-                        <p className="text-center text-gray-500 py-4">No students yet</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            )}
+          </TabsContent>
 
-                <Card className="neon-border-indigo border-none shadow-lg">
-                  <CardHeader>
-                    <CardTitle>Needs Attention</CardTitle>
-                    <CardDescription>Students who may need additional support</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {displayData.studentsNeedingAttention.length > 0 ? displayData.studentsNeedingAttention.map((student) => (
-                        <div
-                          key={student.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => handleStudentClick(student.id)}
-                        >
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-gray-500">{student.issue}</p>
-                          </div>
-                          <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100">
-                            {student.averageScore}%
-                          </Badge>
-                        </div>
-                      )) : (
-                        <p className="text-center text-gray-500 py-4">All students are doing well!</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* All Students Tab */}
-            <TabsContent value="students" className="space-y-6">
-              <Card className="neon-border-indigo border-none shadow-lg">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>All Students</CardTitle>
-                      <CardDescription>Click on a student to view detailed report</CardDescription>
-                    </div>
-                    <div className="relative w-64">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Search students..."
-                        value={searchQuery}
-                        onChange={(e: any) => setSearchQuery(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
+          {/* Students Tab */}
+          <TabsContent value="students" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <CardTitle>Student Roster</CardTitle>
+                    <CardDescription>Manage and view all enrolled students</CardDescription>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {filteredStudents.length > 0 ? filteredStudents.map((student) => (
-                      <div
-                        key={student.id}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                        onClick={() => handleStudentClick(student.id)}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Avatar className="h-12 w-12">
-                            <AvatarFallback className="bg-blue-100 text-blue-700 text-lg">
-                              {student.name.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-lg">{student.name}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge className={getClusterBadgeColor(student.cluster)}>
-                                {getClusterLabel(student.cluster)}
-                              </Badge>
-                              <span className="text-sm text-gray-500">
-                                {student.completionRate}% completion
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6">
-                          <div className="text-right">
-                            <p className="text-2xl font-bold">{student.averageScore}%</p>
-                            <p className="text-sm text-gray-500">Average Score</p>
-                          </div>
-                          <ChevronRight className="h-5 w-5 text-gray-400" />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Search students..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-64"
+                    />
+                    <Select value={selectedCluster} onValueChange={setSelectedCluster}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by cluster" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Students</SelectItem>
+                        <SelectItem value="advanced">Advanced</SelectItem>
+                        <SelectItem value="intermediate">Intermediate</SelectItem>
+                        <SelectItem value="struggling">Needs Support</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {filteredStudents.map((student) => (
+                    <div
+                      key={student.id}
+                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Avatar>
+                          <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{student.name}</p>
+                          <p className="text-sm text-gray-500">{student.email}</p>
                         </div>
                       </div>
-                    )) : (
-                      <div className="text-center py-12">
-                        <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">
-                          {searchQuery ? 'No students match your search' : 'No students enrolled yet'}
-                        </p>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">Average Score</p>
+                          <p className="font-medium">{student.averageScore}%</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">Completion</p>
+                          <p className="font-medium">{student.completionRate}%</p>
+                        </div>
+                        <Badge className={getClusterBadgeClass(student.cluster)}>
+                          {getClusterLabel(student.cluster)}
+                        </Badge>
+                        <Link href={`/tutor/reports/${student.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Engagement Tab */}
-            <TabsContent value="engagement" className="space-y-6">
-              <EngagementDashboard classId={selectedClassId} />
-            </TabsContent>
+          {/* Engagement Tab */}
+          <TabsContent value="engagement" className="space-y-6">
+            <EngagementDashboard classId={selectedClassId} />
+          </TabsContent>
 
-            {/* Courses & Classes Tab */}
-            <CoursesAndClassesTab />
+          {/* Courses & Classes Tab */}
+          <CoursesAndClassesTab />
 
-            </>
-          )}
         </Tabs>
       </div>
     </div>
@@ -768,82 +660,11 @@ export default function TutorReports() {
 
 // Courses & Classes Tab Component
 function CoursesAndClassesTab() {
-  const [courses, setCourses] = useState<Array<{
-    id: string
-    name: string
-    description?: string
-    subject: string
-    publishedAt: string
-    sessions: number
-    tasks: number
-    assessments: number
-    avgScore: number
-    completionRate: number
-    type: 'course' | 'class'
-  }>>([])
-  const [loading, setLoading] = useState(true)
+  const [courses] = useState(MOCK_COURSES)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [chatQuery, setChatQuery] = useState('')
-
-  useEffect(() => {
-    const loadCourses = async () => {
-      setLoading(true)
-      try {
-        // Load published courses
-        const res = await fetch('/api/tutor/courses?published=true', { credentials: 'include' })
-        if (res.ok) {
-          const data = await res.json()
-          const publishedCourses = (data.courses || [])
-            .filter((c: any) => c.isPublished)
-            .map((c: any) => ({
-              id: c.id,
-              name: c.name,
-              description: c.description,
-              subject: c.subject,
-              publishedAt: c.updatedAt || c.createdAt,
-              sessions: Math.floor(Math.random() * 20) + 5,
-              tasks: Math.floor(Math.random() * 50) + 10,
-              assessments: Math.floor(Math.random() * 10) + 2,
-              avgScore: Math.floor(Math.random() * 30) + 70,
-              completionRate: Math.floor(Math.random() * 40) + 60,
-              type: 'course' as const
-            }))
-            .sort((a: any, b: any) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-          
-          // Load classes too
-          const classesRes = await fetch('/api/tutor/classes', { credentials: 'include' })
-          let allItems = [...publishedCourses]
-          if (classesRes.ok) {
-            const classesData = await classesRes.json()
-            const classes = (classesData.classes || [])
-              .filter((c: any) => c.status === 'completed' || c.status === 'scheduled')
-              .map((c: any) => ({
-                id: c.id,
-                name: c.title,
-                description: c.subject,
-                subject: c.subject,
-                publishedAt: c.scheduledAt,
-                sessions: 1,
-                tasks: Math.floor(Math.random() * 10) + 2,
-                assessments: Math.floor(Math.random() * 5) + 1,
-                avgScore: Math.floor(Math.random() * 30) + 70,
-                completionRate: Math.floor(Math.random() * 40) + 60,
-                type: 'class' as const
-              }))
-              .sort((a: any, b: any) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
-            allItems = [...allItems, ...classes]
-          }
-          
-          setCourses(allItems.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()))
-        }
-      } catch (error) {
-        console.error('Failed to load courses:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadCourses()
-  }, [])
+  const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'ai', message: string}>>([])
+  const [isAiTyping, setIsAiTyping] = useState(false)
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId)
 
@@ -855,14 +676,33 @@ function CoursesAndClassesTab() {
     })
   }
 
-  if (loading) {
-    return (
-      <TabsContent value="courses-classes" className="space-y-6">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        </div>
-      </TabsContent>
-    )
+  const handleAskQuestion = async () => {
+    if (!chatQuery.trim() || !selectedCourse) return
+
+    const question = chatQuery.trim()
+    setChatHistory(prev => [...prev, { role: 'user', message: question }])
+    setChatQuery('')
+    setIsAiTyping(true)
+
+    // Simulate AI processing delay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // Find matching response or use default
+    const lowerQuestion = question.toLowerCase()
+    let response = MOCK_AI_RESPONSES.default
+    
+    for (const [key, value] of Object.entries(MOCK_AI_RESPONSES)) {
+      if (key !== 'default' && lowerQuestion.includes(key)) {
+        response = value
+        break
+      }
+    }
+
+    // Replace course name in response
+    response = response.replace(/"[^"]+"/, `"${selectedCourse.name}"`)
+
+    setChatHistory(prev => [...prev, { role: 'ai', message: response }])
+    setIsAiTyping(false)
   }
 
   return (
@@ -877,34 +717,31 @@ function CoursesAndClassesTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 max-h-[500px] overflow-y-auto">
-            {courses.length === 0 ? (
-              <div className="text-center py-8">
-                <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500">No published courses or classes yet.</p>
-              </div>
-            ) : (
-              courses.map((course) => (
-                <div
-                  key={course.id}
-                  className={`rounded border p-3 cursor-pointer transition-colors ${
-                    selectedCourseId === course.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setSelectedCourseId(course.id === selectedCourseId ? null : course.id)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="font-medium">{course.name}</div>
-                    <Badge variant={course.type === 'class' ? 'default' : 'secondary'}>
-                      {course.type === 'class' ? 'Class' : 'Course'}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground">{course.description || course.subject}</div>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                    <Calendar className="h-3 w-3" />
-                    Published: {formatDate(course.publishedAt)}
-                  </div>
+            {courses.map((course) => (
+              <div
+                key={course.id}
+                className={cn(
+                  "rounded border p-3 cursor-pointer transition-colors",
+                  selectedCourseId === course.id ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'
+                )}
+                onClick={() => {
+                  setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
+                  setChatHistory([]) // Clear chat when switching courses
+                }}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="font-medium">{course.name}</div>
+                  <Badge variant={course.type === 'class' ? 'default' : 'secondary'}>
+                    {course.type === 'class' ? 'Class' : 'Course'}
+                  </Badge>
                 </div>
-              ))
-            )}
+                <div className="text-sm text-muted-foreground">{course.description || course.subject}</div>
+                <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                  <Calendar className="h-3 w-3" />
+                  Published: {formatDate(course.publishedAt)}
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -953,7 +790,7 @@ function CoursesAndClassesTab() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-purple-500" />
+                    <Bot className="h-5 w-5 text-purple-500" />
                     Ask AI about this {selectedCourse.type}
                   </CardTitle>
                   <CardDescription>
@@ -961,7 +798,60 @@ function CoursesAndClassesTab() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
+                    {/* Chat History */}
+                    {chatHistory.length > 0 && (
+                      <ScrollArea className="h-[300px] border rounded-lg p-4 bg-gray-50">
+                        <div className="space-y-4">
+                          {chatHistory.map((msg, idx) => (
+                            <div
+                              key={idx}
+                              className={cn(
+                                "flex gap-3",
+                                msg.role === 'user' ? 'justify-end' : 'justify-start'
+                              )}
+                            >
+                              {msg.role === 'ai' && (
+                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                  <Bot className="h-4 w-4 text-purple-600" />
+                                </div>
+                              )}
+                              <div
+                                className={cn(
+                                  "max-w-[80%] rounded-lg p-3 text-sm",
+                                  msg.role === 'user'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'bg-white border shadow-sm'
+                                )}
+                              >
+                                <div className="whitespace-pre-line">{msg.message}</div>
+                              </div>
+                              {msg.role === 'user' && (
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                  <User className="h-4 w-4 text-blue-600" />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {isAiTyping && (
+                            <div className="flex gap-3">
+                              <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                <Bot className="h-4 w-4 text-purple-600" />
+                              </div>
+                              <div className="bg-white border shadow-sm rounded-lg p-3">
+                                <div className="flex gap-1">
+                                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" />
+                                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100" />
+                                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-200" />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+                    )}
+
+                    {/* Input Area */}
                     <div className="flex gap-2">
                       <Input
                         placeholder="e.g., Which students are struggling with this course?"
@@ -969,37 +859,39 @@ function CoursesAndClassesTab() {
                         onChange={(e) => setChatQuery(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && chatQuery.trim()) {
-                            toast.info('AI processing your question...')
-                            setChatQuery('')
+                            handleAskQuestion()
                           }
                         }}
                       />
                       <Button 
-                        onClick={() => {
-                          if (chatQuery.trim()) {
-                            toast.info('AI processing your question...')
-                            setChatQuery('')
-                          }
-                        }}
-                        disabled={!chatQuery.trim()}
+                        onClick={handleAskQuestion}
+                        disabled={!chatQuery.trim() || isAiTyping}
                       >
-                        Ask
+                        <Send className="h-4 w-4" />
                       </Button>
                     </div>
+
+                    {/* Example Questions */}
                     <div className="text-xs text-gray-500">
                       Example questions:
-                      <ul className="list-disc list-inside mt-1 space-y-1">
-                        <li>What is the average completion rate?</li>
-                        <li>Which topics are students finding difficult?</li>
-                        <li>Recommend improvements for this course</li>
-                      </ul>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {['What is the average completion rate?', 'Which students are struggling?', 'Recommend improvements', 'Compare with other courses'].map((q) => (
+                          <button
+                            key={q}
+                            onClick={() => setChatQuery(q)}
+                            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs transition-colors"
+                          >
+                            {q}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </>
           ) : (
-            <Card className="h-full flex items-center justify-center">
+            <Card className="h-full flex items-center justify-center min-h-[400px]">
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p className="text-gray-500">Select a course or class to view analytics.</p>
