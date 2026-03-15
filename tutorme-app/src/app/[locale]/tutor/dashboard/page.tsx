@@ -57,6 +57,7 @@ function TutorDashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
 
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateDialog(true)
@@ -245,9 +246,7 @@ function TutorDashboardContent() {
         />
       </div>
 
-      {/* Analytics Section */}
       <div className="space-y-4 mb-8">
-        <h2 className="text-xl font-bold">Analytics</h2>
         <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
@@ -275,8 +274,10 @@ function TutorDashboardContent() {
       <div className="mt-8">
         <InteractiveCalendar
           onEventClick={(event) => console.log('Event clicked:', event)}
-          onDateClick={(date) => console.log('Date clicked:', date)}
-          onCreateClass={(date) => setShowCreateDialog(true)}
+          onDateClick={(date) => {
+            setScheduleDate(date)
+            setShowCreateDialog(true)
+          }}
           loading={loading}
         />
       </div>
@@ -284,9 +285,13 @@ function TutorDashboardContent() {
       {/* Create Class Dialog */}
       <CreateClassDialog
         open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        onOpenChange={(open) => {
+          setShowCreateDialog(open)
+          if (!open) setScheduleDate(null)
+        }}
         onClassCreated={handleClassCreated}
         redirectToClass={false}
+        initialDate={scheduleDate}
       />
 
     </div>

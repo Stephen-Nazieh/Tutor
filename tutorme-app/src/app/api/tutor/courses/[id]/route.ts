@@ -9,7 +9,31 @@ import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/mi
 import { getParamAsync } from '@/lib/api/params'
 import { UpdateCourseSettingsSchema } from '@/lib/validation/schemas'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, curriculumModule, curriculumLesson, curriculumEnrollment } from '@/lib/db/schema'
+import { 
+  builderTask,
+  builderTaskExtension,
+  builderTaskFile,
+  builderTaskVersion,
+  calendarEvent,
+  courseBatch,
+  curriculum,
+  curriculumEnrollment,
+  curriculumLesson,
+  curriculumLessonProgress,
+  curriculumModule,
+  curriculumProgress,
+  curriculumShare,
+  lessonSession,
+  liveSession,
+  quiz,
+  quizAssignment,
+  quizAttempt,
+  studentPerformance,
+  whiteboard,
+  whiteboardPage,
+  whiteboardSession,
+  whiteboardSnapshot,
+} from '@/lib/db/schema'
 import { eq, asc, and, inArray, sql } from 'drizzle-orm'
 import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 
@@ -79,6 +103,94 @@ export const GET = withAuth(async (req, session, context) => {
     },
   })
 }, { role: 'TUTOR' })
+
+export const DELETE = withCsrf(withAuth(async (_req, session, context) => {
+  const id = await getParamAsync(context?.params, 'id')
+  if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+
+  const userId = session?.user?.id
+  const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, id))
+  if (!curriculumRow) throw new NotFoundError('Course not found')
+  if (curriculumRow.creatorId !== userId) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  await drizzleDb.transaction(async (tx) => {
+    const modules = await tx
+      .select({ id: curriculumModule.id })
+      .from(curriculumModule)
+      .where(eq(curriculumModule.curriculumId, id))
+    const moduleIds = modules.map((m) => m.id)
+
+    const lessons = moduleIds.length > 0
+      ? await tx
+          .select({ id: curriculumLesson.id })
+          .from(curriculumLesson)
+          .where(inArray(curriculumLesson.moduleId, moduleIds))
+      : []
+    const lessonIds = lessons.map((l) => l.id)
+
+    const tasks = await tx
+      .select({ id: builderTask.id })
+      .from(builderTask)
+      .where(eq(builderTask.curriculumId, id))
+    const taskIds = tasks.map((t) => t.id)
+
+    const quizzes = await tx
+      .select({ id: quiz.id })
+      .from(quiz)
+      .where(eq(quiz.curriculumId, id))
+    const quizIds = quizzes.map((q) => q.id)
+
+    const boards = await tx
+      .select({ id: whiteboard.id })
+      .from(whiteboard)
+      .where(eq(whiteboard.curriculumId, id))
+    const boardIds = boards.map((b) => b.id)
+
+    if (lessonIds.length > 0) {
+      await tx.delete(lessonSession).where(inArray(lessonSession.lessonId, lessonIds))
+      await tx.delete(curriculumLessonProgress).where(inArray(curriculumLessonProgress.lessonId, lessonIds))
+    }
+
+    if (taskIds.length > 0) {
+      await tx.delete(builderTaskExtension).where(inArray(builderTaskExtension.taskId, taskIds))
+      await tx.delete(builderTaskFile).where(inArray(builderTaskFile.taskId, taskIds))
+      await tx.delete(builderTaskVersion).where(inArray(builderTaskVersion.taskId, taskIds))
+      await tx.delete(builderTask).where(inArray(builderTask.id, taskIds))
+    }
+
+    if (quizIds.length > 0) {
+      await tx.delete(quizAttempt).where(inArray(quizAttempt.quizId, quizIds))
+      await tx.delete(quizAssignment).where(inArray(quizAssignment.quizId, quizIds))
+      await tx.delete(quiz).where(inArray(quiz.id, quizIds))
+    }
+
+    if (boardIds.length > 0) {
+      await tx.delete(whiteboardSnapshot).where(inArray(whiteboardSnapshot.whiteboardId, boardIds))
+      await tx.delete(whiteboardPage).where(inArray(whiteboardPage.whiteboardId, boardIds))
+      await tx.delete(whiteboardSession).where(inArray(whiteboardSession.whiteboardId, boardIds))
+      await tx.delete(whiteboard).where(inArray(whiteboard.id, boardIds))
+    }
+
+    await tx.delete(curriculumEnrollment).where(eq(curriculumEnrollment.curriculumId, id))
+    await tx.delete(curriculumProgress).where(eq(curriculumProgress.curriculumId, id))
+    await tx.delete(studentPerformance).where(eq(studentPerformance.curriculumId, id))
+    await tx.delete(curriculumShare).where(eq(curriculumShare.curriculumId, id))
+    await tx.delete(courseBatch).where(eq(courseBatch.curriculumId, id))
+    await tx.delete(liveSession).where(eq(liveSession.curriculumId, id))
+    await tx.delete(calendarEvent).where(eq(calendarEvent.curriculumId, id))
+
+    if (moduleIds.length > 0) {
+      await tx.delete(curriculumLesson).where(inArray(curriculumLesson.moduleId, moduleIds))
+      await tx.delete(curriculumModule).where(inArray(curriculumModule.id, moduleIds))
+    }
+
+    await tx.delete(curriculum).where(eq(curriculum.id, id))
+  })
+
+  return NextResponse.json({ success: true })
+}, { role: 'TUTOR' }))
 
 export const PATCH = withCsrf(withAuth(async (req, session, context) => {
   const id = await getParamAsync(context?.params, 'id')

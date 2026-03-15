@@ -63,6 +63,8 @@ import {
   addWeeks,
   format,
   isSameDay,
+  isBefore,
+  startOfDay,
   startOfWeek,
   eachDayOfInterval,
   isWithinInterval
@@ -382,8 +384,17 @@ export function InteractiveCalendar({
   }
 
   const handleDateClick = (date: Date) => {
+    const today = startOfDay(new Date())
+    const clicked = startOfDay(date)
+    if (isBefore(clicked, today)) {
+      toast.error('You can only schedule classes for today or future dates.')
+      return
+    }
     setSelectedDate(date)
-    onDateClick?.(date)
+    if (onDateClick) {
+      onDateClick(date)
+      return
+    }
   }
 
   const handleEventClick = (event: CalendarEvent) => {

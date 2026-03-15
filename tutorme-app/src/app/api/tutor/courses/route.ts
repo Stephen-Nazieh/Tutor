@@ -73,6 +73,9 @@ export const GET = withAuth(async (req: NextRequest, session) => {
         difficulty: curriculum.difficulty,
         estimatedHours: curriculum.estimatedHours,
         isPublished: curriculum.isPublished,
+        price: curriculum.price,
+        currency: curriculum.currency,
+        updatedAt: curriculum.updatedAt,
         _count: {
           modules: curriculum.modules.length,
           lessons: totalLessons,

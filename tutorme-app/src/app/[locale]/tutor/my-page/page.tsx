@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { Copy, ExternalLink, Edit, DollarSign, LayoutGrid, List, Search, Filter, BookOpen, Clock, ChevronRight, GraduationCap, ArrowLeft, Sparkles, MessageSquare, Pencil, Play } from 'lucide-react'
 import { AIChat } from '@/components/ai/AIChat'
+import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 
 interface PublicCourse {
   id: string
@@ -34,6 +35,7 @@ interface PublicCourse {
     enrollments?: number
   }
   price?: number | null
+  currency?: string | null
   estimatedHours?: number
 }
 
@@ -63,6 +65,9 @@ export default function TutorMyPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [priceEdits, setPriceEdits] = useState<Record<string, string>>({})
+  const [priceSaving, setPriceSaving] = useState<Record<string, boolean>>({})
+  const [deleteBusy, setDeleteBusy] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     let active = true
@@ -123,7 +128,11 @@ export default function TutorMyPage() {
 
   const normalizedUsername = useMemo(() => username.trim().replace(/^@+/, ''), [username])
   const publicPath = useMemo(
-    () => (normalizedUsername ? `/${locale}/u/${normalizedUsername}` : ''),
+    () => {
+      if (!normalizedUsername) return ''
+      const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`
+      return `${prefix}/u/${normalizedUsername}`
+    },
     [locale, normalizedUsername]
   )
   const publicUrl = useMemo(
@@ -138,6 +147,7 @@ export default function TutorMyPage() {
   )
 
   const publishedCourses = filteredCourses.filter(c => c.isPublished)
+  const paidPublishedCourses = publishedCourses.filter(c => (c.price ?? 0) > 0)
   const draftCourses = filteredCourses.filter(c => !c.isPublished)
 
   const save = async () => {
@@ -182,6 +192,84 @@ export default function TutorMyPage() {
     if (!selectedCourseId) return null
     return allCourses.find(c => c.id === selectedCourseId) || null
   }, [selectedCourseId, allCourses])
+
+  const getPriceValue = (course: PublicCourse) => {
+    if (priceEdits[course.id] !== undefined) return priceEdits[course.id]
+    return String(course.price ?? 0)
+  }
+
+  const fetchCsrfToken = async () => {
+    const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+    const csrfData = await csrfRes.json().catch(() => ({}))
+    return csrfData?.token ?? null
+  }
+
+  const saveCoursePrice = async (course: PublicCourse) => {
+    const rawValue = getPriceValue(course).trim()
+    const priceValue = rawValue === '' ? NaN : Number(rawValue)
+    if (!Number.isFinite(priceValue) || priceValue < 0) {
+      toast.error('Enter a valid price (0 or more).')
+      return
+    }
+    setPriceSaving((prev) => ({ ...prev, [course.id]: true }))
+    try {
+      const csrfToken = await fetchCsrfToken()
+      const res = await fetch(`/api/tutor/courses/${course.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ price: priceValue }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Failed to update price')
+        return
+      }
+      setAllCourses((prev) =>
+        prev.map((c) => (c.id === course.id ? { ...c, price: priceValue } : c))
+      )
+      setPriceEdits((prev) => {
+        const next = { ...prev }
+        delete next[course.id]
+        return next
+      })
+      toast.success('Price updated')
+    } catch {
+      toast.error('Failed to update price')
+    } finally {
+      setPriceSaving((prev) => ({ ...prev, [course.id]: false }))
+    }
+  }
+
+  const deleteCourse = async (course: PublicCourse) => {
+    if (!confirm(`Delete "${course.name}"? This cannot be undone.`)) return
+    setDeleteBusy((prev) => ({ ...prev, [course.id]: true }))
+    try {
+      const csrfToken = await fetchCsrfToken()
+      const res = await fetch(`/api/tutor/courses/${course.id}`, {
+        method: 'DELETE',
+        headers: {
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Failed to delete course')
+        return
+      }
+      setAllCourses((prev) => prev.filter((c) => c.id !== course.id))
+      setSelectedCourseId((prev) => (prev === course.id ? null : prev))
+      toast.success('Course deleted')
+    } catch {
+      toast.error('Failed to delete course')
+    } finally {
+      setDeleteBusy((prev) => ({ ...prev, [course.id]: false }))
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -286,9 +374,9 @@ export default function TutorMyPage() {
           <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="courses">
               Courses
-              {publishedCourses.length > 0 && (
+              {paidPublishedCourses.length > 0 && (
                 <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {publishedCourses.length}
+                  {paidPublishedCourses.length}
                 </span>
               )}
             </TabsTrigger>
@@ -368,11 +456,11 @@ export default function TutorMyPage() {
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Loading courses...</p>
               </div>
-            ) : filteredCourses.length === 0 ? (
+            ) : paidPublishedCourses.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">No courses yet</h3>
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">No published paid courses yet</h3>
                   <Button onClick={() => router.push('/tutor/courses/new')}>
                     Create New Course
                   </Button>
@@ -380,7 +468,7 @@ export default function TutorMyPage() {
               </Card>
             ) : viewMode === 'list' ? (
               <div className="space-y-3">
-                {filteredCourses.map((course) => (
+                {paidPublishedCourses.map((course) => (
                   <Card 
                     key={course.id} 
                     className={`hover:shadow-md transition-shadow cursor-pointer ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
@@ -424,10 +512,28 @@ export default function TutorMyPage() {
                               <span>{course._count?.enrollments || 0} students</span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-lg font-bold text-blue-600">
-                              {course.price ? `$${course.price}` : 'Free'}
-                            </span>
+                          <div className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={getPriceValue(course)}
+                                onChange={(e) => {
+                                  setPriceEdits((prev) => ({ ...prev, [course.id]: e.target.value }))
+                                }}
+                                className="h-8 w-24 text-right"
+                              />
+                              <span className="text-xs text-muted-foreground">{course.currency || 'USD'}</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={priceSaving[course.id]}
+                                onClick={() => saveCoursePrice(course)}
+                              >
+                                {priceSaving[course.id] ? 'Saving...' : 'Save'}
+                              </Button>
+                            </div>
                           </div>
                           <div className="flex gap-2">
                             <Button 
@@ -451,6 +557,17 @@ export default function TutorMyPage() {
                               <Play className="h-4 w-4 mr-1" />
                               Go Live
                             </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={deleteBusy[course.id]}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                deleteCourse(course)
+                              }}
+                            >
+                              {deleteBusy[course.id] ? 'Deleting...' : 'Delete'}
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -460,7 +577,7 @@ export default function TutorMyPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCourses.map((course) => (
+                {paidPublishedCourses.map((course) => (
                   <Card 
                     key={course.id} 
                     className={`hover:shadow-2xl transition-all border-none neon-border-inner bg-white/60 hover:bg-white backdrop-blur-sm cursor-pointer ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
@@ -502,10 +619,28 @@ export default function TutorMyPage() {
                         </div>
                       </div>
 
-                      <div className="mb-4">
-                        <span className="text-lg font-bold text-blue-600">
-                          {course.price ? `$${course.price}` : 'Free'}
-                        </span>
+                      <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={getPriceValue(course)}
+                            onChange={(e) => {
+                              setPriceEdits((prev) => ({ ...prev, [course.id]: e.target.value }))
+                            }}
+                            className="h-8 w-24 text-right"
+                          />
+                          <span className="text-xs text-muted-foreground">{course.currency || 'USD'}</span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={priceSaving[course.id]}
+                            onClick={() => saveCoursePrice(course)}
+                          >
+                            {priceSaving[course.id] ? 'Saving...' : 'Save'}
+                          </Button>
+                        </div>
                       </div>
 
                       <div className="flex gap-2">
@@ -531,6 +666,18 @@ export default function TutorMyPage() {
                         >
                           <Play className="h-4 w-4 mr-1" />
                           Go Live
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          className="flex-1"
+                          disabled={deleteBusy[course.id]}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteCourse(course)
+                          }}
+                        >
+                          {deleteBusy[course.id] ? 'Deleting...' : 'Delete'}
                         </Button>
                       </div>
                     </CardContent>
@@ -690,6 +837,14 @@ export default function TutorMyPage() {
                           <Button size="sm" variant="outline" onClick={() => router.push(`/tutor/courses/${course.id}`)}>
                             <DollarSign className="h-4 w-4 mr-1" />
                             Price
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={deleteBusy[course.id]}
+                            onClick={() => deleteCourse(course)}
+                          >
+                            {deleteBusy[course.id] ? 'Deleting...' : 'Delete'}
                           </Button>
                         </div>
                       </div>

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
 import {
   Dialog,
   DialogContent,
@@ -52,9 +53,16 @@ interface CreateClassDialogProps {
   onOpenChange: (open: boolean) => void
   onClassCreated?: (classData?: { id: string; [key: string]: unknown }) => void
   redirectToClass?: boolean
+  initialDate?: Date | null
 }
 
-export function CreateClassDialog({ open, onOpenChange, onClassCreated, redirectToClass = true }: CreateClassDialogProps) {
+export function CreateClassDialog({
+  open,
+  onOpenChange,
+  onClassCreated,
+  redirectToClass = true,
+  initialDate
+}: CreateClassDialogProps) {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
@@ -67,6 +75,21 @@ export function CreateClassDialog({ open, onOpenChange, onClassCreated, redirect
     durationMinutes: 60,
     scheduledAt: '',
   })
+
+  useEffect(() => {
+    if (!open || !initialDate) return
+    const nextDate = new Date(initialDate)
+    nextDate.setHours(9, 0, 0, 0)
+    const nextValue = format(nextDate, "yyyy-MM-dd'T'HH:mm")
+    setForm((prev) => {
+      const currentDatePart = prev.scheduledAt.split('T')[0]
+      const nextDatePart = nextValue.split('T')[0]
+      if (!prev.scheduledAt || currentDatePart !== nextDatePart) {
+        return { ...prev, scheduledAt: nextValue }
+      }
+      return prev
+    })
+  }, [open, initialDate])
 
   const handleSubmit = async () => {
     if (!form.title.trim()) { toast.error('Please enter a class title'); return }
