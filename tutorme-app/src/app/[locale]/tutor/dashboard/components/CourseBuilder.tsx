@@ -343,6 +343,7 @@ interface CourseBuilderProps {
   courseName?: string
   panelMode?: 'default' | 'live-class'
   initialModules?: Module[]
+  lessonBankMode?: boolean
   onMakeVisibleToStudents?: (payload: VisibleDocumentPayload) => void
   onSave?: (
     modules: Module[],
@@ -4858,7 +4859,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 // ============================================
 
 export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(function CourseBuilder(
-  { courseId, courseName, panelMode = 'default', initialModules = [], onSave, onMakeVisibleToStudents },
+  { courseId, courseName, panelMode = 'default', initialModules = [], lessonBankMode = false, onSave, onMakeVisibleToStudents },
   ref
 ) {
   const [modules, setModules] = useState<Module[]>([])
@@ -4867,6 +4868,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [outlineModalOpen, setOutlineModalOpen] = useState(false)
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [importTarget, setImportTarget] = useState<{ moduleId: string, lessonId: string } | null>(null)
+  const [lessonBankImportOpen, setLessonBankImportOpen] = useState(false)
+  const [lessonBankModules, setLessonBankModules] = useState<Module[]>([])
+  const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
   const [courseAssets, setCourseAssets] = useState<{ id: string, name: string, content?: string }[]>([])
   const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
   const [assetToLoad, setAssetToLoad] = useState<{name: string, content?: string} | null>(null)
@@ -5190,6 +5194,55 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
 
   const formatPciTranscript = (messages: { role: 'user' | 'assistant'; content: string }[]) =>
     messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
+
+  const loadLessonBankModules = useCallback(() => {
+    try {
+      const raw = localStorage.getItem('lesson-bank-modules-v1')
+      if (!raw) return []
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return []
+      return parsed as Module[]
+    } catch {
+      return []
+    }
+  }, [])
+
+  const openLessonBankImport = useCallback((target: { moduleId: string; lessonId: string }) => {
+    const bankModules = loadLessonBankModules()
+    setLessonBankModules(bankModules)
+    const firstLesson = bankModules[0]?.lessons?.[0]
+    if (firstLesson) {
+      setLessonBankLessonKey(`${bankModules[0].id}:${firstLesson.id}`)
+    } else {
+      setLessonBankLessonKey('')
+    }
+    setImportTarget(target)
+    setLessonBankImportOpen(true)
+  }, [loadLessonBankModules])
+
+  const cloneTask = (task: Task): Task => ({
+    ...task,
+    id: `task-${generateId()}`,
+    extensions: (task.extensions || []).map(ext => ({
+      ...ext,
+      id: `ext-${generateId()}`,
+    })),
+  })
+
+  const cloneAssessment = (assessment: Assessment): Assessment => ({
+    ...assessment,
+    id: `homework-${generateId()}`,
+  })
+
+  const cloneLesson = (lesson: Lesson, order: number): Lesson => ({
+    ...lesson,
+    id: `lesson-${generateId()}`,
+    order,
+    tasks: (lesson.tasks || []).map(cloneTask),
+    homework: (lesson.homework || []).map(cloneAssessment),
+    worksheets: (lesson.worksheets || []).map(w => ({ ...w, id: `worksheet-${generateId()}` })),
+    quizzes: (lesson.quizzes || []).map(q => ({ ...q, id: `quiz-${generateId()}` })),
+  })
 
   const handlePciSend = async (type: 'task' | 'assessment') => {
     const isTask = type === 'task'
@@ -6867,19 +6920,20 @@ FEEDBACK: [your explanation]`
                                 </Button>
 
                                 {/* Import Button */}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-blue-600"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation()
-                                    setImportTarget({ moduleId: module.id, lessonId: primaryLesson.id })
-                                    setQuestionBankOpen(true)
-                                  }}
-                                >
-                                  <FolderOpen className="h-3 w-3" />
-                                  Import
-                                </Button>
+                                {!lessonBankMode && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-blue-600"
+                                    onClick={(e: any) => {
+                                      e.stopPropagation()
+                                      openLessonBankImport({ moduleId: module.id, lessonId: primaryLesson.id })
+                                    }}
+                                  >
+                                    <FolderOpen className="h-3 w-3" />
+                                    Import
+                                  </Button>
+                                )}
 
                                 <Button
                                   variant="ghost"
@@ -6983,31 +7037,20 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                setQuestionBankTarget(`task-${task.id}`)
-                                                setImportTarget(null)
-                                                setQuestionBankOpen(true)
-                                              }}
-                                            >
-                                              Import
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                setEditingData(task)
-                                                setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
-                                              }}
-                                            >
-                                              Edit
-                                            </Button>
+                                            {!lessonBankMode && (
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                                onClick={(e: any) => {
+                                                  e.stopPropagation()
+                                                  setEditingData(task)
+                                                  setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
+                                                }}
+                                              >
+                                                Edit
+                                              </Button>
+                                            )}
                                             <Button
                                               variant="ghost"
                                               size="icon"
@@ -7057,18 +7100,20 @@ FEEDBACK: [your explanation]`
                                                     <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
                                                     <span className="font-semibold text-orange-700">{idx + 1}.{extIdx + 1}</span>
                                                     <span className="flex-1 truncate text-muted-foreground">{ext.name}</span>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      className="h-5 text-[10px] gap-1 opacity-0 group-hover/extension:opacity-100 px-1"
-                                                      onClick={(e: any) => {
-                                                        e.stopPropagation()
-                                                        setQuestionBankTarget(`extension-${ext.id}`)
-                                                        setQuestionBankOpen(true)
-                                                      }}
-                                                    >
-                                                      Import
-                                                    </Button>
+                                                    {!lessonBankMode && (
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-5 text-[10px] gap-1 opacity-0 group-hover/extension:opacity-100 px-1"
+                                                        onClick={(e: any) => {
+                                                          e.stopPropagation()
+                                                          setQuestionBankTarget(`extension-${ext.id}`)
+                                                          setQuestionBankOpen(true)
+                                                        }}
+                                                      >
+                                                        Import
+                                                      </Button>
+                                                    )}
                                                     <Button
                                                       variant="ghost"
                                                       size="icon"
@@ -7204,31 +7249,20 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-purple-700">{idx + 1}.</span> {hw.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                setQuestionBankTarget(`assessment-${hw.id}`)
-                                                setImportTarget(null)
-                                                setQuestionBankOpen(true)
-                                              }}
-                                            >
-                                              Import
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                setEditingData(hw)
-                                                setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
-                                              }}
-                                            >
-                                              Edit
-                                            </Button>
+                                            {!lessonBankMode && (
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                                onClick={(e: any) => {
+                                                  e.stopPropagation()
+                                                  setEditingData(hw)
+                                                  setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                                }}
+                                              >
+                                                Edit
+                                              </Button>
+                                            )}
                                             <Button
                                               variant="ghost"
                                               size="icon"
@@ -7345,31 +7379,20 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                setQuestionBankTarget(`homework-${hw.id}`)
-                                                setImportTarget(null)
-                                                setQuestionBankOpen(true)
-                                              }}
-                                            >
-                                              Import
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                setEditingData(hw)
-                                                setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
-                                              }}
-                                            >
-                                              Edit
-                                            </Button>
+                                            {!lessonBankMode && (
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                                onClick={(e: any) => {
+                                                  e.stopPropagation()
+                                                  setEditingData(hw)
+                                                  setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                                }}
+                                              >
+                                                Edit
+                                              </Button>
+                                            )}
                                             <Button
                                               variant="ghost"
                                               size="icon"
@@ -7538,7 +7561,7 @@ FEEDBACK: [your explanation]`
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
                               placeholder={taskBuilder.activeExtensionId ? "Extension content..." : "Enter task content or drop files here..."}
-                              className="w-full min-h-[100px]"
+                              className="w-full min-h-[300px]"
                               onDrop={(e: any) => handleDragFiles(e, (text) => {
                                 setTaskBuilder(prev => {
                                   if (prev.activeExtensionId) {
@@ -7599,7 +7622,7 @@ FEEDBACK: [your explanation]`
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <div className="rounded-lg border bg-white">
-                              <div className="max-h-[260px] overflow-y-auto p-3 space-y-3">
+                              <div className="max-h-[1300px] min-h-[1300px] overflow-y-auto p-3 space-y-3">
                                 {activeTaskPciMessages.length === 0 && (
                                   <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
                                 )}
@@ -7818,7 +7841,7 @@ FEEDBACK: [your explanation]`
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
                               placeholder="Enter assessment content or drop files here..."
-                              className="w-full min-h-[100px]"
+                              className="w-full min-h-[300px]"
                               onDrop={(e: any) => handleDragFiles(e, (text) => {
                                 setAssessmentBuilder(prev => {
                                   const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
@@ -7847,7 +7870,7 @@ FEEDBACK: [your explanation]`
                           </TabsContent>
                           <TabsContent value="pci" className="mt-2">
                             <div className="rounded-lg border bg-white">
-                              <div className="max-h-[260px] overflow-y-auto p-3 space-y-3">
+                              <div className="max-h-[1300px] min-h-[1300px] overflow-y-auto p-3 space-y-3">
                                 {assessmentPciMessages.length === 0 && (
                                   <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
                                 )}
@@ -8325,6 +8348,164 @@ FEEDBACK: [your explanation]`
                 Homework
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Lesson Bank Import Modal */}
+        <Dialog open={lessonBankImportOpen} onOpenChange={(open) => { if (!open) { setLessonBankImportOpen(false); setImportTarget(null) } }}>
+          <DialogContent className="sm:max-w-lg border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>Import from Lesson Bank</DialogTitle>
+              <DialogDescription>Select a lesson to import into this course.</DialogDescription>
+            </DialogHeader>
+            {lessonBankModules.length === 0 ? (
+              <div className="py-6 text-center text-sm text-muted-foreground">
+                No lesson bank content found. Build lessons in the Lesson Bank first.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Lesson</Label>
+                  <Select
+                    value={lessonBankLessonKey}
+                    onValueChange={setLessonBankLessonKey}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a lesson" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lessonBankModules.flatMap((mod) =>
+                        mod.lessons.map((lesson) => (
+                          <SelectItem key={`${mod.id}:${lesson.id}`} value={`${mod.id}:${lesson.id}`}>
+                            {mod.title} • {lesson.title}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button
+                    variant="outline"
+                    disabled={!lessonBankLessonKey || !importTarget}
+                    onClick={() => {
+                      if (!lessonBankLessonKey || !importTarget) return
+                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                      if (!bankLesson) return
+                      setModules(prev => prev.map(mod => {
+                        if (mod.id !== importTarget.moduleId) return mod
+                        const nextLesson = cloneLesson(bankLesson, mod.lessons.length)
+                        return {
+                          ...mod,
+                          lessons: [...mod.lessons, nextLesson]
+                        }
+                      }))
+                      toast.success('Lesson imported')
+                      setLessonBankImportOpen(false)
+                      setImportTarget(null)
+                    }}
+                  >
+                    Import Lesson
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={!lessonBankLessonKey || !importTarget}
+                    onClick={() => {
+                      if (!lessonBankLessonKey || !importTarget) return
+                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                      if (!bankLesson) return
+                      setModules(prev => prev.map(mod => {
+                        if (mod.id !== importTarget.moduleId) return mod
+                        return {
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => {
+                            if (lesson.id !== importTarget.lessonId) return lesson
+                            return {
+                              ...lesson,
+                              tasks: [...lesson.tasks, ...bankLesson.tasks.map(cloneTask)]
+                            }
+                          })
+                        }
+                      }))
+                      toast.success('Tasks imported')
+                      setLessonBankImportOpen(false)
+                      setImportTarget(null)
+                    }}
+                  >
+                    Import Tasks
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={!lessonBankLessonKey || !importTarget}
+                    onClick={() => {
+                      if (!lessonBankLessonKey || !importTarget) return
+                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                      if (!bankLesson) return
+                      const assessments = (bankLesson.homework || []).filter(h => h.category !== 'homework')
+                      setModules(prev => prev.map(mod => {
+                        if (mod.id !== importTarget.moduleId) return mod
+                        return {
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => {
+                            if (lesson.id !== importTarget.lessonId) return lesson
+                            return {
+                              ...lesson,
+                              homework: [...lesson.homework, ...assessments.map(cloneAssessment)]
+                            }
+                          })
+                        }
+                      }))
+                      toast.success('Assessments imported')
+                      setLessonBankImportOpen(false)
+                      setImportTarget(null)
+                    }}
+                  >
+                    Import Assessments
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={!lessonBankLessonKey || !importTarget}
+                    onClick={() => {
+                      if (!lessonBankLessonKey || !importTarget) return
+                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                      if (!bankLesson) return
+                      const homeworkItems = (bankLesson.homework || []).filter(h => h.category === 'homework')
+                      setModules(prev => prev.map(mod => {
+                        if (mod.id !== importTarget.moduleId) return mod
+                        return {
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => {
+                            if (lesson.id !== importTarget.lessonId) return lesson
+                            return {
+                              ...lesson,
+                              homework: [...lesson.homework, ...homeworkItems.map(cloneAssessment)]
+                            }
+                          })
+                        }
+                      }))
+                      toast.success('Homework imported')
+                      setLessonBankImportOpen(false)
+                      setImportTarget(null)
+                    }}
+                  >
+                    Import Homework
+                  </Button>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setLessonBankImportOpen(false); setImportTarget(null) }}>
+                Close
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

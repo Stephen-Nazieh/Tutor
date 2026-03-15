@@ -19,33 +19,24 @@ import {
   TrendingUp,
   Users,
   BookOpen,
-  Award,
   ArrowLeft,
   Download,
   BarChart3,
   Loader2,
   Search,
   ChevronRight,
-  GraduationCap,
-  AlertTriangle,
   Calendar,
   Activity,
   FileText,
   FileSpreadsheet,
   FileIcon,
-  LayoutDashboard,
-  MessageSquare,
   Send,
   Bot,
   User,
 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { ScoreDistributionChart } from '@/components/analytics/score-distribution-chart'
 import { EngagementDashboard } from '@/components/reports/engagement-dashboard'
-import { StudentsNeedingAttentionCard } from '../dashboard/components/StudentsNeedingAttentionCard'
-import { StudentProgressCard } from '../dashboard/components/StudentProgressCard'
-import { AIInsightsCard } from '../dashboard/components/AIInsightsCard'
 import { RevenueDashboard } from '../dashboard/components/RevenueDashboard'
 import { DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'

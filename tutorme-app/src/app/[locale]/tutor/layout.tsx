@@ -29,8 +29,15 @@ import {
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
+type NavItem = {
+  href: string
+  label: string
+  icon: typeof LayoutDashboard
+  inactive?: boolean
+}
+
 // Main Navigation - Flat list (no groups)
-const navItems = [
+const navItems: NavItem[] = [
   { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe },
   { href: '/tutor/course-builder', label: 'Course Builder', icon: Wrench },
