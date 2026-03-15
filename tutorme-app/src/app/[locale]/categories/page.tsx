@@ -47,72 +47,567 @@ interface ExamCategory {
   exams: string[]
 }
 
-// National exams data by country
+// National exams data by country - extracted from Categories.docx
 const NATIONAL_EXAMS_DATA: Record<string, ExamCategory[]> = {
-  // Asia
+  // Asia - Hong Kong
   'HK': [
-    { id: 'hkdse-s5', label: 'HKDSE Preparation (S5)', exams: ['S5 HKDSE Chinese Language Preparation', 'S5 HKDSE English Language Preparation', 'S5 HKDSE Mathematics Preparation', 'S5 HKDSE Mathematics M1 Preparation', 'S5 HKDSE Mathematics M2 Preparation', 'S5 HKDSE Physics Preparation', 'S5 HKDSE Chemistry Preparation', 'S5 HKDSE Biology Preparation', 'S5 HKDSE Combined Science Preparation'] },
-    { id: 'hkdse-s6', label: 'HKDSE Preparation (S6)', exams: ['S6 HKDSE Chinese Language Preparation', 'S6 HKDSE English Language Preparation', 'S6 HKDSE Mathematics Preparation', 'S6 HKDSE Mathematics M1 Preparation', 'S6 HKDSE Mathematics M2 Preparation', 'S6 HKDSE Physics Preparation', 'S6 HKDSE Chemistry Preparation', 'S6 HKDSE Biology Preparation', 'S6 HKDSE Combined Science Preparation'] }
+    { 
+      id: 'hkdse-s5', 
+      label: 'HKDSE Preparation (S5)', 
+      exams: [
+        'S5 HKDSE Chinese Language Preparation', 
+        'S5 HKDSE English Language Preparation', 
+        'S5 HKDSE Mathematics Preparation', 
+        'S5 HKDSE Mathematics M1 Preparation', 
+        'S5 HKDSE Mathematics M2 Preparation', 
+        'S5 HKDSE Physics Preparation', 
+        'S5 HKDSE Chemistry Preparation', 
+        'S5 HKDSE Biology Preparation', 
+        'S5 HKDSE Combined Science Preparation'
+      ] 
+    },
+    { 
+      id: 'hkdse-s6', 
+      label: 'HKDSE Preparation (S6)', 
+      exams: [
+        'S6 HKDSE Chinese Language Preparation', 
+        'S6 HKDSE English Language Preparation', 
+        'S6 HKDSE Mathematics Preparation', 
+        'S6 HKDSE Mathematics M1 Preparation', 
+        'S6 HKDSE Mathematics M2 Preparation', 
+        'S6 HKDSE Physics Preparation', 
+        'S6 HKDSE Chemistry Preparation', 
+        'S6 HKDSE Biology Preparation', 
+        'S6 HKDSE Combined Science Preparation'
+      ] 
+    },
+    {
+      id: 'hk-subject-s4',
+      label: 'Secondary 4 (S4 / Grade 10)',
+      exams: ['S4 Chinese Language', 'S4 English Language', 'S4 Mathematics', 'S4 Mathematics Extended Module 1 (M1)', 'S4 Mathematics Extended Module 2 (M2)', 'S4 Physics', 'S4 Chemistry', 'S4 Biology', 'S4 Combined Science']
+    },
+    {
+      id: 'hk-subject-s5',
+      label: 'Secondary 5 (S5 / Grade 11)',
+      exams: ['S5 Chinese Language', 'S5 English Language', 'S5 Mathematics', 'S5 Mathematics Extended Module 1 (M1)', 'S5 Mathematics Extended Module 2 (M2)', 'S5 Physics', 'S5 Chemistry', 'S5 Biology', 'S5 Combined Science']
+    },
+    {
+      id: 'hk-subject-s6',
+      label: 'Secondary 6 (S6 / Grade 12)',
+      exams: ['S6 Chinese Language', 'S6 English Language', 'S6 Mathematics', 'S6 Mathematics Extended Module 1 (M1)', 'S6 Mathematics Extended Module 2 (M2)', 'S6 Physics', 'S6 Chemistry', 'S6 Biology', 'S6 Combined Science']
+    }
   ],
+  // South Korea
   'KR': [
-    { id: 'csat', label: 'CSAT Preparation', exams: ['CSAT Korean Language Preparation', 'CSAT English Preparation', 'CSAT Mathematics Preparation', 'CSAT Physics Preparation', 'CSAT Chemistry Preparation', 'CSAT Biology Preparation', 'CSAT Earth Science Preparation'] }
+    { 
+      id: 'csat', 
+      label: 'CSAT Preparation (수능 Preparation)', 
+      exams: [
+        'CSAT Korean Language Preparation', 
+        'CSAT English Preparation', 
+        'CSAT Mathematics Preparation', 
+        'CSAT Physics Preparation', 
+        'CSAT Chemistry Preparation', 
+        'CSAT Biology Preparation', 
+        'CSAT Earth Science Preparation'
+      ] 
+    },
+    {
+      id: 'kr-year-1',
+      label: 'High School Year 1',
+      exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Geometry', 'Probability & Statistics', 'Integrated Science', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+    },
+    {
+      id: 'kr-year-2',
+      label: 'High School Year 2',
+      exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Calculus Foundations', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+    },
+    {
+      id: 'kr-year-3',
+      label: 'High School Year 3',
+      exams: ['Korean Language', 'English Language', 'Mathematics', 'Calculus', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+    }
   ],
+  // Singapore
   'SG': [
-    { id: 'gce-o-level', label: 'GCE O-Level Preparation', exams: ['O-Level English Preparation', 'O-Level Elementary Mathematics Preparation', 'O-Level Additional Mathematics Preparation', 'O-Level Physics Preparation', 'O-Level Chemistry Preparation', 'O-Level Biology Preparation', 'O-Level Combined Science Preparation'] },
-    { id: 'gce-a-level', label: 'GCE A-Level Preparation', exams: ['A-Level General Paper Preparation', 'A-Level Mathematics Preparation', 'A-Level Physics Preparation', 'A-Level Chemistry Preparation', 'A-Level Biology Preparation'] }
+    { 
+      id: 'gce-o-level', 
+      label: 'GCE O-Level Preparation', 
+      exams: [
+        'O-Level English Preparation', 
+        'O-Level Elementary Mathematics Preparation', 
+        'O-Level Additional Mathematics Preparation', 
+        'O-Level Physics Preparation', 
+        'O-Level Chemistry Preparation', 
+        'O-Level Biology Preparation', 
+        'O-Level Combined Science Preparation'
+      ] 
+    },
+    { 
+      id: 'gce-a-level', 
+      label: 'GCE A-Level Preparation', 
+      exams: [
+        'A-Level General Paper Preparation', 
+        'A-Level Mathematics Preparation', 
+        'A-Level Physics Preparation', 
+        'A-Level Chemistry Preparation', 
+        'A-Level Biology Preparation'
+      ] 
+    },
+    {
+      id: 'sg-sec-4',
+      label: 'Secondary 4 (Sec 4 / Grade 10)',
+      exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science']
+    },
+    {
+      id: 'sg-sec-5',
+      label: 'Secondary 5 (Sec 5 / Grade 11)',
+      exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science']
+    },
+    {
+      id: 'sg-jc1',
+      label: 'Junior College Year 1 (JC1 / Grade 11)',
+      exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology']
+    },
+    {
+      id: 'sg-jc2',
+      label: 'Junior College Year 2 (JC2 / Grade 12)',
+      exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology']
+    }
   ],
+  // Japan
   'JP': [
-    { id: 'university-entrance', label: 'University Entrance Examination Preparation', exams: ['Japanese University Entrance Japanese Language', 'Japanese University Entrance English', 'Japanese University Entrance Mathematics', 'Japanese University Entrance Physics', 'Japanese University Entrance Chemistry', 'Japanese University Entrance Biology', 'Japanese University Entrance Earth Science'] }
+    { 
+      id: 'university-entrance', 
+      label: 'University Entrance Examination Preparation', 
+      exams: [
+        'Japanese University Entrance Japanese Language', 
+        'Japanese University Entrance English', 
+        'Japanese University Entrance Mathematics', 
+        'Japanese University Entrance Physics', 
+        'Japanese University Entrance Chemistry', 
+        'Japanese University Entrance Biology', 
+        'Japanese University Entrance Earth Science'
+      ] 
+    },
+    {
+      id: 'jp-year-1',
+      label: 'High School Year 1 (G10 / 高校1年)',
+      exams: ['Japanese Language', 'English Language', 'Mathematics I', 'Mathematics A', 'Basic Physics', 'Basic Chemistry', 'Basic Biology', 'Earth Science Basics']
+    },
+    {
+      id: 'jp-year-2',
+      label: 'High School Year 2 (G11 / 高校2年)',
+      exams: ['Japanese Language', 'English Language', 'Mathematics II', 'Mathematics B', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+    },
+    {
+      id: 'jp-year-3',
+      label: 'High School Year 3 (G12 / 高校3年)',
+      exams: ['Japanese Language', 'English Language', 'Mathematics III', 'Advanced Mathematics', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+    }
   ],
+  // Thailand
   'TH': [
-    { id: 'university-admission', label: 'University Admission Examination', exams: ['Thai University Admission Thai Language', 'Thai University Admission English', 'Thai University Admission Mathematics', 'Thai University Admission Physics', 'Thai University Admission Chemistry', 'Thai University Admission Biology', 'Thai University Admission Earth & Space Science'] }
+    { 
+      id: 'university-admission', 
+      label: 'University Admission Examination', 
+      exams: [
+        'Thai University Admission Thai Language', 
+        'Thai University Admission English', 
+        'Thai University Admission Mathematics', 
+        'Thai University Admission Physics', 
+        'Thai University Admission Chemistry', 
+        'Thai University Admission Biology', 
+        'Thai University Admission Earth & Space Science'
+      ] 
+    },
+    {
+      id: 'th-grade-10',
+      label: 'Grade 10',
+      exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'th-grade-11',
+      label: 'Grade 11',
+      exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'th-grade-12',
+      label: 'Grade 12',
+      exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
+  // India
   'IN': [
-    { id: 'jee', label: 'Engineering Entrance (JEE)', exams: ['JEE Main Preparation — Mathematics', 'JEE Main Preparation — Physics', 'JEE Main Preparation — Chemistry', 'JEE Advanced Preparation — Mathematics', 'JEE Advanced Preparation — Physics', 'JEE Advanced Preparation — Chemistry'] },
-    { id: 'neet', label: 'Medical Entrance (NEET)', exams: ['NEET Preparation — Physics', 'NEET Preparation — Chemistry', 'NEET Preparation — Biology'] }
+    { 
+      id: 'jee', 
+      label: 'Engineering Entrance (JEE)', 
+      exams: [
+        'JEE Main Preparation — Mathematics', 
+        'JEE Main Preparation — Physics', 
+        'JEE Main Preparation — Chemistry', 
+        'JEE Advanced Preparation — Mathematics', 
+        'JEE Advanced Preparation — Physics', 
+        'JEE Advanced Preparation — Chemistry'
+      ] 
+    },
+    { 
+      id: 'neet', 
+      label: 'Medical Entrance (NEET)', 
+      exams: [
+        'NEET Preparation — Physics', 
+        'NEET Preparation — Chemistry', 
+        'NEET Preparation — Biology'
+      ] 
+    },
+    {
+      id: 'in-grade-10',
+      label: 'Grade 10',
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'in-grade-11',
+      label: 'Grade 11',
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'in-grade-12',
+      label: 'Grade 12',
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
+  // Vietnam
   'VN': [
-    { id: 'national-exam', label: 'National Examination Preparation', exams: ['Vietnam National Exam — Vietnamese Language', 'Vietnam National Exam — English', 'Vietnam National Exam — Mathematics', 'Vietnam National Exam — Physics', 'Vietnam National Exam — Chemistry', 'Vietnam National Exam — Biology'] }
+    { 
+      id: 'national-exam', 
+      label: 'National Examination Preparation', 
+      exams: [
+        'Vietnam National Exam — Vietnamese Language', 
+        'Vietnam National Exam — English', 
+        'Vietnam National Exam — Mathematics', 
+        'Vietnam National Exam — Physics', 
+        'Vietnam National Exam — Chemistry', 
+        'Vietnam National Exam — Biology'
+      ] 
+    },
+    {
+      id: 'vn-grade-10',
+      label: 'Grade 10',
+      exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'vn-grade-11',
+      label: 'Grade 11',
+      exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'vn-grade-12',
+      label: 'Grade 12',
+      exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
+  // Taiwan
   'TW': [
-    { id: 'university-entrance', label: 'University Entrance Examination', exams: ['Taiwan University Entrance Chinese', 'Taiwan University Entrance English', 'Taiwan University Entrance Mathematics', 'Taiwan University Entrance Physics', 'Taiwan University Entrance Chemistry', 'Taiwan University Entrance Biology'] }
+    { 
+      id: 'university-entrance', 
+      label: 'University Entrance Examination', 
+      exams: [
+        'Taiwan University Entrance Chinese', 
+        'Taiwan University Entrance English', 
+        'Taiwan University Entrance Mathematics', 
+        'Taiwan University Entrance Physics', 
+        'Taiwan University Entrance Chemistry', 
+        'Taiwan University Entrance Biology'
+      ] 
+    },
+    {
+      id: 'tw-grade-10',
+      label: 'Grade 10',
+      exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'tw-grade-11',
+      label: 'Grade 11',
+      exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'tw-grade-12',
+      label: 'Grade 12',
+      exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
+  // Malaysia
   'MY': [
-    { id: 'spm', label: 'SPM Examination', exams: ['SPM Malay', 'SPM English', 'SPM Mathematics', 'SPM Physics', 'SPM Chemistry', 'SPM Biology'] }
+    { 
+      id: 'spm', 
+      label: 'SPM Examination', 
+      exams: ['SPM Malay', 'SPM English', 'SPM Mathematics', 'SPM Physics', 'SPM Chemistry', 'SPM Biology'] 
+    },
+    {
+      id: 'my-grade-10',
+      label: 'Grade 10',
+      exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'my-grade-11',
+      label: 'Grade 11',
+      exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'my-grade-12',
+      label: 'Grade 12',
+      exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
+  // Indonesia
   'ID': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Indonesian', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] }
+    { 
+      id: 'university-admission', 
+      label: 'University Admission', 
+      exams: [
+        'University Admission Indonesian', 
+        'University Admission English', 
+        'University Admission Mathematics', 
+        'University Admission Physics', 
+        'University Admission Chemistry', 
+        'University Admission Biology'
+      ] 
+    },
+    {
+      id: 'id-grade-10',
+      label: 'Grade 10',
+      exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'id-grade-11',
+      label: 'Grade 11',
+      exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'id-grade-12',
+      label: 'Grade 12',
+      exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
+  // Philippines - no national exams listed in Categories.docx
+  'PH': [],
+  // Israel
   'IL': [
-    { id: 'bagrut', label: 'Bagrut', exams: ['Bagrut Hebrew', 'Bagrut English', 'Bagrut Mathematics', 'Bagrut Physics', 'Bagrut Chemistry', 'Bagrut Biology'] }
+    { 
+      id: 'bagrut', 
+      label: 'Bagrut', 
+      exams: ['Bagrut Hebrew', 'Bagrut English', 'Bagrut Mathematics', 'Bagrut Physics', 'Bagrut Chemistry', 'Bagrut Biology'] 
+    },
+    {
+      id: 'il-grade-10',
+      label: 'Grade 10',
+      exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'il-grade-11',
+      label: 'Grade 11',
+      exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'il-grade-12',
+      label: 'Grade 12',
+      exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
   // Middle East
   'SA': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] }
+    { 
+      id: 'university-admission', 
+      label: 'University Admission', 
+      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+    },
+    {
+      id: 'sa-grade-10',
+      label: 'Grade 10',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'sa-grade-11',
+      label: 'Grade 11',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'sa-grade-12',
+      label: 'Grade 12',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
   'QA': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] }
+    { 
+      id: 'university-admission', 
+      label: 'University Admission', 
+      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+    },
+    {
+      id: 'qa-grade-10',
+      label: 'Grade 10',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'qa-grade-11',
+      label: 'Grade 11',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'qa-grade-12',
+      label: 'Grade 12',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
   'KW': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] }
+    { 
+      id: 'university-admission', 
+      label: 'University Admission', 
+      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+    },
+    {
+      id: 'kw-grade-10',
+      label: 'Grade 10',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'kw-grade-11',
+      label: 'Grade 11',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'kw-grade-12',
+      label: 'Grade 12',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
   'OM': [
-    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] }
+    { 
+      id: 'university-admission', 
+      label: 'University Admission', 
+      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+    },
+    {
+      id: 'om-grade-10',
+      label: 'Grade 10',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'om-grade-11',
+      label: 'Grade 11',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    },
+    {
+      id: 'om-grade-12',
+      label: 'Grade 12',
+      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+    }
   ],
   // Europe
   'GB': [
-    { id: 'gcse', label: 'GCSE', exams: ['GCSE English Language', 'GCSE English Literature', 'GCSE Mathematics', 'GCSE Biology', 'GCSE Chemistry', 'GCSE Physics', 'GCSE Combined Science'] },
-    { id: 'a-level-uk', label: 'A Level (UK)', exams: ['A Level English', 'A Level Mathematics', 'A Level Biology', 'A Level Chemistry', 'A Level Physics'] }
+    { 
+      id: 'gcse', 
+      label: 'GCSE', 
+      exams: ['GCSE English Language', 'GCSE English Literature', 'GCSE Mathematics', 'GCSE Biology', 'GCSE Chemistry', 'GCSE Physics', 'GCSE Combined Science'] 
+    },
+    { 
+      id: 'a-level-uk', 
+      label: 'A Level (UK)', 
+      exams: ['A Level English', 'A Level Mathematics', 'A Level Biology', 'A Level Chemistry', 'A Level Physics'] 
+    },
+    {
+      id: 'gb-grade-10',
+      label: 'Grade 10',
+      exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics', 'Combined Science']
+    },
+    {
+      id: 'gb-grade-11',
+      label: 'Grade 11',
+      exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'gb-grade-12',
+      label: 'Grade 12 (Age 17-18)',
+      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'gb-grade-13',
+      label: 'Grade 13',
+      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    }
   ],
   'DE': [
-    { id: 'abitur', label: 'Abitur', exams: ['Abitur German', 'Abitur English', 'Abitur Mathematics', 'Abitur Biology', 'Abitur Chemistry', 'Abitur Physics'] }
+    { 
+      id: 'abitur', 
+      label: 'Abitur', 
+      exams: ['Abitur German', 'Abitur English', 'Abitur Mathematics', 'Abitur Biology', 'Abitur Chemistry', 'Abitur Physics'] 
+    },
+    {
+      id: 'de-grade-10',
+      label: 'Grade 10',
+      exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'de-grade-11',
+      label: 'Grade 11',
+      exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'de-grade-12',
+      label: 'Grade 12',
+      exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    }
   ],
   'FR': [
-    { id: 'baccalaureat', label: 'Baccalauréat', exams: ['Baccalauréat French', 'Baccalauréat English', 'Baccalauréat Mathematics', 'Baccalauréat Biology', 'Baccalauréat Chemistry', 'Baccalauréat Physics'] }
+    { 
+      id: 'baccalaureat', 
+      label: 'Baccalauréat', 
+      exams: ['Baccalauréat French', 'Baccalauréat English', 'Baccalauréat Mathematics', 'Baccalauréat Biology', 'Baccalauréat Chemistry', 'Baccalauréat Physics'] 
+    },
+    {
+      id: 'fr-grade-10',
+      label: 'Grade 10 (Seconde - Age 16)',
+      exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'fr-grade-11',
+      label: 'Grade 11 (Première - Age 17)',
+      exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'fr-grade-12',
+      label: 'Grade 12 (Terminale - Age 18)',
+      exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics']
+    }
   ],
   'NL': [
-    { id: 'dutch-national', label: 'National Examination', exams: ['Dutch National Exam — Dutch', 'Dutch National Exam — English', 'Dutch National Exam — Mathematics', 'Dutch National Exam — Biology', 'Dutch National Exam — Chemistry', 'Dutch National Exam — Physics'] }
+    { 
+      id: 'dutch-national', 
+      label: 'National Examination', 
+      exams: ['Dutch National Exam — Dutch', 'Dutch National Exam — English', 'Dutch National Exam — Mathematics', 'Dutch National Exam — Biology', 'Dutch National Exam — Chemistry', 'Dutch National Exam — Physics'] 
+    },
+    {
+      id: 'nl-grade-10',
+      label: 'Grade 10',
+      exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'nl-grade-11',
+      label: 'Grade 11',
+      exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    },
+    {
+      id: 'nl-grade-12',
+      label: 'Grade 12',
+      exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+    }
   ],
+  // Countries without specific national exams in Categories.docx
+  'BE': [], 'CH': [], 'IT': [], 'ES': [], 'IE': [], 'PT': [], 'AT': [], 'PL': [], 'CZ': [], 'HU': [], 'RO': [], 'GR': [], 'TR': [],
+  'AU': [], 'NZ': [],
+  'US': [], 'CA': [], 'MX': [], 'CR': [], 'PA': [], 'DO': [],
+  'BR': [], 'CL': [], 'PE': [], 'CO': [], 'AR': [], 'UY': [], 'EC': [],
+  'NG': [], 'KE': [], 'GH': [], 'EG': [], 'MA': [], 'TN': [], 'BW': [], 'NA': [], 'ZA': []
 }
 
 const REGIONS: Region[] = [
@@ -400,9 +895,9 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header - Full Width */}
       <header className="bg-[#1F2933] text-white py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/">
@@ -416,13 +911,13 @@ export default function CategoriesPage() {
               <BookOpen className="h-6 w-6 text-[#4FD1C5]" />
               <span className="text-xl font-bold">Browse All Categories</span>
             </div>
-            <div className="w-24" />
+            <div className="w-32" />
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content - Full Width */}
+      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Introduction */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#1F2933] mb-4">Explore All Categories</h1>
@@ -651,10 +1146,11 @@ export default function CategoriesPage() {
             </Card>
           </div>
 
-          {/* Right Column - Selected Categories Sidebar */}
+          {/* Right Column - Selected Categories Sidebar (Shorter) & CTA */}
           <div className="space-y-6">
-            <Card className="h-[calc(100vh-300px)] min-h-[400px] flex flex-col">
-              <CardHeader>
+            {/* Selected Card - Shorter */}
+            <Card className="h-[300px] flex flex-col">
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-[#4FD1C5] text-white text-xs flex items-center justify-center">
                     {selectedCategories.length}
@@ -703,7 +1199,7 @@ export default function CategoriesPage() {
               )}
             </Card>
 
-            {/* CTA */}
+            {/* CTA - Now aligned with Your Own Category */}
             <Card className="bg-gradient-to-br from-[#4FD1C5]/10 to-[#1D4ED8]/10 border-[#4FD1C5]/30">
               <CardContent className="pt-6">
                 <h4 className="font-semibold text-[#1F2933] mb-2">Ready to start tutoring?</h4>
