@@ -281,14 +281,14 @@ export default function TutorMyPage() {
           </CardContent>
         </Card>
 
-        {/* Tabs for Courses, Classes, and Completed */}
+        {/* Tabs for Courses, Classes, Building, and Completed */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
             <TabsTrigger value="courses">
               Courses
-              {allCourses.length > 0 && (
+              {publishedCourses.length > 0 && (
                 <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {allCourses.length}
+                  {publishedCourses.length}
                 </span>
               )}
             </TabsTrigger>
@@ -297,6 +297,14 @@ export default function TutorMyPage() {
               {classes.length > 0 && (
                 <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
                   {classes.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="building">
+              Building
+              {draftCourses.length > 0 && (
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
+                  {draftCourses.length}
                 </span>
               )}
             </TabsTrigger>
@@ -622,6 +630,71 @@ export default function TutorMyPage() {
                       </div>
                     </div>
                   ))
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="building" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Building ({draftCourses.length})</CardTitle>
+                    <CardDescription>
+                      Draft courses being developed (most recent first).
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => router.push('/tutor/courses/new')}>
+                    Create New
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {draftCourses.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground mb-4">
+                      No items in progress. Start building!
+                    </p>
+                    <Button onClick={() => router.push('/tutor/courses/new')}>
+                      Create New Course
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {draftCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="flex items-center justify-between rounded border p-4 hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium truncate">{course.name}</span>
+                            <Badge variant="secondary">{course.subject}</Badge>
+                            <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                              Draft
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {course.description || 'No description'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {course._count?.lessons || 0} lessons • Last edited {formatDate(course.updatedAt)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          <Button size="sm" onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}>
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => router.push(`/tutor/courses/${course.id}`)}>
+                            <DollarSign className="h-4 w-4 mr-1" />
+                            Price
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>
