@@ -377,7 +377,7 @@ export default function TutorReports() {
         </div>
 
         {/* Class Selector */}
-        <Card className="mb-6">
+        <Card className="mb-6 border-2 border-gray-400 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <div className="flex items-center gap-2">
@@ -444,7 +444,7 @@ export default function TutorReports() {
 
           {/* Students Tab */}
           <TabsContent value="students" className="space-y-6">
-            <Card>
+            <Card className="border-2 border-gray-400 shadow-sm">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
@@ -578,7 +578,7 @@ function CoursesAndClassesTab() {
     <TabsContent value="overview" className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Side - Course List */}
-        <Card>
+        <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>
             <CardTitle>Courses & Classes ({courses.length})</CardTitle>
             <CardDescription>
@@ -618,7 +618,7 @@ function CoursesAndClassesTab() {
         <div className="space-y-6">
           {selectedCourse ? (
             <>
-              <Card className="border-blue-200">
+              <Card className="border-2 border-blue-400 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <BarChart3 className="h-5 w-5 text-blue-500" />
@@ -656,7 +656,7 @@ function CoursesAndClassesTab() {
               </Card>
 
               {/* AI Chat Area */}
-              <Card>
+              <Card className="border-2 border-gray-400 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Bot className="h-5 w-5 text-purple-500" />
@@ -760,7 +760,7 @@ function CoursesAndClassesTab() {
               </Card>
             </>
           ) : (
-            <Card className="h-full flex items-center justify-center min-h-[400px]">
+            <Card className="h-full flex items-center justify-center min-h-[400px] border-2 border-gray-400 shadow-sm">
               <CardContent className="text-center py-12">
                 <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p className="text-gray-500">Select a course or class to view analytics.</p>

@@ -61,7 +61,7 @@ export default function TutorTrainingPage() {
           <CardContent className="flex flex-col gap-3 sm:flex-row">
             <Button
               className="gap-2"
-              onClick={() => router.push('/tutor/classes/new')}
+              onClick={() => router.push('/tutor/classes')}
             >
               <CalendarPlus className="h-4 w-4" />
               Schedule Training

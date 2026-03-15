@@ -1215,7 +1215,7 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
 function AvailabilityView({ availability, onToggle, onSave }: any) {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(days.map((day) => [day, true]))
+    Object.fromEntries(days.map((day) => [day, false]))
   )
 
   return (
@@ -1253,7 +1253,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
                 </span>
               </button>
               {isExpanded && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 mt-3">
                   {dayBlocks.map((block: AvailabilityBlock) => (
                     <div
                       key={block.id}

@@ -181,9 +181,10 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
         <div className="w-full px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/tutor/my-page?tab=drafts">
+              <Button variant="ghost" size="sm" asChild className="gap-2">
+                <Link href="/tutor/dashboard">
                   <ArrowLeft className="h-4 w-4" />
+                  Back to Dashboard
                 </Link>
               </Button>
               <div>
@@ -269,14 +270,8 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
               onSave={handleSave}
             />
             <div className="mt-10">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">My Page</CardTitle>
-                  <CardDescription>
-                    Manage your published courses, classes, and work in progress directly from the builder.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+              <Card className="border-2 border-gray-400 shadow-sm">
+                <CardContent className="pt-6">
                   <MyPageTabsSection />
                 </CardContent>
               </Card>

@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Loader2, BookOpen, Save } from 'lucide-react'
 import { CourseBuilder } from '../dashboard/components/CourseBuilder'
 import type { CourseBuilderRef, Module } from '../dashboard/components/CourseBuilder'
@@ -80,21 +79,6 @@ export default function LessonBankPage() {
         </div>
       </div>
       <div className="w-full px-4 sm:px-6 py-6">
-        {modules.length === 0 ? (
-          <Card className="max-w-md">
-            <CardHeader>
-              <CardTitle>Start Your Lesson Library</CardTitle>
-              <CardDescription>
-                Add modules and lessons to begin building reusable content.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" onClick={() => builderRef.current?.save()}>
-                Save an Empty Library
-              </Button>
-            </CardContent>
-          </Card>
-        ) : null}
         <CourseBuilder
           ref={builderRef}
           courseId="lesson-bank"

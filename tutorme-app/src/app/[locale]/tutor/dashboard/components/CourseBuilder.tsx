@@ -4876,6 +4876,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [importTarget, setImportTarget] = useState<{ moduleId: string, lessonId: string } | null>(null)
   const [lessonBankImportOpen, setLessonBankImportOpen] = useState(false)
+  const [importLessonSelectorOpen, setImportLessonSelectorOpen] = useState(false)
   const [lessonBankModules, setLessonBankModules] = useState<Module[]>([])
   const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
   const [courseAssets, setCourseAssets] = useState<{ id: string, name: string, content?: string }[]>([])
@@ -6858,6 +6859,32 @@ FEEDBACK: [your explanation]`
                           <FileQuestion className="h-3 w-3" />
                           Exam
                         </Button>
+                        {!lessonBankMode && (
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => {
+                              // Open lesson bank import with lesson selection
+                              const bankModules = loadLessonBankModules()
+                              if (bankModules.length === 0) {
+                                toast.error('No lesson bank content found. Build lessons in the Lesson Bank first.')
+                                return
+                              }
+                              setLessonBankModules(bankModules)
+                              const firstLesson = bankModules[0]?.lessons?.[0]
+                              if (firstLesson) {
+                                setLessonBankLessonKey(`${bankModules[0].id}:${firstLesson.id}`)
+                              } else {
+                                setLessonBankLessonKey('')
+                              }
+                              setImportLessonSelectorOpen(true)
+                            }}
+                            className="gap-1 h-6 text-xs"
+                          >
+                            <FolderOpen className="h-3 w-3" />
+                            Import
+                          </Button>
+                        )}
                         <Button size="sm" onClick={addModule} className="gap-1 h-6 text-xs">
                           <Plus className="h-3 w-3" />
                           Lesson
@@ -6925,22 +6952,6 @@ FEEDBACK: [your explanation]`
                                   <Plus className="h-3 w-3" />
                                   Assessment
                                 </Button>
-
-                                {/* Import Button */}
-                                {!lessonBankMode && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-blue-600"
-                                    onClick={(e: any) => {
-                                      e.stopPropagation()
-                                      openLessonBankImport({ moduleId: module.id, lessonId: primaryLesson.id })
-                                    }}
-                                  >
-                                    <FolderOpen className="h-3 w-3" />
-                                    Import
-                                  </Button>
-                                )}
 
                                 <Button
                                   variant="ghost"
@@ -7497,8 +7508,104 @@ FEEDBACK: [your explanation]`
               </div>
             )}
 
-            {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
+            {/* Test PCI Section - Moved above Task/Assessment Builder */}
             <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden shadow-sm">
+              <CardContent className="pt-4">
+                <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  Test PCI
+                </CardTitle>
+                  <div className="flex gap-4">
+                    {/* Main content with tabs */}
+                    <div className="flex-1">
+                      <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
+                        <TabsList className="grid w-full grid-cols-3 gap-1 p-1 rounded-xl border bg-gray-50">
+                          {testPciTabs.map((tab) => (
+                            <div key={tab.id} className="relative flex-1">
+                              {editingTabId === tab.id ? (
+                                <Input
+                                  value={tab.label}
+                                  onChange={(e: any) => {
+                                    setTestPciTabs(prev => prev.map(t =>
+                                      t.id === tab.id ? { ...t, label: e.target.value } : t
+                                    ))
+                                  }}
+                                  onBlur={() => setEditingTabId(null)}
+                                  onKeyDown={(e: any) => {
+                                    if (e.key === 'Enter') setEditingTabId(null)
+                                  }}
+                                  className="h-8 text-xs font-medium text-center"
+                                  autoFocus
+                                />
+                              ) : (
+                                <TabsTrigger
+                                  value={tab.id}
+                                  className="w-full border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  onDoubleClick={() => setEditingTabId(tab.id)}
+                                >
+                                  {tab.label}
+                                </TabsTrigger>
+                              )}
+                            </div>
+                          ))}
+                        </TabsList>
+                        {testPciTabs.map((tab) => (
+                          <TabsContent key={tab.id} value={tab.id} className="mt-2">
+                            <div className="p-4 bg-gray-50 rounded-lg min-h-[160px] max-h-[400px] overflow-y-auto">
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
+                              {/* Show AI scores if any */}
+                              {testPciScores[tab.id]?.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-gray-400">
+                                  <p className="text-xs font-medium text-gray-600 mb-2">AI Feedback:</p>
+                                  {testPciScores[tab.id].map((score, idx) => (
+                                    <div key={idx} className="mb-2 p-2 bg-white rounded border border-gray-400">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant={score.score >= 80 ? "default" : score.score >= 50 ? "secondary" : "destructive"} className="text-[10px]">
+                                          {score.score}%
+                                        </Badge>
+                                      </div>
+                                      <p className="text-xs text-gray-600 mt-1">{score.feedback}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </TabsContent>
+                        ))}
+                      </Tabs>
+                      {/* Persistent text input with Enter button inline */}
+                      <div className="mt-3">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder={testPciActiveTab === 'classroom' ? "Enter answer (goes to both students)..." : "Enter answer..."}
+                            className="flex-1"
+                            value={testPciInput}
+                            onChange={(e: any) => setTestPciInput(e.target.value)}
+                            onKeyDown={(e: any) => {
+                              if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
+                                e.preventDefault()
+                                handleTestPciSubmit()
+                              }
+                            }}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={testPciLoading || !testPciInput.trim()}
+                            onClick={handleTestPciSubmit}
+                          >
+                            {testPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CornerDownLeft className="h-4 w-4 mr-1" />}
+                            Enter
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              </CardContent>
+            </Card>
+
+            {/* COMBINED BUILDER: Task & Assessment Tabs */}
+            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden mt-6 shadow-sm">
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
@@ -7981,102 +8088,6 @@ FEEDBACK: [your explanation]`
               </CardContent>
             </Card>
 
-            {/* Test PCI Section - Separate Card */}
-            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden mt-6 shadow-sm">
-              <CardContent className="pt-4">
-                <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  Test PCI
-                </CardTitle>
-                  <div className="flex gap-4">
-                    {/* Main content with tabs */}
-                    <div className="flex-1">
-                      <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 gap-1 p-1 rounded-xl border bg-gray-50">
-                          {testPciTabs.map((tab) => (
-                            <div key={tab.id} className="relative flex-1">
-                              {editingTabId === tab.id ? (
-                                <Input
-                                  value={tab.label}
-                                  onChange={(e: any) => {
-                                    setTestPciTabs(prev => prev.map(t =>
-                                      t.id === tab.id ? { ...t, label: e.target.value } : t
-                                    ))
-                                  }}
-                                  onBlur={() => setEditingTabId(null)}
-                                  onKeyDown={(e: any) => {
-                                    if (e.key === 'Enter') setEditingTabId(null)
-                                  }}
-                                  className="h-8 text-xs font-medium text-center"
-                                  autoFocus
-                                />
-                              ) : (
-                                <TabsTrigger
-                                  value={tab.id}
-                                  className="w-full border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
-                                  onDoubleClick={() => setEditingTabId(tab.id)}
-                                >
-                                  {tab.label}
-                                </TabsTrigger>
-                              )}
-                            </div>
-                          ))}
-                        </TabsList>
-                        {testPciTabs.map((tab) => (
-                          <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                            <div className="p-4 bg-gray-50 rounded-lg min-h-[80px] max-h-[200px] overflow-y-auto">
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
-                              {/* Show AI scores if any */}
-                              {testPciScores[tab.id]?.length > 0 && (
-                                <div className="mt-3 pt-3 border-t border-gray-400">
-                                  <p className="text-xs font-medium text-gray-600 mb-2">AI Feedback:</p>
-                                  {testPciScores[tab.id].map((score, idx) => (
-                                    <div key={idx} className="mb-2 p-2 bg-white rounded border border-gray-400">
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant={score.score >= 80 ? "default" : score.score >= 50 ? "secondary" : "destructive"} className="text-[10px]">
-                                          {score.score}%
-                                        </Badge>
-                                      </div>
-                                      <p className="text-xs text-gray-600 mt-1">{score.feedback}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </TabsContent>
-                        ))}
-                      </Tabs>
-                      {/* Persistent text input with Enter button inline */}
-                      <div className="mt-3">
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder={testPciActiveTab === 'classroom' ? "Enter answer (goes to both students)..." : "Enter answer..."}
-                            className="flex-1"
-                            value={testPciInput}
-                            onChange={(e: any) => setTestPciInput(e.target.value)}
-                            onKeyDown={(e: any) => {
-                              if (e.key === 'Enter' && testPciInput.trim() && !testPciLoading) {
-                                e.preventDefault()
-                                handleTestPciSubmit()
-                              }
-                            }}
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={testPciLoading || !testPciInput.trim()}
-                            onClick={handleTestPciSubmit}
-                          >
-                            {testPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CornerDownLeft className="h-4 w-4 mr-1" />}
-                            Enter
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-              </CardContent>
-            </Card>
-
           </div>
         </div>
 
@@ -8363,7 +8374,83 @@ FEEDBACK: [your explanation]`
           </DialogContent>
         </Dialog>
 
-        {/* Lesson Bank Import Modal */}
+        {/* Import Lesson Selector Modal - Step 1: Choose which lesson to import into */}
+        <Dialog open={importLessonSelectorOpen} onOpenChange={(open) => { if (!open) { setImportLessonSelectorOpen(false); setImportTarget(null) } }}>
+          <DialogContent className="sm:max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>Import into which lesson?</DialogTitle>
+              <DialogDescription>Select a lesson to import content into, or create a new one.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {modules.length === 0 || modules.every(m => m.lessons.length === 0) ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground mb-4">No lessons available. A new lesson will be created automatically.</p>
+                  <Button onClick={() => {
+                    // Auto-create a lesson and proceed
+                    const newModule = DEFAULT_MODULE(modules.length)
+                    setModules(prev => [...prev, newModule])
+                    setImportTarget({ moduleId: newModule.id, lessonId: newModule.lessons[0].id })
+                    setImportLessonSelectorOpen(false)
+                    setLessonBankImportOpen(true)
+                  }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Lesson & Continue
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    <Label>Select Target Lesson</Label>
+                    {modules.map((mod) => (
+                      <div key={mod.id} className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground px-2">{mod.title}</p>
+                        {mod.lessons.map((lesson) => (
+                          <Button
+                            key={lesson.id}
+                            variant="outline"
+                            className="w-full justify-start text-sm"
+                            onClick={() => {
+                              setImportTarget({ moduleId: mod.id, lessonId: lesson.id })
+                              setImportLessonSelectorOpen(false)
+                              setLessonBankImportOpen(true)
+                            }}
+                          >
+                            <GraduationCap className="h-4 w-4 mr-2 text-blue-500" />
+                            {lesson.title}
+                          </Button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        // Create new lesson and proceed
+                        const newModule = DEFAULT_MODULE(modules.length)
+                        setModules(prev => [...prev, newModule])
+                        setImportTarget({ moduleId: newModule.id, lessonId: newModule.lessons[0].id })
+                        setImportLessonSelectorOpen(false)
+                        setLessonBankImportOpen(true)
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Lesson
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setImportLessonSelectorOpen(false); setImportTarget(null) }}>
+                Cancel
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Lesson Bank Import Modal - Step 2: Choose what to import from lesson bank */}
         <Dialog open={lessonBankImportOpen} onOpenChange={(open) => { if (!open) { setLessonBankImportOpen(false); setImportTarget(null) } }}>
           <DialogContent className="sm:max-w-lg border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
