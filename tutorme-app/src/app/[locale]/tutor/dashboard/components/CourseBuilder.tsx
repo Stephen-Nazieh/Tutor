@@ -1336,7 +1336,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -1394,7 +1394,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-500" />
@@ -1403,7 +1403,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
         </DialogHeader>
         <div className="space-y-4 py-4">
           {/* Difficulty Mode Section */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 space-y-3">
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-400 space-y-3">
             <Label className="text-sm font-medium flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-500" />
               Difficulty Settings
@@ -1470,7 +1470,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
                             : level === 'intermediate'
                               ? "bg-blue-100 border-blue-300 text-blue-700"
                               : "bg-purple-100 border-purple-300 text-purple-700"
-                          : "bg-white border-gray-200 text-gray-600"
+                          : "bg-white border-gray-400 text-gray-600"
                       )}
                     >
                       {level.charAt(0).toUpperCase() + level.slice(1)}
@@ -1702,7 +1702,7 @@ Format your response clearly and concisely.`
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
@@ -1998,7 +1998,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2048,14 +2048,14 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
                   key={question.id}
                   onClick={() => toggleQuestion(question.id)}
                   className={`p-3 border-b cursor-pointer transition-colors ${selectedQuestions.has(question.id)
-                    ? 'bg-blue-50 border-blue-200'
+                    ? 'bg-blue-50 border-blue-400'
                     : 'hover:bg-gray-50'
                     }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${selectedQuestions.has(question.id)
                       ? 'bg-blue-500 border-blue-500'
-                      : 'border-gray-300'
+                      : 'border-gray-500'
                       }`}>
                       {selectedQuestions.has(question.id) && <CheckCircle className="w-3 h-3 text-white" />}
                     </div>
@@ -2099,7 +2099,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-2">Correct Answer:</p>
-                  <div className="p-3 bg-green-50 text-green-700 rounded-md text-sm border border-green-200">
+                  <div className="p-3 bg-green-50 text-green-700 rounded-md text-sm border border-green-400">
                     {Array.isArray(previewQuestion.correctAnswer) ? previewQuestion.correctAnswer.join(', ') : (previewQuestion.correctAnswer || 'Not specified')}
                   </div>
                 </div>
@@ -2179,7 +2179,7 @@ function LessonSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -2344,7 +2344,7 @@ function AssessmentBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
@@ -2359,8 +2359,8 @@ function AssessmentBuilderModal({
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
-              <TabsTrigger value="edit" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
+              <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -2666,7 +2666,7 @@ function AssessmentBuilderModal({
                         onChange={(e: any) => setData({ ...data, answerKey: e.target.value })}
                         placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
                         rows={4}
-                        className="border-amber-200 bg-amber-50/30"
+                        className="border-amber-400 bg-amber-50/30"
                       />
                       <div className="flex items-center gap-2">
                         <Switch
@@ -2680,7 +2680,7 @@ function AssessmentBuilderModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
+                    <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-400 text-center">
                       <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
                       <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
                     </div>
@@ -2756,7 +2756,7 @@ function AssessmentBuilderModal({
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2886,7 +2886,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-cyan-500" />
@@ -2895,8 +2895,8 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
           <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
-            <TabsTrigger value="edit" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
-            <TabsTrigger value="preview" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
+            <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
           </TabsList>
           <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
             <div className="space-y-4 py-4">
@@ -3149,7 +3149,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       onChange={(e: any) => setData({ ...data, answerKey: e.target.value })}
                       placeholder="Enter the complete answer key here. This is ONLY visible to instructors."
                       rows={4}
-                      className="border-amber-200 bg-amber-50/30"
+                      className="border-amber-400 bg-amber-50/30"
                     />
                     <div className="flex items-center gap-2">
                       <Switch
@@ -3163,7 +3163,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-200 text-center">
+                  <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-400 text-center">
                     <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
                     <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
                   </div>
@@ -3332,7 +3332,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
@@ -3341,8 +3341,8 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
             <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
-              <TabsTrigger value="edit" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
+              <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
             <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
               <div className="space-y-4 py-4">
@@ -3378,7 +3378,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                     />
                     <Label className="text-sm">Randomize questions</Label>
                   </div>
-                  <div className="flex items-center gap-2 border-l pl-4 border-amber-200">
+                  <div className="flex items-center gap-2 border-l pl-4 border-amber-400">
                     <Switch
                       checked={data.answersNeverVisible}
                       onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
@@ -3589,7 +3589,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -3673,7 +3673,7 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
                 onClick={() => toggleSelection(item.id)}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center ${selectedIds.has(item.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                  <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center ${selectedIds.has(item.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-500'
                     }`}>
                     {selectedIds.has(item.id) && <CheckCircle className="h-3 w-3 text-white" />}
                   </div>
@@ -3721,7 +3721,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-teal-500" />
@@ -3916,7 +3916,7 @@ function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' 
   if (mode === 'all') {
     return (
       <span className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200",
+        "inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 border border-gray-400",
         size === 'xs' ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs"
       )}>
         <Layers2 className={cn(size === 'xs' ? "h-3 w-3" : "h-3.5 w-3.5")} />
@@ -3927,9 +3927,9 @@ function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' 
 
   if (mode === 'fixed' && fixedDifficulty) {
     const colors = {
-      beginner: 'bg-green-100 text-green-700 border-green-200',
-      intermediate: 'bg-blue-100 text-blue-700 border-blue-200',
-      advanced: 'bg-purple-100 text-purple-700 border-purple-200'
+      beginner: 'bg-green-100 text-green-700 border-green-400',
+      intermediate: 'bg-blue-100 text-blue-700 border-blue-400',
+      advanced: 'bg-purple-100 text-purple-700 border-purple-400'
     }
     const icons = {
       beginner: SignalLow,
@@ -3958,7 +3958,7 @@ function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' 
   // Adaptive mode
   return (
     <span className={cn(
-      "inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200",
+      "inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 border border-amber-400",
       size === 'xs' ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs"
     )} title="Adaptive - adjusts to group difficulty">
       <BarChart3 className={cn(size === 'xs' ? "h-3 w-3" : "h-3.5 w-3.5")} />
@@ -4123,7 +4123,7 @@ function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]
               const ca = Array.isArray(qq.correctAnswer) ? qq.correctAnswer[0]?.toLowerCase() : (typeof qq.correctAnswer === 'string' ? qq.correctAnswer.toLowerCase() : '')
               const isCorrect = !!(a && ca && a === ca)
               return (
-                <div key={qq.id} className={`p-3 rounded-lg border text-sm ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                <div key={qq.id} className={`p-3 rounded-lg border text-sm ${isCorrect ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-400'}`}>
                   <span className="font-medium">Q{i + 1}:</span> {qq.question.slice(0, 80)}
                   <span className={`ml-2 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                     {isCorrect ? '\u2713' : '\u2717'}
@@ -4791,7 +4791,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {isActivity && (
         <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
@@ -4815,7 +4815,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {/* PDF Preview Modal */}
       <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
@@ -6552,7 +6552,7 @@ FEEDBACK: [your explanation]`
                   e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
                   e.dataTransfer.effectAllowed = 'copy'
                 }}
-                className="text-xs bg-white border border-slate-200 rounded px-2 py-2 cursor-grab shadow-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
+                className="text-xs bg-white border border-slate-400 rounded px-2 py-2 cursor-grab shadow-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
                 title="Drag or load into editor"
               >
                 <div className="flex items-center gap-2 overflow-hidden mr-2 flex-1">
@@ -6587,7 +6587,7 @@ FEEDBACK: [your explanation]`
       )}
     
       <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
-        <DialogContent className="sm:max-w-md border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="sm:max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Load as...</DialogTitle>
           </DialogHeader>
@@ -6819,7 +6819,7 @@ FEEDBACK: [your explanation]`
         {/* LEFT PANEL - Course Structure */}
         {!leftPanelHidden && (
           <div className="col-span-4 flex flex-col min-h-0">
-            <Card className="flex-1 flex flex-col min-h-0">
+            <Card className="flex-1 flex flex-col min-h-0 border-2 border-gray-400 shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-base">
@@ -6883,7 +6883,7 @@ FEEDBACK: [your explanation]`
                               <div
                                 className={cn(
                                   "flex flex-wrap items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
-                                  "bg-blue-50 hover:bg-blue-100 border border-blue-200"
+                                  "bg-blue-50 hover:bg-blue-100 border border-blue-400"
                                 )}
                                 onClick={() => toggleModule(module.id)}
                               >
@@ -6988,7 +6988,7 @@ FEEDBACK: [your explanation]`
                                               "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
                                               selectedItem?.type === 'task' && selectedItem?.id === task.id
                                                 ? "bg-orange-200 border-orange-400 ring-1 ring-orange-400"
-                                                : "bg-orange-50 border-orange-200 hover:bg-orange-100"
+                                                : "bg-orange-50 border-orange-400 hover:bg-orange-100"
                                             )}
                                             onClick={() => {
                                               // Auto-save current assessment if switching from one
@@ -7073,7 +7073,7 @@ FEEDBACK: [your explanation]`
                                           </div>
                                           </SortableTreeItem>
                                         {loadedTaskId === task.id && taskBuilder.extensions.length > 0 && (
-                                          <div className="ml-8 mt-1 space-y-1 border-l border-orange-200 pl-3">
+                                          <div className="ml-8 mt-1 space-y-1 border-l border-orange-400 pl-3">
                                             <div
                                               className="flex items-center gap-2 rounded px-2 py-1 text-[10px] border bg-white cursor-pointer"
                                               onClick={() => toggleExtensions(task.id)}
@@ -7201,7 +7201,7 @@ FEEDBACK: [your explanation]`
                                               "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
                                               selectedItem?.type === 'homework' && selectedItem?.id === hw.id
                                                 ? "bg-purple-200 border-purple-400 ring-1 ring-purple-400"
-                                                : "bg-purple-50 border-purple-200 hover:bg-purple-100"
+                                                : "bg-purple-50 border-purple-400 hover:bg-purple-100"
                                             )}
                                             onClick={() => {
                                               // Auto-save current task if switching from one
@@ -7331,7 +7331,7 @@ FEEDBACK: [your explanation]`
                                               "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
                                               selectedItem?.type === 'homework' && selectedItem?.id === hw.id
                                                 ? "bg-emerald-200 border-emerald-400 ring-1 ring-emerald-400"
-                                                : "bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
+                                                : "bg-emerald-50 border-emerald-400 hover:bg-emerald-100"
                                             )}
                                             onClick={() => {
                                               // Auto-save current task if switching from one
@@ -7498,16 +7498,16 @@ FEEDBACK: [your explanation]`
             )}
 
             {/* COMBINED BUILDER: Task & Assessment Tabs with Shared Test PCI */}
-            <Card className="flex-shrink-0 border rounded-2xl overflow-hidden">
+            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden shadow-sm">
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
                   <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
-                    <TabsTrigger value="task" className="gap-2 border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
+                    <TabsTrigger value="task" className="gap-2 border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
                     </TabsTrigger>
-                    <TabsTrigger value="assessment" className="gap-2 border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
+                    <TabsTrigger value="assessment" className="gap-2 border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
                       <FileQuestion className="h-4 w-4 text-purple-500" />
                       Assessment Builder
                     </TabsTrigger>
@@ -7562,8 +7562,8 @@ FEEDBACK: [your explanation]`
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-gray-50">
-                            <TabsTrigger value="content" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
-                            <TabsTrigger value="pci" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
+                            <TabsTrigger value="content" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
+                            <TabsTrigger value="pci" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7842,8 +7842,8 @@ FEEDBACK: [your explanation]`
                           className="w-full"
                         >
                           <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-gray-50">
-                            <TabsTrigger value="content" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
-                            <TabsTrigger value="pci" className="border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
+                            <TabsTrigger value="content" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
+                            <TabsTrigger value="pci" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
                           </TabsList>
                           <TabsContent value="content" className="mt-2 space-y-2">
                             <AutoTextarea
@@ -7982,7 +7982,7 @@ FEEDBACK: [your explanation]`
             </Card>
 
             {/* Test PCI Section - Separate Card */}
-            <Card className="flex-shrink-0 border rounded-2xl overflow-hidden mt-6">
+            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden mt-6 shadow-sm">
               <CardContent className="pt-4">
                 <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
@@ -8013,7 +8013,7 @@ FEEDBACK: [your explanation]`
                               ) : (
                                 <TabsTrigger
                                   value={tab.id}
-                                  className="w-full border border-gray-200 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  className="w-full border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
                                 >
                                   {tab.label}
@@ -8028,10 +8028,10 @@ FEEDBACK: [your explanation]`
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
                               {/* Show AI scores if any */}
                               {testPciScores[tab.id]?.length > 0 && (
-                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                <div className="mt-3 pt-3 border-t border-gray-400">
                                   <p className="text-xs font-medium text-gray-600 mb-2">AI Feedback:</p>
                                   {testPciScores[tab.id].map((score, idx) => (
-                                    <div key={idx} className="mb-2 p-2 bg-white rounded border border-gray-200">
+                                    <div key={idx} className="mb-2 p-2 bg-white rounded border border-gray-400">
                                       <div className="flex items-center gap-2">
                                         <Badge variant={score.score >= 80 ? "default" : score.score >= 50 ? "secondary" : "destructive"} className="text-[10px]">
                                           {score.score}%
@@ -8276,7 +8276,7 @@ FEEDBACK: [your explanation]`
 
         {/* Import Type Selector Modal */}
         <Dialog open={!!importTypeModalData} onOpenChange={(open) => !open && setImportTypeModalData(null)}>
-          <DialogContent className="sm:max-w-md border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="sm:max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>Import as...</DialogTitle>
             </DialogHeader>
@@ -8365,7 +8365,7 @@ FEEDBACK: [your explanation]`
 
         {/* Lesson Bank Import Modal */}
         <Dialog open={lessonBankImportOpen} onOpenChange={(open) => { if (!open) { setLessonBankImportOpen(false); setImportTarget(null) } }}>
-          <DialogContent className="sm:max-w-lg border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="sm:max-w-lg border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
             <DialogHeader>
               <DialogTitle>Import from Lesson Bank</DialogTitle>
               <DialogDescription>Select a lesson to import into this course.</DialogDescription>
