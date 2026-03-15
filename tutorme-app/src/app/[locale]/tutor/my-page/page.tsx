@@ -38,7 +38,6 @@ interface DraftCourse {
   updatedAt: string
   type: 'course' | 'class'
   _count: {
-    modules: number
     lessons: number
   }
 }
@@ -110,7 +109,7 @@ export default function TutorMyPage() {
               isPublished: c.isPublished,
               updatedAt: c.updatedAt,
               type: 'course' as const,
-              _count: c._count || { modules: 0, lessons: 0 }
+              _count: c._count || { lessons: 0 }
             }))
             .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
           setBuildingItems(drafts)
@@ -207,7 +206,7 @@ export default function TutorMyPage() {
         </Button>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="w-full p-6 space-y-6">
         {/* Header: title + primary actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -516,7 +515,7 @@ export default function TutorMyPage() {
                             {item.description || 'No description'}
                           </p>
                           <p className="text-xs text-muted-foreground mt-2">
-                            {item._count.modules} modules • {item._count.lessons} lessons • Last edited {formatDate(item.updatedAt)}
+                            {item._count.lessons} lessons • Last edited {formatDate(item.updatedAt)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 ml-4">
@@ -555,7 +554,7 @@ export default function TutorMyPage() {
                             {item.description || 'No description'}
                           </p>
                           <p className="text-xs text-muted-foreground mt-3">
-                            {item._count.modules} modules • {item._count.lessons} lessons
+                            {item._count.lessons} lessons
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Last edited {formatDate(item.updatedAt)}

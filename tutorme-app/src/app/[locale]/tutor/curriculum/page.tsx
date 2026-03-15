@@ -26,7 +26,6 @@ interface Course {
   estimatedHours: number
   isPublished: boolean
   _count: {
-    modules: number
     lessons: number
     enrollments: number
   }
@@ -151,7 +150,7 @@ export default function TutorCurriculumPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <BookOpen className="h-4 w-4" />
-                    <span>{course._count.modules} modules</span>
+                    <span>{course._count.lessons} lessons</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <GraduationCap className="h-4 w-4" />

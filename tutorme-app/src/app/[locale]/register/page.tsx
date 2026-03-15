@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { GraduationCap, Users, BookOpen, Shield } from 'lucide-react'
 
@@ -9,7 +9,6 @@ const roles = [
   {
     id: 'student',
     title: 'Student',
-    description: 'Learn and improve your skills',
     icon: BookOpen,
     href: '/register/student',
     color: 'bg-[#4FD1C5]'
@@ -17,7 +16,6 @@ const roles = [
   {
     id: 'parent',
     title: 'Parent',
-    description: 'Manage your child\'s education',
     icon: Users,
     href: '/register/parent',
     color: 'bg-[#1D4ED8]'
@@ -25,7 +23,6 @@ const roles = [
   {
     id: 'tutor',
     title: 'Tutor',
-    description: 'Teach and help students learn',
     icon: GraduationCap,
     href: '/register/tutor',
     color: 'bg-[#F17623]'
@@ -33,7 +30,6 @@ const roles = [
   {
     id: 'admin',
     title: 'Administrator',
-    description: 'Manage the platform',
     icon: Shield,
     href: '/register/admin',
     color: 'bg-[#1F2933]'
@@ -57,20 +53,15 @@ export default function RoleSelectionPage() {
           {roles.map((role) => (
             <Link key={role.id} href={role.href}>
               <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-[#4FD1C5]">
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <div className={`${role.color} p-3 rounded-xl text-white`}>
-                      <role.icon className="h-8 w-8" />
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className={`${role.color} p-4 rounded-xl text-white`}>
+                      <role.icon className="h-10 w-10" />
                     </div>
-                    <div>
-                      <CardTitle className="text-2xl text-[#1F2933]">{role.title}</CardTitle>
-                      <CardDescription className="mt-2 text-base">
-                        {role.description}
-                      </CardDescription>
+                    <div className="flex-1">
+                      <h2 className="text-2xl font-bold text-[#1F2933]">{role.title}</h2>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
                   <Button 
                     className={`w-full mt-6 ${role.id === 'student' ? 'bg-[#4FD1C5] hover:bg-[#3bc4b2]' : role.id === 'parent' ? 'bg-[#1D4ED8] hover:bg-[#1e40af]' : role.id === 'tutor' ? 'bg-[#F17623] hover:bg-[#e06613]' : 'bg-[#1F2933] hover:bg-[#111820]'}`}
                   >

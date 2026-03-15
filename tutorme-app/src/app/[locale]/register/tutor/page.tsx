@@ -11,12 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound, ChevronDown, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound, ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react'
 import {
   GLOBAL_EXAM_CATEGORIES,
 } from '@/lib/tutoring/categories'
 import { ALL_COUNTRIES, findCountryByName } from '@/lib/geo/countries'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 type GlobalExamState = {
   standardizedEnglish: string[]
@@ -114,6 +115,7 @@ export default function TutorRegistrationPage() {
   const [usernameTouched, setUsernameTouched] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showUsernameCheckModal, setShowUsernameCheckModal] = useState(false)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -227,6 +229,20 @@ export default function TutorRegistrationPage() {
       .replace(/^_+|_+$/g, '')
       .slice(0, 30)
 
+  // Generate username suggestion from first and last name
+  const generateUsernameSuggestion = () => {
+    const first = formData.firstName.toLowerCase().replace(/[^a-z]/g, '')
+    const last = formData.lastName.toLowerCase().replace(/[^a-z]/g, '')
+    if (first && last) {
+      return `${first}_${last}`
+    } else if (first) {
+      return `${first}_tutor`
+    } else if (last) {
+      return `${last}_tutor`
+    }
+    return ''
+  }
+
   const checkUsernameAvailability = async (value: string) => {
     const normalized = normalizeUsernameInput(value)
     if (!normalized.trim()) {
@@ -304,6 +320,20 @@ export default function TutorRegistrationPage() {
     return () => clearTimeout(handle)
   }, [formData.username])
 
+  // Auto-suggest username when entering step 3
+  useEffect(() => {
+    if (step === 3 && !formData.username && formData.firstName && formData.lastName) {
+      const suggestion = generateUsernameSuggestion()
+      if (suggestion) {
+        setFormData(prev => ({ ...prev, username: suggestion }))
+        // Auto-check availability
+        setTimeout(() => {
+          void checkUsernameAvailability(suggestion)
+        }, 100)
+      }
+    }
+  }, [step])
+
   const validateStepOne = async () => {
     if (!formData.firstName || !formData.lastName) {
       toast.error('First and last name are required')
@@ -326,19 +356,11 @@ export default function TutorRegistrationPage() {
       toast.error('Email already exists')
       return false
     }
-    if (emailStatus.status === 'idle') {
-      const ok = await checkEmailAvailability(formData.email)
-      if (!ok) {
-        toast.error('Email already exists')
-        return false
-      }
-    }
-    if (emailStatus.status === 'checking') {
-      const ok = await checkEmailAvailability(formData.email)
-      if (!ok) {
-        toast.error('Email already exists')
-        return false
-      }
+    // Always verify email before proceeding
+    const ok = await checkEmailAvailability(formData.email)
+    if (!ok) {
+      toast.error('Email already exists or is invalid')
+      return false
     }
     if (passwordMismatch) {
       toast.error('Passwords do not match')
@@ -363,14 +385,9 @@ export default function TutorRegistrationPage() {
     return true
   }
 
-  const validateStepThree = () => {
+  const validateStepThree = async () => {
     if (!formData.username) {
       toast.error('Username is required')
-      return false
-    }
-    if (usernameStatus.status === 'idle' || usernameStatus.status === 'checking') {
-      void checkUsernameAvailability(normalizeUsernameInput(formData.username))
-      toast.error('Checking username availability')
       return false
     }
     if (usernameStatus.status === 'taken') {
@@ -385,6 +402,23 @@ export default function TutorRegistrationPage() {
       toast.error('Please describe your service (min 10 characters)')
       return false
     }
+    
+    // Show checking modal and verify username
+    setShowUsernameCheckModal(true)
+    const normalized = normalizeUsernameInput(formData.username)
+    await checkUsernameAvailability(normalized)
+    
+    // Check again after API call
+    const isAvailable = usernameStatus.status === 'available' || 
+      (await fetch(`/api/public/username-availability?username=${encodeURIComponent(normalized)}`).then(r => r.json())).available
+    
+    setShowUsernameCheckModal(false)
+    
+    if (!isAvailable) {
+      toast.error('Username is already taken')
+      return false
+    }
+    
     return true
   }
 
@@ -829,7 +863,13 @@ export default function TutorRegistrationPage() {
                   <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
                     Back
                   </Button>
-                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={() => validateStepThree() && setStep(4)}>
+                  <Button 
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]" 
+                    onClick={async () => {
+                      const isValid = await validateStepThree()
+                      if (isValid) setStep(4)
+                    }}
+                  >
                     Next
                   </Button>
                 </div>
@@ -920,6 +960,21 @@ export default function TutorRegistrationPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Username Check Modal */}
+        <Dialog open={showUsernameCheckModal} onOpenChange={setShowUsernameCheckModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin text-[#F17623]" />
+                Checking Username Availability
+              </DialogTitle>
+              <DialogDescription>
+                Please wait while we verify if @{formData.username} is available...
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

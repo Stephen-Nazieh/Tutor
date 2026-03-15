@@ -116,7 +116,7 @@ export default function CoursesPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <BookOpen className="h-4 w-4" />
-                          <span>{course._count?.modules || 0} modules</span>
+                          <span>{course._count?.lessons || 0} lessons</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <GraduationCap className="h-4 w-4" />
