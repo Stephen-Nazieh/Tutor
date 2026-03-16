@@ -1,319 +1,406 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Loader2, ArrowLeft, Save, DollarSign, CreditCard } from 'lucide-react'
-import Link from 'next/link'
-import { PaymentGatewaySelector, type GatewayOption } from '@/components/payment-gateway-selector'
-
-const SUBJECTS = [
-    { id: 'math', name: 'Mathematics' },
-    { id: 'physics', name: 'Physics' },
-    { id: 'chemistry', name: 'Chemistry' },
-    { id: 'biology', name: 'Biology' },
-    { id: 'english', name: 'English' },
-    { id: 'history', name: 'History' },
-]
-
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-const TIME_SLOTS = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00', '21:00'
-]
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function TutorSettings() {
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
+  const { data: session } = useSession()
+  const [securityOpen, setSecurityOpen] = useState(true)
+  const [billingOpen, setBillingOpen] = useState(true)
+  const [taxOpen, setTaxOpen] = useState(true)
+  const [accountOpen, setAccountOpen] = useState(true)
+  const [accountStatus, setAccountStatus] = useState('active')
+  const [preferredLanguage, setPreferredLanguage] = useState('English')
+  const [timeZone, setTimeZone] = useState('Asia/Shanghai')
+  const [billingAddress, setBillingAddress] = useState('')
+  const [renewTerm, setRenewTerm] = useState('1')
+  const [payoutBalance] = useState('$0.00')
+  const [taxCountry, setTaxCountry] = useState('')
+  const [taxLegalName, setTaxLegalName] = useState('')
+  const [taxAddress, setTaxAddress] = useState('')
+  const [taxId, setTaxId] = useState('')
+  const [taxEntityType, setTaxEntityType] = useState('Individual')
+  const loginActivity = [
+    { id: 'login-1', label: 'Web · Shanghai, CN · Today 09:24' },
+    { id: 'login-2', label: 'Mobile · Singapore · Yesterday 18:11' },
+    { id: 'login-3', label: 'Web · Beijing, CN · Mar 14, 2026 10:03' },
+  ]
 
-    const [formData, setFormData] = useState({
-        bio: '',
-        credentials: '',
-        subjects: [] as string[],
-        availability: {} as Record<string, string[]>,
-        hourlyRate: '',
-        paidClassesEnabled: false,
-        paymentGatewayPreference: 'HITPAY' as GatewayOption,
-        currency: 'SGD'
-    })
-
-    useEffect(() => {
-        fetch('/api/user/profile')
-            .then(res => res.json())
-            .then(data => {
-                if (data.profile) {
-                    setFormData({
-                        bio: data.profile.bio || '',
-                        credentials: data.profile.credentials || '',
-                        subjects: data.profile.specialties || [],
-                        availability: data.profile.availability || {},
-                        hourlyRate: data.profile.hourlyRate?.toString() || '',
-                        paidClassesEnabled: Boolean(data.profile.paidClassesEnabled),
-                        paymentGatewayPreference: (data.profile.paymentGatewayPreference === 'AIRWALLEX' ? 'AIRWALLEX' : 'HITPAY') as GatewayOption,
-                        currency: data.profile.currency || 'SGD'
-                    })
-                }
-                setLoading(false)
-            })
-            .catch(err => {
-                console.error('Failed to load profile:', err)
-                toast.error('Failed to load profile')
-                setLoading(false)
-            })
-    }, [])
-
-    const toggleSubject = (subjectId: string) => {
-        setFormData(prev => ({
-            ...prev,
-            subjects: prev.subjects.includes(subjectId)
-                ? prev.subjects.filter(s => s !== subjectId)
-                : [...prev.subjects, subjectId]
-        }))
-    }
-
-    const toggleTimeSlot = (day: string, time: string) => {
-        setFormData(prev => {
-            const daySlots = prev.availability[day] || []
-            const newSlots = daySlots.includes(time)
-                ? daySlots.filter(t => t !== time)
-                : [...daySlots, time]
-            return {
-                ...prev,
-                availability: {
-                    ...prev.availability,
-                    [day]: newSlots
-                }
-            }
-        })
-    }
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setSaving(true)
-
-        try {
-            const response = await fetch('/api/user/profile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    bio: formData.bio,
-                    credentials: formData.credentials,
-                    subjects: formData.subjects,
-                    availability: formData.availability,
-                    hourlyRate: parseFloat(formData.hourlyRate) || 0,
-                    paidClassesEnabled: formData.paidClassesEnabled,
-                    paymentGatewayPreference: formData.paymentGatewayPreference,
-                    currency: formData.currency || null,
-                })
-            })
-
-            if (response.ok) {
-                toast.success('Profile updated successfully')
-            } else {
-                throw new Error('Failed to update profile')
-            }
-        } catch (err) {
-            console.error(err)
-            toast.error('Failed to update profile')
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-green-500" />
-                    <p className="text-gray-600">Loading settings...</p>
-                </div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="min-h-screen bg-gray-50 pb-12">
-            <header className="bg-white border-b shadow-sm sticky top-0 z-10 safe-top">
-                <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <Link href="/tutor/dashboard">
-                        <Button variant="ghost" size="icon">
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                    </Link>
-                    <h1 className="text-xl font-bold">Tutor Settings</h1>
-                </div>
-            </header>
-
-            <main className="max-w-4xl mx-auto px-4 py-8">
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Professional Profile</CardTitle>
-                            <CardDescription>Manage your public teaching profile and rates</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-8">
-
-                                {/* Bio */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="bio">Bio</Label>
-                                    <Textarea
-                                        id="bio"
-                                        value={formData.bio}
-                                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                        placeholder="Tell students about your experience..."
-                                        className="min-h-[120px]"
-                                    />
-                                </div>
-
-                                {/* Credentials */}
-                                <div className="space-y-2">
-                                    <Label htmlFor="credentials">Credentials</Label>
-                                    <Input
-                                        id="credentials"
-                                        value={formData.credentials}
-                                        onChange={(e) => setFormData({ ...formData, credentials: e.target.value })}
-                                        placeholder="PhD in Mathematics, etc."
-                                    />
-                                </div>
-
-                                {/* Subjects */}
-                                <div>
-                                    <Label className="mb-3 block">Subjects You Teach</Label>
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                        {SUBJECTS.map((subject) => (
-                                            <button
-                                                key={subject.id}
-                                                type="button"
-                                                onClick={() => toggleSubject(subject.id)}
-                                                className={`p-3 rounded-lg border text-left flex items-center gap-2 transition-colors ${formData.subjects.includes(subject.id)
-                                                        ? 'border-green-500 bg-green-50 text-green-700'
-                                                        : 'border-gray-200 hover:border-gray-300'
-                                                    }`}
-                                            >
-                                                <span className="text-sm font-medium">{subject.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Availability */}
-                                <div>
-                                    <Label className="mb-3 block">Weekly Availability</Label>
-                                    <div className="space-y-4 border rounded-lg p-4 max-h-[400px] overflow-y-auto">
-                                        {DAYS.map((day) => (
-                                            <div key={day} className="border-b pb-4 last:border-0 last:pb-0">
-                                                <h4 className="font-medium mb-2 text-sm text-gray-700">{day}</h4>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {TIME_SLOTS.map((time) => (
-                                                        <button
-                                                            key={time}
-                                                            type="button"
-                                                            onClick={() => toggleTimeSlot(day, time)}
-                                                            className={`px-2 py-1 text-xs rounded border transition-colors ${formData.availability[day]?.includes(time)
-                                                                    ? 'bg-green-500 text-white border-green-500'
-                                                                    : 'border-gray-100 hover:border-green-300'
-                                                                }`}
-                                                        >
-                                                            {time}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Paid classes & payment */}
-                                <div className="space-y-6 bg-gray-50 p-6 rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <Label className="text-base font-medium">Paid classes</Label>
-                                            <p className="text-sm text-gray-500 mt-0.5">Allow students to pay for your classes (hourly rate × duration)</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            role="switch"
-                                            aria-checked={formData.paidClassesEnabled}
-                                            onClick={() => setFormData(prev => ({ ...prev, paidClassesEnabled: !prev.paidClassesEnabled }))}
-                                            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${formData.paidClassesEnabled ? 'bg-green-600' : 'bg-gray-200'}`}
-                                        >
-                                            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${formData.paidClassesEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        <Label htmlFor="hourlyRate" className="whitespace-nowrap">Default hourly rate (SGD)</Label>
-                                        <div className="relative max-w-[150px]">
-                                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                            <Input
-                                                id="hourlyRate"
-                                                type="number"
-                                                min={0}
-                                                step={0.01}
-                                                value={formData.hourlyRate}
-                                                onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                                                className="pl-9 font-bold"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <CreditCard className="h-4 w-4 text-gray-500" />
-                                            <Label className="text-base font-medium">Payment gateway preference</Label>
-                                        </div>
-                                        <p className="text-sm text-gray-500 mb-3">Used when you create paid classes (can be overridden per class later)</p>
-                                        <PaymentGatewaySelector
-                                            value={formData.paymentGatewayPreference}
-                                            onChange={(v) => setFormData(prev => ({ ...prev, paymentGatewayPreference: v }))}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="currency" className="text-base font-medium">Currency</Label>
-                                        <p className="text-sm text-gray-500 mb-2">Default currency for your paid classes</p>
-                                        <Select value={formData.currency} onValueChange={(v) => setFormData(prev => ({ ...prev, currency: v }))}>
-                                            <SelectTrigger id="currency" className="max-w-[140px]">
-                                                <SelectValue placeholder="Currency" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="SGD">SGD</SelectItem>
-                                                <SelectItem value="USD">USD</SelectItem>
-                                                <SelectItem value="EUR">EUR</SelectItem>
-                                                <SelectItem value="GBP">GBP</SelectItem>
-                                                <SelectItem value="CNY">CNY</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-end pt-4">
-                                    <Button type="submit" disabled={saving} className="bg-green-600 hover:bg-green-700">
-                                        {saving ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Save className="mr-2 h-4 w-4" />
-                                                Save Profile
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </div>
-            </main>
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] pb-12">
+      <header className="bg-white border-b shadow-sm sticky top-0 z-10 safe-top">
+        <div className="mx-auto flex w-full items-center gap-4 px-6 py-4">
+          <Link href="/tutor/dashboard">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <h1 className="text-xl font-bold text-[#0F172A]">Account</h1>
         </div>
-    )
+      </header>
+
+      <main className="mx-auto w-full px-6 py-8 space-y-6">
+        <Card className="border border-[#E2E8F0] shadow-sm">
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setSecurityOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Security and Login</CardTitle>
+              {securityOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
+          </CardHeader>
+          {securityOpen && (
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Change password</Label>
+                  <Button
+                    className="w-full bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+                    onClick={() => toast.message('Password reset flow pending')}
+                  >
+                    Change password
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Two-factor authentication (2FA)</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
+                    onClick={() => toast.message('2FA setup coming soon')}
+                  >
+                    Enable 2FA
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[#1F2933]">Login activity</Label>
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-sm text-[#1F2933] space-y-2">
+                  {loginActivity.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between">
+                      <span>{item.label}</span>
+                      <span className="text-xs text-[#64748B]">Verified</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
+        <Card className="border border-[#E2E8F0] shadow-sm">
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setBillingOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Email Billing and Payment</CardTitle>
+              {billingOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
+          </CardHeader>
+          {billingOpen && (
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Email</Label>
+                  <Input
+                    value={session?.user?.email ?? ''}
+                    disabled
+                    className="border-[#E2E8F0] bg-[#F8FAFC] focus-visible:ring-[#4FD1C5]"
+                    placeholder="Email on file"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Billing address</Label>
+                  <Input
+                    value={billingAddress}
+                    onChange={(e) => setBillingAddress(e.target.value)}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    placeholder="Street, city, postal code"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 space-y-3">
+                <div className="text-sm font-semibold text-[#1F2933]">Subscription Plan</div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label className="text-[#1F2933]">Renew Subscription</Label>
+                    <Select value={renewTerm} onValueChange={setRenewTerm}>
+                      <SelectTrigger className="border-[#E2E8F0] bg-white">
+                        <SelectValue placeholder="Select term" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 month</SelectItem>
+                        <SelectItem value="2">2 months</SelectItem>
+                        <SelectItem value="12">1 year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[#1F2933]">Subscription Cost</Label>
+                    <div className="h-10 rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#1F2933]">
+                      $15
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[#1F2933]">Renew</Label>
+                    <Button
+                      className="w-full bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
+                      onClick={() => toast.message('Subscription renewal queued')}
+                    >
+                      Renew
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="outline"
+                    className="border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
+                    onClick={() => toast.message('Upgrade flow pending')}
+                  >
+                    Upgrade or cancel plan
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                    onClick={() => toast.message('Payment history loading')}
+                  >
+                    Payment history
+                  </Button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#F59E0B]/30 bg-[#FFFBEB] p-4 space-y-3">
+                <div className="text-sm font-semibold text-[#92400E]">Cancel Subscription</div>
+                <p className="text-sm text-[#92400E]">
+                  Are you sure? Once you delete your account, your account will be dormant for 2 months. You can login and
+                  activate your account within this time.
+                </p>
+                <Button
+                  variant="outline"
+                  className="border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]"
+                  onClick={() => toast.message('Cancellation request recorded')}
+                >
+                  Cancel
+                </Button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Payout Available Balance</Label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 rounded-md border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#1F2933]">
+                      {payoutBalance}
+                    </div>
+                    <Button
+                      className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+                      onClick={() => toast.message('Withdrawal request sent')}
+                    >
+                      Withdraw
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Download earnings report</Label>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                      onClick={() => toast.message('CSV report generated')}
+                    >
+                      CSV
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                      onClick={() => toast.message('PDF report generated')}
+                    >
+                      PDF
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
+        <Card className="border border-[#E2E8F0] shadow-sm">
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setTaxOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Tax Information</CardTitle>
+              {taxOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
+          </CardHeader>
+          {taxOpen && (
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Country</Label>
+                  <Input
+                    value={taxCountry}
+                    onChange={(e) => setTaxCountry(e.target.value)}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    placeholder="Country"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Legal Name</Label>
+                  <Input
+                    value={taxLegalName}
+                    onChange={(e) => setTaxLegalName(e.target.value)}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    placeholder="Legal name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Address</Label>
+                  <Input
+                    value={taxAddress}
+                    onChange={(e) => setTaxAddress(e.target.value)}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    placeholder="Registered address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Tax ID (optional)</Label>
+                  <Input
+                    value={taxId}
+                    onChange={(e) => setTaxId(e.target.value)}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                    placeholder="Tax ID"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Business / Individual</Label>
+                  <Select value={taxEntityType} onValueChange={setTaxEntityType}>
+                    <SelectTrigger className="border-[#E2E8F0] bg-white">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Individual">Individual</SelectItem>
+                      <SelectItem value="Business">Business</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                  onClick={() => toast.message('CSV report generated')}
+                >
+                  Download earnings report (CSV)
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                  onClick={() => toast.message('PDF report generated')}
+                >
+                  Download earnings report (PDF)
+                </Button>
+              </div>
+              <Button
+                className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
+                onClick={() => toast.message('Tax information saved')}
+              >
+                Confirm Changes
+              </Button>
+            </CardContent>
+          )}
+        </Card>
+
+        <Card className="border border-[#E2E8F0] shadow-sm">
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setAccountOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Account Management</CardTitle>
+              {accountOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
+          </CardHeader>
+          {accountOpen && (
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Account status</Label>
+                  <Select value={accountStatus} onValueChange={setAccountStatus}>
+                    <SelectTrigger className="border-[#E2E8F0] bg-white">
+                      <SelectValue placeholder="Account status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="dormant">Dormant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Language settings</Label>
+                  <Select value={preferredLanguage} onValueChange={setPreferredLanguage}>
+                    <SelectTrigger className="border-[#E2E8F0] bg-white">
+                      <SelectValue placeholder="Language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="Chinese">Chinese</SelectItem>
+                      <SelectItem value="Spanish">Spanish</SelectItem>
+                      <SelectItem value="French">French</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Time zone</Label>
+                  <Select value={timeZone} onValueChange={setTimeZone}>
+                    <SelectTrigger className="border-[#E2E8F0] bg-white">
+                      <SelectValue placeholder="Time zone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Asia/Shanghai">Asia/Shanghai</SelectItem>
+                      <SelectItem value="America/Los_Angeles">America/Los_Angeles</SelectItem>
+                      <SelectItem value="America/New_York">America/New_York</SelectItem>
+                      <SelectItem value="Europe/London">Europe/London</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button
+                className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
+                onClick={() => toast.message('Account settings updated')}
+              >
+                Confirm Changes
+              </Button>
+            </CardContent>
+          )}
+        </Card>
+      </main>
+    </div>
+  )
 }
