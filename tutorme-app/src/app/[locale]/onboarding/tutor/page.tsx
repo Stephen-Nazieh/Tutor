@@ -1054,77 +1054,77 @@ export default function TutorOnboarding() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                  {/* Left Column - Region, Country, Tabs & Custom Category */}
-                  <div className="lg:col-span-3 space-y-4">
-                    {/* Region & Country Selection */}
-                    <Card>
-                      <CardContent className="pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Region Selection */}
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium flex items-center gap-2">
-                              <Globe className="h-4 w-4 text-[#4FD1C5]" />
-                              Regions
-                            </Label>
-                            <div className="border rounded-md p-2 max-h-[120px] overflow-y-auto">
-                              {REGIONS.map((region) => (
-                                <label
-                                  key={region.id}
-                                  className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
-                                >
-                                  <Checkbox
-                                    checked={selectedRegions.includes(region.id)}
-                                    onCheckedChange={() => toggleRegion(region.id)}
-                                  />
-                                  <span className="text-sm">{region.name}</span>
-                                </label>
-                              ))}
-                            </div>
-                            <p className="text-xs text-gray-500">{selectedRegions.length} selected</p>
-                          </div>
-
-                          {/* Country Selection */}
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-[#F17623]" />
-                              Countries
-                            </Label>
-                            <div className="border rounded-md p-2 max-h-[120px] overflow-y-auto">
-                              {availableCountries.length === 0 ? (
-                                <p className="text-sm text-gray-400 p-1.5">Select regions first</p>
-                              ) : (
-                                availableCountries.map((country) => (
-                                  <label
-                                    key={country.code}
-                                    className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
-                                  >
-                                    <Checkbox
-                                      checked={selectedCountries.includes(country.code)}
-                                      onCheckedChange={() => toggleCountry(country.code)}
-                                    />
-                                    <span className="text-sm">{country.name}</span>
-                                  </label>
-                                ))
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
-                          </div>
+                {/* Region & Country Selection - At the TOP */}
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Region Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-[#4FD1C5]" />
+                          Regions
+                        </Label>
+                        <div className="border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                          {REGIONS.map((region) => (
+                            <label
+                              key={region.id}
+                              className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                            >
+                              <Checkbox
+                                checked={selectedRegions.includes(region.id)}
+                                onCheckedChange={() => toggleRegion(region.id)}
+                              />
+                              <span className="text-sm">{region.name}</span>
+                            </label>
+                          ))}
                         </div>
+                        <p className="text-xs text-gray-500">{selectedRegions.length} selected</p>
+                      </div>
 
-                        {/* Selected Count */}
-                        {selectedCategories.length > 0 && (
-                          <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-                            <Check className="h-4 w-4 text-green-500" />
-                            <span className="text-sm text-gray-600">
-                              {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
-                            </span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                      {/* Country Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-[#F17623]" />
+                          Countries
+                        </Label>
+                        <div className="border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                          {availableCountries.length === 0 ? (
+                            <p className="text-sm text-gray-400 p-1.5">Select regions first</p>
+                          ) : (
+                            availableCountries.map((country) => (
+                              <label
+                                key={country.code}
+                                className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                              >
+                                <Checkbox
+                                  checked={selectedCountries.includes(country.code)}
+                                  onCheckedChange={() => toggleCountry(country.code)}
+                                />
+                                <span className="text-sm">{country.name}</span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
+                      </div>
+                    </div>
 
-                    {/* Categories Tabs */}
+                    {/* Selected Count */}
+                    {selectedCategories.length > 0 && (
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-gray-600">
+                          {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Left Column - Categories Tabs & Custom Category */}
+                  <div className="lg:col-span-3 space-y-4">
+                    {/* Categories Tabs - Auto-populate based on country selection */}
                     <Card className="h-[400px] flex flex-col">
                       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
                         <CardHeader className="pb-0 pt-4">
