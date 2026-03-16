@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq, and, ne, desc } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { user, profile, curriculum } from '@/lib/db/schema'
+import { user, profile, curriculum, tutorApplication } from '@/lib/db/schema'
 import { nanoid } from 'nanoid'
 
 function normalizeUsername(value: string): string {
@@ -54,9 +54,21 @@ export const GET = withAuth(async (_req: NextRequest, session) => {
       specialties: profile.specialties,
       credentials: profile.credentials,
       hourlyRate: profile.hourlyRate,
+      createdAt: profile.createdAt,
     })
     .from(profile)
     .where(eq(profile.userId, tutorId))
+    .limit(1)
+
+  const [application] = await drizzleDb
+    .select({
+      countryOfResidence: tutorApplication.countryOfResidence,
+      categories: tutorApplication.categories,
+      socialLinks: tutorApplication.socialLinks,
+      createdAt: tutorApplication.createdAt,
+    })
+    .from(tutorApplication)
+    .where(eq(tutorApplication.userId, tutorId))
     .limit(1)
 
   const courses = await drizzleDb
@@ -83,6 +95,11 @@ export const GET = withAuth(async (_req: NextRequest, session) => {
       specialties: prof?.specialties ?? [],
       credentials: prof?.credentials ?? '',
       hourlyRate: prof?.hourlyRate ?? null,
+      createdAt: application?.createdAt ?? prof?.createdAt ?? null,
+      country: application?.countryOfResidence ?? null,
+      categories: application?.categories ?? [],
+      socialLinks: application?.socialLinks ?? null,
+      activeCourses: courses.length,
     },
     courses,
   })
@@ -93,10 +110,11 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
   const body = await req.json().catch(() => ({}))
   const requestedUsername = typeof body?.username === 'string' ? body.username : ''
   const bio = typeof body?.bio === 'string' ? body.bio.trim().slice(0, 5000) : undefined
+  const socialLinks = body?.socialLinks && typeof body.socialLinks === 'object' ? body.socialLinks : undefined
   let normalized = normalizeUsername(requestedUsername)
 
   const [prof] = await drizzleDb
-    .select({ id: profile.id, userId: profile.userId, name: profile.name })
+    .select({ id: profile.id, userId: profile.userId, name: profile.name, username: profile.username })
     .from(profile)
     .where(eq(profile.userId, tutorId))
     .limit(1)
@@ -105,33 +123,47 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
-  if (!normalized || normalized.length < 3) {
-    normalized = await generateUniqueUsername(prof.name || session.user.email || 'tutor', tutorId)
+  if (requestedUsername) {
+    if (!normalized || normalized.length < 3) {
+      normalized = await generateUniqueUsername(prof.name || session.user.email || 'tutor', tutorId)
+    }
+
+    const [existing] = await drizzleDb
+      .select({ id: profile.id })
+      .from(profile)
+      .where(and(eq(profile.username, normalized), ne(profile.userId, tutorId)))
+      .limit(1)
+
+    if (existing) {
+      return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
+    }
   }
 
-  const [existing] = await drizzleDb
-    .select({ id: profile.id })
-    .from(profile)
-    .where(and(eq(profile.username, normalized), ne(profile.userId, tutorId)))
-    .limit(1)
-
-  if (existing) {
-    return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
-  }
-
-  const setPayload: { username: string; bio?: string } = { username: normalized }
+  const setPayload: { username?: string; bio?: string } = {}
+  if (requestedUsername) setPayload.username = normalized
   if (bio !== undefined) setPayload.bio = bio
 
-  const [updated] = await drizzleDb
-    .update(profile)
-    .set(setPayload)
-    .where(eq(profile.userId, tutorId))
-    .returning()
+  let updated: { username: string | null; bio: string | null } | undefined
+  if (Object.keys(setPayload).length > 0) {
+    const [row] = await drizzleDb
+      .update(profile)
+      .set(setPayload)
+      .where(eq(profile.userId, tutorId))
+      .returning()
+    updated = row
+  }
+
+  if (socialLinks) {
+    await drizzleDb
+      .update(tutorApplication)
+      .set({ socialLinks })
+      .where(eq(tutorApplication.userId, tutorId))
+  }
 
   return NextResponse.json({
     success: true,
     profile: updated
       ? { username: updated.username, bio: updated.bio }
-      : { username: normalized, bio: bio ?? null },
+      : { username: prof?.username ?? normalized, bio: bio ?? null },
   })
 }, { role: 'TUTOR' })

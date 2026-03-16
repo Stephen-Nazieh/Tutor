@@ -13,9 +13,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
-import { ArrowLeft, Camera, Copy, ExternalLink, Plus, Share2, Sparkles } from 'lucide-react'
+import { ArrowLeft, Camera, CheckCircle, Copy, Share2 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
-import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
@@ -44,6 +43,16 @@ export default function TutorMyPage() {
   const [courseSubject, setCourseSubject] = useState('')
   const [courseDescription, setCourseDescription] = useState('')
   const [courseCategories, setCourseCategories] = useState<string[]>([])
+  const [tutorSince, setTutorSince] = useState<string>('')
+  const [country, setCountry] = useState<string>('')
+  const [activeCourses, setActiveCourses] = useState<number | null>(null)
+  const [profileCategories, setProfileCategories] = useState<string[]>([])
+  const [socialAccounts, setSocialAccounts] = useState({
+    youtube: '',
+    instagram: '',
+    tiktok: '',
+    facebook: '',
+  })
 
   useEffect(() => {
     let active = true
@@ -58,6 +67,17 @@ export default function TutorMyPage() {
         setUsername(data?.profile?.username || '')
         setBio(data?.profile?.bio || '')
         setAvatarUrl(data?.profile?.avatarUrl || null)
+        setTutorSince(data?.profile?.createdAt ? new Date(data.profile.createdAt).toLocaleDateString() : '')
+        setCountry(data?.profile?.country || '')
+        setActiveCourses(typeof data?.profile?.activeCourses === 'number' ? data.profile.activeCourses : null)
+        setProfileCategories(Array.isArray(data?.profile?.categories) ? data.profile.categories : [])
+        const links = data?.profile?.socialLinks || {}
+        setSocialAccounts({
+          youtube: typeof links.youtube === 'string' ? links.youtube : '',
+          instagram: typeof links.instagram === 'string' ? links.instagram : '',
+          tiktok: typeof links.tiktok === 'string' ? links.tiktok : '',
+          facebook: typeof links.facebook === 'string' ? links.facebook : '',
+        })
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
       } finally {
@@ -83,6 +103,14 @@ export default function TutorMyPage() {
     () => (typeof window !== 'undefined' && publicPath ? `${window.location.origin}${publicPath}` : publicPath),
     [publicPath]
   )
+  const socialLinks = useMemo(() => {
+    const links: Array<{ label: string; url: string }> = []
+    if (socialAccounts.youtube) links.push({ label: 'YouTube', url: `https://www.youtube.com/${socialAccounts.youtube.replace(/^@/, '')}` })
+    if (socialAccounts.instagram) links.push({ label: 'Instagram', url: `https://www.instagram.com/${socialAccounts.instagram.replace(/^@/, '')}` })
+    if (socialAccounts.tiktok) links.push({ label: 'TikTok', url: `https://www.tiktok.com/@${socialAccounts.tiktok.replace(/^@/, '')}` })
+    if (socialAccounts.facebook) links.push({ label: 'Facebook', url: `https://www.facebook.com/${socialAccounts.facebook.replace(/^@/, '')}` })
+    return links
+  }, [socialAccounts])
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
@@ -137,7 +165,15 @@ export default function TutorMyPage() {
           ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         credentials: 'include',
-        body: JSON.stringify({ username, bio }),
+        body: JSON.stringify({
+          bio,
+          socialLinks: {
+            instagram: socialAccounts.instagram.trim(),
+            tiktok: socialAccounts.tiktok.trim(),
+            youtube: socialAccounts.youtube.trim(),
+            facebook: socialAccounts.facebook.trim(),
+          },
+        }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -274,74 +310,93 @@ export default function TutorMyPage() {
       </div>
 
       <div className="mx-auto w-full max-w-6xl px-6 py-8 space-y-8">
-        <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <div className="rounded-3xl bg-gradient-to-br from-[#1D4ED8] via-[#4FD1C5] to-[#1D4ED8] p-8 text-white shadow-xl">
-            <div className="flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-white/80">
-              <Sparkles className="h-4 w-4" />
-              My Page
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold">Build a public presence that feels premium.</h1>
-            <p className="mt-3 text-base text-white/85">
-              Customize your tutor profile, showcase your courses, and invite students to learn with you.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Button
-                onClick={() => setCreateOpen(true)}
-                className="bg-[#F17623] text-white hover:bg-[#E1651B]"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Course
-              </Button>
-              {publicPath && normalizedUsername && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-white/60 text-white hover:bg-white/10"
-                  asChild
-                >
-                  <Link href={publicPath} target="_blank">
-                    <ExternalLink className="h-4 w-4 mr-1.5" />
-                    View public page
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1F2933]">Public Page Snapshot</h2>
-            <p className="mt-2 text-sm text-[#4B5563]">
-              Share your link anywhere and start attracting new learners.
-            </p>
-            {publicUrl ? (
-              <div className="mt-4 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Public URL</div>
-                <div className="mt-2 break-all text-sm font-medium text-[#1F2933]">{publicUrl}</div>
-                <div className="mt-3 flex gap-2">
+        <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+          <div className="grid gap-6 lg:grid-cols-[240px,1fr]">
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="h-28 w-28 border border-white shadow">
+                <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
+                <AvatarFallback className="text-lg font-semibold">
+                  {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="w-full space-y-2">
+                <Label className="text-[#1F2933]">Profile Photo</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
+                  disabled={uploadingAvatar}
+                  className="border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
+                />
+                <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
-                    onClick={() => {
-                      navigator.clipboard.writeText(publicUrl)
-                      toast.success('Public URL copied')
-                    }}
+                    onClick={uploadAvatar}
+                    disabled={uploadingAvatar || !avatarFile}
+                    className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
                   >
-                    <Copy className="h-3.5 w-3.5 mr-1.5" />
-                    Copy
+                    <Camera className="mr-1.5 h-4 w-4" />
+                    {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
                   </Button>
-                  <Button size="sm" variant="ghost" className="text-[#1D4ED8]" asChild>
-                    <Link href={publicPath} target="_blank">
-                      Preview
-                    </Link>
-                  </Button>
+                  {avatarFile ? (
+                    <Button size="sm" variant="ghost" onClick={() => setAvatarFile(null)}>
+                      Clear
+                    </Button>
+                  ) : null}
                 </div>
               </div>
-            ) : (
-              <div className="mt-4 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
-                Add a username below to generate your public link.
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-[#1F2933]">
+                <CheckCircle className="h-4 w-4 text-emerald-600" />
+                <span className="font-medium">Verified</span>
               </div>
-            )}
+              <div className="grid gap-2 text-sm text-[#1F2933]">
+                <div><span className="font-medium">Solocorn Tutor since:</span> {tutorSince || '—'}</div>
+                <div><span className="font-medium">Country:</span> {country || '—'}</div>
+                <div><span className="font-medium">Active Courses:</span> {activeCourses ?? '—'}</div>
+                <div><span className="font-medium">Categories:</span> {profileCategories.length ? profileCategories.join(', ') : '—'}</div>
+                <div><span className="font-medium">Bio:</span> {bio || 'Bio should appear here'}</div>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Public URL</div>
+                {publicUrl ? (
+                  <div className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+                    <div className="break-all text-sm font-medium text-[#1F2933]">{publicUrl}</div>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
+                        onClick={() => {
+                          navigator.clipboard.writeText(publicUrl)
+                          toast.success('Public URL copied')
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5 mr-1.5" />
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
+                    Add a username below to generate your public link.
+                  </div>
+                )}
+              </div>
+              {socialLinks.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Social Media</div>
+                  <div className="flex flex-wrap gap-2">
+                    {socialLinks.map((link) => (
+                      <Link key={link.url} href={link.url} className="text-sm text-[#1D4ED8] hover:underline" target="_blank">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
@@ -353,51 +408,13 @@ export default function TutorMyPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <Avatar className="h-16 w-16 border border-white shadow">
-                  <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
-                  <AvatarFallback className="text-sm font-semibold">
-                    {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-2">
-                  <Label className="text-[#1F2933]">Profile Photo</Label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
-                    disabled={uploadingAvatar}
-                    className="border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      size="sm"
-                      onClick={uploadAvatar}
-                      disabled={uploadingAvatar || !avatarFile}
-                      className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
-                    >
-                      <Camera className="mr-1.5 h-4 w-4" />
-                      {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
-                    </Button>
-                    {avatarFile ? (
-                      <Button size="sm" variant="ghost" onClick={() => setAvatarFile(null)}>
-                        Clear
-                      </Button>
-                    ) : null}
-                  </div>
-                  <p className="text-xs text-[#64748B]">PNG or JPG up to 8MB.</p>
-                </div>
-              </div>
-            </div>
             <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
               <div className="space-y-2">
                 <Label className="text-[#1F2933]">Username</Label>
                 <Input
                   value={username}
-                  onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
                   placeholder="e.g. jane_math"
-                  disabled={loading || saving}
+                  disabled
                   className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                 />
                 <p className="text-xs text-[#64748B]">
@@ -405,7 +422,7 @@ export default function TutorMyPage() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label className="text-[#1F2933]">Bio</Label>
+                <Label className="text-[#1F2933]">Edit Bio</Label>
                 <Textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
@@ -413,6 +430,39 @@ export default function TutorMyPage() {
                   disabled={loading || saving}
                   placeholder="Short bio for your public page..."
                   className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Label className="text-[#1F2933]">Edit Social Media Accounts</Label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Input
+                  placeholder="YouTube username"
+                  value={socialAccounts.youtube}
+                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, youtube: e.target.value }))}
+                  disabled={loading || saving}
+                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                />
+                <Input
+                  placeholder="Instagram username"
+                  value={socialAccounts.instagram}
+                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, instagram: e.target.value }))}
+                  disabled={loading || saving}
+                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                />
+                <Input
+                  placeholder="TikTok username"
+                  value={socialAccounts.tiktok}
+                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, tiktok: e.target.value }))}
+                  disabled={loading || saving}
+                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                />
+                <Input
+                  placeholder="Facebook username"
+                  value={socialAccounts.facebook}
+                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, facebook: e.target.value }))}
+                  disabled={loading || saving}
+                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
                 />
               </div>
             </div>

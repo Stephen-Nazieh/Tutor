@@ -4964,6 +4964,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     student2: []
   })
   const [testPciLoading, setTestPciLoading] = useState(false)
+  const [assigningHomework, setAssigningHomework] = useState<Record<string, boolean>>({})
   const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
   const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
   const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
@@ -7062,7 +7063,6 @@ FEEDBACK: [your explanation]`
                                             <span className="text-[10px] flex-1 truncate">
                                               <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
                                             </span>
-                                            <span className="text-[10px] text-muted-foreground">{task.points}pts</span>
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
@@ -7323,7 +7323,7 @@ FEEDBACK: [your explanation]`
                                           <ChevronDown className="h-3 w-3 text-emerald-600" />
                                         )}
                                       </Button>
-                                      <span className="text-xs font-medium text-emerald-700">Homework</span>
+                                      <span className="text-xs font-medium text-emerald-700">Homework Folder</span>
                                       <Button
                                         variant="ghost"
                                         size="sm"
@@ -7405,6 +7405,59 @@ FEEDBACK: [your explanation]`
                                               <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
                                             </span>
                                             <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
+                                              disabled={assigningHomework[hw.id]}
+                                              onClick={(e: any) => {
+                                                e.stopPropagation()
+                                                if (!courseId) {
+                                                  toast.error('Course ID not available')
+                                                  return
+                                                }
+                                                setAssigningHomework(prev => ({ ...prev, [hw.id]: true }))
+                                                const builderItem = {
+                                                  type: 'homework',
+                                                  title: hw.title,
+                                                  description: hw.description || '',
+                                                  questions: hw.questions || [],
+                                                  lessonId: primaryLesson.id,
+                                                  difficulty: hw.difficulty || 'medium',
+                                                  points: hw.points,
+                                                  estimatedMinutes: hw.estimatedMinutes,
+                                                  dueDate: hw.dueDate,
+                                                  timeLimit: hw.timeLimit,
+                                                  enforceTimeLimit: hw.enforceTimeLimit,
+                                                  enforceDueDate: hw.enforceDueDate,
+                                                  maxAttempts: hw.maxAttempts ?? 1,
+                                                }
+                                                fetch(`/api/tutor/courses/${courseId}/tasks/publish-from-builder`, {
+                                                  method: 'POST',
+                                                  headers: { 'Content-Type': 'application/json' },
+                                                  credentials: 'include',
+                                                  body: JSON.stringify({ items: [builderItem], assignTo: 'all' }),
+                                                })
+                                                  .then(async (res) => {
+                                                    if (!res.ok) {
+                                                      const data = await res.json().catch(() => ({}))
+                                                      throw new Error(data.error || 'Failed to assign homework')
+                                                    }
+                                                    return res.json()
+                                                  })
+                                                  .then((data) => {
+                                                    toast.success(data.message || `Assigned "${hw.title}"`)
+                                                  })
+                                                  .catch((error) => {
+                                                    toast.error(error instanceof Error ? error.message : 'Failed to assign homework')
+                                                  })
+                                                  .finally(() => {
+                                                    setAssigningHomework(prev => ({ ...prev, [hw.id]: false }))
+                                                  })
+                                              }}
+                                            >
+                                              {assigningHomework[hw.id] ? 'Assigning…' : 'Assign'}
+                                            </Button>
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
@@ -7559,7 +7612,7 @@ FEEDBACK: [your explanation]`
                         </TabsList>
                         {testPciTabs.map((tab) => (
                           <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                            <div className="p-4 bg-gray-50 rounded-lg min-h-[160px] max-h-[400px] overflow-y-auto">
+                            <div className="p-4 bg-gray-50 rounded-lg min-h-[320px] max-h-[800px] overflow-y-auto">
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
                               {/* Show AI scores if any */}
                               {testPciScores[tab.id]?.length > 0 && (

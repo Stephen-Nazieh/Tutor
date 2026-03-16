@@ -592,6 +592,12 @@ export default function TutorCoursePage() {
     acc[slot.dayOfWeek].push(slot)
     return acc
   }, {} as Record<string, ScheduleItem[]>)
+  const priceNumber = Number(price)
+  const scheduleCost = scheduleSummary.reduce((sum, slot) => {
+    if (!priceNumber || Number.isNaN(priceNumber)) return sum
+    return sum + (slot.durationMinutes / 60) * priceNumber
+  }, 0)
+  const totalRevenue = scheduleCost * 0.7
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -781,13 +787,13 @@ export default function TutorCoursePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
-              Pricing
+              Cost per 1 hour session
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
+                <Label htmlFor="price">Cost per 1 hour session</Label>
                 <Input
                   id="price"
                   type="number"
@@ -811,7 +817,7 @@ export default function TutorCoursePage() {
             {price && Number(price) > 0 && (
               <div className="rounded-lg border bg-muted/30 p-3">
                 <p className="text-sm">
-                  <span className="font-medium">Price preview:</span>{' '}
+                  <span className="font-medium">Cost per session:</span>{' '}
                   USD {Number(price).toFixed(2)}
                 </p>
               </div>
@@ -919,6 +925,18 @@ export default function TutorCoursePage() {
                   <CardDescription className="text-xs">Times shown in {timezoneLabel}</CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {priceNumber > 0 && scheduleSummary.length > 0 && (
+                    <div className="mb-4 rounded-lg border bg-white p-3 text-sm text-slate-700">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Cost for course</span>
+                        <span>USD {scheduleCost.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-500 mt-1">
+                        <span>Total revenue (after 30% commission)</span>
+                        <span>USD {totalRevenue.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     {dayOrder
                       .filter((day) => scheduleByDay[day]?.length)

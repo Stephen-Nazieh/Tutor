@@ -223,6 +223,9 @@ export function MyPageTabsSection() {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <div className="text-center text-2xl font-semibold text-gray-900">
+        Course Directory
+      </div>
       <TabsList className="grid w-full grid-cols-4 max-w-2xl">
         <TabsTrigger value="courses">
           Courses
@@ -294,9 +297,6 @@ export function MyPageTabsSection() {
                   <Filter className="h-4 w-4" />
                   Filter
                 </Button>
-                <Button onClick={() => router.push('/tutor/courses/new')}>
-                  Create Course
-                </Button>
               </div>
             </div>
           </CardContent>
@@ -311,9 +311,6 @@ export function MyPageTabsSection() {
             <CardContent className="text-center py-12">
               <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-700 mb-2">No published paid courses yet</h3>
-              <Button onClick={() => router.push('/tutor/courses/new')}>
-                Create New Course
-              </Button>
             </CardContent>
           </Card>
         ) : viewMode === 'list' ? (

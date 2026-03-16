@@ -34,7 +34,7 @@ export default function StudentRegistrationPage() {
     region: '',
     country: '',
     tutorPreference: '',
-    isSixteen: '',
+    isSixteen: false,
     tosAccepted: false,
   })
 
@@ -91,12 +91,8 @@ export default function StudentRegistrationPage() {
         toast.error('Please select your region and country')
         return false
       }
-      if (!formData.tutorPreference) {
-        toast.error('Please select a tutor category')
-        return false
-      }
       if (!formData.isSixteen) {
-        toast.error('Please confirm if you are sixteen years of age')
+        toast.error('Please confirm if you are 16 years of age or older')
         return false
       }
     }
@@ -111,8 +107,8 @@ export default function StudentRegistrationPage() {
   const handleSubmit = async () => {
     if (!validateStep()) return
 
-    if (formData.isSixteen !== 'yes') {
-      toast.error('You must be sixteen years of age to create an account')
+    if (!formData.isSixteen) {
+      toast.error('You must be 16 years of age or older to create an account')
       return
     }
 
@@ -136,8 +132,8 @@ export default function StudentRegistrationPage() {
             age: Number(formData.age),
             region: selectedRegion?.name || formData.region,
             country: selectedCountry?.name || formData.country,
-            tutorPreference: formData.tutorPreference,
-            isSixteen: formData.isSixteen === 'yes',
+            tutorPreference: formData.tutorPreference || undefined,
+            isSixteen: formData.isSixteen,
           },
         }),
       })
@@ -146,12 +142,6 @@ export default function StudentRegistrationPage() {
 
       if (response.ok) {
         toast.success('Student account created successfully!')
-        if (data.user?.studentUniqueId) {
-          toast.info(
-            `Save your Student ID for parent linking: ${data.user.studentUniqueId}`,
-            { duration: 8000 }
-          )
-        }
         router.push('/login')
       } else {
         toast.error(data.error || 'Failed to create account')
@@ -187,9 +177,6 @@ export default function StudentRegistrationPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-[#1F2933]">Create Your Account</CardTitle>
-            <CardDescription>
-              You will receive a unique Student ID to share with your parent for account linking
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between text-sm text-gray-500">
@@ -304,7 +291,7 @@ export default function StudentRegistrationPage() {
                       max={100}
                       value={formData.age}
                       onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                      placeholder="16"
+                      placeholder="Enter age"
                     />
                   </div>
                   <div className="space-y-2">
@@ -348,7 +335,7 @@ export default function StudentRegistrationPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tutorPreference">What kind of tutor are you looking for?</Label>
+                  <Label htmlFor="tutorPreference">What kind of tutor are you looking for? (Optional)</Label>
                   <Select
                     value={formData.tutorPreference}
                     onValueChange={(value) => setFormData({ ...formData, tutorPreference: value })}
@@ -369,20 +356,19 @@ export default function StudentRegistrationPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="isSixteen">Are you sixteen years of age?</Label>
-                  <Select
-                    value={formData.isSixteen}
-                    onValueChange={(value) => setFormData({ ...formData, isSixteen: value })}
-                  >
-                    <SelectTrigger id="isSixteen">
-                      <SelectValue placeholder="Select yes or no" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="yes">Yes</SelectItem>
-                      <SelectItem value="no">No</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-start space-x-3 rounded-lg border p-4">
+                  <Checkbox
+                    id="isSixteen"
+                    checked={formData.isSixteen}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ ...prev, isSixteen: checked === true }))
+                    }
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="isSixteen" className="font-medium cursor-pointer">
+                      Are you 16 years of age or older?
+                    </Label>
+                  </div>
                 </div>
               </>
             )}
