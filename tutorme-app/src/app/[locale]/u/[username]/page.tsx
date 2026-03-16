@@ -140,7 +140,7 @@ export default function PublicTutorPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
+      <div className="w-full p-4 sm:p-6">
         <Card className="animate-pulse">
           <CardHeader>
             <div className="h-8 w-1/3 rounded bg-muted" />
@@ -152,7 +152,7 @@ export default function PublicTutorPage() {
 
   if (!data) {
     return (
-      <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">
+      <div className="w-full p-4 sm:p-6">
         <Card>
           <CardContent className="py-12 text-center">
             <h2 className="text-xl font-bold">Tutor not found</h2>
@@ -170,7 +170,7 @@ export default function PublicTutorPage() {
   const subjects = Array.from(new Set(courses.map((course) => course.subject)))
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 p-4 sm:p-6">
+    <div className="w-full space-y-6 p-4 sm:p-6">
       <Card className="overflow-hidden border-0 shadow-sm">
         <div className="bg-gradient-to-br from-sky-50 via-cyan-50 to-emerald-50 p-6 sm:p-8">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -240,32 +240,31 @@ export default function PublicTutorPage() {
               {tutorRating > 0 ? tutorRating.toFixed(1) : 'N/A'}
             </p>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Expertise</CardTitle>
-          <CardDescription>Specialties and credentials</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {tutor.specialties.length > 0 ? (
-              tutor.specialties.map((specialty) => (
-                <Badge key={specialty} variant="secondary">
-                  {specialty}
-                </Badge>
-              ))
-            ) : (
-              <Badge variant="outline">General Tutoring</Badge>
-            )}
-          </div>
-          {tutor.credentials ? (
-            <div className="rounded-lg border bg-muted/30 p-3 text-sm text-slate-700">
-              <p className="mb-1.5 font-medium text-slate-900">Credentials</p>
-              <p>{tutor.credentials}</p>
+          <div className="rounded-lg border bg-white p-3 lg:col-span-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">Expertise</h3>
+                <p className="text-xs text-slate-600">Specialties and credentials</p>
+              </div>
             </div>
-          ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {tutor.specialties.length > 0 ? (
+                tutor.specialties.map((specialty) => (
+                  <Badge key={specialty} variant="secondary">
+                    {specialty}
+                  </Badge>
+                ))
+              ) : (
+                <Badge variant="outline">General Tutoring</Badge>
+              )}
+            </div>
+            {tutor.credentials ? (
+              <div className="mt-3 rounded-lg border bg-muted/30 p-3 text-sm text-slate-700">
+                <p className="mb-1.5 font-medium text-slate-900">Credentials</p>
+                <p>{tutor.credentials}</p>
+              </div>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 

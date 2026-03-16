@@ -18,7 +18,6 @@ import {
   FileText,
   Settings,
   Sparkles,
-  ChevronLeft,
   Save,
   Eye,
   Users,
@@ -617,17 +616,6 @@ export default function CourseBuilderLayout({
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              className="justify-start gap-2 text-gray-600 hover:text-gray-900"
-              asChild
-            >
-              <Link href="/tutor/my-page">
-                <ChevronLeft className="h-4 w-4" />
-                Back to My Page
-              </Link>
-            </Button>
-            <div className="h-6 w-px bg-gray-200" />
             <h1 className="font-semibold text-gray-900 truncate max-w-[200px]" title={course?.name || `Course ${courseId.slice(0, 8)}`}>
               {course?.name || `Course ${courseId.slice(0, 8)}...`}
             </h1>
@@ -635,16 +623,6 @@ export default function CourseBuilderLayout({
           </div>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <Link href="/tutor/question-bank">
-                <FileText className="h-4 w-4 mr-2" />
-                Assessment Bank
-              </Link>
-            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -672,27 +650,11 @@ export default function CourseBuilderLayout({
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              className="justify-start gap-2 text-gray-600"
-              asChild
-            >
-              <Link href="/tutor/my-page">
-                <ChevronLeft className="h-4 w-4" />
-                <span className="font-semibold text-gray-900">Back</span>
-              </Link>
-            </Button>
+            <div className="font-semibold text-gray-900 truncate">
+              {course?.name || `Course ${courseId.slice(0, 8)}...`}
+            </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <Link href="/tutor/question-bank">
-                <FileText className="h-4 w-4" />
-              </Link>
-            </Button>
             <Button
               size="sm"
               className="bg-blue-600 hover:bg-blue-700"
