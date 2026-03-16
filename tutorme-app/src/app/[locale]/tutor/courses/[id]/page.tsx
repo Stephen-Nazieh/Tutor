@@ -566,6 +566,33 @@ export default function TutorCoursePage() {
     toast.success('Schedule summary generated')
   }
 
+  const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const formatTime = (time: string) => {
+    const [hourStr, minuteStr] = time.split(':')
+    const hour = Number(hourStr)
+    const minute = Number(minuteStr)
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12
+    const period = hour >= 12 ? 'PM' : 'AM'
+    return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`
+  }
+  const formatTimeRange = (startTime: string, durationMinutes: number) => {
+    const [hourStr, minuteStr] = startTime.split(':')
+    const startHour = Number(hourStr)
+    const startMinute = Number(minuteStr)
+    const startTotal = startHour * 60 + startMinute
+    const endTotal = startTotal + durationMinutes
+    const endHour = Math.floor((endTotal / 60) % 24)
+    const endMinute = endTotal % 60
+    const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
+    return `${formatTime(startTime)}–${formatTime(endTime)}`
+  }
+  const timezoneLabel = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local time'
+  const scheduleByDay = scheduleSummary.reduce((acc, slot) => {
+    if (!acc[slot.dayOfWeek]) acc[slot.dayOfWeek] = []
+    acc[slot.dayOfWeek].push(slot)
+    return acc
+  }, {} as Record<string, ScheduleItem[]>)
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full p-4 sm:p-6 space-y-6">
@@ -601,9 +628,6 @@ export default function TutorCoursePage() {
               <BookOpen className="h-5 w-5" />
               Course Details
             </CardTitle>
-            <CardDescription>
-              Basic information about your course.
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
@@ -892,20 +916,27 @@ export default function TutorCoursePage() {
               <Card className="bg-muted/30">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Schedule Summary</CardTitle>
+                  <CardDescription className="text-xs">Times shown in {timezoneLabel}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    {scheduleSummary
-                      .sort((a, b) => {
-                        const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-                        const dayDiff = dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek)
-                        if (dayDiff !== 0) return dayDiff
-                        return a.startTime.localeCompare(b.startTime)
-                      })
-                      .map((slot, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-sm p-2 bg-white rounded border">
-                          <span className="font-medium">{slot.dayOfWeek}</span>
-                          <span>{slot.startTime} ({slot.durationMinutes} min)</span>
+                  <div className="space-y-3">
+                    {dayOrder
+                      .filter((day) => scheduleByDay[day]?.length)
+                      .map((day) => (
+                        <div key={day} className="rounded border bg-white p-3">
+                          <div className="text-sm font-semibold text-slate-800">{day}</div>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {scheduleByDay[day]
+                              .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                              .map((slot, idx) => (
+                                <div
+                                  key={`${day}-${idx}-${slot.startTime}`}
+                                  className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700"
+                                >
+                                  {formatTimeRange(slot.startTime, slot.durationMinutes)} • {slot.durationMinutes} min
+                                </div>
+                              ))}
+                          </div>
                         </div>
                       ))}
                   </div>

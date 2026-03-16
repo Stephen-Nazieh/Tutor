@@ -19,7 +19,6 @@ import {
   Settings,
   Sparkles,
   Save,
-  Eye,
   Users,
   Plus,
   Copy,
@@ -621,28 +620,6 @@ export default function CourseBuilderLayout({
             </h1>
             {course && <PublishStatusBadge isPublished={course.isPublished} />}
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <Link href={`/tutor/courses/${courseId}`}>
-                <Eye className="h-4 w-4 mr-2" />
-                Publish
-              </Link>
-            </Button>
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={handleOpenInLiveClass}
-              disabled={launchingLiveClass}
-            >
-              {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Radio className="h-4 w-4 mr-2" />}
-              {launchingLiveClass ? 'Opening…' : 'Go Live'}
-            </Button>
-          </div>
         </div>
       </header>
 
@@ -653,16 +630,6 @@ export default function CourseBuilderLayout({
             <div className="font-semibold text-gray-900 truncate">
               {course?.name || `Course ${courseId.slice(0, 8)}...`}
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={handleOpenInLiveClass}
-              disabled={launchingLiveClass}
-            >
-              {launchingLiveClass ? <Loader2 className="h-4 w-4 animate-spin" /> : <Radio className="h-4 w-4" />}
-            </Button>
           </div>
         </div>
       </div>
