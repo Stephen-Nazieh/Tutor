@@ -36,6 +36,7 @@ export default function TutorMyPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [username, setUsername] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -88,6 +89,7 @@ export default function TutorMyPage() {
         if (!res.ok) throw new Error('Failed to load public profile')
         const data = await res.json()
         if (!active) return
+        setDisplayName(data?.profile?.name || '')
         setUsername(data?.profile?.username || '')
         setBio(data?.profile?.bio || '')
         setAvatarUrl(data?.profile?.avatarUrl || null)
@@ -309,9 +311,9 @@ export default function TutorMyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB] text-[#1F2933]">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-white to-[#EEF2FF] text-[#1F2933]">
       <div className="border-b border-[#E2E8F0] bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex w-full items-center justify-between px-6 py-4">
           <Button
             variant="ghost"
             onClick={() => router.push('/tutor/dashboard')}
@@ -320,16 +322,17 @@ export default function TutorMyPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Button>
-          <Badge className="bg-[#1D4ED8] text-white">Tutor Workspace</Badge>
+          <Badge className="bg-[#1D4ED8] text-white shadow-sm">Tutor Workspace</Badge>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-6xl px-6 py-8 space-y-8">
-        <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
-          <div className="grid gap-6 lg:grid-cols-[240px,1fr]">
-            <div className="flex flex-col items-center gap-4">
+      <div className="mx-auto w-full px-6 py-8 space-y-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#1D4ED8]/10 via-[#4FD1C5]/10 to-[#F17623]/10" />
+          <div className="relative grid gap-6 lg:grid-cols-[260px,1fr]">
+            <div className="flex flex-col items-center gap-3 text-center">
               <div className="relative">
-                <Avatar className="h-28 w-28 border border-white shadow">
+                <Avatar className="h-28 w-28 border-2 border-white shadow-lg">
                   <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
                   <AvatarFallback className="text-lg font-semibold">
                     {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
@@ -355,18 +358,57 @@ export default function TutorMyPage() {
                   className="hidden"
                 />
               </div>
+              <div>
+                <div className="text-lg font-semibold text-[#0F172A]">
+                  {displayName || normalizedUsername || 'Tutor'}
+                </div>
+                <div className="text-xs text-[#64748B]">Solocorn Tutor</div>
+              </div>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-[#1F2933]">
-                <CheckCircle className="h-4 w-4 text-emerald-600" />
-                <span className="font-medium">Verified</span>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-[#1F2933]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Verified
+                </span>
+                {publicUrl ? (
+                  <Link href={publicPath} className="inline-flex">
+                    <Button
+                      size="sm"
+                      className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+                    >
+                      Preview Public Page
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button size="sm" disabled className="bg-[#CBD5F5] text-white">
+                    Preview Public Page
+                  </Button>
+                )}
               </div>
-              <div className="grid gap-2 text-sm text-[#1F2933]">
-                <div><span className="font-medium">Solocorn Tutor since:</span> {tutorSince || '—'}</div>
-                <div><span className="font-medium">Country:</span> {country || '—'}</div>
-                <div><span className="font-medium">Active Courses:</span> {activeCourses ?? '—'}</div>
-                <div><span className="font-medium">Categories:</span> {profileCategories.length ? profileCategories.join(', ') : '—'}</div>
-                <div><span className="font-medium">Bio:</span> {bio || 'Bio should appear here'}</div>
+              <div className="grid gap-3 text-sm text-[#1F2933] md:grid-cols-2">
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Tutor since</div>
+                  <div className="mt-1 text-sm font-medium text-[#0F172A]">{tutorSince || '—'}</div>
+                </div>
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Country</div>
+                  <div className="mt-1 text-sm font-medium text-[#0F172A]">{country || '—'}</div>
+                </div>
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Active Courses</div>
+                  <div className="mt-1 text-sm font-medium text-[#0F172A]">{activeCourses ?? '—'}</div>
+                </div>
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Categories</div>
+                  <div className="mt-1 text-sm font-medium text-[#0F172A]">
+                    {profileCategories.length ? profileCategories.join(', ') : '—'}
+                  </div>
+                </div>
+                <div className="md:col-span-2 rounded-2xl border border-[#E2E8F0] bg-white p-4">
+                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Bio</div>
+                  <div className="mt-2 text-sm text-[#0F172A]">{bio || 'Bio should appear here'}</div>
+                </div>
               </div>
               <div>
                 <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Public URL</div>
