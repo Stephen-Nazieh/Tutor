@@ -608,7 +608,7 @@ export default function TutorCoursePage() {
 
         {/* Quick setup checklist - show when schedule is missing */}
         {schedule.length === 0 && (
-          <Card className="border-dashed">
+          <Card className="border-2 border-gray-400 shadow-sm">
             <CardHeader className="py-3">
               <CardTitle className="text-sm font-medium">Quick setup</CardTitle>
               <CardDescription className="text-xs">Complete this to finish setting up your course.</CardDescription>
@@ -622,7 +622,7 @@ export default function TutorCoursePage() {
         )}
 
         {/* Course Details */}
-        <Card>
+        <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
@@ -674,7 +674,7 @@ export default function TutorCoursePage() {
 
             <div className="space-y-2">
               <Label>Categories</Label>
-              <Card className="border-dashed">
+              <Card className="border-2 border-gray-400 shadow-sm">
                 <CardContent className="pt-4">
                   <div className="flex flex-wrap gap-2 mb-4">
                     {selectedCategories.length === 0 ? (
@@ -777,7 +777,7 @@ export default function TutorCoursePage() {
         </Card>
 
         {/* Pricing */}
-        <Card>
+        <Card className="border-2 border-gray-400 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
@@ -820,7 +820,7 @@ export default function TutorCoursePage() {
         </Card>
 
         {/* Course Schedule */}
-        <Card id="course-schedule">
+        <Card id="course-schedule" className="border-2 border-gray-400 shadow-sm">
           <CardHeader>
             <CardTitle>Course Schedule</CardTitle>
           </CardHeader>
@@ -913,7 +913,7 @@ export default function TutorCoursePage() {
 
             {/* Schedule Summary */}
             {scheduleSummary.length > 0 && (
-              <Card className="bg-muted/30">
+              <Card className="border-2 border-gray-400 shadow-sm">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Schedule Summary</CardTitle>
                   <CardDescription className="text-xs">Times shown in {timezoneLabel}</CardDescription>
