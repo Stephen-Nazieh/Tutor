@@ -72,13 +72,11 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ results: [] })
   }
 
-  const conditions = [
-    or(
-      ilike(profile.name, namePattern),
-      ilike(user.handle, handlePattern)
-    ),
-    allowedUserIds ? inArray(user.id, allowedUserIds) : null,
-  ].filter(Boolean) as unknown as [unknown, ...unknown[]]
+  const nameOrHandle = or(
+    ilike(profile.name, namePattern),
+    ilike(user.handle, handlePattern)
+  )
+  const accessCondition = allowedUserIds ? inArray(user.id, allowedUserIds) : undefined
 
   const baseQuery = drizzleDb
     .select({
@@ -89,7 +87,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     })
     .from(user)
     .leftJoin(profile, eq(profile.userId, user.id))
-    .where(and(...conditions))
+    .where(accessCondition ? and(nameOrHandle, accessCondition) : nameOrHandle)
     .limit(10)
 
   const results = await baseQuery

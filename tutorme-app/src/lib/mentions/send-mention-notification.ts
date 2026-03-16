@@ -1,4 +1,4 @@
-import { notify, getNotificationChannels } from '@/lib/notifications/notify'
+import { notify, getNotificationChannels, type NotificationType } from '@/lib/notifications/notify'
 import { emitToUser, isUserOnline } from '@/lib/socket-server-enhanced'
 
 export async function sendMentionNotification(params: {
@@ -19,7 +19,7 @@ export async function sendMentionNotification(params: {
 
   const record = await notify({
     userId: mentioneeId,
-    type: 'mention',
+    type: 'mention' as NotificationType,
     title,
     message,
     data: { messageId },

@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEventHandler } from 'react'
+import type { ChangeEvent, KeyboardEventHandler, ReactNode } from 'react'
 import { useCallback } from 'react'
 import { MentionsInput, Mention, SuggestionDataItem } from 'react-mentions'
 
@@ -98,7 +98,7 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
   return (
     <MentionsInput
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value)}
       placeholder={placeholder}
       disabled={disabled}
       className={className}
@@ -109,8 +109,8 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
         trigger="@"
         data={fetchSuggestions}
         markup="@[__display__](__id__)"
-        displayTransform={(id, display) => `@${display}`}
-        renderSuggestion={(suggestion: MentionSuggestion, _search, highlightedDisplay) => (
+        displayTransform={(_id: string, display: string) => `@${display}`}
+        renderSuggestion={(suggestion: MentionSuggestion, _search: string, highlightedDisplay: ReactNode) => (
           <div className="flex items-center justify-between gap-2">
             <span>{highlightedDisplay}</span>
             {suggestion.handle ? (

@@ -1,6 +1,6 @@
 import React from 'react'
 
-const MENTION_REGEX = /@\\[([^\\]]+)\\]\\(([^)]+)\\)/g
+const MENTION_REGEX = /@\[([^\]]+)\]\(([^)]+)\)/g
 
 export function renderMentions(text: string): React.ReactNode[] {
   if (!text) return []

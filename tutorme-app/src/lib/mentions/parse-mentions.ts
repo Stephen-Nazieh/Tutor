@@ -9,7 +9,7 @@ export interface ParsedMention {
   end: number
 }
 
-const MENTION_REGEX = /@\\[([^\\]]+)\\]\\(([^)]+)\\)/g
+const MENTION_REGEX = /@\[([^\]]+)\]\(([^)]+)\)/g
 
 export function parseMentions(text: string): ParsedMention[] {
   const mentions: ParsedMention[] = []
