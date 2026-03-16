@@ -175,6 +175,7 @@ export interface Assessment extends WithDifficultyVariants {
   instructions: string
   dmiItems?: DMIQuestion[]
   category?: 'assessment' | 'homework'
+  difficulty?: string
   dueDate?: string
   estimatedMinutes: number
   points: number
@@ -192,7 +193,10 @@ export interface Assessment extends WithDifficultyVariants {
   randomizeQuestions?: boolean
   /** Time limit for completion (optional) */
   timeLimit?: number
+  enforceTimeLimit?: boolean
+  enforceDueDate?: boolean
   attemptsAllowed?: number
+  maxAttempts?: number
   passingScore?: number
   showCorrectAnswers?: boolean
   answersNeverVisible?: boolean

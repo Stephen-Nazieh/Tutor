@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { ArrowLeft, Camera, CheckCircle, Copy, Share2 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
+import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
