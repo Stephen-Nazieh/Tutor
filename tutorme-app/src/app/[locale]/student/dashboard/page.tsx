@@ -208,7 +208,10 @@ export default function StudentDashboard() {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Dashboard</Link>
+              <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
+                <span className="sr-only">Dashboard</span>
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-600" aria-hidden="true" />
+              </Link>
             </div>
             <div className="flex items-center gap-4">
               {data?.gamification && (
