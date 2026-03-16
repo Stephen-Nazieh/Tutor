@@ -10,6 +10,11 @@ export interface PromptConfig {
   language: 'en' | 'zh'
   teachingMode: string
   personality: 'friendly_mentor' | 'strict_coach' | 'corporate_trainer' | 'funny_teacher' | 'calm_professor'
+  subject?: string
+  topic?: string | null
+  teachingAge?: number
+  voiceGender?: string
+  voiceAccent?: string
   gamification: {
     level: number
     xp: number
@@ -75,6 +80,16 @@ export function buildCompletePrompt(config: PromptConfig): string {
   const personality = personalityPrompts[config.personality] || personalityPrompts.friendly_mentor
   parts.push(`\n## Your Personality`)
   parts.push(personality)
+
+  // 3b. Subject Context
+  if (config.subject || config.topic || config.teachingAge || config.voiceGender || config.voiceAccent) {
+    parts.push(`\n## Subject Context`)
+    if (config.subject) parts.push(`Subject: ${config.subject}`)
+    if (config.topic) parts.push(`Topic: ${config.topic}`)
+    if (typeof config.teachingAge === 'number') parts.push(`Teaching age: ${config.teachingAge}`)
+    if (config.voiceGender) parts.push(`Voice gender: ${config.voiceGender}`)
+    if (config.voiceAccent) parts.push(`Voice accent: ${config.voiceAccent}`)
+  }
   
   // 4. Gamification Context
   parts.push(`\n## Student Progress`)

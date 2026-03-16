@@ -7,11 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { tutorChat } from '@/lib/agents'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
+import { runTutorChat } from '@/lib/ai/tutor-chat-service'
 
 const AIChatRequestSchema = z.object({
   message: z.string().min(1).max(2000),
@@ -43,15 +43,19 @@ export async function POST(request: NextRequest) {
 
     const convoKey = conversationId || `${session.user.id}:${subject}`
 
-    const response = await tutorChat({
-      studentId: session.user.id,
-      subject,
+    const previousMessages = (typeof _context === 'object' && _context && 'previousMessages' in _context && Array.isArray((_context as any).previousMessages))
+      ? ( _context as any).previousMessages
+      : []
+
+    const response = await runTutorChat({
+      userId: session.user.id,
       message: safeMessage,
-      conversationId: convoKey
+      subject,
+      chatHistory: previousMessages,
     })
 
     // Validate AI response before returning
-    const validation = await AISecurityManager.validateAiResponse(response.content)
+    const validation = await AISecurityManager.validateAiResponse(response.response)
     if (!validation.isValid && validation.severity === 'CRITICAL') {
       return handleApiError(
         new Error('AI response failed security validation'),
@@ -61,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      response: response.content,
+      response: response.response,
       conversationId: convoKey,
       provider: response.provider,
       latencyMs: response.latencyMs,

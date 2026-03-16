@@ -89,6 +89,10 @@ export default function TutorLayout({
   // The Course Builder has its own layout
   const isCourseBuilder = pathname?.includes('/courses/') && pathname?.includes('/builder')
 
+  // Check if we're on the Course Publish page (course detail page) - hide sidebar for focused editing
+  // Pattern: /tutor/courses/[id] but not /tutor/courses/[id]/builder or other sub-paths
+  const isCoursePublishPage = pathname?.match(/^\/tutor\/courses\/[^\/]+$/) !== null
+
   // Check if we're in a live class session - if so, don't render the sidebar
   // Live class should be immersive full-screen experience
   const isLiveClass = pathname?.includes('/live-class/') && pathname?.split('/live-class/')[1]?.length > 0
@@ -99,7 +103,7 @@ export default function TutorLayout({
   // Lesson Bank should use a focused layout without the sidebar
   const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
 
-  if (isCourseBuilder || isLiveClass || isMyPage || isLessonBank) {
+  if (isCourseBuilder || isCoursePublishPage || isLiveClass || isMyPage || isLessonBank) {
     return <>{children}</>
   }
 

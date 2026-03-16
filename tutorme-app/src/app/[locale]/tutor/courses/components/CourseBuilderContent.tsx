@@ -10,12 +10,11 @@ import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Wand2, BookOpen, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Wand2, BookOpen, Loader2, Save, ChevronRight } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { PublishStatusBadge } from '@/components/tutor/PublishButton'
 import { MyPageTabsSection } from '@/components/tutor/MyPageTabsSection'
 
 interface CourseData {
@@ -206,9 +205,16 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Course
               </Button>
-              {course && (
-                <PublishStatusBadge isPublished={course.isPublished} />
-              )}
+              <Button
+                variant="outline"
+                className="gap-2"
+                asChild
+              >
+                <Link href={`/tutor/courses/${courseId}`}>
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

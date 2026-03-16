@@ -12,7 +12,28 @@ interface KimiMessage {
   content: string
 }
 
-async function generateWithKimi(messages: KimiMessage[]): Promise<string> {
+const LlmGenerateSchema = z.object({
+  prompt: z.string().min(1),
+  systemPrompt: z.string().optional(),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().min(1).max(4096).optional(),
+})
+
+const LlmChatSchema = z.object({
+  messages: z.array(
+    z.object({
+      role: z.enum(['system', 'user', 'assistant']),
+      content: z.string(),
+    })
+  ),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().min(1).max(4096).optional(),
+})
+
+async function generateWithKimi(
+  messages: KimiMessage[],
+  options: { temperature?: number; maxTokens?: number } = {}
+): Promise<string> {
   const apiKey = process.env.KIMI_API_KEY
   if (!apiKey) throw new Error('KIMI_API_KEY not configured')
 
@@ -27,8 +48,8 @@ async function generateWithKimi(messages: KimiMessage[]): Promise<string> {
     body: JSON.stringify({
       model: 'kimi-k2.5',
       messages,
-      temperature: 1,
-      max_tokens: 2048,
+      temperature: options.temperature ?? 1,
+      max_tokens: options.maxTokens ?? 2048,
     }),
     signal: controller.signal,
   }).finally(() => clearTimeout(timeoutId))
@@ -72,6 +93,66 @@ router.get('/v1/status', (_req, res) => {
     available: !!process.env.KIMI_API_KEY,
     timestamp: new Date().toISOString(),
   })
+})
+
+router.get('/v1/llm/smoke', async (_req, res) => {
+  const startTime = Date.now()
+  try {
+    const aiResponse = await generateWithKimi([
+      { role: 'system', content: 'You are a test probe. Reply with the single word: ok' },
+      { role: 'user', content: 'ping' }
+    ], { temperature: 0, maxTokens: 20 })
+    res.json({
+      ok: true,
+      response: aiResponse.trim(),
+      latencyMs: Date.now() - startTime,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    res.status(500).json({
+      ok: false,
+      error: (error as Error).message,
+      latencyMs: Date.now() - startTime,
+      timestamp: new Date().toISOString()
+    })
+  }
+})
+
+router.post('/v1/llm/generate', async (req, res) => {
+  const parsed = LlmGenerateSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Invalid request', details: parsed.error })
+  }
+
+  const { prompt, systemPrompt, temperature, maxTokens } = parsed.data
+  const messages: KimiMessage[] = []
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt })
+  messages.push({ role: 'user', content: prompt })
+
+  try {
+    const aiResponse = await generateWithKimi(messages, { temperature, maxTokens })
+    res.json({ response: aiResponse, parsed: { text: aiResponse } })
+  } catch (error) {
+    console.error('LLM generate error:', error)
+    res.status(500).json({ error: 'LLM generate failed', message: (error as Error).message })
+  }
+})
+
+router.post('/v1/llm/chat', async (req, res) => {
+  const parsed = LlmChatSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Invalid request', details: parsed.error })
+  }
+
+  const { messages, temperature, maxTokens } = parsed.data
+
+  try {
+    const aiResponse = await generateWithKimi(messages, { temperature, maxTokens })
+    res.json({ response: aiResponse, parsed: { text: aiResponse } })
+  } catch (error) {
+    console.error('LLM chat error:', error)
+    res.status(500).json({ error: 'LLM chat failed', message: (error as Error).message })
+  }
 })
 
 router.post('/v1/pci-master', async (req, res) => {

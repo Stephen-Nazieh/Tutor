@@ -200,7 +200,7 @@ export function analyzeIntent(message: string): string {
   return 'general_chat';
 }
 
-function classifyHintType(message: string): TutorResponse['hintType'] {
+export function classifyHintType(message: string): TutorResponse['hintType'] {
   const lower = message.toLowerCase();
 
   if (lower.includes('?') && (lower.includes('what') || lower.includes('how') || lower.includes('why'))) {
@@ -219,7 +219,7 @@ function classifyHintType(message: string): TutorResponse['hintType'] {
   return 'clarification';
 }
 
-function extractNextSteps(message: string): string[] | undefined {
+export function extractNextSteps(message: string): string[] | undefined {
   const patterns = [
     /try (to |)([^.]+)/i,
     /next, ([^.]+)/i,

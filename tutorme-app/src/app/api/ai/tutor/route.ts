@@ -4,19 +4,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { generateModularResponse, TeachingMode } from '@/lib/ai/modular-tutor'
+import { TeachingMode } from '@/lib/ai/modular-tutor'
 import { getTeachingModes } from '@/lib/ai/teaching-prompts'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
-
-interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: string
-}
-
-// In-memory conversation storage (use Redis in production)
-const conversationStore = new Map<string, ChatMessage[]>()
-const MAX_CONVERSATIONS = 500
+import { runTutorChat } from '@/lib/ai/tutor-chat-service'
+import { getServerSession, authOptions } from '@/lib/auth'
 
 const TutorRequestSchema = z.object({
   message: z.string().min(1).max(2000),
@@ -34,6 +27,11 @@ export async function POST(request: NextRequest) {
     const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
     if (rateLimitResponse) return rateLimitResponse
 
+    const session = await getServerSession(authOptions, request)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json().catch(() => null)
     const parsed = TutorRequestSchema.safeParse(body)
     if (!parsed.success) {
@@ -50,43 +48,25 @@ export async function POST(request: NextRequest) {
       conversationId,
     } = parsed.data
 
-    // Get or create conversation
-    const convoKey = conversationId || `tutor-${subject}-${Date.now()}`
-    const conversationHistory = conversationStore.get(convoKey) || []
-    
-    // Generate response using modular system
-    const response = await generateModularResponse(message, {
+    const response = await runTutorChat({
+      userId: session.user.id,
+      message,
       subject,
       topic,
-      mode: mode as TeachingMode,
+      teachingMode: mode as TeachingMode,
       teachingAge,
       voiceGender,
       voiceAccent,
-      conversationHistory
+      chatHistory: [],
     })
-    
-    // Update conversation history
-    conversationHistory.push({ role: 'user', content: message })
-    conversationHistory.push({ role: 'assistant', content: response.message })
-    
-    // Keep only last 10 messages
-    if (conversationHistory.length > 10) {
-      conversationHistory.splice(0, conversationHistory.length - 10)
-    }
-    
-    conversationStore.set(convoKey, conversationHistory)
-    if (conversationStore.size > MAX_CONVERSATIONS) {
-      const oldestKey = conversationStore.keys().next().value
-      if (oldestKey) conversationStore.delete(oldestKey)
-    }
 
     return NextResponse.json({
       success: true,
-      response: response.message,
-      mode: response.mode,
-      isSocratic: response.isSocratic,
+      response: response.response,
+      mode,
+      isSocratic: mode === 'socratic',
       whiteboardItems: response.whiteboardItems,
-      conversationId: convoKey
+      conversationId: conversationId || `tutor-${subject}-${Date.now()}`
     })
   } catch (error) {
     return handleApiError(error, 'Failed to get AI response', 'api/ai/tutor/route.ts')

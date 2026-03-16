@@ -5,6 +5,7 @@
 
 import { chatWithFallback } from '@/lib/agents'
 import { buildPrompt, getTeachingModes } from './teaching-prompts'
+import { extractWhiteboardItems } from './whiteboard-extract'
 
 export type TeachingMode = 'socratic' | 'direct' | 'lesson' | 'practice'
 
@@ -74,48 +75,6 @@ export async function generateModularResponse(
     isSocratic: useSocratic,
     whiteboardItems: whiteboardItems.length > 0 ? whiteboardItems : undefined
   }
-}
-
-/**
- * Extract items that should go on the whiteboard
- */
-function extractWhiteboardItems(content: string): Array<{ type: 'text' | 'formula' | 'example' | 'tip'; content: string }> {
-  const items: Array<{ type: 'text' | 'formula' | 'example' | 'tip'; content: string }> = []
-  
-  // Look for formulas (often in backticks or after "Formula:")
-  const formulaMatches = content.match(/(?:Formula:|\`)([^\`\n]+)(?:\`|\n)/g)
-  if (formulaMatches) {
-    formulaMatches.forEach(match => {
-      const clean = match.replace(/Formula:|\`/g, '').trim()
-      if (clean) {
-        items.push({ type: 'formula', content: clean })
-      }
-    })
-  }
-  
-  // Look for key definitions (after "Key Concept:" or "Definition:")
-  const definitionMatches = content.match(/(?:Key Concept:|Definition:)[\s\n]+([^\n]+(?:\n(?!(?:Key Concept:|Definition:))[^\n]+)*)/gi)
-  if (definitionMatches) {
-    definitionMatches.forEach(match => {
-      const clean = match.replace(/Key Concept:|Definition:/gi, '').trim()
-      if (clean && clean.length < 200) {
-        items.push({ type: 'text', content: clean })
-      }
-    })
-  }
-  
-  // Look for tips
-  const tipMatches = content.match(/(?:Tip:|💡)[\s\n]*([^\n]+)/gi)
-  if (tipMatches) {
-    tipMatches.forEach(match => {
-      const clean = match.replace(/Tip:|💡/gi, '').trim()
-      if (clean) {
-        items.push({ type: 'tip', content: clean })
-      }
-    })
-  }
-  
-  return items
 }
 
 /**

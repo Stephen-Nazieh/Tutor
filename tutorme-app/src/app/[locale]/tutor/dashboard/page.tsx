@@ -216,14 +216,6 @@ function TutorDashboardContent() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <InteractiveCalendar
-          initialView="week"
-          dayClickMode="availability"
-          loading={loading}
-        />
-      </div>
-
       {/* Modern Hero Section */}
       <div className="mb-8">
         <ModernHeroSection
@@ -273,6 +265,14 @@ function TutorDashboardContent() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mb-8">
+        <InteractiveCalendar
+          initialView="week"
+          dayClickMode="availability"
+          loading={loading}
+        />
       </div>
 
       {/* Create Class Dialog */}
