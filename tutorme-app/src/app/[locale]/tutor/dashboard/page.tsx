@@ -216,6 +216,13 @@ function TutorDashboardContent() {
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-8">
+        <InteractiveCalendar
+          initialView="week"
+          dayClickMode="availability"
+          loading={loading}
+        />
+      </div>
 
       {/* Modern Hero Section */}
       <div className="mb-8">
@@ -266,20 +273,6 @@ function TutorDashboardContent() {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-
-
-      {/* Interactive Calendar */}
-      <div className="mt-8">
-        <InteractiveCalendar
-          onEventClick={(event) => console.log('Event clicked:', event)}
-          onDateClick={(date) => {
-            setScheduleDate(date)
-            setShowCreateDialog(true)
-          }}
-          loading={loading}
-        />
       </div>
 
       {/* Create Class Dialog */}

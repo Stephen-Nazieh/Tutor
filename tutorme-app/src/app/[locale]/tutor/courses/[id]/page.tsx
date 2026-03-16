@@ -33,7 +33,6 @@ import { PublishButton, PublishStatusBadge } from '@/components/tutor/PublishBut
 import { toast } from 'sonner'
 import type { ScheduleItem } from './constants'
 import { DAYS, GRADE_LEVELS } from './constants'
-import { CourseScheduleCard } from './components/CourseScheduleCard'
 
 interface OutlineItem {
   title: string
@@ -681,10 +680,19 @@ export default function TutorCoursePage() {
           </CardContent>
         </Card>
 
-        <CourseScheduleCard
-          schedule={schedule}
-          onScheduleChange={setSchedule}
-        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Class schedule</CardTitle>
+            <CardDescription>
+              Manage weekly availability and class scheduling from your Tutor Dashboard calendar.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href="/tutor/dashboard">Open dashboard calendar</Link>
+            </Button>
+          </CardContent>
+        </Card>
 
         <div className="flex justify-end">
           <Button

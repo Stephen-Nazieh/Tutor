@@ -157,11 +157,15 @@ export async function performRegistration(
     let desiredHandle: string | null = null
     if (role === 'TUTOR') {
       const tutorData = tutorAdditionalDataSchema.parse(data.additionalData)
-      desiredHandle = normalizeHandle(tutorData.username)
-      assertValidHandle(desiredHandle)
-      if (await checkHandle(desiredHandle)) {
+      const normalizedHandle = normalizeHandle(tutorData.username)
+      if (!normalizedHandle) {
+        throw new ValidationError('Handle is required')
+      }
+      assertValidHandle(normalizedHandle)
+      if (await checkHandle(normalizedHandle)) {
         throw new ValidationError('Handle already taken')
       }
+      desiredHandle = normalizedHandle
     }
 
     const fallbackSeed = name || normalizedEmail.split('@')[0] || 'user'

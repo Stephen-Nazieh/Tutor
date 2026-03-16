@@ -108,10 +108,14 @@ export default function TutorMyPage() {
     toast.success('Public URL copied')
   }
 
+  const canShare =
+    typeof navigator !== 'undefined' &&
+    typeof (navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share === 'function'
+
   const handleShareProfile = async () => {
-    if (!publicUrl || !normalizedUsername || typeof navigator === 'undefined' || !navigator.share) return
+    if (!publicUrl || !normalizedUsername || !canShare) return
     try {
-      await navigator.share({
+      await (navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share?.({
         title: `Tutor profile @${normalizedUsername}`,
         url: publicUrl,
       })
@@ -444,7 +448,7 @@ export default function TutorMyPage() {
                 >
                   Copy Link
                 </Button>
-                {typeof navigator !== 'undefined' && navigator.share && publicUrl ? (
+                {canShare && publicUrl ? (
                   <Button
                     size="sm"
                     variant="ghost"

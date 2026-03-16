@@ -27,6 +27,12 @@ const AvailabilitySchema = z.object({
   validUntil: z.string().datetime().optional(),
 })
 
+const AvailabilityDeleteSchema = z.object({
+  dayOfWeek: z.number().min(0).max(6),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+})
+
 export const GET = withAuth(async (req: NextRequest, session) => {
   const tutorId = session.user.id
   const { searchParams } = new URL(req.url)
@@ -142,6 +148,40 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     
     console.error('Create availability error:', error)
     return handleApiError(error, 'Failed to create availability', 'api/tutor/calendar/availability/route.ts')
+  }
+}, { role: 'TUTOR' })
+
+export const DELETE = withAuth(async (req: NextRequest, session) => {
+  const tutorId = session.user.id
+
+  try {
+    const body = await req.json()
+    const validation = AvailabilityDeleteSchema.safeParse(body)
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid request', details: validation.error.format() },
+        { status: 400 }
+      )
+    }
+
+    const data = validation.data
+
+    await drizzleDb
+      .delete(calendarAvailability)
+      .where(
+        and(
+          eq(calendarAvailability.tutorId, tutorId),
+          eq(calendarAvailability.dayOfWeek, data.dayOfWeek),
+          eq(calendarAvailability.startTime, data.startTime),
+          eq(calendarAvailability.endTime, data.endTime)
+        )
+      )
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Delete availability error:', error)
+    return handleApiError(error, 'Failed to delete availability', 'api/tutor/calendar/availability/route.ts')
   }
 }, { role: 'TUTOR' })
 

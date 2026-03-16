@@ -114,6 +114,8 @@ interface InteractiveCalendarProps {
   onEventUpdate?: (event: CalendarEvent) => void
   loading?: boolean
   mode?: 'tutor' | 'student'
+  initialView?: CalendarView
+  dayClickMode?: 'create' | 'availability' | 'callback'
 }
 
 const SUBJECTS = [
@@ -182,21 +184,21 @@ const generateDemoEvents = (): CalendarEvent[] => {
   return events
 }
 
+const TIME_SLOTS = [
+  '08:00', '09:00', '10:00', '11:00', '12:00',
+  '13:00', '14:00', '15:00', '16:00', '17:00',
+  '18:00', '19:00', '20:00', '21:00'
+]
+
+const DEFAULT_TIMEZONE =
+  (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC'
+
 const generateAvailability = (): AvailabilityBlock[] => {
   const slots: AvailabilityBlock[] = []
-  const startMinutes = 7 * 60
-  const endMinutes = 22 * 60
-
-  const formatTime = (minutes: number) => {
-    const h = Math.floor(minutes / 60)
-    const m = minutes % 60
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-  }
-
-  for (let day = 1; day <= 7; day += 1) {
-    for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-      const startTime = formatTime(minutes)
-      const endTime = formatTime(minutes + 30)
+  for (let day = 0; day <= 6; day += 1) {
+    for (let i = 0; i < TIME_SLOTS.length; i += 1) {
+      const startTime = TIME_SLOTS[i]
+      const endTime = TIME_SLOTS[i + 1] || '22:00'
       slots.push({
         id: `${day}-${startTime}`,
         dayOfWeek: day,
@@ -206,7 +208,6 @@ const generateAvailability = (): AvailabilityBlock[] => {
       })
     }
   }
-
   return slots
 }
 
@@ -276,19 +277,25 @@ export function InteractiveCalendar({
   onCreateClass,
   onEventUpdate,
   loading,
-  mode = 'tutor'
+  mode = 'tutor',
+  initialView = 'month',
+  dayClickMode = 'callback'
 }: InteractiveCalendarProps) {
   const isStudent = mode === 'student'
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents || (isStudent ? [] : generateDemoEvents()))
   const [availability, setAvailability] = useState<AvailabilityBlock[]>(isStudent ? [] : generateAvailability())
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<CalendarView>('month')
+  const [view, setView] = useState<CalendarView>(initialView)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [subjectFilter, setSubjectFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [showConflictWarning, setShowConflictWarning] = useState<CalendarEvent[]>([])
   const [notifications, setNotifications] = useState<string[]>([])
+  const [availabilityDate, setAvailabilityDate] = useState<Date | null>(null)
+  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE)
+  const [availabilitySaving, setAvailabilitySaving] = useState(false)
+  const [availabilityLoading, setAvailabilityLoading] = useState(false)
 
   // New feature states
   const [showBatchModal, setShowBatchModal] = useState(false)
@@ -305,6 +312,38 @@ export function InteractiveCalendar({
       setEvents(initialEvents)
     }
   }, [initialEvents, mode])
+
+  useEffect(() => {
+    if (mode !== 'tutor') return
+    const loadAvailability = async () => {
+      setAvailabilityLoading(true)
+      try {
+        const res = await fetch('/api/tutor/calendar/availability', { credentials: 'include' })
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({}))
+        const apiAvailability = Array.isArray(data?.availability) ? data.availability : []
+        if (apiAvailability.length > 0) {
+          setTimezone(apiAvailability[0].timezone || DEFAULT_TIMEZONE)
+        }
+        const base = generateAvailability()
+        const normalized = base.map((block) => {
+          const found = apiAvailability.some((slot: any) =>
+            slot.dayOfWeek === block.dayOfWeek &&
+            slot.startTime === block.startTime &&
+            slot.endTime === block.endTime &&
+            slot.isAvailable === true
+          )
+          return { ...block, isAvailable: found }
+        })
+        setAvailability(normalized)
+      } catch {
+        // ignore
+      } finally {
+        setAvailabilityLoading(false)
+      }
+    }
+    loadAvailability()
+  }, [mode])
 
   // DnD Sensors
   const sensors = useSensors(
@@ -371,6 +410,25 @@ export function InteractiveCalendar({
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December']
 
+  const headerLabel = useMemo(() => {
+    if (view === 'week') {
+      const weekStart = startOfWeek(currentDate)
+      const weekEnd = addDays(weekStart, 6)
+      return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`
+    }
+    if (view === 'day') {
+      return format(currentDate, 'MMMM d, yyyy')
+    }
+    return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
+  }, [currentDate, monthNames, view])
+
+  const supportedTimezones = useMemo(() => {
+    if (typeof Intl !== 'undefined' && typeof (Intl as any).supportedValuesOf === 'function') {
+      return (Intl as any).supportedValuesOf('timeZone') as string[]
+    }
+    return [DEFAULT_TIMEZONE, 'UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
+  }, [])
+
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
@@ -400,7 +458,15 @@ export function InteractiveCalendar({
     }).sort((a, b) => a.date.getTime() - b.date.getTime())
   }
 
-  const navigateMonth = (direction: number) => {
+  const navigatePeriod = (direction: number) => {
+    if (view === 'week') {
+      setCurrentDate(addWeeks(currentDate, direction))
+      return
+    }
+    if (view === 'day') {
+      setCurrentDate(addDays(currentDate, direction))
+      return
+    }
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1))
   }
 
@@ -416,6 +482,14 @@ export function InteractiveCalendar({
       return
     }
     setSelectedDate(date)
+    if (dayClickMode === 'availability' && !isStudent) {
+      setAvailabilityDate(date)
+      return
+    }
+    if (dayClickMode === 'create' && onCreateClass) {
+      onCreateClass(date)
+      return
+    }
     if (onDateClick) {
       onDateClick(date)
       return
@@ -431,10 +505,58 @@ export function InteractiveCalendar({
     return date.toDateString() === new Date().toDateString()
   }
 
-  const toggleAvailability = (id: string) => {
+  const availabilitySlotsForDay = useMemo(() => {
+    if (!availabilityDate) return []
+    const dayIndex = availabilityDate.getDay()
+    return availability
+      .filter((block) => block.dayOfWeek === dayIndex)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+  }, [availability, availabilityDate])
+
+  const toggleAvailability = async (id: string) => {
+    if (availabilitySaving || mode !== 'tutor') return
+    const target = availability.find((block) => block.id === id)
+    if (!target) return
+
+    const nextValue = !target.isAvailable
     setAvailability(prev => prev.map(block =>
-      block.id === id ? { ...block, isAvailable: !block.isAvailable } : block
+      block.id === id ? { ...block, isAvailable: nextValue } : block
     ))
+    setAvailabilitySaving(true)
+
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/tutor/calendar/availability', {
+        method: nextValue ? 'POST' : 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          dayOfWeek: target.dayOfWeek,
+          startTime: target.startTime,
+          endTime: target.endTime,
+          timezone,
+          isAvailable: nextValue,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || 'Failed to update availability')
+      }
+    } catch (error) {
+      setAvailability(prev => prev.map(block =>
+        block.id === id ? { ...block, isAvailable: target.isAvailable } : block
+      ))
+      toast.error(error instanceof Error ? error.message : 'Failed to update availability')
+    } finally {
+      setAvailabilitySaving(false)
+    }
   }
 
   // DnD Handlers
@@ -529,19 +651,36 @@ export function InteractiveCalendar({
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => navigateMonth(-1)}>
+                <Button variant="outline" size="icon" onClick={() => navigatePeriod(-1)}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
                 <h2 className="text-lg font-semibold min-w-[150px] text-center">
-                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  {headerLabel}
                 </h2>
-                <Button variant="outline" size="icon" onClick={() => navigateMonth(1)}>
+                <Button variant="outline" size="icon" onClick={() => navigatePeriod(1)}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today
               </Button>
+              {!isStudent && (
+                <div className="flex flex-col gap-1">
+                  <Select value={timezone} onValueChange={setTimezone}>
+                    <SelectTrigger className="w-[190px]">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {supportedTimezones.map((tz) => (
+                        <SelectItem key={tz} value={tz}>
+                          {tz}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-xs text-muted-foreground">Times shown in {timezone}</span>
+                </div>
+              )}
               {!isStudent && (
                 <>
                   {/* Calendar Integrations */}
@@ -685,7 +824,7 @@ export function InteractiveCalendar({
             />
           )}
 
-          {!isStudent && view === 'availability' && (
+        {!isStudent && view === 'availability' && (
             <AvailabilityView
               availability={availability}
               onToggle={toggleAvailability}
@@ -696,6 +835,61 @@ export function InteractiveCalendar({
             />
           )}
         </CardContent>
+
+        <Dialog open={!!availabilityDate} onOpenChange={(open) => {
+          if (!open) setAvailabilityDate(null)
+        }}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Schedule availability</DialogTitle>
+              <DialogDescription>
+                {availabilityDate
+                  ? availabilityDate.toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      timeZone: timezone,
+                    })
+                  : 'Select a date'}
+                <span className="ml-2 text-xs text-muted-foreground">Timezone: {timezone}</span>
+              </DialogDescription>
+            </DialogHeader>
+            {availabilityLoading ? (
+              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                Loading availability...
+              </div>
+            ) : (
+              availabilitySlotsForDay.length === 0 ? (
+                <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                  No time slots configured.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {availabilitySlotsForDay.map((slot) => (
+                    <button
+                      key={slot.id}
+                      type="button"
+                      onClick={() => toggleAvailability(slot.id)}
+                      className={cn(
+                        'rounded-md border px-3 py-2 text-xs font-medium transition-colors',
+                        slot.isAvailable
+                          ? 'border-emerald-500 bg-emerald-500 text-white'
+                          : 'border-slate-200 text-slate-600 hover:border-emerald-300'
+                      )}
+                    >
+                      {slot.startTime}
+                    </button>
+                  ))}
+                </div>
+              )
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAvailabilityDate(null)}>
+                Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Event Detail Dialog */}
         <Dialog open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
@@ -1232,7 +1426,7 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
 }
 
 function AvailabilityView({ availability, onToggle, onSave }: any) {
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(days.map((day) => [day, false]))
   )
@@ -1249,7 +1443,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
       <div className="space-y-4">
         {days.map((day, dayIndex) => {
           const isExpanded = expandedDays[day]
-          const dayBlocks = availability.filter((block: AvailabilityBlock) => block.dayOfWeek === dayIndex + 1)
+          const dayBlocks = availability.filter((block: AvailabilityBlock) => block.dayOfWeek === dayIndex)
           return (
             <div key={day} className="border border-slate-200 rounded-lg p-4 bg-white/50">
               <button
