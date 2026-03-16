@@ -113,6 +113,7 @@ interface InteractiveCalendarProps {
   onCreateClass?: (date: Date) => void
   onEventUpdate?: (event: CalendarEvent) => void
   loading?: boolean
+  mode?: 'tutor' | 'student'
 }
 
 const SUBJECTS = [
@@ -274,10 +275,12 @@ export function InteractiveCalendar({
   onDateClick,
   onCreateClass,
   onEventUpdate,
-  loading
+  loading,
+  mode = 'tutor'
 }: InteractiveCalendarProps) {
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents || generateDemoEvents())
-  const [availability, setAvailability] = useState<AvailabilityBlock[]>(generateAvailability())
+  const isStudent = mode === 'student'
+  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents || (isStudent ? [] : generateDemoEvents()))
+  const [availability, setAvailability] = useState<AvailabilityBlock[]>(isStudent ? [] : generateAvailability())
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>('month')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -296,6 +299,12 @@ export function InteractiveCalendar({
     { id: '2', provider: 'outlook', connected: false, syncEnabled: true },
     { id: '3', provider: 'apple', connected: false, syncEnabled: false },
   ])
+
+  useEffect(() => {
+    if (mode === 'student' && initialEvents) {
+      setEvents(initialEvents)
+    }
+  }, [initialEvents, mode])
 
   // DnD Sensors
   const sensors = useSensors(
@@ -533,28 +542,32 @@ export function InteractiveCalendar({
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today
               </Button>
-              {/* Calendar Integrations */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCalendarIntegrations(true)}
-              >
-                <RefreshCw className={cn(
-                  "w-4 h-4 mr-2",
-                  calendarConnections.some(c => c.connected) && "text-green-500"
-                )} />
-                Sync
-              </Button>
+              {!isStudent && (
+                <>
+                  {/* Calendar Integrations */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCalendarIntegrations(true)}
+                  >
+                    <RefreshCw className={cn(
+                      "w-4 h-4 mr-2",
+                      calendarConnections.some(c => c.connected) && "text-green-500"
+                    )} />
+                    Sync
+                  </Button>
 
-              {/* Batch Create */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBatchModal(true)}
-              >
-                <Layers className="w-4 h-4 mr-2" />
-                Batch
-              </Button>
+                  {/* Batch Create */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowBatchModal(true)}
+                  >
+                    <Layers className="w-4 h-4 mr-2" />
+                    Batch
+                  </Button>
+                </>
+              )}
               {notifications.length > 0 && (
                 <Badge variant="destructive" className="text-xs">
                   <Bell className="w-3 h-3 mr-1" />
@@ -580,7 +593,7 @@ export function InteractiveCalendar({
 
               {/* View Toggle */}
               <div className="flex bg-gray-100 rounded-lg p-1 border border-gray-200">
-                {(['month', 'week', 'day', 'availability'] as CalendarView[]).map((v) => (
+                {(isStudent ? (['month', 'week', 'day'] as CalendarView[]) : (['month', 'week', 'day', 'availability'] as CalendarView[])).map((v) => (
                   <button
                     key={v}
                     onClick={() => setView(v)}
@@ -672,7 +685,7 @@ export function InteractiveCalendar({
             />
           )}
 
-          {view === 'availability' && (
+          {!isStudent && view === 'availability' && (
             <AvailabilityView
               availability={availability}
               onToggle={toggleAvailability}
@@ -839,124 +852,130 @@ export function InteractiveCalendar({
               <Button variant="outline" onClick={() => setSelectedDate(null)}>
                 Close
               </Button>
-              <Button onClick={() => {
-                onCreateClass?.(selectedDate || new Date())
-                setSelectedDate(null)
-              }}>
-                <Plus className="w-4 h-4 mr-2" />
-                Schedule Class
-              </Button>
+              {!isStudent && (
+                <Button onClick={() => {
+                  onCreateClass?.(selectedDate || new Date())
+                  setSelectedDate(null)
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Schedule Class
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
 
-        {/* Calendar Integrations Modal */}
-        <Dialog open={showCalendarIntegrations} onOpenChange={setShowCalendarIntegrations}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <RefreshCw className="w-5 h-5" />
-                Calendar Integrations
-              </DialogTitle>
-              <DialogDescription>
-                Sync your schedule with external calendars
-              </DialogDescription>
-            </DialogHeader>
+        {!isStudent && (
+          <>
+            {/* Calendar Integrations Modal */}
+            <Dialog open={showCalendarIntegrations} onOpenChange={setShowCalendarIntegrations}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <RefreshCw className="w-5 h-5" />
+                    Calendar Integrations
+                  </DialogTitle>
+                  <DialogDescription>
+                    Sync your schedule with external calendars
+                  </DialogDescription>
+                </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              {calendarConnections.map((connection) => (
-                <div
-                  key={connection.id}
-                  className={cn(
-                    "p-4 border rounded-lg transition-colors",
-                    connection.connected ? "border-green-200 bg-green-50/50" : "border-gray-200"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center",
-                        connection.provider === 'google' && "bg-blue-100 text-blue-600",
-                        connection.provider === 'outlook' && "bg-blue-600 text-white",
-                        connection.provider === 'apple' && "bg-gray-900 text-white"
-                      )}>
-                        {connection.provider === 'google' && <CalendarIcon className="w-5 h-5" />}
-                        {connection.provider === 'outlook' && <ExternalLink className="w-5 h-5" />}
-                        {connection.provider === 'apple' && <CalendarIcon className="w-5 h-5" />}
-                      </div>
-                      <div>
-                        <p className="font-medium capitalize">{connection.provider} Calendar</p>
-                        {connection.connected ? (
-                          <p className="text-xs text-green-600 flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Connected{connection.email && ` • ${connection.email}`}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-gray-500">Not connected</p>
-                        )}
-                      </div>
-                    </div>
+                <div className="space-y-4 py-4">
+                  {calendarConnections.map((connection) => (
+                    <div
+                      key={connection.id}
+                      className={cn(
+                        "p-4 border rounded-lg transition-colors",
+                        connection.connected ? "border-green-200 bg-green-50/50" : "border-gray-200"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-10 h-10 rounded-lg flex items-center justify-center",
+                            connection.provider === 'google' && "bg-blue-100 text-blue-600",
+                            connection.provider === 'outlook' && "bg-blue-600 text-white",
+                            connection.provider === 'apple' && "bg-gray-900 text-white"
+                          )}>
+                            {connection.provider === 'google' && <CalendarIcon className="w-5 h-5" />}
+                            {connection.provider === 'outlook' && <ExternalLink className="w-5 h-5" />}
+                            {connection.provider === 'apple' && <CalendarIcon className="w-5 h-5" />}
+                          </div>
+                          <div>
+                            <p className="font-medium capitalize">{connection.provider} Calendar</p>
+                            {connection.connected ? (
+                              <p className="text-xs text-green-600 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Connected{connection.email && ` • ${connection.email}`}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-gray-500">Not connected</p>
+                            )}
+                          </div>
+                        </div>
 
-                    <div className="flex items-center gap-2">
-                      {connection.connected ? (
-                        <>
-                          <Switch
-                            checked={connection.syncEnabled}
-                            onCheckedChange={(checked) => {
-                              setCalendarConnections(prev => prev.map(c =>
-                                c.id === connection.id ? { ...c, syncEnabled: checked } : c
-                              ))
-                            }}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => disconnectCalendar(connection.provider)}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => connectCalendar(connection.provider)}
-                        >
-                          Connect
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {connection.connected ? (
+                            <>
+                              <Switch
+                                checked={connection.syncEnabled}
+                                onCheckedChange={(checked) => {
+                                  setCalendarConnections(prev => prev.map(c =>
+                                    c.id === connection.id ? { ...c, syncEnabled: checked } : c
+                                  ))
+                                }}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => disconnectCalendar(connection.provider)}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => connectCalendar(connection.provider)}
+                            >
+                              Connect
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {connection.connected && connection.lastSynced && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          Last synced: {format(connection.lastSynced, 'MMM d, h:mm a')}
+                        </p>
                       )}
                     </div>
-                  </div>
-
-                  {connection.connected && connection.lastSynced && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      Last synced: {format(connection.lastSynced, 'MMM d, h:mm a')}
-                    </p>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setShowCalendarIntegrations(false)}>
-                Close
-              </Button>
-              <Button onClick={syncCalendars} className="gap-2">
-                <RefreshCw className="w-4 h-4" />
-                Sync All
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setShowCalendarIntegrations(false)}>
+                    Close
+                  </Button>
+                  <Button onClick={syncCalendars} className="gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Sync All
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
-        {/* Batch Class Creation Modal */}
-        <BatchClassModal
-          open={showBatchModal}
-          onClose={() => setShowBatchModal(false)}
-          onCreate={(newEvents) => {
-            setEvents(prev => [...prev, ...newEvents])
-            toast.success(`Created ${newEvents.length} classes!`)
-          }}
-        />
+            {/* Batch Class Creation Modal */}
+            <BatchClassModal
+              open={showBatchModal}
+              onClose={() => setShowBatchModal(false)}
+              onCreate={(newEvents) => {
+                setEvents(prev => [...prev, ...newEvents])
+                toast.success(`Created ${newEvents.length} classes!`)
+              }}
+            />
+          </>
+        )}
 
         {/* Drag Overlay */}
         <DragOverlay>

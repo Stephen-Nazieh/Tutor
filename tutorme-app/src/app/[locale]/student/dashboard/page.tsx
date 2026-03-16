@@ -5,43 +5,37 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { UserNav } from '@/components/user-nav'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { toast } from 'sonner'
-import { Flame, Settings, AlertCircle, Video } from 'lucide-react'
+import { Flame, Settings, AlertCircle } from 'lucide-react'
 
-import { DailyQuestsWidget } from '@/components/gamification/daily-quests'
 import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
 
 import {
-  StatsOverview,
   // ContinueLearning,  // Moved to DashboardCalendar tabs
   // UpcomingClasses,   // Moved to DashboardCalendar tabs
-  SkillRadar,
-  StudyGroups,
   DashboardSkeleton,
-  QuickActionsCard,
   MyCoursesCard,
   DashboardCalendar,
   LearningPathCard,
   MissedClassesCard,
   PendingAssignmentsCard
 } from './components'
+import { StudentHeroSection } from './components/StudentHeroSection'
 import { SpacedRepetitionDashboard } from '@/components/spaced-repetition'
-import type { DashboardClass, DashboardData, DailyQuestWithCompletion } from './types'
+import type { DashboardClass, DashboardData } from './types'
 import { getDashboardStrings } from './dashboard-strings'
 
 export default function StudentDashboard() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
   const [showXpAnimation, setShowXpAnimation] = useState(false)
   const [xpGain, setXpGain] = useState<{ amount: number; reason: string } | null>(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [bookingClassId, setBookingClassId] = useState<string | null>(null)
-  const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [reviewData, setReviewData] = useState<{ subjectCurves: any[]; upcomingReviews: any[]; overdueReviews: any[]; totalDue: number; reviewHistory?: any[] } | null>(null)
 
@@ -57,10 +51,8 @@ export default function StudentDashboard() {
         fetch('/api/content').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ contents: [] }) })),
         fetch('/api/gamification').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false }) })),
         fetch('/api/gamification/worlds').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false, data: [] }) })),
-        fetch('/api/gamification/quests').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false, data: { quests: [] } }) })),
         fetch('/api/recommendations').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ recommendations: [] }) })),
         fetch('/api/classes?limit=3').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ classes: [] }) })),
-        fetch('/api/study-groups?limit=3').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ groups: [] }) })),
         fetch('/api/student/subjects').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ subjects: [] }) })),
         fetch('/api/student/reviews').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false, data: null }) }))
       ])
@@ -73,7 +65,7 @@ export default function StudentDashboard() {
         return
       }
 
-      const [contentData, gamificationData, worldsData, questsData, recsData, classesData, groupsData, subjectsData, reviewsData] =
+      const [contentData, gamificationData, worldsData, recsData, classesData, subjectsData, reviewsData] =
         await Promise.all(responses.map(r => r.json()))
 
       const subjects = subjectsData?.subjects ?? []
@@ -81,10 +73,10 @@ export default function StudentDashboard() {
         contents: contentData?.contents ?? [],
         gamification: gamificationData?.data ?? null,
         worlds: worldsData?.data ?? [],
-        dailyQuests: questsData?.data?.quests ?? [],
+        dailyQuests: [],
         recommendations: recsData?.recommendations ?? [],
         classes: classesData?.classes ?? [],
-        studyGroups: groupsData?.groups ?? [],
+        studyGroups: [],
         courses: subjects.map((s: { id: string; name: string; subject: string; description?: string | null; progress: number; completedLessons: number; totalLessons: number; lastStudied?: string | null; enrollmentSource?: string | null }) => ({
           id: s.id,
           name: s.name,
@@ -181,40 +173,11 @@ export default function StudentDashboard() {
     }
   }
 
-  const handleJoinGroup = async (groupId: string) => {
-    setJoiningGroupId(groupId)
-    try {
-      const response = await fetch('/api/study-groups/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ groupId })
-      })
-      const result = await response.json()
-
-      if (response.ok) {
-        toast.success('Successfully joined study group!')
-        setData(prev => prev ? {
-          ...prev,
-          studyGroups: prev.studyGroups.map(g => g.id === groupId
-            ? { ...g, isMember: true, currentMembers: g.currentMembers + 1 }
-            : g
-          )
-        } : null)
-      } else {
-        toast.error(result.error || 'Failed to join group')
-      }
-    } catch {
-      toast.error('An error occurred while joining')
-    } finally {
-      setJoiningGroupId(null)
-    }
-  }
-
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <nav className="bg-white border-b sticky top-0 z-50 safe-top">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
               <div className="h-7 w-24 bg-gray-200 rounded animate-pulse" />
               <div className="h-9 w-9 bg-gray-100 rounded animate-pulse" />
@@ -242,10 +205,10 @@ export default function StudentDashboard() {
 
       {/* Navigation */}
       <nav className="bg-white border-b sticky top-0 z-50 safe-top">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
+              <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Dashboard</Link>
             </div>
             <div className="flex items-center gap-4">
               {data?.gamification && (
@@ -265,7 +228,7 @@ export default function StudentDashboard() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" aria-busy={loading}>
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8" aria-busy={loading}>
         {fetchError && (
           <div
             role="alert"
@@ -282,22 +245,8 @@ export default function StudentDashboard() {
         )}
         {/* Welcome */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <div>
-              <h1 className="text-3xl font-bold">{strings.welcomeTitle} {session?.user?.name?.split(' ')[0] || 'Student'}!</h1>
-              <p className="text-gray-600 mt-1">{strings.welcomeSubtitle}</p>
-            </div>
-            <Button asChild>
-              <Link href="/student/live/join">
-                <Video className="w-4 h-4 mr-2" />
-                Join Live Class
-              </Link>
-            </Button>
-          </div>
+          <StudentHeroSection classes={data?.classes ?? []} />
         </div>
-
-        {/* Stats Overview */}
-        <StatsOverview gamification={data?.gamification || null} />
 
         {/* Full Width Layout */}
         <div className="space-y-6">
@@ -332,31 +281,6 @@ export default function StudentDashboard() {
             onBookClass={handleBookClass}
           />
 
-          {/* Daily Quests - Full Width */}
-          {data?.dailyQuests && data.dailyQuests.length > 0 ? (
-            <DailyQuestsWidget
-              quests={data.dailyQuests as { id: string; quest: { title: string; description: string; type: string; xpReward: number; requirement: number }; completed: boolean; progress: number }[]}
-              completedCount={data.dailyQuests.filter((q: DailyQuestWithCompletion) => q.completed).length}
-              totalXp={data.dailyQuests.reduce((acc: number, q: DailyQuestWithCompletion) => acc + (q.completed ? q.quest.xpReward : 0), 0)}
-              onQuestClick={(quest) => !(quest as DailyQuestWithCompletion).completed && router.push('/student/missions')}
-            />
-          ) : (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{strings.dailyQuests}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="py-6 text-center text-gray-500">
-                  <p className="text-sm font-medium text-gray-700">{strings.noDailyQuests}</p>
-                  <p className="text-xs mt-1">{strings.noDailyQuestsHint}</p>
-                  <Button variant="outline" size="sm" className="mt-3 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" onClick={() => router.push('/student/missions')}>
-                    {strings.goToMissions}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Spaced Repetition Dashboard - Full Width */}
           <SpacedRepetitionDashboard
             reviewData={reviewData}
@@ -364,22 +288,6 @@ export default function StudentDashboard() {
             fullWidth={true}
           />
 
-          {/* Skills Radar - Full Width */}
-          {data?.gamification?.skills && (
-            <SkillRadar skills={data.gamification.skills} />
-          )}
-
-          {/* Study Groups - Full Width */}
-          {data?.studyGroups && data.studyGroups.length > 0 && (
-            <StudyGroups
-              groups={data.studyGroups}
-              joiningGroupId={joiningGroupId}
-              onJoinGroup={handleJoinGroup}
-            />
-          )}
-
-          {/* Quick Actions - At the Bottom */}
-          <QuickActionsCard />
         </div>
       </main>
     </div>

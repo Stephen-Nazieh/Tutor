@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Sparkles,
   ClipboardList,
-  Users,
   MessageSquare,
   BarChart3,
   FolderOpen,
@@ -18,7 +17,6 @@ import {
   Menu,
   X,
   Video,
-  Target,
   Bell,
   ArrowLeft,
   Radar,
@@ -52,7 +50,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Goals & progress',
     items: [
-      { href: '/student/missions', label: 'Missions', icon: Target },
       { href: '/student/worlds', label: 'Worlds', icon: Globe },
       { href: '/student/progress', label: 'Progress', icon: BarChart3 },
     ],
@@ -70,7 +67,6 @@ const navGroups: { label: string; items: NavItem[] }[] = [
 const quickActionItems = [
   { href: '/student/live/join', label: 'Join Class', icon: Video },
   { href: '/student/ai-tutor', label: 'AI Tutor', icon: Sparkles },
-  { href: '/student/study-groups', label: 'Study Groups', icon: Users },
   { href: '/student/messages', label: 'Messages', icon: MessageSquare },
 ]
 
@@ -82,6 +78,7 @@ export default function StudentLayout({
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const isLiveClassRoute = pathname.includes('/student/live/')
+  const isTutorDirectoryRoute = pathname.startsWith('/student/tutors')
   const liveSessionId = isLiveClassRoute ? pathname.split('/student/live/')[1]?.split('/')[0] || '' : ''
   const liveClassNavItems: NavItem[] = [
     { href: liveSessionId ? `/student/live/${liveSessionId}` : '/student/live', label: 'Live Whiteboard', icon: Video },
@@ -90,12 +87,37 @@ export default function StudentLayout({
     { href: '/student/live/join', label: 'Leave Class', icon: ArrowLeft },
   ]
 
+  if (isTutorDirectoryRoute) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b sticky top-0 z-40">
+          <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+            <Link href="/student/dashboard" className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900">
+              <ArrowLeft className="h-4 w-4" />
+              Back to dashboard
+            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/student/notifications">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                </Button>
+              </Link>
+              <UserNav />
+            </div>
+          </div>
+        </header>
+        <main className="px-4 sm:px-6 lg:px-8 py-6">{children}</main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Left Navigation Sidebar - Desktop */}
       <aside className="w-64 bg-white border-r sticky top-0 h-screen hidden lg:flex flex-col z-40">
         <div className="p-4 border-b flex items-center justify-between">
-          <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Solocorn</Link>
+          <Link href="/student/dashboard" className="text-xl font-bold text-blue-600">Dashboard</Link>
           <Link href="/student/notifications">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />

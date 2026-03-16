@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar } from '@/components/ui/calendar'
+import { InteractiveCalendar } from '@/app/[locale]/tutor/dashboard/components/InteractiveCalendar'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -54,10 +54,6 @@ interface ClassItem {
   price?: number | null
 }
 
-function toDateKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 function formatEventTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
@@ -81,7 +77,6 @@ export function DashboardCalendar({
   const router = useRouter()
   const [activeTab, setActiveTab] = useState('calendar')
   const [month, setMonth] = useState<Date>(() => new Date())
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents ?? [])
   const [loading, setLoading] = useState(!initialEvents?.length)
   const [classes, setClasses] = useState<ClassItem[]>([])
@@ -146,65 +141,20 @@ export function DashboardCalendar({
     return () => { cancelled = true }
   }, [onRefresh])
 
-  const eventsByDay = useMemo(() => {
-    const map = new Map<string, CalendarEvent[]>()
-    for (const ev of events) {
-      const key = toDateKey(new Date(ev.start))
-      if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(ev)
-    }
-    return map
+  const interactiveEvents = useMemo(() => {
+    return events.map((ev) => ({
+      id: ev.id,
+      title: ev.title,
+      date: new Date(ev.start),
+      duration: ev.duration,
+      type: 'class' as const,
+      status: 'scheduled' as const,
+      subject: ev.subject,
+      isOnline: true,
+      description: ev.tutorName ? `Tutor: ${ev.tutorName}` : undefined,
+      color: 'bg-blue-500',
+    }))
   }, [events])
-
-  const eventsForMonth = useMemo(() => {
-    return events.filter(ev => {
-      const d = new Date(ev.start)
-      return d >= monthStart && d <= monthEnd
-    }).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
-  }, [events, monthStart, monthEnd])
-
-  const selectedKey = selectedDate ? toDateKey(selectedDate) : null
-  const eventsForSelectedDay = selectedKey ? (eventsByDay.get(selectedKey) || []).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()) : []
-
-  const modifiers = useMemo(() => {
-    const m: Record<string, Date[]> = {}
-    for (const [key, list] of eventsByDay.entries()) {
-      if (list.length > 0) {
-        m[`day-${list.length}`] = m[`day-${list.length}`] || []
-        m[`day-${list.length}`].push(new Date(key + 'T00:00:00'))
-      }
-    }
-    return m
-  }, [eventsByDay])
-
-  const modifiersClassNames = useMemo(() => {
-    const mc: Record<string, string> = {}
-    for (let i = 1; i <= 5; i++) {
-      mc[`day-${i}`] = 'bg-blue-100 text-blue-700 font-semibold rounded-full'
-    }
-    return mc
-  }, [])
-
-  const calendarClassNames = useMemo(() => ({
-    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-    month: "space-y-4",
-    caption: "flex justify-center pt-1 relative items-center",
-    caption_label: "text-sm font-medium",
-    nav: "space-x-1 flex items-center",
-    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-    nav_button_previous: "absolute left-1",
-    nav_button_next: "absolute right-1",
-    table: "w-full border-collapse",
-    head_row: "flex w-full mb-2",
-    head_cell: "flex-1 h-8 flex items-center justify-center text-[0.7rem] font-medium text-muted-foreground",
-    row: "flex w-full mt-1",
-    cell: "flex-1 h-10 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-    day: "w-9 h-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent rounded-md mx-auto",
-    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-    day_today: "bg-accent text-accent-foreground",
-    day_outside: "text-muted-foreground opacity-50",
-    day_disabled: "text-muted-foreground opacity-50",
-  }), [])
 
   // Continue Learning filtered data
   const inProgressContent = contents.filter(c => c.progress > 0 && c.progress < 100)
@@ -240,66 +190,11 @@ export function DashboardCalendar({
         <CardContent>
           {/* My Calendar Tab */}
           <TabsContent value="calendar" className="mt-0 space-y-4">
-            <div className="calendar-single-letter-weekdays">
-              <Calendar
-                mode="single"
-                month={month}
-                onMonthChange={setMonth}
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                modifiers={modifiers}
-                modifiersClassNames={modifiersClassNames}
-                className="rounded-md border w-full p-4"
-                classNames={calendarClassNames}
-                disabled={loading}
-                showOutsideDays={false}
-                weekStartsOn={0}
-              />
-            </div>
-            <style>{`
-              .calendar-single-letter-weekdays .rdp-head_cell {
-                font-size: 0.7rem;
-                text-transform: uppercase;
-              }
-              .calendar-single-letter-weekdays .rdp-head_cell abbr {
-                text-decoration: none;
-              }
-            `}</style>
-
-            {/* Events List */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {selectedDate
-                  ? `Classes on ${selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}`
-                  : 'Classes this month'}
-              </p>
-              {loading ? (
-                <p className="text-sm text-gray-500">Loading…</p>
-              ) : (selectedDate ? eventsForSelectedDay : eventsForMonth).length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  {selectedDate ? 'No classes on this day.' : 'No classes this month.'} Book a class from the classes page.
-                </p>
-              ) : (
-                <ul className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {(selectedDate ? eventsForSelectedDay : eventsForMonth).map((ev) => (
-                    <li key={ev.id}>
-                      <Link
-                        href="/student/courses"
-                        className="block p-3 rounded-lg border bg-gray-50/80 hover:bg-gray-100 transition-colors text-sm"
-                      >
-                        <span className="font-medium text-gray-900">{ev.title}</span>
-                        <span className="text-gray-500 ml-1">· {ev.subject}</span>
-                        <span className="text-gray-500 block text-xs mt-0.5">
-                          {formatEventTime(ev.start)} – {formatEventTime(ev.end)}
-                          {ev.tutorName ? ` · ${ev.tutorName}` : ''}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <InteractiveCalendar
+              events={interactiveEvents}
+              loading={loading}
+              mode="student"
+            />
           </TabsContent>
 
           {/* My Classes Tab */}
