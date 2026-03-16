@@ -372,7 +372,7 @@ export default function TutorMyPage() {
                   Verified
                 </span>
                 {publicUrl ? (
-                  <Link href={publicPath} className="inline-flex">
+                  <Link href={publicPath} className="inline-flex" target="_blank" rel="noreferrer">
                     <Button
                       size="sm"
                       className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
