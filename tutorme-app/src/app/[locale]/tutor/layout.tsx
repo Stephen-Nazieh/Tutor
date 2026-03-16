@@ -102,8 +102,9 @@ export default function TutorLayout({
 
   // Lesson Bank should use a focused layout without the sidebar
   const isLessonBank = pathname === '/tutor/lessons' || pathname?.startsWith('/tutor/lessons/')
+  const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
-  if (isCourseBuilder || isCoursePublishPage || isLiveClass || isMyPage || isLessonBank) {
+  if (isCourseBuilder || isCoursePublishPage || isLiveClass || isMyPage || isLessonBank || isAccountPage) {
     return <>{children}</>
   }
 

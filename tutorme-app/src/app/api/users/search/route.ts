@@ -7,17 +7,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumEnrollment, profile, user } from '@/lib/db/schema'
-import { and, eq, ilike, inArray, or } from 'drizzle-orm'
+import { and, asc, eq, ilike, inArray, or } from 'drizzle-orm'
 import { normalizeHandle } from '@/lib/mentions/handles'
 
 type Role = 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'
 
 export const GET = withAuth(async (req: NextRequest, session) => {
   const query = new URL(req.url).searchParams.get('query')?.trim() ?? ''
-  if (!query) {
-    return NextResponse.json({ results: [] })
-  }
-
   const role = session.user.role as Role
   const requesterId = session.user.id
   const handleQuery = normalizeHandle(query).replace(/^@+/, '')
@@ -72,10 +68,12 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     return NextResponse.json({ results: [] })
   }
 
-  const nameOrHandle = or(
-    ilike(profile.name, namePattern),
-    ilike(user.handle, handlePattern)
-  )
+  const nameOrHandle = query
+    ? or(
+        ilike(profile.name, namePattern),
+        ilike(user.handle, handlePattern)
+      )
+    : undefined
   const accessCondition = allowedUserIds ? inArray(user.id, allowedUserIds) : undefined
 
   const baseQuery = drizzleDb
@@ -87,7 +85,12 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     })
     .from(user)
     .leftJoin(profile, eq(profile.userId, user.id))
-    .where(accessCondition ? and(nameOrHandle, accessCondition) : nameOrHandle)
+    .where(
+      nameOrHandle
+        ? (accessCondition ? and(nameOrHandle, accessCondition) : nameOrHandle)
+        : accessCondition
+    )
+    .orderBy(asc(profile.name))
     .limit(10)
 
   const results = await baseQuery

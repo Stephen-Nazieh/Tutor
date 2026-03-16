@@ -37,11 +37,10 @@ export default function TutorSettings() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-12">
       <header className="bg-white border-b shadow-sm sticky top-0 z-10 safe-top">
-        <div className="mx-auto flex w-full items-center gap-4 px-6 py-4">
-          <Link href="/tutor/dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+        <div className="mx-auto flex w-full items-center justify-between gap-4 px-6 py-4">
+          <Link href="/tutor/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900">
+            <ArrowLeft className="h-4 w-4" />
+            Back to dashboard
           </Link>
           <h1 className="text-xl font-bold text-[#0F172A]">Account</h1>
         </div>

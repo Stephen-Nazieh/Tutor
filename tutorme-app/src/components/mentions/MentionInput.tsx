@@ -72,10 +72,6 @@ const darkStyle = {
 
 export function MentionInput({ value, onChange, placeholder, disabled, className, onKeyDown, variant = 'default' }: MentionInputProps) {
   const fetchSuggestions = useCallback(async (query: string, callback: (data: MentionSuggestion[]) => void) => {
-    if (!query) {
-      callback([])
-      return
-    }
     try {
       const res = await fetch(`/api/users/search?query=${encodeURIComponent(query)}`, { credentials: 'include' })
       if (!res.ok) {
