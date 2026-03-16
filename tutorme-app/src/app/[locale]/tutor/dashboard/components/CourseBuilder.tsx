@@ -6864,7 +6864,7 @@ FEEDBACK: [your explanation]`
                             size="sm" 
                             variant="outline" 
                             onClick={() => {
-                              // Open lesson bank import with lesson selection
+                              // Open lesson bank import
                               const bankModules = loadLessonBankModules()
                               if (bankModules.length === 0) {
                                 toast.error('No lesson bank content found. Build lessons in the Lesson Bank first.')
@@ -6877,7 +6877,15 @@ FEEDBACK: [your explanation]`
                               } else {
                                 setLessonBankLessonKey('')
                               }
-                              setImportLessonSelectorOpen(true)
+                              
+                              // If no lessons exist, skip the lesson selector and open import modal directly
+                              // The import modal will handle auto-creating a lesson for task/assessment/homework imports
+                              if (modules.length === 0) {
+                                setImportTarget(null) // No specific target, will auto-create
+                                setLessonBankImportOpen(true)
+                              } else {
+                                setImportLessonSelectorOpen(true)
+                              }
                             }}
                             className="gap-1 h-6 text-xs"
                           >
@@ -8486,21 +8494,31 @@ FEEDBACK: [your explanation]`
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Button
                     variant="outline"
-                    disabled={!lessonBankLessonKey || !importTarget}
+                    disabled={!lessonBankLessonKey}
                     onClick={() => {
-                      if (!lessonBankLessonKey || !importTarget) return
+                      if (!lessonBankLessonKey) return
                       const [moduleId, lessonId] = lessonBankLessonKey.split(':')
                       const bankModule = lessonBankModules.find(m => m.id === moduleId)
                       const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
                       if (!bankLesson) return
-                      setModules(prev => prev.map(mod => {
-                        if (mod.id !== importTarget.moduleId) return mod
-                        const nextLesson = cloneLesson(bankLesson, mod.lessons.length)
-                        return {
-                          ...mod,
-                          lessons: [...mod.lessons, nextLesson]
-                        }
-                      }))
+                      
+                      // If no importTarget (no existing lessons), create a new module with the lesson
+                      if (!importTarget) {
+                        const newModule = DEFAULT_MODULE(modules.length)
+                        const clonedLesson = cloneLesson(bankLesson, 0)
+                        newModule.lessons = [clonedLesson]
+                        setModules(prev => [...prev, newModule])
+                      } else {
+                        // Import into existing module
+                        setModules(prev => prev.map(mod => {
+                          if (mod.id !== importTarget.moduleId) return mod
+                          const nextLesson = cloneLesson(bankLesson, mod.lessons.length)
+                          return {
+                            ...mod,
+                            lessons: [...mod.lessons, nextLesson]
+                          }
+                        }))
+                      }
                       toast.success('Lesson imported')
                       setLessonBankImportOpen(false)
                       setImportTarget(null)
@@ -8510,26 +8528,35 @@ FEEDBACK: [your explanation]`
                   </Button>
                   <Button
                     variant="outline"
-                    disabled={!lessonBankLessonKey || !importTarget}
+                    disabled={!lessonBankLessonKey}
                     onClick={() => {
-                      if (!lessonBankLessonKey || !importTarget) return
+                      if (!lessonBankLessonKey) return
                       const [moduleId, lessonId] = lessonBankLessonKey.split(':')
                       const bankModule = lessonBankModules.find(m => m.id === moduleId)
                       const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
                       if (!bankLesson) return
-                      setModules(prev => prev.map(mod => {
-                        if (mod.id !== importTarget.moduleId) return mod
-                        return {
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => {
-                            if (lesson.id !== importTarget.lessonId) return lesson
-                            return {
-                              ...lesson,
-                              tasks: [...lesson.tasks, ...bankLesson.tasks.map(cloneTask)]
-                            }
-                          })
-                        }
-                      }))
+                      
+                      // If no importTarget (no existing lessons), auto-create a lesson first
+                      if (!importTarget) {
+                        const newModule = DEFAULT_MODULE(modules.length)
+                        newModule.lessons[0].tasks = bankLesson.tasks.map(cloneTask)
+                        setModules(prev => [...prev, newModule])
+                      } else {
+                        // Import into existing lesson
+                        setModules(prev => prev.map(mod => {
+                          if (mod.id !== importTarget.moduleId) return mod
+                          return {
+                            ...mod,
+                            lessons: mod.lessons.map(lesson => {
+                              if (lesson.id !== importTarget.lessonId) return lesson
+                              return {
+                                ...lesson,
+                                tasks: [...lesson.tasks, ...bankLesson.tasks.map(cloneTask)]
+                              }
+                            })
+                          }
+                        }))
+                      }
                       toast.success('Tasks imported')
                       setLessonBankImportOpen(false)
                       setImportTarget(null)
@@ -8539,27 +8566,36 @@ FEEDBACK: [your explanation]`
                   </Button>
                   <Button
                     variant="outline"
-                    disabled={!lessonBankLessonKey || !importTarget}
+                    disabled={!lessonBankLessonKey}
                     onClick={() => {
-                      if (!lessonBankLessonKey || !importTarget) return
+                      if (!lessonBankLessonKey) return
                       const [moduleId, lessonId] = lessonBankLessonKey.split(':')
                       const bankModule = lessonBankModules.find(m => m.id === moduleId)
                       const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
                       if (!bankLesson) return
                       const assessments = (bankLesson.homework || []).filter(h => h.category !== 'homework')
-                      setModules(prev => prev.map(mod => {
-                        if (mod.id !== importTarget.moduleId) return mod
-                        return {
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => {
-                            if (lesson.id !== importTarget.lessonId) return lesson
-                            return {
-                              ...lesson,
-                              homework: [...lesson.homework, ...assessments.map(cloneAssessment)]
-                            }
-                          })
-                        }
-                      }))
+                      
+                      // If no importTarget (no existing lessons), auto-create a lesson first
+                      if (!importTarget) {
+                        const newModule = DEFAULT_MODULE(modules.length)
+                        newModule.lessons[0].homework = assessments.map(cloneAssessment)
+                        setModules(prev => [...prev, newModule])
+                      } else {
+                        // Import into existing lesson
+                        setModules(prev => prev.map(mod => {
+                          if (mod.id !== importTarget.moduleId) return mod
+                          return {
+                            ...mod,
+                            lessons: mod.lessons.map(lesson => {
+                              if (lesson.id !== importTarget.lessonId) return lesson
+                              return {
+                                ...lesson,
+                                homework: [...lesson.homework, ...assessments.map(cloneAssessment)]
+                              }
+                            })
+                          }
+                        }))
+                      }
                       toast.success('Assessments imported')
                       setLessonBankImportOpen(false)
                       setImportTarget(null)
@@ -8569,27 +8605,36 @@ FEEDBACK: [your explanation]`
                   </Button>
                   <Button
                     variant="outline"
-                    disabled={!lessonBankLessonKey || !importTarget}
+                    disabled={!lessonBankLessonKey}
                     onClick={() => {
-                      if (!lessonBankLessonKey || !importTarget) return
+                      if (!lessonBankLessonKey) return
                       const [moduleId, lessonId] = lessonBankLessonKey.split(':')
                       const bankModule = lessonBankModules.find(m => m.id === moduleId)
                       const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
                       if (!bankLesson) return
                       const homeworkItems = (bankLesson.homework || []).filter(h => h.category === 'homework')
-                      setModules(prev => prev.map(mod => {
-                        if (mod.id !== importTarget.moduleId) return mod
-                        return {
-                          ...mod,
-                          lessons: mod.lessons.map(lesson => {
-                            if (lesson.id !== importTarget.lessonId) return lesson
-                            return {
-                              ...lesson,
-                              homework: [...lesson.homework, ...homeworkItems.map(cloneAssessment)]
-                            }
-                          })
-                        }
-                      }))
+                      
+                      // If no importTarget (no existing lessons), auto-create a lesson first
+                      if (!importTarget) {
+                        const newModule = DEFAULT_MODULE(modules.length)
+                        newModule.lessons[0].homework = homeworkItems.map(cloneAssessment)
+                        setModules(prev => [...prev, newModule])
+                      } else {
+                        // Import into existing lesson
+                        setModules(prev => prev.map(mod => {
+                          if (mod.id !== importTarget.moduleId) return mod
+                          return {
+                            ...mod,
+                            lessons: mod.lessons.map(lesson => {
+                              if (lesson.id !== importTarget.lessonId) return lesson
+                              return {
+                                ...lesson,
+                                homework: [...lesson.homework, ...homeworkItems.map(cloneAssessment)]
+                              }
+                            })
+                          }
+                        }))
+                      }
                       toast.success('Homework imported')
                       setLessonBankImportOpen(false)
                       setImportTarget(null)

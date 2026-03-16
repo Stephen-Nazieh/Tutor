@@ -12,7 +12,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Loader2, CheckCircle, DollarSign, Globe, MapPin, BookOpen, Award, GraduationCap, School, Flag, X, Search, Plus } from 'lucide-react'
+import { Loader2, CheckCircle, DollarSign, Globe, MapPin, BookOpen, Award, GraduationCap, School, Flag, X, Search, Plus, ArrowLeft, ChevronRight, Check } from 'lucide-react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 // Region and Country data (same as categories page)
@@ -1042,230 +1043,274 @@ export default function TutorOnboarding() {
               </div>
             )}
 
-            {/* Step 2: Regions, Countries & Categories */}
+            {/* Step 2: Regions, Countries & Categories - View All Categories Replica */}
             {step === 2 && (
               <div className="space-y-6">
-                {/* Region Selection */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-[#4FD1C5]" />
-                      Select Regions
-                    </h3>
-                    <span className="text-sm text-gray-500">
-                      {selectedRegions.length} selected
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {REGIONS.map((region) => (
-                      <button
-                        key={region.id}
-                        onClick={() => toggleRegion(region.id)}
-                        className={`p-3 rounded-lg border text-left transition-colors ${
-                          selectedRegions.includes(region.id)
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        {region.name}
-                      </button>
-                    ))}
-                  </div>
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-[#1F2933] mb-2">Select Your Teaching Areas</h3>
+                  <p className="text-gray-600">
+                    Select your regions, countries, and the categories you teach.
+                  </p>
                 </div>
 
-                {/* Country Selection */}
-                {selectedRegions.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-[#F17623]" />
-                        Select Countries
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        {selectedCountries.length} selected
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {availableCountries.map((country) => (
-                        <button
-                          key={country.code}
-                          onClick={() => toggleCountry(country.code)}
-                          className={`p-3 rounded-lg border text-left transition-colors ${
-                            selectedCountries.includes(country.code)
-                              ? 'border-green-500 bg-green-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          {country.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Categories Selection */}
-                {selectedCountries.length > 0 && (
-                  <div className="space-y-4 border-t pt-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-[#1D4ED8]" />
-                        Select Categories You Teach
-                      </h3>
-                      <span className="text-sm text-gray-500">
-                        {selectedCategories.length} selected
-                      </span>
-                    </div>
-
-                    {/* Categories Tabs */}
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="grid grid-cols-6 w-full">
-                        <TabsTrigger value="global" className="text-xs md:text-sm">
-                          <Globe className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          Global
-                        </TabsTrigger>
-                        <TabsTrigger value="ap" className="text-xs md:text-sm">
-                          <Award className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          AP
-                        </TabsTrigger>
-                        <TabsTrigger value="alevel" className="text-xs md:text-sm">
-                          <GraduationCap className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          A Level
-                        </TabsTrigger>
-                        <TabsTrigger value="ib" className="text-xs md:text-sm">
-                          <BookOpen className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          IB
-                        </TabsTrigger>
-                        <TabsTrigger value="igcse" className="text-xs md:text-sm">
-                          <School className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          IGCSE
-                        </TabsTrigger>
-                        <TabsTrigger 
-                          value="national" 
-                          className="text-xs md:text-sm"
-                          disabled={nationalExams.length === 0}
-                        >
-                          <Flag className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                          National
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <div className="mt-4">
-                        {/* Search Bar */}
-                        <div className="relative mb-4">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            placeholder="Search categories..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9"
-                          />
-                        </div>
-
-                        {/* Tab Contents */}
-                        <ScrollArea className="h-[300px] pr-4">
-                          <TabsContent value="global" className="mt-0">
-                            <div className="space-y-6 pb-4">
-                              {GLOBAL_EXAMS_CATEGORIES.map(renderCategorySection)}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Left Column - Region, Country, Tabs & Custom Category */}
+                  <div className="lg:col-span-3 space-y-4">
+                    {/* Region & Country Selection */}
+                    <Card>
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Region Selection */}
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium flex items-center gap-2">
+                              <Globe className="h-4 w-4 text-[#4FD1C5]" />
+                              Regions
+                            </Label>
+                            <div className="border rounded-md p-2 max-h-[120px] overflow-y-auto">
+                              {REGIONS.map((region) => (
+                                <label
+                                  key={region.id}
+                                  className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                                >
+                                  <Checkbox
+                                    checked={selectedRegions.includes(region.id)}
+                                    onCheckedChange={() => toggleRegion(region.id)}
+                                  />
+                                  <span className="text-sm">{region.name}</span>
+                                </label>
+                              ))}
                             </div>
-                          </TabsContent>
+                            <p className="text-xs text-gray-500">{selectedRegions.length} selected</p>
+                          </div>
 
-                          <TabsContent value="ap" className="mt-0">
-                            <div className="space-y-6 pb-4">
-                              {AP_CATEGORIES.map(renderCategorySection)}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="alevel" className="mt-0">
-                            <div className="space-y-6 pb-4">
-                              {A_LEVEL_CATEGORIES.map(renderCategorySection)}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="ib" className="mt-0">
-                            <div className="space-y-6 pb-4">
-                              {IB_CATEGORIES.map(renderCategorySection)}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="igcse" className="mt-0">
-                            <div className="space-y-6 pb-4">
-                              {IGCSE_CATEGORIES.map(renderCategorySection)}
-                            </div>
-                          </TabsContent>
-
-                          <TabsContent value="national" className="mt-0">
-                            <div className="space-y-6 pb-4">
-                              {nationalExams.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500">
-                                  <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                                  <p>No national exams available for selected countries.</p>
-                                </div>
+                          {/* Country Selection */}
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-[#F17623]" />
+                              Countries
+                            </Label>
+                            <div className="border rounded-md p-2 max-h-[120px] overflow-y-auto">
+                              {availableCountries.length === 0 ? (
+                                <p className="text-sm text-gray-400 p-1.5">Select regions first</p>
                               ) : (
-                                nationalExams.map(renderCategorySection)
+                                availableCountries.map((country) => (
+                                  <label
+                                    key={country.code}
+                                    className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                                  >
+                                    <Checkbox
+                                      checked={selectedCountries.includes(country.code)}
+                                      onCheckedChange={() => toggleCountry(country.code)}
+                                    />
+                                    <span className="text-sm">{country.name}</span>
+                                  </label>
+                                ))
                               )}
                             </div>
-                          </TabsContent>
-                        </ScrollArea>
-                      </div>
-                    </Tabs>
+                            <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
+                          </div>
+                        </div>
 
-                    {/* Custom Category */}
-                    <div className="flex gap-2 pt-4 border-t">
-                      <Input
-                        placeholder="Add your own category..."
-                        value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            addCustomCategory()
+                        {/* Selected Count */}
+                        {selectedCategories.length > 0 && (
+                          <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                            <Check className="h-4 w-4 text-green-500" />
+                            <span className="text-sm text-gray-600">
+                              {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
+                            </span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Categories Tabs */}
+                    <Card className="h-[400px] flex flex-col">
+                      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+                        <CardHeader className="pb-0 pt-4">
+                          <TabsList className="grid grid-cols-6 w-full">
+                            <TabsTrigger value="global" className="text-xs">
+                              <Globe className="h-3 w-3 mr-1" />
+                              Global
+                            </TabsTrigger>
+                            <TabsTrigger value="ap" className="text-xs">
+                              <Award className="h-3 w-3 mr-1" />
+                              AP
+                            </TabsTrigger>
+                            <TabsTrigger value="alevel" className="text-xs">
+                              <GraduationCap className="h-3 w-3 mr-1" />
+                              A Level
+                            </TabsTrigger>
+                            <TabsTrigger value="ib" className="text-xs">
+                              <BookOpen className="h-3 w-3 mr-1" />
+                              IB
+                            </TabsTrigger>
+                            <TabsTrigger value="igcse" className="text-xs">
+                              <School className="h-3 w-3 mr-1" />
+                              IGCSE
+                            </TabsTrigger>
+                            <TabsTrigger 
+                              value="national" 
+                              className="text-xs"
+                              disabled={nationalExams.length === 0}
+                            >
+                              <Flag className="h-3 w-3 mr-1" />
+                              National
+                            </TabsTrigger>
+                          </TabsList>
+                        </CardHeader>
+
+                        <CardContent className="flex-1 overflow-hidden pt-4">
+                          {/* Search Bar */}
+                          <div className="relative mb-3">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search categories..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="pl-9"
+                            />
+                          </div>
+
+                          {/* Tab Contents */}
+                          <div className="h-[calc(100%-40px)]">
+                            <ScrollArea className="h-full pr-4">
+                              <TabsContent value="global" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {GLOBAL_EXAMS_CATEGORIES.map(renderCategorySection)}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="ap" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {AP_CATEGORIES.map(renderCategorySection)}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="alevel" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {A_LEVEL_CATEGORIES.map(renderCategorySection)}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="ib" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {IB_CATEGORIES.map(renderCategorySection)}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="igcse" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {IGCSE_CATEGORIES.map(renderCategorySection)}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="national" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {nationalExams.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                      <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                      <p>No national exams available for selected countries.</p>
+                                    </div>
+                                  ) : (
+                                    nationalExams.map(renderCategorySection)
+                                  )}
+                                </div>
+                              </TabsContent>
+                            </ScrollArea>
+                          </div>
+                        </CardContent>
+                      </Tabs>
+                    </Card>
+
+                    {/* Your Own Category */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Plus className="h-4 w-4 text-[#4FD1C5]" />
+                          Your Own Category
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          Add a custom category if you don&apos;t see what you&apos;re looking for
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Enter your own category..."
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                addCustomCategory()
+                              }
+                            }}
+                          />
+                          <Button 
+                            onClick={addCustomCategory}
+                            disabled={!customCategory.trim()}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Right Column - Selected Categories Sidebar */}
+                  <div className="space-y-4">
+                    <Card className="h-[300px] flex flex-col">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-[#4FD1C5] text-white text-xs flex items-center justify-center">
+                            {selectedCategories.length}
+                          </span>
+                          Selected
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          {selectedCategories.length === 0 
+                            ? 'No categories selected' 
+                            : `${selectedCategories.length} selected`
                           }
-                        }}
-                      />
-                      <Button 
-                        onClick={addCustomCategory}
-                        disabled={!customCategory.trim()}
-                        variant="outline"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add
-                      </Button>
-                    </div>
-
-                    {/* Selected Categories Display */}
-                    {selectedCategories.length > 0 && (
-                      <div className="pt-4 border-t">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700">Selected Categories:</span>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 overflow-hidden">
+                        <ScrollArea className="h-full pr-2">
+                          <div className="flex flex-wrap gap-2">
+                            {selectedCategories.map(cat => (
+                              <Badge 
+                                key={cat}
+                                variant="secondary"
+                                className="cursor-pointer bg-[#4FD1C5]/20 text-[#1F2933] hover:bg-[#4FD1C5]/30 pr-1"
+                              >
+                                {cat}
+                                <button 
+                                  onClick={() => removeCategory(cat)}
+                                  className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                      {selectedCategories.length > 0 && (
+                        <CardContent className="pt-0">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={clearAllSelections}
-                            className="h-7 text-xs"
+                            className="w-full"
                           >
                             Clear All
                           </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedCategories.map(cat => (
-                            <Badge 
-                              key={cat}
-                              variant="secondary"
-                              className="cursor-pointer bg-[#4FD1C5]/20 text-[#1F2933] hover:bg-[#4FD1C5]/30 pr-1"
-                            >
-                              {cat}
-                              <button 
-                                onClick={() => removeCategory(cat)}
-                                className="ml-1 hover:bg-red-100 rounded-full p-0.5"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                        </CardContent>
+                      )}
+                    </Card>
                   </div>
-                )}
+                </div>
 
                 <div className="flex gap-3 mt-6 pt-4 border-t">
                   <Button variant="outline" onClick={() => setStep(1)}>

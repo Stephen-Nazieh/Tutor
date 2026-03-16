@@ -63,15 +63,6 @@ export default function TutorTrainingPage() {
               className="gap-2"
               onClick={() => router.push('/tutor/classes')}
             >
-              <CalendarPlus className="h-4 w-4" />
-              Schedule Training
-            </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={handleStartTraining}
-              disabled={starting}
-            >
               {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
               Open Live Sessions
             </Button>

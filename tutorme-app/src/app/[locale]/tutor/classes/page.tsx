@@ -5,7 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { 
@@ -27,6 +29,7 @@ import {
   MoreVertical
 } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { formatClassTime } from '@/lib/format-class-time'
 import { cn } from '@/lib/utils'
@@ -82,6 +85,17 @@ export default function TutorClassesPage() {
     duration: number
     status: string
   }>>([])
+
+  // Schedule training modal state
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [scheduleForm, setScheduleForm] = useState({
+    title: '',
+    subject: 'Training',
+    duration: 60,
+    hour: 9,
+    minute: 0,
+  })
 
   useEffect(() => {
     fetch('/api/tutor/classes', { credentials: 'include' })
@@ -207,6 +221,60 @@ export default function TutorClassesPage() {
     } catch (error) {
       toast.error('Failed to create instant class')
     }
+  }
+
+  const handleScheduleTraining = async () => {
+    if (!selectedDate || !scheduleForm.title.trim()) return
+    
+    const scheduledAt = new Date(selectedDate)
+    scheduledAt.setHours(scheduleForm.hour, scheduleForm.minute)
+    
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/class/rooms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: scheduleForm.title,
+          subject: scheduleForm.subject,
+          gradeLevel: 'mixed',
+          maxStudents: 50,
+          duration: scheduleForm.duration,
+          scheduledAt: scheduledAt.toISOString(),
+        }),
+      })
+
+      if (res.ok) {
+        toast.success('Training session scheduled!')
+        setScheduleModalOpen(false)
+        // Refresh the page to show the new class
+        window.location.reload()
+      } else {
+        toast.error('Failed to schedule training')
+      }
+    } catch (error) {
+      toast.error('Failed to schedule training')
+    }
+  }
+
+  const openScheduleModal = (day: number) => {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+    setSelectedDate(date)
+    setScheduleForm({
+      title: '',
+      subject: 'Training',
+      duration: 60,
+      hour: 9,
+      minute: 0,
+    })
+    setScheduleModalOpen(true)
   }
 
   // Calendar helpers
@@ -366,14 +434,7 @@ export default function TutorClassesPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCreateInstantClass}>
-              <Zap className="w-4 h-4 mr-2" /> Instant Class
-            </Button>
-            <Link href="/tutor/dashboard?create=1">
-              <Button>
-                <Plus className="w-4 h-4 mr-2" /> Create Class
-              </Button>
-            </Link>
+            {/* Buttons removed as per training page flow */}
           </div>
         </div>
 
@@ -580,8 +641,9 @@ export default function TutorClassesPage() {
                     return (
                       <div 
                         key={day} 
+                        onClick={() => openScheduleModal(day)}
                         className={cn(
-                          "h-24 border rounded-lg p-2 overflow-hidden",
+                          "h-24 border rounded-lg p-2 overflow-hidden cursor-pointer hover:bg-gray-50 transition-colors",
                           isToday && "bg-blue-50 border-blue-300"
                         )}
                       >
@@ -639,6 +701,116 @@ export default function TutorClassesPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Schedule Training Modal */}
+        <Dialog open={scheduleModalOpen} onOpenChange={setScheduleModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Schedule Training Session</DialogTitle>
+              <DialogDescription>
+                {selectedDate && (
+                  <>Schedule a training session for <strong>{selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</strong></>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Session Title</Label>
+                <Input
+                  placeholder="e.g., Advanced Calculus Training"
+                  value={scheduleForm.title}
+                  onChange={(e) => setScheduleForm(prev => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Subject</Label>
+                  <Select 
+                    value={scheduleForm.subject} 
+                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, subject: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Training">Training</SelectItem>
+                      <SelectItem value="Mathematics">Mathematics</SelectItem>
+                      <SelectItem value="Physics">Physics</SelectItem>
+                      <SelectItem value="Chemistry">Chemistry</SelectItem>
+                      <SelectItem value="Biology">Biology</SelectItem>
+                      <SelectItem value="English">English</SelectItem>
+                      <SelectItem value="General">General</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Duration (minutes)</Label>
+                  <Select 
+                    value={String(scheduleForm.duration)} 
+                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, duration: Number(v) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 min</SelectItem>
+                      <SelectItem value="45">45 min</SelectItem>
+                      <SelectItem value="60">60 min</SelectItem>
+                      <SelectItem value="90">90 min</SelectItem>
+                      <SelectItem value="120">120 min</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Time</Label>
+                <div className="flex items-center gap-2">
+                  <Select 
+                    value={String(scheduleForm.hour)} 
+                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, hour: Number(v) }))}
+                  >
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={String(i)}>
+                          {i.toString().padStart(2, '0')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-lg">:</span>
+                  <Select 
+                    value={String(scheduleForm.minute)} 
+                    onValueChange={(v) => setScheduleForm(prev => ({ ...prev, minute: Number(v) }))}
+                  >
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">00</SelectItem>
+                      <SelectItem value="15">15</SelectItem>
+                      <SelectItem value="30">30</SelectItem>
+                      <SelectItem value="45">45</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setScheduleModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleScheduleTraining}
+                disabled={!scheduleForm.title.trim()}
+              >
+                Schedule Session
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )
