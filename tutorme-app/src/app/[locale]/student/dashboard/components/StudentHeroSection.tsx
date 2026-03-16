@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
-import { Calendar, Sparkles } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { BookOpen, Calendar, Sparkles } from 'lucide-react'
 
 interface StudentHeroSectionProps {
   classes?: Array<{
@@ -18,6 +19,7 @@ interface DayEvent {
   id: string
   title: string
   timeLabel: string
+  duration: number
 }
 
 export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
@@ -41,9 +43,11 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
     classes.forEach((cls) => {
       const date = new Date(cls.startTime)
       const key = date.toDateString()
-      const timeLabel = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      const duration = 60
+      const end = new Date(date.getTime() + duration * 60000)
+      const timeLabel = `${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
       const list = map.get(key) ?? []
-      list.push({ id: cls.id, title: cls.title, timeLabel })
+      list.push({ id: cls.id, title: cls.title, timeLabel, duration })
       map.set(key, list)
     })
     return map
@@ -84,7 +88,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 bg-white/5 backdrop-blur-md border border-slate-200 rounded-2xl p-4 shadow-2xl">
+        <div className="grid grid-cols-7 gap-2 mb-8 bg-white/5 backdrop-blur-md border border-slate-200 rounded-2xl p-4 shadow-2xl">
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date(currentTime)
             d.setDate(currentTime.getDate() + i)
@@ -92,10 +96,10 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
             const hasClasses = dayEvents.length > 0
 
             return (
-              <button
+              <div
                 key={i}
                 onClick={() => setSelectedDay({ date: d, events: dayEvents })}
-                className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors group text-left"
+                className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
               >
                 <span className="text-slate-400 text-xs font-medium mb-1">
                   {d.toLocaleDateString('en-US', { weekday: 'short' })}
@@ -108,7 +112,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
                 </span>
                 <div className="flex flex-col items-center mt-2 gap-0.5">
                   {dayEvents.slice(0, 1).map((evt) => (
-                    <span key={evt.id} className="text-[10px] text-cyan-300 font-medium">
+                    <span key={evt.id} className="text-[10px] text-cyan-400 font-medium">
                       {evt.timeLabel}
                     </span>
                   ))}
@@ -121,33 +125,51 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
                     </div>
                   )}
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>
 
-        {selectedDay && (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold">{formatDate(selectedDay.date)}</span>
-              <button className="text-xs text-slate-400 hover:text-white" onClick={() => setSelectedDay(null)}>
-                Close
-              </button>
+        <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
+          <DialogContent className="sm:max-w-md border border-slate-200">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedDay?.date.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedDay && selectedDay.events.length > 0
+                  ? `${selectedDay.events.length} class${selectedDay.events.length > 1 ? 'es' : ''} scheduled`
+                  : 'No classes scheduled'
+                }
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 py-4">
+              {selectedDay?.events.map((event) => (
+                <div key={event.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{event.title}</p>
+                    <p className="text-sm text-gray-500">{event.timeLabel} • {event.duration} min</p>
+                  </div>
+                </div>
+              ))}
+
+              {(!selectedDay || selectedDay.events.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No classes scheduled for this day</p>
+                </div>
+              )}
             </div>
-            {selectedDay.events.length === 0 ? (
-              <p className="text-slate-400">No classes scheduled.</p>
-            ) : (
-              <ul className="space-y-2">
-                {selectedDay.events.map((evt) => (
-                  <li key={evt.id} className="flex items-center justify-between">
-                    <span className="text-white">{evt.title}</span>
-                    <span className="text-slate-400 text-xs">{evt.timeLabel}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )
