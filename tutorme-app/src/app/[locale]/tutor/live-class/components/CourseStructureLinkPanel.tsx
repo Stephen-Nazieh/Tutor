@@ -125,7 +125,7 @@ export function CourseStructureLinkPanel({ buttonClassName, initialCourseId, cla
       }
 
       setModules(nextModules)
-      toast.success(`Curriculum saved — ${data.moduleCount ?? nextModules.length} modules`)
+      toast.success('Course Saved')
     } catch {
       toast.error('Failed to save curriculum')
     } finally {

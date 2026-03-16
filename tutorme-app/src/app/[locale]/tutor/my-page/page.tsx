@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
-import { ArrowLeft, Copy, ExternalLink, Plus, Sparkles } from 'lucide-react'
+import { ArrowLeft, Camera, Copy, ExternalLink, Plus, Share2, Sparkles } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
 
@@ -34,6 +35,9 @@ export default function TutorMyPage() {
   const [saving, setSaving] = useState(false)
   const [username, setUsername] = useState('')
   const [bio, setBio] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [creatingCourse, setCreatingCourse] = useState(false)
   const [courseName, setCourseName] = useState('')
@@ -53,6 +57,7 @@ export default function TutorMyPage() {
         if (!active) return
         setUsername(data?.profile?.username || '')
         setBio(data?.profile?.bio || '')
+        setAvatarUrl(data?.profile?.avatarUrl || null)
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
       } finally {
@@ -78,6 +83,42 @@ export default function TutorMyPage() {
     () => (typeof window !== 'undefined' && publicPath ? `${window.location.origin}${publicPath}` : publicPath),
     [publicPath]
   )
+
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(null)
+      return
+    }
+    const previewUrl = URL.createObjectURL(avatarFile)
+    setAvatarPreview(previewUrl)
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [avatarFile])
+
+  const handleCopyHandle = () => {
+    if (!normalizedUsername) return
+    navigator.clipboard.writeText(`@${normalizedUsername}`)
+    toast.success('Handle copied')
+  }
+
+  const handleCopyProfile = () => {
+    if (!publicUrl) return
+    navigator.clipboard.writeText(publicUrl)
+    toast.success('Public URL copied')
+  }
+
+  const handleShareProfile = async () => {
+    if (!publicUrl || !normalizedUsername || typeof navigator === 'undefined' || !navigator.share) return
+    try {
+      await navigator.share({
+        title: `Tutor profile @${normalizedUsername}`,
+        url: publicUrl,
+      })
+    } catch {
+      // ignore share cancel
+    }
+  }
 
   const save = async () => {
     setSaving(true)
@@ -106,6 +147,43 @@ export default function TutorMyPage() {
       toast.error('Failed to save profile')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const uploadAvatar = async () => {
+    if (!avatarFile) {
+      toast.error('Select a photo to upload')
+      return
+    }
+    setUploadingAvatar(true)
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const formData = new FormData()
+      formData.set('avatar', avatarFile)
+
+      const res = await fetch('/api/tutor/public-profile/avatar', {
+        method: 'POST',
+        headers: {
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: formData,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Failed to upload photo')
+        return
+      }
+      setAvatarUrl(data?.avatarUrl ?? avatarUrl)
+      setAvatarFile(null)
+      toast.success('Profile photo updated')
+    } catch {
+      toast.error('Failed to upload photo')
+    } finally {
+      setUploadingAvatar(false)
     }
   }
 
@@ -271,6 +349,43 @@ export default function TutorMyPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
+            <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <Avatar className="h-16 w-16 border border-white shadow">
+                  <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
+                  <AvatarFallback className="text-sm font-semibold">
+                    {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <Label className="text-[#1F2933]">Profile Photo</Label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
+                    disabled={uploadingAvatar}
+                    className="border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={uploadAvatar}
+                      disabled={uploadingAvatar || !avatarFile}
+                      className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+                    >
+                      <Camera className="mr-1.5 h-4 w-4" />
+                      {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
+                    </Button>
+                    {avatarFile ? (
+                      <Button size="sm" variant="ghost" onClick={() => setAvatarFile(null)}>
+                        Clear
+                      </Button>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-[#64748B]">PNG or JPG up to 8MB.</p>
+                </div>
+              </div>
+            </div>
             <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
               <div className="space-y-2">
                 <Label className="text-[#1F2933]">Username</Label>
@@ -305,9 +420,42 @@ export default function TutorMyPage() {
               >
                 {saving ? 'Saving...' : 'Save Public Page'}
               </Button>
-              <Badge variant="outline" className="border-[#F17623] text-[#F17623]">
-                Handles are shareable: {normalizedUsername ? `@${normalizedUsername}` : 'not set'}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2 rounded-full border border-[#F17623]/40 bg-white px-3 py-1 text-xs text-[#1F2933]">
+                <span className="font-medium">Share your handle:</span>
+                <span className="font-semibold text-[#F17623]">
+                  {normalizedUsername ? `@${normalizedUsername}` : 'not set'}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-[#F17623]"
+                  onClick={handleCopyHandle}
+                  disabled={!normalizedUsername}
+                >
+                  <Copy className="mr-1 h-3.5 w-3.5" />
+                  Copy
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-[#1D4ED8]"
+                  onClick={handleCopyProfile}
+                  disabled={!publicUrl}
+                >
+                  Copy Link
+                </Button>
+                {typeof navigator !== 'undefined' && navigator.share && publicUrl ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-[#1D4ED8]"
+                    onClick={handleShareProfile}
+                  >
+                    <Share2 className="mr-1 h-3.5 w-3.5" />
+                    Share
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </CardContent>
         </Card>

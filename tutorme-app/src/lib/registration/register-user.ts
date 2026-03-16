@@ -19,46 +19,37 @@ import { ValidationError } from '@/lib/api/middleware'
 import { sanitizeHtml } from '@/lib/security/sanitize'
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_PRESETS } from '@/lib/security/rate-limit'
 import { verifyAllChildren, isStudentAlreadyLinked } from '@/lib/security/parent-child-queries'
+import { HANDLE_REGEX, assertValidHandle, normalizeHandle, isReservedHandle } from '@/lib/mentions/handles'
 import type { NextRequest } from 'next/server'
 
 const MAX_AVATAR_SIZE_BYTES = 8 * 1024 * 1024
 
-function normalizeUsernameSeed(seed: string): string {
+function normalizeHandleSeed(seed: string): string {
   const cleaned = seed
     .toLowerCase()
-    .replace(/[^a-z0-9._]/g, '')
-    .replace(/\.+/g, '.')
-    .replace(/^\.|\.$/g, '')
-  if (cleaned.length >= 3) return cleaned.slice(0, 24)
-  return `user${nanoid(6).toLowerCase()}`
+    .replace(/[^a-z0-9_]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+  if (cleaned.length >= 3) return cleaned.slice(0, 15)
+  return `user${nanoid(6).toLowerCase()}`.slice(0, 15)
 }
 
-function normalizeUsername(value: string): string {
-  return value
-    .trim()
-    .replace(/^@+/, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9._]/g, '')
-    .replace(/\.+/g, '.')
-    .replace(/^\.|\.$/g, '')
-    .slice(0, 30)
-}
-
-async function generateUniqueUsername(
-  checkExists: (username: string) => Promise<boolean>,
+async function generateUniqueHandle(
+  checkExists: (handle: string) => Promise<boolean>,
   preferred: string
 ): Promise<string> {
-  const base = normalizeUsernameSeed(preferred)
-  for (let attempt = 0; attempt < 20; attempt += 1) {
+  const base = normalizeHandleSeed(preferred)
+  for (let attempt = 0; attempt < 30; attempt += 1) {
     const suffix = attempt === 0 ? '' : String(Math.floor(Math.random() * 9000) + 1000)
-    const candidate = `${base}${suffix}`.slice(0, 30)
+    const candidate = `${base}${suffix}`.slice(0, 15)
+    if (!HANDLE_REGEX.test(candidate) || isReservedHandle(candidate)) continue
     const exists = await checkExists(candidate)
     if (!exists) return candidate
   }
-  return `tutor${nanoid(8).toLowerCase()}`
+  return `user${nanoid(8).toLowerCase()}`.slice(0, 15)
 }
 
-async function saveAvatar(userId: string, avatarFile: File): Promise<string> {
+export async function saveAvatar(userId: string, avatarFile: File): Promise<string> {
   if (avatarFile.size > MAX_AVATAR_SIZE_BYTES) {
     throw new ValidationError('Profile photo is too large (max 8MB)')
   }
@@ -157,33 +148,32 @@ export async function performRegistration(
 
   const newUser = await drizzleDb.transaction(async (tx) => {
     const userId = crypto.randomUUID()
+
+    const checkHandle = async (handle: string) => {
+      const [existing] = await tx.select({ id: user.id }).from(user).where(eq(user.handle, handle)).limit(1)
+      return !!existing
+    }
+
+    let desiredHandle: string | null = null
+    if (role === 'TUTOR') {
+      const tutorData = tutorAdditionalDataSchema.parse(data.additionalData)
+      desiredHandle = normalizeHandle(tutorData.username)
+      assertValidHandle(desiredHandle)
+      if (await checkHandle(desiredHandle)) {
+        throw new ValidationError('Handle already taken')
+      }
+    }
+
+    const fallbackSeed = name || normalizedEmail.split('@')[0] || 'user'
+    const finalHandle = desiredHandle ?? (await generateUniqueHandle(checkHandle, fallbackSeed))
+
     await tx.insert(user).values({
       id: userId,
       email: normalizedEmail,
       password: hashedPassword,
       role,
+      handle: finalHandle,
     })
-
-    const checkUsername = async (username: string) => {
-      const [existing] = await tx.select().from(profile).where(eq(profile.username, username)).limit(1)
-      return !!existing
-    }
-
-    let desiredUsername: string | null = null
-    if (role === 'TUTOR') {
-      const tutorData = tutorAdditionalDataSchema.parse(data.additionalData)
-      desiredUsername = normalizeUsername(tutorData.username)
-      if (!desiredUsername || desiredUsername.length < 3) {
-        desiredUsername = await generateUniqueUsername(checkUsername, name || normalizedEmail.split('@')[0])
-      } else if (await checkUsername(desiredUsername)) {
-        throw new ValidationError('Username already taken')
-      }
-    }
-
-    const defaultUsername =
-      role === 'TUTOR'
-        ? desiredUsername ?? (await generateUniqueUsername(checkUsername, name || normalizedEmail.split('@')[0] || 'tutor'))
-        : null
 
     const profileData = role === 'TUTOR' ? tutorProfileDataSchema.parse(data.profileData) : undefined
 
@@ -191,7 +181,7 @@ export async function performRegistration(
       id: crypto.randomUUID(),
       userId,
       name,
-      username: defaultUsername ?? undefined,
+      username: finalHandle,
       tosAccepted: data.tosAccepted === true,
       tosAcceptedAt: new Date(),
       timezone: profileData?.timezone ?? 'Asia/Shanghai',
@@ -245,7 +235,7 @@ export async function performRegistration(
         tutoringCountries: tutorData.tutoringCountries,
         countrySubjectSelections: tutorData.countrySubjectSelections,
         categories: tutorData.categories,
-        username: defaultUsername ?? tutorData.username,
+        username: finalHandle,
         socialLinks: tutorData.socialLinks ?? null,
         serviceDescription: tutorData.serviceDescription,
       }

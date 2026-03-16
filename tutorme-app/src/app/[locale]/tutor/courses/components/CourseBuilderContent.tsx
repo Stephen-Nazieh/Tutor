@@ -155,7 +155,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
 
       if (res.ok) {
         const data = await res.json()
-        toast.success(`Curriculum saved — ${data.moduleCount} modules, ${data.lessonCount} lessons`)
+        toast.success('Course Saved')
         const ordered = normalizeVariantLinks(data.variants)
         if (ordered.length > 0) {
           setSavedVariants(ordered)

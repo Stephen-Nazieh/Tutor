@@ -2,19 +2,22 @@
  * Drizzle table definitions.
  * Do not edit by hand; regenerate via Drizzle tooling when schema changes.
  */
-import { pgTable, text, integer, boolean, timestamp, jsonb, doublePrecision, uniqueIndex, index } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, boolean, timestamp, jsonb, doublePrecision, uniqueIndex, index, uuid } from 'drizzle-orm/pg-core'
 import * as enums from './enums'
 
 export const user = pgTable('User', {
   id: text('id').primaryKey().notNull(),
   email: text('email').notNull().unique(),
   password: text('password'),
+  handle: text('handle'),
   role: enums.roleEnum('role').notNull(),
   emailVerified: timestamp('emailVerified', { withTimezone: true }),
   image: text('image'),
   createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().$onUpdate(() => new Date())
-})
+}, (table) => ({
+  User_handle_idx: index('User_handle_idx').on(table.handle),
+}))
 
 export const account = pgTable('Account', {
   id: text('id').primaryKey().notNull(),
@@ -916,6 +919,29 @@ export const directMessage = pgTable('DirectMessage', {
   DirectMessage_conversationId_idx: index('DirectMessage_conversationId_idx').on(table.conversationId),
   DirectMessage_senderId_idx: index('DirectMessage_senderId_idx').on(table.senderId),
   DirectMessage_createdAt_idx: index('DirectMessage_createdAt_idx').on(table.createdAt)
+}))
+
+export const mention = pgTable('Mention', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  messageId: text('messageId').notNull(),
+  mentionerId: text('mentionerId').notNull(),
+  mentioneeId: text('mentioneeId').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  Mention_messageId_idx: index('Mention_messageId_idx').on(table.messageId),
+  Mention_mentionerId_idx: index('Mention_mentionerId_idx').on(table.mentionerId),
+  Mention_mentioneeId_idx: index('Mention_mentioneeId_idx').on(table.mentioneeId)
+}))
+
+export const tutorFollow = pgTable('TutorFollow', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  followerId: text('followerId').notNull(),
+  tutorId: text('tutorId').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow()
+}, (table) => ({
+  TutorFollow_followerId_idx: index('TutorFollow_followerId_idx').on(table.followerId),
+  TutorFollow_tutorId_idx: index('TutorFollow_tutorId_idx').on(table.tutorId),
+  TutorFollow_follower_tutor_key: uniqueIndex('TutorFollow_follower_tutor_key').on(table.followerId, table.tutorId)
 }))
 
 export const notification = pgTable('Notification', {

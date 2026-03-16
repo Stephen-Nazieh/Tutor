@@ -39,6 +39,8 @@ import {
     quizAssignment,
     conversation,
     directMessage,
+    mention,
+    tutorFollow,
     lessonSession,
     aITutorEnrollment,
     aIInteractionSession,
@@ -74,12 +76,29 @@ export const userRelations = relations(user, ({ one, many }) => ({
     conversationsAsParticipant1: many(conversation, { relationName: 'participant1' }),
     conversationsAsParticipant2: many(conversation, { relationName: 'participant2' }),
     sentDirectMessages: many(directMessage),
+    mentionsSent: many(mention, { relationName: 'mentioner' }),
+    mentionsReceived: many(mention, { relationName: 'mentionee' }),
+    tutorFollows: many(tutorFollow, { relationName: 'follower' }),
+    tutorFollowers: many(tutorFollow, { relationName: 'tutor' }),
 }))
 
 export const profileRelations = relations(profile, ({ one }) => ({
     user: one(user, {
         fields: [profile.userId],
         references: [user.id],
+    }),
+}))
+
+export const tutorFollowRelations = relations(tutorFollow, ({ one }) => ({
+    follower: one(user, {
+        fields: [tutorFollow.followerId],
+        references: [user.id],
+        relationName: 'follower',
+    }),
+    tutor: one(user, {
+        fields: [tutorFollow.tutorId],
+        references: [user.id],
+        relationName: 'tutor',
     }),
 }))
 
@@ -409,6 +428,23 @@ export const directMessageRelations = relations(directMessage, ({ one }) => ({
     sender: one(user, {
         fields: [directMessage.senderId],
         references: [user.id],
+    }),
+}))
+
+export const mentionRelations = relations(mention, ({ one }) => ({
+    message: one(directMessage, {
+        fields: [mention.messageId],
+        references: [directMessage.id],
+    }),
+    mentioner: one(user, {
+        fields: [mention.mentionerId],
+        references: [user.id],
+        relationName: 'mentioner',
+    }),
+    mentionee: one(user, {
+        fields: [mention.mentioneeId],
+        references: [user.id],
+        relationName: 'mentionee',
     }),
 }))
 

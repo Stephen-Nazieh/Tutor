@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { BookOpen, Users, Clock3, GraduationCap, Compass, FileText, Heart, Star } from 'lucide-react'
+import { BookOpen, Users, Clock3, GraduationCap, Compass, FileText, Star, UserCheck, UserPlus, CheckCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface PublicTutorResponse {
@@ -66,24 +66,20 @@ export default function PublicTutorPage() {
   
   const [data, setData] = useState<PublicTutorResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isFavorited, setIsFavorited] = useState(false)
+  const [followState, setFollowState] = useState({
+    isFollowing: false,
+    followerCount: 0,
+    loading: true,
+  })
 
   useEffect(() => {
     loadTutorData()
-    checkFavoriteStatus()
   }, [username])
-
-  const checkFavoriteStatus = () => {
-    const saved = localStorage.getItem('tutorme-favorites')
-    if (saved && data?.tutor?.id) {
-      try {
-        const parsed = JSON.parse(saved)
-        setIsFavorited(parsed.tutors?.includes(data.tutor.id) || false)
-      } catch {
-        // ignore
-      }
-    }
-  }
+  
+  useEffect(() => {
+    if (!data?.tutor?.id) return
+    loadFollowState(data.tutor.id)
+  }, [data?.tutor?.id])
 
   const loadTutorData = async () => {
     setLoading(true)
@@ -114,22 +110,67 @@ export default function PublicTutorPage() {
     }
   }
 
-  const toggleFavorite = () => {
-    if (!data?.tutor?.id) return
-    
-    const saved = localStorage.getItem('tutorme-favorites')
-    const parsed = saved ? JSON.parse(saved) : { tutors: [], courses: [] }
-    
-    if (isFavorited) {
-      parsed.tutors = parsed.tutors.filter((id: string) => id !== data.tutor.id)
-      toast.success('Removed from favorites')
-    } else {
-      parsed.tutors = [...(parsed.tutors || []), data.tutor.id]
-      toast.success('Added to favorites')
+  const loadFollowState = async (tutorId: string) => {
+    setFollowState((prev) => ({ ...prev, loading: true }))
+    try {
+      const res = await fetch(`/api/follows?tutorId=${encodeURIComponent(tutorId)}`, {
+        cache: 'no-store',
+      })
+      if (!res.ok) {
+        setFollowState((prev) => ({ ...prev, loading: false }))
+        return
+      }
+      const followData = await res.json()
+      setFollowState({
+        isFollowing: Boolean(followData?.isFollowing),
+        followerCount: Number(followData?.followerCount ?? 0),
+        loading: false,
+      })
+    } catch {
+      setFollowState((prev) => ({ ...prev, loading: false }))
     }
-    
-    localStorage.setItem('tutorme-favorites', JSON.stringify(parsed))
-    setIsFavorited(!isFavorited)
+  }
+
+  const toggleFollow = async () => {
+    if (!data?.tutor?.id || followState.loading) return
+
+    setFollowState((prev) => ({ ...prev, loading: true }))
+    try {
+      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+      const csrfData = await csrfRes.json().catch(() => ({}))
+      const csrfToken = csrfData?.token ?? null
+
+      const res = await fetch('/api/follows', {
+        method: followState.isFollowing ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
+        credentials: 'include',
+        body: JSON.stringify({ tutorId: data.tutor.id }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (res.status === 401) {
+          toast.info('Please log in to follow tutors')
+        } else {
+          toast.error(result?.error || 'Unable to update follow status')
+        }
+        setFollowState((prev) => ({ ...prev, loading: false }))
+        return
+      }
+
+      setFollowState({
+        isFollowing: Boolean(result?.isFollowing),
+        followerCount: Number(result?.followerCount ?? followState.followerCount),
+        loading: false,
+      })
+      toast.success(result?.isFollowing ? 'You are now following this tutor' : 'Unfollowed tutor')
+    } catch {
+      toast.error('Unable to update follow status')
+      setFollowState((prev) => ({ ...prev, loading: false }))
+    }
   }
 
   // Calculate aggregated tutor rating from courses
@@ -157,7 +198,7 @@ export default function PublicTutorPage() {
           <CardContent className="py-12 text-center">
             <h2 className="text-xl font-bold">Tutor not found</h2>
             <Button asChild className="mt-4">
-              <Link href={`/${locale}/student/tutors`}>Browse Tutors</Link>
+              <Link href={`/${locale}/tutors`}>Browse Tutors</Link>
             </Button>
           </CardContent>
         </Card>
@@ -167,7 +208,6 @@ export default function PublicTutorPage() {
 
   const { tutor, courses, source } = data
   const totalEnrollments = courses.reduce((sum, course) => sum + course.enrollmentCount, 0)
-  const subjects = Array.from(new Set(courses.map((course) => course.subject)))
 
   return (
     <div className="w-full space-y-6 p-4 sm:p-6">
@@ -195,12 +235,17 @@ export default function PublicTutorPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button 
-                variant={isFavorited ? 'default' : 'outline'} 
-                onClick={toggleFavorite}
-                className={isFavorited ? 'bg-red-500 hover:bg-red-600' : ''}
+                variant={followState.isFollowing ? 'default' : 'outline'} 
+                onClick={toggleFollow}
+                className={followState.isFollowing ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                disabled={followState.loading}
               >
-                <Heart className={`mr-2 h-4 w-4 ${isFavorited ? 'fill-white' : ''}`} />
-                {isFavorited ? 'Favorited' : 'Add to Favorites'}
+                {followState.isFollowing ? (
+                  <UserCheck className="mr-2 h-4 w-4" />
+                ) : (
+                  <UserPlus className="mr-2 h-4 w-4" />
+                )}
+                {followState.isFollowing ? 'Following' : 'Follow'}
               </Button>
               <Button 
                 variant="outline"
@@ -213,38 +258,18 @@ export default function PublicTutorPage() {
                 Share @handle
               </Button>
               <Button asChild>
-                <Link href={`/${locale}/student/tutors`}>
+                <Link href={`/${locale}/tutors`}>
                   <Compass className="mr-2 h-4 w-4" />
                   Discover Tutors
                 </Link>
               </Button>
             </div>
           </div>
-        </div>
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-6">
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Published Courses</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{courses.length}</p>
-          </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total Enrollments</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{totalEnrollments}</p>
-          </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Subjects</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{subjects.length}</p>
-          </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Rating</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
-              {tutorRating > 0 ? tutorRating.toFixed(1) : 'N/A'}
-            </p>
-          </div>
-          <div className="rounded-lg border bg-white p-3 lg:col-span-4">
+          <div className="mt-6 rounded-2xl border border-white/70 bg-white/70 p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900">Expertise</h3>
-                <p className="text-xs text-slate-600">Specialties and credentials</p>
+                <h3 className="text-sm font-semibold text-slate-900">Expertise & Credentials</h3>
+                <p className="text-xs text-slate-600">Specialties, exams, and verified qualifications</p>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -264,6 +289,29 @@ export default function PublicTutorPage() {
                 <p>{tutor.credentials}</p>
               </div>
             ) : null}
+          </div>
+        </div>
+        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-6">
+          <div className="rounded-lg border bg-white p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Published Courses</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">{courses.length}</p>
+          </div>
+          <div className="rounded-lg border bg-white p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Total Students</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">{totalEnrollments}</p>
+          </div>
+          <div className="rounded-lg border bg-white p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Verification</p>
+            <div className="mt-1 flex items-center gap-2 text-emerald-600">
+              <CheckCircle className="h-5 w-5" />
+              <span className="text-base font-semibold text-slate-900">Verified</span>
+            </div>
+          </div>
+          <div className="rounded-lg border bg-white p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Rating</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">
+              {tutorRating > 0 ? tutorRating.toFixed(1) : 'N/A'}
+            </p>
           </div>
         </CardContent>
       </Card>
