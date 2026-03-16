@@ -1,7 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
@@ -14,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
-import { ArrowLeft, Camera, CheckCircle, Copy, Share2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Copy, Pencil, Share2 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import { AGGREGATED_CATEGORIES } from '@/lib/tutoring/categories'
 
@@ -32,6 +31,7 @@ export default function TutorMyPage() {
   const { data: session } = useSession()
   const params = useParams<{ locale?: string }>()
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -67,6 +67,11 @@ export default function TutorMyPage() {
   const [taxAddress, setTaxAddress] = useState('')
   const [taxId, setTaxId] = useState('')
   const [taxEntityType, setTaxEntityType] = useState('Individual')
+  const [profileSettingsOpen, setProfileSettingsOpen] = useState(true)
+  const [securityOpen, setSecurityOpen] = useState(false)
+  const [billingOpen, setBillingOpen] = useState(false)
+  const [taxOpen, setTaxOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const loginActivity = [
     { id: 'login-1', label: 'Web · Shanghai, CN · Today 09:24' },
     { id: 'login-2', label: 'Mobile · Singapore · Yesterday 18:11' },
@@ -122,15 +127,6 @@ export default function TutorMyPage() {
     () => (typeof window !== 'undefined' && publicPath ? `${window.location.origin}${publicPath}` : publicPath),
     [publicPath]
   )
-  const socialLinks = useMemo(() => {
-    const links: Array<{ label: string; url: string }> = []
-    if (socialAccounts.youtube) links.push({ label: 'YouTube', url: `https://www.youtube.com/${socialAccounts.youtube.replace(/^@/, '')}` })
-    if (socialAccounts.instagram) links.push({ label: 'Instagram', url: `https://www.instagram.com/${socialAccounts.instagram.replace(/^@/, '')}` })
-    if (socialAccounts.tiktok) links.push({ label: 'TikTok', url: `https://www.tiktok.com/@${socialAccounts.tiktok.replace(/^@/, '')}` })
-    if (socialAccounts.facebook) links.push({ label: 'Facebook', url: `https://www.facebook.com/${socialAccounts.facebook.replace(/^@/, '')}` })
-    return links
-  }, [socialAccounts])
-
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   useEffect(() => {
@@ -209,11 +205,8 @@ export default function TutorMyPage() {
     }
   }
 
-  const uploadAvatar = async () => {
-    if (!avatarFile) {
-      toast.error('Select a photo to upload')
-      return
-    }
+  const uploadAvatarFile = async (file: File) => {
+    setAvatarFile(file)
     setUploadingAvatar(true)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
@@ -221,7 +214,7 @@ export default function TutorMyPage() {
       const csrfToken = csrfData?.token ?? null
 
       const formData = new FormData()
-      formData.set('avatar', avatarFile)
+      formData.set('avatar', file)
 
       const res = await fetch('/api/tutor/public-profile/avatar', {
         method: 'POST',
@@ -243,6 +236,9 @@ export default function TutorMyPage() {
       toast.error('Failed to upload photo')
     } finally {
       setUploadingAvatar(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
@@ -332,37 +328,32 @@ export default function TutorMyPage() {
         <section className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
           <div className="grid gap-6 lg:grid-cols-[240px,1fr]">
             <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-28 w-28 border border-white shadow">
-                <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
-                <AvatarFallback className="text-lg font-semibold">
-                  {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="w-full space-y-2">
-                <Label className="text-[#1F2933]">Profile Photo</Label>
+              <div className="relative">
+                <Avatar className="h-28 w-28 border border-white shadow">
+                  <AvatarImage src={avatarPreview ?? avatarUrl ?? undefined} alt="Tutor avatar" />
+                  <AvatarFallback className="text-lg font-semibold">
+                    {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  size="icon"
+                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-white text-[#1F2933] shadow hover:bg-[#F8FAFC]"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  aria-label="Edit profile photo"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
                 <Input
+                  ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
-                  disabled={uploadingAvatar}
-                  className="border-[#E2E8F0] bg-white focus-visible:ring-[#4FD1C5]"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) void uploadAvatarFile(file)
+                  }}
+                  className="hidden"
                 />
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    onClick={uploadAvatar}
-                    disabled={uploadingAvatar || !avatarFile}
-                    className="bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
-                  >
-                    <Camera className="mr-1.5 h-4 w-4" />
-                    {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
-                  </Button>
-                  {avatarFile ? (
-                    <Button size="sm" variant="ghost" onClick={() => setAvatarFile(null)}>
-                      Clear
-                    </Button>
-                  ) : null}
-                </div>
               </div>
             </div>
             <div className="space-y-4">
@@ -382,20 +373,6 @@ export default function TutorMyPage() {
                 {publicUrl ? (
                   <div className="mt-2 rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
                     <div className="break-all text-sm font-medium text-[#1F2933]">{publicUrl}</div>
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-[#4FD1C5] text-[#1F2933] hover:bg-[#4FD1C5]/10"
-                        onClick={() => {
-                          navigator.clipboard.writeText(publicUrl)
-                          toast.success('Public URL copied')
-                        }}
-                      >
-                        <Copy className="h-3.5 w-3.5 mr-1.5" />
-                        Copy
-                      </Button>
-                    </div>
                   </div>
                 ) : (
                   <div className="mt-2 rounded-2xl border border-dashed border-[#CBD5F5] p-4 text-sm text-[#64748B]">
@@ -403,100 +380,9 @@ export default function TutorMyPage() {
                   </div>
                 )}
               </div>
-              {socialLinks.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-xs uppercase tracking-[0.15em] text-[#64748B]">Social Media</div>
-                  <div className="flex flex-wrap gap-2">
-                    {socialLinks.map((link) => (
-                      <Link key={link.url} href={link.url} className="text-sm text-[#1D4ED8] hover:underline" target="_blank">
-                        {link.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <Card className="border border-[#E2E8F0] shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-[#1F2933]">Profile Settings</CardTitle>
-            <CardDescription className="text-[#64748B]">
-              Customize how you appear to students on your public page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
-              <div className="space-y-2">
-                <Label className="text-[#1F2933]">Username</Label>
-                <Input
-                  value={username}
-                  placeholder="e.g. jane_math"
-                  disabled
-                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-                <p className="text-xs text-[#64748B]">
-                  Displayed as @{username.replace(/^@+/, '') || 'username'}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[#1F2933]">Edit Bio</Label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  rows={3}
-                  disabled={loading || saving}
-                  placeholder="Short bio for your public page..."
-                  className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-              </div>
-            </div>
-            <div className="space-y-3">
-              <Label className="text-[#1F2933]">Edit Social Media Accounts</Label>
-              <div className="grid gap-3 md:grid-cols-2">
-                <Input
-                  placeholder="YouTube username"
-                  value={socialAccounts.youtube}
-                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, youtube: e.target.value }))}
-                  disabled={loading || saving}
-                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-                <Input
-                  placeholder="Instagram username"
-                  value={socialAccounts.instagram}
-                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, instagram: e.target.value }))}
-                  disabled={loading || saving}
-                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-                <Input
-                  placeholder="TikTok username"
-                  value={socialAccounts.tiktok}
-                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, tiktok: e.target.value }))}
-                  disabled={loading || saving}
-                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-                <Input
-                  placeholder="Facebook username"
-                  value={socialAccounts.facebook}
-                  onChange={(e) => setSocialAccounts((prev) => ({ ...prev, facebook: e.target.value }))}
-                  disabled={loading || saving}
-                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                />
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={save}
-                disabled={loading || saving}
-                className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
-              >
-                {saving ? 'Saving...' : 'Save Public Page'}
-              </Button>
               <div className="flex flex-wrap items-center gap-2 rounded-full border border-[#F17623]/40 bg-white px-3 py-1 text-xs text-[#1F2933]">
-                <span className="font-medium">Share your handle:</span>
                 <span className="font-semibold text-[#F17623]">
-                  {normalizedUsername ? `@${normalizedUsername}` : 'not set'}
+                  {normalizedUsername ? `@${normalizedUsername}` : '@username'}
                 </span>
                 <Button
                   size="sm"
@@ -530,57 +416,176 @@ export default function TutorMyPage() {
                 ) : null}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         <Card className="border border-[#E2E8F0] shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-[#1F2933]">Security and Login</CardTitle>
-            <CardDescription className="text-[#64748B]">
-              Manage access controls and review recent sign-ins.
-            </CardDescription>
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setProfileSettingsOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Profile Settings</CardTitle>
+              {profileSettingsOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-3">
+          {profileSettingsOpen && (
+            <CardContent className="space-y-5">
+            <div className="grid gap-4 lg:grid-cols-[1fr,2fr]">
               <div className="space-y-2">
-                <Label className="text-[#1F2933]">Change password</Label>
-                <Button
-                  className="w-full bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
-                  onClick={() => toast.message('Password reset flow pending')}
-                >
-                  Change password
-                </Button>
+                <Label className="text-[#1F2933]">Username</Label>
+                <Input
+                  value={username}
+                  placeholder="e.g. jane_math"
+                  disabled
+                  className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                />
+                <p className="text-xs text-[#64748B]">
+                  Displayed as @{username.replace(/^@+/, '') || 'username'}
+                </p>
               </div>
               <div className="space-y-2">
-                <Label className="text-[#1F2933]">Two-factor authentication (2FA)</Label>
-                <Button
-                  variant="outline"
-                  className="w-full border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
-                  onClick={() => toast.message('2FA setup coming soon')}
-                >
-                  Enable 2FA
-                </Button>
+                <Label className="text-[#1F2933]">Edit Bio</Label>
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  rows={3}
+                  disabled={loading || saving}
+                  placeholder="Short bio for your public page..."
+                  className="min-h-[100px] border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                />
               </div>
-              <div className="space-y-2">
-                <Label className="text-[#1F2933]">Login activity</Label>
-                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-sm text-[#1F2933] space-y-2">
-                  {loginActivity.map((item) => (
-                    <div key={item.id}>{item.label}</div>
-                  ))}
+            </div>
+            <div className="space-y-3">
+              <Label className="text-[#1F2933]">Edit Social Media Accounts</Label>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#64748B]">YouTube</Label>
+                  <Input
+                    placeholder="YouTube username"
+                    value={socialAccounts.youtube}
+                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, youtube: e.target.value }))}
+                    disabled={loading || saving}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#64748B]">Instagram</Label>
+                  <Input
+                    placeholder="Instagram username"
+                    value={socialAccounts.instagram}
+                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, instagram: e.target.value }))}
+                    disabled={loading || saving}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#64748B]">TikTok</Label>
+                  <Input
+                    placeholder="TikTok username"
+                    value={socialAccounts.tiktok}
+                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, tiktok: e.target.value }))}
+                    disabled={loading || saving}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-[#64748B]">Facebook</Label>
+                  <Input
+                    placeholder="Facebook username"
+                    value={socialAccounts.facebook}
+                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, facebook: e.target.value }))}
+                    disabled={loading || saving}
+                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
+                  />
                 </div>
               </div>
             </div>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={save}
+                disabled={loading || saving}
+                className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
+              >
+                {saving ? 'Saving...' : 'Save Public Page'}
+              </Button>
+            </div>
           </CardContent>
+          )}
         </Card>
 
         <Card className="border border-[#E2E8F0] shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-[#1F2933]">Email Billing and Payment</CardTitle>
-            <CardDescription className="text-[#64748B]">
-              Subscription plan, billing, and payout preferences.
-            </CardDescription>
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setSecurityOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Security and Login</CardTitle>
+              {securityOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          {securityOpen && (
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Change password</Label>
+                  <Button
+                    className="w-full bg-[#1D4ED8] text-white hover:bg-[#1B45C2]"
+                    onClick={() => toast.message('Password reset flow pending')}
+                  >
+                    Change password
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Two-factor authentication (2FA)</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
+                    onClick={() => toast.message('2FA setup coming soon')}
+                  >
+                    Enable 2FA
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[#1F2933]">Login activity</Label>
+                <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-sm text-[#1F2933] space-y-2">
+                  {loginActivity.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between">
+                      <span>{item.label}</span>
+                      <span className="text-xs text-[#64748B]">Verified</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
+        <Card className="border border-[#E2E8F0] shadow-sm">
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setBillingOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Email Billing and Payment</CardTitle>
+              {billingOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
+          </CardHeader>
+          {billingOpen && (
+            <CardContent className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-[#1F2933]">Email</Label>
@@ -703,16 +708,25 @@ export default function TutorMyPage() {
               </div>
             </div>
           </CardContent>
+          )}
         </Card>
 
         <Card className="border border-[#E2E8F0] shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-[#1F2933]">Tax Information</CardTitle>
-            <CardDescription className="text-[#64748B]">
-              Provide tax documentation for payouts.
-            </CardDescription>
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setTaxOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Tax Information</CardTitle>
+              {taxOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="space-y-5">
+          {taxOpen && (
+            <CardContent className="space-y-5">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-[#1F2933]">Country</Label>
@@ -786,16 +800,25 @@ export default function TutorMyPage() {
               Confirm Changes
             </Button>
           </CardContent>
+          )}
         </Card>
 
         <Card className="border border-[#E2E8F0] shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-[#1F2933]">Account Management</CardTitle>
-            <CardDescription className="text-[#64748B]">
-              Control account status and preferences.
-            </CardDescription>
+          <CardHeader
+            className="cursor-pointer select-none pb-3"
+            onClick={() => setAccountOpen((prev) => !prev)}
+          >
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-[#1F2933]">Account Management</CardTitle>
+              {accountOpen ? (
+                <ChevronUp className="h-4 w-4 text-[#64748B]" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-[#64748B]" />
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="space-y-5">
+          {accountOpen && (
+            <CardContent className="space-y-5">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label className="text-[#1F2933]">Account status</Label>
@@ -845,6 +868,7 @@ export default function TutorMyPage() {
               Confirm Changes
             </Button>
           </CardContent>
+          )}
         </Card>
       </div>
 
