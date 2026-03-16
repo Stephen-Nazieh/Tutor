@@ -56,7 +56,8 @@ export default function ParentRegistrationPage() {
       app: true,
       weeklyReports: true,
       paymentNotifications: true,
-      emergencyContacts: true
+      emergencyContacts: true,
+      mentions: true,
     },
     tosAccepted: false
   })
@@ -690,7 +691,8 @@ export default function ParentRegistrationPage() {
                     {[
                       { key: 'weeklyReports', label: 'Weekly Progress Reports', description: 'Get weekly summaries of your child\'s progress' },
                       { key: 'paymentNotifications', label: 'Payment Notifications', description: 'Receive alerts about payments and invoices' },
-                      { key: 'emergencyContacts', label: 'Emergency Contact Alerts', description: 'Get notified about important updates' }
+                      { key: 'emergencyContacts', label: 'Emergency Contact Alerts', description: 'Get notified about important updates' },
+                      { key: 'mentions', label: 'Mentions', description: 'Get notified when a tutor mentions you' }
                     ].map(({ key, label, description }) => (
                       <div key={key} className="flex items-start space-x-3">
                         <Checkbox

@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { gradingPrompt, personalizedGradingPrompt } from '@/lib/ai/prompts'
 import { MemoryService } from '@/lib/ai/memory-service'
 

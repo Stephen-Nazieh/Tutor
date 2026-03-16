@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { handleApiError } from '@/lib/api/middleware'
-import { getAIProvidersStatus } from '@/lib/ai/orchestrator'
+import { getAIProvidersStatus } from '@/lib/agents'
 import { getServerSession, authOptions } from '@/lib/auth'
 import type { NextRequest } from 'next/server'
 

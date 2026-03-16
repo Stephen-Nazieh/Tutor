@@ -5,7 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { courseDescriptionFromSubjectPrompt } from '@/lib/ai/prompts'
 
 export const POST = withAuth(async (req) => {

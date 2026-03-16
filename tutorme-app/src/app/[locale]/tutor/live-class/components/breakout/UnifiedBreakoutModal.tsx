@@ -4,10 +4,11 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import { MentionInput } from '@/components/mentions/MentionInput'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { renderMentions } from '@/lib/mentions/render-mentions'
 import { toast } from 'sonner'
 import type { BreakoutRoom, BreakoutParticipant, BreakoutMessage } from '../../types'
 import {
@@ -371,11 +372,16 @@ export function UnifiedBreakoutModal({
               {/* Message Input */}
               <div className="p-4 bg-gray-50 border-t">
                 <div className="flex gap-2">
-                  <Input
+                  <MentionInput
                     placeholder="Type a message..."
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    onChange={setNewMessage}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
                     className="bg-white"
                   />
                   <Button 
@@ -548,7 +554,7 @@ function ChatMessageItem({ message, isSelf }: { message: BreakoutMessage; isSelf
           "bg-gray-100 text-gray-800",
           message.isQuestion && !isSelf && !isSystem && "border-l-4 border-yellow-500"
         )}>
-          {message.content}
+          {renderMentions(message.content)}
         </div>
       </div>
     </div>

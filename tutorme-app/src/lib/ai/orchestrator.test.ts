@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateWithFallback } from './orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 describe('ai/orchestrator', () => {
   const originalEnv = process.env.MOCK_AI

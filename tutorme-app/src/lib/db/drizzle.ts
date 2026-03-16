@@ -1,6 +1,6 @@
 /**
- * Drizzle ORM client (Phase 1).
- * Use this for new code; existing app still uses Prisma via db from index.ts until Phase 3–4.
+ * Drizzle ORM client (primary).
+ * Use this for all new code and runtime queries.
  */
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withAuth, ForbiddenError } from '@/lib/api/middleware'
-import { getWhiteboardOpObservability } from '@/lib/socket-server'
+import { getWhiteboardOpObservability } from '@/lib/socket'
 
 export const GET = withAuth(async (req, session) => {
   const role = String(session.user.role || '').toUpperCase()
@@ -17,4 +17,3 @@ export const GET = withAuth(async (req, session) => {
     boards: rows,
   })
 })
-

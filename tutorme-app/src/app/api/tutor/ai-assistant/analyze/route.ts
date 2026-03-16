@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantInsight } from '@/lib/db/schema'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 

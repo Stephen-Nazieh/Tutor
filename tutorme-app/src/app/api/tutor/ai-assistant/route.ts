@@ -9,7 +9,7 @@ import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { aIAssistantSession, aIAssistantMessage, aIAssistantInsight } from '@/lib/db/schema'
 import { eq, and, desc, asc, gte } from 'drizzle-orm'
-import { chatWithFallback } from '@/lib/ai/orchestrator'
+import { chatWithFallback } from '@/lib/agents'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { randomUUID } from 'crypto'
 

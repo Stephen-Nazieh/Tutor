@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
 import { and, desc, eq, gt, lt } from 'drizzle-orm'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { contentItem, contentProgress, quizAttempt } from '@/lib/db/schema'
 

@@ -11,7 +11,7 @@ vi.mock('@/lib/auth', () => ({
   authOptions: {},
 }))
 
-vi.mock('@/lib/ai/orchestrator', () => ({
+vi.mock('@/lib/agents', () => ({
   getAIProvidersStatus: mocks.getAIProvidersStatus,
 }))
 

@@ -3,7 +3,7 @@ import { withAuth, withRateLimitPreset, ValidationError, NotFoundError } from '@
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 function getCourseId(req: NextRequest): string {
   const parts = req.nextUrl.pathname.split('/')

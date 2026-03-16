@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { StudentState, ChatMessage, BreakoutRoom } from '@/lib/socket-server'
+import { StudentState, ChatMessage, BreakoutRoom } from '@/lib/socket'
 import { AgendaItem } from '@/components/class/session-manager'
 
 // Whiteboard page type

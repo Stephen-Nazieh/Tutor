@@ -95,8 +95,11 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
     }
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const MentionsInputComponent = MentionsInput as any
+
   return (
-    <MentionsInput
+    <MentionsInputComponent
       value={value}
       onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -119,6 +122,6 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
           </div>
         )}
       />
-    </MentionsInput>
+    </MentionsInputComponent>
   )
 }

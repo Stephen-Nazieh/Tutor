@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { MentionInput } from '@/components/mentions/MentionInput'
+import { renderMentions } from '@/lib/mentions/render-mentions'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -298,7 +300,7 @@ export default function CommunicationCenterPage() {
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
-                            <p>{msg.content}</p>
+                            <p>{renderMentions(msg.content)}</p>
                             <span className={`text-xs mt-1 block ${
                               msg.senderId === 'me' || msg.sender.profile?.name === 'You'
                                 ? 'text-blue-200'
@@ -322,12 +324,18 @@ export default function CommunicationCenterPage() {
 
                 <div className="p-4 border-t">
                   <div className="flex gap-2">
-                    <Input
+                    <MentionInput
                       placeholder="Type a message..."
                       value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !sending && sendMessage()}
+                      onChange={setInputMessage}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey && !sending) {
+                          e.preventDefault()
+                          sendMessage()
+                        }
+                      }}
                       disabled={sending}
+                      className="flex-1"
                     />
                     <Button 
                       onClick={sendMessage} 

@@ -1,6 +1,6 @@
 /**
  * Optimized Database Queries (Drizzle)
- * Replaces Prisma with Drizzle ORM; uses cache and drizzleDb.
+ * Uses cache and drizzleDb.
  */
 
 import { eq, and, inArray, gt, desc, asc, sql } from 'drizzle-orm'

@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { withAuth, handleApiError, ValidationError } from '@/lib/api/middleware'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 const ExtendSchema = z.object({
   question: z.object({

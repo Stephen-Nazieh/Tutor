@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       id: user.id,
       name: profile.name,
       username: profile.username,
+      handle: user.handle,
       bio: profile.bio,
       avatarUrl: profile.avatarUrl,
       specialties: profile.specialties,
@@ -53,7 +54,12 @@ export async function GET(request: NextRequest) {
     })
     .from(user)
     .innerJoin(profile, eq(profile.userId, user.id))
-    .where(and(eq(user.role, 'TUTOR'), sql`${profile.username} IS NOT NULL`))
+    .where(
+      and(
+        eq(user.role, 'TUTOR'),
+        sql`${user.handle} IS NOT NULL OR ${profile.username} IS NOT NULL`
+      )
+    )
     .limit(300)
 
   const tutorIds = tutorsWithProfile.map((t) => t.id)
@@ -124,7 +130,7 @@ export async function GET(request: NextRequest) {
 
   const mapped: PublicTutorSummary[] = tutorsWithProfile
     .map((tutor) => {
-      const username = tutor.username ?? ''
+      const username = tutor.handle ?? tutor.username ?? ''
       if (!username) return null
       const coursesList = curriculaByCreator.get(tutor.id) ?? []
       const courses: PublicCourseSummary[] = coursesList.map((course) => ({

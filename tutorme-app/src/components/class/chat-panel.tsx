@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ChatMessage } from '@/lib/socket-server'
+import { ChatMessage } from '@/lib/socket'
 import { Send } from 'lucide-react'
 
 interface ChatPanelProps {

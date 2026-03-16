@@ -13,7 +13,7 @@ import {
   curriculumProgress,
   lessonSession,
 } from '@/lib/db/schema'
-import { chatWithFallback } from '@/lib/ai/orchestrator'
+import { chatWithFallback } from '@/lib/agents'
 
 export type LessonSection = 'introduction' | 'concept' | 'example' | 'practice' | 'review'
 

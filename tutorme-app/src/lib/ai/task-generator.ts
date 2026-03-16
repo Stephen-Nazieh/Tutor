@@ -6,7 +6,7 @@
 import { and, desc, eq } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { generatedTask, studentPerformance, taskSubmission } from '@/lib/db/schema'
-import { generateWithFallback } from './orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import crypto from 'crypto'
 
 export type DistributionMode = 'uniform' | 'personalized' | 'clustered' | 'peer_group'

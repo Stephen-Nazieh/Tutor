@@ -33,7 +33,7 @@ import {
   payment,
 } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 async function logUserActivity(userId: string, action: string, metadata: Record<string, unknown>) {
   await drizzleDb.insert(userActivityLog).values({

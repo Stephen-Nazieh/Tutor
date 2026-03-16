@@ -9,7 +9,7 @@ import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { courseOutlineAsModulesPrompt } from '@/lib/ai/prompts'
 
 const DEFAULT_LESSON_MINUTES = 45

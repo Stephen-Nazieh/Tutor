@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, or } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   user,
@@ -10,18 +10,12 @@ import {
   curriculumEnrollment,
 } from '@/lib/db/schema'
 import { findMockTutorByUsername, shouldUseMockPublicTutors } from '@/lib/public/mock-tutors'
-
-function normalizeUsername(value: string): string {
-  return value
-    .trim()
-    .replace(/^@+/, '')
-    .toLowerCase()
-}
+import { normalizeHandle } from '@/lib/mentions/handles'
 
 function getUsername(req: NextRequest): string {
   const parts = req.nextUrl.pathname.split('/')
   const idx = parts.lastIndexOf('tutors')
-  return normalizeUsername(parts[idx + 1] || '')
+  return normalizeHandle(parts[idx + 1] || '')
 }
 
 export async function GET(req: NextRequest) {
@@ -36,6 +30,7 @@ export async function GET(req: NextRequest) {
       id: user.id,
       name: profile.name,
       username: profile.username,
+      handle: user.handle,
       bio: profile.bio,
       avatarUrl: profile.avatarUrl,
       specialties: profile.specialties,
@@ -44,7 +39,12 @@ export async function GET(req: NextRequest) {
     })
     .from(user)
     .innerJoin(profile, eq(profile.userId, user.id))
-    .where(and(eq(user.role, 'TUTOR'), eq(profile.username, username)))
+    .where(
+      and(
+        eq(user.role, 'TUTOR'),
+        or(eq(user.handle, username), eq(profile.username, username))
+      )
+    )
     .limit(1)
 
   if (!tutorRow) {
@@ -55,7 +55,8 @@ export async function GET(req: NextRequest) {
           tutor: {
             id: mockTutor.id,
             name: mockTutor.name,
-            username: mockTutor.username,
+        username: mockTutor.username,
+        handle: mockTutor.username,
             bio: mockTutor.bio,
             avatarUrl: mockTutor.avatarUrl,
             specialties: mockTutor.specialties,
@@ -142,6 +143,7 @@ export async function GET(req: NextRequest) {
       id: tutorRow.id,
       name: tutorRow.name ?? 'Tutor',
       username: tutorRow.username ?? username,
+      handle: tutorRow.handle ?? tutorRow.username ?? username,
       bio: tutorRow.bio ?? '',
       avatarUrl: tutorRow.avatarUrl ?? null,
       specialties: tutorRow.specialties ?? [],

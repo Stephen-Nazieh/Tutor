@@ -902,10 +902,10 @@ export function reportError(error: Error, context?: Record<string, any>): void {
 }
 
 // ============================================================================
-// Database Schema Types (should match Prisma schema)
+// Database Schema Types (align with Postgres schema)
 // ============================================================================
 
-// Note: These types should match your Prisma schema
+// Note: These types should match your current Drizzle/Postgres schema.
 // You may need to add these models to your database schema:
 /*
 model PerformanceMetric {

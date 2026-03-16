@@ -35,6 +35,7 @@ import {
     AlertCircle,
     Zap,
     Settings2,
+    AtSign,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -60,6 +61,7 @@ const NOTIFICATION_TYPES = [
     { key: 'class', label: 'Classes & Schedule', icon: Calendar, color: 'text-blue-500' },
     { key: 'grade', label: 'Grades & Scores', icon: Zap, color: 'text-indigo-500' },
     { key: 'message', label: 'Messages', icon: MessageSquare, color: 'text-green-500' },
+    { key: 'mention', label: 'Mentions', icon: AtSign, color: 'text-emerald-500' },
     { key: 'achievement', label: 'Achievements & Badges', icon: Trophy, color: 'text-purple-500' },
     { key: 'payment', label: 'Payments & Billing', icon: CreditCard, color: 'text-emerald-500' },
     { key: 'reminder', label: 'Reminders', icon: AlertCircle, color: 'text-orange-500' },

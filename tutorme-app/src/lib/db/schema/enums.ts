@@ -1,5 +1,5 @@
 /**
- * Drizzle enums (generated from Prisma schema).
+ * Drizzle enums aligned with the current Postgres schema.
  */
 import { pgEnum } from 'drizzle-orm/pg-core'
 

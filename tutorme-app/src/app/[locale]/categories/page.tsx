@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   BookOpen, 
   ArrowLeft, 
@@ -24,7 +25,9 @@ import {
   School,
   Award,
   Flag,
-  Plus
+  Plus,
+  Sparkles,
+  CheckCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -756,6 +759,7 @@ export default function CategoriesPage() {
   const [activeTab, setActiveTab] = useState('global')
   const [searchQuery, setSearchQuery] = useState('')
   const [customCategory, setCustomCategory] = useState('')
+  const [tutorModalOpen, setTutorModalOpen] = useState(false)
 
   // Get countries for selected region
   const availableCountries = useMemo(() => {
@@ -1206,17 +1210,165 @@ export default function CategoriesPage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Create an account and start sharing your expertise.
                 </p>
-                <Link href="/register/tutor">
-                  <Button className="w-full bg-[#F17623] hover:bg-[#e06613]">
-                    Become a Tutor
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </Link>
+                <Button 
+                  className="w-full bg-[#F17623] hover:bg-[#e06613]"
+                  onClick={() => setTutorModalOpen(true)}
+                >
+                  Become a Tutor
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
       </main>
+
+      {/* Coming Soon Modal */}
+      <TutorComingSoonModal 
+        isOpen={tutorModalOpen} 
+        onClose={() => setTutorModalOpen(false)} 
+      />
     </div>
+  )
+}
+
+// Coming Soon Modal Component for Tutor Application
+const TutorComingSoonModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    about: '',
+    socialMedia: ''
+  })
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'tutor',
+          ...formData
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setSubmitted(true)
+      } else {
+        setError(data.error || 'Failed to submit. Please try again.')
+      }
+    } catch {
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }} 
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      >
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0 }} 
+          animate={{ scale: 1, opacity: 1 }} 
+          exit={{ scale: 0.95, opacity: 0 }} 
+          className="relative w-full max-w-md bg-white/90 backdrop-blur-xl border border-black/10 rounded-2xl p-8 shadow-2xl"
+        >
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 right-4 p-2 text-zinc-600 hover:text-black transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          {!submitted ? (
+            <>
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium mb-4 bg-emerald-100 text-emerald-700 border-emerald-200">
+                  <Sparkles className="w-3 h-3" />
+                  Coming Soon
+                </div>
+                <h3 className="text-xl font-bold text-zinc-900 mb-2">Apply to Become a Tutor</h3>
+                <p className="text-sm text-zinc-600">
+                  We&apos;re preparing an amazing platform for tutors. Pre-register now and we&apos;ll notify you when we launch!
+                </p>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input 
+                  type="text" 
+                  placeholder="Name" 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                  required 
+                  className="w-full border bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                />
+                <Input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={formData.email} 
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                  required 
+                  className="w-full border bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                />
+                <textarea
+                  placeholder="Tell us about your tutoring experience (500 characters max)"
+                  value={formData.about}
+                  onChange={(e) => setFormData({ ...formData, about: e.target.value.slice(0, 500) })}
+                  required
+                  rows={3}
+                  className="w-full border rounded-lg px-3 py-2 resize-none text-sm bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                />
+                <Input 
+                  type="text" 
+                  placeholder="Social media (optional)" 
+                  value={formData.socialMedia} 
+                  onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} 
+                  className="w-full border bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                />
+                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                <Button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="w-full py-3 text-white font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Submitting...' : 'Confirm'}
+                </Button>
+              </form>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-emerald-100">
+                <CheckCircle className="w-8 h-8 text-emerald-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-zinc-900">Thank You!</h3>
+              <p className="text-zinc-600">We&apos;ve received your application. We&apos;ll be in touch soon!</p>
+              <Button 
+                onClick={onClose} 
+                className="mt-6 bg-black/10 hover:bg-black/20 text-zinc-900"
+              >
+                Close
+              </Button>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   )
 }

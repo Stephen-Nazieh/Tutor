@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
-import { StudentState, ChatMessage, BreakoutRoom } from '@/lib/socket-server'
+import { StudentState, ChatMessage, BreakoutRoom } from '@/lib/socket'
 
 interface UseSocketOptions {
   roomId: string

@@ -7,7 +7,7 @@
  * - Subjective questions (short answer, essay) use AI grading with fallback to manual
  */
 
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { 
     QuestionType, 
     QuizQuestion, 

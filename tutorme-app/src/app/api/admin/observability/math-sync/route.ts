@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { withAuth, ForbiddenError } from '@/lib/api/middleware'
-import { getMathSyncObservability } from '@/lib/socket-server'
+import { getMathSyncObservability } from '@/lib/socket'
 
 export const GET = withAuth(async (req, session) => {
   const role = String(session.user.role || '').toUpperCase()

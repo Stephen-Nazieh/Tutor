@@ -5,6 +5,7 @@
 
 import { z } from 'zod'
 import { studentLinkingSchema } from './parent-child-security'
+import { HANDLE_REGEX, isReservedHandle, normalizeHandle } from '@/lib/mentions/handles'
 
 // ============================================
 // Tutor Registration Schemas
@@ -39,7 +40,13 @@ export const tutorAdditionalDataSchema = z.object({
   tutoringCountries: z.array(z.string()).optional().default([]),
   countrySubjectSelections: z.record(z.string(), z.array(z.string())).optional().default({}),
   categories: z.array(z.string()).min(1, 'Select at least one tutoring category'),
-  username: z.string().min(3, 'Username must be at least 3 characters').max(30),
+  username: z
+    .string()
+    .min(3, 'Handle must be at least 3 characters')
+    .max(15, 'Handle must be at most 15 characters')
+    .regex(HANDLE_REGEX, 'Handle may only contain letters, numbers, and underscores')
+    .refine((value) => !isReservedHandle(value), 'This handle is reserved')
+    .transform((value) => normalizeHandle(value)),
   socialLinks: z.object({
     instagram: z.string().max(100).optional(),
     tiktok: z.string().max(100).optional(),
@@ -88,6 +95,7 @@ export const notificationSchema = z.object({
   weeklyReports: z.boolean().optional(),
   paymentNotifications: z.boolean().optional(),
   emergencyContacts: z.boolean().optional(),
+  mentions: z.boolean().optional(),
 })
 
 export const parentProfileDataSchema = z.object({

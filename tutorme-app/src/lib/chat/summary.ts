@@ -6,7 +6,7 @@
 import { asc, eq, like, and } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { message, profile, user } from '@/lib/db/schema'
-import { generateWithFallback } from '../ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 export type SummaryType = 'session' | 'topic' | 'student' | 'breakout'
 

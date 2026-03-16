@@ -6,7 +6,7 @@
 import { and, asc, eq, gte, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { feedbackWorkflow, profile, user } from '@/lib/db/schema'
-import { generateWithFallback } from '../ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 export type FeedbackType = 'task_feedback' | 'progress_report' | 'encouragement' | 'correction'
 export type FeedbackStatus = 'ai_generated' | 'tutor_modified' | 'approved' | 'sent_to_student' | 'rejected'

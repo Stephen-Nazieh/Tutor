@@ -36,7 +36,7 @@ let queryCache: Map<string, { data: any; expires: number }> | null = null
 let redisInitialized = false
 
 // Safe check for server-side environment (not Edge Runtime)
-// Edge Runtime (used by Next.js middleware) doesn't support Prisma Client
+// Edge Runtime (used by Next.js middleware) doesn't support node-postgres
 const isEdgeRuntime = typeof (globalThis as any).EdgeRuntime !== 'undefined' || 
   (typeof process !== 'undefined' && process.env.NEXT_RUNTIME === 'edge')
 const isServer = typeof window === 'undefined' && !isEdgeRuntime

@@ -13,6 +13,7 @@ export type NotificationType =
   | 'assignment'
   | 'class'
   | 'message'
+  | 'mention'
   | 'enrollment'
   | 'payment'
   | 'system'
@@ -110,6 +111,14 @@ async function getChannelDecision(
   }
 
   return decision
+}
+
+export async function getNotificationChannels(
+  userId: string,
+  type: NotificationType,
+  force = false
+): Promise<ChannelDecision> {
+  return getChannelDecision(userId, type, force)
 }
 
 function isInQuietHours(start: string, end: string, timezone: string): boolean {

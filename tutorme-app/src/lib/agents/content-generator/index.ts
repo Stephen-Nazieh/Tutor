@@ -11,7 +11,7 @@
  * This agent generates educational content: quizzes, lessons, questions.
  */
 
-import { generateWithFallback } from '../orchestrator';
+import { generateWithFallback } from '@/lib/agents';
 import { Quiz, Question, Curriculum, Student, getCurriculum, getStudent } from '../shared-data';
 import { 
   buildQuizGenerationPrompt, 

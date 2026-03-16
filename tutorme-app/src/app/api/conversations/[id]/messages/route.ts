@@ -11,6 +11,7 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { conversation, directMessage, user, profile, notification } from '@/lib/db/schema'
 import { or, eq, and, desc, ne, lt, inArray } from 'drizzle-orm'
 import { getInboxPathByRole, isConversationAllowedByRoles } from '@/lib/messaging/permissions'
+import { recordMentions } from '@/lib/mentions/parse-mentions'
 
 type AppRole = 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'
 
@@ -204,6 +205,16 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     const [message] = await drizzleDb.select().from(directMessage).where(eq(directMessage.id, messageId))
     const [sender] = await drizzleDb.select().from(user).where(eq(user.id, userId))
     const [senderProfile] = await drizzleDb.select().from(profile).where(eq(profile.userId, userId))
+
+    if (typeof content === 'string' && content.includes('@[')) {
+      await recordMentions({
+        text: content,
+        messageId,
+        mentionerId: userId,
+        mentionerName: senderProfile?.name ?? sender?.email ?? 'Someone',
+        actionUrl: getInboxPathByRole(recipientRole as AppRole),
+      })
+    }
 
     const messageResponse = message
       ? {

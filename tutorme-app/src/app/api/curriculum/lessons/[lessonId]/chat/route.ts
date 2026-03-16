@@ -20,7 +20,7 @@ import {
   lessonSession as lessonSessionTable,
   curriculumProgress,
 } from '@/lib/db/schema'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 const SECTIONS = ['introduction', 'concept', 'example', 'practice', 'review'] as const
 type LessonSection = typeof SECTIONS[number]

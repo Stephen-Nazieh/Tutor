@@ -11,13 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound, ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react'
-import {
-  GLOBAL_EXAM_CATEGORIES,
-} from '@/lib/tutoring/categories'
-import { ALL_COUNTRIES, findCountryByName } from '@/lib/geo/countries'
+import { ArrowLeft, GraduationCap, ShieldCheck, Globe, UserRound, ChevronDown, Eye, EyeOff, Loader2, MapPin, BookOpen, Award, School, Flag, X, Search, Plus, Check } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 type GlobalExamState = {
   standardizedEnglish: string[]
@@ -32,6 +32,302 @@ type SocialLinks = {
   youtube: string
   facebook: string
 }
+
+// Region and Country data for tutoring selection
+interface CountryData {
+  code: string
+  name: string
+  nationalExams: ExamCategory[]
+}
+
+interface Region {
+  id: string
+  name: string
+  countries: CountryData[]
+}
+
+interface ExamCategory {
+  id: string
+  label: string
+  exams: string[]
+}
+
+// National exams data by country
+const NATIONAL_EXAMS_DATA: Record<string, ExamCategory[]> = {
+  'HK': [
+    { id: 'hkdse-s5', label: 'HKDSE Preparation (S5)', exams: ['S5 HKDSE Chinese Language Preparation', 'S5 HKDSE English Language Preparation', 'S5 HKDSE Mathematics Preparation', 'S5 HKDSE Mathematics M1 Preparation', 'S5 HKDSE Mathematics M2 Preparation', 'S5 HKDSE Physics Preparation', 'S5 HKDSE Chemistry Preparation', 'S5 HKDSE Biology Preparation', 'S5 HKDSE Combined Science Preparation'] },
+    { id: 'hkdse-s6', label: 'HKDSE Preparation (S6)', exams: ['S6 HKDSE Chinese Language Preparation', 'S6 HKDSE English Language Preparation', 'S6 HKDSE Mathematics Preparation', 'S6 HKDSE Mathematics M1 Preparation', 'S6 HKDSE Mathematics M2 Preparation', 'S6 HKDSE Physics Preparation', 'S6 HKDSE Chemistry Preparation', 'S6 HKDSE Biology Preparation', 'S6 HKDSE Combined Science Preparation'] },
+    { id: 'hk-subject-s4', label: 'Secondary 4 (S4 / Grade 10)', exams: ['S4 Chinese Language', 'S4 English Language', 'S4 Mathematics', 'S4 Mathematics Extended Module 1 (M1)', 'S4 Mathematics Extended Module 2 (M2)', 'S4 Physics', 'S4 Chemistry', 'S4 Biology', 'S4 Combined Science'] },
+    { id: 'hk-subject-s5', label: 'Secondary 5 (S5 / Grade 11)', exams: ['S5 Chinese Language', 'S5 English Language', 'S5 Mathematics', 'S5 Mathematics Extended Module 1 (M1)', 'S5 Mathematics Extended Module 2 (M2)', 'S5 Physics', 'S5 Chemistry', 'S5 Biology', 'S5 Combined Science'] },
+    { id: 'hk-subject-s6', label: 'Secondary 6 (S6 / Grade 12)', exams: ['S6 Chinese Language', 'S6 English Language', 'S6 Mathematics', 'S6 Mathematics Extended Module 1 (M1)', 'S6 Mathematics Extended Module 2 (M2)', 'S6 Physics', 'S6 Chemistry', 'S6 Biology', 'S6 Combined Science'] }
+  ],
+  'KR': [
+    { id: 'csat', label: 'CSAT Preparation (수능 Preparation)', exams: ['CSAT Korean Language Preparation', 'CSAT English Preparation', 'CSAT Mathematics Preparation', 'CSAT Physics Preparation', 'CSAT Chemistry Preparation', 'CSAT Biology Preparation', 'CSAT Earth Science Preparation'] },
+    { id: 'kr-year-1', label: 'High School Year 1', exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Geometry', 'Probability & Statistics', 'Integrated Science', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] },
+    { id: 'kr-year-2', label: 'High School Year 2', exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Calculus Foundations', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] },
+    { id: 'kr-year-3', label: 'High School Year 3', exams: ['Korean Language', 'English Language', 'Mathematics', 'Calculus', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] }
+  ],
+  'SG': [
+    { id: 'gce-o-level', label: 'GCE O-Level Preparation', exams: ['O-Level English Preparation', 'O-Level Elementary Mathematics Preparation', 'O-Level Additional Mathematics Preparation', 'O-Level Physics Preparation', 'O-Level Chemistry Preparation', 'O-Level Biology Preparation', 'O-Level Combined Science Preparation'] },
+    { id: 'gce-a-level', label: 'GCE A-Level Preparation', exams: ['A-Level General Paper Preparation', 'A-Level Mathematics Preparation', 'A-Level Physics Preparation', 'A-Level Chemistry Preparation', 'A-Level Biology Preparation'] },
+    { id: 'sg-sec-4', label: 'Secondary 4 (Sec 4 / Grade 10)', exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science'] },
+    { id: 'sg-sec-5', label: 'Secondary 5 (Sec 5 / Grade 11)', exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science'] },
+    { id: 'sg-jc1', label: 'Junior College Year 1 (JC1 / Grade 11)', exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology'] },
+    { id: 'sg-jc2', label: 'Junior College Year 2 (JC2 / Grade 12)', exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology'] }
+  ],
+  'JP': [
+    { id: 'university-entrance', label: 'University Entrance Examination Preparation', exams: ['Japanese University Entrance Japanese Language', 'Japanese University Entrance English', 'Japanese University Entrance Mathematics', 'Japanese University Entrance Physics', 'Japanese University Entrance Chemistry', 'Japanese University Entrance Biology', 'Japanese University Entrance Earth Science'] },
+    { id: 'jp-year-1', label: 'High School Year 1 (G10 / 高校1年)', exams: ['Japanese Language', 'English Language', 'Mathematics I', 'Mathematics A', 'Basic Physics', 'Basic Chemistry', 'Basic Biology', 'Earth Science Basics'] },
+    { id: 'jp-year-2', label: 'High School Year 2 (G11 / 高校2年)', exams: ['Japanese Language', 'English Language', 'Mathematics II', 'Mathematics B', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] },
+    { id: 'jp-year-3', label: 'High School Year 3 (G12 / 高校3年)', exams: ['Japanese Language', 'English Language', 'Mathematics III', 'Advanced Mathematics', 'Physics', 'Chemistry', 'Biology', 'Earth Science'] }
+  ],
+  'TH': [
+    { id: 'university-admission', label: 'University Admission Examination', exams: ['Thai University Admission Thai Language', 'Thai University Admission English', 'Thai University Admission Mathematics', 'Thai University Admission Physics', 'Thai University Admission Chemistry', 'Thai University Admission Biology', 'Thai University Admission Earth & Space Science'] },
+    { id: 'th-grade-10', label: 'Grade 10', exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'th-grade-11', label: 'Grade 11', exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'th-grade-12', label: 'Grade 12', exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'IN': [
+    { id: 'jee', label: 'Engineering Entrance (JEE)', exams: ['JEE Main Preparation — Mathematics', 'JEE Main Preparation — Physics', 'JEE Main Preparation — Chemistry', 'JEE Advanced Preparation — Mathematics', 'JEE Advanced Preparation — Physics', 'JEE Advanced Preparation — Chemistry'] },
+    { id: 'neet', label: 'Medical Entrance (NEET)', exams: ['NEET Preparation — Physics', 'NEET Preparation — Chemistry', 'NEET Preparation — Biology'] },
+    { id: 'in-grade-10', label: 'Grade 10', exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'in-grade-11', label: 'Grade 11', exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'in-grade-12', label: 'Grade 12', exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'VN': [
+    { id: 'national-exam', label: 'National Examination Preparation', exams: ['Vietnam National Exam — Vietnamese Language', 'Vietnam National Exam — English', 'Vietnam National Exam — Mathematics', 'Vietnam National Exam — Physics', 'Vietnam National Exam — Chemistry', 'Vietnam National Exam — Biology'] },
+    { id: 'vn-grade-10', label: 'Grade 10', exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'vn-grade-11', label: 'Grade 11', exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'vn-grade-12', label: 'Grade 12', exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'TW': [
+    { id: 'university-entrance', label: 'University Entrance Examination', exams: ['Taiwan University Entrance Chinese', 'Taiwan University Entrance English', 'Taiwan University Entrance Mathematics', 'Taiwan University Entrance Physics', 'Taiwan University Entrance Chemistry', 'Taiwan University Entrance Biology'] },
+    { id: 'tw-grade-10', label: 'Grade 10', exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'tw-grade-11', label: 'Grade 11', exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'tw-grade-12', label: 'Grade 12', exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'MY': [
+    { id: 'spm', label: 'SPM Examination', exams: ['SPM Malay', 'SPM English', 'SPM Mathematics', 'SPM Physics', 'SPM Chemistry', 'SPM Biology'] },
+    { id: 'my-grade-10', label: 'Grade 10', exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'my-grade-11', label: 'Grade 11', exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'my-grade-12', label: 'Grade 12', exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'ID': [
+    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Indonesian', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
+    { id: 'id-grade-10', label: 'Grade 10', exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'id-grade-11', label: 'Grade 11', exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'id-grade-12', label: 'Grade 12', exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'IL': [
+    { id: 'bagrut', label: 'Bagrut', exams: ['Bagrut Hebrew', 'Bagrut English', 'Bagrut Mathematics', 'Bagrut Physics', 'Bagrut Chemistry', 'Bagrut Biology'] },
+    { id: 'il-grade-10', label: 'Grade 10', exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'il-grade-11', label: 'Grade 11', exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'il-grade-12', label: 'Grade 12', exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'SA': [
+    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
+    { id: 'sa-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'sa-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'sa-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'QA': [
+    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
+    { id: 'qa-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'qa-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'qa-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'KW': [
+    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
+    { id: 'kw-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'kw-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'kw-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'OM': [
+    { id: 'university-admission', label: 'University Admission', exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] },
+    { id: 'om-grade-10', label: 'Grade 10', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'om-grade-11', label: 'Grade 11', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] },
+    { id: 'om-grade-12', label: 'Grade 12', exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'] }
+  ],
+  'GB': [
+    { id: 'gcse', label: 'GCSE', exams: ['GCSE English Language', 'GCSE English Literature', 'GCSE Mathematics', 'GCSE Biology', 'GCSE Chemistry', 'GCSE Physics', 'GCSE Combined Science'] },
+    { id: 'a-level-uk', label: 'A Level (UK)', exams: ['A Level English', 'A Level Mathematics', 'A Level Biology', 'A Level Chemistry', 'A Level Physics'] },
+    { id: 'gb-grade-10', label: 'Grade 10', exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics', 'Combined Science'] },
+    { id: 'gb-grade-11', label: 'Grade 11', exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
+    { id: 'gb-grade-12', label: 'Grade 12 (Age 17-18)', exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
+    { id: 'gb-grade-13', label: 'Grade 13', exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] }
+  ],
+  'DE': [
+    { id: 'abitur', label: 'Abitur', exams: ['Abitur German', 'Abitur English', 'Abitur Mathematics', 'Abitur Biology', 'Abitur Chemistry', 'Abitur Physics'] },
+    { id: 'de-grade-10', label: 'Grade 10', exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
+    { id: 'de-grade-11', label: 'Grade 11', exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
+    { id: 'de-grade-12', label: 'Grade 12', exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] }
+  ],
+  'FR': [
+    { id: 'baccalaureat', label: 'Baccalauréat', exams: ['Baccalauréat French', 'Baccalauréat English', 'Baccalauréat Mathematics', 'Baccalauréat Biology', 'Baccalauréat Chemistry', 'Baccalauréat Physics'] },
+    { id: 'fr-grade-10', label: 'Grade 10 (Seconde - Age 16)', exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics'] },
+    { id: 'fr-grade-11', label: 'Grade 11 (Première - Age 17)', exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics'] },
+    { id: 'fr-grade-12', label: 'Grade 12 (Terminale - Age 18)', exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics'] }
+  ],
+  'NL': [
+    { id: 'dutch-national', label: 'National Examination', exams: ['Dutch National Exam — Dutch', 'Dutch National Exam — English', 'Dutch National Exam — Mathematics', 'Dutch National Exam — Biology', 'Dutch National Exam — Chemistry', 'Dutch National Exam — Physics'] },
+    { id: 'nl-grade-10', label: 'Grade 10', exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
+    { id: 'nl-grade-11', label: 'Grade 11', exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] },
+    { id: 'nl-grade-12', label: 'Grade 12', exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'] }
+  ],
+  'BE': [], 'CH': [], 'IT': [], 'ES': [], 'IE': [], 'PT': [], 'AT': [], 'PL': [], 'CZ': [], 'HU': [], 'RO': [], 'GR': [], 'TR': [],
+  'AU': [], 'NZ': [],
+  'US': [], 'CA': [], 'MX': [], 'CR': [], 'PA': [], 'DO': [],
+  'BR': [], 'CL': [], 'PE': [], 'CO': [], 'AR': [], 'UY': [], 'EC': [],
+  'NG': [], 'KE': [], 'GH': [], 'EG': [], 'MA': [], 'TN': [], 'BW': [], 'NA': [], 'ZA': [],
+  'PH': []
+}
+
+const REGIONS: Region[] = [
+  {
+    id: 'asia',
+    name: 'Asia',
+    countries: [
+      { code: 'HK', name: 'Hong Kong', nationalExams: NATIONAL_EXAMS_DATA['HK'] || [] },
+      { code: 'KR', name: 'Korea', nationalExams: NATIONAL_EXAMS_DATA['KR'] || [] },
+      { code: 'SG', name: 'Singapore', nationalExams: NATIONAL_EXAMS_DATA['SG'] || [] },
+      { code: 'JP', name: 'Japan', nationalExams: NATIONAL_EXAMS_DATA['JP'] || [] },
+      { code: 'TH', name: 'Thailand', nationalExams: NATIONAL_EXAMS_DATA['TH'] || [] },
+      { code: 'IN', name: 'India', nationalExams: NATIONAL_EXAMS_DATA['IN'] || [] },
+      { code: 'VN', name: 'Vietnam', nationalExams: NATIONAL_EXAMS_DATA['VN'] || [] },
+      { code: 'TW', name: 'Taiwan', nationalExams: NATIONAL_EXAMS_DATA['TW'] || [] },
+      { code: 'MY', name: 'Malaysia', nationalExams: NATIONAL_EXAMS_DATA['MY'] || [] },
+      { code: 'ID', name: 'Indonesia', nationalExams: NATIONAL_EXAMS_DATA['ID'] || [] },
+      { code: 'PH', name: 'Philippines', nationalExams: [] },
+      { code: 'IL', name: 'Israel', nationalExams: NATIONAL_EXAMS_DATA['IL'] || [] },
+    ]
+  },
+  {
+    id: 'middle-east',
+    name: 'Middle East',
+    countries: [
+      { code: 'SA', name: 'Saudi Arabia', nationalExams: NATIONAL_EXAMS_DATA['SA'] || [] },
+      { code: 'QA', name: 'Qatar', nationalExams: NATIONAL_EXAMS_DATA['QA'] || [] },
+      { code: 'KW', name: 'Kuwait', nationalExams: NATIONAL_EXAMS_DATA['KW'] || [] },
+      { code: 'OM', name: 'Oman', nationalExams: NATIONAL_EXAMS_DATA['OM'] || [] },
+    ]
+  },
+  {
+    id: 'europe',
+    name: 'Europe',
+    countries: [
+      { code: 'GB', name: 'United Kingdom', nationalExams: NATIONAL_EXAMS_DATA['GB'] || [] },
+      { code: 'DE', name: 'Germany', nationalExams: NATIONAL_EXAMS_DATA['DE'] || [] },
+      { code: 'FR', name: 'France', nationalExams: NATIONAL_EXAMS_DATA['FR'] || [] },
+      { code: 'NL', name: 'Netherlands', nationalExams: NATIONAL_EXAMS_DATA['NL'] || [] },
+      { code: 'BE', name: 'Belgium', nationalExams: [] },
+      { code: 'CH', name: 'Switzerland', nationalExams: [] },
+      { code: 'IT', name: 'Italy', nationalExams: [] },
+      { code: 'ES', name: 'Spain', nationalExams: [] },
+      { code: 'IE', name: 'Ireland', nationalExams: [] },
+      { code: 'PT', name: 'Portugal', nationalExams: [] },
+      { code: 'AT', name: 'Austria', nationalExams: [] },
+      { code: 'PL', name: 'Poland', nationalExams: [] },
+      { code: 'CZ', name: 'Czech Republic', nationalExams: [] },
+      { code: 'HU', name: 'Hungary', nationalExams: [] },
+      { code: 'RO', name: 'Romania', nationalExams: [] },
+      { code: 'GR', name: 'Greece', nationalExams: [] },
+      { code: 'TR', name: 'Turkey', nationalExams: [] },
+    ]
+  },
+  {
+    id: 'oceania',
+    name: 'Oceania',
+    countries: [
+      { code: 'AU', name: 'Australia', nationalExams: [] },
+      { code: 'NZ', name: 'New Zealand', nationalExams: [] },
+    ]
+  },
+  {
+    id: 'north-america',
+    name: 'North America',
+    countries: [
+      { code: 'US', name: 'United States', nationalExams: [] },
+      { code: 'CA', name: 'Canada', nationalExams: [] },
+      { code: 'MX', name: 'Mexico', nationalExams: [] },
+      { code: 'CR', name: 'Costa Rica', nationalExams: [] },
+      { code: 'PA', name: 'Panama', nationalExams: [] },
+      { code: 'DO', name: 'Dominican Republic', nationalExams: [] },
+    ]
+  },
+  {
+    id: 'south-america',
+    name: 'South America',
+    countries: [
+      { code: 'BR', name: 'Brazil', nationalExams: [] },
+      { code: 'CL', name: 'Chile', nationalExams: [] },
+      { code: 'PE', name: 'Peru', nationalExams: [] },
+      { code: 'CO', name: 'Colombia', nationalExams: [] },
+      { code: 'AR', name: 'Argentina', nationalExams: [] },
+      { code: 'UY', name: 'Uruguay', nationalExams: [] },
+      { code: 'EC', name: 'Ecuador', nationalExams: [] },
+    ]
+  },
+  {
+    id: 'africa',
+    name: 'Africa',
+    countries: [
+      { code: 'NG', name: 'Nigeria', nationalExams: [] },
+      { code: 'KE', name: 'Kenya', nationalExams: [] },
+      { code: 'GH', name: 'Ghana', nationalExams: [] },
+      { code: 'EG', name: 'Egypt', nationalExams: [] },
+      { code: 'MA', name: 'Morocco', nationalExams: [] },
+      { code: 'TN', name: 'Tunisia', nationalExams: [] },
+      { code: 'BW', name: 'Botswana', nationalExams: [] },
+      { code: 'NA', name: 'Namibia', nationalExams: [] },
+      { code: 'ZA', name: 'South Africa', nationalExams: [] },
+    ]
+  }
+]
+
+// Generate ALL_COUNTRIES from REGIONS for the country of residence selector
+const ALL_COUNTRIES = REGIONS.flatMap(region => 
+  region.countries.map(country => ({ 
+    code: country.code, 
+    name: country.name 
+  }))
+).sort((a, b) => a.name.localeCompare(b.name))
+
+// Global Exams Categories
+const GLOBAL_EXAMS_CATEGORIES: ExamCategory[] = [
+  { id: 'admission-exams', label: 'Admission Exams', exams: ['SAT', 'ACT'] },
+  { id: 'english-proficiency', label: 'English Proficiency', exams: ['IELTS Academic', 'IELTS General', 'TOEFL iBT', 'PTE Academic', 'Duolingo English Test', 'CPE', 'CAE', 'Cambridge B2', 'International ESOL', 'Oxford Test of English', 'iTEP Academic', 'TOEIC', 'MET', 'EIKEN'] },
+  { id: 'postgraduate-exams', label: 'Postgraduate Exams', exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'] }
+]
+
+// AP Categories
+const AP_CATEGORIES: ExamCategory[] = [
+  { id: 'ap-stem', label: 'AP - STEM', exams: ['AP Calculus AB', 'AP Calculus BC', 'AP Statistics', 'AP Biology', 'AP Chemistry', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: Mechanics', 'AP Physics C: Electricity and Magnetism', 'AP Environmental Science', 'AP Computer Science A', 'AP Computer Science Principles'] },
+  { id: 'ap-humanities', label: 'AP - Humanities', exams: ['AP English & Composition', 'AP Literature & Composition', 'AP Seminar', 'AP Research', 'AP World History: Modern', 'AP United States History', 'AP European History', 'AP Human Geography', 'AP Psychology', 'AP Macroeconomics', 'AP Microeconomics', 'AP Comparative Government and Politics', 'AP United States Government and Politics'] },
+  { id: 'ap-languages', label: 'AP - Languages', exams: ['AP Chinese Language and Culture', 'AP French Language and Culture', 'AP German Language and Culture', 'AP Italian Language and Culture', 'AP Japanese Language and Culture', 'AP Latin', 'AP Spanish Language and Culture', 'AP Spanish Literature and Culture'] },
+  { id: 'ap-art', label: 'AP - Art', exams: ['AP Art History', 'AP Music Theory', 'AP Studio Art: 2-D Art and Design', 'AP Studio Art: 3-D Art and Design', 'AP Drawing'] }
+]
+
+// A Level Categories
+const A_LEVEL_CATEGORIES: ExamCategory[] = [
+  { id: 'as-courses', label: 'AS Level Courses', exams: ['AS Level Mathematics', 'AS Level Further Mathematics', 'AS Level Physics', 'AS Level Chemistry', 'AS Level Biology', 'AS Level Computer Science', 'AS Level Information Technology', 'AS Level Economics', 'AS Level Business', 'AS Level Accounting', 'AS Level Psychology', 'AS Level Sociology', 'AS Level History', 'AS Level Geography', 'AS Level English Language', 'AS Level English Literature', 'AS Level Global Perspectives & Research', 'AS Level Art and Design', 'AS Level Media Studies'] },
+  { id: 'a-level-courses', label: 'A Level Courses', exams: ['A Level Mathematics', 'A Level Further Mathematics', 'A Level Physics', 'A Level Chemistry', 'A Level Biology', 'A Level Computer Science', 'A Level Information Technology', 'A Level Economics', 'A Level Business', 'A Level Accounting', 'A Level Psychology', 'A Level Sociology', 'A Level History', 'A Level Geography', 'A Level English Language', 'A Level English Literature', 'A Level Global Perspectives & Research', 'A Level Art and Design', 'A Level Media Studies'] }
+]
+
+// IB Categories
+const IB_CATEGORIES: ExamCategory[] = [
+  { id: 'ib-courses', label: 'IB Courses', exams: ['IB Mathematics: Analysis and Approaches', 'IB Mathematics: Applications and Interpretation', 'IB Physics', 'IB Chemistry', 'IB Biology', 'IB Computer Science', 'IB Economics', 'IB Business Management', 'IB Psychology', 'IB History', 'IB Geography', 'IB English A: Language and Literature', 'IB English A: Literature', 'IB Language B Courses', 'IB Visual Arts', 'IB Theory of Knowledge (TOK)', 'IB Extended Essay (EE)'] }
+]
+
+// IGCSE Categories
+const IGCSE_CATEGORIES: ExamCategory[] = [
+  { id: 'igcse-mathematics', label: 'IGCSE Mathematics', exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'] },
+  { id: 'igcse-sciences', label: 'IGCSE Sciences', exams: ['IGCSE Physics', 'IGCSE Chemistry', 'IGCSE Biology', 'IGCSE Combined Science', 'IGCSE Coordinated Sciences', 'IGCSE Environmental Management'] },
+  { id: 'igcse-english', label: 'IGCSE English', exams: ['IGCSE English Language', 'IGCSE English Literature', 'IGCSE English as a Second Language'] },
+  { id: 'igcse-humanities', label: 'IGCSE Humanities', exams: ['IGCSE History', 'IGCSE Geography', 'IGCSE Economics', 'IGCSE Business Studies', 'IGCSE Accounting', 'IGCSE Sociology', 'IGCSE Global Perspectives'] },
+  { id: 'igcse-languages', label: 'IGCSE Languages', exams: ['IGCSE French', 'IGCSE Spanish', 'IGCSE German', 'IGCSE Chinese', 'IGCSE Arabic', 'IGCSE Hindi'] },
+  { id: 'igcse-arts', label: 'IGCSE Arts', exams: ['IGCSE Art & Design', 'IGCSE Music', 'IGCSE Drama', 'IGCSE Physical Education', 'IGCSE Travel & Tourism'] },
+  { id: 'igcse-technical', label: 'IGCSE Technical', exams: ['IGCSE Computer Science', 'IGCSE Information & Communication Technology', 'IGCSE Design & Technology'] }
+]
 
 const REGION_OPTIONS = [
   'Worldwide',
@@ -105,7 +401,6 @@ export default function TutorRegistrationPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState(1)
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [usernameStatus, setUsernameStatus] = useState<{ status: 'idle' | 'checking' | 'available' | 'taken'; message?: string; suggestion?: string }>({
     status: 'idle',
   })
@@ -147,75 +442,121 @@ export default function TutorRegistrationPage() {
     timezone: 'Asia/Shanghai',
     preferredLanguage: 'en',
     agreeToTerms: false,
+    // New fields for category selection
+    selectedRegions: [] as string[],
+    selectedCountries: [] as string[],
+    selectedCategories: [] as string[],
   })
+
+  // New state for category selection
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [activeTab, setActiveTab] = useState('global')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [customCategory, setCustomCategory] = useState('')
 
   const passwordMismatch =
     formData.password.length > 0 &&
     formData.confirmPassword.length > 0 &&
     formData.password !== formData.confirmPassword
 
+  // Keep for backward compatibility - now just returns selectedCategories
   const categorySelections = useMemo(() => {
-    const categories: string[] = []
-    categories.push(...formData.globalExams.standardizedEnglish)
-    categories.push(...formData.globalExams.undergradAdmissions)
-    categories.push(...formData.globalExams.apAdvancedPlacement)
-    categories.push(...formData.globalExams.internationalAS)
-    return Array.from(new Set(categories))
-  }, [formData.globalExams])
+    return selectedCategories
+  }, [selectedCategories])
 
+  // New computed values for category selection
   const availableCountries = useMemo(() => {
-    if (selectedRegions.length === 0 || selectedRegions.includes('Worldwide')) {
-      return ALL_COUNTRIES
-    }
-    const selected = new Set(selectedRegions)
-    return ALL_COUNTRIES.filter((country) => selected.has(resolveRegionForCountry(country.name)))
+    if (selectedRegions.length === 0) return []
+    const countries: CountryData[] = []
+    selectedRegions.forEach(regionId => {
+      const region = REGIONS.find(r => r.id === regionId)
+      if (region) {
+        countries.push(...region.countries)
+      }
+    })
+    return countries
   }, [selectedRegions])
 
-  const toggleGlobalExam = (categoryId: keyof GlobalExamState, exam: string) => {
-    setFormData((prev) => {
-      const next = prev.globalExams[categoryId].includes(exam)
-        ? prev.globalExams[categoryId].filter((item) => item !== exam)
-        : [...prev.globalExams[categoryId], exam]
-      return {
-        ...prev,
-        globalExams: {
-          ...prev.globalExams,
-          [categoryId]: next,
-        },
+  const nationalExams = useMemo(() => {
+    if (selectedCountries.length === 0) return []
+    const exams: ExamCategory[] = []
+    selectedCountries.forEach(countryCode => {
+      const country = availableCountries.find(c => c.code === countryCode)
+      if (country && country.nationalExams.length > 0) {
+        exams.push(...country.nationalExams)
       }
+    })
+    return exams
+  }, [selectedCountries, availableCountries])
+
+  // New toggle functions for category selection
+  const toggleRegionSelection = (regionId: string) => {
+    setSelectedRegions(prev => {
+      const newRegions = prev.includes(regionId)
+        ? prev.filter(r => r !== regionId)
+        : [...prev, regionId]
+      
+      // Remove countries from unselected regions
+      if (prev.includes(regionId)) {
+        const region = REGIONS.find(r => r.id === regionId)
+        if (region) {
+          const countryCodes = region.countries.map(c => c.code)
+          setSelectedCountries(prevCountries => 
+            prevCountries.filter(c => !countryCodes.includes(c))
+          )
+        }
+      }
+      return newRegions
     })
   }
 
-  const toggleCountry = (country: string) => {
-    let nextCountries: string[] = []
-    setFormData((prev) => {
-      nextCountries = prev.tutoringCountries.includes(country)
-        ? prev.tutoringCountries.filter((c) => c !== country)
-        : [...prev.tutoringCountries, country]
-      return {
-        ...prev,
-        tutoringCountries: nextCountries,
-      }
-    })
+  const toggleCountrySelection = (countryCode: string) => {
+    setSelectedCountries(prev => 
+      prev.includes(countryCode) 
+        ? prev.filter(c => c !== countryCode)
+        : [...prev, countryCode]
+    )
   }
 
-  const toggleRegion = (region: string) => {
-    setSelectedRegions((prev) => {
-      if (region === 'Worldwide') {
-        setFormData((current) => ({
-          ...current,
-          tutoringCountries: ALL_COUNTRIES.map((c) => c.name),
-        }))
-        return ['Worldwide']
-      }
-      let next = prev.includes(region)
-        ? prev.filter((item) => item !== region)
-        : [...prev.filter((item) => item !== 'Worldwide'), region]
-      if (!next.length) {
-        next = []
-      }
-      return next
-    })
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+    // Also update formData for submission
+    setFormData(prev => ({
+      ...prev,
+      selectedCategories: prev.selectedCategories.includes(category)
+        ? prev.selectedCategories.filter(c => c !== category)
+        : [...prev.selectedCategories, category]
+    }))
+  }
+
+  const addCustomCategory = () => {
+    if (customCategory.trim() && !selectedCategories.includes(customCategory.trim())) {
+      setSelectedCategories(prev => [...prev, customCategory.trim()])
+      setFormData(prev => ({
+        ...prev,
+        selectedCategories: [...prev.selectedCategories, customCategory.trim()]
+      }))
+      setCustomCategory('')
+    }
+  }
+
+  const removeCategory = (category: string) => {
+    setSelectedCategories(prev => prev.filter(c => c !== category))
+    setFormData(prev => ({
+      ...prev,
+      selectedCategories: prev.selectedCategories.filter(c => c !== category)
+    }))
+  }
+
+  const clearAllSelections = () => {
+    setSelectedCategories([])
+    setFormData(prev => ({ ...prev, selectedCategories: [] }))
   }
 
   // Updated: No dots allowed, use underscores instead
@@ -374,11 +715,11 @@ export default function TutorRegistrationPage() {
   }
 
   const validateStepTwo = () => {
-    if (categorySelections.length === 0) {
+    if (selectedCategories.length === 0) {
       toast.error('Select at least one tutoring category')
       return false
     }
-    if (formData.tutoringCountries.length === 0) {
+    if (selectedCountries.length === 0) {
       toast.error('Select at least one country you want to tutor in')
       return false
     }
@@ -422,6 +763,20 @@ export default function TutorRegistrationPage() {
     return true
   }
 
+  // Helper to get country names from codes
+  const getCountryNamesFromCodes = (codes: string[]) => {
+    const names: string[] = []
+    codes.forEach(code => {
+      REGIONS.forEach(region => {
+        const country = region.countries.find(c => c.code === code)
+        if (country) {
+          names.push(country.name)
+        }
+      })
+    })
+    return names
+  }
+
   const handleSubmit = async () => {
     if (!formData.agreeToTerms) {
       toast.error('You must accept the Terms and Agreements')
@@ -430,6 +785,9 @@ export default function TutorRegistrationPage() {
 
     setIsLoading(true)
     try {
+      // Get country names from selected country codes
+      const tutoringCountryNames = getCountryNamesFromCodes(selectedCountries)
+      
       const payload = {
         role: 'TUTOR',
         email: formData.email,
@@ -452,9 +810,9 @@ export default function TutorRegistrationPage() {
           hasTeachingCertificate: false,
           tutoringExperienceRange: '0-2',
           globalExams: formData.globalExams,
-          tutoringCountries: formData.tutoringCountries,
+          tutoringCountries: tutoringCountryNames,
           countrySubjectSelections: formData.countrySubjectSelections,
-          categories: categorySelections,
+          categories: selectedCategories,
           username: formData.username,
           socialLinks: formData.socialLinks,
           serviceDescription: formData.serviceDescription,
@@ -648,119 +1006,413 @@ export default function TutorRegistrationPage() {
 
             {step === 2 && (
               <>
-                <div className="space-y-4">
-                  <Label>Categories (aggregated for search)</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {categorySelections.length === 0 && (
-                      <p className="text-sm text-gray-500">No categories selected yet.</p>
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-[#1F2933] mb-2">Select Your Teaching Areas</h3>
+                  <p className="text-gray-600">
+                    Select your regions, countries, and the categories you teach.
+                  </p>
+                </div>
+
+                {/* Region & Country Selection - At the TOP */}
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Region Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-[#4FD1C5]" />
+                          Regions
+                        </Label>
+                        <div className="border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                          {REGIONS.map((region) => (
+                            <label
+                              key={region.id}
+                              className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                            >
+                              <Checkbox
+                                checked={selectedRegions.includes(region.id)}
+                                onCheckedChange={() => toggleRegionSelection(region.id)}
+                              />
+                              <span className="text-sm">{region.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500">{selectedRegions.length} selected</p>
+                      </div>
+
+                      {/* Country Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-[#F17623]" />
+                          Countries
+                        </Label>
+                        <div className="border rounded-md p-2 max-h-[150px] overflow-y-auto">
+                          {availableCountries.length === 0 ? (
+                            <p className="text-sm text-gray-400 p-1.5">Select regions first</p>
+                          ) : (
+                            availableCountries.map((country) => (
+                              <label
+                                key={country.code}
+                                className="flex items-center gap-2 p-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                              >
+                                <Checkbox
+                                  checked={selectedCountries.includes(country.code)}
+                                  onCheckedChange={() => toggleCountrySelection(country.code)}
+                                />
+                                <span className="text-sm">{country.name}</span>
+                              </label>
+                            ))
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500">{selectedCountries.length} selected</p>
+                      </div>
+                    </div>
+
+                    {/* Selected Count */}
+                    {selectedCategories.length > 0 && (
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="text-sm text-gray-600">
+                          {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
+                        </span>
+                      </div>
                     )}
-                    {categorySelections.map((category) => (
-                      <span key={category} className="px-3 py-1 text-xs bg-[#4FD1C5]/20 text-[#1F2933] rounded-full">
-                        {category}
-                      </span>
-                    ))}
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Left Column - Categories Tabs & Custom Category */}
+                  <div className="lg:col-span-3 space-y-4">
+                    {/* Categories Tabs - Auto-populate based on country selection */}
+                    <Card className="h-[400px] flex flex-col">
+                      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+                        <CardHeader className="pb-0 pt-4">
+                          <TabsList className="grid grid-cols-6 w-full">
+                            <TabsTrigger value="global" className="text-xs">
+                              <Globe className="h-3 w-3 mr-1" />
+                              Global
+                            </TabsTrigger>
+                            <TabsTrigger value="ap" className="text-xs">
+                              <Award className="h-3 w-3 mr-1" />
+                              AP
+                            </TabsTrigger>
+                            <TabsTrigger value="alevel" className="text-xs">
+                              <GraduationCap className="h-3 w-3 mr-1" />
+                              A Level
+                            </TabsTrigger>
+                            <TabsTrigger value="ib" className="text-xs">
+                              <BookOpen className="h-3 w-3 mr-1" />
+                              IB
+                            </TabsTrigger>
+                            <TabsTrigger value="igcse" className="text-xs">
+                              <School className="h-3 w-3 mr-1" />
+                              IGCSE
+                            </TabsTrigger>
+                            <TabsTrigger 
+                              value="national" 
+                              className="text-xs"
+                              disabled={nationalExams.length === 0}
+                            >
+                              <Flag className="h-3 w-3 mr-1" />
+                              National
+                            </TabsTrigger>
+                          </TabsList>
+                        </CardHeader>
+
+                        <CardContent className="flex-1 overflow-hidden pt-4">
+                          {/* Search Bar */}
+                          <div className="relative mb-3">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search categories..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              className="pl-9"
+                            />
+                          </div>
+
+                          {/* Tab Contents */}
+                          <div className="h-[calc(100%-40px)]">
+                            <ScrollArea className="h-full pr-4">
+                              <TabsContent value="global" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {GLOBAL_EXAMS_CATEGORIES.filter(cat => 
+                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+                                  ).map((category) => (
+                                    <div key={category.id} className="space-y-2">
+                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                        <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+                                        {category.label}
+                                      </h4>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {category.exams.filter(exam => 
+                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                        ).map((exam) => (
+                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                            <Checkbox
+                                              checked={selectedCategories.includes(exam)}
+                                              onCheckedChange={() => toggleCategory(exam)}
+                                            />
+                                            <span className="text-sm">{exam}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="ap" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {AP_CATEGORIES.filter(cat => 
+                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+                                  ).map((category) => (
+                                    <div key={category.id} className="space-y-2">
+                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                        <Award className="h-4 w-4 text-[#1D4ED8]" />
+                                        {category.label}
+                                      </h4>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {category.exams.filter(exam => 
+                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                        ).map((exam) => (
+                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                            <Checkbox
+                                              checked={selectedCategories.includes(exam)}
+                                              onCheckedChange={() => toggleCategory(exam)}
+                                            />
+                                            <span className="text-sm">{exam}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="alevel" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {A_LEVEL_CATEGORIES.filter(cat => 
+                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+                                  ).map((category) => (
+                                    <div key={category.id} className="space-y-2">
+                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                        <GraduationCap className="h-4 w-4 text-[#1D4ED8]" />
+                                        {category.label}
+                                      </h4>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {category.exams.filter(exam => 
+                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                        ).map((exam) => (
+                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                            <Checkbox
+                                              checked={selectedCategories.includes(exam)}
+                                              onCheckedChange={() => toggleCategory(exam)}
+                                            />
+                                            <span className="text-sm">{exam}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="ib" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {IB_CATEGORIES.filter(cat => 
+                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+                                  ).map((category) => (
+                                    <div key={category.id} className="space-y-2">
+                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                        <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
+                                        {category.label}
+                                      </h4>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {category.exams.filter(exam => 
+                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                        ).map((exam) => (
+                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                            <Checkbox
+                                              checked={selectedCategories.includes(exam)}
+                                              onCheckedChange={() => toggleCategory(exam)}
+                                            />
+                                            <span className="text-sm">{exam}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="igcse" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {IGCSE_CATEGORIES.filter(cat => 
+                                    !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+                                  ).map((category) => (
+                                    <div key={category.id} className="space-y-2">
+                                      <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                        <School className="h-4 w-4 text-[#1D4ED8]" />
+                                        {category.label}
+                                      </h4>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                        {category.exams.filter(exam => 
+                                          !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                        ).map((exam) => (
+                                          <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                            <Checkbox
+                                              checked={selectedCategories.includes(exam)}
+                                              onCheckedChange={() => toggleCategory(exam)}
+                                            />
+                                            <span className="text-sm">{exam}</span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="national" className="mt-0">
+                                <div className="space-y-4 pb-4">
+                                  {nationalExams.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-500">
+                                      <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                      <p>No national exams available for selected countries.</p>
+                                    </div>
+                                  ) : (
+                                    nationalExams.filter(cat => 
+                                      !searchQuery || cat.exams.some(e => e.toLowerCase().includes(searchQuery.toLowerCase()))
+                                    ).map((category) => (
+                                      <div key={category.id} className="space-y-2">
+                                        <h4 className="font-semibold text-sm text-gray-900 flex items-center gap-2">
+                                          <Flag className="h-4 w-4 text-[#1D4ED8]" />
+                                          {category.label}
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                          {category.exams.filter(exam => 
+                                            !searchQuery || exam.toLowerCase().includes(searchQuery.toLowerCase())
+                                          ).map((exam) => (
+                                            <label key={exam} className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer">
+                                              <Checkbox
+                                                checked={selectedCategories.includes(exam)}
+                                                onCheckedChange={() => toggleCategory(exam)}
+                                              />
+                                              <span className="text-sm">{exam}</span>
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))
+                                  )}
+                                </div>
+                              </TabsContent>
+                            </ScrollArea>
+                          </div>
+                        </CardContent>
+                      </Tabs>
+                    </Card>
+
+                    {/* Your Own Category */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Plus className="h-4 w-4 text-[#4FD1C5]" />
+                          Your Own Category
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          Add a custom category if you don&apos;t see what you&apos;re looking for
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Enter your own category..."
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                addCustomCategory()
+                              }
+                            }}
+                          />
+                          <Button 
+                            onClick={addCustomCategory}
+                            disabled={!customCategory.trim()}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Right Column - Selected Categories Sidebar */}
+                  <div className="space-y-4">
+                    <Card className="h-[300px] flex flex-col">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-[#4FD1C5] text-white text-xs flex items-center justify-center">
+                            {selectedCategories.length}
+                          </span>
+                          Selected
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          {selectedCategories.length === 0 
+                            ? 'No categories selected' 
+                            : `${selectedCategories.length} selected`
+                          }
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 overflow-hidden">
+                        <ScrollArea className="h-full pr-2">
+                          <div className="flex flex-wrap gap-2">
+                            {selectedCategories.map(cat => (
+                              <Badge 
+                                key={cat}
+                                variant="secondary"
+                                className="cursor-pointer bg-[#4FD1C5]/20 text-[#1F2933] hover:bg-[#4FD1C5]/30 pr-1"
+                              >
+                                {cat}
+                                <button 
+                                  onClick={() => removeCategory(cat)}
+                                  className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                      {selectedCategories.length > 0 && (
+                        <CardContent className="pt-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={clearAllSelections}
+                            className="w-full"
+                          >
+                            Clear All
+                          </Button>
+                        </CardContent>
+                      )}
+                    </Card>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <Label>Global Exams</Label>
-                  {GLOBAL_EXAM_CATEGORIES.map((category) => (
-                    <div key={category.id} className="space-y-3">
-                      <p className="text-sm font-semibold text-gray-800">{category.label}</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {category.exams.map((exam) => (
-                          <label key={exam} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={formData.globalExams[
-                                category.id === 'standardized-english'
-                                  ? 'standardizedEnglish'
-                                  : category.id === 'undergrad-admissions'
-                                    ? 'undergradAdmissions'
-                                    : category.id === 'ap'
-                                      ? 'apAdvancedPlacement'
-                                      : 'internationalAS'
-                              ].includes(exam)}
-                              onCheckedChange={() =>
-                                toggleGlobalExam(
-                                  category.id === 'standardized-english'
-                                    ? 'standardizedEnglish'
-                                    : category.id === 'undergrad-admissions'
-                                      ? 'undergradAdmissions'
-                                      : category.id === 'ap'
-                                        ? 'apAdvancedPlacement'
-                                        : 'internationalAS',
-                                  exam
-                                )
-                              }
-                            />
-                            {exam}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Which regions or continents do you want to offer tutoring in?</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">
-                        {selectedRegions.length ? selectedRegions.join(', ') : 'Select regions'}
-                        <ChevronDown className="h-4 w-4 text-gray-500" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 max-h-72 overflow-y-auto">
-                      <div className="space-y-2">
-                        {REGION_OPTIONS.map((region) => (
-                          <label key={region} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={selectedRegions.includes(region)}
-                              onCheckedChange={() => toggleRegion(region)}
-                            />
-                            {region}
-                          </label>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-3">
-                  <Label>Which countries do you want to offer your tutoring to?</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">
-                        {formData.tutoringCountries.length
-                          ? `${formData.tutoringCountries.length} selected`
-                          : 'Select countries'}
-                        <ChevronDown className="h-4 w-4 text-gray-500" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-96 max-h-72 overflow-y-auto">
-                      <div className="space-y-2">
-                        {availableCountries.map((country) => (
-                          <label key={country.code} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                              checked={formData.tutoringCountries.includes(country.name)}
-                              onCheckedChange={() => toggleCountry(country.name)}
-                            />
-                            {country.name}
-                          </label>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  {selectedRegions.length > 0 && !selectedRegions.includes('Worldwide') && availableCountries.length === 0 && (
-                    <p className="text-xs text-gray-500">No countries mapped for those regions yet. Try adding "Other" or "Worldwide".</p>
-                  )}
-                </div>
-
-                <div className="flex gap-3">
+                <div className="flex gap-3 mt-6 pt-4 border-t">
                   <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
                     Back
                   </Button>
-                  <Button className="flex-1 bg-[#F17623] hover:bg-[#e06613]" onClick={() => validateStepTwo() && setStep(3)}>
+                  <Button 
+                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]" 
+                    onClick={() => validateStepTwo() && setStep(3)}
+                    disabled={selectedCategories.length === 0}
+                  >
                     Next
                   </Button>
                 </div>
@@ -894,11 +1546,11 @@ export default function TutorRegistrationPage() {
                       <Globe className="h-4 w-4" />
                       Categories
                     </h4>
-                    {categorySelections.length === 0 ? (
+                    {selectedCategories.length === 0 ? (
                       <p className="text-sm text-gray-500">No categories selected.</p>
                     ) : (
                       <ul className="text-sm text-gray-700 list-disc list-inside">
-                        {categorySelections.map((category) => (
+                        {selectedCategories.map((category) => (
                           <li key={category}>{category}</li>
                         ))}
                       </ul>
@@ -908,16 +1560,18 @@ export default function TutorRegistrationPage() {
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-semibold mb-2 flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4" />
-                      Countries and Subjects
+                      Countries
                     </h4>
-                    {formData.tutoringCountries.length === 0 ? (
+                    {selectedCountries.length === 0 ? (
                       <p className="text-sm text-gray-500">No countries selected.</p>
                     ) : (
-                      formData.tutoringCountries.map((country) => (
-                        <div key={country} className="text-sm text-gray-700 mb-2">
-                          <strong>{country}:</strong> {(formData.countrySubjectSelections[country] || []).join(', ') || 'No subjects selected'}
-                        </div>
-                      ))
+                      <div className="flex flex-wrap gap-2">
+                        {getCountryNamesFromCodes(selectedCountries).map((country) => (
+                          <span key={country} className="px-2 py-1 bg-white rounded text-sm text-gray-700 border">
+                            {country}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>

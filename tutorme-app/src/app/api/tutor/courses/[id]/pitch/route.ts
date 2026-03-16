@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum, curriculumLesson, curriculumModule, profile } from '@/lib/db/schema'
 import { asc, eq, inArray } from 'drizzle-orm'

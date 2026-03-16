@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import { MentionInput } from '@/components/mentions/MentionInput'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { renderMentions } from '@/lib/mentions/render-mentions'
 import { toast } from 'sonner'
 import { 
   MessageSquare, 
@@ -201,7 +202,7 @@ export function ChatMonitor({ messages, students, socket, roomId, onPinMessage }
                           </Badge>
                         )}
                       </div>
-                      <p className="mt-1 text-gray-700">{message.content}</p>
+                      <p className="mt-1 text-gray-700">{renderMentions(message.content)}</p>
                       <span className="text-xs text-gray-400 mt-1">
                         {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
@@ -229,11 +230,16 @@ export function ChatMonitor({ messages, students, socket, roomId, onPinMessage }
         {/* Input */}
         <div className="p-3 border-t mt-auto">
           <div className="flex gap-2">
-            <Input
+            <MentionInput
               placeholder="Broadcast message..."
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+              onChange={setInputMessage}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSendMessage()
+                }
+              }}
               className="flex-1 text-sm"
             />
             <Button size="icon" onClick={handleSendMessage}>

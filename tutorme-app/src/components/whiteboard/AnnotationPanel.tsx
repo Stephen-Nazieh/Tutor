@@ -6,11 +6,10 @@
 
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { MentionInput } from '@/components/mentions/MentionInput'
 import { 
   StickyNote, 
   MessageSquare, 
@@ -18,7 +17,6 @@ import {
   X,
   Send,
   MoreHorizontal,
-  AtSign
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -27,7 +25,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import type { AnnotationThread, Comment } from '@/lib/whiteboard/annotations'
+import { renderMentions } from '@/lib/mentions/render-mentions'
+import type { AnnotationThread } from '@/lib/whiteboard/annotations'
 
 interface AnnotationPanelProps {
   threads: AnnotationThread[]
@@ -39,7 +38,6 @@ interface AnnotationPanelProps {
   onResolveThread: (threadId: string) => void
   onDeleteThread: (threadId: string) => void
   onDeleteReply: (threadId: string, replyId: string) => void
-  availableUsers: Array<{ id: string; name: string; color: string }>
   className?: string
 }
 
@@ -53,15 +51,10 @@ export function AnnotationPanel({
   onResolveThread,
   onDeleteThread,
   onDeleteReply,
-  availableUsers,
   className,
 }: AnnotationPanelProps) {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
-  const [showMentions, setShowMentions] = useState(false)
-  const [mentionQuery, setMentionQuery] = useState('')
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-
   const selectedThread = threads.find(t => t.id === selectedThreadId)
 
   const handleReplySubmit = useCallback(() => {
@@ -71,22 +64,12 @@ export function AnnotationPanel({
     }
   }, [selectedThreadId, replyContent, onAddReply])
 
-  const handleMentionSelect = useCallback((user: { id: string; name: string }) => {
-    const beforeMention = replyContent.slice(0, replyContent.lastIndexOf('@'))
-    setReplyContent(`${beforeMention}@${user.name} `)
-    setShowMentions(false)
-    textareaRef.current?.focus()
-  }, [replyContent])
-
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
       handleReplySubmit()
     }
   }, [handleReplySubmit])
-
-  const filteredUsers = availableUsers.filter(u => 
-    u.name.toLowerCase().includes(mentionQuery.toLowerCase())
-  )
 
   const unresolvedThreads = threads.filter(t => !t.isResolved)
   const resolvedThreads = threads.filter(t => t.isResolved)
@@ -143,7 +126,7 @@ export function AnnotationPanel({
                   className="mt-1 p-3 rounded-lg text-sm"
                   style={{ backgroundColor: selectedThread.color }}
                 >
-                  {selectedThread.content}
+                  {renderMentions(selectedThread.content)}
                 </div>
               </div>
             </div>
@@ -167,7 +150,7 @@ export function AnnotationPanel({
                         </button>
                       )}
                     </div>
-                    <p className="text-sm mt-1">{reply.content}</p>
+                    <p className="text-sm mt-1">{renderMentions(reply.content)}</p>
                   </div>
                 </div>
               ))}
@@ -175,42 +158,13 @@ export function AnnotationPanel({
 
             {/* Reply Input */}
             <div className="mt-4 ml-11 relative">
-              <Textarea
-                ref={textareaRef}
+              <MentionInput
                 value={replyContent}
-                onChange={(e) => {
-                  setReplyContent(e.target.value)
-                  const lastChar = e.target.value.slice(-1)
-                  if (lastChar === '@') {
-                    setShowMentions(true)
-                    setMentionQuery('')
-                  } else if (showMentions) {
-                    const query = e.target.value.slice(e.target.value.lastIndexOf('@') + 1)
-                    setMentionQuery(query)
-                  }
-                }}
+                onChange={setReplyContent}
                 onKeyDown={handleKeyDown}
                 placeholder="Add a reply... (@ to mention)"
                 className="min-h-[80px] text-sm"
               />
-              
-              {/* Mention suggestions */}
-              {showMentions && (
-                <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border rounded-lg shadow-lg max-h-32 overflow-y-auto">
-                  {filteredUsers.map((user) => (
-                    <button
-                      key={user.id}
-                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-left"
-                      onClick={() => handleMentionSelect(user)}
-                    >
-                      <Avatar className="w-5 h-5" style={{ backgroundColor: user.color }}>
-                        <AvatarFallback className="text-xs">{user.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{user.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
 
               <div className="flex justify-between items-center mt-2">
                 <span className="text-xs text-gray-400">

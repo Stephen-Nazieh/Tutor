@@ -489,7 +489,7 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
 
 | Type | Convention | Example |
 |------|------------|---------|
-| **Files** | PascalCase for components, camelCase for utilities | `Button.tsx`, `formatDate.ts` |
+| **Files** | PascalCase for React components, kebab-case for non-components | `Button.tsx`, `format-date.ts` |
 | **Components** | PascalCase | `StudentDashboard`, `AIChat` |
 | **Functions** | camelCase, async with verb prefix | `fetchUserData`, `handleSubmit` |
 | **Constants** | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
@@ -500,8 +500,8 @@ export function Button({ className, variant = "primary", ...props }: ButtonProps
 ### AI Integration Patterns
 
 ```typescript
-// Always use orchestrator for AI calls, not direct providers
-import { generateWithFallback, chatWithFallback } from '@/lib/ai/orchestrator'
+// Always use the agents module for AI calls, not direct providers
+import { generateWithFallback, chatWithFallback } from '@/lib/agents'
 
 const result = await generateWithFallback(prompt, { temperature: 0.7 })
 

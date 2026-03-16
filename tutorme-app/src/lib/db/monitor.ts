@@ -242,7 +242,7 @@ const queryCache = new Map()
 export const dbMonitor = new DatabaseMonitor()
 
 /**
- * Middleware to wrap Prisma queries with monitoring
+ * Middleware to wrap DB queries with monitoring
  */
 export function withMonitoring<T extends (...args: any[]) => Promise<any>>(
   fn: T,

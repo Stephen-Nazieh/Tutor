@@ -1,6 +1,6 @@
 /**
  * Socket server modules – constants, types, auth, and shared state.
- * Feature handlers remain in socket-server.ts and import from here.
+ * The enhanced server is the canonical entry point; handlers reuse these modules.
  */
 
 export * from './socket-constants'

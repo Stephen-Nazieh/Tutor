@@ -3,7 +3,7 @@
  * Subject-aware tutoring with Socratic methodology
  */
 
-import { generateWithFallback } from './orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import {
   buildSystemPrompt,
   getSubjectContext,

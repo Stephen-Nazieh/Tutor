@@ -3,7 +3,7 @@
  * Uses subject-specific prompts and teaching modes
  */
 
-import { chatWithFallback } from './orchestrator'
+import { chatWithFallback } from '@/lib/agents'
 import { buildPrompt, getTeachingModes } from './teaching-prompts'
 
 export type TeachingMode = 'socratic' | 'direct' | 'lesson' | 'practice'

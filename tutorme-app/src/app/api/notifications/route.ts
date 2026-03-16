@@ -140,7 +140,7 @@ export const DELETE = withAuth(async (req: NextRequest, session) => {
         )
       )
 
-    // Node-postgres dml results don't return count directly in the same way Prisma does, 
+    // Node-postgres DML results don't return count directly the same way some ORMs do,
     // but we can execute and get the rowCount if needed.
     // Drizzle's delete().where() returns a promise that resolves when complete.
 

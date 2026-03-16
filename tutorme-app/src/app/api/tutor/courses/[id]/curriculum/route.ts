@@ -6,7 +6,7 @@
  *   modules: Module[]  (each module has lessons[], moduleQuizzes[], etc.)
  *
  * We persist structured fields (title, description, order, duration) into their
- * respective Prisma columns and store the rich builder data (tasks, homework,
+ * respective table columns and store the rich builder data (tasks, homework,
  * quizzes, media, docs, content, difficulty variants, etc.) as `builderData`
  * JSON on each CurriculumModule / CurriculumLesson row.
  */

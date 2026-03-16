@@ -11,7 +11,7 @@
  * This agent automatically grades student submissions.
  */
 
-import { generateWithFallback } from '../orchestrator';
+import { generateWithFallback } from '@/lib/agents';
 import { 
   Question, 
   StudentAnswer, 

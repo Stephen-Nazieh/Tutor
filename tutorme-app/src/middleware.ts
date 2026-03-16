@@ -92,7 +92,7 @@ export default withAuth(
     const normalizedPath = path.startsWith('/api') ? path : stripLocalePrefix(path)
     const token = req.nextauth.token
     const method = req.method ?? 'GET'
-    const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9._]{3,30})$/)
+    const handleMatch = normalizedPath.match(/^\/@([a-zA-Z0-9_]{3,15})$/)
 
     if (handleMatch) {
       const username = handleMatch[1].toLowerCase()

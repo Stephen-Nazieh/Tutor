@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { MentionInput } from '@/components/mentions/MentionInput'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { renderMentions } from '@/lib/mentions/render-mentions'
 import { toast } from 'sonner'
 import {
   Send,
@@ -131,7 +132,7 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
           <div className="flex items-start gap-2">
             <Pin className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-blue-200 truncate">{pinnedMessage.content}</p>
+              <p className="text-sm text-blue-200 truncate">{renderMentions(pinnedMessage.content)}</p>
               <p className="text-xs text-blue-400">{pinnedMessage.senderName}</p>
             </div>
             <Button
@@ -180,7 +181,7 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
                       Question
                     </div>
                   )}
-                  <p className="text-sm">{message.content}</p>
+                  <p className="text-sm">{renderMentions(message.content)}</p>
                   
                   {/* Message Actions */}
                   <div className={cn(
@@ -261,12 +262,18 @@ export function ChatPanel({ onUnreadChange, participants }: ChatPanelProps) {
           >
             <Paperclip className="w-5 h-5" />
           </Button>
-          <Input
+          <MentionInput
             placeholder="Type a message..."
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            className="flex-1 bg-gray-700 border-gray-600 text-white placeholder:text-gray-500"
+            onChange={setInputMessage}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSend()
+              }
+            }}
+            className="flex-1"
+            variant="dark"
           />
           <Button
             size="icon"

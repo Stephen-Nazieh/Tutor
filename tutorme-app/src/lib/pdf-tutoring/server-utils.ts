@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 
 const SERVER_MODULE_LOADERS: Record<string, () => Promise<unknown>> = {
   unpdf: () => import('unpdf'),

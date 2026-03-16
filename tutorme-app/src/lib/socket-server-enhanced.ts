@@ -57,6 +57,7 @@ function validateEnv() {
 let redisClient: any = null
 let redisPubClient: any = null
 let redisSubClient: any = null
+let ioRef: SocketIOServer | null = null
 
 // Memory management constants
 const ROOM_CLEANUP_INTERVAL = 15 * 60 * 1000 // 15 minutes
@@ -406,6 +407,8 @@ export async function initEnhancedSocketServer(server: NetServer) {
     },
   })
 
+  ioRef = io
+
   // Apply middleware
   io.use(socketAuthMiddleware)
 
@@ -594,6 +597,14 @@ export function isUserOnline(userId: string): boolean {
 
 export function getUserSocketId(userId: string): string | undefined {
   return userSocketMap.get(userId)
+}
+
+export function emitToUser(userId: string, event: string, data: unknown) {
+  if (!ioRef) return
+  const socketId = userSocketMap.get(userId)
+  if (socketId) {
+    ioRef.to(socketId).emit(event, data)
+  }
 }
 
 /**

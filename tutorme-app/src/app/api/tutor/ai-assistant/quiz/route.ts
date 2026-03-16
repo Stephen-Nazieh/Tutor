@@ -10,7 +10,7 @@ import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { quiz, aIAssistantInsight } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/ai/orchestrator'
+import { generateWithFallback } from '@/lib/agents'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 
