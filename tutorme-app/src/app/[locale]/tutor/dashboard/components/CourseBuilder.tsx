@@ -2372,7 +2372,7 @@ function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
               <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
               <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
@@ -2908,7 +2908,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
           </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+          <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
             <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
             <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
           </TabsList>
@@ -3354,7 +3354,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
               <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
               <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
             </TabsList>
@@ -6886,7 +6886,7 @@ FEEDBACK: [your explanation]`
         {/* LEFT PANEL - Course Structure */}
         {!leftPanelHidden && (
           <div className="col-span-5 flex flex-col min-h-0">
-            <Card className="flex-1 flex flex-col min-h-0 border-2 border-gray-400 shadow-sm h-full">
+            <Card className="flex-1 flex flex-col min-h-0 border-2 border-border shadow-sm h-full bg-card">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-base">
@@ -7478,7 +7478,7 @@ FEEDBACK: [your explanation]`
             )}
 
             {/* Test PCI Section - Moved above Task/Assessment Builder */}
-            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden shadow-sm">
+            <Card className="flex-shrink-0 border-2 border-border rounded-2xl overflow-hidden shadow-sm bg-card">
               <CardContent className="pt-4">
                 <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
@@ -7488,7 +7488,7 @@ FEEDBACK: [your explanation]`
                     {/* Main content with tabs */}
                     <div className="flex-1">
                       <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 gap-1 p-1 rounded-xl border bg-gray-50">
+                        <TabsList className="grid w-full grid-cols-3 gap-1 p-1 rounded-xl border bg-muted">
                           {testPciTabs.map((tab) => (
                             <div key={tab.id} className="relative flex-1">
                               {editingTabId === tab.id ? (
@@ -7520,7 +7520,7 @@ FEEDBACK: [your explanation]`
                         </TabsList>
                         {testPciTabs.map((tab) => (
                           <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                            <div className="p-4 bg-gray-50 rounded-lg min-h-[480px] max-h-[800px] overflow-y-auto">
+                            <div className="p-4 bg-muted rounded-lg min-h-[480px] max-h-[800px] overflow-y-auto">
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
                               {/* Show AI scores if any */}
                               {testPciScores[tab.id]?.length > 0 && (
@@ -7578,7 +7578,7 @@ FEEDBACK: [your explanation]`
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
-                  <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-gray-50">
+                  <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
                     <TabsTrigger value="task" className="gap-2 border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
                       <ListTodo className="h-4 w-4 text-orange-500" />
                       Task Builder
@@ -7637,7 +7637,7 @@ FEEDBACK: [your explanation]`
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-gray-50">
+                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-muted">
                             <TabsTrigger value="content" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
                             <TabsTrigger value="pci" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
                           </TabsList>
@@ -7917,7 +7917,7 @@ FEEDBACK: [your explanation]`
                           }}
                           className="w-full"
                         >
-                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-gray-50">
+                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-muted">
                             <TabsTrigger value="content" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
                             <TabsTrigger value="pci" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
                           </TabsList>

@@ -10,10 +10,12 @@ import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, BookOpen, Loader2, Save, ChevronRight } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
+import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
 interface CourseData {
   id: string
@@ -67,6 +69,22 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   const [savedVariants, setSavedVariants] = useState<AdaptiveVariantLink[]>([])
   const courseBuilderRef = useRef<CourseBuilderRef>(null)
 
+  // Theme state with localStorage persistence
+  const [themeId, setThemeId] = useState('current')
+  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const themeStyle = getThemeStyle(selectedTheme)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('tutor-dashboard-theme')
+    if (savedTheme) {
+      setThemeId(savedTheme)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('tutor-dashboard-theme', themeId)
+  }, [themeId])
+
   const loadCourse = useCallback(async () => {
     if (!courseId) return
     setLoading(true)
@@ -102,7 +120,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
 
   if (!courseId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6" style={themeStyle}>
         <Card className="max-w-md w-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -172,9 +190,9 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       {/* Top Navigation Header - Same structure as Lesson Bank */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild>
@@ -183,7 +201,7 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
                 Back to Dashboard
               </Link>
             </Button>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
+            <h1 className="text-xl font-semibold flex items-center gap-2 text-foreground">
               <BookOpen className="h-5 w-5" />
               {loading ? 'Loading...' : (course?.name ?? 'Course Builder')}
             </h1>
@@ -192,6 +210,19 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Theme Selector */}
+            <Select value={themeId} onValueChange={setThemeId}>
+              <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent>
+                {DASHBOARD_THEMES.map((theme) => (
+                  <SelectItem key={theme.id} value={theme.id}>
+                    {theme.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               className="gap-2"
               onClick={() => courseBuilderRef.current?.save()}
@@ -219,14 +250,14 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
         {savedVariants.length > 0 && (
           <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
             <CardHeader className="pb-2 pt-4">
-              <CardTitle className="text-sm">Adaptive Variant Join Links</CardTitle>
+              <CardTitle className="text-sm text-foreground">Adaptive Variant Join Links</CardTitle>
               <CardDescription>
                 Share the correct link with students for each difficulty level.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 pb-4">
               {savedVariants.map((variant) => (
-                <div key={variant.batchId} className="rounded-md border bg-white p-2.5">
+                <div key={variant.batchId} className="rounded-md border bg-card p-2.5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-xs font-medium capitalize">{variant.difficulty}</p>
