@@ -25,7 +25,6 @@ import {
   ExternalLink
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ChevronLeft,
   ChevronRight,
@@ -191,16 +190,15 @@ const allSubjects: Subject[] = [
 
 const FILTER_SUBJECTS = ['all', 'math', 'physics', 'chemistry', 'english'] as const
 type FilterSubject = (typeof FILTER_SUBJECTS)[number]
+const lumaCardClass = 'border border-[#E6D9FF] bg-gradient-to-br from-[#FFF7ED] via-white to-[#E0F2FE] shadow-[0_12px_32px_rgba(99,102,241,0.14)]'
 
 // Inner component that uses searchParams
 function CoursesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const subjectFromUrl = searchParams.get('subject')?.toLowerCase().trim() || null
-  const tabFromUrl = searchParams.get('tab')
   const { data: session, status } = useSession()
 
-  const [activeTab, setActiveTab] = useState(tabFromUrl || 'upcoming')
   const [classes, setClasses] = useState<Class[]>([])
   const [myBookings, setMyBookings] = useState<Class[]>([])
   const [loading, setLoading] = useState(true)
@@ -208,12 +206,6 @@ function CoursesPageContent() {
   const [filter, setFilter] = useState<FilterSubject>(
     subjectFromUrl && FILTER_SUBJECTS.includes(subjectFromUrl as FilterSubject) ? subjectFromUrl as FilterSubject : 'all'
   )
-
-  useEffect(() => {
-    if (tabFromUrl) {
-      setActiveTab(tabFromUrl)
-    }
-  }, [tabFromUrl])
 
   // --- BROWSE STATE ---
   const [subjects, setSubjects] = useState<Subject[]>(allSubjects)
@@ -254,7 +246,6 @@ function CoursesPageContent() {
     reviewCount?: number
   }>>([])
   const [favoritesLoading, setFavoritesLoading] = useState(false)
-  const [favoritesTab, setFavoritesTab] = useState('tutors')
 
   const loadFavorites = useCallback(async () => {
     setFavoritesLoading(true)
@@ -312,10 +303,8 @@ function CoursesPageContent() {
   }
 
   useEffect(() => {
-    if (activeTab === 'favorites') {
-      loadFavorites()
-    }
-  }, [activeTab, loadFavorites])
+    loadFavorites()
+  }, [loadFavorites])
 
   // Calendar State
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -652,24 +641,15 @@ function CoursesPageContent() {
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(val) => {
-          setActiveTab(val)
-          // Optional: update URL
-          const params = new URLSearchParams(searchParams.toString())
-          params.set('tab', val)
-          router.replace(`/student/courses?${params.toString()}`)
-        }} className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="my-courses">My Courses</TabsTrigger>
-            <TabsTrigger value="favorites">Favorites</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="browse">Browse Subjects</TabsTrigger>
-            <TabsTrigger value="my-bookings">Live Class Bookings</TabsTrigger>
-            <TabsTrigger value="past">Past Classes</TabsTrigger>
-          </TabsList>
+        <div className="space-y-10">
 
-          <TabsContent value="upcoming" className="space-y-6">
+          <section id="browse" className="space-y-6">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">Upcoming Classes</h3>
+                <p className="text-sm text-slate-500">Live sessions you can join next.</p>
+              </div>
+            </div>
             {/* Filter buttons — when subject in URL, "View all subjects" clears filter and refetches */}
             <div className="flex flex-wrap gap-2">
               {FILTER_SUBJECTS.map((f) => (
@@ -695,7 +675,7 @@ function CoursesPageContent() {
             {upcomingClasses.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {upcomingClasses.map((cls) => (
-                  <Card key={cls.id} className={cls.isBooked ? 'border-green-300 bg-green-50/50' : ''}>
+                  <Card key={cls.id} className={`${lumaCardClass} ${cls.isBooked ? 'ring-2 ring-emerald-300' : ''}`}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
@@ -790,13 +770,17 @@ function CoursesPageContent() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </section>
 
-          <TabsContent value="my-bookings">
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900">Live Class Bookings</h3>
+              <p className="text-sm text-slate-500">Your reserved live classes.</p>
+            </div>
             {myBookings.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {myBookings.map((cls) => (
-                  <Card key={cls.id} className={isPast(cls.startTime) ? 'opacity-70' : 'border-green-300'}>
+                  <Card key={cls.id} className={`${lumaCardClass} ${isPast(cls.startTime) ? 'opacity-70' : 'ring-2 ring-emerald-300'}`}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
@@ -867,13 +851,17 @@ function CoursesPageContent() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </section>
 
-          <TabsContent value="past">
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900">Past Classes</h3>
+              <p className="text-sm text-slate-500">Replays and completed sessions.</p>
+            </div>
             {pastClasses.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pastClasses.map((cls) => (
-                  <Card key={cls.id} className="opacity-70">
+                  <Card key={cls.id} className={`${lumaCardClass} opacity-70`}>
                     <CardHeader>
                       <Badge variant="secondary" className="mb-2">
                         {cls.subject}
@@ -904,9 +892,13 @@ function CoursesPageContent() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </section>
 
-          <TabsContent value="calendar">
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900">Calendar</h3>
+              <p className="text-sm text-slate-500">Plan your week and check upcoming sessions.</p>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <Card>
@@ -1002,14 +994,18 @@ function CoursesPageContent() {
                 </Card>
               </div>
             </div>
-          </TabsContent>
-          <TabsContent value="my-courses">
+          </section>
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900">My Courses</h3>
+              <p className="text-sm text-slate-500">Subjects you are enrolled in.</p>
+            </div>
             {myCourses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myCourses.map((subject) => {
                   const colors = getSubjectColors(subject.code)
                   return (
-                    <Card key={subject.id} className="hover:shadow-md transition-shadow">
+                    <Card key={subject.id} className={`${lumaCardClass} hover:shadow-xl transition-shadow`}>
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
                           <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white ${colors.bg}`}>
@@ -1064,32 +1060,26 @@ function CoursesPageContent() {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-600">No courses yet</h3>
                   <p className="text-gray-500 mt-2 mb-6">Enroll in subjects to start your learning journey</p>
-                  <Button onClick={() => setActiveTab('browse')}>
-                    Browse Subjects
+                  <Button asChild>
+                    <Link href="/student/courses#browse">Browse Subjects</Link>
                   </Button>
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </section>
 
-          <TabsContent value="favorites" className="space-y-6">
-            <Tabs value={favoritesTab} onValueChange={setFavoritesTab}>
-              <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
-                <TabsTrigger value="tutors">
-                  Tutors
-                  {favoriteTutors.length > 0 && (
-                    <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">{favoriteTutors.length}</span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="courses">
-                  Courses
-                  {favoriteCourses.length > 0 && (
-                    <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">{favoriteCourses.length}</span>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="tutors" className="space-y-4">
+          <section className="space-y-8">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900">Favorites</h3>
+              <p className="text-sm text-slate-500">Saved tutors and courses.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-lg font-semibold text-slate-800">Favorite Tutors</h4>
+                {favoriteTutors.length > 0 && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{favoriteTutors.length}</span>
+                )}
+              </div>
                 {favoritesLoading ? (
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {[1, 2, 3].map((i) => (
@@ -1163,9 +1153,15 @@ function CoursesPageContent() {
                     ))}
                   </div>
                 )}
-              </TabsContent>
+            </div>
 
-              <TabsContent value="courses" className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-lg font-semibold text-slate-800">Favorite Courses</h4>
+                {favoriteCourses.length > 0 && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{favoriteCourses.length}</span>
+                )}
+              </div>
                 {favoritesLoading ? (
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {[1, 2, 3].map((i) => (
@@ -1191,7 +1187,7 @@ function CoursesPageContent() {
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {favoriteCourses.map((course) => (
-                      <Card key={course.id} className="relative">
+                      <Card key={course.id} className={`relative ${lumaCardClass}`}>
                         <button
                           onClick={() => removeFavoriteCourse(course.id)}
                           className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted transition-colors"
@@ -1247,11 +1243,14 @@ function CoursesPageContent() {
                     ))}
                   </div>
                 )}
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
+            </div>
+          </section>
 
-          <TabsContent value="browse">
+          <section className="space-y-6">
+            <div>
+              <h3 className="text-xl font-semibold text-slate-900">Browse Subjects</h3>
+              <p className="text-sm text-slate-500">Discover new subjects and enroll.</p>
+            </div>
             {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
               <div className="relative flex-1">
@@ -1298,7 +1297,7 @@ function CoursesPageContent() {
                 return (
                   <Card
                     key={subject.id}
-                    className={`hover:shadow-md transition-all ${colors.border} ${isEnrolled ? 'opacity-70' : ''}`}
+                    className={`${lumaCardClass} hover:shadow-xl transition-all ${colors.border} ${isEnrolled ? 'opacity-70' : ''}`}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
@@ -1387,7 +1386,7 @@ function CoursesPageContent() {
                 )
               })}
             </div>
-          </TabsContent>
+          </section>
 
           {/* Enroll Dialog */}
           <Dialog open={!!selectedSubject} onOpenChange={(open) => !open && setSelectedSubject(null)}>
@@ -1413,7 +1412,7 @@ function CoursesPageContent() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </Tabs>
+        </div>
       </main>
     </div >
   )
