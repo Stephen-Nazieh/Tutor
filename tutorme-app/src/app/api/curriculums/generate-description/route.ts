@@ -5,8 +5,7 @@
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
-import { generateWithFallback } from '@/lib/agents'
-import { courseDescriptionFromSubjectPrompt } from '@/lib/ai/prompts'
+import { generateCourseDescription } from '@/lib/agents/curriculum-service'
 
 export const POST = withAuth(async (req) => {
   const body = await req.json().catch(() => ({}))
@@ -18,18 +17,10 @@ export const POST = withAuth(async (req) => {
     return NextResponse.json({ error: 'Subject is required' }, { status: 400 })
   }
 
-  const prompt = courseDescriptionFromSubjectPrompt({
+  const result = await generateCourseDescription({
     subject,
     gradeLevel,
     difficulty,
   })
-
-  const result = await generateWithFallback(prompt, {
-    temperature: 0.6,
-    maxTokens: 200,
-    skipCache: true,
-  })
-
-  const description = (result.content || '').trim()
-  return NextResponse.json({ description })
+  return NextResponse.json({ description: result.description })
 }, { role: 'TUTOR' })
