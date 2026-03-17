@@ -13,6 +13,8 @@
 
 import { generateWithFallback } from '@/lib/agents';
 import { Quiz, Question, Curriculum, Student, getCurriculum, getStudent } from '../shared-data';
+import { safeJsonParseWithSchema } from '@/lib/ai/json';
+import { z } from 'zod';
 import { 
   buildQuizGenerationPrompt, 
   buildDifficultyAdjustmentPrompt,
@@ -34,6 +36,91 @@ export interface GeneratedLesson {
   keyPoints: string[];
   checkUnderstanding: string[];
   suggestedActivity?: string;
+}
+
+const transcriptQuizSchema = z.object({
+  questions: z.array(
+    z.object({
+      type: z.enum(['multiple_choice', 'short_answer']),
+      question: z.string(),
+      options: z.array(z.string()).optional(),
+      answer: z.string().optional(),
+      rubric: z.string().optional(),
+    })
+  ),
+});
+
+export interface TranscriptQuizRequest {
+  transcript: string;
+  grade: number;
+  weakAreas: string[];
+  prereq?: string;
+  subject?: string;
+}
+
+export type TranscriptQuizResult = z.infer<typeof transcriptQuizSchema> & {
+  provider: string;
+};
+
+function buildTranscriptQuizPrompt(params: TranscriptQuizRequest): string {
+  return `Generate 3 questions based on the following video content:
+
+Video content: ${params.transcript}
+
+Student info:
+- Grade: ${params.grade}
+- Weak areas: ${params.weakAreas.join(', ')}
+- Prerequisite: ${params.prereq || 'fundamental concepts'}
+- Subject: ${params.subject || 'general'}
+
+Generate:
+Q1: Basic recall (multiple choice)
+Q2: Application (short answer, AI-gradable)
+Q3: Challenge (connects to prerequisite)
+
+Return valid JSON:
+{
+  "questions": [
+    {
+      "type": "multiple_choice",
+      "question": "Question text",
+      "options": ["A", "B", "C", "D"],
+      "answer": "A"
+    },
+    {
+      "type": "short_answer",
+      "question": "Question text",
+      "rubric": "Grading criteria"
+    },
+    {
+      "type": "short_answer",
+      "question": "Question text",
+      "rubric": "Grading criteria"
+    }
+  ]
+}`
+}
+
+/**
+ * Generate a quick, 3-question quiz from a transcript (student-facing).
+ *
+ * Used by `/api/quiz/generate`.
+ */
+export async function generateTranscriptQuiz(
+  request: TranscriptQuizRequest
+): Promise<TranscriptQuizResult> {
+  const prompt = buildTranscriptQuizPrompt(request)
+  const result = await generateWithFallback(prompt, {
+    temperature: 0.7,
+    maxTokens: 1500,
+  })
+
+  const parsed = safeJsonParseWithSchema(result.content, transcriptQuizSchema, { extract: true })
+  if (!parsed.data) {
+    throw new Error('Failed to generate valid transcript quiz format')
+  }
+
+  return { ...parsed.data, provider: result.provider }
 }
 
 /**
