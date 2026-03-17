@@ -9,8 +9,10 @@ import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/agents'
-import { convertToEditablePrompt, courseOutlineFromCurriculumPrompt } from '@/lib/ai/prompts'
+import {
+  convertToEditable,
+  generateCourseOutlineFromCurriculum,
+} from '@/lib/agents/course-materials-service'
 
 const DEFAULT_LESSON_MINUTES = 45
 
@@ -38,47 +40,20 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
   const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
 
   // Step 1: Convert to editable
-  const convertPrompt = convertToEditablePrompt({
-    type: 'curriculum',
-    rawText: text,
-    language: lang,
-  })
-  const convertResult = await generateWithFallback(convertPrompt, { temperature: 0.3, maxTokens: 4000 })
-  const editableCurriculum = convertResult.content.trim()
+  const converted = await convertToEditable({ type: 'curriculum', rawText: text, language: lang })
+  const editableCurriculum = converted.editable
 
   materials.curriculumText = text
   materials.editableCurriculum = editableCurriculum
 
   // Step 2: Generate outline from converted curriculum
-  const outlinePrompt = courseOutlineFromCurriculumPrompt({
+  const outlined = await generateCourseOutlineFromCurriculum({
     curriculumText: editableCurriculum,
     subject: curriculumRow.subject,
     typicalLessonMinutes,
     language: lang,
   })
-  const outlineResult = await generateWithFallback(outlinePrompt, {
-    temperature: 0.4,
-    maxTokens: 3000,
-    skipCache: true,
-  })
-
-  let outline: { title: string; durationMinutes: number }[] = []
-  try {
-    const jsonMatch = outlineResult.content.match(/\[[\s\S]*\]/)
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
-      outline = Array.isArray(parsed)
-        ? parsed
-            .filter((x: unknown) => x && typeof x === 'object' && 'title' in x)
-            .map((x: { title?: string; durationMinutes?: number }) => ({
-              title: String(x.title ?? 'Lesson'),
-              durationMinutes: typeof x.durationMinutes === 'number' ? x.durationMinutes : typicalLessonMinutes,
-            }))
-        : []
-    }
-  } catch {
-    outline = []
-  }
+  const outline = outlined.outline
 
   materials.outline = outline
   await drizzleDb

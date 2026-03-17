@@ -9,8 +9,7 @@ import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/agents'
-import { courseOutlineAsModulesPrompt } from '@/lib/ai/prompts'
+import { generateCourseOutlineAsModules } from '@/lib/agents/course-materials-service'
 
 const DEFAULT_LESSON_MINUTES = 45
 
@@ -51,68 +50,15 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
   if (bodyNotesText) materials.notesText = bodyNotesText
 
   const notesText = bodyNotesText || (materials.notesText as string) || ''
-  const prompt = courseOutlineAsModulesPrompt({
+  const generated = await generateCourseOutlineAsModules({
     curriculumText: curriculumText.trim() || notesOnly || '(No curriculum; generate from notes.)',
     notesText: curriculumText.trim() && notesText ? notesText : undefined,
     subject: curriculumRow.subject,
     typicalLessonMinutes,
     language: curriculumRow.languageOfInstruction ?? 'en',
   })
-
-  const result = await generateWithFallback(prompt, {
-    temperature: 0.4,
-    maxTokens: 4000,
-    skipCache: true,
-  })
-
-  type LessonItem = { title: string; durationMinutes: number }
-  type ModuleItem = {
-    title: string
-    description?: string
-    notes?: string
-    tasks?: { title: string }[]
-    lessons: LessonItem[]
-  }
-
-  let modules: ModuleItem[] = []
-  let outline: LessonItem[] = []
-  try {
-    const jsonMatch = result.content.match(/\[[\s\S]*\]/)
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
-      if (Array.isArray(parsed)) {
-        modules = parsed
-          .filter((x: unknown) => x && typeof x === 'object' && 'title' in x && 'lessons' in x)
-          .map((x: Record<string, unknown>) => {
-            const rawLessons = Array.isArray(x.lessons) ? x.lessons : []
-            const lessons: LessonItem[] = rawLessons
-              .filter((l: unknown) => l && typeof l === 'object' && (l as Record<string, unknown>).title != null)
-              .map((l: Record<string, unknown>) => ({
-                title: String((l as { title?: string }).title ?? 'Lesson'),
-                durationMinutes: typeof (l as { durationMinutes?: number }).durationMinutes === 'number'
-                  ? (l as { durationMinutes: number }).durationMinutes
-                  : typicalLessonMinutes,
-              }))
-            const tasks = Array.isArray(x.tasks)
-              ? (x.tasks as Record<string, unknown>[])
-                .filter((t) => t && typeof t === 'object' && (t as { title?: string }).title != null)
-                .map((t) => ({ title: String((t as { title: string }).title) }))
-              : undefined
-            return {
-              title: String(x.title ?? 'Module'),
-              description: typeof x.description === 'string' ? x.description : undefined,
-              notes: typeof x.notes === 'string' ? x.notes : undefined,
-              tasks: tasks?.length ? tasks : undefined,
-              lessons,
-            }
-          })
-        outline = modules.flatMap((m) => m.lessons)
-      }
-    }
-  } catch {
-    modules = []
-    outline = []
-  }
+  const modules = generated.modules
+  const outline = generated.outline
 
   materials.outline = outline
   materials.outlineModules = { modules }

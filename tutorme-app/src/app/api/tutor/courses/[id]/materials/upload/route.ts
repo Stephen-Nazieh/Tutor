@@ -10,11 +10,7 @@ import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { curriculum } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { generateWithFallback } from '@/lib/agents'
-import {
-  convertToEditablePrompt,
-  convertTopicsToEditablePrompt,
-} from '@/lib/ai/prompts'
+import { convertToEditable, convertTopicsToEditable } from '@/lib/agents/course-materials-service'
 
 const TYPES = ['curriculum', 'notes', 'topics'] as const
 
@@ -44,22 +40,20 @@ export const POST = withCsrf(withAuth(async (req, session, context) => {
 
   let editable = ''
   if (type === 'topics') {
-    const prompt = convertTopicsToEditablePrompt({
+    const result = await convertTopicsToEditable({
       topicsListText: text,
       language: lang,
     })
-    const result = await generateWithFallback(prompt, { temperature: 0.3, maxTokens: 4000 })
-    editable = result.content.trim()
+    editable = result.editable
     materials.editableTopics = editable
     materials.topicsText = text
   } else {
-    const prompt = convertToEditablePrompt({
+    const result = await convertToEditable({
       type: type as 'curriculum' | 'notes',
       rawText: text,
       language: lang,
     })
-    const result = await generateWithFallback(prompt, { temperature: 0.3, maxTokens: 4000 })
-    editable = result.content.trim()
+    editable = result.editable
     if (type === 'curriculum') {
       materials.curriculumText = text
       materials.editableCurriculum = editable

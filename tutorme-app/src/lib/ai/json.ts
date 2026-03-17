@@ -9,12 +9,23 @@ export interface JsonParseOptions {
 }
 
 function extractFirstJsonSubstring(text: string): string | null {
-  // Prefer object, then array. Non-greedy is too risky with nested JSON, so we do a simple
-  // "first {...}" or "[...]" capture and rely on JSON.parse to validate.
-  const obj = text.match(/\{[\s\S]*\}/)?.[0]
-  if (obj) return obj
+  // Non-greedy is too risky with nested JSON, so we do a simple "{...}" or "[...]"
+  // capture and rely on JSON.parse to validate. Important: if the response starts with
+  // an array, prefer extracting the array; otherwise we might grab an inner object.
+  const trimmed = text.trimStart()
+  if (trimmed.startsWith('[')) {
+    const arr = trimmed.match(/\[[\s\S]*\]/)?.[0]
+    if (arr) return arr
+  }
+  if (trimmed.startsWith('{')) {
+    const obj = trimmed.match(/\{[\s\S]*\}/)?.[0]
+    if (obj) return obj
+  }
+
   const arr = text.match(/\[[\s\S]*\]/)?.[0]
-  return arr ?? null
+  if (arr) return arr
+  const obj = text.match(/\{[\s\S]*\}/)?.[0]
+  return obj ?? null
 }
 
 export function safeJsonParse<T = unknown>(text: string, options: JsonParseOptions = {}): T | null {
