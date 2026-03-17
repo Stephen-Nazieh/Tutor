@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { toast } from 'sonner'
 import { Flame, Settings, AlertCircle } from 'lucide-react'
 
 import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
@@ -15,9 +16,11 @@ import {
   // ContinueLearning,  // Moved to DashboardCalendar tabs
   // UpcomingClasses,   // Moved to DashboardCalendar tabs
   DashboardSkeleton,
+  MyCoursesCard,
+  DashboardCalendar,
 } from './components'
 import { StudentHeroSection } from './components/StudentHeroSection'
-import type { DashboardData } from './types'
+import type { DashboardClass, DashboardData } from './types'
 import { getDashboardStrings } from './dashboard-strings'
 
 export default function StudentDashboard() {
@@ -28,6 +31,7 @@ export default function StudentDashboard() {
   const [showXpAnimation, setShowXpAnimation] = useState(false)
   const [xpGain, setXpGain] = useState<{ amount: number; reason: string } | null>(null)
   const [showLevelUp, setShowLevelUp] = useState(false)
+  const [bookingClassId, setBookingClassId] = useState<string | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
   const strings = getDashboardStrings('en')
@@ -196,12 +200,70 @@ export default function StudentDashboard() {
           <StudentHeroSection classes={data?.classes ?? []} />
         </div>
 
-        <div className="flex justify-center">
-          <Button asChild>
-            <Link href="/student/dashboard-details">View Dashboard Details</Link>
-          </Button>
+        <div className="space-y-6">
+          <MyCoursesCard courses={data?.courses ?? []} onCourseRemoved={fetchDashboardData} />
+          <DashboardCalendar
+            onRefresh={fetchDashboardData}
+            contents={(data?.contents ?? []) as { id: string; subject: string; topic: string; progress: number; lastStudied?: string }[]}
+            upcomingClasses={(data?.classes || []).map((c: DashboardClass & { scheduledAt?: string; tutor?: { name?: string }; _count?: { participants?: number }; type?: string }) => ({
+              id: c.id,
+              title: c.title,
+              subject: c.subject,
+              scheduledAt: c.startTime || c.scheduledAt || '',
+              duration: c.duration,
+              maxStudents: c.maxStudents,
+              students: c.currentBookings || c._count?.participants || 0,
+              tutorName: c.tutor?.name || 'Unknown Tutor',
+              type: (c.type || 'online') as 'online' | 'in-person'
+            }))}
+            bookingClassId={bookingClassId}
+            onBookClass={handleBookClass}
+          />
         </div>
       </main>
     </div>
   )
 }
+  const handleBookClass = async (classId: string) => {
+    setBookingClassId(classId)
+    try {
+      const response = await fetch('/api/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classId })
+      })
+      const result = await response.json()
+
+      if (response.ok) {
+        if (result.checkoutUrl) {
+          toast.success('Redirecting to payment...')
+          window.location.href = result.checkoutUrl
+          return
+        }
+        toast.success('Successfully booked class!')
+        setData(prev =>
+          prev
+            ? {
+              ...prev,
+              classes: prev.classes.map(c =>
+                c.id === classId
+                  ? {
+                    ...c,
+                    isBooked: true,
+                    bookingId: result.booking?.id,
+                    currentBookings: (c.currentBookings ?? 0) + 1
+                  }
+                  : c
+              )
+            }
+            : null
+        )
+      } else {
+        toast.error(result.error || 'Failed to book class')
+      }
+    } catch {
+      toast.error('An error occurred while booking')
+    } finally {
+      setBookingClassId(null)
+    }
+  }

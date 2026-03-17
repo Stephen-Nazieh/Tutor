@@ -28,7 +28,7 @@ type NavItem = { href: string; label: string; icon: React.ComponentType<{ classN
 
 const navItems: NavItem[] = [
   { href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/student/dashboard-details', label: 'Dashboard Details', icon: ClipboardList },
+  { href: '/student/dashboard-details', label: 'Advance Analytics', icon: ClipboardList },
   { href: '/student/tutors', label: 'Find Tutors', icon: Compass },
   { href: '/student/courses', label: 'My Courses', icon: GraduationCap },
   { href: '/student/work', label: 'My Work', icon: Briefcase },
