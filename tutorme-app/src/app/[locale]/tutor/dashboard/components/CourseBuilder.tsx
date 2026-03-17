@@ -205,6 +205,16 @@ export interface Assessment extends WithDifficultyVariants {
   sourceDocument?: ImportedLearningResource
 }
 
+interface HomeworkFolderItem {
+  id: string
+  sourceType: 'task' | 'assessment'
+  sourceId: string
+  title: string
+  mode: 'synced' | 'independent'
+  snapshot: Task | Assessment
+  createdAt: string
+}
+
 export interface QuizQuestion {
   id: string
   type: 'mcq' | 'truefalse' | 'shortanswer' | 'essay' | 'multiselect' | 'matching' | 'fillblank'
@@ -4888,6 +4898,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [assetToLoad, setAssetToLoad] = useState<{name: string, content?: string} | null>(null)
   const [leftPanelHidden, setLeftPanelHidden] = useState(false)
   const [assetsOpen, setAssetsOpen] = useState(true)
+  const [homeworkFolder, setHomeworkFolder] = useState<HomeworkFolderItem[]>([])
+  const [homeworkFolderOpen, setHomeworkFolderOpen] = useState(true)
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
@@ -4968,7 +4980,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     student2: []
   })
   const [testPciLoading, setTestPciLoading] = useState(false)
-  const [assigningHomework, setAssigningHomework] = useState<Record<string, boolean>>({})
   const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
   const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
   const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
@@ -5246,6 +5257,46 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     ...assessment,
     id: `homework-${generateId()}`,
   })
+
+  const findTaskById = useCallback((id: string): Task | null => {
+    for (const mod of modules) {
+      for (const lesson of mod.lessons) {
+        const task = lesson.tasks?.find(t => t.id === id)
+        if (task) return task
+      }
+    }
+    return null
+  }, [modules])
+
+  const findAssessmentById = useCallback((id: string): Assessment | null => {
+    for (const mod of modules) {
+      for (const lesson of mod.lessons) {
+        const assessment = lesson.homework?.find(h => h.id === id)
+        if (assessment) return assessment
+      }
+    }
+    return null
+  }, [modules])
+
+  const exportToHomeworkFolder = useCallback((type: 'task' | 'assessment', item: Task | Assessment) => {
+    const keepSynced = window.confirm(
+      'Export to Homework Folder?\n\nOK = Keep synced with the original\nCancel = Independent copy'
+    )
+    const snapshot = type === 'task' ? cloneTask(item as Task) : cloneAssessment(item as Assessment)
+    setHomeworkFolder(prev => ([
+      ...prev,
+      {
+        id: `homework-folder-${generateId()}`,
+        sourceType: type,
+        sourceId: item.id,
+        title: item.title || (type === 'task' ? 'Task' : 'Assessment'),
+        mode: keepSynced ? 'synced' : 'independent',
+        snapshot,
+        createdAt: new Date().toISOString(),
+      },
+    ]))
+    toast.success(`Exported to homework (${keepSynced ? 'synced' : 'independent'})`)
+  }, [cloneAssessment, cloneTask])
 
   const cloneLesson = (lesson: Lesson, order: number): Lesson => ({
     ...lesson,
@@ -5748,28 +5799,6 @@ FEEDBACK: [your explanation]`
     if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
     // Just add to list without opening modal - same as addTask behavior
     toast.success('Assessment added')
-  }
-
-  const addHomework = (moduleId: string, lessonId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) {
-      const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
-      const newModules = [...modules]
-      newModules[moduleIndex].lessons.push(fallbackLesson)
-      setModules(newModules)
-      lessonIndex = newModules[moduleIndex].lessons.length - 1
-    }
-
-    const isFirstHomework = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
-    const newHomework = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'homework')
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].homework.push(newHomework)
-    setModules(newModules)
-    if (isFirstHomework) ensureSectionExpanded(moduleId, 'homework')
-    setEditingData(newHomework)
-    setActiveModal({ type: 'homework', isOpen: true, moduleId, lessonId })
   }
 
   const addCourseExam = () => {
@@ -6718,29 +6747,6 @@ FEEDBACK: [your explanation]`
               <FileQuestion className="h-4 w-4 text-purple-500" />
               Assessment
             </Button>
-            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              const { moduleId, lessonId } = ensureFirstLessonContext()
-              const moduleIndex = modules.findIndex(m => m.id === moduleId)
-              const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-              const newHw = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'homework')
-              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              
-              newHw.description = textToInsert
-              
-              const newModules = [...modules]
-              newModules[moduleIndex].lessons[lessonIndex].homework.push(newHw)
-              setModules(newModules)
-              setMainBuilderTab('assessment')
-              setSelectedItem({ type: 'homework', id: newHw.id })
-              loadAssessmentIntoBuilder(newHw)
-              
-              toast.success(`Created new Homework and loaded '${assetToLoad?.name}'`)
-              setLoadAsModalOpen(false)
-              setAssetToLoad(null)
-            }}>
-              <FileQuestion className="h-4 w-4 text-pink-500" />
-              Homework
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -6915,8 +6921,7 @@ FEEDBACK: [your explanation]`
                         const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
                         const taskCount = primaryLesson.tasks?.length || 0
                         const assessments = (primaryLesson.homework || []).filter((h) => h.category !== 'homework')
-                        const homeworkItems = (primaryLesson.homework || []).filter((h) => h.category === 'homework')
-                        const totalItems = taskCount + assessments.length + homeworkItems.length
+                        const totalItems = taskCount + assessments.length
                         return (
                           <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1} inlineDragHandle>
                             <div className="group">
@@ -7067,6 +7072,19 @@ FEEDBACK: [your explanation]`
                                             <span className="text-[10px] flex-1 truncate">
                                               <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
                                             </span>
+                                            {!lessonBankMode && (
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
+                                                onClick={(e: any) => {
+                                                  e.stopPropagation()
+                                                  exportToHomeworkFolder('task', task)
+                                                }}
+                                              >
+                                                Export to homework
+                                              </Button>
+                                            )}
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
@@ -7283,185 +7301,15 @@ FEEDBACK: [your explanation]`
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
-                                                  setEditingData(hw)
-                                                  setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                                  exportToHomeworkFolder('assessment', hw)
                                                 }}
                                               >
-                                                Edit
+                                                Export to homework
                                               </Button>
                                             )}
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                if (!confirm(`Delete "${hw.title}"?`)) return
-                                                deleteAssessment(module.id, primaryLesson.id, hw.id)
-                                              }}
-                                            >
-                                              <Trash2 className="h-3 w-3 text-red-500" />
-                                            </Button>
-                                          </div>
-                                        </SortableTreeItem>
-                                      ))}
-                                    </SortableContext>
-                                  )}
-
-                                  {/* Homework Folder */}
-                                  <TreeItem depth={2} isLast={false}>
-                                    <div className="flex items-center gap-1.5">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-5 w-5"
-                                        onClick={() => toggleSection(module.id, 'homework')}
-                                        aria-label={isSectionCollapsed(module.id, 'homework') ? 'Expand homework' : 'Collapse homework'}
-                                      >
-                                        {isSectionCollapsed(module.id, 'homework') ? (
-                                          <ChevronRight className="h-3 w-3 text-emerald-600" />
-                                        ) : (
-                                          <ChevronDown className="h-3 w-3 text-emerald-600" />
-                                        )}
-                                      </Button>
-                                      <span className="text-xs font-medium text-emerald-700">Homework Folder</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1 text-emerald-600"
-                                        onClick={(e: any) => {
-                                          e.stopPropagation()
-                                          addHomework(module.id, primaryLesson.id)
-                                        }}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                        Add
-                                      </Button>
-                                    </div>
-                                  </TreeItem>
-                                  {!isSectionCollapsed(module.id, 'homework') && homeworkItems.length > 0 && (
-                                    <SortableContext
-                                      items={homeworkItems.map(h => h.id)}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {homeworkItems.map((hw, idx) => (
-                                        <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === homeworkItems.length - 1}>
-                                          <div
-                                            className={cn(
-                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
-                                              selectedItem?.type === 'homework' && selectedItem?.id === hw.id
-                                                ? "bg-emerald-200 border-emerald-400 ring-1 ring-emerald-400"
-                                                : "bg-emerald-50 border-emerald-400 hover:bg-emerald-100"
-                                            )}
-                                            onClick={() => {
-                                              // Auto-save current task if switching from one
-                                              if (loadedTaskId) {
-                                                setModules(prev => prev.map(mod => ({
-                                                  ...mod,
-                                                  lessons: mod.lessons.map(lesson => ({
-                                                    ...lesson,
-                                                    tasks: lesson.tasks.map(t =>
-                                                      t.id === loadedTaskId
-                                                        ? {
-                                                          ...t,
-                                                          title: taskBuilder.title,
-                                                          shortDescription: taskBuilder.details,
-                                                          description: taskBuilder.taskContent,
-                                                          instructions: taskBuilder.taskPci,
-                                                          extensions: taskBuilder.extensions,
-                                                          sourceDocument: undefined
-                                                        }
-                                                        : t
-                                                    )
-                                                  }))
-                                                })))
-                                              }
-                                              // Auto-save current assessment/homework if switching from another
-                                              if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
-                                                setModules(prev => prev.map(mod => ({
-                                                  ...mod,
-                                                  lessons: mod.lessons.map(lesson => ({
-                                                    ...lesson,
-                                                    homework: lesson.homework.map(h =>
-                                                      h.id === loadedAssessmentId
-                                                        ? {
-                                                          ...h,
-                                                          title: assessmentBuilder.title,
-                                                          description: assessmentBuilder.taskContent,
-                                                          instructions: assessmentBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                        : h
-                                                    )
-                                                  }))
-                                                })))
-                                              }
-                                              setSelectedItem({ type: 'homework', id: hw.id })
-                                              loadAssessmentIntoBuilder(hw)
-                                              setMainBuilderTab('assessment')
-                                            }}
-                                          >
-                                            <Home className="h-3 w-3 text-emerald-500" />
-                                            <span className="text-[10px] flex-1 truncate">
-                                              <span className="font-semibold text-emerald-700">{idx + 1}.</span> {hw.title}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
-                                              disabled={assigningHomework[hw.id]}
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                if (!courseId) {
-                                                  toast.error('Course ID not available')
-                                                  return
-                                                }
-                                                setAssigningHomework(prev => ({ ...prev, [hw.id]: true }))
-                                                const builderItem = {
-                                                  type: 'homework',
-                                                  title: hw.title,
-                                                  description: hw.description || '',
-                                                  questions: hw.questions || [],
-                                                  lessonId: primaryLesson.id,
-                                                  difficulty: hw.difficulty || 'medium',
-                                                  points: hw.points,
-                                                  estimatedMinutes: hw.estimatedMinutes,
-                                                  dueDate: hw.dueDate,
-                                                  timeLimit: hw.timeLimit,
-                                                  enforceTimeLimit: hw.enforceTimeLimit,
-                                                  enforceDueDate: hw.enforceDueDate,
-                                                  maxAttempts: hw.maxAttempts ?? 1,
-                                                }
-                                                fetch(`/api/tutor/courses/${courseId}/tasks/publish-from-builder`, {
-                                                  method: 'POST',
-                                                  headers: { 'Content-Type': 'application/json' },
-                                                  credentials: 'include',
-                                                  body: JSON.stringify({ items: [builderItem], assignTo: 'all' }),
-                                                })
-                                                  .then(async (res) => {
-                                                    if (!res.ok) {
-                                                      const data = await res.json().catch(() => ({}))
-                                                      throw new Error(data.error || 'Failed to assign homework')
-                                                    }
-                                                    return res.json()
-                                                  })
-                                                  .then((data) => {
-                                                    toast.success(data.message || `Assigned "${hw.title}"`)
-                                                  })
-                                                  .catch((error) => {
-                                                    toast.error(error instanceof Error ? error.message : 'Failed to assign homework')
-                                                  })
-                                                  .finally(() => {
-                                                    setAssigningHomework(prev => ({ ...prev, [hw.id]: false }))
-                                                  })
-                                              }}
-                                            >
-                                              {assigningHomework[hw.id] ? 'Assigning…' : 'Assign'}
-                                            </Button>
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
@@ -7549,6 +7397,7 @@ FEEDBACK: [your explanation]`
               </ScrollArea>
               {/* Assets Folder added to the bottom of the left panel */}
               <div className="mt-4 pt-4 border-t">
+                {renderHomeworkFolder()}
                 {renderAssetsFolder()}
               </div>
             </CardContent>
@@ -8660,45 +8509,6 @@ FEEDBACK: [your explanation]`
                   >
                     Import Assessments
                   </Button>
-                  <Button
-                    variant="outline"
-                    disabled={!lessonBankLessonKey}
-                    onClick={() => {
-                      if (!lessonBankLessonKey) return
-                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
-                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
-                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
-                      if (!bankLesson) return
-                      const homeworkItems = (bankLesson.homework || []).filter(h => h.category === 'homework')
-                      
-                      // If no importTarget (no existing lessons), auto-create a lesson first
-                      if (!importTarget) {
-                        const newModule = DEFAULT_MODULE(modules.length)
-                        newModule.lessons[0].homework = homeworkItems.map(cloneAssessment)
-                        setModules(prev => [...prev, newModule])
-                      } else {
-                        // Import into existing lesson
-                        setModules(prev => prev.map(mod => {
-                          if (mod.id !== importTarget.moduleId) return mod
-                          return {
-                            ...mod,
-                            lessons: mod.lessons.map(lesson => {
-                              if (lesson.id !== importTarget.lessonId) return lesson
-                              return {
-                                ...lesson,
-                                homework: [...lesson.homework, ...homeworkItems.map(cloneAssessment)]
-                              }
-                            })
-                          }
-                        }))
-                      }
-                      toast.success('Homework imported')
-                      setLessonBankImportOpen(false)
-                      setImportTarget(null)
-                    }}
-                  >
-                    Import Homework
-                  </Button>
                 </div>
               </div>
             )}
@@ -8710,6 +8520,61 @@ FEEDBACK: [your explanation]`
           </DialogContent>
         </Dialog>
       </div>
+    </div>
+  )
+
+  const resolveHomeworkItem = (item: HomeworkFolderItem) => {
+    if (item.mode === 'synced') {
+      const source = item.sourceType === 'task'
+        ? findTaskById(item.sourceId)
+        : findAssessmentById(item.sourceId)
+      return source ?? item.snapshot
+    }
+    return item.snapshot
+  }
+
+  const renderHomeworkFolder = () => (
+    <div className="mt-4 border rounded-md">
+      <div
+        className="flex items-center justify-between p-2 bg-emerald-50 cursor-pointer border-b"
+        onClick={() => setHomeworkFolderOpen(!homeworkFolderOpen)}
+      >
+        <span className="text-xs font-semibold flex items-center gap-1 text-emerald-700">
+          <FolderOpen className="w-3 h-3" /> Homework Folder
+        </span>
+        <span className="text-[10px] text-emerald-700">{homeworkFolder.length}</span>
+      </div>
+      {homeworkFolderOpen && (
+        <div className="p-2 space-y-2">
+          {homeworkFolder.length === 0 ? (
+            <p className="text-xs text-muted-foreground w-full py-2 text-center">
+              Export tasks or assessments to build homework.
+            </p>
+          ) : (
+            homeworkFolder.map((item) => {
+              const resolved = resolveHomeworkItem(item)
+              return (
+                <div key={item.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1 text-[10px] bg-white">
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate text-emerald-700">{resolved.title}</div>
+                    <div className="text-muted-foreground truncate">
+                      {item.sourceType === 'task' ? 'Task' : 'Assessment'} • {item.mode === 'synced' ? 'Synced' : 'Independent'}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    onClick={() => setHomeworkFolder(prev => prev.filter(h => h.id !== item.id))}
+                  >
+                    <Trash2 className="h-3 w-3 text-red-500" />
+                  </Button>
+                </div>
+              )
+            })
+          )}
+        </div>
+      )}
     </div>
   )
 })

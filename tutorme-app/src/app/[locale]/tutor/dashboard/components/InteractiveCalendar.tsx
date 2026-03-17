@@ -306,12 +306,29 @@ export function InteractiveCalendar({
     { id: '2', provider: 'outlook', connected: false, syncEnabled: true },
     { id: '3', provider: 'apple', connected: false, syncEnabled: false },
   ])
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([])
 
   useEffect(() => {
     if (mode === 'student' && initialEvents) {
       setEvents(initialEvents)
     }
   }, [initialEvents, mode])
+
+  useEffect(() => {
+    if (mode !== 'tutor') return
+    const loadCategories = async () => {
+      try {
+        const res = await fetch('/api/tutor/public-profile', { credentials: 'include' })
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({}))
+        const categories = Array.isArray(data?.profile?.categories) ? data.profile.categories : []
+        setCategoryOptions(categories.filter((c: unknown) => typeof c === 'string'))
+      } catch {
+        // ignore
+      }
+    }
+    loadCategories()
+  }, [mode])
 
   useEffect(() => {
     if (mode !== 'tutor') return
@@ -723,9 +740,9 @@ export function InteractiveCalendar({
                   <SelectValue placeholder="Filter" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
-                  {SUBJECTS.map(s => (
-                    <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map((name) => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -771,17 +788,17 @@ export function InteractiveCalendar({
 
           {/* Legend */}
           <div className="flex items-center gap-4 mt-4 text-sm flex-wrap">
-            {SUBJECTS.map((subject) => (
+            {(categoryOptions.length ? categoryOptions : SUBJECTS.map(s => s.name)).map((name) => (
               <button
-                key={subject.name}
-                onClick={() => setSubjectFilter(subjectFilter === subject.name ? 'all' : subject.name)}
+                key={name}
+                onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
                 className={cn(
                   "flex items-center gap-1 px-2 py-1 rounded-full transition-colors",
-                  subjectFilter === subject.name ? "bg-gray-200" : "hover:bg-gray-100"
+                  subjectFilter === name ? "bg-gray-200" : "hover:bg-gray-100"
                 )}
               >
-                <div className={cn("w-3 h-3 rounded-full", subject.color)} />
-                <span>{subject.name}</span>
+                <div className={cn("w-3 h-3 rounded-full", SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300')} />
+                <span>{name}</span>
               </button>
             ))}
             {subjectFilter !== 'all' && (

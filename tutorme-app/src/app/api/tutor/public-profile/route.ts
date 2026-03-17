@@ -111,6 +111,9 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
   const requestedUsername = typeof body?.username === 'string' ? body.username : ''
   const bio = typeof body?.bio === 'string' ? body.bio.trim().slice(0, 5000) : undefined
   const socialLinks = body?.socialLinks && typeof body.socialLinks === 'object' ? body.socialLinks : undefined
+  const categories = Array.isArray(body?.categories)
+    ? body.categories.filter((c: unknown) => typeof c === 'string')
+    : undefined
   let normalized = normalizeUsername(requestedUsername)
 
   const [prof] = await drizzleDb
@@ -153,17 +156,20 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
     updated = row
   }
 
-  if (socialLinks) {
+  if (socialLinks || categories) {
     await drizzleDb
       .update(tutorApplication)
-      .set({ socialLinks })
+      .set({
+        ...(socialLinks ? { socialLinks } : {}),
+        ...(categories ? { categories } : {}),
+      })
       .where(eq(tutorApplication.userId, tutorId))
   }
 
   return NextResponse.json({
     success: true,
     profile: updated
-      ? { username: updated.username, bio: updated.bio }
-      : { username: prof?.username ?? normalized, bio: bio ?? null },
+      ? { username: updated.username, bio: updated.bio, categories }
+      : { username: prof?.username ?? normalized, bio: bio ?? null, categories },
   })
 }, { role: 'TUTOR' })

@@ -50,6 +50,7 @@ export default function TutorMyPage() {
   const [country, setCountry] = useState<string>('')
   const [activeCourses, setActiveCourses] = useState<number | null>(null)
   const [profileCategories, setProfileCategories] = useState<string[]>([])
+  const [editableCategories, setEditableCategories] = useState<string[]>([])
   const [socialAccounts, setSocialAccounts] = useState({
     youtube: '',
     instagram: '',
@@ -75,7 +76,9 @@ export default function TutorMyPage() {
         setTutorSince(data?.profile?.createdAt ? new Date(data.profile.createdAt).toLocaleDateString() : '')
         setCountry(data?.profile?.country || '')
         setActiveCourses(typeof data?.profile?.activeCourses === 'number' ? data.profile.activeCourses : null)
-        setProfileCategories(Array.isArray(data?.profile?.categories) ? data.profile.categories : [])
+        const categories = Array.isArray(data?.profile?.categories) ? data.profile.categories : []
+        setProfileCategories(categories)
+        setEditableCategories(categories)
         const links = data?.profile?.socialLinks || {}
         setSocialAccounts({
           youtube: typeof links.youtube === 'string' ? links.youtube : '',
@@ -163,6 +166,7 @@ export default function TutorMyPage() {
         credentials: 'include',
         body: JSON.stringify({
           bio,
+          categories: editableCategories,
           socialLinks: {
             instagram: socialAccounts.instagram.trim(),
             tiktok: socialAccounts.tiktok.trim(),
@@ -178,6 +182,10 @@ export default function TutorMyPage() {
       }
       setUsername(data?.profile?.username || username)
       setBio(data?.profile?.bio || bio)
+      if (Array.isArray(data?.profile?.categories)) {
+        setProfileCategories(data.profile.categories)
+        setEditableCategories(data.profile.categories)
+      }
       toast.success('Public page settings updated')
     } catch {
       toast.error('Failed to save profile')
@@ -232,6 +240,12 @@ export default function TutorMyPage() {
 
   const toggleCategory = (category: string) => {
     setCourseCategories((prev) =>
+      prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]
+    )
+  }
+
+  const toggleProfileCategory = (category: string) => {
+    setEditableCategories((prev) =>
       prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]
     )
   }
@@ -525,6 +539,29 @@ export default function TutorMyPage() {
                   />
                 </div>
               </div>
+            </div>
+            <div className="space-y-3">
+              <Label className="text-[#1F2933]">Categories</Label>
+              <div className="flex flex-wrap gap-2">
+                {AGGREGATED_CATEGORIES.map((category) => {
+                  const active = editableCategories.includes(category)
+                  return (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => toggleProfileCategory(category)}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        active
+                          ? 'border-[#1D4ED8] bg-[#1D4ED8] text-white'
+                          : 'border-[#E2E8F0] text-[#1F2933] hover:border-[#4FD1C5]'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-xs text-[#64748B]">{editableCategories.length} selected</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button
