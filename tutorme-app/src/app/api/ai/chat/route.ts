@@ -11,7 +11,7 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
-import { runTutorChat } from '@/lib/ai/tutor-chat-service'
+import { runTutorChat } from '@/lib/agents/tutor-chat-service'
 
 const AIChatRequestSchema = z.object({
   message: z.string().min(1).max(2000),

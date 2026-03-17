@@ -14,7 +14,7 @@
 import { NextResponse } from 'next/server'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
-import { runTutorChat } from '@/lib/ai/tutor-chat-service'
+import { runTutorChat } from '@/lib/agents/tutor-chat-service'
 
 export const POST = withCsrf(withAuth(async (req, session) => {
   const body = await req.json()

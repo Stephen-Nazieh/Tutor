@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getTeachingModes } from '@/lib/ai/teaching-prompts'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
-import { runTutorChat } from '@/lib/ai/tutor-chat-service'
+import { runTutorChat } from '@/lib/agents/tutor-chat-service'
 import { getServerSession, authOptions } from '@/lib/auth'
 
 type TutorMode = 'socratic' | 'direct' | 'lesson' | 'practice'
