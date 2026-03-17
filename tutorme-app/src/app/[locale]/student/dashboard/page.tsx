@@ -142,6 +142,50 @@ export default function StudentDashboard() {
     return null
   }
 
+  const handleBookClass = async (classId: string) => {
+    setBookingClassId(classId)
+    try {
+      const response = await fetch('/api/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classId })
+      })
+      const result = await response.json()
+
+      if (response.ok) {
+        if (result.checkoutUrl) {
+          toast.success('Redirecting to payment...')
+          window.location.href = result.checkoutUrl
+          return
+        }
+        toast.success('Successfully booked class!')
+        setData((prev) =>
+          prev
+            ? {
+              ...prev,
+              classes: prev.classes.map((c) =>
+                c.id === classId
+                  ? {
+                    ...c,
+                    isBooked: true,
+                    bookingId: result.booking?.id,
+                    currentBookings: (c.currentBookings ?? 0) + 1
+                  }
+                  : c
+              )
+            }
+            : null
+        )
+      } else {
+        toast.error(result.error || 'Failed to book class')
+      }
+    } catch {
+      toast.error('An error occurred while booking')
+    } finally {
+      setBookingClassId(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Animations */}
@@ -224,46 +268,3 @@ export default function StudentDashboard() {
     </div>
   )
 }
-  const handleBookClass = async (classId: string) => {
-    setBookingClassId(classId)
-    try {
-      const response = await fetch('/api/classes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classId })
-      })
-      const result = await response.json()
-
-      if (response.ok) {
-        if (result.checkoutUrl) {
-          toast.success('Redirecting to payment...')
-          window.location.href = result.checkoutUrl
-          return
-        }
-        toast.success('Successfully booked class!')
-        setData(prev =>
-          prev
-            ? {
-              ...prev,
-              classes: prev.classes.map(c =>
-                c.id === classId
-                  ? {
-                    ...c,
-                    isBooked: true,
-                    bookingId: result.booking?.id,
-                    currentBookings: (c.currentBookings ?? 0) + 1
-                  }
-                  : c
-              )
-            }
-            : null
-        )
-      } else {
-        toast.error(result.error || 'Failed to book class')
-      }
-    } catch {
-      toast.error('An error occurred while booking')
-    } finally {
-      setBookingClassId(null)
-    }
-  }
