@@ -6825,13 +6825,68 @@ FEEDBACK: [your explanation]`
     })
   }
 
+  const resolveHomeworkItem = (item: HomeworkFolderItem) => {
+    if (item.mode === 'synced') {
+      const source = item.sourceType === 'task'
+        ? findTaskById(item.sourceId)
+        : findAssessmentById(item.sourceId)
+      return source ?? item.snapshot
+    }
+    return item.snapshot
+  }
+
+  const renderHomeworkFolder = () => (
+    <div className="mt-4 border rounded-md">
+      <div
+        className="flex items-center justify-between p-2 bg-emerald-50 cursor-pointer border-b"
+        onClick={() => setHomeworkFolderOpen(!homeworkFolderOpen)}
+      >
+        <span className="text-xs font-semibold flex items-center gap-1 text-emerald-700">
+          <FolderOpen className="w-3 h-3" /> Homework Folder
+        </span>
+        <span className="text-[10px] text-emerald-700">{homeworkFolder.length}</span>
+      </div>
+      {homeworkFolderOpen && (
+        <div className="p-2 space-y-2">
+          {homeworkFolder.length === 0 ? (
+            <p className="text-xs text-muted-foreground w-full py-2 text-center">
+              Export tasks or assessments to build homework.
+            </p>
+          ) : (
+            homeworkFolder.map((item) => {
+              const resolved = resolveHomeworkItem(item)
+              return (
+                <div key={item.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1 text-[10px] bg-white">
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate text-emerald-700">{resolved.title}</div>
+                    <div className="text-muted-foreground truncate">
+                      {item.sourceType === 'task' ? 'Task' : 'Assessment'} • {item.mode === 'synced' ? 'Synced' : 'Independent'}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5"
+                    onClick={() => setHomeworkFolder(prev => prev.filter(h => h.id !== item.id))}
+                  >
+                    <Trash2 className="h-3 w-3 text-red-500" />
+                  </Button>
+                </div>
+              )
+            })
+          )}
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div className={cn("space-y-4 flex-1 flex flex-col min-h-0", panelMode === 'live-class' && "pt-3")}>
       <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
         {/* LEFT PANEL - Course Structure */}
         {!leftPanelHidden && (
-          <div className="col-span-4 flex flex-col min-h-0">
-            <Card className="flex-1 flex flex-col min-h-0 border-2 border-gray-400 shadow-sm">
+          <div className="col-span-5 flex flex-col min-h-0">
+            <Card className="flex-1 flex flex-col min-h-0 border-2 border-gray-400 shadow-sm h-full">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-base">
@@ -7406,7 +7461,7 @@ FEEDBACK: [your explanation]`
         )}
 
         {/* CENTER PANEL - New Three-Section Design */}
-        <div className={cn("flex flex-col min-h-0", leftPanelHidden ? "col-span-12" : "col-span-8")}>
+        <div className={cn("flex flex-col min-h-0", leftPanelHidden ? "col-span-12" : "col-span-7")}>
           <div className="flex-1 flex flex-col space-y-4 overflow-auto">
             {leftPanelHidden && (
               <div className="flex justify-start">
@@ -8520,61 +8575,6 @@ FEEDBACK: [your explanation]`
           </DialogContent>
         </Dialog>
       </div>
-    </div>
-  )
-
-  const resolveHomeworkItem = (item: HomeworkFolderItem) => {
-    if (item.mode === 'synced') {
-      const source = item.sourceType === 'task'
-        ? findTaskById(item.sourceId)
-        : findAssessmentById(item.sourceId)
-      return source ?? item.snapshot
-    }
-    return item.snapshot
-  }
-
-  const renderHomeworkFolder = () => (
-    <div className="mt-4 border rounded-md">
-      <div
-        className="flex items-center justify-between p-2 bg-emerald-50 cursor-pointer border-b"
-        onClick={() => setHomeworkFolderOpen(!homeworkFolderOpen)}
-      >
-        <span className="text-xs font-semibold flex items-center gap-1 text-emerald-700">
-          <FolderOpen className="w-3 h-3" /> Homework Folder
-        </span>
-        <span className="text-[10px] text-emerald-700">{homeworkFolder.length}</span>
-      </div>
-      {homeworkFolderOpen && (
-        <div className="p-2 space-y-2">
-          {homeworkFolder.length === 0 ? (
-            <p className="text-xs text-muted-foreground w-full py-2 text-center">
-              Export tasks or assessments to build homework.
-            </p>
-          ) : (
-            homeworkFolder.map((item) => {
-              const resolved = resolveHomeworkItem(item)
-              return (
-                <div key={item.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1 text-[10px] bg-white">
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate text-emerald-700">{resolved.title}</div>
-                    <div className="text-muted-foreground truncate">
-                      {item.sourceType === 'task' ? 'Task' : 'Assessment'} • {item.mode === 'synced' ? 'Synced' : 'Independent'}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5"
-                    onClick={() => setHomeworkFolder(prev => prev.filter(h => h.id !== item.id))}
-                  >
-                    <Trash2 className="h-3 w-3 text-red-500" />
-                  </Button>
-                </div>
-              )
-            })
-          )}
-        </div>
-      )}
     </div>
   )
 })
