@@ -69,7 +69,7 @@ export async function generateWithFallback(
   // Try Kimi FIRST (now primary)
   if (process.env.ADK_BASE_URL) {
     try {
-      const content = await adkGenerate(prompt)
+      const content = await adkGenerate(prompt, { timeoutMs: options.timeoutMs, retries: 1 })
       const result = {
         content,
         provider: 'kimi' as AIProvider,
@@ -131,7 +131,7 @@ export async function chatWithFallback(
   // Try Kimi FIRST
   if (process.env.ADK_BASE_URL) {
     try {
-      const content = await adkChat(messages)
+      const content = await adkChat(messages, { timeoutMs: options.timeoutMs, retries: 1 })
       const result = {
         content,
         provider: 'kimi' as AIProvider,

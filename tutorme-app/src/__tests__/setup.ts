@@ -11,3 +11,5 @@ vi.mock('@google/genai', () => ({
 }))
 
 process.env.DATABASE_URL ||= 'postgresql://example.com:5432/tutorme'
+// Avoid DB/network side effects during unit tests. Integration tests use their own config.
+process.env.SECURITY_AUDIT ||= 'false'

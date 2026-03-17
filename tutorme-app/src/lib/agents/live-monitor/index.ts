@@ -29,6 +29,8 @@ import {
   buildClassSummaryPrompt,
   StudentActivity 
 } from './prompts/monitor-prompts';
+import { z } from 'zod';
+import { safeJsonParseWithSchema } from '@/lib/ai/json';
 
 export interface EngagementAnalysis {
   scores: Map<string, number>; // studentId -> 0-100
@@ -57,6 +59,44 @@ export interface Intervention {
 
 // Store last engagement for trend calculation
 const engagementHistory: Map<string, number[]> = new Map();
+
+const engagementAnalysisSchema = z.object({
+  engagementScores: z.array(z.object({ studentId: z.string(), score: z.number() })),
+  classAverage: z.number(),
+  atRiskStudents: z.array(z.string()),
+  trend: z.enum(['improving', 'stable', 'declining']),
+  suggestion: z.string(),
+});
+
+const confusionDetectionSchema = z.object({
+  isConfused: z.boolean(),
+  confidence: z.number(),
+  topicOfConfusion: z.string(),
+  severity: z.enum(['mild', 'moderate', 'severe']),
+  suggestedAction: z.string(),
+  shouldAlertTutor: z.boolean(),
+});
+
+const interventionListSchema = z.object({
+  interventions: z
+    .array(
+      z.object({
+        action: z.string(),
+        timing: z.enum(['now', 'in 2 minutes', 'after current topic']),
+        targetStudents: z.union([z.array(z.string()), z.literal('all')]),
+        urgency: z.enum(['high', 'medium', 'low']),
+        expectedOutcome: z.string(),
+      })
+    )
+    .optional(),
+});
+
+const participationBalanceSchema = z.object({
+  overParticipating: z.array(z.string()),
+  silent: z.array(z.string()),
+  balanceScore: z.number(),
+  suggestions: z.array(z.string()),
+});
 
 /**
  * Analyze engagement for all students in a live session
@@ -106,7 +146,9 @@ async function analyzeWithAI(
       timeoutMs: 3000 // Fast response needed
     });
     
-    const analysis = JSON.parse(result.content);
+    const parsed = safeJsonParseWithSchema(result.content, engagementAnalysisSchema, { extract: true });
+    if (!parsed.data) throw parsed.error ?? new Error('Invalid engagement analysis JSON');
+    const analysis = parsed.data;
     
     // Convert to Map
     const scores = new Map<string, number>();
@@ -216,7 +258,9 @@ export async function detectConfusion(
       timeoutMs: 2000 // Must be fast
     });
     
-    return JSON.parse(result.content);
+    const parsed = safeJsonParseWithSchema(result.content, confusionDetectionSchema, { extract: true });
+    if (!parsed.data) throw parsed.error ?? new Error('Invalid confusion detection JSON');
+    return parsed.data;
   } catch (error) {
     console.error('Confusion detection failed:', error);
     return {
@@ -293,8 +337,9 @@ export async function suggestInterventions(
       timeoutMs: 3000
     });
     
-    const parsed = JSON.parse(result.content);
-    return parsed.interventions || [];
+    const parsed = safeJsonParseWithSchema(result.content, interventionListSchema, { extract: true });
+    if (!parsed.data) throw parsed.error ?? new Error('Invalid intervention list JSON');
+    return parsed.data.interventions || [];
   } catch (error) {
     console.error('Intervention suggestion failed:', error);
     return [{
@@ -335,7 +380,9 @@ export async function analyzeParticipationBalance(
       maxTokens: 500
     });
     
-    return JSON.parse(result.content);
+    const parsed = safeJsonParseWithSchema(result.content, participationBalanceSchema, { extract: true });
+    if (!parsed.data) throw parsed.error ?? new Error('Invalid participation balance JSON');
+    return parsed.data;
   } catch (error) {
     // Fallback calculation
     const counts = Array.from(session.participation.entries());

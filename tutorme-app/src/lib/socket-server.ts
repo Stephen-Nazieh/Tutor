@@ -7,6 +7,8 @@ import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import * as Y from 'yjs'
 import { generateWithFallback } from '@/lib/agents'
+import { z } from 'zod'
+import { safeJsonParseWithSchema } from '@/lib/ai/json'
 import {
   CHAT_HISTORY_MAX,
   CHAT_HISTORY_SLICE_TO_STUDENT,
@@ -119,15 +121,13 @@ async function generateWhiteboardRegionHint(payload: {
       timeoutMs: 6000,
     })
     const raw = result.content.trim()
-    const extracted = raw.match(/\{[\s\S]*\}/)?.[0]
-    if (extracted) {
-      const parsed = JSON.parse(extracted) as { hint?: string; misconception?: string }
-      if (parsed.hint && parsed.misconception) {
-        return {
-          hint: parsed.hint,
-          misconception: parsed.misconception,
-          provider: result.provider,
-        }
+    const schema = z.object({ hint: z.string(), misconception: z.string() })
+    const parsed = safeJsonParseWithSchema(raw, schema, { extract: true })
+    if (parsed.data) {
+      return {
+        hint: parsed.data.hint,
+        misconception: parsed.data.misconception,
+        provider: result.provider,
       }
     }
     return {

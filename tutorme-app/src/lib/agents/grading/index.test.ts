@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   getStudent: vi.fn(),
 }))
 
-vi.mock('.@/lib/agents', () => ({
+vi.mock('@/lib/agents', () => ({
   generateWithFallback: mocks.generateWithFallback,
 }))
 

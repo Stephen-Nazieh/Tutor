@@ -56,6 +56,11 @@ let redisInitPromise: Promise<import('ioredis').Redis | null> | null = null
 async function getRedisClient(): Promise<import('ioredis').Redis | null> {
   if (redisClient) return redisClient
   if (typeof window !== 'undefined') return null // browser
+  // Next.js Middleware runs on the Edge Runtime, which cannot use Node Redis clients.
+  const isEdgeRuntime =
+    typeof (globalThis as any).EdgeRuntime !== 'undefined' ||
+    (typeof process !== 'undefined' && process.env.NEXT_RUNTIME === 'edge')
+  if (isEdgeRuntime) return null
   const url = process.env.REDIS_URL
   if (!url) return null
   if (!redisInitPromise) {

@@ -38,6 +38,23 @@ describe('rate-limit', () => {
       expect(allowedCount).toBe(max)
       expect(results.filter((r) => !r.allowed).length).toBe(concurrency - max)
     })
+
+    it('does not attempt Redis on Edge runtime', async () => {
+      const prev = (globalThis as any).EdgeRuntime
+      ;(globalThis as any).EdgeRuntime = 'edge'
+      const prevRedis = process.env.REDIS_URL
+      process.env.REDIS_URL = 'redis://localhost:6379'
+      try {
+        const key = 'test-edge-' + Date.now()
+        const res = await checkRateLimit(key, 2)
+        expect(res.allowed).toBe(true)
+      } finally {
+        if (prev === undefined) delete (globalThis as any).EdgeRuntime
+        else (globalThis as any).EdgeRuntime = prev
+        if (prevRedis === undefined) delete process.env.REDIS_URL
+        else process.env.REDIS_URL = prevRedis
+      }
+    })
   })
 
   describe('getClientIdentifier', () => {

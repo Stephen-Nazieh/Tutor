@@ -4,6 +4,8 @@
  * Docs: https://platform.moonshot.cn/docs
  */
 
+import { fetchWithTimeoutAndRetry } from '@/lib/ai/fetch-utils'
+
 interface KimiMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
@@ -42,6 +44,8 @@ export async function generateWithKimi(
     temperature?: number
     maxTokens?: number
     systemPrompt?: string
+    timeoutMs?: number
+    retries?: number
   } = {}
 ): Promise<string> {
   const apiKey = process.env.KIMI_API_KEY
@@ -59,7 +63,7 @@ export async function generateWithKimi(
   messages.push({ role: 'user', content: prompt })
 
   try {
-    const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+    const response = await fetchWithTimeoutAndRetry(`${KIMI_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +75,7 @@ export async function generateWithKimi(
         temperature: options.temperature ?? 0.7,
         max_tokens: options.maxTokens ?? 2048,
       }),
-    })
+    }, { timeoutMs: options.timeoutMs, retries: options.retries })
 
     if (!response.ok) {
       const error = await response.text()
@@ -95,6 +99,8 @@ export async function chatWithKimi(
     model?: string
     temperature?: number
     maxTokens?: number
+    timeoutMs?: number
+    retries?: number
   } = {}
 ): Promise<string> {
   const apiKey = process.env.KIMI_API_KEY
@@ -104,7 +110,7 @@ export async function chatWithKimi(
   }
 
   try {
-    const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+    const response = await fetchWithTimeoutAndRetry(`${KIMI_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +125,7 @@ export async function chatWithKimi(
         temperature: options.temperature ?? 0.7,
         max_tokens: options.maxTokens ?? 2048,
       }),
-    })
+    }, { timeoutMs: options.timeoutMs, retries: options.retries })
 
     if (!response.ok) {
       const error = await response.text()
@@ -144,6 +150,7 @@ export async function* streamKimi(
     model?: string
     temperature?: number
     maxTokens?: number
+    timeoutMs?: number
   } = {}
 ): AsyncGenerator<string, void, unknown> {
   const apiKey = process.env.KIMI_API_KEY
@@ -152,7 +159,7 @@ export async function* streamKimi(
     throw new Error('KIMI_API_KEY not configured in environment variables')
   }
 
-  const response = await fetch(`${KIMI_BASE_URL}/chat/completions`, {
+  const response = await fetchWithTimeoutAndRetry(`${KIMI_BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -168,7 +175,7 @@ export async function* streamKimi(
       max_tokens: options.maxTokens ?? 2048,
       stream: true,
     }),
-  })
+  }, { timeoutMs: options.timeoutMs, retries: 0 })
 
   if (!response.ok) {
     const error = await response.text()

@@ -70,6 +70,9 @@ export async function logSecurityEvent(
   userId?: string,
   metadata?: SecurityEventMetadata
 ): Promise<void> {
+  // Unit tests should be deterministic and avoid network/DB side effects.
+  if (process.env.SECURITY_AUDIT === 'false') return
+
   try {
     const meta: AuditMetadata = metadata ?? {}
 
