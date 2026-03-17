@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Star, Users, Calendar, Clock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface Tutor {
   id: string
@@ -40,8 +41,8 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
     return (
       <div className="flex items-center gap-1">
         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-        <span className="font-medium">{rating.toFixed(1)}</span>
-        <span className="text-gray-500 text-sm">({tutor.reviewCount} reviews)</span>
+        <span className="font-medium text-foreground">{rating.toFixed(1)}</span>
+        <span className="text-muted-foreground text-sm">({tutor.reviewCount} reviews)</span>
       </div>
     )
   }
@@ -49,7 +50,7 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   // Format price display
   const formatPrice = () => {
     if (tutor.hourlyRate === null) {
-      return <span className="text-gray-500">Contact for pricing</span>
+      return <span className="text-muted-foreground">Contact for pricing</span>
     }
     return (
       <span className="font-semibold text-green-600">
@@ -61,7 +62,7 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   // Format next available slot
   const formatAvailability = () => {
     if (!tutor.nextAvailableSlot) {
-      return <span className="text-gray-500">Check availability</span>
+      return <span className="text-muted-foreground">Check availability</span>
     }
     const date = new Date(tutor.nextAvailableSlot)
     return (
@@ -76,20 +77,23 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={cn(
+      "hover:shadow-md transition-all hover:-translate-y-0.5",
+      "bg-card border-border"
+    )}>
       <CardContent className="p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Avatar and Basic Info */}
           <div className="flex items-start gap-4 flex-1">
-            <Avatar className="w-16 h-16 border-2 border-gray-100">
+            <Avatar className="w-16 h-16 border-2 border-border">
               <AvatarImage src={tutor.avatar || undefined} alt={tutor.name} />
-              <AvatarFallback className="text-lg bg-blue-100 text-blue-600">
+              <AvatarFallback className="text-lg bg-primary/10 text-primary">
                 {initials}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{tutor.name}</h3>
+              <h3 className="font-semibold text-lg truncate text-foreground">{tutor.name}</h3>
               
               {/* Rating */}
               <div className="mt-1">
@@ -97,17 +101,17 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
               </div>
               
               {/* Bio - truncated */}
-              <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                 {tutor.bio}
               </p>
               
               {/* Stats */}
-              <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-gray-500">
-                <Badge variant="secondary" className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-muted-foreground">
+                <Badge variant="secondary" className="flex items-center gap-1 bg-muted">
                   <Users className="w-3 h-3" />
                   {tutor.totalStudents} students
                 </Badge>
-                <Badge variant="secondary" className="flex items-center gap-1">
+                <Badge variant="secondary" className="flex items-center gap-1 bg-muted">
                   <Clock className="w-3 h-3" />
                   {tutor.totalClasses} classes
                 </Badge>
@@ -116,9 +120,9 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
           </div>
           
           {/* Price and Action */}
-          <div className="flex flex-col items-start sm:items-end justify-between gap-3 sm:border-l sm:pl-4 sm:min-w-[160px]">
+          <div className="flex flex-col items-start sm:items-end justify-between gap-3 sm:border-l sm:border-border sm:pl-4 sm:min-w-[160px]">
             <div className="text-right">
-              <div className="text-lg">{formatPrice()}</div>
+              <div className="text-lg text-foreground">{formatPrice()}</div>
               <div className="text-sm mt-1">{formatAvailability()}</div>
             </div>
             

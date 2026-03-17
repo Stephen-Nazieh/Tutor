@@ -6,8 +6,10 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ArrowLeft, BookOpen, Loader2, FileText, GraduationCap, Users } from 'lucide-react'
 import { TutorList } from './components/TutorList'
+import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
 interface CurriculumListItem {
   id: string
@@ -31,6 +33,22 @@ export default function SubjectCoursesPage() {
   const [curriculums, setCurriculums] = useState<CurriculumListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Theme state with localStorage persistence
+  const [themeId, setThemeId] = useState('current')
+  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const themeStyle = getThemeStyle(selectedTheme)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('student-dashboard-theme')
+    if (savedTheme) {
+      setThemeId(savedTheme)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('student-dashboard-theme', themeId)
+  }, [themeId])
 
   const subjectLabel = subjectCode.charAt(0).toUpperCase() + subjectCode.slice(1).replace(/-/g, ' ')
   const signupUrl = `/student/subjects/${encodeURIComponent(subjectCode)}/signup`
@@ -64,17 +82,32 @@ export default function SubjectCoursesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       <div className="max-w-3xl mx-auto p-4 sm:p-6">
-        <Link
-          href={signupUrl}
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to signup
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            href={signupUrl}
+            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to signup
+          </Link>
+          {/* Theme Selector */}
+          <Select value={themeId} onValueChange={setThemeId}>
+            <SelectTrigger className="h-8 w-[160px] border-border bg-card text-foreground text-xs">
+              <SelectValue placeholder="Theme" />
+            </SelectTrigger>
+            <SelectContent>
+              {DASHBOARD_THEMES.map((theme) => (
+                <SelectItem key={theme.id} value={theme.id}>
+                  {theme.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+        <h1 className="text-2xl font-semibold text-foreground mb-2">
           Choose a Course / Tutor — {subjectLabel}
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
@@ -82,7 +115,7 @@ export default function SubjectCoursesPage() {
         </p>
 
         <Tabs defaultValue="courses" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 bg-muted">
             <TabsTrigger value="courses" className="flex items-center gap-2">
               <GraduationCap className="w-4 h-4" />
               Courses
@@ -96,12 +129,12 @@ export default function SubjectCoursesPage() {
           <TabsContent value="courses" className="space-y-4">
             {loading && (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               </div>
             )}
 
             {error && (
-              <Card className="border-destructive/50">
+              <Card className="border-destructive/50 bg-card">
                 <CardContent className="pt-6">
                   <p className="text-sm text-destructive">{error}</p>
                   <Button variant="outline" asChild className="mt-4">
@@ -112,10 +145,10 @@ export default function SubjectCoursesPage() {
             )}
 
             {!loading && !error && curriculums.length === 0 && (
-              <Card>
+              <Card className="bg-card border-border">
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center text-center py-8">
-                    <BookOpen className="w-12 h-12 text-gray-300 mb-4" />
+                    <BookOpen className="w-12 h-12 text-muted mb-4" />
                     <p className="text-muted-foreground mb-4">
                       No courses available for {subjectLabel} yet.
                     </p>
@@ -131,9 +164,9 @@ export default function SubjectCoursesPage() {
               <ul className="space-y-4">
                 {curriculums.map((c) => (
                   <li key={c.id}>
-                    <Card>
+                    <Card className="bg-card border-border hover:border-accent transition-colors">
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-lg">{c.name}</CardTitle>
+                        <CardTitle className="text-lg text-foreground">{c.name}</CardTitle>
                         {(c.gradeLevel || c.difficulty) && (
                           <CardDescription className="flex flex-wrap gap-2 mt-1">
                             {c.gradeLevel && <span>{c.gradeLevel}</span>}
@@ -165,7 +198,7 @@ export default function SubjectCoursesPage() {
                               Select
                             </Link>
                           </Button>
-                          <Button variant="outline" asChild className="w-full sm:w-auto">
+                          <Button variant="outline" asChild className="w-full sm:w-auto border-border">
                             <Link href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}>
                               <FileText className="w-3 h-3 mr-1" />
                               View course details

@@ -106,6 +106,48 @@ export const DASHBOARD_THEMES: DashboardTheme[] = [
       textSecondary: '37 3% 48%',
     },
   },
+  {
+    id: 'charcoal-dark',
+    name: 'Charcoal Dark',
+    tokens: {
+      background: '220 8% 12%',
+      panel: '220 8% 18%',
+      surface: '220 6% 22%',
+      accent: '220 5% 35%',
+      accentStrong: '220 5% 45%',
+      divider: '220 5% 28%',
+      textPrimary: '0 0% 95%',
+      textSecondary: '0 0% 65%',
+    },
+  },
+  {
+    id: 'graphite-mid',
+    name: 'Graphite Mid',
+    tokens: {
+      background: '220 5% 28%',
+      panel: '220 5% 35%',
+      surface: '220 4% 42%',
+      accent: '220 5% 55%',
+      accentStrong: '220 5% 65%',
+      divider: '220 5% 45%',
+      textPrimary: '0 0% 98%',
+      textSecondary: '0 0% 75%',
+    },
+  },
+  {
+    id: 'pearl-light',
+    name: 'Pearl Light',
+    tokens: {
+      background: '0 0% 98%',
+      panel: '0 0% 95%',
+      surface: '0 0% 100%',
+      accent: '220 5% 85%',
+      accentStrong: '220 5% 70%',
+      divider: '220 5% 88%',
+      textPrimary: '220 8% 15%',
+      textSecondary: '220 5% 45%',
+    },
+  },
 ]
 
 export const getThemeStyle = (theme?: DashboardTheme): CSSProperties => {

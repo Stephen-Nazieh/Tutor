@@ -111,17 +111,17 @@ export function TutorList({ subjectCode }: TutorListProps) {
   // Empty state
   if (tutors.length === 0) {
     return (
-      <Card>
+      <Card className="bg-card border-border">
         <CardContent className="pt-12 pb-12 text-center">
-          <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-700 mb-2">
+          <Users className="w-16 h-16 text-muted mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             No tutors available yet
           </h3>
-          <p className="text-gray-500 max-w-md mx-auto mb-6">
+          <p className="text-muted-foreground max-w-md mx-auto mb-6">
             We&apos;re working on adding tutors for this subject. 
             Check back soon or try the AI tutor option!
           </p>
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="border-border">
             <a href={`/student/subjects/${subjectCode}/chat`}>
               <Search className="w-4 h-4 mr-2" />
               Try AI Tutor
@@ -135,7 +135,7 @@ export function TutorList({ subjectCode }: TutorListProps) {
   // Tutors list
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-muted-foreground mb-4">
         {tutors.length} tutor{tutors.length !== 1 ? 's' : ''} available for this subject
       </p>
       {tutors.map((tutor) => (

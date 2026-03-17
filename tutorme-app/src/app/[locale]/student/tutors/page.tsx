@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { BookOpen, Compass, ExternalLink, Search, Sparkles, Users, Star, Heart } from 'lucide-react'
 import { toast } from 'sonner'
+import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
+import { cn } from '@/lib/utils'
 
 interface TutorCoursePreview {
   id: string
@@ -88,6 +90,22 @@ export default function StudentTutorDirectoryPage() {
   const [activeTutor, setActiveTutor] = useState<TutorDirectoryItem | null>(null)
   const [dataSource, setDataSource] = useState<'db' | 'mock'>('db')
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
+
+  // Theme state with localStorage persistence
+  const [themeId, setThemeId] = useState('current')
+  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const themeStyle = getThemeStyle(selectedTheme)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('student-dashboard-theme')
+    if (savedTheme) {
+      setThemeId(savedTheme)
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('student-dashboard-theme', themeId)
+  }, [themeId])
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -201,43 +219,58 @@ export default function StudentTutorDirectoryPage() {
   }
 
   return (
-    <div className="w-full space-y-6 p-4 sm:p-6">
-      <Card className="overflow-hidden border-0 shadow-sm">
-        <div className="bg-gradient-to-br from-sky-50 via-cyan-50 to-emerald-50 p-6 sm:p-8">
+    <div className="min-h-screen bg-background text-foreground w-full space-y-6 p-4 sm:p-6" style={themeStyle}>
+      <Card className="overflow-hidden border-border shadow-sm bg-card">
+        <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 dark:from-sky-950/30 dark:via-cyan-950/30 dark:to-emerald-950/30 p-6 sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Find Your Tutor</h1>
-              <p className="max-w-2xl text-sm text-slate-700">
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Find Your Tutor</h1>
+              <p className="max-w-2xl text-sm text-muted-foreground">
                 Explore tutor profiles, compare subjects and courses, and open any tutor profile instantly.
               </p>
             </div>
-            <Button asChild>
-              <Link href={`/${locale}/student/courses`}>
-                <Compass className="mr-2 h-4 w-4" />
-                Go to Courses
-              </Link>
-            </Button>
+            <div className="flex items-center gap-3">
+              {/* Theme Selector */}
+              <Select value={themeId} onValueChange={setThemeId}>
+                <SelectTrigger className="h-9 w-[150px] border-border bg-background text-foreground text-xs">
+                  <SelectValue placeholder="Theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DASHBOARD_THEMES.map((theme) => (
+                    <SelectItem key={theme.id} value={theme.id}>
+                      {theme.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button asChild>
+                <Link href={`/${locale}/student/courses`}>
+                  <Compass className="mr-2 h-4 w-4" />
+                  Go to Courses
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3 sm:p-6">
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Tutors</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{headlineMetrics.tutorCount}</p>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Tutors</p>
+            <p className="mt-1 text-xl font-semibold text-foreground">{headlineMetrics.tutorCount}</p>
           </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Published Courses</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{headlineMetrics.totalCourses}</p>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Published Courses</p>
+            <p className="mt-1 text-xl font-semibold text-foreground">{headlineMetrics.totalCourses}</p>
           </div>
-          <div className="rounded-lg border bg-white p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total Enrollments</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">{headlineMetrics.totalEnrollments}</p>
+          <div className="rounded-lg border border-border bg-card p-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Enrollments</p>
+            <p className="mt-1 text-xl font-semibold text-foreground">{headlineMetrics.totalEnrollments}</p>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle>Search & Filter</CardTitle>
+          <CardTitle className="text-foreground">Search & Filter</CardTitle>
           <CardDescription>
             Refine by keywords, subject, and ranking.
             {dataSource === 'mock' ? ' Showing demo tutors right now.' : ''}
@@ -283,7 +316,7 @@ export default function StudentTutorDirectoryPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
-            <Card key={`loading-${index}`} className="animate-pulse">
+            <Card key={`loading-${index}`} className="animate-pulse bg-card border-border">
               <CardHeader className="space-y-3">
                 <div className="h-6 w-2/3 rounded bg-muted" />
                 <div className="h-4 w-1/2 rounded bg-muted" />
@@ -295,9 +328,9 @@ export default function StudentTutorDirectoryPage() {
             </Card>
           ))
         ) : tutors.length === 0 ? (
-          <Card className="col-span-full">
+          <Card className="col-span-full bg-card border-border">
             <CardHeader>
-              <CardTitle>No tutors match your current filters</CardTitle>
+              <CardTitle className="text-foreground">No tutors match your current filters</CardTitle>
               <CardDescription>Try broadening search terms or selecting a different subject.</CardDescription>
             </CardHeader>
           </Card>
@@ -305,7 +338,10 @@ export default function StudentTutorDirectoryPage() {
           tutors.map((tutor) => (
             <Card 
               key={tutor.id} 
-              className="h-full transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer relative"
+              className={cn(
+                "h-full transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer relative",
+                "bg-card border-border"
+              )}
               onClick={() => setActiveTutor(tutor)}
             >
               <button
@@ -322,16 +358,16 @@ export default function StudentTutorDirectoryPage() {
               </button>
               <CardHeader className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Avatar className="h-12 w-12 border">
+                  <Avatar className="h-12 w-12 border border-border">
                     <AvatarImage src={tutor.avatarUrl || undefined} alt={`${tutor.name} avatar`} />
-                    <AvatarFallback>{getInitials(tutor.name)}</AvatarFallback>
+                    <AvatarFallback className="bg-muted text-foreground">{getInitials(tutor.name)}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 pr-8">
-                    <CardTitle className="truncate text-lg">{tutor.name}</CardTitle>
+                    <CardTitle className="truncate text-lg text-foreground">{tutor.name}</CardTitle>
                     <CardDescription>@{tutor.username}</CardDescription>
                   </div>
                 </div>
-                <p className="line-clamp-2 text-sm text-slate-600">
+                <p className="line-clamp-2 text-sm text-muted-foreground">
                   {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
                 </p>
               </CardHeader>
@@ -343,20 +379,20 @@ export default function StudentTutorDirectoryPage() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {tutor.subjects.slice(0, 3).map((subject) => (
-                    <Badge key={`${tutor.id}:${subject}`} variant="secondary">
+                    <Badge key={`${tutor.id}:${subject}`} variant="secondary" className="bg-muted">
                       {subject}
                     </Badge>
                   ))}
-                  {tutor.subjects.length > 3 ? <Badge variant="outline">+{tutor.subjects.length - 3}</Badge> : null}
+                  {tutor.subjects.length > 3 ? <Badge variant="outline" className="border-border">+{tutor.subjects.length - 3}</Badge> : null}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-md border p-2">
-                    <p className="text-slate-500">Courses</p>
-                    <p className="font-semibold text-slate-900">{tutor.courseCount}</p>
+                  <div className="rounded-md border border-border p-2 bg-muted/30">
+                    <p className="text-muted-foreground">Courses</p>
+                    <p className="font-semibold text-foreground">{tutor.courseCount}</p>
                   </div>
-                  <div className="rounded-md border p-2">
-                    <p className="text-slate-500">Enrollments</p>
-                    <p className="font-semibold text-slate-900">{tutor.totalEnrollments}</p>
+                  <div className="rounded-md border border-border p-2 bg-muted/30">
+                    <p className="text-muted-foreground">Enrollments</p>
+                    <p className="font-semibold text-foreground">{tutor.totalEnrollments}</p>
                   </div>
                 </div>
               </CardContent>
@@ -366,14 +402,14 @@ export default function StudentTutorDirectoryPage() {
       </div>
 
       <Dialog open={Boolean(activeTutor)} onOpenChange={(open) => !open && setActiveTutor(null)}>
-        <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl">
+        <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl bg-card border-border">
           {activeTutor ? (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border">
+                <DialogTitle className="flex items-center gap-3 text-foreground">
+                  <Avatar className="h-10 w-10 border border-border">
                     <AvatarImage src={activeTutor.avatarUrl || undefined} alt={`${activeTutor.name} avatar`} />
-                    <AvatarFallback>{getInitials(activeTutor.name)}</AvatarFallback>
+                    <AvatarFallback className="bg-muted">{getInitials(activeTutor.name)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <span>{activeTutor.name}</span>
@@ -390,32 +426,32 @@ export default function StudentTutorDirectoryPage() {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/20 p-3 text-sm text-slate-700">
+                <div className="rounded-lg border border-border bg-muted/20 p-3 text-sm text-foreground">
                   {activeTutor.bio || 'No bio provided yet.'}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-md border p-3">
-                    <p className="text-xs text-slate-500">Courses</p>
-                    <p className="text-lg font-semibold text-slate-900">{activeTutor.courseCount}</p>
+                  <div className="rounded-md border border-border p-3 bg-muted/30">
+                    <p className="text-xs text-muted-foreground">Courses</p>
+                    <p className="text-lg font-semibold text-foreground">{activeTutor.courseCount}</p>
                   </div>
-                  <div className="rounded-md border p-3">
-                    <p className="text-xs text-slate-500">Enrollments</p>
-                    <p className="text-lg font-semibold text-slate-900">{activeTutor.totalEnrollments}</p>
+                  <div className="rounded-md border border-border p-3 bg-muted/30">
+                    <p className="text-xs text-muted-foreground">Enrollments</p>
+                    <p className="text-lg font-semibold text-foreground">{activeTutor.totalEnrollments}</p>
                   </div>
-                  <div className="rounded-md border p-3">
-                    <p className="text-xs text-slate-500">Rating</p>
-                    <p className="text-lg font-semibold text-slate-900">
+                  <div className="rounded-md border border-border p-3 bg-muted/30">
+                    <p className="text-xs text-muted-foreground">Rating</p>
+                    <p className="text-lg font-semibold text-foreground">
                       {activeTutor.averageRating?.toFixed(1) || 'N/A'}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="mb-2 text-sm font-medium text-slate-900">Specialties</p>
+                  <p className="mb-2 text-sm font-medium text-foreground">Specialties</p>
                   <div className="flex flex-wrap gap-2">
                     {(activeTutor.specialties.length > 0 ? activeTutor.specialties : ['General Tutoring']).map((specialty) => (
-                      <Badge key={`${activeTutor.id}:${specialty}`} variant="secondary">
+                      <Badge key={`${activeTutor.id}:${specialty}`} variant="secondary" className="bg-muted">
                         <Sparkles className="mr-1 h-3 w-3" />
                         {specialty}
                       </Badge>
@@ -424,17 +460,17 @@ export default function StudentTutorDirectoryPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-medium text-slate-900">Subjects & Courses</p>
+                  <p className="text-sm font-medium text-foreground">Subjects & Courses</p>
                   {getSubjectGroups(activeTutor).map((subject) => (
-                    <div key={subject.name} className="rounded-lg border p-3">
+                    <div key={subject.name} className="rounded-lg border border-border p-3 bg-muted/10">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary">{subject.name}</Badge>
+                          <Badge variant="secondary" className="bg-muted">{subject.name}</Badge>
                           <span className="text-xs text-muted-foreground">{subject.courses.length} courses</span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                           <StarRating rating={subject.averageRating} count={subject.totalReviews} />
-                          <span className="font-medium text-slate-900">
+                          <span className="font-medium text-foreground">
                             ${subject.averageRate.toFixed(0)}/course
                           </span>
                         </div>
@@ -442,10 +478,10 @@ export default function StudentTutorDirectoryPage() {
                       <div className="space-y-2">
                         {subject.courses.slice(0, 3).map((course) => (
                           <div key={course.id} className="flex items-center justify-between text-sm">
-                            <span className="text-slate-700">{course.name}</span>
+                            <span className="text-muted-foreground">{course.name}</span>
                             <div className="flex items-center gap-2">
                               <StarRating rating={course.rating || 0} count={course.reviewCount} />
-                              <span className="text-slate-900 font-medium">
+                              <span className="text-foreground font-medium">
                                 ${course.price}{course.currency}
                               </span>
                             </div>
