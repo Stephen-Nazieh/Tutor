@@ -14,7 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
-import { generateUniformTasks, TaskConfiguration } from '@/lib/ai/task-generator'
+import { generateUniformTasks, TaskConfiguration } from '@/lib/agents/task-generator'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 

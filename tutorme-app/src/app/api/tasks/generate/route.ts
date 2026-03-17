@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { and, eq } from 'drizzle-orm'
 import { getServerSession, authOptions } from '@/lib/auth'
-import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/ai/task-generator'
+import { generateAndDistributeTasks, saveGeneratedTasks, TaskConfiguration, DistributionMode } from '@/lib/agents/task-generator'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession } from '@/lib/db/schema'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
