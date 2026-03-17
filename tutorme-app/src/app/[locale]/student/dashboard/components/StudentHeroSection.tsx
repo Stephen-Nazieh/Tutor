@@ -61,34 +61,34 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
     })
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl border border-slate-200">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-secondary to-card p-8 shadow-2xl border border-border">
       <div className="absolute inset-0 opacity-40">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse opacity-50" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse delay-1000 opacity-50" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-[100px] animate-pulse delay-2000 opacity-50" />
+        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse opacity-50" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/40 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse delay-1000 opacity-50" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-secondary/40 rounded-full mix-blend-multiply filter blur-[100px] animate-pulse delay-2000 opacity-50" />
       </div>
 
       <div className="relative z-10">
         <div className="flex items-center justify-between flex-wrap gap-6 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <span className="text-blue-300 text-sm font-medium">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <span className="text-muted-foreground text-sm font-medium">
                 {greeting}, {session?.user?.name?.split(' ')[0] || 'Student'}
               </span>
             </div>
-            <h1 className="text-4xl font-bold text-white mb-2">Welcome Back!</h1>
-            <p className="text-slate-400">
+            <h1 className="text-4xl font-bold text-foreground mb-2">Welcome Back!</h1>
+            <p className="text-muted-foreground">
               {formatDate(currentTime)} • {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-slate-300 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <Calendar className="w-4 h-4" />
             {classes.length > 0 ? `${classes.length} upcoming class${classes.length > 1 ? 'es' : ''}` : 'No upcoming classes'}
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 mb-8 bg-white/5 backdrop-blur-md border border-slate-200 rounded-2xl p-4 shadow-2xl">
+        <div className="grid grid-cols-7 gap-2 mb-8 bg-card/70 backdrop-blur-md border border-border rounded-2xl p-4 shadow-2xl">
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date(currentTime)
             d.setDate(currentTime.getDate() + i)
@@ -99,29 +99,29 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
               <div
                 key={i}
                 onClick={() => setSelectedDay({ date: d, events: dayEvents })}
-                className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
+                className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-accent/40 transition-colors cursor-pointer group"
               >
-                <span className="text-slate-400 text-xs font-medium mb-1">
+                <span className="text-muted-foreground text-xs font-medium mb-1">
                   {d.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
                 <span className={cn(
                   "text-lg font-bold w-8 h-8 flex items-center justify-center rounded-full mt-1",
-                  i === 0 ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "text-white group-hover:bg-white/10"
+                  i === 0 ? "bg-primary text-primary-foreground shadow-md shadow-primary/30" : "text-foreground group-hover:bg-accent/30"
                 )}>
                   {d.getDate()}
                 </span>
                 <div className="flex flex-col items-center mt-2 gap-0.5">
                   {dayEvents.slice(0, 1).map((evt) => (
-                    <span key={evt.id} className="text-[10px] text-cyan-400 font-medium">
+                    <span key={evt.id} className="text-[10px] text-primary font-medium">
                       {evt.timeLabel}
                     </span>
                   ))}
                   {dayEvents.length > 1 && (
-                    <span className="text-[8px] text-slate-400">+{dayEvents.length - 1} more</span>
+                    <span className="text-[8px] text-muted-foreground">+{dayEvents.length - 1} more</span>
                   )}
                   {!hasClasses && (
                     <div className="flex gap-1 h-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-slate-600/50" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/60" />
                     </div>
                   )}
                 </div>
@@ -131,7 +131,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
         </div>
 
         <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
-          <DialogContent className="sm:max-w-md border border-slate-200">
+        <DialogContent className="sm:max-w-md border border-border bg-card">
             <DialogHeader>
               <DialogTitle>
                 {selectedDay?.date.toLocaleDateString('en-US', {
@@ -150,20 +150,20 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
 
             <div className="space-y-3 py-4">
               {selectedDay?.events.map((event) => (
-                <div key={event.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+                <div key={event.id} className="flex items-center gap-3 p-3 bg-muted/60 rounded-lg">
+                  <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-gray-900">{event.title}</p>
-                    <p className="text-sm text-gray-500">{event.timeLabel} • {event.duration} min</p>
+                    <p className="font-medium text-foreground">{event.title}</p>
+                    <p className="text-sm text-muted-foreground">{event.timeLabel} • {event.duration} min</p>
                   </div>
                 </div>
               ))}
 
               {(!selectedDay || selectedDay.events.length === 0) && (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <div className="text-center py-8 text-muted-foreground">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground/60" />
                   <p>No classes scheduled for this day</p>
                 </div>
               )}

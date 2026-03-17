@@ -136,8 +136,8 @@ export default function StudentDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]" style={themeStyle}>
-        <nav className="bg-[var(--theme-panel)] border-b border-[var(--theme-divider)] sticky top-0 z-50 safe-top">
+      <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
+        <nav className="bg-secondary border-b border-border sticky top-0 z-50 safe-top">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
               <div className="h-7 w-24 bg-gray-200 rounded animate-pulse" />
@@ -199,7 +199,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]" style={themeStyle}>
+    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       {/* Animations */}
       {showXpAnimation && xpGain && (
         <XpAnimation amount={xpGain.amount} reason={xpGain.reason} onComplete={() => setShowXpAnimation(false)} />
@@ -209,7 +209,7 @@ export default function StudentDashboard() {
       )}
 
       {/* Navigation */}
-      <nav className="bg-[var(--theme-panel)] border-b border-[var(--theme-divider)] sticky top-0 z-50 safe-top">
+      <nav className="bg-secondary border-b border-border sticky top-0 z-50 safe-top">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -220,13 +220,13 @@ export default function StudentDashboard() {
             </div>
             <div className="flex items-center gap-4">
               {data?.gamification && (
-                <div className="flex items-center gap-2 bg-[var(--theme-surface)] px-3 py-1 rounded-full border border-[var(--theme-divider)]">
+                <div className="flex items-center gap-2 bg-card px-3 py-1 rounded-full border border-border">
                   <Flame className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium text-[var(--theme-text)]">{data.gamification.streakDays} day streak</span>
+                  <span className="text-sm font-medium text-foreground">{data.gamification.streakDays} day streak</span>
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">Theme</span>
+                <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Theme</span>
                 <Select
                   value={themeId}
                   onValueChange={(value) => {
@@ -236,7 +236,7 @@ export default function StudentDashboard() {
                     } catch { }
                   }}
                 >
-                  <SelectTrigger className="h-8 w-[190px] border-[var(--theme-divider)] bg-[var(--theme-surface)] text-[var(--theme-text)]">
+                  <SelectTrigger className="h-8 w-[190px] border-border bg-card text-foreground">
                     <SelectValue placeholder="Select theme" />
                   </SelectTrigger>
                   <SelectContent className="max-h-72">

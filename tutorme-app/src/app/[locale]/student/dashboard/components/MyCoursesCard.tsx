@@ -98,9 +98,9 @@ export function MyCoursesCard({ courses, onCourseRemoved }: MyCoursesCardProps) 
       </CardHeader>
       <CardContent>
         {courses.length === 0 ? (
-          <div className="py-8 text-center text-gray-500">
-            <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="font-medium text-gray-700">No courses yet</p>
+          <div className="py-8 text-center text-muted-foreground">
+            <BookOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/60" />
+            <p className="font-medium text-foreground">No courses yet</p>
             <p className="text-sm mt-1">Browse subjects and enroll in a course to get started.</p>
             <Link href="/student/courses?tab=browse">
               <Button className="mt-4">Add subject</Button>
@@ -111,21 +111,21 @@ export function MyCoursesCard({ courses, onCourseRemoved }: MyCoursesCardProps) 
             {visibleCourses.map((course) => (
               <div
                 key={course.id}
-                className="flex flex-wrap items-center gap-4 px-3 py-4 sm:py-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                className="flex flex-wrap items-center gap-4 px-3 py-4 sm:py-3 rounded-lg border border-border hover:bg-muted/60 transition-colors"
               >
                 <Link href={`/student/subjects/${encodeURIComponent(course.subject)}`} className="flex flex-1 min-w-0 items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-primary/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-medium truncate">{course.name}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{course.subject}</p>
+                    <p className="text-sm text-muted-foreground capitalize">{course.subject}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Progress value={course.progress} className="h-2 flex-1" />
-                      <span className="text-xs text-gray-500 w-10 text-right">{course.progress}%</span>
+                      <span className="text-xs text-muted-foreground w-10 text-right">{course.progress}%</span>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
                 </Link>
                 <div className="flex items-center gap-2 sm:gap-1 shrink-0 flex-wrap justify-end">
                   <Button
@@ -195,7 +195,7 @@ export function MyCoursesCard({ courses, onCourseRemoved }: MyCoursesCardProps) 
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => handleRemove(course)}
                     disabled={removingSubject === course.subject}
                   >

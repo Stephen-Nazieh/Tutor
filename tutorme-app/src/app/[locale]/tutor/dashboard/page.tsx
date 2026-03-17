@@ -227,12 +227,12 @@ function TutorDashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]" style={themeStyle}>
+    <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="text-sm text-[var(--theme-text-secondary)]">Tutor Dashboard</div>
+          <div className="text-sm text-muted-foreground">Tutor Dashboard</div>
           <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">Theme</span>
+            <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Theme</span>
             <Select
               value={themeId}
               onValueChange={(value) => {
@@ -242,7 +242,7 @@ function TutorDashboardContent() {
                 } catch { }
               }}
             >
-              <SelectTrigger className="h-8 w-[200px] border-[var(--theme-divider)] bg-[var(--theme-surface)] text-[var(--theme-text)]">
+              <SelectTrigger className="h-8 w-[200px] border-border bg-card text-foreground">
                 <SelectValue placeholder="Select theme" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
@@ -285,7 +285,7 @@ function TutorDashboardContent() {
       </div>
 
       <div className="space-y-4 mb-8">
-        <Card className="border border-[var(--theme-divider)] shadow-xl bg-[var(--theme-surface)]/95 backdrop-blur-md">
+        <Card className="border border-border shadow-xl bg-card/95 backdrop-blur-md">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
               <div className="text-center py-2 md:py-0">

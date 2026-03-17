@@ -201,12 +201,12 @@ export function DashboardCalendar({
           <TabsContent value="classes" className="mt-0">
             {classesLoading ? (
               <div className="py-8 text-center">
-                <p className="text-sm text-gray-500">Loading your classes...</p>
+                <p className="text-sm text-muted-foreground">Loading your classes...</p>
               </div>
             ) : classes.length === 0 ? (
               <div className="py-8 text-center">
-                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">You haven&apos;t booked any classes yet.</p>
+                <BookOpen className="w-12 h-12 text-muted-foreground/60 mx-auto mb-3" />
+                <p className="text-muted-foreground">You haven&apos;t booked any classes yet.</p>
                 <Button className="mt-4" asChild>
                   <Link href="/student/courses">Browse Classes</Link>
                 </Button>
@@ -216,14 +216,14 @@ export function DashboardCalendar({
                 {classes.map((cls) => (
                   <div
                     key={cls.id}
-                    className="p-4 rounded-lg border bg-gray-50/50 hover:bg-gray-100 transition-colors"
+                    className="p-4 rounded-lg border border-border bg-muted/40 hover:bg-muted/70 transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{cls.title}</h4>
-                        <p className="text-sm text-gray-500">{cls.subject}</p>
+                        <h4 className="font-medium text-foreground">{cls.title}</h4>
+                        <p className="text-sm text-muted-foreground">{cls.subject}</p>
 
-                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <CalendarDays className="w-3 h-3" />
                             {formatDate(cls.scheduledAt)}
@@ -234,14 +234,14 @@ export function DashboardCalendar({
                           </span>
                           <span className={cn(
                             "flex items-center gap-1",
-                            cls.type === 'online' ? 'text-green-600' : 'text-blue-600'
+                            'text-primary'
                           )}>
                             {cls.type === 'online' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
                             {cls.type === 'online' ? 'Online' : 'In-Person'}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
                             {cls.students}/{cls.maxStudents} students
@@ -263,9 +263,9 @@ export function DashboardCalendar({
           {/* Continue Learning Tab */}
           <TabsContent value="learning" className="mt-0">
             {inProgressContent.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium text-gray-700">No courses in progress</p>
+              <div className="py-8 text-center text-muted-foreground">
+                <BookOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/60" />
+                <p className="font-medium text-foreground">No courses in progress</p>
                 <p className="text-sm mt-1">Browse subjects and start learning.</p>
                 <Link href="/student/courses?tab=browse">
                   <Button className="mt-4">Browse subjects</Button>
@@ -275,19 +275,19 @@ export function DashboardCalendar({
               <div className="space-y-4">
                 {inProgressContent.slice(0, 5).map(content => (
                   <Link key={content.id} href={`/student/learn/${content.id}`}>
-                    <div className="flex items-center gap-4 p-4 rounded-lg border hover:bg-gray-50 transition-colors">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <BookOpen className="w-6 h-6 text-blue-600" />
+                    <div className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/60 transition-colors">
+                      <div className="w-12 h-12 bg-primary/15 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <BookOpen className="w-6 h-6 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium truncate">{content.topic}</h3>
-                        <p className="text-sm text-gray-500">{content.subject}</p>
+                        <p className="text-sm text-muted-foreground">{content.subject}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <Progress value={content.progress} className="h-2 flex-1" />
-                          <span className="text-xs text-gray-500 w-10 text-right">{content.progress}%</span>
+                          <span className="text-xs text-muted-foreground w-10 text-right">{content.progress}%</span>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-muted-foreground/80" />
                     </div>
                   </Link>
                 ))}
@@ -305,9 +305,9 @@ export function DashboardCalendar({
           {/* Upcoming Classes Tab */}
           <TabsContent value="upcoming" className="mt-0">
             {upcomingClasses.length === 0 ? (
-              <div className="py-8 text-center text-gray-500">
-                <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium text-gray-700">No upcoming classes</p>
+              <div className="py-8 text-center text-muted-foreground">
+                <Clock className="w-12 h-12 mx-auto mb-3 text-muted-foreground/60" />
+                <p className="font-medium text-foreground">No upcoming classes</p>
                 <p className="text-sm mt-1">View available classes to book.</p>
                 <Link href="/student/courses">
                   <Button className="mt-4">View classes</Button>
@@ -316,22 +316,22 @@ export function DashboardCalendar({
             ) : (
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
                 {upcomingClasses.map(cls => (
-                  <div key={cls.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                  <div key={cls.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/60 transition-colors">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">{cls.title}</h4>
                         {cls.isBooked && (
-                          <Badge className="bg-green-100 text-green-800">Booked</Badge>
+                          <Badge className="bg-accent/50 text-foreground">Booked</Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         {cls.subject} • {formatDate(cls.scheduledAt)}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground/80 mt-1">
                         <Users className="w-3 h-3" />
                         {cls.students}/{cls.maxStudents} students
                         {cls.price != null && cls.price > 0 && (
-                          <span className="text-green-600 font-medium">SGD {cls.price.toFixed(2)}</span>
+                          <span className="text-primary font-medium">SGD {cls.price.toFixed(2)}</span>
                         )}
                       </div>
                     </div>
