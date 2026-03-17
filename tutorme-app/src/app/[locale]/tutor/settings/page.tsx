@@ -204,7 +204,18 @@ export default function TutorSettings() {
                     className="border-[#1D4ED8] text-[#1D4ED8] hover:bg-[#1D4ED8]/10"
                     onClick={() => toast.message('Upgrade flow pending')}
                   >
-                    Upgrade or cancel plan
+                    Upgrade plan
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to cancel your subscription?')) {
+                        toast.message('Thank you for being with us. We hope you return another time.')
+                      }
+                    }}
+                  >
+                    Cancel subscription
                   </Button>
                   <Button
                     variant="outline"
@@ -214,21 +225,6 @@ export default function TutorSettings() {
                     Payment history
                   </Button>
                 </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#F59E0B]/30 bg-[#FFFBEB] p-4 space-y-3">
-                <div className="text-sm font-semibold text-[#92400E]">Cancel Subscription</div>
-                <Button
-                  variant="outline"
-                  className="border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to cancel your subscription?')) {
-                      toast.message('Thank you for being with us. We hope you return another time.')
-                    }
-                  }}
-                >
-                  Cancel
-                </Button>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">

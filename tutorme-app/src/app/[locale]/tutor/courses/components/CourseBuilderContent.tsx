@@ -10,12 +10,10 @@ import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Wand2, BookOpen, Loader2, Save, ChevronRight } from 'lucide-react'
+import { ArrowLeft, BookOpen, Loader2, Save, ChevronRight } from 'lucide-react'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import type { Module as CourseBuilderModule, CourseBuilderRef } from '../../dashboard/components/CourseBuilder'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import { MyPageTabsSection } from '@/components/tutor/MyPageTabsSection'
 
 interface CourseData {
   id: string
@@ -175,52 +173,48 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Header */}
+      {/* Top Navigation Header - Same structure as Lesson Bank */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="w-full px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild className="gap-2">
-                <Link href="/tutor/dashboard">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Dashboard
-                </Link>
-              </Button>
-              <div>
-                <h1 className="text-xl font-semibold">
-                  {loading ? 'Loading...' : (course?.name ?? 'Course Builder 2.0')}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {saving && <span className="text-blue-600">Saving...</span>}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="default"
-                className="gap-2"
-                onClick={() => courseBuilderRef.current?.save()}
-                disabled={saving}
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                Save Course
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2"
-                asChild
-              >
-                <Link href={`/tutor/courses/${courseId}`}>
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            </div>
+        <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/tutor/dashboard">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
+            <h1 className="text-xl font-semibold flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              {loading ? 'Loading...' : (course?.name ?? 'Course Builder')}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Build your course curriculum with lessons, tasks, and assessments.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              className="gap-2"
+              onClick={() => courseBuilderRef.current?.save()}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Course
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              asChild
+            >
+              <Link href={`/tutor/courses/${courseId}`}>
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Main Content - Full Width for 3-Column Layout */}
+      {/* Main Content */}
       <div className="w-full px-4 sm:px-6 py-6">
         {savedVariants.length > 0 && (
           <Card className="mb-4 border-emerald-200 bg-emerald-50/40">
@@ -267,24 +261,14 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
           </div>
         ) : (
-          <>
-            <CourseBuilder
-              ref={courseBuilderRef}
-              courseId={courseId}
-              courseName={course?.name}
-              initialModules={loadedModules ?? undefined}
-              onSave={handleSave}
-            />
-            <div className="mt-10">
-              <Card className="border-2 border-gray-400 shadow-sm">
-                <CardContent className="pt-6">
-                  <MyPageTabsSection />
-                </CardContent>
-              </Card>
-            </div>
-          </>
+          <CourseBuilder
+            ref={courseBuilderRef}
+            courseId={courseId}
+            courseName={course?.name}
+            initialModules={loadedModules ?? undefined}
+            onSave={handleSave}
+          />
         )}
-
       </div>
     </div>
   )
