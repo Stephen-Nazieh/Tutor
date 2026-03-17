@@ -28,6 +28,8 @@ import {
   GradingRequest,
   GradingResult 
 } from './prompts/grader-prompts';
+import { safeJsonParseWithSchema } from '@/lib/ai/json';
+import { z } from 'zod';
 
 function tryParseJson<T>(content: string): T | null {
   try {
@@ -35,6 +37,125 @@ function tryParseJson<T>(content: string): T | null {
   } catch {
     return null;
   }
+}
+
+const quizGradeSchema = z.object({
+  score: z.number(),
+  confidence: z.number(),
+  feedback: z.string(),
+  explanation: z.string(),
+  nextSteps: z.array(z.string()).optional(),
+  relatedStruggles: z.array(z.string()).optional(),
+});
+
+export interface QuizGradeRequest {
+  question: string;
+  rubric: string;
+  studentAnswer: string;
+  maxScore: number;
+  studentContext?: {
+    recentStruggles: Array<{ topic: string; errorType: string; severity: number }>;
+    masteredTopics: string[];
+    learningStyle: 'visual' | 'auditory' | 'kinesthetic' | 'reading' | 'analytical' | 'mixed';
+    currentMood: 'frustrated' | 'neutral' | 'engaged' | 'confident' | 'curious' | 'anxious' | 'bored';
+  };
+}
+
+export type QuizGradeResult = z.infer<typeof quizGradeSchema> & {
+  isPersonalized: boolean;
+  provider: string;
+};
+
+function buildQuizGradePrompt(req: QuizGradeRequest): { prompt: string; isPersonalized: boolean } {
+  const ctx = req.studentContext;
+  if (ctx) {
+    const contextInfo = `
+
+Student Context:
+- Recent struggles: ${ctx.recentStruggles.map(s => s.topic).join(', ') || 'none'}
+- Mastered topics: ${ctx.masteredTopics.join(', ') || 'none'}
+- Learning style: ${ctx.learningStyle}
+- Current mood: ${ctx.currentMood}`;
+
+    return {
+      isPersonalized: true,
+      prompt: `Please grade the student's answer based on the rubric and provide personalized feedback.${contextInfo}
+
+Question: ${req.question}
+
+Rubric: ${req.rubric}
+
+Student Answer: ${req.studentAnswer}
+
+Max Score: ${req.maxScore}
+
+Provide personalized feedback:
+1. If student has historical struggles with related topics, explicitly reference them in explanation
+2. Adjust explanation based on learning style (visual: use diagrams/image analogies; auditory: use sound/rhythm analogies; reading: provide detailed text; kinesthetic: use hands-on examples)
+3. Adjust tone based on current mood (frustrated/anxious: more encouraging; neutral: standard; engaged/confident: more challenging)
+4. Provide 1-2 specific next steps
+
+Return JSON:
+{
+  "score": number (0-${req.maxScore}),
+  "confidence": number (0-1),
+  "feedback": "Personalized brief feedback referencing student's history",
+  "explanation": "Detailed grading explanation adapted to learning style",
+  "nextSteps": ["Specific suggestion 1", "Specific suggestion 2"],
+  "relatedStruggles": ["Related historical struggle topics"]
+}`,
+    };
+  }
+
+  return {
+    isPersonalized: false,
+    prompt: `Please grade the student's answer based on the rubric.
+
+Question: ${req.question}
+
+Rubric: ${req.rubric}
+
+Student Answer: ${req.studentAnswer}
+
+Max Score: ${req.maxScore}
+
+Return JSON:
+{
+  "score": number (0-${req.maxScore}),
+  "confidence": number (0-1),
+  "feedback": "Brief feedback for student",
+  "explanation": "Explanation of grading"
+}`,
+  };
+}
+
+/**
+ * Grade a freeform quiz answer (API-facing grading capability).
+ *
+ * Used by `/api/quiz/grade` to keep grading under the agents layer.
+ */
+export async function gradeQuizAnswer(request: QuizGradeRequest): Promise<QuizGradeResult> {
+  const { prompt, isPersonalized } = buildQuizGradePrompt(request);
+  const result = await generateWithFallback(prompt, {
+    temperature: 0.3,
+    maxTokens: 900,
+  });
+
+  const parsed = safeJsonParseWithSchema(result.content, quizGradeSchema, { extract: true });
+  if (parsed.data) {
+    return { ...parsed.data, isPersonalized, provider: result.provider };
+  }
+
+  return {
+    score: Math.round(request.maxScore * 0.5),
+    confidence: 0.5,
+    feedback: 'Your answer has been recorded.',
+    explanation: 'Automatic grading failed, will be reviewed manually.',
+    nextSteps: [],
+    relatedStruggles: [],
+    isPersonalized,
+    provider: result.provider,
+  };
 }
 
 export interface BatchGradingRequest {
