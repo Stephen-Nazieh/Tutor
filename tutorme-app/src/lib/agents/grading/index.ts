@@ -505,6 +505,64 @@ async function generateRecommendations(
 
 // Helper function - need to implement in shared-data.ts
 async function getQuiz(quizId: string): Promise<Quiz | null> {
-  // Implementation would fetch from database
-  return null;
+  const { drizzleDb } = await import('@/lib/db/drizzle')
+  const { quiz: quizTable } = await import('@/lib/db/schema')
+  const { eq } = await import('drizzle-orm')
+
+  const [quizRow] = await drizzleDb
+    .select()
+    .from(quizTable)
+    .where(eq(quizTable.id, quizId))
+    .limit(1)
+
+  if (!quizRow) return null
+
+  const rawQuestions = ((quizRow as any).questions as any[]) ?? []
+
+  const questions: Question[] = rawQuestions.map((q, idx) => {
+    const rawCorrect = (q as any).correctAnswer
+    const correctAnswer =
+      typeof rawCorrect === 'string'
+        ? rawCorrect
+        : rawCorrect == null
+          ? ''
+          : Array.isArray(rawCorrect)
+            ? rawCorrect.join(', ')
+            : JSON.stringify(rawCorrect)
+
+    const typeValue = (q as any).type
+    const type: Question['type'] =
+      typeValue === 'multiple_choice' ||
+      typeValue === 'short_answer' ||
+      typeValue === 'essay' ||
+      typeValue === 'math'
+        ? typeValue
+        : 'short_answer'
+
+    const difficultyValue = (q as any).difficulty
+    const difficulty: Question['difficulty'] =
+      difficultyValue === 'easy' || difficultyValue === 'medium' || difficultyValue === 'hard'
+        ? difficultyValue
+        : 'medium'
+
+    return {
+      id: (q as any).id ?? `${quizRow.id}:q${idx + 1}`,
+      type,
+      question: String((q as any).question ?? ''),
+      options: Array.isArray((q as any).options) ? (q as any).options : undefined,
+      correctAnswer,
+      explanation: String((q as any).explanation ?? ''),
+      points: Number((q as any).points ?? 1),
+      difficulty,
+    }
+  })
+
+  return {
+    id: quizRow.id,
+    lessonId: quizRow.lessonId ?? '',
+    title: quizRow.title,
+    questions,
+    timeLimit: quizRow.timeLimit ?? undefined,
+    totalPoints: quizRow.totalPoints,
+  }
 }
