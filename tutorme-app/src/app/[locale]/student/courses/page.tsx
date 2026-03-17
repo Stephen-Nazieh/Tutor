@@ -2,22 +2,16 @@
 
 import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/user-nav"
 import { toast } from "sonner"
 import {
-  Calendar,
-  Clock,
   Users,
   CheckCircle,
-  X,
-  Loader2,
-  ArrowLeft,
   BookOpen,
-  Video,
   Filter,
   Heart,
   Star,
@@ -26,19 +20,14 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
-  ChevronLeft,
-  ChevronRight,
   GraduationCap,
-  PlayCircle,
   Calculator,
   Languages,
   Music,
   Palette,
   Globe,
-  Plus,
   Search,
-  MessageCircle,
-  User
+  MessageCircle
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
@@ -72,31 +61,6 @@ function CoursesPageSkeleton() {
       </div>
     </div>
   )
-}
-
-interface Class {
-  id: string
-  title: string
-  subject: string
-  description?: string
-  startTime: string
-  duration: number
-  maxStudents: number
-  currentBookings: number
-  status: string
-  roomUrl?: string
-  isBooked: boolean
-  bookingId?: string
-  requiresPayment?: boolean
-  price?: number | null
-  paymentStatus?: string | null
-  paymentCheckoutUrl?: string | null
-  tutor: {
-    id: string
-    profile?: {
-      name?: string
-    }
-  }
 }
 
 // --- TYPES & DATA FROM BROWSE PAGE ---
@@ -188,24 +152,14 @@ const allSubjects: Subject[] = [
   },
 ]
 
-const FILTER_SUBJECTS = ['all', 'math', 'physics', 'chemistry', 'english'] as const
-type FilterSubject = (typeof FILTER_SUBJECTS)[number]
 const lumaCardClass = 'border border-[#E6D9FF] bg-gradient-to-br from-[#FFF7ED] via-white to-[#E0F2FE] shadow-[0_12px_32px_rgba(99,102,241,0.14)]'
 
 // Inner component that uses searchParams
 function CoursesPageContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const subjectFromUrl = searchParams.get('subject')?.toLowerCase().trim() || null
-  const { data: session, status } = useSession()
+  const { status } = useSession()
 
-  const [classes, setClasses] = useState<Class[]>([])
-  const [myBookings, setMyBookings] = useState<Class[]>([])
   const [loading, setLoading] = useState(true)
-  const [bookingClassId, setBookingClassId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<FilterSubject>(
-    subjectFromUrl && FILTER_SUBJECTS.includes(subjectFromUrl as FilterSubject) ? subjectFromUrl as FilterSubject : 'all'
-  )
 
   // --- BROWSE STATE ---
   const [subjects, setSubjects] = useState<Subject[]>(allSubjects)
@@ -216,9 +170,6 @@ function CoursesPageContent() {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [enrolling, setEnrolling] = useState(false)
   const [removingSubjectCode, setRemovingSubjectCode] = useState<string | null>(null)
-
-  // Derived state for My Courses tab
-  const myCourses = subjects.filter(s => enrolledIds.includes(s.id))
 
   // --- FAVORITES STATE ---
   const [favoriteTutors, setFavoriteTutors] = useState<Array<{
@@ -306,36 +257,13 @@ function CoursesPageContent() {
     loadFavorites()
   }, [loadFavorites])
 
-  // Calendar State
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-
-  const prevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
-  }
-
-  const nextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
-  }
-
-  useEffect(() => {
-    if (subjectFromUrl && FILTER_SUBJECTS.includes(subjectFromUrl as FilterSubject)) {
-      setFilter(subjectFromUrl as FilterSubject)
-    } else if (!subjectFromUrl) {
-      setFilter('all')
-    }
-  }, [subjectFromUrl])
-
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchClasses()
-      fetchMyBookings()
       fetchEnrolledSubjects()
+    } else if (status === 'unauthenticated') {
+      setLoading(false)
     }
-  }, [status, subjectFromUrl])
+  }, [status])
 
   const fetchEnrolledSubjects = async () => {
     try {
@@ -347,6 +275,8 @@ function CoursesPageContent() {
       }
     } catch (error) {
       console.error('Failed to fetch enrolled subjects')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -432,175 +362,12 @@ function CoursesPageContent() {
   const categories = ['all', ...Array.from(new Set(subjects.map(s => s.category)))]
   const difficulties = ['all', 'Beginner', 'Intermediate', 'Advanced', 'AP']
 
-  const fetchClasses = async () => {
-    try {
-      const params = new URLSearchParams({ limit: '20' })
-      if (subjectFromUrl) params.set('subject', subjectFromUrl)
-      const res = await fetch(`/api/classes?${params.toString()}`)
-      const data = await res.json()
-      if (data.classes) {
-        setClasses(data.classes)
-      }
-    } catch (error) {
-      toast.error(`Error`, {
-        description: "Failed to load classes",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchMyBookings = async () => {
-    try {
-      const params = new URLSearchParams({ myBookings: 'true' })
-      if (subjectFromUrl) params.set('subject', subjectFromUrl)
-      const res = await fetch(`/api/classes?${params.toString()}`)
-      const data = await res.json()
-      if (data.classes) {
-        setMyBookings(data.classes)
-      }
-    } catch (error) {
-      console.error('Failed to fetch bookings')
-    }
-  }
-
-  const handleBookClass = async (classId: string) => {
-    setBookingClassId(classId)
-    try {
-      const res = await fetch('/api/classes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classId })
-      })
-      const data = await res.json()
-
-      if (data.success) {
-        if (data.checkoutUrl) {
-          toast.success('Redirecting to payment...', {
-            description: 'Complete payment to confirm your spot.',
-          })
-          window.location.href = data.checkoutUrl
-          return
-        }
-        toast.success(`Class Booked! 📅`, {
-          description: data.message,
-        })
-        fetchClasses()
-        fetchMyBookings()
-      } else {
-        toast.error(`Booking Failed`, {
-          description: data.error || 'Failed to book class',
-        })
-      }
-    } catch (error) {
-      toast.error(`Error`, {
-        description: 'Failed to book class. Please try again.',
-      })
-    } finally {
-      setBookingClassId(null)
-    }
-  }
-
-  const [payingBookingId, setPayingBookingId] = useState<string | null>(null)
-
-  const handlePayNow = async (cls: Class) => {
-    if (!cls.bookingId) return
-    setPayingBookingId(cls.bookingId)
-    try {
-      if (cls.paymentCheckoutUrl) {
-        window.location.href = cls.paymentCheckoutUrl
-        return
-      }
-      const res = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: cls.bookingId })
-      })
-      const data = await res.json()
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-      } else {
-        toast.error(data.error || 'Could not start payment')
-      }
-    } catch {
-      toast.error('Failed to start payment')
-    } finally {
-      setPayingBookingId(null)
-    }
-  }
-
-  const handleCancelBooking = async (bookingId: string) => {
-    try {
-      const res = await fetch('/api/classes', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId })
-      })
-      const data = await res.json()
-
-      if (data.success) {
-        toast.success(`Booking Cancelled`, {
-          description: data.message,
-        })
-        // Refresh both lists
-        fetchClasses()
-        fetchMyBookings()
-      } else {
-        toast.error(`Failed to Cancel`, {
-          description: data.error || 'Failed to cancel booking',
-        })
-      }
-    } catch (error) {
-      toast.error(`Error`, {
-        description: 'Failed to cancel booking. Please try again.',
-      })
-    }
-  }
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    const now = new Date()
-    const tomorrow = new Date(now)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-
-    const isToday = date.toDateString() === now.toDateString()
-    const isTomorrow = date.toDateString() === tomorrow.toDateString()
-
-    const dateStr_formatted = date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric'
-    })
-    const timeStr = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit'
-    })
-
-    if (isToday) return `Today at ${timeStr}`
-    if (isTomorrow) return `Tomorrow at ${timeStr}`
-    return `${dateStr_formatted} at ${timeStr}`
-  }
-
-  const isPast = (dateStr: string) => {
-    return new Date(dateStr) < new Date()
-  }
-
-  // When we have subject from URL, API already returned only that subject; otherwise filter client-side
-  const filteredClasses = subjectFromUrl
-    ? classes
-    : filter === 'all'
-      ? classes
-      : classes.filter(c => c.subject.toLowerCase().includes(filter))
-
-  const upcomingClasses = filteredClasses.filter(c => !isPast(c.startTime))
-  const pastClasses = filteredClasses.filter(c => isPast(c.startTime))
-
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading classes...</p>
+          <p className="mt-2 text-gray-600">Loading courses...</p>
         </div>
       </div>
     )
@@ -626,447 +393,11 @@ function CoursesPageContent() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold">
-            Live Classes
-            {subjectFromUrl && (
-              <span className="text-xl font-normal text-gray-600 ml-2">
-                — {subjectFromUrl.charAt(0).toUpperCase() + subjectFromUrl.slice(1)}
-              </span>
-            )}
-          </h2>
-          <p className="text-gray-600 mt-1">
-            {subjectFromUrl
-              ? `Human tutor classes for ${subjectFromUrl.charAt(0).toUpperCase() + subjectFromUrl.slice(1)} only`
-              : 'Join interactive sessions with expert tutors'}
-          </p>
+          <h2 className="text-3xl font-bold">My Courses</h2>
+          <p className="text-gray-600 mt-1">Explore your learning space and discover new subjects.</p>
         </div>
 
         <div className="space-y-10">
-
-          <section id="browse" className="space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h3 className="text-xl font-semibold text-slate-900">Upcoming Classes</h3>
-                <p className="text-sm text-slate-500">Live sessions you can join next.</p>
-              </div>
-            </div>
-            {/* Filter buttons — when subject in URL, "View all subjects" clears filter and refetches */}
-            <div className="flex flex-wrap gap-2">
-              {FILTER_SUBJECTS.map((f) => (
-                <Button
-                  key={f}
-                  variant={filter === f && !subjectFromUrl ? 'default' : subjectFromUrl === f ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    if (f === 'all') {
-                      router.push('/student/courses')
-                      setFilter('all')
-                      return
-                    }
-                    setFilter(f)
-                    router.push(`/student/courses?subject=${encodeURIComponent(f)}`)
-                  }}
-                >
-                  {f === 'all' ? (subjectFromUrl ? 'View all subjects' : 'All Subjects') : f.charAt(0).toUpperCase() + f.slice(1)}
-                </Button>
-              ))}
-            </div>
-
-            {upcomingClasses.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {upcomingClasses.map((cls) => (
-                  <Card key={cls.id} className={`${lumaCardClass} ${cls.isBooked ? 'ring-2 ring-emerald-300' : ''}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <Badge variant="secondary" className="mb-2">
-                            {cls.subject}
-                          </Badge>
-                          <CardTitle className="text-lg">{cls.title}</CardTitle>
-                        </div>
-                        {cls.isBooked && (
-                          <Badge className="bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Booked
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          {formatDate(cls.startTime)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          {cls.duration} minutes
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          {cls.currentBookings}/{cls.maxStudents} students
-                        </div>
-                        {cls.price != null && cls.price > 0 && (
-                          <div className="flex items-center gap-2 text-green-600 font-medium">
-                            SGD {cls.price.toFixed(2)}
-                          </div>
-                        )}
-                        {cls.tutor.profile?.name && (
-                          <div className="flex items-center gap-2">
-                            <BookOpen className="w-4 h-4" />
-                            Tutor: {cls.tutor.profile.name}
-                          </div>
-                        )}
-                      </div>
-
-                      {cls.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {cls.description}
-                        </p>
-                      )}
-
-                      <div className="pt-2">
-                        {cls.isBooked ? (
-                          <div className="flex gap-2">
-                            {cls.roomUrl && (
-                              <Button className="flex-1" asChild>
-                                <a href={cls.roomUrl} target="_blank" rel="noopener noreferrer">
-                                  <Video className="w-4 h-4 mr-2" />
-                                  Join Room
-                                </a>
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleCancelBooking(cls.bookingId!)}
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            className="w-full"
-                            disabled={bookingClassId === cls.id || cls.currentBookings >= cls.maxStudents}
-                            onClick={() => handleBookClass(cls.id)}
-                          >
-                            {bookingClassId === cls.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : null}
-                            {cls.currentBookings >= cls.maxStudents ? 'Full' : 'Book Now'}
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="pt-12 pb-12 text-center">
-                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600">No upcoming classes</h3>
-                  <p className="text-gray-500 mt-1">Check back later for new sessions</p>
-                </CardContent>
-              </Card>
-            )}
-          </section>
-
-          <section className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-slate-900">Live Class Bookings</h3>
-              <p className="text-sm text-slate-500">Your reserved live classes.</p>
-            </div>
-            {myBookings.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {myBookings.map((cls) => (
-                  <Card key={cls.id} className={`${lumaCardClass} ${isPast(cls.startTime) ? 'opacity-70' : 'ring-2 ring-emerald-300'}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <Badge variant="secondary" className="mb-2">
-                            {cls.subject}
-                          </Badge>
-                          <CardTitle className="text-lg">{cls.title}</CardTitle>
-                        </div>
-                        <Badge className={isPast(cls.startTime) ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-800'}>
-                          {isPast(cls.startTime) ? 'Completed' : 'Upcoming'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          {formatDate(cls.startTime)}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          {cls.duration} minutes
-                        </div>
-                      </div>
-
-                      {!isPast(cls.startTime) && (
-                        <div className="flex flex-col gap-2 pt-2">
-                          {cls.requiresPayment && cls.paymentStatus !== 'COMPLETED' && (
-                            <Button
-                              className="w-full"
-                              disabled={payingBookingId === cls.bookingId}
-                              onClick={() => handlePayNow(cls)}
-                            >
-                              {payingBookingId === cls.bookingId ? (
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              ) : null}
-                              Pay now
-                            </Button>
-                          )}
-                          <div className="flex gap-2">
-                            {cls.roomUrl && (
-                              <Button className="flex-1" asChild>
-                                <a href={cls.roomUrl} target="_blank" rel="noopener noreferrer">
-                                  <Video className="w-4 h-4 mr-2" />
-                                  Join Room
-                                </a>
-                              </Button>
-                            )}
-                            <Button
-                              variant="outline"
-                              onClick={() => handleCancelBooking(cls.bookingId!)}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="pt-12 pb-12 text-center">
-                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600">No bookings yet</h3>
-                  <p className="text-gray-500 mt-1">Book your first class session above</p>
-                </CardContent>
-              </Card>
-            )}
-          </section>
-
-          <section className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-slate-900">Past Classes</h3>
-              <p className="text-sm text-slate-500">Replays and completed sessions.</p>
-            </div>
-            {pastClasses.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pastClasses.map((cls) => (
-                  <Card key={cls.id} className={`${lumaCardClass} opacity-70`}>
-                    <CardHeader>
-                      <Badge variant="secondary" className="mb-2">
-                        {cls.subject}
-                      </Badge>
-                      <CardTitle className="text-lg">{cls.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {formatDate(cls.startTime)}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        {cls.duration} minutes
-                      </div>
-                      <Badge variant="outline" className="mt-2">
-                        Completed
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="pt-12 pb-12 text-center">
-                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600">No past sessions</h3>
-                </CardContent>
-              </Card>
-            )}
-          </section>
-
-          <section className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-slate-900">Calendar</h3>
-              <p className="text-sm text-slate-500">Plan your week and check upcoming sessions.</p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>
-                      {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="icon" onClick={prevMonth}>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="icon" onClick={nextMonth}>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-7 gap-2 text-center mb-4">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="font-semibold text-sm text-gray-500 py-2">
-                          {day}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-7 gap-2">
-                      {Array.from({ length: 35 }, (_, i) => {
-                        const dayNum = (i % 31) + 1
-                        // Simple check to identify today (approximate logic from original)
-                        const isToday = dayNum === new Date().getDate() &&
-                          currentDate.getMonth() === new Date().getMonth() &&
-                          currentDate.getFullYear() === new Date().getFullYear();
-
-                        return (
-                          <div
-                            key={i}
-                            className={`aspect-square border rounded-lg flex items-center justify-center text-sm hover:bg-gray-50 cursor-pointer ${isToday ? 'bg-blue-50 border-blue-200 font-bold' : ''}`}
-                          >
-                            {dayNum}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Today's Classes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {(() => {
-                      // Filter classes for today
-                      const today = new Date();
-                      const todayClasses = myBookings.filter(c => {
-                        const cDate = new Date(c.startTime);
-                        return cDate.getDate() === today.getDate() &&
-                          cDate.getMonth() === today.getMonth() &&
-                          cDate.getFullYear() === today.getFullYear();
-                      });
-
-                      if (todayClasses.length === 0) {
-                        return <p className="text-gray-500 text-sm">No classes scheduled for today</p>;
-                      }
-
-                      return (
-                        <div className="space-y-3">
-                          {todayClasses.map(c => (
-                            <div key={c.id} className="p-3 bg-gray-50 rounded-lg text-sm border">
-                              <div className="font-medium">{c.title}</div>
-                              <div className="text-gray-500 text-xs mt-1">
-                                {formatDate(c.startTime).split(' at ')[1]} • {c.duration} min
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    })()}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Upcoming Deadlines</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-500 text-sm">No upcoming deadlines</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </section>
-          <section className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold text-slate-900">My Courses</h3>
-              <p className="text-sm text-slate-500">Subjects you are enrolled in.</p>
-            </div>
-            {myCourses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myCourses.map((subject) => {
-                  const colors = getSubjectColors(subject.code)
-                  return (
-                    <Card key={subject.id} className={`${lumaCardClass} hover:shadow-xl transition-shadow`}>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-white ${colors.bg}`}>
-                            {getSubjectIcon(subject.code)}
-                          </div>
-                          {/* Placeholder progress for now */}
-                          <Badge variant="outline">Enrolled</Badge>
-                        </div>
-                        <CardTitle className="text-lg mt-3">{subject.name}</CardTitle>
-                        <CardDescription>{subject.category}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-600 line-clamp-2 min-h-[40px]">
-                            {subject.description}
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Button asChild className="w-full gap-2" variant="default">
-                            <Link href={`/student/subjects/${subject.code}`}>
-                              <PlayCircle className="h-4 w-4" />
-                              Continue Learning
-                            </Link>
-                          </Button>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <Button asChild variant="outline" size="sm" className="w-full">
-                              <Link href={`/student/courses?subject=${subject.code}`}>
-                                <Users className="w-3 h-3 mr-2" />
-                                Human Tutor
-                              </Link>
-                            </Button>
-                            <Button asChild variant="outline" size="sm" className="w-full">
-                              <Link href={`/student/subjects/${subject.code}/chat`}>
-                                <MessageCircle className="w-3 h-3 mr-2" />
-                                AI Tutor
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="pt-12 pb-12 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <BookOpen className="w-8 h-8 text-gray-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-600">No courses yet</h3>
-                  <p className="text-gray-500 mt-2 mb-6">Enroll in subjects to start your learning journey</p>
-                  <Button asChild>
-                    <Link href="/student/courses#browse">Browse Subjects</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </section>
 
           <section className="space-y-8">
             <div>

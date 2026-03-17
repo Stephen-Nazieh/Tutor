@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { Plus, Settings, BookOpen, Library, ChevronRight, Sparkles, Video, Info, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -19,6 +20,7 @@ import {
   type StudentNeedingAttention,
 } from './components'
 import { ModernHeroSection } from './components/ModernHeroSection'
+import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
 function DashboardSkeleton() {
   return (
@@ -58,6 +60,9 @@ function TutorDashboardContent() {
   const searchParams = useSearchParams()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
+  const [themeId, setThemeId] = useState('current')
+  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateDialog(true)
@@ -151,6 +156,13 @@ function TutorDashboardContent() {
     }
   }, [session?.user?.id, fetchData])
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('tutor-dashboard-theme')
+      if (stored) setThemeId(stored)
+    } catch { }
+  }, [])
+
   const handleClassCreated = useCallback((classData?: { id: string;[key: string]: unknown }) => {
     if (classData) {
       // Add the new class to the list immediately
@@ -215,7 +227,34 @@ function TutorDashboardContent() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]" style={themeStyle}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="text-sm text-[var(--theme-text-secondary)]">Tutor Dashboard</div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">Theme</span>
+            <Select
+              value={themeId}
+              onValueChange={(value) => {
+                setThemeId(value)
+                try {
+                  localStorage.setItem('tutor-dashboard-theme', value)
+                } catch { }
+              }}
+            >
+              <SelectTrigger className="h-8 w-[200px] border-[var(--theme-divider)] bg-[var(--theme-surface)] text-[var(--theme-text)]">
+                <SelectValue placeholder="Select theme" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {DASHBOARD_THEMES.map((theme) => (
+                  <SelectItem key={theme.id} value={theme.id}>
+                    {theme.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       {/* Modern Hero Section */}
       <div className="mb-8">
         <ModernHeroSection
@@ -246,7 +285,7 @@ function TutorDashboardContent() {
       </div>
 
       <div className="space-y-4 mb-8">
-        <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
+        <Card className="border border-[var(--theme-divider)] shadow-xl bg-[var(--theme-surface)]/95 backdrop-blur-md">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
               <div className="text-center py-2 md:py-0">
@@ -287,6 +326,7 @@ function TutorDashboardContent() {
         initialDate={scheduleDate}
       />
 
+      </div>
     </div>
   )
 }

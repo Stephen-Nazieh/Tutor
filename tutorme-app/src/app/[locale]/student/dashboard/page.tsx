@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Flame, Settings, AlertCircle } from 'lucide-react'
 
@@ -22,6 +23,7 @@ import {
 import { StudentHeroSection } from './components/StudentHeroSection'
 import type { DashboardClass, DashboardData } from './types'
 import { getDashboardStrings } from './dashboard-strings'
+import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
 export default function StudentDashboard() {
   const router = useRouter()
@@ -33,8 +35,11 @@ export default function StudentDashboard() {
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [bookingClassId, setBookingClassId] = useState<string | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [themeId, setThemeId] = useState('current')
 
   const strings = getDashboardStrings('en')
+  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const themeStyle = getThemeStyle(selectedTheme)
 
   const fetchDashboardData = useCallback(async () => {
     if (status !== 'authenticated') return
@@ -99,6 +104,13 @@ export default function StudentDashboard() {
     }
   }, [status, router])
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('student-dashboard-theme')
+      if (stored) setThemeId(stored)
+    } catch { }
+  }, [])
+
   // Fetch dashboard data
   useEffect(() => {
     if (status !== 'authenticated') return
@@ -124,8 +136,8 @@ export default function StudentDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white border-b sticky top-0 z-50 safe-top">
+      <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]" style={themeStyle}>
+        <nav className="bg-[var(--theme-panel)] border-b border-[var(--theme-divider)] sticky top-0 z-50 safe-top">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
               <div className="h-7 w-24 bg-gray-200 rounded animate-pulse" />
@@ -187,7 +199,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]" style={themeStyle}>
       {/* Animations */}
       {showXpAnimation && xpGain && (
         <XpAnimation amount={xpGain.amount} reason={xpGain.reason} onComplete={() => setShowXpAnimation(false)} />
@@ -197,7 +209,7 @@ export default function StudentDashboard() {
       )}
 
       {/* Navigation */}
-      <nav className="bg-white border-b sticky top-0 z-50 safe-top">
+      <nav className="bg-[var(--theme-panel)] border-b border-[var(--theme-divider)] sticky top-0 z-50 safe-top">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -208,11 +220,34 @@ export default function StudentDashboard() {
             </div>
             <div className="flex items-center gap-4">
               {data?.gamification && (
-                <div className="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full">
+                <div className="flex items-center gap-2 bg-[var(--theme-surface)] px-3 py-1 rounded-full border border-[var(--theme-divider)]">
                   <Flame className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium">{data.gamification.streakDays} day streak</span>
+                  <span className="text-sm font-medium text-[var(--theme-text)]">{data.gamification.streakDays} day streak</span>
                 </div>
               )}
+              <div className="flex items-center gap-2">
+                <span className="text-xs uppercase tracking-[0.2em] text-[var(--theme-text-secondary)]">Theme</span>
+                <Select
+                  value={themeId}
+                  onValueChange={(value) => {
+                    setThemeId(value)
+                    try {
+                      localStorage.setItem('student-dashboard-theme', value)
+                    } catch { }
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-[190px] border-[var(--theme-divider)] bg-[var(--theme-surface)] text-[var(--theme-text)]">
+                    <SelectValue placeholder="Select theme" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {DASHBOARD_THEMES.map((theme) => (
+                      <SelectItem key={theme.id} value={theme.id}>
+                        {theme.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <NotificationBell />
               <Link href="/student/settings">
                 <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
