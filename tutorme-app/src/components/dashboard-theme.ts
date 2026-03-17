@@ -119,5 +119,5 @@ export const getThemeStyle = (theme?: DashboardTheme): CSSProperties => {
     '--theme-divider': theme.tokens.divider,
     '--theme-text': theme.tokens.textPrimary,
     '--theme-text-secondary': theme.tokens.textSecondary,
-  }
+  } as CSSProperties
 }
