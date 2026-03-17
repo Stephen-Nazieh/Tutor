@@ -4,12 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { TeachingMode } from '@/lib/ai/modular-tutor'
 import { getTeachingModes } from '@/lib/ai/teaching-prompts'
 import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { z } from 'zod'
 import { runTutorChat } from '@/lib/ai/tutor-chat-service'
 import { getServerSession, authOptions } from '@/lib/auth'
+
+type TutorMode = 'socratic' | 'direct' | 'lesson' | 'practice'
 
 const TutorRequestSchema = z.object({
   message: z.string().min(1).max(2000),
@@ -48,12 +49,14 @@ export async function POST(request: NextRequest) {
       conversationId,
     } = parsed.data
 
+    const teachingMode: TutorMode = mode === 'hint' ? 'socratic' : mode
+
     const response = await runTutorChat({
       userId: session.user.id,
       message,
       subject,
       topic,
-      teachingMode: mode as TeachingMode,
+      teachingMode,
       teachingAge,
       voiceGender,
       voiceAccent,
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       success: true,
       response: response.response,
       mode,
-      isSocratic: mode === 'socratic',
+      isSocratic: teachingMode === 'socratic',
       whiteboardItems: response.whiteboardItems,
       conversationId: conversationId || `tutor-${subject}-${Date.now()}`
     })
