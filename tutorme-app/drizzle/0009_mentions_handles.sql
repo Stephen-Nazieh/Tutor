@@ -3,9 +3,18 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "handle" text;
 
-ALTER TABLE "User"
-  ADD CONSTRAINT "User_handle_format_chk"
-  CHECK ("handle" IS NULL OR "handle" ~ '^[A-Za-z0-9_]{3,15}$');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'User_handle_format_chk'
+  ) THEN
+    ALTER TABLE "User"
+      ADD CONSTRAINT "User_handle_format_chk"
+      CHECK ("handle" IS NULL OR "handle" ~ '^[A-Za-z0-9_]{3,15}$');
+  END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS "User_handle_lower_key"
   ON "User" (lower("handle"))

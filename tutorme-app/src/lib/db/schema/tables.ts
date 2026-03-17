@@ -445,6 +445,39 @@ export const aIInteractionSession = pgTable('AIInteractionSession', {
   AIInteractionSession_startedAt_idx: index('AIInteractionSession_startedAt_idx').on(table.startedAt)
 }))
 
+// Student memory (shared brain) - persisted context for agents
+export const studentMemoryProfile = pgTable('StudentMemoryProfile', {
+  studentId: text('studentId').primaryKey().notNull(),
+  profile: jsonb('profile').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  StudentMemoryProfile_studentId_idx: index('StudentMemoryProfile_studentId_idx').on(table.studentId),
+}))
+
+export const studentLearningState = pgTable('StudentLearningState', {
+  studentId: text('studentId').primaryKey().notNull(),
+  state: jsonb('state').notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  StudentLearningState_studentId_idx: index('StudentLearningState_studentId_idx').on(table.studentId),
+}))
+
+export const studentAgentSignal = pgTable('StudentAgentSignal', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  studentId: text('studentId').notNull(),
+  source: text('source').notNull(),
+  type: text('type').notNull(),
+  content: text('content').notNull(),
+  context: jsonb('context'),
+  expiresAt: timestamp('expiresAt', { withTimezone: true }),
+  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  StudentAgentSignal_studentId_idx: index('StudentAgentSignal_studentId_idx').on(table.studentId),
+  StudentAgentSignal_createdAt_idx: index('StudentAgentSignal_createdAt_idx').on(table.createdAt),
+}))
+
 export const aITutorDailyUsage = pgTable('AITutorDailyUsage', {
   id: text('id').primaryKey().notNull(),
   userId: text('userId').notNull(),

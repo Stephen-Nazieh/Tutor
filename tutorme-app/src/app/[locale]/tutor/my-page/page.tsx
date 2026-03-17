@@ -27,6 +27,16 @@ const SUBJECTS = [
   { value: 'cs', label: 'Computer Science' },
 ]
 
+const DEFAULT_CATEGORIES = [
+  'Exam prep',
+  'Homework help',
+  'Foundations',
+  'Advanced',
+  'Projects',
+  'Study skills',
+  'Test strategies',
+] as const
+
 export default function TutorMyPage() {
   const params = useParams<{ locale?: string }>()
   const router = useRouter()
@@ -50,6 +60,7 @@ export default function TutorMyPage() {
   const [country, setCountry] = useState<string>('')
   const [activeCourses, setActiveCourses] = useState<number | null>(null)
   const [profileCategories, setProfileCategories] = useState<string[]>([])
+  const [editableCategories, setEditableCategories] = useState<string[]>([])
   const [socialAccounts, setSocialAccounts] = useState({
     youtube: '',
     instagram: '',
@@ -57,6 +68,11 @@ export default function TutorMyPage() {
     facebook: '',
   })
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(true)
+
+  const aggregatedCategories = useMemo<string[]>(
+    () => Array.from(new Set<string>([...DEFAULT_CATEGORIES, ...profileCategories])).sort(),
+    [profileCategories]
+  )
 
   useEffect(() => {
     let active = true
@@ -603,7 +619,7 @@ export default function TutorMyPage() {
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {AGGREGATED_CATEGORIES.map((category) => {
+                {aggregatedCategories.map((category) => {
                   const active = courseCategories.includes(category)
                   return (
                     <button

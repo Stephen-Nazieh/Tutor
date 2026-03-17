@@ -6,6 +6,8 @@
 
 import { StudentContext, StudentProfile, LearningState, AgentSignal } from './types/context'
 
+const isServer = typeof window === 'undefined'
+
 // Mock Database (In-Memory for now)
 const profiles = new Map<string, StudentProfile>()
 const states = new Map<string, LearningState>()
@@ -41,6 +43,16 @@ export class MemoryService {
      * Aggregates Profile + State + Signals
      */
     static async getStudentContext(studentId: string): Promise<StudentContext | null> {
+        // Prefer DB-backed memory on the server, with in-memory fallback on client/dev.
+        if (isServer) {
+            try {
+                const mod = await import('./memory-store.server')
+                return await mod.getStudentContextDb(studentId)
+            } catch {
+                // fall back to in-memory below
+            }
+        }
+
         const profile = profiles.get(studentId)
         if (!profile) return null
 
@@ -79,6 +91,15 @@ export class MemoryService {
             timestamp: Date.now()
         }
 
+        if (isServer) {
+            try {
+                const mod = await import('./memory-store.server')
+                await mod.recordSignalDb(studentId, signal)
+            } catch {
+                // ignore and fall back to in-memory
+            }
+        }
+
         const currentSignals = signals.get(studentId) || []
         signals.set(studentId, [...currentSignals, newSignal])
 
@@ -102,6 +123,16 @@ export class MemoryService {
      * Update the dynamic learning state
      */
     static async updateState(studentId: string, updateFn: (state: LearningState) => LearningState) {
+        if (isServer) {
+            try {
+                const mod = await import('./memory-store.server')
+                await mod.updateStateDb(studentId, updateFn)
+                return
+            } catch {
+                // fall back to in-memory below
+            }
+        }
+
         const currentState = states.get(studentId) || this.getInitialState()
         const newState = updateFn({ ...currentState })
         states.set(studentId, newState)
