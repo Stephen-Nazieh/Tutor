@@ -87,7 +87,6 @@ export default function StudentLayout({
         <div className="p-4 border-b flex items-center justify-between">
           <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
             <span className="sr-only">Dashboard</span>
-            <span className="h-2.5 w-2.5 rounded-full bg-blue-600" aria-hidden="true" />
           </Link>
         </div>
 
@@ -124,8 +123,19 @@ export default function StudentLayout({
               const Icon = item.icon
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
               const isComingSoon = item.href === '/student/ai-tutor'
+              const isDisabled = item.href === '/student/dashboard-details'
               return (
-                isComingSoon ? (
+                isDisabled ? (
+                  <button
+                    key={item.href}
+                    type="button"
+                    disabled
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-left w-full text-gray-400 cursor-not-allowed"
+                  >
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span className="font-medium text-sm">{item.label}</span>
+                  </button>
+                ) : isComingSoon ? (
                   <button
                     key={item.href}
                     type="button"
@@ -180,7 +190,6 @@ export default function StudentLayout({
             </Button>
             <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
               <span className="sr-only">Dashboard</span>
-              <span className="h-2.5 w-2.5 rounded-full bg-blue-600" aria-hidden="true" />
             </Link>
           </div>
           <div className="flex items-center gap-2">
@@ -226,8 +235,19 @@ export default function StudentLayout({
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                 const isComingSoon = item.href === '/student/ai-tutor'
+                const isDisabled = item.href === '/student/dashboard-details'
                 return (
-                  isComingSoon ? (
+                  isDisabled ? (
+                    <button
+                      key={item.href}
+                      type="button"
+                      disabled
+                      className="flex items-center gap-3 px-3 py-3 rounded-lg text-left w-full text-gray-400 cursor-not-allowed"
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span className="font-medium">{item.label}</span>
+                    </button>
+                  ) : isComingSoon ? (
                     <button
                       key={item.href}
                       type="button"

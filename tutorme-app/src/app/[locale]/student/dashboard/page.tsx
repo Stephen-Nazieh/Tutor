@@ -9,7 +9,7 @@ import { UserNav } from '@/components/user-nav'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Flame, Settings, AlertCircle } from 'lucide-react'
+import { Settings, AlertCircle } from 'lucide-react'
 
 import { XpAnimation, LevelUpAnimation } from '@/components/gamification/xp-animation'
 
@@ -17,7 +17,6 @@ import {
   // ContinueLearning,  // Moved to DashboardCalendar tabs
   // UpcomingClasses,   // Moved to DashboardCalendar tabs
   DashboardSkeleton,
-  MyCoursesCard,
   DashboardCalendar,
 } from './components'
 import { StudentHeroSection } from './components/StudentHeroSection'
@@ -215,18 +214,10 @@ export default function StudentDashboard() {
             <div className="flex items-center">
               <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
                 <span className="sr-only">Dashboard</span>
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-600" aria-hidden="true" />
               </Link>
             </div>
             <div className="flex items-center gap-4">
-              {data?.gamification && (
-                <div className="flex items-center gap-2 bg-card px-3 py-1 rounded-full border border-border">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium text-foreground">{data.gamification.streakDays} day streak</span>
-                </div>
-              )}
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Theme</span>
                 <Select
                   value={themeId}
                   onValueChange={(value) => {
@@ -280,7 +271,6 @@ export default function StudentDashboard() {
         </div>
 
         <div className="space-y-6">
-          <MyCoursesCard courses={data?.courses ?? []} onCourseRemoved={fetchDashboardData} />
           <DashboardCalendar
             onRefresh={fetchDashboardData}
             contents={(data?.contents ?? []) as { id: string; subject: string; topic: string; progress: number; lastStudied?: string }[]}
