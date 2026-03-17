@@ -7520,7 +7520,7 @@ FEEDBACK: [your explanation]`
                         </TabsList>
                         {testPciTabs.map((tab) => (
                           <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                            <div className="p-4 bg-gray-50 rounded-lg min-h-[320px] max-h-[800px] overflow-y-auto">
+                            <div className="p-4 bg-gray-50 rounded-lg min-h-[480px] max-h-[800px] overflow-y-auto">
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
                               {/* Show AI scores if any */}
                               {testPciScores[tab.id]?.length > 0 && (

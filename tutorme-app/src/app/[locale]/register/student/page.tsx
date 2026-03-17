@@ -16,7 +16,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react'
-import { GLOBAL_EXAM_CATEGORIES, REGIONS } from '@/lib/tutoring/categories-new'
+import { REGIONS } from '@/lib/tutoring/categories-new'
 
 export default function StudentRegistrationPage() {
   const router = useRouter()
@@ -33,7 +33,6 @@ export default function StudentRegistrationPage() {
     age: '',
     region: '',
     country: '',
-    tutorPreference: '',
     isSixteen: false,
     tosAccepted: false,
   })
@@ -50,12 +49,6 @@ export default function StudentRegistrationPage() {
     () => countryOptions.find((country) => country.code === formData.country),
     [countryOptions, formData.country]
   )
-  const sortedTutorCategories = useMemo(() => {
-    const countrySpecific = (selectedCountry?.nationalExams || []).map((category) => category.label)
-    const globalCategories = GLOBAL_EXAM_CATEGORIES.map((category) => category.label)
-    const combined = [...countrySpecific, ...globalCategories]
-    return Array.from(new Set(combined))
-  }, [selectedCountry])
 
   const goNext = () => setStep((prev) => Math.min(4, prev + 1))
   const goBack = () => setStep((prev) => Math.max(1, prev - 1))
@@ -132,7 +125,6 @@ export default function StudentRegistrationPage() {
             age: Number(formData.age),
             region: selectedRegion?.name || formData.region,
             country: selectedCountry?.name || formData.country,
-            tutorPreference: formData.tutorPreference || undefined,
             isSixteen: formData.isSixteen,
           },
         }),
@@ -169,9 +161,6 @@ export default function StudentRegistrationPage() {
             <BookOpen className="h-8 w-8 text-[#4FD1C5]" />
           </div>
           <h1 className="text-3xl font-bold text-[#1F2933]">Student Registration</h1>
-          <p className="text-gray-600 mt-2">
-            Create an account to start learning with AI tutors and live classes
-          </p>
         </div>
 
         <Card>
@@ -332,28 +321,6 @@ export default function StudentRegistrationPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tutorPreference">What kind of tutor are you looking for? (Optional)</Label>
-                  <Select
-                    value={formData.tutorPreference}
-                    onValueChange={(value) => setFormData({ ...formData, tutorPreference: value })}
-                  >
-                    <SelectTrigger id="tutorPreference">
-                      <SelectValue placeholder="Select tutor category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sortedTutorCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500">
-                    Categories are prioritized based on your region and country.
-                  </p>
                 </div>
 
                 <div className="flex items-start space-x-3 rounded-lg border p-4">

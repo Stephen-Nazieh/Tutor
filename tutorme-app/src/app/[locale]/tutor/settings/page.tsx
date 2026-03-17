@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
+import { REGIONS } from '@/lib/tutoring/categories-new'
 
 export default function TutorSettings() {
   const { data: session } = useSession()
@@ -23,11 +24,40 @@ export default function TutorSettings() {
   const [billingAddress, setBillingAddress] = useState('')
   const [renewTerm, setRenewTerm] = useState('1')
   const [payoutBalance] = useState('$0.00')
+  const [taxRegion, setTaxRegion] = useState('')
   const [taxCountry, setTaxCountry] = useState('')
   const [taxLegalName, setTaxLegalName] = useState('')
   const [taxAddress, setTaxAddress] = useState('')
   const [taxId, setTaxId] = useState('')
   const [taxEntityType, setTaxEntityType] = useState('Individual')
+  const languageOptions = [
+    'English',
+    'Cantonese',
+    'Mandarin Chinese',
+    'French',
+    'Spanish',
+    'Portuguese',
+    'Korean',
+    'Hindi',
+    'Japanese',
+    'Indonesian',
+    'Vietnamese',
+    'Thai',
+  ]
+  const timeZoneOptions = useMemo(() => {
+    if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
+      return (Intl as unknown as { supportedValuesOf: (value: 'timeZone') => string[] }).supportedValuesOf('timeZone')
+    }
+    return ['UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
+  }, [])
+  const selectedTaxRegion = useMemo(
+    () => REGIONS.find((region) => region.id === taxRegion),
+    [taxRegion]
+  )
+  const taxCountryOptions = useMemo(
+    () => (selectedTaxRegion ? selectedTaxRegion.countries : []),
+    [selectedTaxRegion]
+  )
   const loginActivity = [
     { id: 'login-1', label: 'Web · Shanghai, CN · Today 09:24' },
     { id: 'login-2', label: 'Mobile · Singapore · Yesterday 18:11' },
@@ -105,7 +135,7 @@ export default function TutorSettings() {
             onClick={() => setBillingOpen((prev) => !prev)}
           >
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg text-[#1F2933]">Email Billing and Payment</CardTitle>
+              <CardTitle className="text-lg text-[#1F2933]">Billing and Payment</CardTitle>
               {billingOpen ? (
                 <ChevronUp className="h-4 w-4 text-[#64748B]" />
               ) : (
@@ -188,14 +218,14 @@ export default function TutorSettings() {
 
               <div className="rounded-2xl border border-[#F59E0B]/30 bg-[#FFFBEB] p-4 space-y-3">
                 <div className="text-sm font-semibold text-[#92400E]">Cancel Subscription</div>
-                <p className="text-sm text-[#92400E]">
-                  Are you sure? Once you delete your account, your account will be dormant for 2 months. You can login and
-                  activate your account within this time.
-                </p>
                 <Button
                   variant="outline"
                   className="border-[#F59E0B] text-[#92400E] hover:bg-[#FDE68A]"
-                  onClick={() => toast.message('Cancellation request recorded')}
+                  onClick={() => {
+                    if (confirm('Are you sure you want to cancel your subscription?')) {
+                      toast.message('Thank you for being with us. We hope you return another time.')
+                    }
+                  }}
                 >
                   Cancel
                 </Button>
@@ -258,13 +288,44 @@ export default function TutorSettings() {
             <CardContent className="space-y-5">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
+                  <Label className="text-[#1F2933]">Region</Label>
+                  <Select
+                    value={taxRegion}
+                    onValueChange={(value) => {
+                      setTaxRegion(value)
+                      setTaxCountry('')
+                    }}
+                  >
+                    <SelectTrigger className="border-[#E2E8F0] bg-white">
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {REGIONS.map((region) => (
+                        <SelectItem key={region.id} value={region.id}>
+                          {region.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label className="text-[#1F2933]">Country</Label>
-                  <Input
+                  <Select
                     value={taxCountry}
-                    onChange={(e) => setTaxCountry(e.target.value)}
-                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                    placeholder="Country"
-                  />
+                    onValueChange={setTaxCountry}
+                    disabled={!taxRegion}
+                  >
+                    <SelectTrigger className="border-[#E2E8F0] bg-white">
+                      <SelectValue placeholder={taxRegion ? 'Select country' : 'Select region first'} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {taxCountryOptions.map((country) => (
+                        <SelectItem key={country.code} value={country.code}>
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[#1F2933]">Legal Name</Label>
@@ -367,11 +428,12 @@ export default function TutorSettings() {
                     <SelectTrigger className="border-[#E2E8F0] bg-white">
                       <SelectValue placeholder="Language" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="English">English</SelectItem>
-                      <SelectItem value="Chinese">Chinese</SelectItem>
-                      <SelectItem value="Spanish">Spanish</SelectItem>
-                      <SelectItem value="French">French</SelectItem>
+                    <SelectContent className="max-h-72">
+                      {languageOptions.map((language) => (
+                        <SelectItem key={language} value={language}>
+                          {language}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -381,14 +443,32 @@ export default function TutorSettings() {
                     <SelectTrigger className="border-[#E2E8F0] bg-white">
                       <SelectValue placeholder="Time zone" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Asia/Shanghai">Asia/Shanghai</SelectItem>
-                      <SelectItem value="America/Los_Angeles">America/Los_Angeles</SelectItem>
-                      <SelectItem value="America/New_York">America/New_York</SelectItem>
-                      <SelectItem value="Europe/London">Europe/London</SelectItem>
+                    <SelectContent className="max-h-72">
+                      {timeZoneOptions.map((zone) => (
+                        <SelectItem key={zone} value={zone}>
+                          {zone}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="rounded-2xl border border-[#FCA5A5]/40 bg-[#FEF2F2] p-4 space-y-3">
+                <div className="text-sm font-semibold text-[#991B1B]">Delete Account (GDPR)</div>
+                <p className="text-sm text-[#7F1D1D]">
+                  Permanently delete your account and personal data. You can reactivate within two months if you change your mind.
+                </p>
+                <Button
+                  variant="outline"
+                  className="border-[#DC2626] text-[#991B1B] hover:bg-[#FEE2E2]"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete your account permanently?')) {
+                      toast.message('Account deletion requested. Your account will be dormant for 2 months, and you can reactivate within this time.')
+                    }
+                  }}
+                >
+                  Delete account
+                </Button>
               </div>
               <Button
                 className="bg-[#4FD1C5] text-[#1F2933] hover:bg-[#3CC6B9]"
