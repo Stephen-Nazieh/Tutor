@@ -93,6 +93,8 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const MentionsInputComponent = MentionsInput as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const MentionComponent = Mention as any
 
   return (
     <MentionsInputComponent
@@ -104,7 +106,7 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
       onKeyDown={onKeyDown}
       style={variant === 'dark' ? darkStyle : baseStyle}
     >
-      <Mention
+      <MentionComponent
         trigger="@"
         data={fetchSuggestions}
         markup="@[__display__](__id__)"
