@@ -33,7 +33,9 @@ import {
 import { ArrowLeft, BookOpen, FileText, ListOrdered, CheckCircle2, Loader2, Radio, DollarSign, X, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ScheduleItem } from './constants'
-import { DAYS } from './constants'
+import { DAYS, TIME_SLOT_OPTIONS } from './constants'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 // Categories from tutor registration - flattened list of all exam categories
 interface ExamCategory {
@@ -180,6 +182,9 @@ export default function TutorCoursePage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
+  const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
+  const [numberOfWeeks, setNumberOfWeeks] = useState(4)
+  const [totalSessionsDesired, setTotalSessionsDesired] = useState<number | ''>('')
 
   const scheduleWeekStart = (() => {
     const d = new Date()
@@ -574,13 +579,24 @@ export default function TutorCoursePage() {
     )
   }
 
-  // Generate schedule summary
+  // Generate schedule summary (optionally repeat weekly)
   const generateScheduleSummary = () => {
     if (schedule.length === 0) {
       toast.error('Please add schedule items first')
       return
     }
-    setScheduleSummary(schedule)
+    if (scheduleRepeatWeekly) {
+      const weeks = totalSessionsDesired !== ''
+        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+        : numberOfWeeks
+      const expanded: ScheduleItem[] = []
+      for (let w = 0; w < weeks; w++) {
+        schedule.forEach((slot) => expanded.push({ ...slot }))
+      }
+      setScheduleSummary(expanded)
+    } else {
+      setScheduleSummary(schedule)
+    }
     toast.success('Schedule summary generated')
   }
 
@@ -616,6 +632,9 @@ export default function TutorCoursePage() {
     return sum + (slot.durationMinutes / 60) * priceNumber
   }, 0)
   const totalRevenue = scheduleCost * 0.7
+  const totalSessions = scheduleSummary.length
+  const totalDurationMinutes = scheduleSummary.reduce((sum, slot) => sum + slot.durationMinutes, 0)
+  const totalDurationHours = (totalDurationMinutes / 60).toFixed(1)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -868,102 +887,101 @@ export default function TutorCoursePage() {
               )
             })()}
 
-            {/* Weekly Calendar - 1hr intervals; week and month navigation */}
-            <div className="border rounded-lg overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
-                <div className="flex items-center gap-1">
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-xs font-medium min-w-[140px] text-center">
-                    {scheduleWeekLabel}
-                  </span>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 1)} aria-label="Next week">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-muted-foreground mr-1">Month:</span>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 4)} aria-label="Previous month">
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 4)} aria-label="Next month">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="grid grid-cols-8 border-b bg-muted/30">
-                <div className="p-2 text-xs font-medium text-center border-r">Time</div>
-                {DAYS.map(day => (
-                  <div key={day} className="p-2 text-xs font-medium text-center">
-                    {day.slice(0, 3)}
+            {/* Weekly repeat option */}
+            <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-muted/30 p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={scheduleRepeatWeekly}
+                  onChange={(e) => setScheduleRepeatWeekly(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span className="text-sm font-medium">Apply same schedule every week</span>
+              </label>
+              {scheduleRepeatWeekly && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs">Number of weeks</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={52}
+                      value={totalSessionsDesired !== '' ? '' : numberOfWeeks}
+                      onChange={(e) => setNumberOfWeeks(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      disabled={totalSessionsDesired !== ''}
+                      className="w-20 h-8 text-sm"
+                    />
                   </div>
-                ))}
-              </div>
-              <ScrollArea className="h-[400px]">
-                <div className="grid grid-cols-8">
-                  {/* Time slots - 1 hour intervals from 6:00 to 22:00 */}
-                  {Array.from({ length: 16 }, (_, i) => {
-                    const hour = i + 6
-                    const timeStr = `${hour.toString().padStart(2, '0')}:00`
-                    const displayTime = `${hour === 12 ? 12 : hour % 12}:00${hour >= 12 ? 'PM' : 'AM'}`
-                    
-                    return (
-                      <div key={timeStr} className="contents">
-                        <div className="p-1 text-[10px] text-muted-foreground text-center border-r border-b border-dashed">
-                          {displayTime}
-                        </div>
-                        {DAYS.map(day => {
-                          const existingSlot = schedule.find(s => 
-                            s.dayOfWeek === day && s.startTime === timeStr
-                          )
-                          return (
-                            <div
-                              key={`${day}-${timeStr}`}
-                              className={`p-1 border-b border-dashed border-r min-h-[25px] cursor-pointer transition-colors ${
-                                existingSlot 
-                                  ? 'bg-blue-100 hover:bg-blue-200' 
-                                  : 'hover:bg-gray-50'
-                              }`}
-                              onClick={() => {
-                                if (existingSlot) {
-                                  setSchedule(schedule.filter(s => !(s.dayOfWeek === day && s.startTime === timeStr)))
-                                } else {
-                                  setSchedule([...schedule, { 
-                                    dayOfWeek: day, 
-                                    startTime: timeStr, 
-                                    durationMinutes: 60 
-                                  }])
-                                }
-                              }}
-                              title={existingSlot ? `${existingSlot.durationMinutes} min` : 'Click to add 60 min session'}
-                            >
-                              {existingSlot && (
-                                <div className="text-[8px] bg-blue-500 text-white rounded px-1 py-0.5 text-center truncate">
-                                  {existingSlot.durationMinutes}m
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs">Or total sessions</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Auto"
+                      value={totalSessionsDesired}
+                      onChange={(e) => setTotalSessionsDesired(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value, 10) || 0))}
+                      className="w-24 h-8 text-sm"
+                    />
+                    <span className="text-xs text-muted-foreground">sessions (weeks calculated from weekly slots)</span>
+                  </div>
+                </>
+              )}
             </div>
-            
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded" />
-                <span>Scheduled</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 border border-dashed rounded" />
-                <span>Click to add/remove</span>
-              </div>
+
+            {/* Per-day time slot dropdowns */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Select time slots per day (1 hour each)</Label>
+              {DAYS.map((day) => {
+                const daySlots = schedule.filter((s) => s.dayOfWeek === day).map((s) => s.startTime)
+                return (
+                  <div key={day} className="flex items-center gap-3 rounded-lg border p-3 bg-white">
+                    <span className="text-sm font-medium w-28 shrink-0">{day}</span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex-1 justify-start gap-2 h-9 text-left font-normal">
+                          {daySlots.length === 0
+                            ? 'Select times...'
+                            : daySlots.sort().map((t) => {
+                                const [h, m] = t.split(':').map(Number)
+                                const display = `${h % 12 || 12}:${m.toString().padStart(2, '0')}${h >= 12 ? 'PM' : 'AM'}`
+                                return display
+                              }).join(', ')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2" align="start">
+                        <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
+                          {TIME_SLOT_OPTIONS.map((timeStr) => {
+                            const selected = daySlots.includes(timeStr)
+                            const [h, m] = timeStr.split(':').map(Number)
+                            const display = `${h % 12 || 12}:${m.toString().padStart(2, '0')}${h >= 12 ? 'PM' : 'AM'}`
+                            return (
+                              <label
+                                key={timeStr}
+                                className="flex items-center gap-2 cursor-pointer rounded px-2 py-1.5 hover:bg-muted text-sm"
+                              >
+                                <Checkbox
+                                  checked={selected}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSchedule((prev) => [...prev, { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 }])
+                                    } else {
+                                      setSchedule((prev) => prev.filter((s) => !(s.dayOfWeek === day && s.startTime === timeStr)))
+                                    }
+                                  }}
+                                />
+                                {display}
+                              </label>
+                            )
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    {daySlots.length > 0 && (
+                      <span className="text-xs text-muted-foreground">{daySlots.length} slot{daySlots.length !== 1 ? 's' : ''}</span>
+                    )}
+                  </div>
+                )
+              })}
             </div>
 
             {/* Set Schedule Button */}
@@ -976,41 +994,64 @@ export default function TutorCoursePage() {
               Set Schedule
             </Button>
 
-            {/* Schedule Summary */}
+            {/* Schedule Summary - sessions, duration, cost/revenue, interactive by day */}
             {scheduleSummary.length > 0 && (
-              <Card className="border-2 border-gray-400 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Schedule Summary</CardTitle>
-                  <CardDescription className="text-xs">Times shown in {timezoneLabel}</CardDescription>
+              <Card className="border-2 border-primary/20 shadow-lg overflow-hidden">
+                <CardHeader className="pb-3 bg-gradient-to-r from-slate-50 to-blue-50/50 border-b">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5 text-primary" />
+                    Schedule Summary
+                  </CardTitle>
+                  <CardDescription className="text-xs">Times in {timezoneLabel}</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {priceNumber > 0 && scheduleSummary.length > 0 && (
-                    <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg border bg-white p-3 text-sm text-slate-700">
-                      <div>
-                        <div className="text-xs text-slate-500">Cost for course</div>
-                        <div className="font-medium">USD {scheduleCost.toFixed(2)}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-slate-500">Total revenue (after 30% commission)</div>
-                        <div className="font-medium">USD {totalRevenue.toFixed(2)}</div>
-                      </div>
+                <CardContent className="pt-4 space-y-4">
+                  {/* Sessions & duration */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="rounded-xl bg-blue-50 border border-blue-100 p-3">
+                      <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Sessions</div>
+                      <div className="text-2xl font-bold text-blue-900 mt-0.5">{totalSessions}</div>
                     </div>
-                  )}
-                  <div className="space-y-3">
+                    <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
+                      <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Total duration</div>
+                      <div className="text-2xl font-bold text-emerald-900 mt-0.5">{totalDurationHours} h</div>
+                    </div>
+                    {priceNumber > 0 && (
+                      <>
+                        <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+                          <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Cost</div>
+                          <div className="text-xl font-bold text-slate-900 mt-0.5">USD {scheduleCost.toFixed(2)}</div>
+                        </div>
+                        <div className="rounded-xl bg-amber-50 border border-amber-100 p-3">
+                          <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">Revenue (70%)</div>
+                          <div className="text-xl font-bold text-amber-900 mt-0.5">USD {totalRevenue.toFixed(2)}</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {/* By day - interactive list */}
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold text-slate-700">By day</div>
                     {dayOrder
                       .filter((day) => scheduleByDay[day]?.length)
                       .map((day) => (
-                        <div key={day} className="rounded border bg-white p-3">
-                          <div className="text-sm font-semibold text-slate-800">{day}</div>
-                          <div className="mt-2 flex flex-wrap gap-2">
+                        <div key={day} className="rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="text-sm font-semibold text-slate-800 mb-2 flex items-center justify-between">
+                            <span>{day}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {scheduleByDay[day].length} session{scheduleByDay[day].length !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
                             {scheduleByDay[day]
                               .sort((a, b) => a.startTime.localeCompare(b.startTime))
                               .map((slot, idx) => (
                                 <div
                                   key={`${day}-${idx}-${slot.startTime}`}
-                                  className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700"
+                                  className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-800 font-medium inline-flex items-center gap-2"
                                 >
-                                  {formatTimeRange(slot.startTime, slot.durationMinutes)} • {slot.durationMinutes} min
+                                  <span>{formatTimeRange(slot.startTime, slot.durationMinutes)}</span>
+                                  <span className="text-slate-500 text-xs">• {slot.durationMinutes}m</span>
+                                  <span className="text-slate-500 text-xs">• 0 students</span>
                                 </div>
                               ))}
                           </div>

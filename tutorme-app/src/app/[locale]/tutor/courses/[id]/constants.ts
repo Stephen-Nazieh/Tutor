@@ -18,6 +18,12 @@ export const DAYS = [
   'Sunday',
 ] as const
 
+/** 1-hour time slots from 06:00 to 22:00 for schedule dropdowns */
+export const TIME_SLOT_OPTIONS = Array.from({ length: 17 }, (_, i) => {
+  const hour = i + 6
+  return `${hour.toString().padStart(2, '0')}:00`
+})
+
 export const GRADE_LEVELS = [
   { value: 'Grade 1', label: 'Grade 1' },
   { value: 'Grade 2', label: 'Grade 2' },

@@ -913,6 +913,7 @@ export default function CategoriesPage() {
             </div>
             <div className="flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-[#4FD1C5]" />
+              <span className="text-xl font-bold text-[#1F2933]">Select your region and exam categories</span>
             </div>
             <div className="w-32" />
           </div>

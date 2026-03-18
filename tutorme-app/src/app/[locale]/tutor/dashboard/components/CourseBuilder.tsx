@@ -314,6 +314,10 @@ export interface Lesson extends WithDifficultyVariants {
   id: string
   title: string
   description?: string
+  /** Optional section descriptions for course builder UI */
+  taskSectionDescription?: string
+  assessmentSectionDescription?: string
+  homeworkSectionDescription?: string
   duration: number
   order: number
   isPublished: boolean
@@ -7059,8 +7063,8 @@ FEEDBACK: [your explanation]`
                     {/* Course Root */}
                     <div className="flex items-center justify-between py-2 font-semibold text-sm border-b mb-2">
                       <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-blue-600" />
-                        <span className="truncate">{courseName || 'Course'}</span>
+                        {!lessonBankMode && <GraduationCap className="h-4 w-4 text-blue-600" />}
+                        {!lessonBankMode && <span className="truncate">{courseName || 'Course'}</span>}
                       </div>
                       <div className="flex items-center gap-1">
                         {!lessonBankMode && (
@@ -7136,34 +7140,6 @@ FEEDBACK: [your explanation]`
                                   {totalItems}
                                 </Badge>
 
-                                {/* +Task Button */}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-orange-600"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation()
-                                    addTask(module.id, primaryLesson.id)
-                                  }}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                  Task
-                                </Button>
-
-                                {/* +Assessment Button */}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-2 text-purple-600"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation()
-                                    addAssessment(module.id, primaryLesson.id)
-                                  }}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                  Assessment
-                                </Button>
-
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -7179,6 +7155,18 @@ FEEDBACK: [your explanation]`
 
                               {expandedModules.has(module.id) && (
                                 <div className="mt-1 space-y-1">
+                                  {/* Lesson (module) description */}
+                                  <TreeItem depth={2} isLast={false}>
+                                    <div className="flex flex-col gap-1 py-1 px-2 rounded border border-blue-200 bg-blue-50/50">
+                                      <Label className="text-[10px] text-blue-700">Lesson description</Label>
+                                      <Input
+                                        placeholder="Describe this lesson..."
+                                        value={module.description ?? ''}
+                                        onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, description: e.target.value }))}
+                                        className="h-7 text-xs border-blue-200"
+                                      />
+                                    </div>
+                                  </TreeItem>
                                   {/* Tasks - droppable so homework can be moved here */}
                                   <TreeItem depth={2} isLast={false}>
                                     <DroppableTaskZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-orange-300 bg-orange-50/50">
@@ -7196,10 +7184,32 @@ FEEDBACK: [your explanation]`
                                         )}
                                       </Button>
                                       <span className="text-[10px] font-semibold text-orange-700">Tasks</span>
-                                      <span className="text-[10px] text-muted-foreground">— Drop here</span>
                                     </DroppableTaskZone>
                                   </TreeItem>
                                   {!isSectionCollapsed(module.id, 'task') && (
+                                    <>
+                                    <TreeItem depth={2} isLast={false}>
+                                      <div className="flex flex-col gap-1 py-1 px-2 rounded border border-orange-200 bg-orange-50/50">
+                                        <Label className="text-[10px] text-orange-700">Tasks description</Label>
+                                        <Input
+                                          placeholder="Describe tasks for this lesson..."
+                                          value={primaryLesson.taskSectionDescription ?? ''}
+                                          onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, taskSectionDescription: e.target.value }) }))}
+                                          className="h-7 text-xs border-orange-200"
+                                        />
+                                      </div>
+                                    </TreeItem>
+                                    <TreeItem depth={2} isLast={false}>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 text-[10px] gap-1 px-2 text-orange-600 hover:bg-orange-100"
+                                        onClick={() => addTask(module.id, primaryLesson.id)}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                        Task
+                                      </Button>
+                                    </TreeItem>
                                     <SortableContext
                                       items={primaryLesson.tasks?.map(t => t.id) || []}
                                       strategy={verticalListSortingStrategy}
@@ -7405,6 +7415,7 @@ FEEDBACK: [your explanation]`
                                         </div>
                                       ))}
                                     </SortableContext>
+                                    </>
                                   )}
 
                                   {/* Assessments - droppable so homework can be moved here */}
@@ -7424,10 +7435,32 @@ FEEDBACK: [your explanation]`
                                         )}
                                       </Button>
                                       <span className="text-[10px] font-semibold text-purple-700">Assessments</span>
-                                      <span className="text-[10px] text-muted-foreground">— Drop here</span>
                                     </DroppableAssessmentZone>
                                   </TreeItem>
                                   {!isSectionCollapsed(module.id, 'assessment') && (
+                                    <>
+                                    <TreeItem depth={2} isLast={false}>
+                                      <div className="flex flex-col gap-1 py-1 px-2 rounded border border-purple-200 bg-purple-50/50">
+                                        <Label className="text-[10px] text-purple-700">Assessments description</Label>
+                                        <Input
+                                          placeholder="Describe assessments for this lesson..."
+                                          value={primaryLesson.assessmentSectionDescription ?? ''}
+                                          onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, assessmentSectionDescription: e.target.value }) }))}
+                                          className="h-7 text-xs border-purple-200"
+                                        />
+                                      </div>
+                                    </TreeItem>
+                                    <TreeItem depth={2} isLast={false}>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 text-[10px] gap-1 px-2 text-purple-600 hover:bg-purple-100"
+                                        onClick={() => addAssessment(module.id, primaryLesson.id)}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                        Assessment
+                                      </Button>
+                                    </TreeItem>
                                     <SortableContext
                                       items={assessments.map(h => h.id)}
                                       strategy={verticalListSortingStrategy}
@@ -7537,6 +7570,7 @@ FEEDBACK: [your explanation]`
                                         </SortableTreeItem>
                                       ))}
                                     </SortableContext>
+                                    </>
                                   )}
 
                                   {/* Homework (per-lesson) - drop zone for tasks/assessments */}
@@ -7547,8 +7581,18 @@ FEEDBACK: [your explanation]`
                                           <FolderOpen className="h-3 w-3 text-emerald-600" />
                                           <span className="text-[10px] font-semibold text-emerald-700">Homework</span>
                                           <span className="text-[10px] text-muted-foreground">{(primaryLesson.homework || []).filter(h => h.category === 'homework').length}</span>
-                                          <span className="text-[10px] text-muted-foreground ml-1">— Drop here</span>
                                         </DroppableHomeworkZone>
+                                      </TreeItem>
+                                      <TreeItem depth={2} isLast={false}>
+                                        <div className="flex flex-col gap-1 py-1 px-2 rounded border border-emerald-200 bg-emerald-50/50">
+                                          <Label className="text-[10px] text-emerald-700">Homework description</Label>
+                                          <Input
+                                            placeholder="Describe homework for this lesson..."
+                                            value={primaryLesson.homeworkSectionDescription ?? ''}
+                                            onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homeworkSectionDescription: e.target.value }) }))}
+                                            className="h-7 text-xs border-emerald-200"
+                                          />
+                                        </div>
                                       </TreeItem>
                                       {(primaryLesson.homework || []).filter(h => h.category === 'homework').map((hw) => (
                                         <TreeItem key={hw.id} depth={2} isLast={false}>

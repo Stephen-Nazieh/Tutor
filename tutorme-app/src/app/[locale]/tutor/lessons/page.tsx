@@ -51,23 +51,18 @@ export default function LessonBankPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-white border-b sticky top-0 z-10 relative">
         <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/tutor/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              Lesson Bank
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Build reusable lessons, tasks, assessments, and homework for import into courses.
-            </p>
-          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/tutor/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-semibold flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            Lesson Bank
+          </h1>
           <Button
             className="gap-2"
             onClick={() => builderRef.current?.save()}
