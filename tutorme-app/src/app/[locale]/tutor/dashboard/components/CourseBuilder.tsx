@@ -100,6 +100,7 @@ import {
   GripHorizontal,
   CornerDownLeft
 } from 'lucide-react'
+import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
 // ============================================
 // ENHANCED TYPES - Hierarchical Structure
@@ -7116,7 +7117,7 @@ FEEDBACK: [your explanation]`
                             title="Hide panel"
                             aria-label="Hide panel"
                           >
-                            <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeftIcon className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
