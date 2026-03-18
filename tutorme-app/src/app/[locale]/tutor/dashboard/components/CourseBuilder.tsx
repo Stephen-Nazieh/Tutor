@@ -14,6 +14,7 @@ import {
   DragEndEvent,
   defaultDropAnimationSideEffects,
   DropAnimation,
+  useDroppable,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -203,16 +204,6 @@ export interface Assessment extends WithDifficultyVariants {
   /** When false, not visible to students (draft) */
   isPublished?: boolean
   sourceDocument?: ImportedLearningResource
-}
-
-interface HomeworkFolderItem {
-  id: string
-  sourceType: 'task' | 'assessment'
-  sourceId: string
-  title: string
-  mode: 'synced' | 'independent'
-  snapshot: Task | Assessment
-  createdAt: string
 }
 
 export interface QuizQuestion {
@@ -1746,13 +1737,13 @@ Format your response clearly and concisely.`
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t pt-4 space-y-3">
-          <div className="flex gap-2">
+        <div className="border-t pt-4">
+          <div className="relative flex gap-2">
             <Textarea
               value={input}
               onChange={(e: any) => setInput(e.target.value)}
               placeholder="Ask me anything about your content or PCI instructions..."
-              className="flex-1 min-h-[80px]"
+              className="flex-1 min-h-[80px] pr-12"
               onKeyDown={(e: any) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -1760,12 +1751,15 @@ Format your response clearly and concisely.`
                 }
               }}
             />
-          </div>
-
-          <div className="flex justify-end items-center">
-            <Button onClick={handleSend} disabled={!input.trim() || loading}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send className="h-4 w-4 mr-1" />}
-              Send
+            <Button
+              type="button"
+              size="icon"
+              className="absolute right-2 bottom-2 h-9 w-9 rounded-full shrink-0"
+              onClick={handleSend}
+              disabled={!input.trim() || loading}
+              aria-label="Send"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
         </div>
@@ -3838,6 +3832,21 @@ function TreeItem({ children, depth, isLast }: TreeItemProps) {
   )
 }
 
+function DroppableHomeworkZone({
+  moduleId,
+  lessonId,
+  children,
+  className,
+}: { moduleId: string; lessonId: string; children: React.ReactNode; className?: string }) {
+  const id = `drop-hw-${moduleId}::${lessonId}`
+  const { setNodeRef, isOver } = useDroppable({ id })
+  return (
+    <div ref={setNodeRef} className={cn(className, isOver && 'ring-1 ring-emerald-400 bg-emerald-100')}>
+      {children}
+    </div>
+  )
+}
+
 // ============================================
 // RESIZABLE PANEL COMPONENT
 // ============================================
@@ -4897,9 +4906,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
   const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
   const [assetToLoad, setAssetToLoad] = useState<{name: string, content?: string} | null>(null)
   const [leftPanelHidden, setLeftPanelHidden] = useState(false)
+  const [leftPanelWidth, setLeftPanelWidth] = useState(280)
+  const [leftPanelResizing, setLeftPanelResizing] = useState(false)
+  const leftPanelRef = useRef<HTMLDivElement>(null)
   const [assetsOpen, setAssetsOpen] = useState(true)
-  const [homeworkFolder, setHomeworkFolder] = useState<HomeworkFolderItem[]>([])
-  const [homeworkFolderOpen, setHomeworkFolderOpen] = useState(true)
   const [mediaOpen, setMediaOpen] = useState(true)
   const [docsOpen, setDocsOpen] = useState(true)
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
@@ -5278,25 +5288,44 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(fu
     return null
   }, [modules])
 
-  const exportToHomeworkFolder = useCallback((type: 'task' | 'assessment', item: Task | Assessment) => {
-    const keepSynced = window.confirm(
-      'Export to Homework Folder?\n\nOK = Keep synced with the original\nCancel = Independent copy'
-    )
-    const snapshot = type === 'task' ? cloneTask(item as Task) : cloneAssessment(item as Assessment)
-    setHomeworkFolder(prev => ([
-      ...prev,
-      {
-        id: `homework-folder-${generateId()}`,
-        sourceType: type,
-        sourceId: item.id,
-        title: item.title || (type === 'task' ? 'Task' : 'Assessment'),
-        mode: keepSynced ? 'synced' : 'independent',
-        snapshot,
-        createdAt: new Date().toISOString(),
-      },
-    ]))
-    toast.success(`Exported to homework (${keepSynced ? 'synced' : 'independent'})`)
-  }, [cloneAssessment, cloneTask])
+  const moveToHomework = useCallback((moduleId: string, lessonId: string, type: 'task' | 'assessment', item: Task | Assessment) => {
+    const base = DEFAULT_HOMEWORK((modules.flatMap(m => m.lessons.flatMap(l => l.homework || [])).length), 'homework')
+    const homeworkItem: Assessment = type === 'task'
+      ? { ...base, id: `hw-${generateId()}`, title: item.title || 'Task', description: (item as Task).description || '', instructions: (item as Task).instructions || '', dmiItems: (item as Task).dmiItems || [] }
+      : { ...cloneAssessment(item as Assessment), id: `hw-${generateId()}`, category: 'homework' as const }
+    setModules(prev => prev.map(mod => {
+      if (mod.id !== moduleId) return mod
+      return {
+        ...mod,
+        lessons: mod.lessons.map(les => {
+          if (les.id !== lessonId) return les
+          if (type === 'task') {
+            const newTasks = (les.tasks || []).filter(t => t.id !== item.id)
+            return { ...les, tasks: newTasks, homework: [...(les.homework || []), homeworkItem] }
+          }
+          const newHwList = (les.homework || []).filter(h => h.id !== item.id).concat([homeworkItem])
+          return { ...les, homework: newHwList }
+        }),
+      }
+    }))
+    if (type === 'task') {
+      if (loadedTaskId === item.id) {
+        setSelectedItem({ type: 'homework', id: homeworkItem.id })
+        loadAssessmentIntoBuilder(homeworkItem)
+        setMainBuilderTab('assessment')
+      }
+      setLoadedTaskId(null)
+      setTaskBuilder({ title: '', taskContent: '', taskPci: '', details: '', extensions: [], activeExtensionId: null })
+    } else {
+      if (loadedAssessmentId === item.id) {
+        setSelectedItem({ type: 'homework', id: homeworkItem.id })
+        loadAssessmentIntoBuilder(homeworkItem)
+      }
+      setLoadedAssessmentId(null)
+      setAssessmentBuilder({ title: '', taskContent: '', taskPci: '', details: '', extensions: [], activeExtensionId: null })
+    }
+    toast.success('Moved to homework')
+  }, [cloneAssessment, loadAssessmentIntoBuilder, modules])
 
   const cloneLesson = (lesson: Lesson, order: number): Lesson => ({
     ...lesson,
@@ -5961,6 +5990,48 @@ FEEDBACK: [your explanation]`
       const moduleIndex = modules.findIndex(m => m.id === id)
       if (moduleIndex === -1) return null
       return { mIdx: moduleIndex, lIdx: 0 }
+    }
+
+    // Drop onto Homework folder (move task/assessment to that lesson's homework)
+    if (typeof overId === 'string' && overId.startsWith('drop-hw-')) {
+      const rest = overId.slice('drop-hw-'.length)
+      const sep = rest.indexOf('::')
+      const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
+      const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
+      if (targetModuleId && targetLessonId) {
+        const taskLoc = findTaskLocation(activeId)
+        const hwLoc = findHomeworkLocation(activeId)
+        if (taskLoc) {
+          const task = modules[taskLoc.mIdx].lessons[taskLoc.lIdx].tasks[taskLoc.taskIndex]
+          moveToHomework(targetModuleId, targetLessonId, 'task', task)
+          setModules(prev => prev.map((mod, mIdx) => {
+            if (mIdx !== taskLoc.mIdx) return mod
+            return {
+              ...mod,
+              lessons: mod.lessons.map((les, lIdx) => {
+                if (lIdx !== taskLoc.lIdx) return les
+                return { ...les, tasks: les.tasks.filter(t => t.id !== activeId) }
+              }),
+            }
+          }))
+          return
+        }
+        if (hwLoc) {
+          const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
+          moveToHomework(targetModuleId, targetLessonId, 'assessment', hw)
+          setModules(prev => prev.map((mod, mIdx) => {
+            if (mIdx !== hwLoc.mIdx) return mod
+            return {
+              ...mod,
+              lessons: mod.lessons.map((les, lIdx) => {
+                if (lIdx !== hwLoc.lIdx) return les
+                return { ...les, homework: les.homework.filter(h => h.id !== activeId) }
+              }),
+            }
+          }))
+          return
+        }
+      }
     }
 
     // Check if dragging a module
@@ -6825,68 +6896,32 @@ FEEDBACK: [your explanation]`
     })
   }
 
-  const resolveHomeworkItem = (item: HomeworkFolderItem) => {
-    if (item.mode === 'synced') {
-      const source = item.sourceType === 'task'
-        ? findTaskById(item.sourceId)
-        : findAssessmentById(item.sourceId)
-      return source ?? item.snapshot
+  const leftResizeStartX = useRef(0)
+  const leftResizeStartW = useRef(280)
+  useEffect(() => {
+    if (!leftPanelResizing) return
+    const onMove = (e: MouseEvent) => {
+      const delta = e.clientX - leftResizeStartX.current
+      const newW = Math.max(200, Math.min(500, leftResizeStartW.current + delta))
+      setLeftPanelWidth(newW)
     }
-    return item.snapshot
-  }
-
-  const renderHomeworkFolder = () => (
-    <div className="mt-4 border rounded-md">
-      <div
-        className="flex items-center justify-between p-2 bg-emerald-50 cursor-pointer border-b"
-        onClick={() => setHomeworkFolderOpen(!homeworkFolderOpen)}
-      >
-        <span className="text-xs font-semibold flex items-center gap-1 text-emerald-700">
-          <FolderOpen className="w-3 h-3" /> Homework Folder
-        </span>
-        <span className="text-[10px] text-emerald-700">{homeworkFolder.length}</span>
-      </div>
-      {homeworkFolderOpen && (
-        <div className="p-2 space-y-2">
-          {homeworkFolder.length === 0 ? (
-            <p className="text-xs text-muted-foreground w-full py-2 text-center">
-              Export tasks or assessments to build homework.
-            </p>
-          ) : (
-            homeworkFolder.map((item) => {
-              const resolved = resolveHomeworkItem(item)
-              return (
-                <div key={item.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1 text-[10px] bg-white">
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate text-emerald-700">{resolved.title}</div>
-                    <div className="text-muted-foreground truncate">
-                      {item.sourceType === 'task' ? 'Task' : 'Assessment'} • {item.mode === 'synced' ? 'Synced' : 'Independent'}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5"
-                    onClick={() => setHomeworkFolder(prev => prev.filter(h => h.id !== item.id))}
-                  >
-                    <Trash2 className="h-3 w-3 text-red-500" />
-                  </Button>
-                </div>
-              )
-            })
-          )}
-        </div>
-      )}
-    </div>
-  )
+    const onUp = () => setLeftPanelResizing(false)
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+    return () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+  }, [leftPanelResizing])
 
   return (
     <div className={cn("space-y-4 flex-1 flex flex-col min-h-0", panelMode === 'live-class' && "pt-3")}>
-      <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
-        {/* LEFT PANEL - Course Structure */}
+      <div className="flex flex-1 min-h-0 gap-0">
+        {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
         {!leftPanelHidden && (
-          <div className="col-span-5 flex flex-col min-h-0">
-            <Card className="flex-1 flex flex-col min-h-0 border-2 border-border shadow-sm h-full bg-card">
+          <>
+            <div ref={leftPanelRef} style={{ width: leftPanelWidth }} className="flex flex-col min-h-0 shrink-0">
+              <Card className="flex-1 flex flex-col min-h-0 border-2 border-border h-full bg-card rounded-2xl shadow-xl ring-1 ring-black/5">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-base">
@@ -6921,10 +6956,6 @@ FEEDBACK: [your explanation]`
                         <span className="truncate">{courseName || 'Course'}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="outline" onClick={addCourseExam} className="gap-1 h-6 text-xs">
-                          <FileQuestion className="h-3 w-3" />
-                          Exam
-                        </Button>
                         {!lessonBankMode && (
                           <Button 
                             size="sm" 
@@ -7134,10 +7165,10 @@ FEEDBACK: [your explanation]`
                                                 className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
-                                                  exportToHomeworkFolder('task', task)
+                                                  moveToHomework(module.id, primaryLesson.id, 'task', task)
                                                 }}
                                               >
-                                                Export to homework
+                                                Move to homework
                                               </Button>
                                             )}
                                             {!lessonBankMode && (
@@ -7359,10 +7390,10 @@ FEEDBACK: [your explanation]`
                                                 className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
-                                                  exportToHomeworkFolder('assessment', hw)
+                                                  moveToHomework(module.id, primaryLesson.id, 'assessment', hw)
                                                 }}
                                               >
-                                                Export to homework
+                                                Move to homework
                                               </Button>
                                             )}
                                             {!lessonBankMode && (
@@ -7395,6 +7426,57 @@ FEEDBACK: [your explanation]`
                                         </SortableTreeItem>
                                       ))}
                                     </SortableContext>
+                                  )}
+
+                                  {/* Homework (per-lesson) - drop zone for tasks/assessments */}
+                                  {!lessonBankMode && (
+                                    <>
+                                      <TreeItem depth={2} isLast={false}>
+                                        <DroppableHomeworkZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-emerald-400 bg-emerald-50/50">
+                                          <FolderOpen className="h-3 w-3 text-emerald-600" />
+                                          <span className="text-[10px] font-semibold text-emerald-700">Homework</span>
+                                          <span className="text-[10px] text-muted-foreground">{(primaryLesson.homework || []).filter(h => h.category === 'homework').length}</span>
+                                          <span className="text-[10px] text-muted-foreground ml-1">— Drop here</span>
+                                        </DroppableHomeworkZone>
+                                      </TreeItem>
+                                      {(primaryLesson.homework || []).filter(h => h.category === 'homework').map((hw) => (
+                                        <TreeItem key={hw.id} depth={2} isLast={false}>
+                                          <div
+                                            className={cn(
+                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors bg-emerald-50 border-emerald-400 hover:bg-emerald-100",
+                                              selectedItem?.type === 'homework' && selectedItem?.id === hw.id && "ring-1 ring-emerald-400"
+                                            )}
+                                            onClick={() => {
+                                              setSelectedItem({ type: 'homework', id: hw.id })
+                                              loadAssessmentIntoBuilder(hw)
+                                              setMainBuilderTab('assessment')
+                                            }}
+                                          >
+                                            <FileQuestion className="h-3 w-3 text-emerald-600" />
+                                            <span className="text-[10px] flex-1 truncate text-emerald-700">{hw.title}</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                              onClick={(e: any) => {
+                                                e.stopPropagation()
+                                                if (!confirm(`Delete "${hw.title}"?`)) return
+                                                setModules(prev => prev.map(mod =>
+                                                  mod.id !== module.id ? mod : {
+                                                    ...mod,
+                                                    lessons: mod.lessons.map(les =>
+                                                      les.id !== primaryLesson.id ? les : { ...les, homework: (les.homework || []).filter(x => x.id !== hw.id) }
+                                                    )
+                                                  }
+                                                ))
+                                              }}
+                                            >
+                                              <Trash2 className="h-3 w-3 text-red-500" />
+                                            </Button>
+                                          </div>
+                                        </TreeItem>
+                                      ))}
+                                    </>
                                   )}
 
                                   {/* End of Module Quizzes */}
@@ -7452,16 +7534,28 @@ FEEDBACK: [your explanation]`
               </ScrollArea>
               {/* Assets Folder added to the bottom of the left panel */}
               <div className="mt-4 pt-4 border-t">
-                {renderHomeworkFolder()}
                 {renderAssetsFolder()}
               </div>
             </CardContent>
           </Card>
-        </div>
+            </div>
+            <div
+              className="w-2 shrink-0 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 transition-colors flex items-center justify-center group"
+              onMouseDown={(e) => {
+                e.preventDefault()
+                leftResizeStartX.current = e.clientX
+                leftResizeStartW.current = leftPanelWidth
+                setLeftPanelResizing(true)
+              }}
+              title="Drag to resize"
+            >
+              <GripHorizontal className="h-3 w-3 text-muted-foreground group-hover:text-primary rotate-90" />
+            </div>
+          </>
         )}
 
         {/* CENTER PANEL - New Three-Section Design */}
-        <div className={cn("flex flex-col min-h-0", leftPanelHidden ? "col-span-12" : "col-span-7")}>
+        <div className={cn("flex flex-col min-h-0 flex-1", leftPanelHidden && "w-full")}>
           <div className="flex-1 flex flex-col space-y-4 overflow-auto">
             {leftPanelHidden && (
               <div className="flex justify-start">
@@ -7478,7 +7572,7 @@ FEEDBACK: [your explanation]`
             )}
 
             {/* Test PCI Section - Moved above Task/Assessment Builder */}
-            <Card className="flex-shrink-0 border-2 border-border rounded-2xl overflow-hidden shadow-sm bg-card">
+            <Card className="flex-shrink-0 border-2 border-border rounded-2xl overflow-hidden shadow-xl bg-card ring-1 ring-black/5">
               <CardContent className="pt-4">
                 <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
@@ -7574,7 +7668,7 @@ FEEDBACK: [your explanation]`
             </Card>
 
             {/* COMBINED BUILDER: Task & Assessment Tabs */}
-            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden mt-6 shadow-sm">
+            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden mt-6 shadow-xl ring-1 ring-black/5">
               <CardContent className="pt-4">
                 <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
                   {/* Main Builder Tabs */}
@@ -7734,10 +7828,10 @@ FEEDBACK: [your explanation]`
                                     PCI assistant error: {taskPciErrorHint}
                                   </div>
                                 )}
-                                <div className="flex gap-2 items-end">
+                                <div className="relative flex gap-2 items-end">
                                   <AutoTextarea
                                     placeholder="Ask the PCI assistant..."
-                                    className="w-full min-h-[44px]"
+                                    className="w-full min-h-[44px] pr-11"
                                     value={activeTaskPciInput}
                                     onChange={(e: any) => {
                                       const value = e.target.value
@@ -7758,13 +7852,15 @@ FEEDBACK: [your explanation]`
                                     }}
                                   />
                                   <Button
+                                    type="button"
                                     variant="outline"
-                                    size="sm"
-                                    className="h-9"
+                                    size="icon"
+                                    className="absolute right-1 bottom-1 h-8 w-8 shrink-0 rounded-full"
                                     disabled={taskPciLoading || !activeTaskPciInput.trim()}
                                     onClick={() => handlePciSend('task')}
+                                    aria-label="Send"
                                   >
-                                    {taskPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
+                                    {taskPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                   </Button>
                                 </div>
                               </div>
@@ -7982,10 +8078,10 @@ FEEDBACK: [your explanation]`
                                     PCI assistant error: {assessmentPciErrorHint}
                                   </div>
                                 )}
-                                <div className="flex gap-2 items-end">
+                                <div className="relative flex gap-2 items-end">
                                   <AutoTextarea
                                     placeholder="Ask the PCI assistant..."
-                                    className="w-full min-h-[44px]"
+                                    className="w-full min-h-[44px] pr-11"
                                     value={assessmentPciInput}
                                     onChange={(e: any) => setAssessmentPciInput(e.target.value)}
                                     onKeyDown={(e: any) => {
@@ -7996,13 +8092,15 @@ FEEDBACK: [your explanation]`
                                     }}
                                   />
                                   <Button
+                                    type="button"
                                     variant="outline"
-                                    size="sm"
-                                    className="h-9"
+                                    size="icon"
+                                    className="absolute right-1 bottom-1 h-8 w-8 shrink-0 rounded-full"
                                     disabled={assessmentPciLoading || !assessmentPciInput.trim()}
                                     onClick={() => handlePciSend('assessment')}
+                                    aria-label="Send"
                                   >
-                                    {assessmentPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
+                                    {assessmentPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                   </Button>
                                 </div>
                               </div>

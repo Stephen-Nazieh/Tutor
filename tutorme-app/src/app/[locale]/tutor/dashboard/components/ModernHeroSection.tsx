@@ -3,6 +3,19 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent } from '@/components/ui/card'
+
+async function fetchTutorUsername(): Promise<string | null> {
+  try {
+    const res = await fetch('/api/tutor/public-profile', { credentials: 'include' })
+    if (!res.ok) return null
+    const data = await res.json()
+    const raw = data?.profile?.username ?? data?.profile?.handle ?? ''
+    const trimmed = typeof raw === 'string' ? raw.trim().replace(/^@+/, '') : ''
+    return trimmed || null
+  } catch {
+    return null
+  }
+}
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import {
@@ -46,6 +59,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<{date: Date, events: ClassEvent[]} | null>(null)
+  const [username, setUsername] = useState<string | null>(null)
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -55,6 +69,14 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
 
     const timer = setInterval(() => setCurrentTime(new Date()), 60000)
     return () => clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    fetchTutorUsername().then((u) => {
+      if (active) setUsername(u)
+    })
+    return () => { active = false }
   }, [])
 
   // Generate mock class events for the 7-day calendar
@@ -134,7 +156,7 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-primary" />
               <span className="text-muted-foreground text-sm font-medium">
-                {greeting}, @{session?.user?.name || session?.user?.email?.split('@')[0] || 'Tutor'}
+                {greeting}, @{username ?? session?.user?.name ?? session?.user?.email?.split('@')[0] ?? 'username'}
               </span>
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">
@@ -258,8 +280,8 @@ export function ModernHeroSection({ stats, loading, onCreateCourse }: ModernHero
             Go Live
           </Button>
           <div className="flex-1" />
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-base font-medium text-green-600">
+            <Clock className="w-5 h-5" />
             <span>Next class in 2h 15m</span>
           </div>
         </div>

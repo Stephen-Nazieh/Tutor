@@ -191,25 +191,20 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
-      {/* Top Navigation Header - Same structure as Lesson Bank */}
+      {/* Top Navigation Header - Course Builder centered at top */}
       <div className="bg-card border-b border-border sticky top-0 z-10">
-        <div className="w-full px-4 sm:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/tutor/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Link>
-            </Button>
-            <h1 className="text-xl font-semibold flex items-center gap-2 text-foreground">
-              <BookOpen className="h-5 w-5" />
-              {loading ? 'Loading...' : (course?.name ?? 'Course Builder')}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Build your course curriculum with lessons, tasks, and assessments.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="w-full px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <Button variant="ghost" size="sm" asChild className="shrink-0">
+            <Link href="/tutor/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+          <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-foreground flex-1 absolute left-0 right-0 pointer-events-none">
+            <BookOpen className="h-5 w-5" />
+            Course Builder
+          </h1>
+          <div className="flex items-center gap-3 shrink-0">
             {/* Theme Selector */}
             <Select value={themeId} onValueChange={setThemeId}>
               <SelectTrigger className="h-8 w-[180px] border-border bg-card text-foreground">

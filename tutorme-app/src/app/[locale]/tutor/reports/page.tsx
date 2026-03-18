@@ -417,6 +417,10 @@ export default function TutorReports() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-6 flex-wrap h-auto">
+            <TabsTrigger value="overview" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
             <TabsTrigger value="revenue" className="gap-2">
               <DollarSign className="h-4 w-4" />
               Revenue Insights
@@ -428,10 +432,6 @@ export default function TutorReports() {
             <TabsTrigger value="engagement" className="gap-2">
               <Activity className="h-4 w-4" />
               Engagement
-            </TabsTrigger>
-            <TabsTrigger value="overview" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              Overview
             </TabsTrigger>
           </TabsList>
 
