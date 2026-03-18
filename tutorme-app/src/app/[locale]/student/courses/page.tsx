@@ -398,16 +398,11 @@ function CoursesPageContent() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold">My Courses</h2>
-          <p className="text-gray-600 mt-1">Explore your learning space and discover new subjects.</p>
         </div>
 
         <div className="space-y-10">
 
           <section className="space-y-8">
-            <div>
-              <h3 className="text-xl font-semibold text-slate-900">Favorites</h3>
-              <p className="text-sm text-slate-500">Saved tutors and courses.</p>
-            </div>
             {/* Favorite Tutors section removed */}
 
             <div className="space-y-4">
@@ -506,43 +501,7 @@ function CoursesPageContent() {
               <h3 className="text-xl font-semibold text-slate-900">Browse Subjects</h3>
               <p className="text-sm text-slate-500">Discover new subjects and enroll.</p>
             </div>
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 mb-8">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search subjects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat === 'all' ? 'All Categories' : cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  {difficulties.map(diff => (
-                    <SelectItem key={diff} value={diff}>
-                      {diff === 'all' ? 'All Levels' : diff}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Filters removed */}
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredSubjects.map(subject => {
