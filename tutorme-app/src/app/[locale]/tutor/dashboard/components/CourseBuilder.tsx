@@ -7289,14 +7289,7 @@ FEEDBACK: [your explanation]`
                                             }}
                                           >
                                             <ListTodo className="h-3 w-3 text-orange-500 shrink-0" />
-                                            <span className="text-[10px] font-semibold text-orange-700 shrink-0 relative group/tooltip">
-                                              {idx + 1}. {task.title}:
-                                              {/* Tooltip */}
-                                              <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                                                {task.title}
-                                                <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                              </span>
-                                            </span>
+                                            <span className="text-[10px] font-semibold text-orange-700 shrink-0">{idx + 1}. {task.title}:</span>
                                             <div className="flex-1 min-w-0 relative group/tooltip-desc">
                                               <Input
                                                 placeholder="Description"
@@ -7550,14 +7543,7 @@ FEEDBACK: [your explanation]`
                                             }}
                                           >
                                             <FileQuestion className="h-3 w-3 text-purple-500 shrink-0" />
-                                            <span className="text-[10px] font-semibold text-purple-700 shrink-0 relative group/tooltip">
-                                              {idx + 1}. {hw.title}:
-                                              {/* Tooltip */}
-                                              <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                                                {hw.title}
-                                                <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                              </span>
-                                            </span>
+                                            <span className="text-[10px] font-semibold text-purple-700 shrink-0">{idx + 1}. {hw.title}:</span>
                                             <div className="flex-1 min-w-0 relative group/tooltip-desc">
                                               <Input
                                                 placeholder="Description"
@@ -7658,14 +7644,7 @@ FEEDBACK: [your explanation]`
                                               }}
                                             >
                                               <FileQuestion className="h-3 w-3 text-emerald-600 shrink-0" />
-                                              <span className="text-[10px] flex-1 truncate text-emerald-700 relative group/tooltip">
-                                                {hw.title}
-                                                {/* Tooltip */}
-                                                <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
-                                                  {hw.title}
-                                                  <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                                </span>
-                                              </span>
+                                              <span className="text-[10px] flex-1 truncate text-emerald-700">{hw.title}</span>
                                               <Button
                                                 variant="ghost"
                                                 size="icon"
