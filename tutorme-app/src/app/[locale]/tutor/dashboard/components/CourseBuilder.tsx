@@ -7135,8 +7135,17 @@ FEEDBACK: [your explanation]`
                                   <ChevronRight className="h-3 w-3 text-blue-600" />
                                 )}
                                 <Layers className="h-3 w-3 text-blue-600" />
-                                <span className="text-sm font-medium flex-1 truncate min-w-0">{module.title}</span>
-                                <Badge variant="secondary" className="text-[10px] h-4">
+                                <span className="text-sm font-medium truncate max-w-[120px]" title={module.title}>{module.title}</span>
+                                <span className="text-blue-400">:</span>
+                                <Input
+                                  placeholder="Add description..."
+                                  value={module.description ?? ''}
+                                  onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, description: e.target.value }))}
+                                  className="h-6 text-xs border-blue-200 bg-white/50 flex-1 min-w-0"
+                                  title={module.description || 'Add description...'}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                <Badge variant="secondary" className="text-[10px] h-4 shrink-0">
                                   {totalItems}
                                 </Badge>
 
@@ -7155,18 +7164,6 @@ FEEDBACK: [your explanation]`
 
                               {expandedModules.has(module.id) && (
                                 <div className="mt-1 space-y-1">
-                                  {/* Lesson (module) description */}
-                                  <TreeItem depth={2} isLast={false}>
-                                    <div className="flex flex-col gap-1 py-1 px-2 rounded border border-blue-200 bg-blue-50/50">
-                                      <Label className="text-[10px] text-blue-700">Lesson description</Label>
-                                      <Input
-                                        placeholder="Describe this lesson..."
-                                        value={module.description ?? ''}
-                                        onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, description: e.target.value }))}
-                                        className="h-7 text-xs border-blue-200"
-                                      />
-                                    </div>
-                                  </TreeItem>
                                   {/* Tasks - droppable so homework can be moved here */}
                                   <TreeItem depth={2} isLast={false}>
                                     <DroppableTaskZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-orange-300 bg-orange-50/50">
