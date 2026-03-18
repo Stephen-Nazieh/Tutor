@@ -7037,20 +7037,22 @@ FEEDBACK: [your explanation]`
           <>
             <div ref={leftPanelRef} style={{ width: leftPanelWidth }} className="flex flex-col min-h-0 shrink-0">
               <Card className="flex-1 flex flex-col min-h-0 border-2 border-border h-full bg-card rounded-2xl shadow-xl ring-1 ring-black/5">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-end">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 gap-2 text-xs"
-                    onClick={() => setLeftPanelHidden(true)}
-                    title="Hide course panel"
-                  >
-                    <LayoutTemplate className="h-4 w-4" />
-                    Hide Panel
-                  </Button>
-                </div>
-              </CardHeader>
+              {!lessonBankMode && (
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-2 text-xs"
+                      onClick={() => setLeftPanelHidden(true)}
+                      title="Hide course panel"
+                    >
+                      <LayoutTemplate className="h-4 w-4" />
+                      Hide Panel
+                    </Button>
+                  </div>
+                </CardHeader>
+              )}
             <CardContent className="pt-0 flex-1 flex flex-col">
               <ScrollArea className="flex-1">
                 <DndContext
@@ -7105,6 +7107,18 @@ FEEDBACK: [your explanation]`
                           <Plus className="h-3 w-3" />
                           Lesson
                         </Button>
+                        {lessonBankMode && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => setLeftPanelHidden(true)}
+                            title="Hide panel"
+                            aria-label="Hide panel"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
 
@@ -7181,32 +7195,19 @@ FEEDBACK: [your explanation]`
                                         )}
                                       </Button>
                                       <span className="text-[10px] font-semibold text-orange-700">Tasks</span>
-                                    </DroppableTaskZone>
-                                  </TreeItem>
-                                  {!isSectionCollapsed(module.id, 'task') && (
-                                    <>
-                                    <TreeItem depth={2} isLast={false}>
-                                      <div className="flex flex-col gap-1 py-1 px-2 rounded border border-orange-200 bg-orange-50/50">
-                                        <Label className="text-[10px] text-orange-700">Tasks description</Label>
-                                        <Input
-                                          placeholder="Describe tasks for this lesson..."
-                                          value={primaryLesson.taskSectionDescription ?? ''}
-                                          onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, taskSectionDescription: e.target.value }) }))}
-                                          className="h-7 text-xs border-orange-200"
-                                        />
-                                      </div>
-                                    </TreeItem>
-                                    <TreeItem depth={2} isLast={false}>
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-6 text-[10px] gap-1 px-2 text-orange-600 hover:bg-orange-100"
+                                        className="h-6 text-[10px] gap-1 px-2 text-orange-600 hover:bg-orange-100 ml-auto"
                                         onClick={() => addTask(module.id, primaryLesson.id)}
                                       >
                                         <Plus className="h-3 w-3" />
                                         Task
                                       </Button>
-                                    </TreeItem>
+                                    </DroppableTaskZone>
+                                  </TreeItem>
+                                  {!isSectionCollapsed(module.id, 'task') && (
+                                    <>
                                     <SortableContext
                                       items={primaryLesson.tasks?.map(t => t.id) || []}
                                       strategy={verticalListSortingStrategy}
@@ -7221,7 +7222,8 @@ FEEDBACK: [your explanation]`
                                                 ? "bg-orange-200 border-orange-400 ring-1 ring-orange-400"
                                                 : "bg-orange-50 border-orange-400 hover:bg-orange-100"
                                             )}
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                              if ((e.target as HTMLElement).closest('input')) return
                                               // Auto-save current assessment if switching from one
                                               if (loadedAssessmentId) {
                                                 setModules(prev => prev.map(mod => ({
@@ -7270,15 +7272,23 @@ FEEDBACK: [your explanation]`
                                               setMainBuilderTab('task')
                                             }}
                                           >
-                                            <ListTodo className="h-3 w-3 text-orange-500" />
-                                            <span className="text-[10px] flex-1 truncate">
-                                              <span className="font-semibold text-orange-700">{idx + 1}.</span> {task.title}
-                                            </span>
+                                            <ListTodo className="h-3 w-3 text-orange-500 shrink-0" />
+                                            <span className="text-[10px] font-semibold text-orange-700 shrink-0">{idx + 1}. {task.title}:</span>
+                                            <Input
+                                              placeholder="Description"
+                                              value={task.shortDescription ?? ''}
+                                              onChange={(e) => {
+                                                e.stopPropagation()
+                                                setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, tasks: les.tasks.map(t => t.id !== task.id ? t : { ...t, shortDescription: e.target.value }) }) }))
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                              className="h-6 text-[10px] flex-1 min-w-0 border-orange-200"
+                                            />
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700 shrink-0"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
                                                   moveToHomework(module.id, primaryLesson.id, 'task', task)
@@ -7432,32 +7442,19 @@ FEEDBACK: [your explanation]`
                                         )}
                                       </Button>
                                       <span className="text-[10px] font-semibold text-purple-700">Assessments</span>
-                                    </DroppableAssessmentZone>
-                                  </TreeItem>
-                                  {!isSectionCollapsed(module.id, 'assessment') && (
-                                    <>
-                                    <TreeItem depth={2} isLast={false}>
-                                      <div className="flex flex-col gap-1 py-1 px-2 rounded border border-purple-200 bg-purple-50/50">
-                                        <Label className="text-[10px] text-purple-700">Assessments description</Label>
-                                        <Input
-                                          placeholder="Describe assessments for this lesson..."
-                                          value={primaryLesson.assessmentSectionDescription ?? ''}
-                                          onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, assessmentSectionDescription: e.target.value }) }))}
-                                          className="h-7 text-xs border-purple-200"
-                                        />
-                                      </div>
-                                    </TreeItem>
-                                    <TreeItem depth={2} isLast={false}>
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-6 text-[10px] gap-1 px-2 text-purple-600 hover:bg-purple-100"
+                                        className="h-6 text-[10px] gap-1 px-2 text-purple-600 hover:bg-purple-100 ml-auto"
                                         onClick={() => addAssessment(module.id, primaryLesson.id)}
                                       >
                                         <Plus className="h-3 w-3" />
                                         Assessment
                                       </Button>
-                                    </TreeItem>
+                                    </DroppableAssessmentZone>
+                                  </TreeItem>
+                                  {!isSectionCollapsed(module.id, 'assessment') && (
+                                    <>
                                     <SortableContext
                                       items={assessments.map(h => h.id)}
                                       strategy={verticalListSortingStrategy}
@@ -7471,7 +7468,8 @@ FEEDBACK: [your explanation]`
                                                 ? "bg-purple-200 border-purple-400 ring-1 ring-purple-400"
                                                 : "bg-purple-50 border-purple-400 hover:bg-purple-100"
                                             )}
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                              if ((e.target as HTMLElement).closest('input')) return
                                               // Auto-save current task if switching from one
                                               if (loadedTaskId) {
                                                 setModules(prev => prev.map(mod => ({
@@ -7519,16 +7517,24 @@ FEEDBACK: [your explanation]`
                                               setMainBuilderTab('assessment')
                                             }}
                                           >
-                                            <FileQuestion className="h-3 w-3 text-purple-500" />
-                                            <span className="text-[10px] flex-1 truncate">
-                                              <span className="font-semibold text-purple-700">{idx + 1}.</span> {hw.title}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground">{hw.points}pts</span>
+                                            <FileQuestion className="h-3 w-3 text-purple-500 shrink-0" />
+                                            <span className="text-[10px] font-semibold text-purple-700 shrink-0">{idx + 1}. {hw.title}:</span>
+                                            <Input
+                                              placeholder="Description"
+                                              value={hw.description ?? ''}
+                                              onChange={(e) => {
+                                                e.stopPropagation()
+                                                setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homework: les.homework.map(h => h.id !== hw.id ? h : { ...h, description: e.target.value }) }) }))
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                              className="h-6 text-[10px] flex-1 min-w-0 border-purple-200"
+                                            />
+                                            <span className="text-[10px] text-muted-foreground shrink-0">{hw.points}pts</span>
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700"
+                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700 shrink-0"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
                                                   moveToHomework(module.id, primaryLesson.id, 'assessment', hw)
@@ -7570,66 +7576,67 @@ FEEDBACK: [your explanation]`
                                     </>
                                   )}
 
-                                  {/* Homework (per-lesson) - drop zone for tasks/assessments */}
-                                  {!lessonBankMode && (
+                                  {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
+                                  {!lessonBankMode && (() => {
+                                    const hwItems = (primaryLesson.homework || []).filter(h => h.category === 'homework')
+                                    return (
                                     <>
                                       <TreeItem depth={2} isLast={false}>
-                                        <DroppableHomeworkZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-emerald-400 bg-emerald-50/50">
-                                          <FolderOpen className="h-3 w-3 text-emerald-600" />
-                                          <span className="text-[10px] font-semibold text-emerald-700">Homework</span>
-                                          <span className="text-[10px] text-muted-foreground">{(primaryLesson.homework || []).filter(h => h.category === 'homework').length}</span>
-                                        </DroppableHomeworkZone>
-                                      </TreeItem>
-                                      <TreeItem depth={2} isLast={false}>
-                                        <div className="flex flex-col gap-1 py-1 px-2 rounded border border-emerald-200 bg-emerald-50/50">
-                                          <Label className="text-[10px] text-emerald-700">Homework description</Label>
+                                        <DroppableHomeworkZone moduleId={module.id} lessonId={primaryLesson.id} className="flex flex-col gap-1 py-1.5 px-2 rounded border border-dashed border-emerald-400 bg-emerald-50/50">
+                                          <div className="flex items-center gap-1.5">
+                                            <FolderOpen className="h-3 w-3 text-emerald-600" />
+                                            <span className="text-[10px] font-semibold text-emerald-700">Homework {hwItems.length}:</span>
+                                          </div>
                                           <Input
-                                            placeholder="Describe homework for this lesson..."
+                                            placeholder="Description..."
                                             value={primaryLesson.homeworkSectionDescription ?? ''}
                                             onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homeworkSectionDescription: e.target.value }) }))}
-                                            className="h-7 text-xs border-emerald-200"
+                                            className="h-7 text-xs border-emerald-200 bg-white"
                                           />
-                                        </div>
+                                        </DroppableHomeworkZone>
                                       </TreeItem>
-                                      {(primaryLesson.homework || []).filter(h => h.category === 'homework').map((hw) => (
-                                        <TreeItem key={hw.id} depth={2} isLast={false}>
-                                          <div
-                                            className={cn(
-                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors bg-emerald-50 border-emerald-400 hover:bg-emerald-100",
-                                              selectedItem?.type === 'homework' && selectedItem?.id === hw.id && "ring-1 ring-emerald-400"
-                                            )}
-                                            onClick={() => {
-                                              setSelectedItem({ type: 'homework', id: hw.id })
-                                              loadAssessmentIntoBuilder(hw)
-                                              setMainBuilderTab('assessment')
-                                            }}
-                                          >
-                                            <FileQuestion className="h-3 w-3 text-emerald-600" />
-                                            <span className="text-[10px] flex-1 truncate text-emerald-700">{hw.title}</span>
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                if (!confirm(`Delete "${hw.title}"?`)) return
-                                                setModules(prev => prev.map(mod =>
-                                                  mod.id !== module.id ? mod : {
-                                                    ...mod,
-                                                    lessons: mod.lessons.map(les =>
-                                                      les.id !== primaryLesson.id ? les : { ...les, homework: (les.homework || []).filter(x => x.id !== hw.id) }
-                                                    )
-                                                  }
-                                                ))
+                                      <SortableContext items={hwItems.map(h => h.id)} strategy={verticalListSortingStrategy}>
+                                        {hwItems.map((hw, hwIdx) => (
+                                          <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={hwIdx === hwItems.length - 1}>
+                                            <div
+                                              className={cn(
+                                                "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors bg-emerald-50 border-emerald-400 hover:bg-emerald-100",
+                                                selectedItem?.type === 'homework' && selectedItem?.id === hw.id && "ring-1 ring-emerald-400"
+                                              )}
+                                              onClick={() => {
+                                                setSelectedItem({ type: 'homework', id: hw.id })
+                                                loadAssessmentIntoBuilder(hw)
+                                                setMainBuilderTab('assessment')
                                               }}
                                             >
-                                              <Trash2 className="h-3 w-3 text-red-500" />
-                                            </Button>
-                                          </div>
-                                        </TreeItem>
-                                      ))}
+                                              <FileQuestion className="h-3 w-3 text-emerald-600 shrink-0" />
+                                              <span className="text-[10px] flex-1 truncate text-emerald-700">{hw.title}</span>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 opacity-0 group-hover/item:opacity-100 shrink-0"
+                                                onClick={(e: any) => {
+                                                  e.stopPropagation()
+                                                  if (!confirm(`Delete "${hw.title}"?`)) return
+                                                  setModules(prev => prev.map(mod =>
+                                                    mod.id !== module.id ? mod : {
+                                                      ...mod,
+                                                      lessons: mod.lessons.map(les =>
+                                                        les.id !== primaryLesson.id ? les : { ...les, homework: (les.homework || []).filter(x => x.id !== hw.id) }
+                                                      )
+                                                    }
+                                                  ))
+                                                }}
+                                              >
+                                                <Trash2 className="h-3 w-3 text-red-500" />
+                                              </Button>
+                                            </div>
+                                          </SortableTreeItem>
+                                        ))}
+                                      </SortableContext>
                                     </>
-                                  )}
+                                    )
+                                  })()}
 
                                   {/* End of Module Quizzes */}
                                   {(module.moduleQuizzes || []).map((quiz, quizIdx) => (

@@ -34,8 +34,6 @@ import { ArrowLeft, BookOpen, FileText, ListOrdered, CheckCircle2, Loader2, Radi
 import { toast } from 'sonner'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 // Categories from tutor registration - flattened list of all exam categories
 interface ExamCategory {
@@ -928,56 +926,182 @@ export default function TutorCoursePage() {
               )}
             </div>
 
-            {/* Per-day time slot dropdowns */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Select time slots per day (1 hour each)</Label>
-              {DAYS.map((day) => {
-                const daySlots = schedule.filter((s) => s.dayOfWeek === day).map((s) => s.startTime)
-                return (
-                  <div key={day} className="flex items-center gap-3 rounded-lg border p-3 bg-white">
-                    <span className="text-sm font-medium w-28 shrink-0">{day}</span>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="flex-1 justify-start gap-2 h-9 text-left font-normal">
-                          {daySlots.length === 0
-                            ? 'Select times...'
-                            : daySlots.sort().map((t) => {
-                                const [h, m] = t.split(':').map(Number)
-                                const display = `${h % 12 || 12}:${m.toString().padStart(2, '0')}${h >= 12 ? 'PM' : 'AM'}`
-                                return display
-                              }).join(', ')}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2" align="start">
-                        <div className="grid grid-cols-2 gap-1 max-h-48 overflow-y-auto">
-                          {TIME_SLOT_OPTIONS.map((timeStr) => {
-                            const selected = daySlots.includes(timeStr)
-                            const [h, m] = timeStr.split(':').map(Number)
-                            const display = `${h % 12 || 12}:${m.toString().padStart(2, '0')}${h >= 12 ? 'PM' : 'AM'}`
-                            return (
-                              <label
-                                key={timeStr}
-                                className="flex items-center gap-2 cursor-pointer rounded px-2 py-1.5 hover:bg-muted text-sm"
-                              >
-                                <Checkbox
-                                  checked={selected}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setSchedule((prev) => [...prev, { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 }])
-                                    } else {
-                                      setSchedule((prev) => prev.filter((s) => !(s.dayOfWeek === day && s.startTime === timeStr)))
-                                    }
-                                  }}
-                                />
-                                {display}
-                              </label>
-                            )
-                          })}
+            {/* Weekly calendar grid - time column left, days horizontal; week/month nav */}
+            <div className="border rounded-lg overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
+                <div className="flex items-center gap-1">
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs font-medium min-w-[140px] text-center">{scheduleWeekLabel}</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 1)} aria-label="Next week">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground mr-1">Month:</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 4)} aria-label="Previous month">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 4)} aria-label="Next month">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-8 border-b bg-muted/30">
+                <div className="p-2 text-xs font-medium text-center border-r">Time</div>
+                {DAYS.map((day) => (
+                  <div key={day} className="p-2 text-xs font-medium text-center">
+                    {day.slice(0, 3)}
+                  </div>
+                ))}
+              </div>
+              <ScrollArea className="h-[320px]">
+                <div className="grid grid-cols-8">
+                  {TIME_SLOT_OPTIONS.map((timeStr) => {
+                    const hour = parseInt(timeStr.slice(0, 2), 10)
+                    const displayTime = `${hour % 12 || 12}:00${hour >= 12 ? 'PM' : 'AM'}`
+                    return (
+                      <div key={timeStr} className="contents">
+                        <div className="p-1 text-[10px] text-muted-foreground text-center border-r border-b border-dashed">
+                          {displayTime}
                         </div>
-                      </PopoverContent>
-                    </Popover>
-                    {daySlots.length > 0 && (
-                      <span className="text-xs text-muted-foreground">{daySlots.length} slot{daySlots.length !== 1 ? 's' : ''}</span>
+                        {DAYS.map((day) => {
+                          const existing = schedule.find((s) => s.dayOfWeek === day && s.startTime === timeStr)
+                          const inRange = schedule.some(
+                            (s) => s.dayOfWeek === day && s.startTime <= timeStr && (() => {
+                              const [sh, sm] = s.startTime.split(':').map(Number)
+                              const endM = sh * 60 + sm + s.durationMinutes
+                              const [th, tm] = timeStr.split(':').map(Number)
+                              const tM = th * 60 + tm
+                              return tM >= sh * 60 + sm && tM < endM
+                            })()
+                          )
+                          return (
+                            <div
+                              key={`${day}-${timeStr}`}
+                              className={`p-1 border-b border-dashed border-r min-h-[22px] ${inRange ? 'bg-blue-100' : ''}`}
+                            >
+                              {existing && (
+                                <div className="text-[8px] bg-blue-500 text-white rounded px-1 py-0.5 text-center truncate">
+                                  {existing.durationMinutes}m
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Under each day: dropdown to add time range(s) - multiple discontinuous ranges per day */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Add time range per day (start – end)</Label>
+              {DAYS.map((day) => {
+                const dayItems = schedule.filter((s) => s.dayOfWeek === day).sort((a, b) => a.startTime.localeCompare(b.startTime))
+                return (
+                  <div key={day} className="rounded-lg border p-3 bg-white space-y-2">
+                    <div className="text-sm font-medium text-slate-700">{day}</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        id={`start-${day}`}
+                        data-day={day}
+                        data-type="start"
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs w-24"
+                        defaultValue=""
+                      >
+                        <option value="">Start</option>
+                        {TIME_SLOT_OPTIONS.map((t) => {
+                          const [h] = t.split(':').map(Number)
+                          return (
+                            <option key={t} value={t}>{h % 12 || 12}:00{h >= 12 ? 'PM' : 'AM'}</option>
+                          )
+                        })}
+                      </select>
+                      <span className="text-xs">–</span>
+                      <select
+                        id={`end-${day}`}
+                        data-day={day}
+                        data-type="end"
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs w-24"
+                        defaultValue=""
+                      >
+                        <option value="">End</option>
+                        {TIME_SLOT_OPTIONS.map((t) => {
+                          const [h] = t.split(':').map(Number)
+                          return (
+                            <option key={t} value={t}>{h % 12 || 12}:00{h >= 12 ? 'PM' : 'AM'}</option>
+                          )
+                        })}
+                      </select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          const startEl = document.getElementById(`start-${day}`) as HTMLSelectElement
+                          const endEl = document.getElementById(`end-${day}`) as HTMLSelectElement
+                          const startTime = startEl?.value
+                          const endTime = endEl?.value
+                          if (!startTime || !endTime || startTime >= endTime) {
+                            toast.error('Select start and end (start must be before end)')
+                            return
+                          }
+                          const [sh, sm] = startTime.split(':').map(Number)
+                          const [eh, em] = endTime.split(':').map(Number)
+                          const durationMinutes = (eh * 60 + em) - (sh * 60 + sm)
+                          setSchedule((prev) => [...prev, { dayOfWeek: day, startTime, durationMinutes }])
+                          startEl.value = ''
+                          endEl.value = ''
+                        }}
+                      >
+                        Add range
+                      </Button>
+                    </div>
+                    {dayItems.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {dayItems.map((slot, i) => {
+                          const [h, m] = slot.startTime.split(':').map(Number)
+                          const endM = h * 60 + m + slot.durationMinutes
+                          const endH = Math.floor(endM / 60)
+                          const endMin = endM % 60
+                          const startLabel = `${h % 12 || 12}:${m.toString().padStart(2, '0')}${h >= 12 ? 'PM' : 'AM'}`
+                          const endLabel = `${endH % 12 || 12}:${endMin.toString().padStart(2, '0')}${endH >= 12 ? 'PM' : 'AM'}`
+                          return (
+                            <Badge key={`${day}-${i}-${slot.startTime}-${slot.durationMinutes}`} variant="secondary" className="text-xs gap-1 pr-1">
+                              {startLabel}–{endLabel}
+                              <button
+                                type="button"
+                                className="rounded-full hover:bg-muted p-0.5"
+                                onClick={() => {
+                                  const daySlots = schedule.filter((s) => s.dayOfWeek === day)
+                                  const toRemove = daySlots[i]
+                                  setSchedule((prev) => {
+                                    let idx = -1
+                                    for (let j = 0; j < prev.length; j++) {
+                                      const s = prev[j]
+                                      if (s.dayOfWeek === day && s.startTime === toRemove.startTime && s.durationMinutes === toRemove.durationMinutes) {
+                                        idx = j
+                                        break
+                                      }
+                                    }
+                                    if (idx < 0) return prev
+                                    return prev.slice(0, idx).concat(prev.slice(idx + 1))
+                                  })
+                                }}
+                                aria-label="Remove"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          )
+                        })}
+                      </div>
                     )}
                   </div>
                 )
