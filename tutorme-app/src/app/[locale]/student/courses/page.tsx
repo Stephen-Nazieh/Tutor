@@ -362,7 +362,8 @@ function CoursesPageContent() {
     border: 'border-blue-200'
   }
 
-  const categories = ['all', ...Array.from(new Set(subjects.map(s => s.category)))]
+  // Standard categories matching the Course details page
+  const categories = ['all', 'Academic', 'Test Preparation', 'Language Arts', 'Mathematics', 'Science', 'Humanities', 'Arts']
   const difficulties = ['all', 'Beginner', 'Intermediate', 'Advanced', 'AP']
 
   if (status === 'loading' || loading) {
@@ -407,87 +408,7 @@ function CoursesPageContent() {
               <h3 className="text-xl font-semibold text-slate-900">Favorites</h3>
               <p className="text-sm text-slate-500">Saved tutors and courses.</p>
             </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-lg font-semibold text-slate-800">Favorite Tutors</h4>
-                {favoriteTutors.length > 0 && (
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">{favoriteTutors.length}</span>
-                )}
-              </div>
-                {favoritesLoading ? (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {[1, 2, 3].map((i) => (
-                      <Card key={i} className="animate-pulse">
-                        <CardHeader className="space-y-3">
-                          <div className="h-6 w-2/3 rounded bg-muted" />
-                          <div className="h-4 w-1/2 rounded bg-muted" />
-                        </CardHeader>
-                      </Card>
-                    ))}
-                  </div>
-                ) : favoriteTutors.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-12 text-center">
-                      <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No favorite tutors yet</h3>
-                      <p className="text-muted-foreground mb-4">Browse tutors and click the heart icon to save them here.</p>
-                      <Button asChild>
-                        <Link href="/student/tutors">Find Tutors</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {favoriteTutors.map((tutor) => (
-                      <Card key={tutor.id} className="relative">
-                        <button
-                          onClick={() => removeFavoriteTutor(tutor.id)}
-                          className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-                        </button>
-                        <CardHeader>
-                          <div className="flex items-start gap-3 pr-8">
-                            <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                              {tutor.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="min-w-0">
-                              <CardTitle className="text-lg truncate">{tutor.name}</CardTitle>
-                              <CardDescription>@{tutor.username}</CardDescription>
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
-                          </p>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          {tutor.averageRating && (
-                            <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                              <span className="font-medium">{tutor.averageRating.toFixed(1)}</span>
-                              <span className="text-muted-foreground text-sm">({tutor.totalReviewCount} reviews)</span>
-                            </div>
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {tutor.specialties.slice(0, 3).map((specialty) => (
-                              <Badge key={specialty} variant="secondary">{specialty}</Badge>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between pt-2 border-t">
-                            <span className="text-sm text-muted-foreground">{tutor.courseCount} courses</span>
-                            <Button asChild size="sm">
-                              <Link href={`/u/${tutor.username}`}>
-                                View Profile
-                                <ExternalLink className="ml-1 h-3 w-3" />
-                              </Link>
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-            </div>
+            {/* Favorite Tutors section removed */}
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">

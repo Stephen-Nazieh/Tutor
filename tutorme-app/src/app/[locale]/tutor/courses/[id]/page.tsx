@@ -201,6 +201,13 @@ export default function TutorCoursePage() {
 
   const scheduleMonthLabel = scheduleWeekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
+  /** For the grid: date for each day of the displayed week (Mon = index 0, Sun = index 6) */
+  const weekDates = DAYS.map((_, i) => {
+    const d = new Date(scheduleWeekStart)
+    d.setDate(scheduleWeekStart.getDate() + i)
+    return d
+  })
+
   const loadCourse = useCallback(async () => {
     setLoading(true)
     try {
@@ -952,11 +959,17 @@ export default function TutorCoursePage() {
               <p className="text-xs text-muted-foreground px-2 py-1 border-b bg-muted/20">Click a time slot to add or remove a 1-hour session.</p>
               <div className="grid grid-cols-8 border-b bg-muted/30">
                 <div className="p-2 text-xs font-medium text-center border-r">Time</div>
-                {DAYS.map((day) => (
-                  <div key={day} className="p-2 text-xs font-medium text-center">
-                    {day.slice(0, 3)}
-                  </div>
-                ))}
+                {DAYS.map((day, i) => {
+                  const d = weekDates[i]
+                  return (
+                    <div key={day} className="p-2 text-xs font-medium text-center border-r">
+                      <div>{day.slice(0, 3)}</div>
+                      <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                        {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
               <ScrollArea className="h-[320px]">
                 <div className="grid grid-cols-8">
