@@ -7289,17 +7289,33 @@ FEEDBACK: [your explanation]`
                                             }}
                                           >
                                             <ListTodo className="h-3 w-3 text-orange-500 shrink-0" />
-                                            <span className="text-[10px] font-semibold text-orange-700 shrink-0">{idx + 1}. {task.title}:</span>
-                                            <Input
-                                              placeholder="Description"
-                                              value={task.shortDescription ?? ''}
-                                              onChange={(e) => {
-                                                e.stopPropagation()
-                                                setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, tasks: les.tasks.map(t => t.id !== task.id ? t : { ...t, shortDescription: e.target.value }) }) }))
-                                              }}
-                                              onClick={(e) => e.stopPropagation()}
-                                              className="h-6 text-[10px] flex-1 min-w-0 border-orange-200"
-                                            />
+                                            <span className="text-[10px] font-semibold text-orange-700 shrink-0 relative group/tooltip">
+                                              {idx + 1}. {task.title}:
+                                              {/* Tooltip */}
+                                              <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                                                {task.title}
+                                                <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                              </span>
+                                            </span>
+                                            <div className="flex-1 min-w-0 relative group/tooltip-desc">
+                                              <Input
+                                                placeholder="Description"
+                                                value={task.shortDescription ?? ''}
+                                                onChange={(e) => {
+                                                  e.stopPropagation()
+                                                  setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, tasks: les.tasks.map(t => t.id !== task.id ? t : { ...t, shortDescription: e.target.value }) }) }))
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="h-6 text-[10px] border-orange-200 w-full"
+                                              />
+                                              {/* Tooltip for Description */}
+                                              {task.shortDescription && (
+                                                <span className="absolute left-0 -top-8 hidden group-hover/tooltip-desc:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
+                                                  {task.shortDescription}
+                                                  <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                                </span>
+                                              )}
+                                            </div>
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
@@ -7534,17 +7550,33 @@ FEEDBACK: [your explanation]`
                                             }}
                                           >
                                             <FileQuestion className="h-3 w-3 text-purple-500 shrink-0" />
-                                            <span className="text-[10px] font-semibold text-purple-700 shrink-0">{idx + 1}. {hw.title}:</span>
-                                            <Input
-                                              placeholder="Description"
-                                              value={hw.description ?? ''}
-                                              onChange={(e) => {
-                                                e.stopPropagation()
-                                                setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homework: les.homework.map(h => h.id !== hw.id ? h : { ...h, description: e.target.value }) }) }))
-                                              }}
-                                              onClick={(e) => e.stopPropagation()}
-                                              className="h-6 text-[10px] flex-1 min-w-0 border-purple-200"
-                                            />
+                                            <span className="text-[10px] font-semibold text-purple-700 shrink-0 relative group/tooltip">
+                                              {idx + 1}. {hw.title}:
+                                              {/* Tooltip */}
+                                              <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                                                {hw.title}
+                                                <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                              </span>
+                                            </span>
+                                            <div className="flex-1 min-w-0 relative group/tooltip-desc">
+                                              <Input
+                                                placeholder="Description"
+                                                value={hw.description ?? ''}
+                                                onChange={(e) => {
+                                                  e.stopPropagation()
+                                                  setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homework: les.homework.map(h => h.id !== hw.id ? h : { ...h, description: e.target.value }) }) }))
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="h-6 text-[10px] border-purple-200 w-full"
+                                              />
+                                              {/* Tooltip for Description */}
+                                              {hw.description && (
+                                                <span className="absolute left-0 -top-8 hidden group-hover/tooltip-desc:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
+                                                  {hw.description}
+                                                  <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                                </span>
+                                              )}
+                                            </div>
 
                                             {!lessonBankMode && (
                                               <Button
@@ -7626,7 +7658,14 @@ FEEDBACK: [your explanation]`
                                               }}
                                             >
                                               <FileQuestion className="h-3 w-3 text-emerald-600 shrink-0" />
-                                              <span className="text-[10px] flex-1 truncate text-emerald-700">{hw.title}</span>
+                                              <span className="text-[10px] flex-1 truncate text-emerald-700 relative group/tooltip">
+                                                {hw.title}
+                                                {/* Tooltip */}
+                                                <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
+                                                  {hw.title}
+                                                  <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                                </span>
+                                              </span>
                                               <Button
                                                 variant="ghost"
                                                 size="icon"

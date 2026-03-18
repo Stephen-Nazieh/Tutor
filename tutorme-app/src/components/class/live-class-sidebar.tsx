@@ -54,7 +54,7 @@ const peopleItems = [
 ]
 
 const supportItems = [
-  { id: 'help', label: 'Help & Support', href: '/tutor/help', icon: HelpCircle },
+  { id: 'help', label: 'Support', href: '/tutor/help', icon: HelpCircle },
 ]
 
 const quickActions = [

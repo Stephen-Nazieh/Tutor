@@ -39,7 +39,7 @@ const guides = [
   { title: 'Getting Started Guide', icon: BookOpen, description: 'Learn the basics of Solocorn' },
   { title: 'Video Tutorials', icon: PlayCircle, description: 'Watch step-by-step tutorials' },
   { title: 'Teaching Best Practices', icon: FileText, description: 'Tips for effective online teaching' },
-  { title: 'Live Class Guide', icon: Video, description: 'How to use the live classroom' },
+  { title: 'Site Policies', icon: Video, description: 'Platform terms and guidelines' },
 ]
 
 export default function TutorHelpPage() {
@@ -48,7 +48,7 @@ export default function TutorHelpPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <HelpCircle className="h-6 w-6" />
-          Help & Support
+          Support
         </h1>
         <p className="text-gray-600 mt-1">
           Find answers, tutorials, and get support
@@ -61,7 +61,7 @@ export default function TutorHelpPage() {
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
-              placeholder="Search for help..."
+              placeholder="Search"
               className="pl-10 py-6 text-lg"
             />
           </div>

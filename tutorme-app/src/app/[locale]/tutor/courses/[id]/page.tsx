@@ -926,188 +926,90 @@ export default function TutorCoursePage() {
               )}
             </div>
 
-            {/* Single section: calendar grid + add time range side by side */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr,minmax(280px,340px)] gap-4 items-start">
-              {/* Left: Weekly calendar grid */}
-              <div className="border rounded-lg overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
-                  <div className="flex items-center gap-1">
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-xs font-medium min-w-[140px] text-center">{scheduleWeekLabel}</span>
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 1)} aria-label="Next week">
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-muted-foreground mr-1">Month:</span>
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 4)} aria-label="Previous month">
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 4)} aria-label="Next month">
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+            {/* Calendar grid: click cells to select 1-hour slots */}
+            <div className="border rounded-lg overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
+                <div className="flex items-center gap-1">
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs font-medium min-w-[140px] text-center">{scheduleWeekLabel}</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 1)} aria-label="Next week">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div className="grid grid-cols-8 border-b bg-muted/30">
-                  <div className="p-2 text-xs font-medium text-center border-r">Time</div>
-                  {DAYS.map((day) => (
-                    <div key={day} className="p-2 text-xs font-medium text-center">
-                      {day.slice(0, 3)}
-                    </div>
-                  ))}
+                <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground mr-1">Month:</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 4)} aria-label="Previous month">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 4)} aria-label="Next month">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
-                <ScrollArea className="h-[280px]">
-                  <div className="grid grid-cols-8">
-                    {TIME_SLOT_OPTIONS.map((timeStr) => {
-                      const hour = parseInt(timeStr.slice(0, 2), 10)
-                      const displayTime = `${hour % 12 || 12}:00${hour >= 12 ? 'PM' : 'AM'}`
-                      return (
-                        <div key={timeStr} className="contents">
-                          <div className="p-1 text-[10px] text-muted-foreground text-center border-r border-b border-dashed">
-                            {displayTime}
-                          </div>
-                          {DAYS.map((day) => {
-                            const existing = schedule.find((s) => s.dayOfWeek === day && s.startTime === timeStr)
-                            const inRange = schedule.some(
-                              (s) => s.dayOfWeek === day && s.startTime <= timeStr && (() => {
-                                const [sh, sm] = s.startTime.split(':').map(Number)
-                                const endM = sh * 60 + sm + s.durationMinutes
-                                const [th, tm] = timeStr.split(':').map(Number)
-                                const tM = th * 60 + tm
-                                return tM >= sh * 60 + sm && tM < endM
-                              })()
-                            )
-                            return (
-                              <div
-                                key={`${day}-${timeStr}`}
-                                className={`p-1 border-b border-dashed border-r min-h-[22px] ${inRange ? 'bg-blue-100' : ''}`}
-                              >
-                                {existing && (
-                                  <div className="text-[8px] bg-blue-500 text-white rounded px-1 py-0.5 text-center truncate">
-                                    {existing.durationMinutes}m
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </ScrollArea>
               </div>
-
-              {/* Right: Add time range per day (start – end) */}
-              <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
-                <Label className="text-sm font-medium">Add time range (start – end)</Label>
-                <p className="text-xs text-muted-foreground">Pick start and end for each day. You can add multiple ranges per day.</p>
-                {DAYS.map((day) => {
-                  const dayItems = schedule.filter((s) => s.dayOfWeek === day).sort((a, b) => a.startTime.localeCompare(b.startTime))
-                  return (
-                    <div key={day} className="rounded-md border bg-background p-2 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-medium w-14 shrink-0">{day.slice(0, 3)}</span>
-                        <select
-                          id={`start-${day}`}
-                          aria-label={`${day} start time`}
-                          className="h-7 rounded border border-input bg-background px-1.5 text-xs w-20"
-                          defaultValue=""
-                        >
-                          <option value="">Start</option>
-                          {TIME_SLOT_OPTIONS.map((t) => {
-                            const [h] = t.split(':').map(Number)
-                            return (
-                              <option key={t} value={t}>{h % 12 || 12}:00{h >= 12 ? 'PM' : 'AM'}</option>
-                            )
-                          })}
-                        </select>
-                        <span className="text-muted-foreground">–</span>
-                        <select
-                          id={`end-${day}`}
-                          aria-label={`${day} end time`}
-                          className="h-7 rounded border border-input bg-background px-1.5 text-xs w-20"
-                          defaultValue=""
-                        >
-                          <option value="">End</option>
-                          {TIME_SLOT_OPTIONS.map((t) => {
-                            const [h] = t.split(':').map(Number)
-                            return (
-                              <option key={t} value={t}>{h % 12 || 12}:00{h >= 12 ? 'PM' : 'AM'}</option>
-                            )
-                          })}
-                        </select>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs px-2"
-                          onClick={() => {
-                            const startEl = document.getElementById(`start-${day}`) as HTMLSelectElement
-                            const endEl = document.getElementById(`end-${day}`) as HTMLSelectElement
-                            const startTime = startEl?.value
-                            const endTime = endEl?.value
-                            if (!startTime || !endTime || startTime >= endTime) {
-                              toast.error('Select start and end (start must be before end)')
-                              return
+              <p className="text-xs text-muted-foreground px-2 py-1 border-b bg-muted/20">Click a time slot to add or remove a 1-hour session.</p>
+              <div className="grid grid-cols-8 border-b bg-muted/30">
+                <div className="p-2 text-xs font-medium text-center border-r">Time</div>
+                {DAYS.map((day) => (
+                  <div key={day} className="p-2 text-xs font-medium text-center">
+                    {day.slice(0, 3)}
+                  </div>
+                ))}
+              </div>
+              <ScrollArea className="h-[320px]">
+                <div className="grid grid-cols-8">
+                  {TIME_SLOT_OPTIONS.map((timeStr) => {
+                    const hour = parseInt(timeStr.slice(0, 2), 10)
+                    const endHour = hour + 1
+                    const startLabel = `${hour % 12 || 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`
+                    const endLabel = `${endHour % 12 || 12}:00 ${endHour >= 12 ? 'PM' : 'AM'}`
+                    const displayTime = `${startLabel}-${endLabel}`
+                    return (
+                      <div key={timeStr} className="contents">
+                        <div className="p-1 text-[10px] text-muted-foreground text-center border-r border-b border-dashed">
+                          {displayTime}
+                        </div>
+                        {DAYS.map((day) => {
+                          const inRange = schedule.some(
+                            (s) => s.dayOfWeek === day && (() => {
+                              const [sh, sm] = s.startTime.split(':').map(Number)
+                              const startM = sh * 60 + sm
+                              const endM = startM + s.durationMinutes
+                              const [th, tm] = timeStr.split(':').map(Number)
+                              const slotM = th * 60 + tm
+                              return slotM >= startM && slotM < endM
+                            })()
+                          )
+                          const toggleSlot = () => {
+                            const hasSlot = schedule.some((s) => s.dayOfWeek === day && s.startTime === timeStr)
+                            if (hasSlot) {
+                              setSchedule((prev) => prev.filter((s) => !(s.dayOfWeek === day && s.startTime === timeStr)))
+                            } else {
+                              setSchedule((prev) => [...prev, { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 }])
                             }
-                            const [sh, sm] = startTime.split(':').map(Number)
-                            const [eh, em] = endTime.split(':').map(Number)
-                            const durationMinutes = (eh * 60 + em) - (sh * 60 + sm)
-                            setSchedule((prev) => [...prev, { dayOfWeek: day, startTime, durationMinutes }])
-                            startEl.value = ''
-                            endEl.value = ''
-                          }}
-                        >
-                          Add
-                        </Button>
+                          }
+                          return (
+                            <button
+                              type="button"
+                              key={`${day}-${timeStr}`}
+                              onClick={toggleSlot}
+                              className={`p-1 border-b border-dashed border-r min-h-[28px] w-full text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
+                              aria-pressed={inRange}
+                              aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
+                            >
+                              {inRange && (
+                                <span className="text-[8px] font-medium text-blue-800">1h</span>
+                              )}
+                            </button>
+                          )
+                        })}
                       </div>
-                      {dayItems.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {dayItems.map((slot, i) => {
-                            const [h, m] = slot.startTime.split(':').map(Number)
-                            const endM = h * 60 + m + slot.durationMinutes
-                            const endH = Math.floor(endM / 60)
-                            const endMin = endM % 60
-                            const startLabel = `${h % 12 || 12}:${m.toString().padStart(2, '0')}${h >= 12 ? 'PM' : 'AM'}`
-                            const endLabel = `${endH % 12 || 12}:${endMin.toString().padStart(2, '0')}${endH >= 12 ? 'PM' : 'AM'}`
-                            return (
-                              <Badge key={`${day}-${i}-${slot.startTime}-${slot.durationMinutes}`} variant="secondary" className="text-[10px] gap-0.5 pr-1 py-0">
-                                {startLabel}–{endLabel}
-                                <button
-                                  type="button"
-                                  className="rounded-full hover:bg-muted p-0.5"
-                                  onClick={() => {
-                                    const daySlots = schedule.filter((s) => s.dayOfWeek === day)
-                                    const toRemove = daySlots[i]
-                                    setSchedule((prev) => {
-                                      let idx = -1
-                                      for (let j = 0; j < prev.length; j++) {
-                                        const s = prev[j]
-                                        if (s.dayOfWeek === day && s.startTime === toRemove.startTime && s.durationMinutes === toRemove.durationMinutes) {
-                                          idx = j
-                                          break
-                                        }
-                                      }
-                                      if (idx < 0) return prev
-                                      return prev.slice(0, idx).concat(prev.slice(idx + 1))
-                                    })
-                                  }}
-                                  aria-label="Remove"
-                                >
-                                  <X className="h-2.5 w-2.5" />
-                                </button>
-                              </Badge>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
             </div>
 
             {/* Set Schedule Button */}
