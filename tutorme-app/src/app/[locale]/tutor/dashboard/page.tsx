@@ -229,8 +229,7 @@ function TutorDashboardContent() {
   return (
     <div className="min-h-screen bg-background text-foreground" style={themeStyle}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="text-sm text-muted-foreground">Tutor Dashboard</div>
+        <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-end">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Theme</span>
             <Select
