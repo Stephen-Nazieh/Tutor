@@ -965,7 +965,7 @@ export default function TutorCoursePage() {
                     <div key={day} className="p-2 text-xs font-medium text-center border-r">
                       <div>{day.slice(0, 3)}</div>
                       <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
-                        {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {d.getDate()}
                       </div>
                     </div>
                   )
