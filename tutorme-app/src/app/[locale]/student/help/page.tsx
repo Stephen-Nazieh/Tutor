@@ -35,7 +35,7 @@ const faqs = [
 const guides = [
   { title: 'Getting Started', icon: BookOpen, description: 'Learn how to use the platform' },
   { title: 'Video Tutorials', icon: Video, description: 'Watch helpful tutorial videos' },
-  { title: 'Study Tips', icon: BookOpen, description: 'Best practices for online learning' },
+  { title: 'Site Policies', icon: BookOpen, description: 'Platform terms and guidelines' },
 ]
 
 export default function StudentHelpPage() {

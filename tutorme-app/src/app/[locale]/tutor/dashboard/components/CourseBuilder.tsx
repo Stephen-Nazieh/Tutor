@@ -7150,16 +7150,31 @@ FEEDBACK: [your explanation]`
                                   <ChevronRight className="h-3 w-3 text-blue-600" />
                                 )}
                                 <Layers className="h-3 w-3 text-blue-600" />
-                                <span className="text-sm font-medium truncate max-w-[120px]" title={module.title}>{module.title}</span>
+                                <span className="text-sm font-medium truncate max-w-[120px] relative group/tooltip" title={module.title}>
+                                  {module.title}
+                                  {/* Custom Tooltip */}
+                                  <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
+                                    {module.title}
+                                    <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                  </span>
+                                </span>
                                 <span className="text-blue-400">:</span>
-                                <Input
-                                  placeholder="Add description..."
-                                  value={module.description ?? ''}
-                                  onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, description: e.target.value }))}
-                                  className="h-6 text-xs border-blue-200 bg-white/50 flex-1 min-w-0"
-                                  title={module.description || 'Add description...'}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
+                                <div className="flex-1 min-w-0 relative group/tooltip-desc">
+                                  <Input
+                                    placeholder="Add description..."
+                                    value={module.description ?? ''}
+                                    onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, description: e.target.value }))}
+                                    className="h-6 text-xs border-blue-200 bg-white/50 w-full"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  {/* Custom Tooltip for Description */}
+                                  {module.description && (
+                                    <span className="absolute left-0 -top-8 hidden group-hover/tooltip-desc:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
+                                      {module.description}
+                                      <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                    </span>
+                                  )}
+                                </div>
                                 <Badge variant="secondary" className="text-[10px] h-4 shrink-0">
                                   {totalItems}
                                 </Badge>
@@ -7530,7 +7545,7 @@ FEEDBACK: [your explanation]`
                                               onClick={(e) => e.stopPropagation()}
                                               className="h-6 text-[10px] flex-1 min-w-0 border-purple-200"
                                             />
-                                            <span className="text-[10px] text-muted-foreground shrink-0">{hw.points}pts</span>
+
                                             {!lessonBankMode && (
                                               <Button
                                                 variant="ghost"
