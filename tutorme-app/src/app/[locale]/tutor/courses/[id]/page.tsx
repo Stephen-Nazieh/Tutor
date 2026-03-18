@@ -179,6 +179,24 @@ export default function TutorCoursePage() {
   const [tutorProfile, setTutorProfile] = useState<{ currency?: string | null; categories?: string[] } | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
+  const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
+
+  const scheduleWeekStart = (() => {
+    const d = new Date()
+    const day = d.getDay()
+    const mon = d.getDate() - (day === 0 ? 6 : day - 1) + scheduleWeekOffset * 7
+    const start = new Date(d)
+    start.setDate(mon)
+    return start
+  })()
+
+  const scheduleWeekLabel = (() => {
+    const end = new Date(scheduleWeekStart)
+    end.setDate(end.getDate() + 6)
+    return `${scheduleWeekStart.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`
+  })()
+
+  const scheduleMonthLabel = scheduleWeekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 
   const loadCourse = useCallback(async () => {
     setLoading(true)
@@ -573,7 +591,7 @@ export default function TutorCoursePage() {
     const minute = Number(minuteStr)
     const displayHour = hour % 12 === 0 ? 12 : hour % 12
     const period = hour >= 12 ? 'PM' : 'AM'
-    return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`
+    return `${displayHour}:${minute.toString().padStart(2, '0')}${period}`
   }
   const formatTimeRange = (startTime: string, durationMinutes: number) => {
     const [hourStr, minuteStr] = startTime.split(':')
@@ -831,8 +849,50 @@ export default function TutorCoursePage() {
             <CardTitle>Course Schedule</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Weekly Calendar with 30-min intervals */}
+            {/* Cost vs Revenue - visible when price and schedule are set */}
+            {Number(price) > 0 && schedule.length > 0 && (() => {
+              const p = Number(price)
+              const cost = schedule.reduce((sum, slot) => sum + (slot.durationMinutes / 60) * p, 0)
+              const revenue = cost * 0.7
+              return (
+                <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3 text-sm">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Cost for course</div>
+                    <div className="font-medium">USD {cost.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Revenue (after 30% commission)</div>
+                    <div className="font-medium">USD {revenue.toFixed(2)}</div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Weekly Calendar - 1hr intervals; week and month navigation */}
             <div className="border rounded-lg overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
+                <div className="flex items-center gap-1">
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs font-medium min-w-[140px] text-center">
+                    {scheduleWeekLabel}
+                  </span>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 1)} aria-label="Next week">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground mr-1">Month:</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 4)} aria-label="Previous month">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 4)} aria-label="Next month">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
               <div className="grid grid-cols-8 border-b bg-muted/30">
                 <div className="p-2 text-xs font-medium text-center border-r">Time</div>
                 {DAYS.map(day => (
@@ -843,17 +903,16 @@ export default function TutorCoursePage() {
               </div>
               <ScrollArea className="h-[400px]">
                 <div className="grid grid-cols-8">
-                  {/* Time slots - 30 minute intervals from 6:00 to 22:00 */}
-                  {Array.from({ length: 32 }, (_, i) => {
-                    const hour = Math.floor(i / 2) + 6
-                    const minute = (i % 2) * 30
-                    const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-                    const displayTime = `${hour > 12 ? hour - 12 : hour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`
+                  {/* Time slots - 1 hour intervals from 6:00 to 22:00 */}
+                  {Array.from({ length: 16 }, (_, i) => {
+                    const hour = i + 6
+                    const timeStr = `${hour.toString().padStart(2, '0')}:00`
+                    const displayTime = `${hour === 12 ? 12 : hour % 12}:00${hour >= 12 ? 'PM' : 'AM'}`
                     
                     return (
                       <div key={timeStr} className="contents">
                         <div className="p-1 text-[10px] text-muted-foreground text-center border-r border-b border-dashed">
-                          {i % 2 === 0 ? displayTime : ''}
+                          {displayTime}
                         </div>
                         {DAYS.map(day => {
                           const existingSlot = schedule.find(s => 
@@ -926,14 +985,14 @@ export default function TutorCoursePage() {
                 </CardHeader>
                 <CardContent>
                   {priceNumber > 0 && scheduleSummary.length > 0 && (
-                    <div className="mb-4 rounded-lg border bg-white p-3 text-sm text-slate-700">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Cost for course</span>
-                        <span>USD {scheduleCost.toFixed(2)}</span>
+                    <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg border bg-white p-3 text-sm text-slate-700">
+                      <div>
+                        <div className="text-xs text-slate-500">Cost for course</div>
+                        <div className="font-medium">USD {scheduleCost.toFixed(2)}</div>
                       </div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 mt-1">
-                        <span>Total revenue (after 30% commission)</span>
-                        <span>USD {totalRevenue.toFixed(2)}</span>
+                      <div>
+                        <div className="text-xs text-slate-500">Total revenue (after 30% commission)</div>
+                        <div className="font-medium">USD {totalRevenue.toFixed(2)}</div>
                       </div>
                     </div>
                   )}

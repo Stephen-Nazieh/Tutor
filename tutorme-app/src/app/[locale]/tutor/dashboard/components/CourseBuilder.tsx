@@ -3847,6 +3847,36 @@ function DroppableHomeworkZone({
   )
 }
 
+function DroppableTaskZone({
+  moduleId,
+  lessonId,
+  children,
+  className,
+}: { moduleId: string; lessonId: string; children: React.ReactNode; className?: string }) {
+  const id = `drop-task-${moduleId}::${lessonId}`
+  const { setNodeRef, isOver } = useDroppable({ id })
+  return (
+    <div ref={setNodeRef} className={cn(className, isOver && 'ring-1 ring-orange-400 bg-orange-100')}>
+      {children}
+    </div>
+  )
+}
+
+function DroppableAssessmentZone({
+  moduleId,
+  lessonId,
+  children,
+  className,
+}: { moduleId: string; lessonId: string; children: React.ReactNode; className?: string }) {
+  const id = `drop-assessment-${moduleId}::${lessonId}`
+  const { setNodeRef, isOver } = useDroppable({ id })
+  return (
+    <div ref={setNodeRef} className={cn(className, isOver && 'ring-1 ring-purple-400 bg-purple-100')}>
+      {children}
+    </div>
+  )
+}
+
 // ============================================
 // RESIZABLE PANEL COMPONENT
 // ============================================
@@ -6034,6 +6064,87 @@ FEEDBACK: [your explanation]`
       }
     }
 
+    // Drag from Homework to Tasks: convert homework (assessment) to task and add to target lesson's tasks
+    if (typeof overId === 'string' && overId.startsWith('drop-task-')) {
+      const rest = overId.slice('drop-task-'.length)
+      const sep = rest.indexOf('::')
+      const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
+      const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
+      const hwLoc = findHomeworkLocation(activeId)
+      if (hwLoc && targetModuleId && targetLessonId) {
+        const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
+        const newTask: Task = {
+          id: `task-${generateId()}`,
+          title: hw.title || 'Task',
+          description: hw.description || '',
+          instructions: hw.instructions || '',
+          dmiItems: hw.dmiItems || [],
+          estimatedMinutes: hw.estimatedMinutes ?? 15,
+          points: hw.points ?? 10,
+          submissionType: 'text',
+          isAiGraded: false,
+          difficultyMode: 'all',
+        }
+        const srcModId = modules[hwLoc.mIdx].id
+        const srcLesId = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].id
+        setModules(prev => prev.map(mod => {
+          if (mod.id !== targetModuleId) {
+            if (mod.id !== srcModId) return mod
+            return { ...mod, lessons: mod.lessons.map(les => les.id === srcLesId ? { ...les, homework: les.homework.filter(h => h.id !== activeId) } : les) }
+          }
+          return {
+            ...mod,
+            lessons: mod.lessons.map(les => {
+              let next = les
+              if (les.id === srcLesId) next = { ...next, homework: next.homework.filter(h => h.id !== activeId) }
+              if (les.id === targetLessonId) next = { ...next, tasks: [...(next.tasks || []), newTask] }
+              return next
+            }),
+          }
+        }))
+        if (loadedAssessmentId === activeId) {
+          setLoadedAssessmentId(null)
+          setSelectedItem({ type: 'task', id: newTask.id })
+          loadTaskIntoBuilder(newTask, null)
+          setMainBuilderTab('task')
+        }
+        toast.success('Moved to tasks')
+        return
+      }
+    }
+
+    // Drag from Homework to Assessments: move homework item to target lesson as assessment (category !== homework)
+    if (typeof overId === 'string' && overId.startsWith('drop-assessment-')) {
+      const rest = overId.slice('drop-assessment-'.length)
+      const sep = rest.indexOf('::')
+      const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
+      const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
+      const hwLoc = findHomeworkLocation(activeId)
+      if (hwLoc && targetModuleId && targetLessonId) {
+        const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
+        const asAssessment = { ...cloneAssessment(hw), category: 'assessment' as const, id: `a-${generateId()}` }
+        setModules(prev => prev.map(mod => {
+          if (mod.id === modules[hwLoc.mIdx].id) {
+            return {
+              ...mod,
+              lessons: mod.lessons.map((les, lIdx) => lIdx === hwLoc.lIdx ? { ...les, homework: les.homework.filter(h => h.id !== activeId) } : les),
+            }
+          }
+          if (mod.id !== targetModuleId) return mod
+          return {
+            ...mod,
+            lessons: mod.lessons.map(les => les.id !== targetLessonId ? les : { ...les, homework: [...(les.homework || []), asAssessment] }),
+          }
+        }))
+        if (loadedAssessmentId === activeId) {
+          setSelectedItem({ type: 'homework', id: asAssessment.id })
+          loadAssessmentIntoBuilder(asAssessment)
+        }
+        toast.success('Moved to assessments')
+        return
+      }
+    }
+
     // Check if dragging a module
     const activeModuleIndex = modules.findIndex(m => m.id === activeId)
     const overModuleIndex = modules.findIndex(m => m.id === overId)
@@ -6923,11 +7034,7 @@ FEEDBACK: [your explanation]`
             <div ref={leftPanelRef} style={{ width: leftPanelWidth }} className="flex flex-col min-h-0 shrink-0">
               <Card className="flex-1 flex flex-col min-h-0 border-2 border-border h-full bg-card rounded-2xl shadow-xl ring-1 ring-black/5">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <Sparkles className="h-5 w-5 text-amber-500" />
-                    Course Builder
-                  </CardTitle>
+                <div className="flex items-center justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -7072,9 +7179,9 @@ FEEDBACK: [your explanation]`
 
                               {expandedModules.has(module.id) && (
                                 <div className="mt-1 space-y-1">
-                                  {/* Tasks */}
+                                  {/* Tasks - droppable so homework can be moved here */}
                                   <TreeItem depth={2} isLast={false}>
-                                    <div className="flex items-center gap-1.5">
+                                    <DroppableTaskZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-orange-300 bg-orange-50/50">
                                       <Button
                                         variant="ghost"
                                         size="icon"
@@ -7088,7 +7195,9 @@ FEEDBACK: [your explanation]`
                                           <ChevronDown className="h-3 w-3 text-orange-600" />
                                         )}
                                       </Button>
-                                    </div>
+                                      <span className="text-[10px] font-semibold text-orange-700">Tasks</span>
+                                      <span className="text-[10px] text-muted-foreground">— Drop here</span>
+                                    </DroppableTaskZone>
                                   </TreeItem>
                                   {!isSectionCollapsed(module.id, 'task') && (
                                     <SortableContext
@@ -7298,9 +7407,9 @@ FEEDBACK: [your explanation]`
                                     </SortableContext>
                                   )}
 
-                                  {/* Assessments */}
+                                  {/* Assessments - droppable so homework can be moved here */}
                                   <TreeItem depth={2} isLast={false}>
-                                    <div className="flex items-center gap-1.5">
+                                    <DroppableAssessmentZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-purple-300 bg-purple-50/50">
                                       <Button
                                         variant="ghost"
                                         size="icon"
@@ -7314,7 +7423,9 @@ FEEDBACK: [your explanation]`
                                           <ChevronDown className="h-3 w-3 text-purple-600" />
                                         )}
                                       </Button>
-                                    </div>
+                                      <span className="text-[10px] font-semibold text-purple-700">Assessments</span>
+                                      <span className="text-[10px] text-muted-foreground">— Drop here</span>
+                                    </DroppableAssessmentZone>
                                   </TreeItem>
                                   {!isSectionCollapsed(module.id, 'assessment') && (
                                     <SortableContext

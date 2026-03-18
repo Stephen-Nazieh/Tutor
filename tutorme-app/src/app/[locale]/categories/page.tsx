@@ -913,7 +913,6 @@ export default function CategoriesPage() {
             </div>
             <div className="flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-[#4FD1C5]" />
-              <span className="text-xl font-bold">Browse All Categories</span>
             </div>
             <div className="w-32" />
           </div>
@@ -924,7 +923,6 @@ export default function CategoriesPage() {
       <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Introduction */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#1F2933] mb-4">Explore All Categories</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Select your region and country to see relevant exams. All categories will be assigned to your selected country.
           </p>
@@ -1206,7 +1204,6 @@ export default function CategoriesPage() {
             {/* CTA - Now aligned with Your Own Category */}
             <Card className="bg-gradient-to-br from-[#4FD1C5]/10 to-[#1D4ED8]/10 border-[#4FD1C5]/30">
               <CardContent className="pt-6">
-                <h4 className="font-semibold text-[#1F2933] mb-2">Ready to start tutoring?</h4>
                 <p className="text-sm text-gray-600 mb-4">
                   Create an account and start sharing your expertise.
                 </p>

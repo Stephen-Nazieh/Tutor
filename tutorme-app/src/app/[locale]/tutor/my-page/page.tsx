@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -95,11 +94,12 @@ export default function TutorMyPage() {
         setProfileCategories(categories)
         setEditableCategories(categories)
         const links = data?.profile?.socialLinks || {}
+        const stripAt = (s: string) => s.replace(/^@+/, '')
         setSocialAccounts({
-          youtube: typeof links.youtube === 'string' ? links.youtube : '',
-          instagram: typeof links.instagram === 'string' ? links.instagram : '',
-          tiktok: typeof links.tiktok === 'string' ? links.tiktok : '',
-          facebook: typeof links.facebook === 'string' ? links.facebook : '',
+          youtube: typeof links.youtube === 'string' ? stripAt(links.youtube) : '',
+          instagram: typeof links.instagram === 'string' ? stripAt(links.instagram) : '',
+          tiktok: typeof links.tiktok === 'string' ? stripAt(links.tiktok) : '',
+          facebook: typeof links.facebook === 'string' ? stripAt(links.facebook) : '',
         })
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load data')
@@ -182,10 +182,10 @@ export default function TutorMyPage() {
         body: JSON.stringify({
           bio,
           socialLinks: {
-            instagram: socialAccounts.instagram.trim(),
-            tiktok: socialAccounts.tiktok.trim(),
-            youtube: socialAccounts.youtube.trim(),
-            facebook: socialAccounts.facebook.trim(),
+            instagram: socialAccounts.instagram.trim().replace(/^@+/, ''),
+            tiktok: socialAccounts.tiktok.trim().replace(/^@+/, ''),
+            youtube: socialAccounts.youtube.trim().replace(/^@+/, ''),
+            facebook: socialAccounts.facebook.trim().replace(/^@+/, ''),
           },
         }),
       })
@@ -231,7 +231,12 @@ export default function TutorMyPage() {
         toast.error(data?.error || 'Failed to upload photo')
         return
       }
-      setAvatarUrl(data?.avatarUrl ?? avatarUrl)
+      const newUrl = data?.avatarUrl ?? data?.url ?? null
+      const fullUrl = typeof newUrl === 'string' && newUrl.startsWith('/') && typeof window !== 'undefined'
+        ? `${window.location.origin}${newUrl}`
+        : newUrl
+      setAvatarUrl(fullUrl ?? null)
+      setAvatarPreview(null)
       setAvatarFile(null)
       toast.success('Profile photo updated')
     } catch {
@@ -322,7 +327,6 @@ export default function TutorMyPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Button>
-          <Badge className="bg-[#1D4ED8] text-white shadow-sm">Tutor Workspace</Badge>
         </div>
       </div>
 
@@ -507,43 +511,55 @@ export default function TutorMyPage() {
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-1">
                   <Label className="text-xs text-[#64748B]">YouTube</Label>
-                  <Input
-                    placeholder="YouTube username"
-                    value={socialAccounts.youtube}
-                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, youtube: e.target.value }))}
-                    disabled={loading || saving}
-                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                  />
+                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                    <Input
+                      placeholder="username"
+                      value={socialAccounts.youtube.replace(/^@+/, '')}
+                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, youtube: e.target.value.replace(/^@+/, '') }))}
+                      disabled={loading || saving}
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-[#64748B]">Instagram</Label>
-                  <Input
-                    placeholder="Instagram username"
-                    value={socialAccounts.instagram}
-                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, instagram: e.target.value }))}
-                    disabled={loading || saving}
-                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                  />
+                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                    <Input
+                      placeholder="username"
+                      value={socialAccounts.instagram.replace(/^@+/, '')}
+                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, instagram: e.target.value.replace(/^@+/, '') }))}
+                      disabled={loading || saving}
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-[#64748B]">TikTok</Label>
-                  <Input
-                    placeholder="TikTok username"
-                    value={socialAccounts.tiktok}
-                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, tiktok: e.target.value }))}
-                    disabled={loading || saving}
-                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                  />
+                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                    <Input
+                      placeholder="username"
+                      value={socialAccounts.tiktok.replace(/^@+/, '')}
+                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, tiktok: e.target.value.replace(/^@+/, '') }))}
+                      disabled={loading || saving}
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-[#64748B]">Facebook</Label>
-                  <Input
-                    placeholder="Facebook username"
-                    value={socialAccounts.facebook}
-                    onChange={(e) => setSocialAccounts((prev) => ({ ...prev, facebook: e.target.value }))}
-                    disabled={loading || saving}
-                    className="border-[#E2E8F0] focus-visible:ring-[#4FD1C5]"
-                  />
+                  <div className="flex border border-[#E2E8F0] rounded-md focus-within:ring-2 focus-within:ring-[#4FD1C5] focus-within:ring-offset-0">
+                    <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                    <Input
+                      placeholder="username"
+                      value={socialAccounts.facebook.replace(/^@+/, '')}
+                      onChange={(e) => setSocialAccounts((prev) => ({ ...prev, facebook: e.target.value.replace(/^@+/, '') }))}
+                      disabled={loading || saving}
+                      className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 pl-0"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
