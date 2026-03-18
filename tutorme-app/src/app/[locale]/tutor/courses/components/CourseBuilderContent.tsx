@@ -226,16 +226,28 @@ export function CourseBuilderContent({ courseId }: { courseId: string | null }) 
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Course
             </Button>
-            <Button
-              variant="outline"
-              className="gap-2"
-              asChild
-            >
-              <Link href={`/tutor/courses/${courseId}`}>
+            {courseId ? (
+              <Button
+                variant="outline"
+                className="gap-2"
+                asChild
+              >
+                <Link href={`/tutor/courses/${courseId}`}>
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="gap-2"
+                type="button"
+                onClick={() => toast.error('Course ID not available yet. Please wait a moment and try again.')}
+              >
                 Next
                 <ChevronRight className="w-4 h-4" />
-              </Link>
-            </Button>
+              </Button>
+            )}
           </div>
         </div>
       </div>
