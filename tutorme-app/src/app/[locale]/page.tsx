@@ -746,7 +746,11 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
     socialMedia: '',
     school: '',
     website: '',
-    message: ''
+    message: '',
+    youtube: '',
+    instagram: '',
+    tiktok: '',
+    facebook: ''
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -804,7 +808,11 @@ const ComingSoonModal = ({ isOpen, onClose, type, lang, theme, mode }: { isOpen:
         rows={3}
         className={`w-full border rounded-lg px-3 py-2 resize-none text-sm ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`}
       />
-      <Input type="text" placeholder="Social media (optional)" value={formData.socialMedia} onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <div className={`text-xs font-medium mb-1 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>Social Media (optional)</div>
+      <Input type="text" placeholder="YouTube username" value={formData.youtube} onChange={(e) => setFormData({ ...formData, youtube: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="text" placeholder="Instagram username" value={formData.instagram} onChange={(e) => setFormData({ ...formData, instagram: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="text" placeholder="TikTok username" value={formData.tiktok} onChange={(e) => setFormData({ ...formData, tiktok: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
+      <Input type="text" placeholder="Facebook username" value={formData.facebook} onChange={(e) => setFormData({ ...formData, facebook: e.target.value })} className={`w-full border ${mode === 'dark' ? 'bg-white/5 border-white/10 text-white placeholder:text-zinc-500' : 'bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500'}`} />
       {error && <p className="text-red-500 text-sm text-center">{error}</p>}
       <Button type="submit" disabled={loading} className={`w-full py-3 text-white font-semibold rounded-xl ${themeColors[theme].primary} disabled:opacity-50 disabled:cursor-not-allowed`}>{loading ? 'Submitting...' : 'Confirm'}</Button>
     </>

@@ -1,14 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { toast } from 'sonner'
 import { 
   MessageSquare, 
   Send,
   Search,
   UserCircle,
-  MoreVertical
+  MoreVertical,
+  Lock
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -26,7 +29,22 @@ interface Conversation {
   online: boolean
 }
 
+interface ChatMessage {
+  id: string
+  content: string
+  sender: 'student' | 'tutor'
+  timestamp: string
+}
+
 export default function StudentMessagesPage() {
+  const [inputMessage, setInputMessage] = useState('')
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: '1', content: "Hi! How are you doing with the algebra homework?", sender: 'tutor', timestamp: '10:00 AM' },
+    { id: '2', content: "I'm having trouble with problem 5. Can you help?", sender: 'student', timestamp: '10:05 AM' },
+    { id: '3', content: "Don't forget about the quiz tomorrow!", sender: 'tutor', timestamp: '10:30 AM' },
+  ])
+  const [waitingForResponse, setWaitingForResponse] = useState(false)
+
   const conversations: Conversation[] = [
     {
       id: '1',
@@ -46,6 +64,27 @@ export default function StudentMessagesPage() {
     },
   ]
 
+  const handleSendMessage = () => {
+    if (!inputMessage.trim()) return
+    
+    if (waitingForResponse) {
+      toast.info('Please wait for your tutor to respond before sending another message.')
+      return
+    }
+
+    const newMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: inputMessage.trim(),
+      sender: 'student',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    }
+    
+    setMessages(prev => [...prev, newMessage])
+    setInputMessage('')
+    setWaitingForResponse(true)
+    toast.success('Message sent. Waiting for tutor response.')
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -56,6 +95,12 @@ export default function StudentMessagesPage() {
         <p className="text-gray-600 mt-1">
           Chat with your tutors and classmates
         </p>
+        {waitingForResponse && (
+          <div className="mt-2 flex items-center gap-2 text-amber-600 text-sm bg-amber-50 px-3 py-2 rounded-lg w-fit">
+            <Lock className="h-4 w-4" />
+            <span>You have sent a message. Please wait for the tutor to respond.</span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
@@ -126,28 +171,34 @@ export default function StudentMessagesPage() {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col">
             <div className="flex-1 overflow-y-auto space-y-4 py-4">
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[70%]">
-                  <p className="text-sm">Hi! How are you doing with the algebra homework?</p>
-                  <span className="text-xs text-gray-400 mt-1">10:00 AM</span>
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.sender === 'student' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`${msg.sender === 'student' ? 'bg-blue-600 text-white' : 'bg-gray-100'} rounded-lg px-4 py-2 max-w-[70%]`}>
+                    <p className="text-sm">{msg.content}</p>
+                    <span className={`text-xs mt-1 ${msg.sender === 'student' ? 'text-blue-200' : 'text-gray-400'}`}>{msg.timestamp}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-end">
-                <div className="bg-blue-600 text-white rounded-lg px-4 py-2 max-w-[70%]">
-                  <p className="text-sm">I'm having trouble with problem 5. Can you help?</p>
-                  <span className="text-xs text-blue-200 mt-1">10:05 AM</span>
-                </div>
-              </div>
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg px-4 py-2 max-w-[70%]">
-                  <p className="text-sm">Don&apos;t forget about the quiz tomorrow!</p>
-                  <span className="text-xs text-gray-400 mt-1">10:30 AM</span>
-                </div>
-              </div>
+              ))}
             </div>
             <div className="flex gap-2 pt-4 border-t">
-              <Input placeholder="Type a message..." className="flex-1" />
-              <Button size="icon">
+              <Input 
+                placeholder={waitingForResponse ? "Waiting for tutor response..." : "Type a message..."} 
+                className="flex-1"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendMessage()
+                  }
+                }}
+                disabled={waitingForResponse}
+              />
+              <Button 
+                size="icon" 
+                onClick={handleSendMessage}
+                disabled={waitingForResponse || !inputMessage.trim()}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>

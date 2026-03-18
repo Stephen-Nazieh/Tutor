@@ -44,11 +44,8 @@ export default function StudentHelpPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <HelpCircle className="h-6 w-6" />
-          Help & Support
+          Support
         </h1>
-        <p className="text-gray-600 mt-1">
-          Find answers and get help when you need it
-        </p>
       </div>
 
       {/* Search */}
@@ -57,7 +54,7 @@ export default function StudentHelpPage() {
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
-              placeholder="Search for help..."
+              placeholder="Search"
               className="pl-10 py-6 text-lg"
             />
           </div>

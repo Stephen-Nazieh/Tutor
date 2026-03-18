@@ -186,10 +186,7 @@ export default function CommunicationCenterPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Communication Center</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage all your student communications in one place
-            </p>
+            <h1 className="text-2xl font-bold text-foreground">Messages</h1>
           </div>
           {/* Theme Selector */}
           <Select value={themeId} onValueChange={setThemeId}>
@@ -220,7 +217,7 @@ export default function CommunicationCenterPage() {
             <div className="relative mt-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search conversations..."
+                placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 text-sm bg-background border-input"
