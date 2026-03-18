@@ -188,8 +188,7 @@ export default function TutorCoursePage() {
     const d = new Date()
     const day = d.getDay()
     const mon = d.getDate() - (day === 0 ? 6 : day - 1) + scheduleWeekOffset * 7
-    const start = new Date(d)
-    start.setDate(mon)
+    const start = new Date(d.getFullYear(), d.getMonth(), mon)
     return start
   })()
 
@@ -584,8 +583,15 @@ export default function TutorCoursePage() {
     )
   }
 
-  // Generate schedule summary (optionally repeat weekly)
-  const generateScheduleSummary = () => {
+  /** Effective number of weeks when "repeat weekly" is on: from numberOfWeeks or derived from totalSessionsDesired */
+  const effectiveWeeks = schedule.length > 0 && scheduleRepeatWeekly
+    ? (totalSessionsDesired !== ''
+        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+        : numberOfWeeks)
+    : 1
+
+  // Generate schedule summary (optionally repeat weekly); also sync when repeat/week vars change
+  const generateScheduleSummary = useCallback(() => {
     if (schedule.length === 0) {
       toast.error('Please add schedule items first')
       return
@@ -600,10 +606,30 @@ export default function TutorCoursePage() {
       }
       setScheduleSummary(expanded)
     } else {
-      setScheduleSummary(schedule)
+      setScheduleSummary([...schedule])
     }
     toast.success('Schedule summary generated')
-  }
+  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
+
+  // Keep summary in sync when "repeat weekly" and weeks/sessions change
+  useEffect(() => {
+    if (schedule.length === 0) {
+      setScheduleSummary([])
+      return
+    }
+    if (scheduleRepeatWeekly) {
+      const weeks = totalSessionsDesired !== ''
+        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+        : numberOfWeeks
+      const expanded: ScheduleItem[] = []
+      for (let w = 0; w < weeks; w++) {
+        schedule.forEach((slot) => expanded.push({ ...slot }))
+      }
+      setScheduleSummary(expanded)
+    } else {
+      setScheduleSummary([...schedule])
+    }
+  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
 
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const formatTime = (time: string) => {
@@ -903,7 +929,7 @@ export default function TutorCoursePage() {
                 />
                 <span className="text-sm font-medium">Apply same schedule every week</span>
               </label>
-              {scheduleRepeatWeekly && (
+              {scheduleRepeatWeekly && schedule.length > 0 && (
                 <>
                   <div className="flex items-center gap-2">
                     <Label className="text-xs">Number of weeks</Label>
@@ -911,30 +937,37 @@ export default function TutorCoursePage() {
                       type="number"
                       min={1}
                       max={52}
-                      value={totalSessionsDesired !== '' ? '' : numberOfWeeks}
-                      onChange={(e) => setNumberOfWeeks(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                      value={totalSessionsDesired !== '' ? effectiveWeeks : numberOfWeeks}
+                      onChange={(e) => {
+                        const v = Math.max(1, parseInt(e.target.value, 10) || 1)
+                        setNumberOfWeeks(v)
+                        if (totalSessionsDesired !== '') setTotalSessionsDesired('')
+                      }}
                       disabled={totalSessionsDesired !== ''}
                       className="w-20 h-8 text-sm"
                     />
+                    {totalSessionsDesired !== '' && (
+                      <span className="text-xs text-muted-foreground">= {effectiveWeeks} weeks from {totalSessionsDesired} sessions</span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-xs">Or total sessions</Label>
                     <Input
                       type="number"
                       min={1}
-                      placeholder="Auto"
+                      placeholder="e.g. 20"
                       value={totalSessionsDesired}
                       onChange={(e) => setTotalSessionsDesired(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value, 10) || 0))}
                       className="w-24 h-8 text-sm"
                     />
-                    <span className="text-xs text-muted-foreground">sessions (weeks calculated from weekly slots)</span>
+                    <span className="text-xs text-muted-foreground">sessions (weeks = sessions ÷ slots per week)</span>
                   </div>
                 </>
               )}
             </div>
 
-            {/* Calendar grid: click cells to select 1-hour slots */}
-            <div className="border rounded-lg overflow-hidden">
+            {/* Calendar grid: click cells to select 1-hour slots; key by week so header dates update when week/month changes */}
+            <div key={`week-${scheduleWeekStart.getTime()}`} className="border rounded-lg overflow-hidden">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
                 <div className="flex items-center gap-1">
                   <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
@@ -962,7 +995,7 @@ export default function TutorCoursePage() {
                 {DAYS.map((day, i) => {
                   const d = weekDates[i]
                   return (
-                    <div key={day} className="p-2 text-xs font-medium text-center border-r">
+                    <div key={`${day}-${d.getTime()}`} className="p-2 text-xs font-medium text-center border-r">
                       <div>{day.slice(0, 3)}</div>
                       <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
                         {d.getDate()}
@@ -1075,6 +1108,9 @@ export default function TutorCoursePage() {
                     <div className="rounded-xl bg-blue-50 border border-blue-100 p-3">
                       <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Sessions</div>
                       <div className="text-2xl font-bold text-blue-900 mt-0.5">{totalSessions}</div>
+                      {scheduleRepeatWeekly && schedule.length > 0 && totalSessions > schedule.length && (
+                        <div className="text-xs text-blue-600 mt-0.5">Over {Math.ceil(totalSessions / schedule.length)} weeks</div>
+                      )}
                     </div>
                     <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
                       <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Total duration</div>
