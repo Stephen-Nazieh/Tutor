@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useEffect } from 'react'
 import { useRealmSession } from '@/hooks/use-realm-session'
 import { Button } from '@/components/ui/button'
@@ -186,7 +186,7 @@ export default function TutorLayout({
             )
           })}
           <button
-            onClick={() => {}}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 w-full"
           >
             <LogOut className="h-5 w-5 flex-shrink-0" />
