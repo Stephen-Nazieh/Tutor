@@ -983,12 +983,23 @@ export default function TutorCoursePage() {
                             })()
                           )
                           const toggleSlot = () => {
-                            const hasSlot = schedule.some((s) => s.dayOfWeek === day && s.startTime === timeStr)
-                            if (hasSlot) {
-                              setSchedule((prev) => prev.filter((s) => !(s.dayOfWeek === day && s.startTime === timeStr)))
-                            } else {
-                              setSchedule((prev) => [...prev, { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 }])
-                            }
+                            setSchedule((prev) => {
+                              const idx = prev.findIndex((s) => {
+                                if (s.dayOfWeek !== day) return false
+                                const [sh, sm] = s.startTime.split(':').map(Number)
+                                const startM = sh * 60 + sm
+                                const endM = startM + s.durationMinutes
+                                const [th, tm] = timeStr.split(':').map(Number)
+                                const slotM = th * 60 + tm
+                                return slotM >= startM && slotM < endM
+                              })
+                              if (idx >= 0) {
+                                // Remove the schedule block that covers this hour
+                                return [...prev.slice(0, idx), ...prev.slice(idx + 1)]
+                              }
+                              // Add a new 1-hour session starting at this time
+                              return [...prev, { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 }]
+                            })
                           }
                           return (
                             <button
@@ -1000,7 +1011,20 @@ export default function TutorCoursePage() {
                               aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
                             >
                               {inRange && (
-                                <span className="text-[8px] font-medium text-blue-800">1h</span>
+                                <span className="inline-flex items-center gap-0.5 text-[8px] font-medium text-blue-800">
+                                  1h
+                                  <button
+                                    type="button"
+                                    className="rounded-full p-0.5 hover:bg-blue-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      toggleSlot()
+                                    }}
+                                    aria-label="Remove this session"
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </span>
                               )}
                             </button>
                           )
@@ -1107,20 +1131,25 @@ export default function TutorCoursePage() {
             size="sm"
             onClick={async () => {
               await handleSaveAll()
-              // Publish the course
+              // Publish the course (toggle isPublished via PATCH)
               try {
                 const csrf = await getCsrf()
-                const res = await fetch(`/api/tutor/courses/${id}/publish`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
+                const res = await fetch(`/api/tutor/courses/${id}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrf && { 'X-CSRF-Token': csrf }),
+                  },
                   credentials: 'include',
+                  body: JSON.stringify({ isPublished: true }),
                 })
                 if (res.ok) {
-                  setCourse(prev => prev ? { ...prev, isPublished: true } : null)
+                  const data = await res.json()
+                  setCourse(prev => prev ? { ...prev, isPublished: true } : (data.course ?? prev))
                   toast.success('Course published successfully!')
                 } else {
-                  const data = await res.json()
-                  toast.error(data.error || 'Failed to publish course')
+                  const data = await res.json().catch(() => null)
+                  toast.error(data?.error || 'Failed to publish course')
                 }
               } catch {
                 toast.error('Failed to publish course')
