@@ -1,85 +1,219 @@
-name: Deploy to Google Cloud Run
+# Solocorn CI/CD: Localhost -> Approval (PR) -> Production (merge to main)
+# - CI: build + lint on every PR (safety check).
+# - Preview: deploy PR to Cloud Run with --no-traffic; comment Preview URL on PR.
+# - Production: on push to main, deploy and migrate 100% traffic.
+
+name: Solocorn CI/CD (GCP Cloud Run)
 
 on:
+  pull_request:
+    branches: [main]
   push:
-    branches:
-      - main # Change this if your default branch is something else (e.g., master)
-  workflow_dispatch:
+    branches: [main]
 
 env:
-  PROJECT_ID: project-29e0fd29-a707-458c-bd1
-  # GCP configurations 👇
   REGION: asia-southeast1
   SERVICE_NAME: tutorme-app
-  GAR_LOCATION: asia
+  GAR_LOCATION: asia-southeast1
   GAR_REPO: tutorme-repo
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NODE_VERSION: "20"
 
 jobs:
-  deploy:
-    name: Build & Deploy to Cloud Run
+  # ---------------------------------------------------------------------------
+  # CI Job (Safety Check): block merge if build or lint fails
+  # ---------------------------------------------------------------------------
+  ci:
+    name: CI (build + lint)
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Setup NodeJS for testing/linting beforehand if needed
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
-          cache-dependency-path: "./tutorme-app/package-lock.json"
 
-      # Only deploy if typecheck & lint pass
-      - name: Install dependencies & Typecheck
-        working-directory: ./tutorme-app
-        run: |
-          npm install
-          npm run typecheck
-          npm run lint || true # Remove `|| true` to enforce strict lint passing
+      - name: Install dependencies
+        run: npm ci
 
-      # Authenticate to Google Cloud
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+  # ---------------------------------------------------------------------------
+  # Preview Job (Partner Review): deploy PR revision with --no-traffic, comment URL
+  # ---------------------------------------------------------------------------
+  preview:
+    name: Preview (deploy PR, no traffic)
+    runs-on: ubuntu-latest
+    needs: [ci]
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Google Auth
-        id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: "${{ secrets.GCP_CREDENTIALS }}"
-          # Alternatively, use Workload Identity Federation (recommended for production security)
-          # workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
-          # service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Configure Docker to use Google Artifact Registry
-      - name: Docker Auth
-        id: docker-auth
+      - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-      - run: |-
-          gcloud auth configure-docker "${{ env.GAR_LOCATION }}-docker.pkg.dev"
 
-      # Build & Push the Docker image
-      - name: Build and Push Docker Image
-        working-directory: ./tutorme-app
+      - name: Configure Docker for Artifact Registry
         run: |
-          IMAGE="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.SERVICE_NAME }}:pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
           docker build -t "$IMAGE" -f Dockerfile.production .
           docker push "$IMAGE"
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
-      # Deploy to Cloud Run
-      - name: Deploy to Cloud Run
-        id: deploy
+      - name: Deploy to Cloud Run (no traffic)
+        id: deploy-preview
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
-          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          image: ${{ env.IMAGE }}
+          flags: |
+            --no-traffic
+            --tag=preview-pr-${{ github.event.pull_request.number }}
+            --allow-unauthenticated
+            --cpu=1
+            --memory=1Gi
+            --min-instances=0
+            --max-instances=2
+          # Cloud Run env vars; names must match app (e.g. drizzle.ts: DATABASE_POOL_URL | DIRECT_URL | DATABASE_URL)
+          env_vars: |
+            NODE_ENV=production
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
+            DATABASE_POOL_URL=${{ secrets.DATABASE_POOL_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
+
+      - name: Get preview revision URL
+        id: preview-url
+        run: |
+          REV_URL=$(gcloud run revisions list \
+            --service="${{ env.SERVICE_NAME }}" \
+            --region="${{ env.REGION }}" \
+            --format="value(status.url)" \
+            --limit=1)
+          echo "url=${REV_URL}" >> $GITHUB_OUTPUT
+          echo "Preview URL: ${REV_URL}"
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.preview-url.outputs.url }}';
+            const body = `## Solocorn Preview\n\n**Preview URL (no production traffic):** ${url}\n\nTest this revision before merging.`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('Solocorn Preview'));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+  # ---------------------------------------------------------------------------
+  # Production Job: deploy on merge to main and migrate 100% traffic
+  # ---------------------------------------------------------------------------
+  production:
+    name: Production (deploy + 100% traffic)
+    runs-on: ubuntu-latest
+    needs: [ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker build -t "$IMAGE" -f Dockerfile.production .
+          docker push "$IMAGE"
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run (100% traffic)
+        id: deploy-prod
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}
           flags: |
             --allow-unauthenticated
             --cpu=1
             --memory=1Gi
             --min-instances=0
             --max-instances=10
-            --port=3003
+          # Cloud Run env vars; names must match app (e.g. drizzle.ts: DATABASE_POOL_URL | DIRECT_URL | DATABASE_URL)
+          env_vars: |
+            NODE_ENV=production
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DIRECT_URL=${{ secrets.DIRECT_URL }}
+            DATABASE_POOL_URL=${{ secrets.DATABASE_POOL_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            REDIS_URL=${{ secrets.REDIS_URL }}
 
-      - name: Show Output
-        run: echo "Deployed Service URL -> ${{ steps.deploy.outputs.url }}"
+      - name: Show production URL
+        run: echo "Production URL -> ${{ steps.deploy-prod.outputs.url }}"
