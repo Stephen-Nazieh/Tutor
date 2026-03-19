@@ -77,6 +77,17 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Ensure Artifact Registry repository exists
+        run: |
+          gcloud artifacts repositories describe ${{ env.GAR_REPO }} \
+            --location=${{ env.GAR_LOCATION }} \
+            --project=${{ env.PROJECT_ID }} 2>/dev/null || \
+          gcloud artifacts repositories create ${{ env.GAR_REPO }} \
+            --repository-format=docker \
+            --location=${{ env.GAR_LOCATION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --description="Docker images for tutorme-app"
+
       - name: Configure Docker for Artifact Registry
         run: |
           gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
@@ -186,6 +197,17 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Ensure Artifact Registry repository exists
+        run: |
+          gcloud artifacts repositories describe ${{ env.GAR_REPO }} \
+            --location=${{ env.GAR_LOCATION }} \
+            --project=${{ env.PROJECT_ID }} 2>/dev/null || \
+          gcloud artifacts repositories create ${{ env.GAR_REPO }} \
+            --repository-format=docker \
+            --location=${{ env.GAR_LOCATION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --description="Docker images for tutorme-app"
 
       - name: Configure Docker for Artifact Registry
         run: |
