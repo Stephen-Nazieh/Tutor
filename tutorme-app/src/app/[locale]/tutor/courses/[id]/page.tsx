@@ -294,7 +294,7 @@ export default function TutorCoursePage() {
       return
     }
     if (scheduleRepeatWeekly) {
-      const weeks = totalSessionsDesired !== ''
+      const MAX_WEEKS = 52; const weeks = Math.min(MAX_WEEKS, totalSessionsDesired !== ''
         ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
         : numberOfWeeks
       const expanded: ScheduleItem[] = []
@@ -314,7 +314,7 @@ export default function TutorCoursePage() {
       return
     }
     if (scheduleRepeatWeekly) {
-      const weeks = totalSessionsDesired !== ''
+      const MAX_WEEKS = 52; const weeks = Math.min(MAX_WEEKS, totalSessionsDesired !== ''
         ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
         : numberOfWeeks
       const expanded: ScheduleItem[] = []
