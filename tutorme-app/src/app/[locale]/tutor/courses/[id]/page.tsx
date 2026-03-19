@@ -294,14 +294,15 @@ export default function TutorCoursePage() {
       return
     }
     if (scheduleRepeatWeekly) {
-      const MAX_WEEKS = 52; const weeks = Math.min(MAX_WEEKS, totalSessionsDesired !== ''
-        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+      const requestedSessions = totalSessionsDesired !== '' ? Number(totalSessionsDesired) : null
+      const weeks = requestedSessions != null
+        ? Math.max(1, Math.ceil(requestedSessions / schedule.length))
         : numberOfWeeks
       const expanded: ScheduleItem[] = []
       for (let w = 0; w < weeks; w++) {
         schedule.forEach((slot) => expanded.push({ ...slot }))
       }
-      setScheduleSummary(expanded)
+      setScheduleSummary(requestedSessions != null ? expanded.slice(0, requestedSessions) : expanded)
     } else {
       setScheduleSummary([...schedule])
     }
@@ -314,9 +315,13 @@ export default function TutorCoursePage() {
       return
     }
     if (scheduleRepeatWeekly) {
-      const MAX_WEEKS = 52; const weeks = Math.min(MAX_WEEKS, totalSessionsDesired !== ''
-        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
-        : numberOfWeeks
+      const MAX_WEEKS = 52
+      const weeks = Math.min(
+        MAX_WEEKS,
+        totalSessionsDesired !== ''
+          ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+          : numberOfWeeks
+      )
       const expanded: ScheduleItem[] = []
       for (let w = 0; w < weeks; w++) {
         schedule.forEach((slot) => expanded.push({ ...slot }))
