@@ -102,15 +102,8 @@ jobs:
             --memory=1Gi
             --min-instances=0
             --max-instances=2
-          # Cloud Run env vars; names must match app (e.g. drizzle.ts: DATABASE_POOL_URL | DIRECT_URL | DATABASE_URL)
-          env_vars: |
-            NODE_ENV=production
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            DIRECT_URL=${{ secrets.DIRECT_URL }}
-            DATABASE_POOL_URL=${{ secrets.DATABASE_POOL_URL }}
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
-            REDIS_URL=${{ secrets.REDIS_URL }}
+          # Cloud Run env vars (comma-separated to avoid gcloud multiline parsing issues)
+          env_vars: NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }},NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }},NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }},REDIS_URL=${{ secrets.REDIS_URL }}
 
       - name: Get preview revision URL
         id: preview-url
@@ -216,15 +209,8 @@ jobs:
             --memory=1Gi
             --min-instances=0
             --max-instances=10
-          # Cloud Run env vars; names must match app (e.g. drizzle.ts: DATABASE_POOL_URL | DIRECT_URL | DATABASE_URL)
-          env_vars: |
-            NODE_ENV=production
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            DIRECT_URL=${{ secrets.DIRECT_URL }}
-            DATABASE_POOL_URL=${{ secrets.DATABASE_POOL_URL }}
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
-            REDIS_URL=${{ secrets.REDIS_URL }}
+          # Cloud Run env vars (comma-separated to avoid gcloud multiline parsing issues)
+          env_vars: NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }},NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }},NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }},REDIS_URL=${{ secrets.REDIS_URL }}
 
       - name: Show production URL
         run: echo "Production URL -> ${{ steps.deploy-prod.outputs.url }}"
