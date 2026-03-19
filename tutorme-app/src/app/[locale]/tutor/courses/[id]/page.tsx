@@ -208,6 +208,7 @@ export default function TutorCoursePage() {
   })
 
   const loadCourse = useCallback(async () => {
+    if (!id) return
     setLoading(true)
     try {
       const res = await fetch(`/api/tutor/courses/${id}`, { credentials: 'include' })
@@ -633,39 +634,64 @@ export default function TutorCoursePage() {
 
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const formatTime = (time: string) => {
-    const [hourStr, minuteStr] = time.split(':')
-    const hour = Number(hourStr)
-    const minute = Number(minuteStr)
+    if (!time || typeof time !== 'string') return '–'
+    const parts = time.split(':')
+    const hour = Number(parts[0])
+    const minute = Number(parts[1] ?? 0)
+    if (Number.isNaN(hour)) return '–'
     const displayHour = hour % 12 === 0 ? 12 : hour % 12
     const period = hour >= 12 ? 'PM' : 'AM'
     return `${displayHour}:${minute.toString().padStart(2, '0')}${period}`
   }
   const formatTimeRange = (startTime: string, durationMinutes: number) => {
-    const [hourStr, minuteStr] = startTime.split(':')
-    const startHour = Number(hourStr)
-    const startMinute = Number(minuteStr)
+    if (!startTime || typeof startTime !== 'string') return '–'
+    const parts = startTime.split(':')
+    const startHour = Number(parts[0])
+    const startMinute = Number(parts[1] ?? 0)
+    if (Number.isNaN(startHour)) return '–'
     const startTotal = startHour * 60 + startMinute
-    const endTotal = startTotal + durationMinutes
+    const dur = Number(durationMinutes) || 0
+    const endTotal = startTotal + dur
     const endHour = Math.floor((endTotal / 60) % 24)
     const endMinute = endTotal % 60
     const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
     return `${formatTime(startTime)}–${formatTime(endTime)}`
   }
-  const timezoneLabel = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local time'
+  const timezoneLabel = (() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local time'
+    } catch {
+      return 'Local time'
+    }
+  })()
   const scheduleByDay = scheduleSummary.reduce((acc, slot) => {
-    if (!acc[slot.dayOfWeek]) acc[slot.dayOfWeek] = []
-    acc[slot.dayOfWeek].push(slot)
+    const day = slot?.dayOfWeek
+    if (!day) return acc
+    if (!acc[day]) acc[day] = []
+    acc[day].push(slot)
     return acc
   }, {} as Record<string, ScheduleItem[]>)
   const priceNumber = Number(price)
   const scheduleCost = scheduleSummary.reduce((sum, slot) => {
     if (!priceNumber || Number.isNaN(priceNumber)) return sum
-    return sum + (slot.durationMinutes / 60) * priceNumber
+    const dur = slot?.durationMinutes ?? 0
+    return sum + (dur / 60) * priceNumber
   }, 0)
   const totalRevenue = scheduleCost * 0.7
   const totalSessions = scheduleSummary.length
-  const totalDurationMinutes = scheduleSummary.reduce((sum, slot) => sum + slot.durationMinutes, 0)
+  const totalDurationMinutes = scheduleSummary.reduce((sum, slot) => sum + (slot.durationMinutes ?? 0), 0)
   const totalDurationHours = (totalDurationMinutes / 60).toFixed(1)
+
+  if (!id) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p>Loading course…</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
