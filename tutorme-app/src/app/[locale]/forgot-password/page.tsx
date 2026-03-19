@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    if (isLoading) return
     setIsLoading(true)
     try {
       // Placeholder: wire to your auth API when available (e.g. POST /api/auth/forgot-password)
