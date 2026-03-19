@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useReportWebVitals } from 'next/app';
+import { useReportWebVitals } from 'next/web-vitals';
 
 export function PerformanceProviders({ children }: { children: React.ReactNode }) {
-  useReportWebVitals((metric) => {
+  useReportWebVitals((metric: Record<string, unknown>) => {
     const body = JSON.stringify(metric);
     const url = '/api/analytics/web-vitals';
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
