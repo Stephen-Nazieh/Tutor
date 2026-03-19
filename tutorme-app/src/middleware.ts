@@ -217,6 +217,7 @@ export default withAuth(
           '/api/admin/',
           '/api/admin/auth',
           '/login',
+          '/forgot-password',
           '/register',
         ]
         const isPublicExact = publicExactPaths.includes(normalizedPath)
