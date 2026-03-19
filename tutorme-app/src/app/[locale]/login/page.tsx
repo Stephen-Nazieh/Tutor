@@ -123,7 +123,7 @@ function LoginForm() {
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link
-                href="/forgot-password"
+                href={`${localePrefix}/forgot-password`}
                 className="text-sm text-[#1D4ED8] hover:underline"
               >
                 Forgot Password?
