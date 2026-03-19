@@ -287,6 +287,46 @@ export default function TutorCoursePage() {
       .finally(() => setLoadingCatalog(false))
   }, [course?.subject])
 
+  // Schedule summary: generate + sync (hooks must run unconditionally before any early return)
+  const generateScheduleSummary = useCallback(() => {
+    if (schedule.length === 0) {
+      toast.error('Please add schedule items first')
+      return
+    }
+    if (scheduleRepeatWeekly) {
+      const weeks = totalSessionsDesired !== ''
+        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+        : numberOfWeeks
+      const expanded: ScheduleItem[] = []
+      for (let w = 0; w < weeks; w++) {
+        schedule.forEach((slot) => expanded.push({ ...slot }))
+      }
+      setScheduleSummary(expanded)
+    } else {
+      setScheduleSummary([...schedule])
+    }
+    toast.success('Schedule summary generated')
+  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
+
+  useEffect(() => {
+    if (schedule.length === 0) {
+      setScheduleSummary([])
+      return
+    }
+    if (scheduleRepeatWeekly) {
+      const weeks = totalSessionsDesired !== ''
+        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+        : numberOfWeeks
+      const expanded: ScheduleItem[] = []
+      for (let w = 0; w < weeks; w++) {
+        schedule.forEach((slot) => expanded.push({ ...slot }))
+      }
+      setScheduleSummary(expanded)
+    } else {
+      setScheduleSummary([...schedule])
+    }
+  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
+
   const hasAtLeastOneUpload = !!(
     uploadText.curriculum.trim() ||
     uploadText.notes.trim() ||
@@ -590,47 +630,6 @@ export default function TutorCoursePage() {
         ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
         : numberOfWeeks)
     : 1
-
-  // Generate schedule summary (optionally repeat weekly); also sync when repeat/week vars change
-  const generateScheduleSummary = useCallback(() => {
-    if (schedule.length === 0) {
-      toast.error('Please add schedule items first')
-      return
-    }
-    if (scheduleRepeatWeekly) {
-      const weeks = totalSessionsDesired !== ''
-        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
-        : numberOfWeeks
-      const expanded: ScheduleItem[] = []
-      for (let w = 0; w < weeks; w++) {
-        schedule.forEach((slot) => expanded.push({ ...slot }))
-      }
-      setScheduleSummary(expanded)
-    } else {
-      setScheduleSummary([...schedule])
-    }
-    toast.success('Schedule summary generated')
-  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
-
-  // Keep summary in sync when "repeat weekly" and weeks/sessions change
-  useEffect(() => {
-    if (schedule.length === 0) {
-      setScheduleSummary([])
-      return
-    }
-    if (scheduleRepeatWeekly) {
-      const weeks = totalSessionsDesired !== ''
-        ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
-        : numberOfWeeks
-      const expanded: ScheduleItem[] = []
-      for (let w = 0; w < weeks; w++) {
-        schedule.forEach((slot) => expanded.push({ ...slot }))
-      }
-      setScheduleSummary(expanded)
-    } else {
-      setScheduleSummary([...schedule])
-    }
-  }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
 
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const formatTime = (time: string) => {
