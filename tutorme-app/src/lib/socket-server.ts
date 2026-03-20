@@ -743,12 +743,10 @@ export function registerLiveClassWhiteboardHandlers(io: SocketIOServer, socket: 
           studentId: data.userId,
           strokes: wb.strokes,
         })
-        socket
-          .to(data.roomId)
-          .emit('lcwb_public_student_strokes_reset', {
-            studentId: data.userId,
-            strokes: wb.strokes,
-          })
+        socket.to(data.roomId).emit('lcwb_public_student_strokes_reset', {
+          studentId: data.userId,
+          strokes: wb.strokes,
+        })
       }
     }
   )

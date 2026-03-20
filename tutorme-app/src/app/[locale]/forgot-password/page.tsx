@@ -51,7 +51,6 @@ export default function ForgotPasswordPage() {
             ? (data as { message: string }).message
             : 'Something went wrong. Please try again.'
         setError(message)
-        setError(data.message || 'Something went wrong. Please try again.')
         return
       }
 
