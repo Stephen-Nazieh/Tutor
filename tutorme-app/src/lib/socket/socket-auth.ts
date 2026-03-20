@@ -5,7 +5,9 @@
 import { Socket } from 'socket.io'
 import { jwtVerify } from 'jose'
 
-export async function validateSocketJWT(token: string): Promise<{ userId: string; role: string; name: string } | null> {
+export async function validateSocketJWT(
+  token: string
+): Promise<{ userId: string; role: string; name: string } | null> {
   try {
     const secretRaw = process.env.NEXTAUTH_SECRET
     if (!secretRaw) return null
@@ -33,7 +35,7 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
     return
   }
   validateSocketJWT(token)
-    .then((user) => {
+    .then(user => {
       if (user) {
         socket.data.userId = user.userId
         socket.data.role = user.role
@@ -48,7 +50,9 @@ export function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void
 export function getSocketCorsOrigin(): string | string[] {
   const env = process.env.SOCKET_CORS_ORIGIN || process.env.NEXT_PUBLIC_APP_URL
   if (env) {
-    return env.includes(',') ? env.split(',').map((o) => o.trim()) : env
+    return env.includes(',') ? env.split(',').map(o => o.trim()) : env
   }
-  return process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3003', 'http://localhost:3000']
+  return process.env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:3003', 'http://localhost:3000']
 }

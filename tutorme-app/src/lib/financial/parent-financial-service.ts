@@ -8,7 +8,7 @@ import {
   clinicBooking,
   familyPayment,
   familyBudget,
-  payment
+  payment,
 } from '@/lib/db/schema'
 import type { FamilyAccountWithMembers } from '@/lib/api/parent-helpers'
 import {
@@ -36,28 +36,32 @@ export async function fetchFamilyPayments(
 ): Promise<UnifiedPayment[]> {
   const { studentIds } = family
   const filterStudentIds =
-    options?.studentId && studentIds.includes(options.studentId)
-      ? [options.studentId]
-      : studentIds
+    options?.studentId && studentIds.includes(options.studentId) ? [options.studentId] : studentIds
 
-  const [enrollmentsWithDetails, bookingsWithDetails, coursePaymentRows, clinicPaymentRows, familyPaymentsRaw] = await Promise.all([
+  const [
+    enrollmentsWithDetails,
+    bookingsWithDetails,
+    coursePaymentRows,
+    clinicPaymentRows,
+    familyPaymentsRaw,
+  ] = await Promise.all([
     filterStudentIds.length > 0
       ? drizzleDb.query.curriculumEnrollment.findMany({
-        where: inArray(curriculumEnrollment.studentId, filterStudentIds),
-        with: {
-          student: { with: { profile: { columns: { name: true } } } },
-          curriculum: { columns: { name: true } },
-        },
-      })
+          where: inArray(curriculumEnrollment.studentId, filterStudentIds),
+          with: {
+            student: { with: { profile: { columns: { name: true } } } },
+            curriculum: { columns: { name: true } },
+          },
+        })
       : Promise.resolve([]),
     filterStudentIds.length > 0
       ? drizzleDb.query.clinicBooking.findMany({
-        where: inArray(clinicBooking.studentId, filterStudentIds),
-        with: {
-          student: { with: { profile: { columns: { name: true } } } },
-          clinic: { columns: { title: true } },
-        },
-      })
+          where: inArray(clinicBooking.studentId, filterStudentIds),
+          with: {
+            student: { with: { profile: { columns: { name: true } } } },
+            clinic: { columns: { title: true } },
+          },
+        })
       : Promise.resolve([]),
     filterStudentIds.length > 0
       ? drizzleDb
@@ -111,13 +115,27 @@ export async function fetchFamilyPayments(
   ])
 
   const enrollmentById = new Map(
-    (enrollmentsWithDetails as { id: string; studentId: string; curriculum?: { name: string } | null; student?: { profile?: { name: string | null } } | null }[]).map((e) => [e.id, e])
+    (
+      enrollmentsWithDetails as {
+        id: string
+        studentId: string
+        curriculum?: { name: string } | null
+        student?: { profile?: { name: string | null } } | null
+      }[]
+    ).map(e => [e.id, e])
   )
   const bookingById = new Map(
-    (bookingsWithDetails as { id: string; studentId: string; clinic?: { title: string } | null; student?: { profile?: { name: string | null } } | null }[]).map((b) => [b.id, b])
+    (
+      bookingsWithDetails as {
+        id: string
+        studentId: string
+        clinic?: { title: string } | null
+        student?: { profile?: { name: string | null } } | null
+      }[]
+    ).map(b => [b.id, b])
   )
 
-  const coursePayments: UnifiedPayment[] = coursePaymentRows.map((p) => {
+  const coursePayments: UnifiedPayment[] = coursePaymentRows.map(p => {
     const e = enrollmentById.get(p.enrollmentId ?? '')
     return {
       id: p.paymentId,
@@ -133,7 +151,7 @@ export async function fetchFamilyPayments(
     }
   })
 
-  const clinicPayments: UnifiedPayment[] = clinicPaymentRows.map((p) => {
+  const clinicPayments: UnifiedPayment[] = clinicPaymentRows.map(p => {
     const b = bookingById.get(p.bookingId ?? '')
     return {
       id: p.paymentId,
@@ -149,7 +167,7 @@ export async function fetchFamilyPayments(
     }
   })
 
-  const budgetPayments: UnifiedPayment[] = familyPaymentsRaw.map((p) => ({
+  const budgetPayments: UnifiedPayment[] = familyPaymentsRaw.map(p => ({
     id: p.id,
     type: 'budget' as const,
     amount: p.amount,
@@ -165,7 +183,7 @@ export async function fetchFamilyPayments(
   // Actually clinicBooking -> payment is 1:1.
   let filtered = all
   if (options?.startDate || options?.endDate) {
-    filtered = all.filter((p) => {
+    filtered = all.filter(p => {
       const t = p.createdAt.getTime()
       if (options?.startDate && t < options.startDate.getTime()) return false
       if (options?.endDate && t > options.endDate.getTime()) return false
@@ -181,9 +199,7 @@ export function computeFinancialSummary(
   monthlyBudget: number,
   currency: string
 ) {
-  const completed = payments.filter((p) =>
-    COMPLETED_PAYMENT_STATUSES.includes(p.status as any)
-  )
+  const completed = payments.filter(p => COMPLETED_PAYMENT_STATUSES.includes(p.status as any))
   const totalSpent = completed.reduce((s, p) => s + p.amount, 0)
   const feeRate = getPlatformFeeRate()
   let platformFeesPaid = 0
@@ -197,8 +213,7 @@ export function computeFinancialSummary(
   }
 
   const budgetRemaining = monthlyBudget - totalSpent
-  const utilizationPercent =
-    monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0
+  const utilizationPercent = monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0
 
   return {
     totalSpent: Math.round(totalSpent * 100) / 100,

@@ -25,14 +25,14 @@ export interface MathElement {
   authorId: string
   layer: number
   locked: boolean
-  
+
   // Transform
   x: number
   y: number
   rotation: number
   scaleX: number
   scaleY: number
-  
+
   // CRDT versioning
   version: number
   lastModified: number
@@ -202,66 +202,47 @@ export interface MathWBPage {
 
 // Socket Events (Client -> Server)
 export interface MathWBClientEvents {
-  'math_wb_join': (data: {
+  math_wb_join: (data: {
     sessionId: string
     userId?: string
     name?: string
     role?: 'student' | 'tutor'
   }) => void
-  
-  'math_wb_leave': (sessionId: string) => void
-  
-  'math_wb_cursor': (data: {
-    sessionId: string
-    x: number
-    y: number
-  }) => void
-  
-  'math_wb_element_create': (payload: {
-    sessionId: string
-    element: AnyMathElement
-  }) => void
-  
-  'math_wb_element_update': (payload: {
+
+  math_wb_leave: (sessionId: string) => void
+
+  math_wb_cursor: (data: { sessionId: string; x: number; y: number }) => void
+
+  math_wb_element_create: (payload: { sessionId: string; element: AnyMathElement }) => void
+
+  math_wb_element_update: (payload: {
     sessionId: string
     elementId: string
     changes: Partial<AnyMathElement>
   }) => void
-  
-  'math_wb_element_delete': (payload: {
-    sessionId: string
-    elementId: string
-  }) => void
-  
-  'math_wb_lock': (payload: {
-    sessionId: string
-    locked: boolean
-  }) => void
-  
-  'math_wb_change_page': (payload: {
-    sessionId: string
-    pageIndex: number
-  }) => void
-  
-  'math_wb_request_sync': (sessionId: string) => void
+
+  math_wb_element_delete: (payload: { sessionId: string; elementId: string }) => void
+
+  math_wb_lock: (payload: { sessionId: string; locked: boolean }) => void
+
+  math_wb_change_page: (payload: { sessionId: string; pageIndex: number }) => void
+
+  math_wb_request_sync: (sessionId: string) => void
 }
 
 // Socket Events (Server -> Client)
 export interface MathWBServerEvents {
-  'math_wb_state': (state: {
+  math_wb_state: (state: {
     sessionId: string
     locked: boolean
     currentPage: number
     elements: AnyMathElement[]
     pages: MathWBPage[]
   }) => void
-  
-  'math_wb_presence': (data: {
-    sessionId: string
-    participants: MathWBParticipant[]
-  }) => void
-  
-  'math_wb_cursor_moved': (data: {
+
+  math_wb_presence: (data: { sessionId: string; participants: MathWBParticipant[] }) => void
+
+  math_wb_cursor_moved: (data: {
     sessionId: string
     userId?: string
     name: string
@@ -269,34 +250,30 @@ export interface MathWBServerEvents {
     x: number
     y: number
   }) => void
-  
-  'math_wb_element_created': (data: {
+
+  math_wb_element_created: (data: {
     sessionId: string
     element: AnyMathElement
     actorId?: string
   }) => void
-  
-  'math_wb_element_updated': (data: {
+
+  math_wb_element_updated: (data: {
     sessionId: string
     elementId: string
     changes: Partial<AnyMathElement>
     version: number
     actorId?: string
   }) => void
-  
-  'math_wb_element_deleted': (data: {
+
+  math_wb_element_deleted: (data: {
     sessionId: string
     elementId: string
     actorId?: string
   }) => void
-  
-  'math_wb_lock_changed': (data: {
-    sessionId: string
-    locked: boolean
-    by?: string
-  }) => void
-  
-  'math_wb_page_changed': (data: {
+
+  math_wb_lock_changed: (data: { sessionId: string; locked: boolean; by?: string }) => void
+
+  math_wb_page_changed: (data: {
     sessionId: string
     pageIndex: number
     elements: AnyMathElement[]

@@ -32,16 +32,11 @@ import {
   FileText as FileTextIcon,
   Radio,
   Video,
-  BarChart3
+  BarChart3,
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -122,7 +117,20 @@ const CURRICULUM_LANGUAGES = [
   { value: 'ta', label: 'Tamil' },
 ]
 
-const CURRENCIES = ['SGD', 'USD', 'CNY', 'MYR', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY', 'INR', 'KRW', 'HKD']
+const CURRENCIES = [
+  'SGD',
+  'USD',
+  'CNY',
+  'MYR',
+  'EUR',
+  'GBP',
+  'AUD',
+  'CAD',
+  'JPY',
+  'INR',
+  'KRW',
+  'HKD',
+]
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -164,11 +172,7 @@ const LANGUAGES = [
   { value: 'sw', label: 'Swahili' },
 ]
 
-export default function CourseBuilderLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function CourseBuilderLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const params = useParams()
   const pathname = usePathname()
@@ -196,7 +200,12 @@ export default function CourseBuilderLayout({
     price: number | null
     currency: string | null
     isPublished: boolean
-    modules: { id: string; title: string; description: string | null; lessons: { id: string; title: string; duration: number }[] }[]
+    modules: {
+      id: string
+      title: string
+      description: string | null
+      lessons: { id: string; title: string; duration: number }[]
+    }[]
   } | null>(null)
   const [loadingCourse, setLoadingCourse] = useState(false)
   const [launchingLiveClass, setLaunchingLiveClass] = useState(false)
@@ -244,12 +253,16 @@ export default function CourseBuilderLayout({
   const loadEnrollments = useCallback(async () => {
     if (!courseId) return
     try {
-      const res = await fetch(`/api/tutor/courses/${courseId}/enrollments`, { credentials: 'include' })
+      const res = await fetch(`/api/tutor/courses/${courseId}/enrollments`, {
+        credentials: 'include',
+      })
       if (res.ok) {
         const data = await res.json()
         setEnrollments(data.enrollments ?? [])
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, [courseId])
 
   useEffect(() => {
@@ -268,15 +281,19 @@ export default function CourseBuilderLayout({
       if (res.ok) {
         const data = await res.json()
         setCourse(data.course)
-        setCurriculumSource((data.course?.curriculumSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM')
+        setCurriculumSource(
+          (data.course?.curriculumSource as 'PLATFORM' | 'UPLOADED') ?? 'PLATFORM'
+        )
         setOutlineSource((data.course?.outlineSource as 'SELF' | 'AI') ?? 'SELF')
 
         // Load curriculum catalog for subject
         if (data.course?.subject) {
           setLoadingCatalog(true)
-          fetch(`/api/curriculums/catalog?subject=${encodeURIComponent(data.course.subject)}`, { credentials: 'include' })
-            .then((res) => res.json())
-            .then((data) => setCurriculumCatalog(data.curriculums ?? []))
+          fetch(`/api/curriculums/catalog?subject=${encodeURIComponent(data.course.subject)}`, {
+            credentials: 'include',
+          })
+            .then(res => res.json())
+            .then(data => setCurriculumCatalog(data.curriculums ?? []))
             .catch(() => setCurriculumCatalog([]))
             .finally(() => setLoadingCatalog(false))
         }
@@ -301,7 +318,10 @@ export default function CourseBuilderLayout({
   }
 
   // Curriculum & Materials handlers
-  const handleFileRead = async (type: 'curriculum' | 'notes' | 'topics', e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileRead = async (
+    type: 'curriculum' | 'notes' | 'topics',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
@@ -310,10 +330,14 @@ export default function CourseBuilderLayout({
     try {
       const { extractTextFromFile } = await import('@/lib/extract-file-text')
       const t = await extractTextFromFile(file)
-      if (type === 'curriculum') setUploadText((p) => ({ ...p, curriculum: t }))
-      else if (type === 'notes') setUploadText((p) => ({ ...p, notes: t }))
-      else setUploadText((p) => ({ ...p, topics: t }))
-      toast.info(t ? 'File loaded. Generate the course outline in step 4.' : 'File loaded but no text was extracted.')
+      if (type === 'curriculum') setUploadText(p => ({ ...p, curriculum: t }))
+      else if (type === 'notes') setUploadText(p => ({ ...p, notes: t }))
+      else setUploadText(p => ({ ...p, topics: t }))
+      toast.info(
+        t
+          ? 'File loaded. Generate the course outline in step 4.'
+          : 'File loaded but no text was extracted.'
+      )
     } catch {
       toast.error('Could not read file. Try a .txt or .md file, or paste text.')
     } finally {
@@ -322,9 +346,15 @@ export default function CourseBuilderLayout({
   }
 
   const handleGenerateOutline = async () => {
-    const hasContent = uploadText.curriculum.trim() || uploadText.notes.trim() || uploadText.topics.trim() || editableCurriculum.trim()
+    const hasContent =
+      uploadText.curriculum.trim() ||
+      uploadText.notes.trim() ||
+      uploadText.topics.trim() ||
+      editableCurriculum.trim()
     if (!hasContent) {
-      toast.error('Upload at least one of curriculum, notes, or topics before generating the outline.')
+      toast.error(
+        'Upload at least one of curriculum, notes, or topics before generating the outline.'
+      )
       return
     }
     setGeneratingOutline(true)
@@ -397,9 +427,9 @@ export default function CourseBuilderLayout({
           enrollmentCount: 0,
           assignedCourses: [],
           courseCount: 0,
-          isLive: false
+          isLive: false,
         }
-        setBatches((prev) => [...prev, newBatch])
+        setBatches(prev => [...prev, newBatch])
         setNewBatchName('')
         setActiveTab(newBatch.id)
 
@@ -417,8 +447,11 @@ export default function CourseBuilderLayout({
     }
   }
 
-  const handleUpdateBatchDifficulty = async (batchId: string, difficulty: 'beginner' | 'intermediate' | 'advanced') => {
-    setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, difficulty } : b)))
+  const handleUpdateBatchDifficulty = async (
+    batchId: string,
+    difficulty: 'beginner' | 'intermediate' | 'advanced'
+  ) => {
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, difficulty } : b)))
     try {
       const csrf = await getCsrf()
       const res = await fetch(`/api/tutor/courses/${courseId}/batches/${batchId}`, {
@@ -438,7 +471,7 @@ export default function CourseBuilderLayout({
   }
 
   const handleUpdateBatchLanguage = async (batchId: string, languageOfInstruction: string) => {
-    setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, languageOfInstruction } : b)))
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, languageOfInstruction } : b)))
     try {
       const csrf = await getCsrf()
       const res = await fetch(`/api/tutor/courses/${courseId}/batches/${batchId}`, {
@@ -457,8 +490,12 @@ export default function CourseBuilderLayout({
     }
   }
 
-  const handleUpdateBatchPrice = async (batchId: string, price: number | null, currency: string) => {
-    setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, price, currency } : b)))
+  const handleUpdateBatchPrice = async (
+    batchId: string,
+    price: number | null,
+    currency: string
+  ) => {
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, price, currency } : b)))
     try {
       const csrf = await getCsrf()
       const res = await fetch(`/api/tutor/courses/${courseId}/batches/${batchId}`, {
@@ -478,7 +515,7 @@ export default function CourseBuilderLayout({
   }
 
   const handleUpdateBatchSchedule = async (batchId: string, schedule: ScheduleItem[]) => {
-    setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, schedule } : b)))
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, schedule } : b)))
     try {
       const csrf = await getCsrf()
       const res = await fetch(`/api/tutor/courses/${courseId}/batches/${batchId}`, {
@@ -495,7 +532,7 @@ export default function CourseBuilderLayout({
   }
 
   const handleToggleGroupLive = async (batchId: string, isLive: boolean) => {
-    setBatches((prev) => prev.map((b) => (b.id === batchId ? { ...b, isLive } : b)))
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, isLive } : b)))
     try {
       const csrf = await getCsrf()
       const res = await fetch(`/api/tutor/courses/${courseId}/batches/${batchId}`, {
@@ -532,9 +569,10 @@ export default function CourseBuilderLayout({
       const course = courseData?.course
       if (!course) throw new Error('Course not found')
 
-      const durationFromCourseSchedule = Array.isArray(course.schedule) && course.schedule.length > 0
-        ? Number(course.schedule[0]?.durationMinutes) || 60
-        : 60
+      const durationFromCourseSchedule =
+        Array.isArray(course.schedule) && course.schedule.length > 0
+          ? Number(course.schedule[0]?.durationMinutes) || 60
+          : 60
 
       const normalizedDescription = String(course.description || '').trim()
       const normalizedGradeLevel = String(course.gradeLevel || '').trim()
@@ -574,18 +612,29 @@ export default function CourseBuilderLayout({
   }
 
   const addScheduleSlot = (batchId: string) => {
-    setBatches((prev) =>
-      prev.map((b) =>
+    setBatches(prev =>
+      prev.map(b =>
         b.id === batchId
-          ? { ...b, schedule: [...b.schedule, { dayOfWeek: DAYS[0], startTime: '09:00', durationMinutes: 60 }] }
+          ? {
+              ...b,
+              schedule: [
+                ...b.schedule,
+                { dayOfWeek: DAYS[0], startTime: '09:00', durationMinutes: 60 },
+              ],
+            }
           : b
       )
     )
   }
 
-  const updateScheduleSlot = (batchId: string, index: number, field: keyof ScheduleItem, value: string | number) => {
-    setBatches((prev) =>
-      prev.map((b) => {
+  const updateScheduleSlot = (
+    batchId: string,
+    index: number,
+    field: keyof ScheduleItem,
+    value: string | number
+  ) => {
+    setBatches(prev =>
+      prev.map(b => {
         if (b.id !== batchId) return b
         const next = [...b.schedule]
         next[index] = { ...next[index], [field]: value }
@@ -595,27 +644,33 @@ export default function CourseBuilderLayout({
   }
 
   const removeScheduleSlot = (batchId: string, index: number) => {
-    setBatches((prev) =>
-      prev.map((b) =>
+    setBatches(prev =>
+      prev.map(b =>
         b.id === batchId ? { ...b, schedule: b.schedule.filter((_, i) => i !== index) } : b
       )
     )
   }
 
   const copyGroupLink = (batchId: string) => {
-    const url = typeof window !== 'undefined' ? `${window.location.origin}/curriculum/${courseId}?batch=${batchId}` : ''
+    const url =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/curriculum/${courseId}?batch=${batchId}`
+        : ''
     if (url) {
       navigator.clipboard.writeText(url).then(() => toast.success('Group link copied'))
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Top Navigation Header */}
-      <header className="bg-white border-b sticky top-0 z-50">
-        <div className="flex items-center justify-between h-16 px-4">
+      <header className="sticky top-0 z-50 border-b bg-white">
+        <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4">
-            <h1 className="font-semibold text-gray-900 truncate max-w-[200px]" title={course?.name || `Course ${courseId.slice(0, 8)}`}>
+            <h1
+              className="max-w-[200px] truncate font-semibold text-gray-900"
+              title={course?.name || `Course ${courseId.slice(0, 8)}`}
+            >
               {course?.name || `Course ${courseId.slice(0, 8)}...`}
             </h1>
             {course && <PublishStatusBadge isPublished={course.isPublished} />}
@@ -624,10 +679,10 @@ export default function CourseBuilderLayout({
       </header>
 
       {/* Mobile Header - Simplified */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b z-50">
-        <div className="flex items-center justify-between h-16 px-4">
+      <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
+        <div className="flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <div className="font-semibold text-gray-900 truncate">
+            <div className="truncate font-semibold text-gray-900">
               {course?.name || `Course ${courseId.slice(0, 8)}...`}
             </div>
           </div>
@@ -635,14 +690,12 @@ export default function CourseBuilderLayout({
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-0">
-        {children}
-      </main>
+      <main className="flex min-h-0 flex-1 flex-col">{children}</main>
 
       {/* Groups & Schedules Modal - 90% width/height */}
       <Dialog open={groupsModalOpen} onOpenChange={setGroupsModalOpen}>
-        <DialogContent className="max-w-[90vw] w-[90vw] h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b shrink-0">
+        <DialogContent className="flex h-[90vh] max-h-[90vh] w-[90vw] max-w-[90vw] flex-col overflow-hidden p-0">
+          <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Group Builder
@@ -651,30 +704,39 @@ export default function CourseBuilderLayout({
 
           <div className="flex-1 overflow-hidden">
             {loadingBatches ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
               </div>
             ) : batches.length === 0 ? (
-              <div className="p-6 space-y-4">
+              <div className="space-y-4 p-6">
                 <p className="text-muted-foreground">No groups created yet.</p>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Group name (e.g. Batch 1, Jan 2025)"
                     value={newBatchName}
-                    onChange={(e) => setNewBatchName(e.target.value)}
+                    onChange={e => setNewBatchName(e.target.value)}
                     className="max-w-[300px]"
                   />
-                  <Button onClick={handleCreateBatch} disabled={creatingBatch || !newBatchName.trim()}>
-                    {creatingBatch ? 'Creating…' : <><Plus className="h-4 w-4 mr-1" /> Create Group</>}
+                  <Button
+                    onClick={handleCreateBatch}
+                    disabled={creatingBatch || !newBatchName.trim()}
+                  >
+                    {creatingBatch ? (
+                      'Creating…'
+                    ) : (
+                      <>
+                        <Plus className="mr-1 h-4 w-4" /> Create Group
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
             ) : (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                <div className="border-b px-6 pt-2 bg-gray-50/50 shrink-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
+                <div className="shrink-0 border-b bg-gray-50/50 px-6 pt-2">
                   <div className="flex items-center gap-2 overflow-x-auto">
-                    <TabsList className="bg-transparent h-10">
-                      {batches.map((batch) => (
+                    <TabsList className="h-10 bg-transparent">
+                      {batches.map(batch => (
                         <TabsTrigger
                           key={batch.id}
                           value={batch.id}
@@ -687,12 +749,12 @@ export default function CourseBuilderLayout({
                         </TabsTrigger>
                       ))}
                     </TabsList>
-                    <div className="flex items-center gap-2 pl-2 border-l ml-2">
+                    <div className="ml-2 flex items-center gap-2 border-l pl-2">
                       <Input
                         placeholder="New group name"
                         value={newBatchName}
-                        onChange={(e) => setNewBatchName(e.target.value)}
-                        className="w-[150px] h-8 text-sm"
+                        onChange={e => setNewBatchName(e.target.value)}
+                        className="h-8 w-[150px] text-sm"
                       />
                       <Button
                         size="sm"
@@ -705,33 +767,34 @@ export default function CourseBuilderLayout({
                   </div>
                 </div>
 
-                {batches.map((batch) => (
+                {batches.map(batch => (
                   <TabsContent
                     key={batch.id}
                     value={batch.id}
-                    className="flex-1 overflow-auto m-0 p-6"
+                    className="m-0 flex-1 overflow-auto p-6"
                   >
-                    <div className="max-w-4xl mx-auto space-y-6">
+                    <div className="mx-auto max-w-4xl space-y-6">
                       {/* Group Header */}
-                      <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <h3 className="text-lg font-semibold">{batch.name}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {batch.enrollmentCount} student{batch.enrollmentCount !== 1 ? 's' : ''} enrolled
+                            {batch.enrollmentCount} student{batch.enrollmentCount !== 1 ? 's' : ''}{' '}
+                            enrolled
                           </p>
                         </div>
                         <div className="flex items-center gap-3">
                           {/* Online/Offline Toggle */}
                           <Button
-                            variant={batch.isLive ? "default" : "outline"}
+                            variant={batch.isLive ? 'default' : 'outline'}
                             size="sm"
                             onClick={() => handleToggleGroupLive(batch.id, !batch.isLive)}
                             className={cn(
-                              "gap-2",
-                              batch.isLive && "bg-green-600 hover:bg-green-700"
+                              'gap-2',
+                              batch.isLive && 'bg-green-600 hover:bg-green-700'
                             )}
                           >
-                            <Radio className={cn("h-4 w-4", batch.isLive && "animate-pulse")} />
+                            <Radio className={cn('h-4 w-4', batch.isLive && 'animate-pulse')} />
                             {batch.isLive ? 'Online' : 'Offline'}
                           </Button>
                           {/* Enter Classroom Button */}
@@ -744,26 +807,35 @@ export default function CourseBuilderLayout({
                             <Video className="h-4 w-4" />
                             Enter Classroom
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => copyGroupLink(batch.id)}>
-                            <Copy className="h-4 w-4 mr-2" />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyGroupLink(batch.id)}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
                             Copy Group Link
                           </Button>
                         </div>
                       </div>
 
                       {/* Difficulty & Language Settings */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                           <Label className="text-sm font-medium">Difficulty Level</Label>
                           <Select
                             value={batch.difficulty ?? 'intermediate'}
-                            onValueChange={(v) => handleUpdateBatchDifficulty(batch.id, v as 'beginner' | 'intermediate' | 'advanced')}
+                            onValueChange={v =>
+                              handleUpdateBatchDifficulty(
+                                batch.id,
+                                v as 'beginner' | 'intermediate' | 'advanced'
+                              )
+                            }
                           >
                             <SelectTrigger className="w-full bg-white">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {DIFFICULTY_LEVELS.map((d) => (
+                              {DIFFICULTY_LEVELS.map(d => (
                                 <SelectItem key={d.value} value={d.value}>
                                   {d.label}
                                 </SelectItem>
@@ -772,17 +844,17 @@ export default function CourseBuilderLayout({
                           </Select>
                         </div>
 
-                        <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                           <Label className="text-sm font-medium">Language of Instruction</Label>
                           <Select
                             value={batch.languageOfInstruction ?? 'en'}
-                            onValueChange={(v) => handleUpdateBatchLanguage(batch.id, v)}
+                            onValueChange={v => handleUpdateBatchLanguage(batch.id, v)}
                           >
                             <SelectTrigger className="w-full bg-white">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="max-h-[300px]">
-                              {LANGUAGES.map((l) => (
+                              {LANGUAGES.map(l => (
                                 <SelectItem key={l.value} value={l.value}>
                                   {l.label}
                                 </SelectItem>
@@ -793,17 +865,17 @@ export default function CourseBuilderLayout({
                       </div>
 
                       {/* Price Setting */}
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                         <Label className="text-sm font-medium">Group Price</Label>
-                        <div className="flex gap-3 flex-wrap">
-                          <div className="flex-1 min-w-[150px]">
+                        <div className="flex flex-wrap gap-3">
+                          <div className="min-w-[150px] flex-1">
                             <Input
                               type="number"
                               min={0}
                               step={0.01}
                               placeholder="0.00"
                               value={batch.price ?? ''}
-                              onChange={(e) => {
+                              onChange={e => {
                                 const price = e.target.value === '' ? null : Number(e.target.value)
                                 handleUpdateBatchPrice(batch.id, price, batch.currency ?? 'SGD')
                               }}
@@ -812,13 +884,15 @@ export default function CourseBuilderLayout({
                           </div>
                           <Select
                             value={batch.currency ?? 'SGD'}
-                            onValueChange={(v) => handleUpdateBatchPrice(batch.id, batch.price ?? null, v)}
+                            onValueChange={v =>
+                              handleUpdateBatchPrice(batch.id, batch.price ?? null, v)
+                            }
                           >
                             <SelectTrigger className="w-[100px] bg-white">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {CURRENCIES.map((c) => (
+                              {CURRENCIES.map(c => (
                                 <SelectItem key={c} value={c}>
                                   {c}
                                 </SelectItem>
@@ -827,13 +901,14 @@ export default function CourseBuilderLayout({
                           </Select>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Set a custom price for this group. Leave empty to use the default course price.
+                          Set a custom price for this group. Leave empty to use the default course
+                          price.
                         </p>
                       </div>
 
                       {/* Share & Enrollment - Per Group */}
-                      <div className="bg-blue-50 rounded-lg p-4 space-y-3 border border-blue-200">
-                        <Label className="text-sm font-medium flex items-center gap-2">
+                      <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                        <Label className="flex items-center gap-2 text-sm font-medium">
                           <Link2 className="h-4 w-4 text-blue-500" />
                           Share & Enrollment
                         </Label>
@@ -844,7 +919,7 @@ export default function CourseBuilderLayout({
                           <Input
                             readOnly
                             value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`}
-                            className="font-mono text-sm bg-white flex-1"
+                            className="flex-1 bg-white font-mono text-sm"
                           />
                           <Button
                             type="button"
@@ -852,7 +927,10 @@ export default function CourseBuilderLayout({
                             size="icon"
                             onClick={() => {
                               const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/${courseId}?batch=${batch.id}`
-                              if (url) navigator.clipboard.writeText(url).then(() => toast.success('Group link copied'))
+                              if (url)
+                                navigator.clipboard
+                                  .writeText(url)
+                                  .then(() => toast.success('Group link copied'))
                             }}
                             title="Copy link"
                           >
@@ -868,23 +946,18 @@ export default function CourseBuilderLayout({
                       </div>
 
                       {/* Course Assignment Section */}
-                      <CourseAssignmentSection
-                        batch={batch}
-                        courseId={courseId}
-                      />
+                      <CourseAssignmentSection batch={batch} courseId={courseId} />
 
                       {/* Schedule Section */}
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-medium flex items-center gap-2">
-                            Class Schedule
-                          </h4>
+                          <h4 className="flex items-center gap-2 font-medium">Class Schedule</h4>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => addScheduleSlot(batch.id)}
                           >
-                            <Plus className="h-4 w-4 mr-1" />
+                            <Plus className="mr-1 h-4 w-4" />
                             Add Class Slot
                           </Button>
                         </div>
@@ -898,42 +971,58 @@ export default function CourseBuilderLayout({
                             {batch.schedule.map((slot, index) => (
                               <div
                                 key={index}
-                                className="flex flex-wrap items-end gap-2 p-3 rounded-lg border bg-gray-50"
+                                className="flex flex-wrap items-end gap-2 rounded-lg border bg-gray-50 p-3"
                               >
-                                <div className="space-y-1 min-w-[140px]">
+                                <div className="min-w-[140px] space-y-1">
                                   <Label className="text-xs">Day</Label>
                                   <Select
                                     value={slot.dayOfWeek}
-                                    onValueChange={(v) => updateScheduleSlot(batch.id, index, 'dayOfWeek', v)}
+                                    onValueChange={v =>
+                                      updateScheduleSlot(batch.id, index, 'dayOfWeek', v)
+                                    }
                                   >
                                     <SelectTrigger className="bg-white">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {DAYS.map((d) => (
-                                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                                      {DAYS.map(d => (
+                                        <SelectItem key={d} value={d}>
+                                          {d}
+                                        </SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
                                 </div>
-                                <div className="space-y-1 w-[100px]">
+                                <div className="w-[100px] space-y-1">
                                   <Label className="text-xs">Start</Label>
                                   <Input
                                     type="time"
                                     value={slot.startTime}
-                                    onChange={(e) => updateScheduleSlot(batch.id, index, 'startTime', e.target.value)}
+                                    onChange={e =>
+                                      updateScheduleSlot(
+                                        batch.id,
+                                        index,
+                                        'startTime',
+                                        e.target.value
+                                      )
+                                    }
                                     className="bg-white"
                                   />
                                 </div>
-                                <div className="space-y-1 w-[120px]">
+                                <div className="w-[120px] space-y-1">
                                   <Label className="text-xs">Duration (min)</Label>
                                   <Input
                                     type="number"
                                     min={5}
                                     max={480}
                                     value={slot.durationMinutes}
-                                    onChange={(e) =>
-                                      updateScheduleSlot(batch.id, index, 'durationMinutes', parseInt(e.target.value, 10) || 60)
+                                    onChange={e =>
+                                      updateScheduleSlot(
+                                        batch.id,
+                                        index,
+                                        'durationMinutes',
+                                        parseInt(e.target.value, 10) || 60
+                                      )
                                     }
                                     className="bg-white"
                                   />
@@ -963,22 +1052,24 @@ export default function CourseBuilderLayout({
 
                       {/* Students in Group */}
                       <div className="space-y-3">
-                        <h4 className="font-medium flex items-center gap-2">
+                        <h4 className="flex items-center gap-2 font-medium">
                           Students in this Group
                         </h4>
                         {(() => {
-                          const studentsInBatch = enrollments.filter((e) => e.batchId === batch.id)
+                          const studentsInBatch = enrollments.filter(e => e.batchId === batch.id)
                           return studentsInBatch.length === 0 ? (
                             <p className="text-sm text-muted-foreground">
                               No students assigned to this group yet.
                             </p>
                           ) : (
-                            <div className="rounded-lg border divide-y">
-                              {studentsInBatch.map((e) => (
-                                <div key={e.id} className="p-3 flex items-center justify-between">
+                            <div className="divide-y rounded-lg border">
+                              {studentsInBatch.map(e => (
+                                <div key={e.id} className="flex items-center justify-between p-3">
                                   <div>
-                                    <p className="font-medium text-sm">{e.studentName}</p>
-                                    <p className="text-xs text-muted-foreground">{e.studentEmail}</p>
+                                    <p className="text-sm font-medium">{e.studentName}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {e.studentEmail}
+                                    </p>
                                   </div>
                                   <span className="text-xs text-muted-foreground">
                                     {e.lessonsCompleted} lessons completed
@@ -1000,8 +1091,8 @@ export default function CourseBuilderLayout({
 
       {/* Curriculum & Materials Modal - 90% width/height */}
       <Dialog open={curriculumModalOpen} onOpenChange={setCurriculumModalOpen}>
-        <DialogContent className="max-w-[90vw] w-[90vw] h-[90vh] max-h-[90vh] p-0 flex flex-col overflow-hidden">
-          <DialogHeader className="px-6 py-4 border-b shrink-0">
+        <DialogContent className="flex h-[90vh] max-h-[90vh] w-[90vw] max-w-[90vw] flex-col overflow-hidden p-0">
+          <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5" />
               Curriculum & Materials
@@ -1010,42 +1101,38 @@ export default function CourseBuilderLayout({
 
           <div className="flex-1 overflow-auto p-6">
             {loadingCourse ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
               </div>
             ) : !course ? (
               <p className="text-muted-foreground">Failed to load course data.</p>
             ) : (
-              <div className="max-w-4xl mx-auto space-y-6">
+              <div className="mx-auto max-w-4xl space-y-6">
                 {/* Course Name */}
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                   <Label className="text-sm font-medium">Course Name</Label>
-                  <Input
-                    value={course.name}
-                    readOnly
-                    className="bg-white"
-                  />
+                  <Input value={course.name} readOnly className="bg-white" />
                   <p className="text-xs text-muted-foreground">
                     Course name is set based on the selected subject curriculum.
                   </p>
                 </div>
 
                 {/* Description */}
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                   <Label className="text-sm font-medium">Description</Label>
                   <Textarea
                     value={course.description ?? ''}
                     readOnly
                     rows={3}
-                    className="bg-white resize-none"
+                    className="resize-none bg-white"
                   />
                 </div>
 
                 {/* Content Source */}
-                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div className="space-y-3 rounded-lg bg-gray-50 p-4">
                   <Label className="text-sm font-medium">Content Source</Label>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <label className="flex cursor-pointer items-center gap-2">
                       <input
                         type="radio"
                         name="curriculumSource"
@@ -1055,7 +1142,7 @@ export default function CourseBuilderLayout({
                       />
                       <span>Platform-provided curriculum and materials</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex cursor-pointer items-center gap-2">
                       <input
                         type="radio"
                         name="curriculumSource"
@@ -1069,23 +1156,28 @@ export default function CourseBuilderLayout({
                 </div>
 
                 {curriculumSource === 'PLATFORM' && (
-                  <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-                    <h4 className="font-medium flex items-center gap-2">
+                  <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                    <h4 className="flex items-center gap-2 font-medium">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       Course content for your review
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Below is the platform curriculum. Each topic is sized for a typical lesson. You can edit modules and lessons in the course content page.
+                      Below is the platform curriculum. Each topic is sized for a typical lesson.
+                      You can edit modules and lessons in the course content page.
                     </p>
-                    <div className="space-y-3 max-h-[320px] overflow-y-auto">
-                      {course.modules?.map((mod) => (
-                        <div key={mod.id} className="border rounded p-3 bg-background">
+                    <div className="max-h-[320px] space-y-3 overflow-y-auto">
+                      {course.modules?.map(mod => (
+                        <div key={mod.id} className="rounded border bg-background p-3">
                           <p className="font-medium">{mod.title}</p>
-                          {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
+                          {mod.description && (
+                            <p className="text-sm text-muted-foreground">{mod.description}</p>
+                          )}
                           <ul className="mt-2 space-y-1 text-sm">
-                            {(mod.lessons ?? []).map((les) => (
+                            {(mod.lessons ?? []).map(les => (
                               <li key={les.id} className="flex items-center gap-2">
-                                <span className="text-muted-foreground">{les.duration ?? 30} min</span>
+                                <span className="text-muted-foreground">
+                                  {les.duration ?? 30} min
+                                </span>
                                 <span>{les.title}</span>
                               </li>
                             ))}
@@ -1101,10 +1193,10 @@ export default function CourseBuilderLayout({
 
                 {curriculumSource === 'UPLOADED' && (
                   <>
-                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                    <div className="space-y-2 border-l-2 border-muted pl-4">
                       <Label>Who creates the outline?</Label>
                       <div className="flex flex-col gap-2">
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex cursor-pointer items-center gap-2">
                           <input
                             type="radio"
                             name="outlineSource"
@@ -1114,7 +1206,7 @@ export default function CourseBuilderLayout({
                           />
                           <span>I create the outline myself</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex cursor-pointer items-center gap-2">
                           <input
                             type="radio"
                             name="outlineSource"
@@ -1131,74 +1223,105 @@ export default function CourseBuilderLayout({
                     {outlineSource === 'SELF' && (
                       <div className="space-y-6">
                         <p className="text-sm text-muted-foreground">
-                          <strong>When to upload what:</strong> First upload your curriculum (syllabus or outline). Then optionally upload notes. If you upload a list of topics, AI will put it in the "Edit Topics" area.
+                          <strong>When to upload what:</strong> First upload your curriculum
+                          (syllabus or outline). Then optionally upload notes. If you upload a list
+                          of topics, AI will put it in the "Edit Topics" area.
                         </p>
 
                         {/* Step 1: Upload curriculum */}
-                        <div className="rounded-lg border p-4 space-y-2">
+                        <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">1</span>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                              1
+                            </span>
                             <Label className="text-base">Upload curriculum</Label>
                           </div>
-                          <p className="text-sm text-muted-foreground">Paste or upload your curriculum/syllabus. Supports .txt, .md, .pdf, .doc/.docx, and images.</p>
+                          <p className="text-sm text-muted-foreground">
+                            Paste or upload your curriculum/syllabus. Supports .txt, .md, .pdf,
+                            .doc/.docx, and images.
+                          </p>
                           <div className="flex flex-wrap items-center gap-2">
                             <Input
                               type="file"
                               accept=".txt,.md,.pdf,.doc,.docx,image/*"
                               className="max-w-[200px]"
-                              onChange={(e) => handleFileRead('curriculum', e)}
+                              onChange={e => handleFileRead('curriculum', e)}
                               disabled={fileExtracting}
                             />
-                            {fileExtracting && <span className="text-sm text-muted-foreground">Sending to AI…</span>}
-                            {uploadText.curriculum && !fileExtracting && <span className="text-sm text-green-600">Curriculum loaded</span>}
+                            {fileExtracting && (
+                              <span className="text-sm text-muted-foreground">Sending to AI…</span>
+                            )}
+                            {uploadText.curriculum && !fileExtracting && (
+                              <span className="text-sm text-green-600">Curriculum loaded</span>
+                            )}
                           </div>
                         </div>
 
                         {/* Step 2: Upload notes */}
-                        <div className="rounded-lg border p-4 space-y-2">
+                        <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">2</span>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                              2
+                            </span>
                             <Label className="text-base">Upload notes (optional)</Label>
                           </div>
-                          <p className="text-sm text-muted-foreground">Paste or upload teaching notes. Supports .txt, .md, .pdf, .doc/.docx, and images.</p>
+                          <p className="text-sm text-muted-foreground">
+                            Paste or upload teaching notes. Supports .txt, .md, .pdf, .doc/.docx,
+                            and images.
+                          </p>
                           <div className="flex flex-wrap items-center gap-2">
                             <Input
                               type="file"
                               accept=".txt,.md,.pdf,.doc,.docx,image/*"
                               className="max-w-[200px]"
-                              onChange={(e) => handleFileRead('notes', e)}
+                              onChange={e => handleFileRead('notes', e)}
                               disabled={fileExtracting}
                             />
-                            {fileExtracting && <span className="text-sm text-muted-foreground">Sending…</span>}
-                            {uploadText.notes && !fileExtracting && <span className="text-sm text-green-600">Notes loaded</span>}
+                            {fileExtracting && (
+                              <span className="text-sm text-muted-foreground">Sending…</span>
+                            )}
+                            {uploadText.notes && !fileExtracting && (
+                              <span className="text-sm text-green-600">Notes loaded</span>
+                            )}
                           </div>
                         </div>
 
                         {/* Step 3: List of topics */}
-                        <div className="rounded-lg border p-4 space-y-2">
+                        <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">3</span>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                              3
+                            </span>
                             <ListOrdered className="h-5 w-5" />
                             <Label className="text-base">List of topics (optional)</Label>
                           </div>
-                          <p className="text-sm text-muted-foreground">If you have a list of topics (bullets or short lines), paste or upload it.</p>
+                          <p className="text-sm text-muted-foreground">
+                            If you have a list of topics (bullets or short lines), paste or upload
+                            it.
+                          </p>
                           <div className="flex flex-wrap items-center gap-2">
                             <Input
                               type="file"
                               accept=".txt,.md,.pdf,.doc,.docx,image/*"
                               className="max-w-[200px]"
-                              onChange={(e) => handleFileRead('topics', e)}
+                              onChange={e => handleFileRead('topics', e)}
                               disabled={fileExtracting}
                             />
-                            {fileExtracting && <span className="text-sm text-muted-foreground">Sending…</span>}
-                            {uploadText.topics && !fileExtracting && <span className="text-sm text-green-600">Topics loaded</span>}
+                            {fileExtracting && (
+                              <span className="text-sm text-muted-foreground">Sending…</span>
+                            )}
+                            {uploadText.topics && !fileExtracting && (
+                              <span className="text-sm text-green-600">Topics loaded</span>
+                            )}
                           </div>
                         </div>
 
                         {/* Step 4: Generate outline */}
-                        <div className="rounded-lg border p-4 space-y-2">
+                        <div className="space-y-2 rounded-lg border p-4">
                           <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">4</span>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                              4
+                            </span>
                             <FileTextIcon className="h-5 w-5" />
                             <Label className="text-base">Course outline</Label>
                           </div>
@@ -1209,23 +1332,26 @@ export default function CourseBuilderLayout({
                               min={15}
                               max={120}
                               value={typicalLessonMinutes}
-                              onChange={(e) => setTypicalLessonMinutes(parseInt(e.target.value, 10) || 45)}
+                              onChange={e =>
+                                setTypicalLessonMinutes(parseInt(e.target.value, 10) || 45)
+                              }
                               className="w-20"
                             />
                           </div>
-                          <Button
-                            onClick={handleGenerateOutline}
-                            disabled={generatingOutline}
-                          >
-                            {generatingOutline ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                          <Button onClick={handleGenerateOutline} disabled={generatingOutline}>
+                            {generatingOutline ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
                             {generatingOutline ? 'Generating…' : 'Generate course outline'}
                           </Button>
                           {outline.length > 0 && (
                             <div className="mt-3 space-y-2">
                               <Label className="text-xs">Generated outline</Label>
-                              <ul className="list-disc list-inside text-sm space-y-1">
+                              <ul className="list-inside list-disc space-y-1 text-sm">
                                 {outline.map((item, i) => (
-                                  <li key={i}>{item.title} — {item.durationMinutes} min</li>
+                                  <li key={i}>
+                                    {item.title} — {item.durationMinutes} min
+                                  </li>
                                 ))}
                               </ul>
                             </div>
@@ -1237,7 +1363,9 @@ export default function CourseBuilderLayout({
                           onClick={handleSaveMaterials}
                           disabled={savingMaterials}
                         >
-                          {savingMaterials ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                          {savingMaterials ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
                           Save materials & outline
                         </Button>
                       </div>
@@ -1245,7 +1373,8 @@ export default function CourseBuilderLayout({
 
                     {outlineSource === 'AI' && (
                       <p className="text-sm text-muted-foreground">
-                        Upload your materials above (curriculum and optionally notes). Then use "Generate course outline" to let AI create the outline from your content.
+                        Upload your materials above (curriculum and optionally notes). Then use
+                        "Generate course outline" to let AI create the outline from your content.
                       </p>
                     )}
                   </>
@@ -1289,8 +1418,8 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
         title: courses.find(c => c.id === courseId)?.name || 'Course',
         description: courses.find(c => c.id === courseId)?.description || '',
         moduleCount: courses.find(c => c.id === courseId)?.stats.moduleCount || 0,
-        lessonCount: courses.find(c => c.id === courseId)?.stats.lessonCount || 0
-      }
+        lessonCount: courses.find(c => c.id === courseId)?.stats.lessonCount || 0,
+      },
     }
 
     setAssignedCourses(prev => [...prev, newAssignment])
@@ -1302,22 +1431,20 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
     toast.success('Course unassigned')
   }
 
-  const availableCourses = courses.filter(c =>
-    !assignedCourses.some(a => a.courseId === c.id)
-  )
+  const availableCourses = courses.filter(c => !assignedCourses.some(a => a.courseId === c.id))
 
   const DIFFICULTY_COLORS = {
     beginner: 'bg-green-100 text-green-700 border-green-200',
     intermediate: 'bg-blue-100 text-blue-700 border-blue-200',
-    advanced: 'bg-purple-100 text-purple-700 border-purple-200'
+    advanced: 'bg-purple-100 text-purple-700 border-purple-200',
   }
 
   return (
     <div className="space-y-4">
       {/* Assigned Courses */}
-      <div className="bg-purple-50 rounded-lg p-4 space-y-3 border border-purple-200">
+      <div className="space-y-3 rounded-lg border border-purple-200 bg-purple-50 p-4">
         <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium flex items-center gap-2">
+          <Label className="flex items-center gap-2 text-sm font-medium">
             <BookOpen className="h-4 w-4 text-purple-500" />
             Assigned Courses
           </Label>
@@ -1336,15 +1463,14 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
             {assignedCourses.map(assignment => (
               <div
                 key={assignment.id}
-                className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                className="flex items-center justify-between rounded-lg border bg-white p-3"
               >
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium truncate">{assignment.courseSnapshot.title}</p>
-                    <Badge className={cn(
-                      'text-[10px]',
-                      DIFFICULTY_COLORS[assignment.groupDifficulty]
-                    )}>
+                    <p className="truncate font-medium">{assignment.courseSnapshot.title}</p>
+                    <Badge
+                      className={cn('text-[10px]', DIFFICULTY_COLORS[assignment.groupDifficulty])}
+                    >
                       {assignment.resolutionStrategy === 'adaptive' ? '🔄 Adaptive' : '🎯 Fixed'}
                     </Badge>
                   </div>
@@ -1353,13 +1479,16 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={assignment.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                  <Badge
+                    variant={assignment.status === 'active' ? 'default' : 'secondary'}
+                    className="text-xs"
+                  >
                     {assignment.status}
                   </Badge>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
                     onClick={() => handleUnassign(assignment.id)}
                   >
                     Unassign
@@ -1373,16 +1502,16 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
 
       {/* Available Courses */}
       {availableCourses.length > 0 && (
-        <div className="bg-gray-50 rounded-lg p-4 space-y-3 border border-gray-200">
+        <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
           <Label className="text-sm font-medium">Available Courses</Label>
           <div className="space-y-2">
             {availableCourses.slice(0, 3).map(course => (
               <div
                 key={course.id}
-                className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                className="flex items-center justify-between rounded-lg border bg-white p-3"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{course.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{course.name}</p>
                   <p className="text-xs text-muted-foreground">
                     Will adapt to {batch.difficulty} level
                   </p>
@@ -1411,9 +1540,9 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
       )}
 
       {/* Difficulty Note */}
-      <Alert className="bg-blue-50 border-blue-200">
+      <Alert className="border-blue-200 bg-blue-50">
         <BarChart3 className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-700 text-sm">
+        <AlertDescription className="text-sm text-blue-700">
           This group is set to <strong>{DIFFICULTY_LABELS[batch.difficulty]}</strong> level.
           Assigned courses will automatically adapt their content to match this difficulty level.
         </AlertDescription>
@@ -1435,5 +1564,5 @@ function CourseAssignmentSection({ batch, courseId }: CourseAssignmentSectionPro
 const DIFFICULTY_LABELS = {
   beginner: 'Beginner',
   intermediate: 'Intermediate',
-  advanced: 'Advanced'
+  advanced: 'Advanced',
 }

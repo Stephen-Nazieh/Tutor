@@ -21,7 +21,9 @@ interface SendTutorPaymentReceivedParams {
   description: string
 }
 
-export async function sendPaymentConfirmation(params: SendPaymentConfirmationParams): Promise<void> {
+export async function sendPaymentConfirmation(
+  params: SendPaymentConfirmationParams
+): Promise<void> {
   const { paymentId, studentEmail, amount, currency, description } = params
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.PAYMENT_EMAIL_FROM || 'Solocorn <noreply@tutorme.com>'
@@ -39,14 +41,14 @@ export async function sendPaymentConfirmation(params: SendPaymentConfirmationPar
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           from,
           to: studentEmail,
           subject: 'Payment confirmed – Solocorn',
-          html
-        })
+          html,
+        }),
       })
       if (!res.ok) {
         const err = await res.text()
@@ -56,11 +58,18 @@ export async function sendPaymentConfirmation(params: SendPaymentConfirmationPar
       console.error('[payment-email] Send failed:', e)
     }
   } else {
-    console.log('[payment-email] (no RESEND_API_KEY) Would send payment confirmation to', studentEmail, 'paymentId', paymentId)
+    console.log(
+      '[payment-email] (no RESEND_API_KEY) Would send payment confirmation to',
+      studentEmail,
+      'paymentId',
+      paymentId
+    )
   }
 }
 
-export async function sendTutorPaymentReceived(params: SendTutorPaymentReceivedParams): Promise<void> {
+export async function sendTutorPaymentReceived(
+  params: SendTutorPaymentReceivedParams
+): Promise<void> {
   const { paymentId, tutorEmail, amount, currency, description } = params
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.PAYMENT_EMAIL_FROM || 'Solocorn <noreply@tutorme.com>'
@@ -77,14 +86,14 @@ export async function sendTutorPaymentReceived(params: SendTutorPaymentReceivedP
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           from,
           to: tutorEmail,
           subject: 'Payment received – Solocorn',
-          html
-        })
+          html,
+        }),
       })
       if (!res.ok) {
         const err = await res.text()
@@ -94,6 +103,11 @@ export async function sendTutorPaymentReceived(params: SendTutorPaymentReceivedP
       console.error('[payment-email] Send (tutor) failed:', e)
     }
   } else {
-    console.log('[payment-email] (no RESEND_API_KEY) Would send tutor payment received to', tutorEmail, 'paymentId', paymentId)
+    console.log(
+      '[payment-email] (no RESEND_API_KEY) Would send tutor payment received to',
+      tutorEmail,
+      'paymentId',
+      paymentId
+    )
   }
 }

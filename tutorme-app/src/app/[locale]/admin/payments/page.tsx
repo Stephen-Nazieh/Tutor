@@ -54,8 +54,8 @@ export default function AdminPaymentsPage() {
   useEffect(() => {
     if (session?.user?.role !== 'ADMIN') return
     fetch('/api/admin/payments?limit=50')
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         setPayments(data.payments || [])
       })
       .catch(() => setPayments([]))
@@ -65,8 +65,8 @@ export default function AdminPaymentsPage() {
   useEffect(() => {
     if (session?.user?.role !== 'ADMIN') return
     fetch('/api/admin/webhook-events?limit=50')
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         setEvents(data.events || [])
       })
       .catch(() => setEvents([]))
@@ -75,7 +75,7 @@ export default function AdminPaymentsPage() {
 
   if (status === 'loading' || session?.user?.role !== 'ADMIN') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
@@ -83,8 +83,8 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
-      <header className="bg-white border-b sticky top-0 z-10 safe-top">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="safe-top sticky top-0 z-10 border-b bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" size="icon">
@@ -96,15 +96,15 @@ export default function AdminPaymentsPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         <Tabs defaultValue="payments">
           <TabsList>
             <TabsTrigger value="payments">
-              <CreditCard className="h-4 w-4 mr-2" />
+              <CreditCard className="mr-2 h-4 w-4" />
               Payments ({payments.length})
             </TabsTrigger>
             <TabsTrigger value="webhooks">
-              <Webhook className="h-4 w-4 mr-2" />
+              <Webhook className="mr-2 h-4 w-4" />
               Webhook events ({events.length})
             </TabsTrigger>
           </TabsList>
@@ -120,33 +120,39 @@ export default function AdminPaymentsPage() {
                     <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                   </div>
                 ) : payments.length === 0 ? (
-                  <p className="text-gray-500 py-8 text-center">No payments</p>
+                  <p className="py-8 text-center text-gray-500">No payments</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-2">ID</th>
-                          <th className="text-left py-2">Amount</th>
-                          <th className="text-left py-2">Status</th>
-                          <th className="text-left py-2">Gateway</th>
-                          <th className="text-left py-2">Paid at</th>
-                          <th className="text-left py-2">Created</th>
+                          <th className="py-2 text-left">ID</th>
+                          <th className="py-2 text-left">Amount</th>
+                          <th className="py-2 text-left">Status</th>
+                          <th className="py-2 text-left">Gateway</th>
+                          <th className="py-2 text-left">Paid at</th>
+                          <th className="py-2 text-left">Created</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {payments.map((p) => (
+                        {payments.map(p => (
                           <tr key={p.id} className="border-b">
                             <td className="py-2 font-mono text-xs">{p.id.slice(0, 8)}…</td>
                             <td className="py-2">
                               {p.currency} {p.amount.toFixed(2)}
                             </td>
                             <td className="py-2">
-                              <Badge variant={p.status === 'COMPLETED' ? 'default' : 'secondary'}>{p.status}</Badge>
+                              <Badge variant={p.status === 'COMPLETED' ? 'default' : 'secondary'}>
+                                {p.status}
+                              </Badge>
                             </td>
                             <td className="py-2">{p.gateway}</td>
-                            <td className="py-2 text-gray-600">{p.paidAt ? new Date(p.paidAt).toLocaleString() : '–'}</td>
-                            <td className="py-2 text-gray-600">{new Date(p.createdAt).toLocaleString()}</td>
+                            <td className="py-2 text-gray-600">
+                              {p.paidAt ? new Date(p.paidAt).toLocaleString() : '–'}
+                            </td>
+                            <td className="py-2 text-gray-600">
+                              {new Date(p.createdAt).toLocaleString()}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -168,21 +174,21 @@ export default function AdminPaymentsPage() {
                     <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                   </div>
                 ) : events.length === 0 ? (
-                  <p className="text-gray-500 py-8 text-center">No webhook events</p>
+                  <p className="py-8 text-center text-gray-500">No webhook events</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left py-2">ID</th>
-                          <th className="text-left py-2">Gateway</th>
-                          <th className="text-left py-2">Event</th>
-                          <th className="text-left py-2">Processed</th>
-                          <th className="text-left py-2">Created</th>
+                          <th className="py-2 text-left">ID</th>
+                          <th className="py-2 text-left">Gateway</th>
+                          <th className="py-2 text-left">Event</th>
+                          <th className="py-2 text-left">Processed</th>
+                          <th className="py-2 text-left">Created</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {events.map((e) => (
+                        {events.map(e => (
                           <tr key={e.id} className="border-b">
                             <td className="py-2 font-mono text-xs">{e.id.slice(0, 8)}…</td>
                             <td className="py-2">{e.gateway}</td>
@@ -192,7 +198,9 @@ export default function AdminPaymentsPage() {
                                 {e.processed ? 'Yes' : 'No'}
                               </Badge>
                             </td>
-                            <td className="py-2 text-gray-600">{new Date(e.createdAt).toLocaleString()}</td>
+                            <td className="py-2 text-gray-600">
+                              {new Date(e.createdAt).toLocaleString()}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

@@ -17,10 +17,7 @@ export const GET = withAuth(
   async (req: NextRequest, session) => {
     const family = await getFamilyAccountForParent(session)
     if (!family) {
-      return NextResponse.json(
-        { error: '未找到家庭账户' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
     }
 
     const cacheKey = `parent:students:${family.id}`
@@ -78,11 +75,11 @@ export const GET = withAuth(
         })),
         progress: prog
           ? {
-            lessonsCompleted: prog.lessonsCompleted,
-            totalLessons: prog.totalLessons,
-            averageScore: prog.averageScore,
-            isCompleted: prog.isCompleted,
-          }
+              lessonsCompleted: prog.lessonsCompleted,
+              totalLessons: prog.totalLessons,
+              averageScore: prog.averageScore,
+              isCompleted: prog.isCompleted,
+            }
           : null,
         level: gam?.level ?? null,
         xp: gam?.xp ?? null,

@@ -77,7 +77,7 @@ Key Concepts:
 Formula:
 [Topic] + [Claim/Position] + [Reasoning]
 Example: "In 1984, Orwell uses Newspeak to demonstrate how language control enables totalitarian power."
-`
+`,
 }
 
 // English-specific teaching mode adjustments
@@ -98,5 +98,5 @@ English Lesson Structure:
 4. **Guided Practice**: Student attempts with support
 5. **Independent Practice**: Student applies skill
 6. **Reflection**: What did you learn? How will you use this?
-`
+`,
 }

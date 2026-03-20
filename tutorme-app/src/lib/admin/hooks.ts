@@ -23,13 +23,13 @@ async function fetchSession(): Promise<AdminSession | null> {
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
-    
+
     const res = await fetch('/api/admin/auth/session', {
       signal: controller.signal,
     })
-    
+
     clearTimeout(timeoutId)
-    
+
     if (!res.ok) return null
     const data = await res.json()
     return data.session
@@ -64,7 +64,11 @@ async function logout() {
 export function useAdminSession() {
   const queryClient = useQueryClient()
 
-  const { data: session, isLoading, error } = useQuery({
+  const {
+    data: session,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['admin-session'],
     queryFn: fetchSession,
     retry: false,
@@ -106,7 +110,8 @@ export function useAdminUsers(filters?: {
   limit?: number
 }) {
   const queryString = filters
-    ? '?' + new URLSearchParams(
+    ? '?' +
+      new URLSearchParams(
         Object.entries(filters).filter(([, v]) => v !== undefined) as [string, string][]
       ).toString()
     : ''
@@ -312,9 +317,7 @@ export function useSettings(category?: string) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['settings', category],
     queryFn: async () => {
-      const url = category
-        ? `/api/admin/settings?category=${category}`
-        : '/api/admin/settings'
+      const url = category ? `/api/admin/settings?category=${category}` : '/api/admin/settings'
       const res = await fetch(url)
       if (!res.ok) throw new Error('Failed to fetch settings')
       return res.json()
@@ -361,7 +364,8 @@ export function useAuditLogs(filters?: {
   endDate?: string
 }) {
   const queryString = filters
-    ? '?' + new URLSearchParams(
+    ? '?' +
+      new URLSearchParams(
         Object.entries(filters).filter(([, v]) => v !== undefined) as [string, string][]
       ).toString()
     : ''

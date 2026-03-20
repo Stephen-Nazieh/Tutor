@@ -1,6 +1,6 @@
 /**
  * Gamification Context Layer (Layer 4)
- * 
+ *
  * Injects user's gamification data: level, XP, skill scores, streaks
  */
 
@@ -26,11 +26,9 @@ export interface GamificationContext {
  * Build gamification context prompt
  */
 export function buildGamificationContext(context: GamificationContext): string {
-  const weakestSkill = Object.entries(context.skills)
-    .sort((a, b) => a[1] - b[1])[0]
-  
-  const strongestSkill = Object.entries(context.skills)
-    .sort((a, b) => b[1] - a[1])[0]
+  const weakestSkill = Object.entries(context.skills).sort((a, b) => a[1] - b[1])[0]
+
+  const strongestSkill = Object.entries(context.skills).sort((a, b) => b[1] - a[1])[0]
 
   return `
 User Gamification Profile:
@@ -74,7 +72,7 @@ When responding:
  */
 export function buildMinimalGamificationContext(context: Partial<GamificationContext>): string {
   const parts: string[] = []
-  
+
   if (context.level !== undefined) parts.push(`Level: ${context.level}`)
   if (context.streakDays !== undefined) parts.push(`Streak: ${context.streakDays} days`)
   if (context.skills) {

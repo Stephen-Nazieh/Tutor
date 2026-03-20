@@ -17,7 +17,7 @@ async function getHandler(_req: NextRequest, session: Session) {
     .orderBy(desc(bookmarkTable.createdAt))
 
   const bookmarks = await Promise.all(
-    rows.map(async (b) => {
+    rows.map(async b => {
       const [content] = await drizzleDb
         .select({
           id: contentItem.id,
@@ -50,10 +50,7 @@ async function postHandler(req: NextRequest, session: Session) {
       .returning()
     return NextResponse.json({ bookmark })
   } catch {
-    return NextResponse.json(
-      { error: 'Bookmark already exists' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Bookmark already exists' }, { status: 400 })
   }
 }
 
@@ -65,10 +62,7 @@ async function deleteHandler(req: NextRequest, session: Session) {
     await drizzleDb
       .delete(bookmarkTable)
       .where(
-        and(
-          eq(bookmarkTable.studentId, session.user.id),
-          eq(bookmarkTable.contentId, contentId)
-        )
+        and(eq(bookmarkTable.studentId, session.user.id), eq(bookmarkTable.contentId, contentId))
       )
     return NextResponse.json({ success: true })
   } catch (err) {

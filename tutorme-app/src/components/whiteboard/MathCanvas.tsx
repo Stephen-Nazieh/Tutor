@@ -3,18 +3,18 @@
 
 import { useEffect, useRef, useCallback, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import * as fabric from 'fabric'
-import type { 
-  AnyMathElement, 
-  PathElement, 
-  RectangleElement, 
-  CircleElement, 
+import type {
+  AnyMathElement,
+  PathElement,
+  RectangleElement,
+  CircleElement,
   LineElement,
   TextElement,
   EquationElement,
   GraphElement,
   ToolType,
   ToolSettings,
-  ViewTransform
+  ViewTransform,
 } from '@/types/math-whiteboard'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -76,13 +76,16 @@ export function MathCanvas({
   const skipNextUpdateRef = useRef(false)
   const elementsRef = useRef<AnyMathElement[]>([])
   const pendingToolPosRef = useRef<{ x: number; y: number } | null>(null)
-  
+
   // Snap to grid helper
-  const snap = useCallback((value: number): number => {
-    if (!snapToGrid) return value
-    return Math.round(value / gridSize) * gridSize
-  }, [snapToGrid, gridSize])
-  
+  const snap = useCallback(
+    (value: number): number => {
+      if (!snapToGrid) return value
+      return Math.round(value / gridSize) * gridSize
+    },
+    [snapToGrid, gridSize]
+  )
+
   // Keep elements ref in sync
   useEffect(() => {
     elementsRef.current = elements
@@ -118,7 +121,7 @@ export function MathCanvas({
     const setGridBackground = () => {
       const gridSize = 20
       const ctx = canvas.getContext()
-      
+
       // Create grid pattern
       const gridCanvas = document.createElement('canvas')
       gridCanvas.width = gridSize
@@ -133,21 +136,21 @@ export function MathCanvas({
         gridCtx.lineTo(gridSize, 0)
         gridCtx.stroke()
       }
-      
+
       const pattern = new fabric.Pattern({ source: gridCanvas, repeat: 'repeat' })
       ;(canvas as any).backgroundColor = pattern as any
       canvas.requestRenderAll()
     }
-    
+
     setGridBackground()
 
     // Handle selection changes
-    canvas.on('selection:created', (e) => {
+    canvas.on('selection:created', e => {
       const ids = (e.selected || []).map((obj: any) => obj.mathElementId).filter(Boolean)
       onSelectElements(ids)
     })
 
-    canvas.on('selection:updated', (e) => {
+    canvas.on('selection:updated', e => {
       const ids = (e.selected || []).map((obj: any) => obj.mathElementId).filter(Boolean)
       onSelectElements(ids)
     })
@@ -157,10 +160,10 @@ export function MathCanvas({
     })
 
     // Handle object modifications
-    canvas.on('object:modified', (e) => {
+    canvas.on('object:modified', e => {
       const obj = e.target
       if (!obj || !obj.mathElementId) return
-      
+
       const element = elementsRef.current.find(el => el.id === obj.mathElementId)
       if (!element) return
 
@@ -259,7 +262,8 @@ export function MathCanvas({
 
     // Get current element IDs on canvas
     const currentIds = new Set(
-      canvas.getObjects()
+      canvas
+        .getObjects()
         .map((obj: any) => obj.mathElementId)
         .filter(Boolean)
     )
@@ -318,10 +322,8 @@ export function MathCanvas({
   }
 
   const createPathObject = (element: PathElement): fabric.Object => {
-    const pathData = element.points.map((p, i) => 
-      `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
-    ).join(' ')
-    
+    const pathData = element.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+
     return new fabric.Path(pathData, {
       left: element.x,
       top: element.y,
@@ -400,7 +402,7 @@ export function MathCanvas({
       selectable: true,
       evented: true,
     })
-    
+
     // Add label showing it's an equation
     const text = new fabric.Text('LaTeX Equation', {
       left: element.x + 10,
@@ -408,16 +410,19 @@ export function MathCanvas({
       fontSize: 10,
       fill: '#94a3b8',
     })
-    
+
     // Add the LaTeX snippet
-    const latexText = new fabric.Text(element.latex.substring(0, 30) + (element.latex.length > 30 ? '...' : ''), {
-      left: element.x + 10,
-      top: element.y + 25,
-      fontSize: 11,
-      fill: element.color || '#1e293b',
-      fontFamily: 'monospace',
-    })
-    
+    const latexText = new fabric.Text(
+      element.latex.substring(0, 30) + (element.latex.length > 30 ? '...' : ''),
+      {
+        left: element.x + 10,
+        top: element.y + 25,
+        fontSize: 11,
+        fill: element.color || '#1e293b',
+        fontFamily: 'monospace',
+      }
+    )
+
     return new fabric.Group([rect, text, latexText], {
       left: element.x,
       top: element.y,
@@ -439,7 +444,7 @@ export function MathCanvas({
       selectable: true,
       evented: true,
     })
-    
+
     const title = new fabric.Text('Function Graph', {
       left: element.x + 10,
       top: element.y + 10,
@@ -447,10 +452,13 @@ export function MathCanvas({
       fill: '#64748b',
       fontWeight: 'bold',
     })
-    
+
     const funcText = new fabric.Text(
-      element.functions.map(f => f.expression).join(', ').substring(0, 50) + 
-      (element.functions.length > 1 || element.functions[0]?.expression.length > 50 ? '...' : ''), 
+      element.functions
+        .map(f => f.expression)
+        .join(', ')
+        .substring(0, 50) +
+        (element.functions.length > 1 || element.functions[0]?.expression.length > 50 ? '...' : ''),
       {
         left: element.x + 10,
         top: element.y + 30,
@@ -459,7 +467,7 @@ export function MathCanvas({
         fontFamily: 'monospace',
       }
     )
-    
+
     return new fabric.Group([rect, title, funcText], {
       left: element.x,
       top: element.y,
@@ -479,104 +487,121 @@ export function MathCanvas({
   }
 
   // Start shape drawing from Fabric pointer events.
-  const beginShapeDrawing = useCallback((pointer: { x: number; y: number }) => {
-    if (!canEdit || !fabricCanvasRef.current) return
-    if (!['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)) return
+  const beginShapeDrawing = useCallback(
+    (pointer: { x: number; y: number }) => {
+      if (!canEdit || !fabricCanvasRef.current) return
+      if (!['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)) return
 
-    emitMathDebug('beginShapeDrawing', { activeTool, pointer, canEdit })
+      emitMathDebug('beginShapeDrawing', { activeTool, pointer, canEdit })
 
-    const canvas = fabricCanvasRef.current
-    startPointRef.current = { x: pointer.x, y: pointer.y }
-    endPointRef.current = { x: pointer.x, y: pointer.y }
-    isDrawingRef.current = true
-    setIsDrawing(true)
+      const canvas = fabricCanvasRef.current
+      startPointRef.current = { x: pointer.x, y: pointer.y }
+      endPointRef.current = { x: pointer.x, y: pointer.y }
+      isDrawingRef.current = true
+      setIsDrawing(true)
 
-    let previewObj: fabric.Object | null = null
+      let previewObj: fabric.Object | null = null
 
-    switch (activeTool) {
-      case 'rectangle':
-        previewObj = new fabric.Rect({
-          left: pointer.x,
-          top: pointer.y,
-          width: 0,
-          height: 0,
-          fill: toolSettings.fillColor || 'transparent',
-          stroke: toolSettings.strokeColor,
-          strokeWidth: toolSettings.strokeWidth,
-        })
-        break
-      case 'circle':
-        previewObj = new fabric.Circle({
-          left: pointer.x,
-          top: pointer.y,
-          radius: 0,
-          fill: toolSettings.fillColor || 'transparent',
-          stroke: toolSettings.strokeColor,
-          strokeWidth: toolSettings.strokeWidth,
-        })
-        break
-      case 'line':
-      case 'arrow':
-        previewObj = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
-          stroke: toolSettings.strokeColor,
-          strokeWidth: toolSettings.strokeWidth,
-        })
-        break
-    }
-
-    if (previewObj) {
-      previewObj.selectable = false
-      previewObj.evented = false
-      canvas.add(previewObj)
-      currentObjectRef.current = previewObj
-      canvas.requestRenderAll()
-    }
-  }, [activeTool, canEdit, toolSettings])
-
-  const updateShapeDrawing = useCallback((pointer: { x: number; y: number }) => {
-    if (!isDrawingRef.current || !currentObjectRef.current || !fabricCanvasRef.current || !startPointRef.current) return
-
-    emitMathDebug('updateShapeDrawing', { activeTool, pointer })
-
-    const canvas = fabricCanvasRef.current
-    const start = startPointRef.current
-    const obj = currentObjectRef.current
-    endPointRef.current = { x: pointer.x, y: pointer.y }
-
-    switch (activeTool) {
-      case 'rectangle':
-        obj.set({
-          left: Math.min(start.x, pointer.x),
-          top: Math.min(start.y, pointer.y),
-          width: Math.abs(pointer.x - start.x),
-          height: Math.abs(pointer.y - start.y),
-        })
-        break
-      case 'circle': {
-        const radius = Math.sqrt(
-          Math.pow(pointer.x - start.x, 2) + Math.pow(pointer.y - start.y, 2)
-        ) / 2
-        obj.set({
-          left: Math.min(start.x, pointer.x),
-          top: Math.min(start.y, pointer.y),
-          radius,
-        })
-        break
+      switch (activeTool) {
+        case 'rectangle':
+          previewObj = new fabric.Rect({
+            left: pointer.x,
+            top: pointer.y,
+            width: 0,
+            height: 0,
+            fill: toolSettings.fillColor || 'transparent',
+            stroke: toolSettings.strokeColor,
+            strokeWidth: toolSettings.strokeWidth,
+          })
+          break
+        case 'circle':
+          previewObj = new fabric.Circle({
+            left: pointer.x,
+            top: pointer.y,
+            radius: 0,
+            fill: toolSettings.fillColor || 'transparent',
+            stroke: toolSettings.strokeColor,
+            strokeWidth: toolSettings.strokeWidth,
+          })
+          break
+        case 'line':
+        case 'arrow':
+          previewObj = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+            stroke: toolSettings.strokeColor,
+            strokeWidth: toolSettings.strokeWidth,
+          })
+          break
       }
-      case 'line':
-      case 'arrow':
-        (obj as fabric.Line).set({
-          x2: pointer.x,
-          y2: pointer.y,
-        })
-        break
-    }
 
-    canvas.requestRenderAll()
-  }, [activeTool])
+      if (previewObj) {
+        previewObj.selectable = false
+        previewObj.evented = false
+        canvas.add(previewObj)
+        currentObjectRef.current = previewObj
+        canvas.requestRenderAll()
+      }
+    },
+    [activeTool, canEdit, toolSettings]
+  )
+
+  const updateShapeDrawing = useCallback(
+    (pointer: { x: number; y: number }) => {
+      if (
+        !isDrawingRef.current ||
+        !currentObjectRef.current ||
+        !fabricCanvasRef.current ||
+        !startPointRef.current
+      )
+        return
+
+      emitMathDebug('updateShapeDrawing', { activeTool, pointer })
+
+      const canvas = fabricCanvasRef.current
+      const start = startPointRef.current
+      const obj = currentObjectRef.current
+      endPointRef.current = { x: pointer.x, y: pointer.y }
+
+      switch (activeTool) {
+        case 'rectangle':
+          obj.set({
+            left: Math.min(start.x, pointer.x),
+            top: Math.min(start.y, pointer.y),
+            width: Math.abs(pointer.x - start.x),
+            height: Math.abs(pointer.y - start.y),
+          })
+          break
+        case 'circle': {
+          const radius =
+            Math.sqrt(Math.pow(pointer.x - start.x, 2) + Math.pow(pointer.y - start.y, 2)) / 2
+          obj.set({
+            left: Math.min(start.x, pointer.x),
+            top: Math.min(start.y, pointer.y),
+            radius,
+          })
+          break
+        }
+        case 'line':
+        case 'arrow':
+          ;(obj as fabric.Line).set({
+            x2: pointer.x,
+            y2: pointer.y,
+          })
+          break
+      }
+
+      canvas.requestRenderAll()
+    },
+    [activeTool]
+  )
 
   const finishShapeDrawing = useCallback(() => {
-    if (!isDrawingRef.current || !currentObjectRef.current || !fabricCanvasRef.current || !startPointRef.current) return
+    if (
+      !isDrawingRef.current ||
+      !currentObjectRef.current ||
+      !fabricCanvasRef.current ||
+      !startPointRef.current
+    )
+      return
 
     emitMathDebug('finishShapeDrawing:start', { activeTool })
 
@@ -660,74 +685,96 @@ export function MathCanvas({
   }, [activeTool, currentUserId, onCreateElement, snap, toolSettings])
 
   // Handle text/equation/graph placement from Fabric pointer coordinates.
-  const handleToolPlacement = useCallback((pointer: { x: number; y: number }) => {
-    if (!canEdit) return
-    const snappedX = snap(pointer.x)
-    const snappedY = snap(pointer.y)
+  const handleToolPlacement = useCallback(
+    (pointer: { x: number; y: number }) => {
+      if (!canEdit) return
+      const snappedX = snap(pointer.x)
+      const snappedY = snap(pointer.y)
 
-    if (activeTool === 'text') {
-      const text = prompt('Enter text:', '')
-      if (text) {
-        const element: TextElement = {
-          id: generateId(),
-          type: 'text',
-          authorId: currentUserId,
-          layer: 0,
-          locked: false,
-          x: snappedX,
-          y: snappedY,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          version: 1,
-          lastModified: Date.now(),
-          modifiedBy: currentUserId,
-          text,
-          fontSize: toolSettings.fontSize,
-          fontFamily: 'Arial',
-          color: toolSettings.strokeColor,
+      if (activeTool === 'text') {
+        const text = prompt('Enter text:', '')
+        if (text) {
+          const element: TextElement = {
+            id: generateId(),
+            type: 'text',
+            authorId: currentUserId,
+            layer: 0,
+            locked: false,
+            x: snappedX,
+            y: snappedY,
+            rotation: 0,
+            scaleX: 1,
+            scaleY: 1,
+            version: 1,
+            lastModified: Date.now(),
+            modifiedBy: currentUserId,
+            text,
+            fontSize: toolSettings.fontSize,
+            fontFamily: 'Arial',
+            color: toolSettings.strokeColor,
+          }
+          onCreateElement(element)
         }
-        onCreateElement(element)
+      } else if (activeTool === 'equation') {
+        pendingToolPosRef.current = { x: pointer.x, y: pointer.y }
+        onShowEquationEditor?.({ x: pointer.x, y: pointer.y })
+      } else if (activeTool === 'graph') {
+        pendingToolPosRef.current = { x: pointer.x, y: pointer.y }
+        onShowGraphEditor?.({ x: pointer.x, y: pointer.y })
       }
-    } else if (activeTool === 'equation') {
-      pendingToolPosRef.current = { x: pointer.x, y: pointer.y }
-      onShowEquationEditor?.({ x: pointer.x, y: pointer.y })
-    } else if (activeTool === 'graph') {
-      pendingToolPosRef.current = { x: pointer.x, y: pointer.y }
-      onShowGraphEditor?.({ x: pointer.x, y: pointer.y })
-    }
-  }, [activeTool, canEdit, currentUserId, onCreateElement, onShowEquationEditor, onShowGraphEditor, snap, toolSettings])
+    },
+    [
+      activeTool,
+      canEdit,
+      currentUserId,
+      onCreateElement,
+      onShowEquationEditor,
+      onShowGraphEditor,
+      snap,
+      toolSettings,
+    ]
+  )
 
-  const getPointerFromClient = useCallback((clientX: number, clientY: number) => {
-    if (!canvasRef.current) return { x: 0, y: 0 }
-    const rect = canvasRef.current.getBoundingClientRect()
-    return {
-      x: (clientX - rect.left - transform.offsetX) / Math.max(0.001, transform.scale),
-      y: (clientY - rect.top - transform.offsetY) / Math.max(0.001, transform.scale),
-    }
-  }, [transform.offsetX, transform.offsetY, transform.scale])
+  const getPointerFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!canvasRef.current) return { x: 0, y: 0 }
+      const rect = canvasRef.current.getBoundingClientRect()
+      return {
+        x: (clientX - rect.left - transform.offsetX) / Math.max(0.001, transform.scale),
+        y: (clientY - rect.top - transform.offsetY) / Math.max(0.001, transform.scale),
+      }
+    },
+    [transform.offsetX, transform.offsetY, transform.scale]
+  )
 
-  const handleWrapperMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (!canEdit) return
-    const usesPlacementTool = activeTool === 'text' || activeTool === 'equation' || activeTool === 'graph'
-    const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
-    if (!usesPlacementTool && !usesShapeTool) return
-    const pointer = getPointerFromClient(event.clientX, event.clientY)
-    emitMathDebug('wrapper mouse:down', { activeTool, pointer })
-    if (usesPlacementTool) {
-      handleToolPlacement(pointer)
-      return
-    }
-    beginShapeDrawing(pointer)
-  }, [activeTool, beginShapeDrawing, canEdit, getPointerFromClient, handleToolPlacement])
+  const handleWrapperMouseDown = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      if (!canEdit) return
+      const usesPlacementTool =
+        activeTool === 'text' || activeTool === 'equation' || activeTool === 'graph'
+      const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
+      if (!usesPlacementTool && !usesShapeTool) return
+      const pointer = getPointerFromClient(event.clientX, event.clientY)
+      emitMathDebug('wrapper mouse:down', { activeTool, pointer })
+      if (usesPlacementTool) {
+        handleToolPlacement(pointer)
+        return
+      }
+      beginShapeDrawing(pointer)
+    },
+    [activeTool, beginShapeDrawing, canEdit, getPointerFromClient, handleToolPlacement]
+  )
 
-  const handleWrapperMouseMove = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
-    if (!usesShapeTool || !isDrawingRef.current) return
-    const pointer = getPointerFromClient(event.clientX, event.clientY)
-    emitMathDebug('wrapper mouse:move', { activeTool, pointer })
-    updateShapeDrawing(pointer)
-  }, [activeTool, getPointerFromClient, updateShapeDrawing])
+  const handleWrapperMouseMove = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
+      if (!usesShapeTool || !isDrawingRef.current) return
+      const pointer = getPointerFromClient(event.clientX, event.clientY)
+      emitMathDebug('wrapper mouse:move', { activeTool, pointer })
+      updateShapeDrawing(pointer)
+    },
+    [activeTool, getPointerFromClient, updateShapeDrawing]
+  )
 
   const handleWrapperMouseUp = useCallback(() => {
     const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
@@ -742,7 +789,8 @@ export function MathCanvas({
     const upperCanvas = canvas.upperCanvasEl
     if (!upperCanvas) return
 
-    const usesPlacementTool = activeTool === 'text' || activeTool === 'equation' || activeTool === 'graph'
+    const usesPlacementTool =
+      activeTool === 'text' || activeTool === 'equation' || activeTool === 'graph'
     const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
 
     const onPointerDown = (event: PointerEvent | MouseEvent) => {
@@ -784,7 +832,14 @@ export function MathCanvas({
       window.removeEventListener('pointerup', onPointerUp)
       window.removeEventListener('mouseup', onPointerUp)
     }
-  }, [activeTool, beginShapeDrawing, canEdit, finishShapeDrawing, handleToolPlacement, updateShapeDrawing])
+  }, [
+    activeTool,
+    beginShapeDrawing,
+    canEdit,
+    finishShapeDrawing,
+    handleToolPlacement,
+    updateShapeDrawing,
+  ])
 
   // Last-resort capture-phase fallback for environments where Fabric/native bubble listeners miss pointerdown.
   useEffect(() => {
@@ -793,7 +848,8 @@ export function MathCanvas({
     const upperCanvas = canvas.upperCanvasEl
     if (!upperCanvas) return
 
-    const usesPlacementTool = activeTool === 'text' || activeTool === 'equation' || activeTool === 'graph'
+    const usesPlacementTool =
+      activeTool === 'text' || activeTool === 'equation' || activeTool === 'graph'
     const usesShapeTool = ['rectangle', 'circle', 'line', 'arrow'].includes(activeTool)
 
     const isEventOnMathCanvas = (event: Event) => {
@@ -838,7 +894,14 @@ export function MathCanvas({
       document.removeEventListener('pointermove', onDocumentPointerMoveCapture, true)
       document.removeEventListener('pointerup', onDocumentPointerUpCapture, true)
     }
-  }, [activeTool, beginShapeDrawing, canEdit, finishShapeDrawing, handleToolPlacement, updateShapeDrawing])
+  }, [
+    activeTool,
+    beginShapeDrawing,
+    canEdit,
+    finishShapeDrawing,
+    handleToolPlacement,
+    updateShapeDrawing,
+  ])
 
   // Handle path completion (for pen tool)
   useEffect(() => {
@@ -852,7 +915,7 @@ export function MathCanvas({
       // Convert Fabric path to points
       const pathData = path.path
       const points: Array<{ x: number; y: number; pressure?: number }> = []
-      
+
       pathData.forEach((cmd: any) => {
         if (cmd[0] === 'M' || cmd[0] === 'L') {
           points.push({ x: cmd[1], y: cmd[2] })
@@ -894,18 +957,24 @@ export function MathCanvas({
   }, [activeTool, toolSettings, onCreateElement, currentUserId])
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseDown={handleWrapperMouseDown}
       onMouseMove={handleWrapperMouseMove}
       onMouseUp={handleWrapperMouseUp}
-      style={{ 
-        width, 
+      style={{
+        width,
         height,
-        cursor: activeTool === 'hand' ? 'grab' : 
-                activeTool === 'pen' ? 'crosshair' : 
-                activeTool === 'text' || activeTool === 'equation' ? 'text' : 
-                activeTool === 'graph' ? 'copy' : 'default'
+        cursor:
+          activeTool === 'hand'
+            ? 'grab'
+            : activeTool === 'pen'
+              ? 'crosshair'
+              : activeTool === 'text' || activeTool === 'equation'
+                ? 'text'
+                : activeTool === 'graph'
+                  ? 'copy'
+                  : 'default',
       }}
     >
       <canvas ref={canvasRef} />

@@ -46,14 +46,23 @@ export default function StudentNotificationsPage() {
         throw new Error('Failed to load notifications')
       }
       const data = await res.json()
-      const list = (data.notifications ?? []).map((n: { id: string; type: string; title: string; message: string; read: boolean; createdAt: string }) => ({
-        id: n.id,
-        type: n.type ?? 'message',
-        title: n.title,
-        message: n.message,
-        timestamp: formatTimestamp(n.createdAt),
-        read: n.read ?? false,
-      }))
+      const list = (data.notifications ?? []).map(
+        (n: {
+          id: string
+          type: string
+          title: string
+          message: string
+          read: boolean
+          createdAt: string
+        }) => ({
+          id: n.id,
+          type: n.type ?? 'message',
+          title: n.title,
+          message: n.message,
+          timestamp: formatTimestamp(n.createdAt),
+          read: n.read ?? false,
+        })
+      )
       setNotifications(list)
     } catch (e) {
       console.error(e)
@@ -91,7 +100,7 @@ export default function StudentNotificationsPage() {
         body: JSON.stringify({ markAll: true }),
       })
       if (!res.ok) throw new Error('Failed to mark as read')
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
       toast.success('All marked as read')
     } catch {
       toast.error('Failed to mark all as read')
@@ -107,9 +116,7 @@ export default function StudentNotificationsPage() {
         body: JSON.stringify({ notificationIds: [id] }),
       })
       if (!res.ok) throw new Error('Failed to mark as read')
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      )
+      setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
     } catch {
       toast.error('Failed to mark as read')
     }
@@ -122,44 +129,40 @@ export default function StudentNotificationsPage() {
         credentials: 'include',
       })
       if (!res.ok) throw new Error('Failed to delete')
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
+      setNotifications(prev => prev.filter(n => n.id !== id))
     } catch {
       toast.error('Failed to delete notification')
     }
   }
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = notifications.filter(n => !n.read).length
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-gray-200 rounded" />
-          <div className="h-32 bg-gray-100 rounded" />
-          <div className="h-32 bg-gray-100 rounded" />
+          <div className="h-8 w-48 rounded bg-gray-200" />
+          <div className="h-32 rounded bg-gray-100" />
+          <div className="h-32 rounded bg-gray-100" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
             <Bell className="h-6 w-6" />
             Notifications
-            {unreadCount > 0 && (
-              <Badge className="bg-red-500">{unreadCount} new</Badge>
-            )}
+            {unreadCount > 0 && <Badge className="bg-red-500">{unreadCount} new</Badge>}
           </h1>
-          <p className="text-gray-600 mt-1">
-            Stay updated with your classes and activities
-          </p>
+          <p className="mt-1 text-gray-600">Stay updated with your classes and activities</p>
         </div>
         {unreadCount > 0 && (
           <Button variant="outline" onClick={markAllAsRead}>
-            <CheckCheck className="h-4 w-4 mr-2" />
+            <CheckCheck className="mr-2 h-4 w-4" />
             Mark all read
           </Button>
         )}
@@ -168,44 +171,36 @@ export default function StudentNotificationsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Notifications</CardTitle>
-          <CardDescription>
-            You have {unreadCount} unread notifications
-          </CardDescription>
+          <CardDescription>You have {unreadCount} unread notifications</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {notifications.length === 0 ? (
-            <div className="text-center py-12">
-              <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <div className="py-12 text-center">
+              <Bell className="mx-auto mb-4 h-12 w-12 text-gray-300" />
               <p className="text-gray-500">No notifications yet</p>
             </div>
           ) : (
-            notifications.map((notification) => (
+            notifications.map(notification => (
               <div
                 key={notification.id}
-                className={`flex items-start gap-4 p-4 rounded-lg border transition-colors ${
-                  notification.read
-                    ? 'bg-white'
-                    : 'bg-blue-50/50 border-blue-100'
+                className={`flex items-start gap-4 rounded-lg border p-4 transition-colors ${
+                  notification.read ? 'bg-white' : 'border-blue-100 bg-blue-50/50'
                 }`}
               >
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-100">
                   {getIcon(notification.type)}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h4 className="font-medium text-gray-900">
                         {notification.title}
                         {!notification.read && (
-                          <span className="ml-2 w-2 h-2 bg-blue-500 rounded-full inline-block" />
+                          <span className="ml-2 inline-block h-2 w-2 rounded-full bg-blue-500" />
                         )}
                       </h4>
-                      <p className="text-gray-600 text-sm mt-1">
-                        {notification.message}
-                      </p>
-                      <p className="text-gray-400 text-xs mt-2">
-                        {notification.timestamp}
-                      </p>
+                      <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
+                      <p className="mt-2 text-xs text-gray-400">{notification.timestamp}</p>
                     </div>
                     <div className="flex items-center gap-1">
                       {!notification.read && (

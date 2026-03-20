@@ -45,9 +45,9 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold text-slate-900">Analytics</h1>
           <p className="text-slate-500">Platform performance and user insights</p>
         </div>
-        <Tabs value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+        <Tabs value={String(days)} onValueChange={v => setDays(Number(v))}>
           <TabsList>
-            {timeRanges.map((range) => (
+            {timeRanges.map(range => (
               <TabsTrigger key={range.value} value={range.value}>
                 {range.label}
               </TabsTrigger>
@@ -116,8 +116,8 @@ export default function AnalyticsPage() {
                               item.role === 'ADMIN'
                                 ? '#3b82f6'
                                 : item.role === 'TUTOR'
-                                ? '#10b981'
-                                : '#f59e0b',
+                                  ? '#10b981'
+                                  : '#f59e0b',
                           }}
                         />
                         <span className="text-sm font-medium capitalize">
@@ -131,15 +131,12 @@ export default function AnalyticsPage() {
                         </span>
                       </div>
                     </div>
-                    <Progress
-                      value={(item.count / totalUsers) * 100}
-                      className="h-2"
-                    />
+                    <Progress value={(item.count / totalUsers) * 100} className="h-2" />
                   </div>
                 ))}
 
                 {/* Summary Stats */}
-                <div className="mt-6 grid grid-cols-3 gap-4 pt-6 border-t">
+                <div className="mt-6 grid grid-cols-3 gap-4 border-t pt-6">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-blue-600">
                       {usersByRole.find((u: { role: string }) => u.role === 'ADMIN')?.count || 0}
@@ -202,7 +199,7 @@ export default function AnalyticsPage() {
                   change={`+${Math.round(((stats?.recentLogins || 0) / (stats?.activeUsers || 1)) * 100)}%`}
                 />
 
-                <div className="pt-4 border-t">
+                <div className="border-t pt-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-500">Average engagement rate</span>
                     <span className="font-medium">24.5%</span>
@@ -229,21 +226,21 @@ export default function AnalyticsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-500">Day 1</span>
                   <div className="flex items-center gap-2">
-                    <Progress value={85} className="w-24 h-2" />
+                    <Progress value={85} className="h-2 w-24" />
                     <span className="text-sm font-medium">85%</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-500">Day 7</span>
                   <div className="flex items-center gap-2">
-                    <Progress value={62} className="w-24 h-2" />
+                    <Progress value={62} className="h-2 w-24" />
                     <span className="text-sm font-medium">62%</span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-500">Day 30</span>
                   <div className="flex items-center gap-2">
-                    <Progress value={45} className="w-24 h-2" />
+                    <Progress value={45} className="h-2 w-24" />
                     <span className="text-sm font-medium">45%</span>
                   </div>
                 </div>
@@ -271,7 +268,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-500">Student Satisfaction</span>
-                  <Badge variant="default" className="text-xs">4.6/5</Badge>
+                  <Badge variant="default" className="text-xs">
+                    4.6/5
+                  </Badge>
                 </div>
               </div>
             )}
@@ -336,14 +335,18 @@ function MetricCard({
               <p className="mt-2 text-2xl font-bold">{value?.toLocaleString() || 0}</p>
             )}
             {change !== undefined && !isLoading && (
-              <div className={`mt-1 flex items-center gap-1 text-xs ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              <div
+                className={`mt-1 flex items-center gap-1 text-xs ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              >
+                {change >= 0 ? (
+                  <ArrowUpRight className="h-3 w-3" />
+                ) : (
+                  <ArrowDownRight className="h-3 w-3" />
+                )}
                 {Math.abs(change).toFixed(1)}%
               </div>
             )}
-            {subtitle && !isLoading && (
-              <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
-            )}
+            {subtitle && !isLoading && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
           </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
             <Icon className="h-5 w-5 text-slate-600" />

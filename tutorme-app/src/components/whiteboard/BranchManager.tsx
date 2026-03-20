@@ -1,6 +1,6 @@
 /**
  * Branch Manager Component
- * 
+ *
  * Allows creating, switching, and merging branches for whiteboard versions.
  */
 
@@ -9,14 +9,14 @@
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  GitBranch, 
-  Plus, 
-  Check, 
+import {
+  GitBranch,
+  Plus,
+  Check,
   GitMerge,
   MoreHorizontal,
   Trash2,
-  ArrowRightLeft
+  ArrowRightLeft,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -70,30 +70,28 @@ export function BranchManager({
     }
   }, [newBranchName, newBranchDescription, onCreateBranch])
 
-  const handleCompare = useCallback((baseId: string, compareId: string) => {
-    const result = onCompareBranches(baseId, compareId)
-    setComparison(result)
-    setComparingBranchId(compareId)
-  }, [onCompareBranches])
+  const handleCompare = useCallback(
+    (baseId: string, compareId: string) => {
+      const result = onCompareBranches(baseId, compareId)
+      setComparison(result)
+      setComparingBranchId(compareId)
+    },
+    [onCompareBranches]
+  )
 
   const activeBranch = branches.find(b => b.id === activeBranchId)
   const mainBranch = branches.find(b => b.name === 'main')
 
   return (
-    <div className={cn('bg-white border rounded-lg shadow-sm', className)}>
+    <div className={cn('rounded-lg border bg-white shadow-sm', className)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b">
+      <div className="flex items-center justify-between border-b p-3">
         <div className="flex items-center gap-2">
-          <GitBranch className="w-4 h-4 text-gray-500" />
+          <GitBranch className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium">Branches</span>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1"
-          onClick={() => setIsCreating(true)}
-        >
-          <Plus className="w-3 h-3" />
+        <Button variant="ghost" size="sm" className="h-7 gap-1" onClick={() => setIsCreating(true)}>
+          <Plus className="h-3 w-3" />
           New
         </Button>
       </div>
@@ -109,7 +107,7 @@ export function BranchManager({
               <label className="text-sm font-medium">Name</label>
               <Input
                 value={newBranchName}
-                onChange={(e) => setNewBranchName(e.target.value)}
+                onChange={e => setNewBranchName(e.target.value)}
                 placeholder="e.g., Try Alternative Approach"
                 className="mt-1"
               />
@@ -118,7 +116,7 @@ export function BranchManager({
               <label className="text-sm font-medium">Description (optional)</label>
               <Input
                 value={newBranchDescription}
-                onChange={(e) => setNewBranchDescription(e.target.value)}
+                onChange={e => setNewBranchDescription(e.target.value)}
                 placeholder="What are you trying?"
                 className="mt-1"
               />
@@ -132,30 +130,25 @@ export function BranchManager({
 
       {/* Branch List */}
       <div className="max-h-64 overflow-y-auto">
-        {branches.map((branch) => (
+        {branches.map(branch => (
           <div
             key={branch.id}
             className={cn(
-              'flex items-center justify-between p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0',
+              'flex cursor-pointer items-center justify-between border-b p-3 last:border-b-0 hover:bg-gray-50',
               branch.id === activeBranchId && 'bg-blue-50 hover:bg-blue-50'
             )}
             onClick={() => onSwitchBranch(branch.id)}
           >
             <div className="flex items-center gap-3">
               {/* Branch color indicator */}
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: branch.color }}
-              />
-              
+              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: branch.color }} />
+
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{branch.name}</span>
-                  {branch.id === activeBranchId && (
-                    <Check className="w-3 h-3 text-blue-500" />
-                  )}
+                  <span className="text-sm font-medium">{branch.name}</span>
+                  {branch.id === activeBranchId && <Check className="h-3 w-3 text-blue-500" />}
                   {branch.isMerged && (
-                    <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                    <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-700">
                       Merged
                     </span>
                   )}
@@ -168,29 +161,31 @@ export function BranchManager({
 
             {/* Actions */}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="w-4 h-4" />
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {branch.id !== activeBranchId && (
                   <DropdownMenuItem onClick={() => onSwitchBranch(branch.id)}>
-                    <ArrowRightLeft className="w-4 h-4 mr-2" />
+                    <ArrowRightLeft className="mr-2 h-4 w-4" />
                     Switch
                   </DropdownMenuItem>
                 )}
                 {branch.id !== activeBranchId && branch.id !== mainBranch?.id && (
                   <>
-                    <DropdownMenuItem onClick={() => handleCompare(activeBranchId || '', branch.id)}>
-                      <GitMerge className="w-4 h-4 mr-2" />
+                    <DropdownMenuItem
+                      onClick={() => handleCompare(activeBranchId || '', branch.id)}
+                    >
+                      <GitMerge className="mr-2 h-4 w-4" />
                       Compare & Merge
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onDeleteBranch(branch.id)}
                       className="text-red-600"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2 className="mr-2 h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </>
@@ -210,23 +205,25 @@ export function BranchManager({
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-green-50 p-3 rounded">
+                <div className="rounded bg-green-50 p-3">
                   <div className="text-2xl font-bold text-green-600">{comparison.added.length}</div>
                   <div className="text-xs text-green-600">Added</div>
                 </div>
-                <div className="bg-red-50 p-3 rounded">
+                <div className="rounded bg-red-50 p-3">
                   <div className="text-2xl font-bold text-red-600">{comparison.removed.length}</div>
                   <div className="text-xs text-red-600">Removed</div>
                 </div>
-                <div className="bg-yellow-50 p-3 rounded">
-                  <div className="text-2xl font-bold text-yellow-600">{comparison.modified.length}</div>
+                <div className="rounded bg-yellow-50 p-3">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {comparison.modified.length}
+                  </div>
                   <div className="text-xs text-yellow-600">Modified</div>
                 </div>
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="flex-1"
                   onClick={() => {
                     onMergeBranch(comparingBranchId || '', 'theirs')
@@ -235,7 +232,7 @@ export function BranchManager({
                 >
                   Use Theirs
                 </Button>
-                <Button 
+                <Button
                   className="flex-1"
                   onClick={() => {
                     onMergeBranch(comparingBranchId || '', 'manual')

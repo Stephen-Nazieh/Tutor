@@ -6,7 +6,10 @@
 function parseWhitelist(): string[] {
   const raw = process.env.ADMIN_IP_WHITELIST
   if (!raw?.trim()) return []
-  return raw.split(',').map((s) => s.trim()).filter(Boolean)
+  return raw
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
 }
 
 function ipToNum(ip: string): number {
@@ -30,7 +33,7 @@ function matchCidr(ip: string, cidr: string): boolean {
 export function isAdminIpAllowed(clientIp: string): boolean {
   const whitelist = parseWhitelist()
   if (whitelist.length === 0) return true
-  return whitelist.some((entry) => matchCidr(clientIp, entry) || clientIp === entry)
+  return whitelist.some(entry => matchCidr(clientIp, entry) || clientIp === entry)
 }
 
 export function getClientIp(req: Request): string {

@@ -8,7 +8,7 @@ import {
   buildSystemPrompt,
   getSubjectContext,
   findRelevantConcepts,
-  getCommonMistakeHelp
+  getCommonMistakeHelp,
 } from './subjects'
 import { MemoryService } from './memory-service'
 import { StudentContext } from './types/context'
@@ -51,7 +51,7 @@ export async function generateTutorResponse(
   const systemPrompt = buildSystemPrompt(context.subject, {
     teachingAge: context.teachingAge || 15,
     voiceGender: context.voiceGender || 'female',
-    voiceAccent: context.voiceAccent || 'us'
+    voiceAccent: context.voiceAccent || 'us',
   })
 
   // Fetch unified student context
@@ -128,7 +128,7 @@ export async function generateTutorResponse(
   // Generate response
   const result = await generateWithFallback(fullPrompt, {
     temperature: 0.7,
-    maxTokens: 300
+    maxTokens: 300,
   })
 
   // Determine hint type based on content
@@ -141,7 +141,7 @@ export async function generateTutorResponse(
     message: result.content.trim(),
     hintType,
     relevantConcepts,
-    suggestedNextSteps
+    suggestedNextSteps,
   }
 }
 
@@ -163,7 +163,7 @@ export async function generateConceptHint(
   const difficultyPrompts = {
     gentle: 'Give a very gentle nudge in the right direction.',
     medium: 'Provide a helpful hint that guides thinking.',
-    strong: 'Give a more specific hint while still requiring student work.'
+    strong: 'Give a more specific hint while still requiring student work.',
   }
 
   const prompt = `
@@ -179,7 +179,7 @@ export async function generateConceptHint(
 
   const result = await generateWithFallback(prompt, {
     temperature: 0.6,
-    maxTokens: 150
+    maxTokens: 150,
   })
 
   return result.content.trim()
@@ -225,30 +225,42 @@ export async function analyzeStudentWork(
 
   const result = await generateWithFallback(prompt, {
     temperature: 0.5,
-    maxTokens: 250
+    maxTokens: 250,
   })
 
   const lines = result.content.split('\n')
   const hasError = lines.find((l: string) => l.includes('HAS_ERROR:'))?.includes('true') || false
-  const errorType = lines.find((l: string) => l.includes('ERROR_TYPE:'))?.split(':')[1]?.trim()
-  const feedback = lines.find((l: string) => l.includes('FEEDBACK:'))?.split(':').slice(1).join(':').trim() || ''
-  const correctionGuidance = lines.find((l: string) => l.includes('GUIDANCE:'))?.split(':').slice(1).join(':').trim() || ''
+  const errorType = lines
+    .find((l: string) => l.includes('ERROR_TYPE:'))
+    ?.split(':')[1]
+    ?.trim()
+  const feedback =
+    lines
+      .find((l: string) => l.includes('FEEDBACK:'))
+      ?.split(':')
+      .slice(1)
+      .join(':')
+      .trim() || ''
+  const correctionGuidance =
+    lines
+      .find((l: string) => l.includes('GUIDANCE:'))
+      ?.split(':')
+      .slice(1)
+      .join(':')
+      .trim() || ''
 
   return {
     hasError,
     errorType,
     feedback,
-    correctionGuidance
+    correctionGuidance,
   }
 }
 
 /**
  * Generate encouragement message
  */
-export async function generateEncouragement(
-  context: string,
-  subject: string
-): Promise<string> {
+export async function generateEncouragement(context: string, subject: string): Promise<string> {
   const encouragements = [
     "You're making great progress! Keep thinking it through.",
     "That's a good insight. Let's build on that.",
@@ -257,7 +269,7 @@ export async function generateEncouragement(
     "That's an interesting approach. Let's see where it leads.",
     "You're developing strong problem-solving skills!",
     "Don't worry if it takes time - deep understanding comes from persistence.",
-    "You're asking the right questions. Keep exploring!"
+    "You're asking the right questions. Keep exploring!",
   ]
 
   // Could use AI to generate contextual encouragement
@@ -270,7 +282,10 @@ export async function generateEncouragement(
 function classifyHintType(message: string): TutorResponse['hintType'] {
   const lower = message.toLowerCase()
 
-  if (lower.includes('?') && (lower.includes('what') || lower.includes('how') || lower.includes('why'))) {
+  if (
+    lower.includes('?') &&
+    (lower.includes('what') || lower.includes('how') || lower.includes('why'))
+  ) {
     return 'socratic'
   }
   if (lower.includes('try') || lower.includes('consider') || lower.includes('think about')) {
@@ -279,7 +294,7 @@ function classifyHintType(message: string): TutorResponse['hintType'] {
   if (lower.includes('well done') || lower.includes('great') || lower.includes('excellent')) {
     return 'encouragement'
   }
-  if (lower.includes('let me explain') || lower.includes('here\'s how')) {
+  if (lower.includes('let me explain') || lower.includes("here's how")) {
     return 'direct'
   }
 
@@ -292,7 +307,7 @@ function extractNextSteps(message: string): string[] | undefined {
     /try (to |)([^.]+)/i,
     /next, ([^.]+)/i,
     /you could ([^.]+)/i,
-    /consider ([^.]+)/i
+    /consider ([^.]+)/i,
   ]
 
   const steps: string[] = []

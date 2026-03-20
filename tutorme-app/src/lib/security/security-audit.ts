@@ -137,11 +137,10 @@ export function logAccessAttempt(
   resource: string,
   metadata?: SecurityEventMetadata
 ): void {
-  logSecurityEvent(
-    metadata?.success ? 'access_attempt' : 'access_denied',
-    userId,
-    { attemptedResource: resource, ...metadata }
-  )
+  logSecurityEvent(metadata?.success ? 'access_attempt' : 'access_denied', userId, {
+    attemptedResource: resource,
+    ...metadata,
+  })
 }
 
 /**

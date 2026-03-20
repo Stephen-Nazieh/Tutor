@@ -42,7 +42,7 @@ interface FavoriteCourse {
 export default function StudentFavoritesPage() {
   const params = useParams<{ locale?: string }>()
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
-  
+
   const [activeTab, setActiveTab] = useState('tutors')
   const [favoriteTutors, setFavoriteTutors] = useState<FavoriteTutor[]>([])
   const [favoriteCourses, setFavoriteCourses] = useState<FavoriteCourse[]>([])
@@ -115,13 +115,11 @@ export default function StudentFavoritesPage() {
     <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">My Favorites</h1>
-        <p className="text-muted-foreground">
-          Your saved tutors and courses for quick access.
-        </p>
+        <p className="text-muted-foreground">Your saved tutors and courses for quick access.</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="tutors">
             Tutors
             {favoriteTutors.length > 0 && (
@@ -155,9 +153,9 @@ export default function StudentFavoritesPage() {
           ) : favoriteTutors.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No favorite tutors yet</h3>
-                <p className="text-muted-foreground mb-4">
+                <Heart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                <h3 className="mb-2 text-lg font-medium">No favorite tutors yet</h3>
+                <p className="mb-4 text-muted-foreground">
                   Browse tutors and click the heart icon to save them here.
                 </p>
                 <Button asChild>
@@ -167,25 +165,30 @@ export default function StudentFavoritesPage() {
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {favoriteTutors.map((tutor) => (
+              {favoriteTutors.map(tutor => (
                 <Card key={tutor.id} className="relative">
                   <button
                     onClick={() => removeTutor(tutor.id)}
-                    className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted transition-colors"
+                    className="absolute right-3 top-3 rounded-full p-2 transition-colors hover:bg-muted"
                   >
                     <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
                   </button>
                   <CardHeader>
                     <div className="flex items-start gap-3 pr-8">
-                      <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                        {tutor.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-600">
+                        {tutor.name
+                          .split(' ')
+                          .map(n => n[0])
+                          .join('')
+                          .slice(0, 2)
+                          .toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <CardTitle className="text-lg truncate">{tutor.name}</CardTitle>
+                        <CardTitle className="truncate text-lg">{tutor.name}</CardTitle>
                         <CardDescription>@{tutor.username}</CardDescription>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
                       {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
                     </p>
                   </CardHeader>
@@ -194,19 +197,19 @@ export default function StudentFavoritesPage() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span className="font-medium">{tutor.averageRating.toFixed(1)}</span>
-                        <span className="text-muted-foreground text-sm">
+                        <span className="text-sm text-muted-foreground">
                           ({tutor.totalReviewCount} reviews)
                         </span>
                       </div>
                     )}
                     <div className="flex flex-wrap gap-2">
-                      {tutor.specialties.slice(0, 3).map((specialty) => (
+                      {tutor.specialties.slice(0, 3).map(specialty => (
                         <Badge key={specialty} variant="secondary">
                           {specialty}
                         </Badge>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex items-center justify-between border-t pt-2">
                       <span className="text-sm text-muted-foreground">
                         {tutor.courseCount} courses
                       </span>
@@ -239,9 +242,9 @@ export default function StudentFavoritesPage() {
           ) : favoriteCourses.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No favorite courses yet</h3>
-                <p className="text-muted-foreground mb-4">
+                <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                <h3 className="mb-2 text-lg font-medium">No favorite courses yet</h3>
+                <p className="mb-4 text-muted-foreground">
                   Browse courses and click the heart icon to save them here.
                 </p>
                 <Button asChild>
@@ -251,11 +254,11 @@ export default function StudentFavoritesPage() {
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {favoriteCourses.map((course) => (
+              {favoriteCourses.map(course => (
                 <Card key={course.id} className="relative">
                   <button
                     onClick={() => removeCourse(course.id)}
-                    className="absolute top-3 right-3 p-2 rounded-full hover:bg-muted transition-colors"
+                    className="absolute right-3 top-3 rounded-full p-2 transition-colors hover:bg-muted"
                   >
                     <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
                   </button>
@@ -264,7 +267,7 @@ export default function StudentFavoritesPage() {
                       <CardTitle className="text-lg">{course.name}</CardTitle>
                       <CardDescription>{course.subject}</CardDescription>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
                       {course.description || 'No description available.'}
                     </p>
                   </CardHeader>
@@ -279,7 +282,7 @@ export default function StudentFavoritesPage() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span className="font-medium">{course.rating.toFixed(1)}</span>
-                        <span className="text-muted-foreground text-sm">
+                        <span className="text-sm text-muted-foreground">
                           ({course.reviewCount} reviews)
                         </span>
                       </div>
@@ -294,7 +297,7 @@ export default function StudentFavoritesPage() {
                     {course.tutorName && (
                       <p className="text-sm">
                         By{' '}
-                        <Link 
+                        <Link
                           href={course.tutorUsername ? `/${locale}/u/${course.tutorUsername}` : '#'}
                           className="text-indigo-600 hover:text-indigo-800"
                         >
@@ -302,7 +305,7 @@ export default function StudentFavoritesPage() {
                         </Link>
                       </p>
                     )}
-                    <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex items-center justify-between border-t pt-2">
                       {course.price && (
                         <span className="text-lg font-bold">
                           {course.currency === 'USD' ? '$' : course.currency + ' '}

@@ -24,25 +24,25 @@ interface SubjectRetentionRadarProps {
 export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) {
   const maxSubjects = 6
   const displaySubjects = subjects.slice(0, maxSubjects)
-  
+
   // Calculate stats
   const stats = useMemo(() => {
     if (subjects.length === 0) return null
-    
+
     const avgRetention = Math.round(
       subjects.reduce((sum, s) => sum + s.currentRetention, 0) / subjects.length
     )
-    
-    const strongest = subjects.reduce((max, s) => 
+
+    const strongest = subjects.reduce((max, s) =>
       s.currentRetention > max.currentRetention ? s : max
     )
-    
-    const weakest = subjects.reduce((min, s) => 
+
+    const weakest = subjects.reduce((min, s) =>
       s.currentRetention < min.currentRetention ? s : min
     )
-    
+
     const totalReviews = subjects.reduce((sum, s) => sum + s.reviewsCount, 0)
-    
+
     return { avgRetention, strongest, weakest, totalReviews }
   }, [subjects])
 
@@ -65,9 +65,12 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="w-4 h-4 text-green-500" />
-      case 'down': return <TrendingDown className="w-4 h-4 text-red-500" />
-      default: return <Minus className="w-4 h-4 text-gray-400" />
+      case 'up':
+        return <TrendingUp className="h-4 w-4 text-green-500" />
+      case 'down':
+        return <TrendingDown className="h-4 w-4 text-red-500" />
+      default:
+        return <Minus className="h-4 w-4 text-gray-400" />
     }
   }
 
@@ -81,9 +84,9 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
   if (subjects.length === 0) {
     return (
       <Card className="h-full">
-        <CardContent className="flex items-center justify-center h-64 text-center">
+        <CardContent className="flex h-64 items-center justify-center text-center">
           <div>
-            <Target className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+            <Target className="mx-auto mb-2 h-12 w-12 text-gray-300" />
             <p className="text-gray-500">No subject data yet</p>
             <p className="text-sm text-gray-400">Complete some reviews to see your retention</p>
           </div>
@@ -96,8 +99,8 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
     <TooltipProvider>
       <Card className="h-full">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Target className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Target className="h-5 w-5" />
             Subject Retention
           </CardTitle>
           <CardDescription>Compare retention across all subjects</CardDescription>
@@ -106,7 +109,7 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
         <CardContent className="space-y-4">
           {/* Radar Chart SVG */}
           <div className="relative flex justify-center">
-            <svg viewBox="0 0 200 200" className="w-48 h-48">
+            <svg viewBox="0 0 200 200" className="h-48 w-48">
               {/* Background circles */}
               {[25, 50, 75, 100].map(r => (
                 <circle
@@ -117,7 +120,7 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
                   fill="none"
                   stroke="#e5e7eb"
                   strokeWidth="1"
-                  strokeDasharray={r === 100 ? undefined : "4,4"}
+                  strokeDasharray={r === 100 ? undefined : '4,4'}
                 />
               ))}
 
@@ -139,10 +142,10 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
 
               {/* Subject data polygons */}
               {displaySubjects.map((subject, idx) => {
-                const points = displaySubjects.map((s, i) => 
-                  generateRadarPoints(s.currentRetention, i, displaySubjects.length)
-                ).join(' ')
-                
+                const points = displaySubjects
+                  .map((s, i) => generateRadarPoints(s.currentRetention, i, displaySubjects.length))
+                  .join(' ')
+
                 return (
                   <polygon
                     key={subject.subjectId}
@@ -158,9 +161,13 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
 
               {/* Data points */}
               {displaySubjects.map((subject, i) => {
-                const point = generateRadarPoints(subject.currentRetention, i, displaySubjects.length)
+                const point = generateRadarPoints(
+                  subject.currentRetention,
+                  i,
+                  displaySubjects.length
+                )
                 const [x, y] = point.split(',').map(Number)
-                
+
                 return (
                   <Tooltip key={subject.subjectId}>
                     <TooltipTrigger asChild>
@@ -171,7 +178,7 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
                         fill={subject.color}
                         stroke="white"
                         strokeWidth="2"
-                        className="cursor-pointer hover:r-8 transition-all"
+                        className="hover:r-8 cursor-pointer transition-all"
                       />
                     </TooltipTrigger>
                     <TooltipContent>
@@ -190,11 +197,11 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
             <div className="absolute bottom-0 left-0 right-0 flex justify-center">
               <div className="flex items-center gap-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-gray-300" />
+                  <span className="h-2 w-2 rounded-full bg-gray-300" />
                   Center: 0%
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-gray-300" />
+                  <span className="h-2 w-2 rounded-full bg-gray-300" />
                   Edge: 100%
                 </span>
               </div>
@@ -203,10 +210,10 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
 
           {/* Stats Summary */}
           {stats && (
-            <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg">
+            <div className="grid grid-cols-2 gap-3 rounded-lg bg-gray-50 p-3">
               <div>
                 <p className="text-xs text-gray-500">Average</p>
-                <p className={cn("text-xl font-bold", getRetentionColor(stats.avgRetention))}>
+                <p className={cn('text-xl font-bold', getRetentionColor(stats.avgRetention))}>
                   {stats.avgRetention}%
                 </p>
               </div>
@@ -218,24 +225,24 @@ export function SubjectRetentionRadar({ subjects }: SubjectRetentionRadarProps) 
           )}
 
           {/* Subject List */}
-          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+          <div className="max-h-[200px] space-y-2 overflow-y-auto">
             {subjects.map(subject => (
-              <div 
+              <div
                 key={subject.subjectId}
-                className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-gray-50"
               >
                 <div className="flex items-center gap-2">
-                  <span 
-                    className="w-3 h-3 rounded-full"
+                  <span
+                    className="h-3 w-3 rounded-full"
                     style={{ backgroundColor: subject.color }}
                   />
-                  <span className="font-medium text-sm">{subject.subjectName}</span>
+                  <span className="text-sm font-medium">{subject.subjectName}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   {getTrendIcon(subject.trend)}
-                  <Badge 
-                    variant="outline" 
-                    className={cn("text-xs", getRetentionColor(subject.currentRetention))}
+                  <Badge
+                    variant="outline"
+                    className={cn('text-xs', getRetentionColor(subject.currentRetention))}
                   >
                     {subject.currentRetention}%
                   </Badge>

@@ -11,11 +11,7 @@ export function UserNav() {
       <span className="text-sm text-gray-600">
         Welcome, {session?.user?.name || session?.user?.email?.split('@')[0] || 'User'}
       </span>
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={() => signOut({ callbackUrl: '/' })}
-      >
+      <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: '/' })}>
         Logout
       </Button>
     </div>

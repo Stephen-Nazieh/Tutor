@@ -61,7 +61,7 @@ export function CreateClassDialog({
   onOpenChange,
   onClassCreated,
   redirectToClass = true,
-  initialDate
+  initialDate,
 }: CreateClassDialogProps) {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
@@ -81,7 +81,7 @@ export function CreateClassDialog({
     const nextDate = new Date(initialDate)
     nextDate.setHours(9, 0, 0, 0)
     const nextValue = format(nextDate, "yyyy-MM-dd'T'HH:mm")
-    setForm((prev) => {
+    setForm(prev => {
       const currentDatePart = prev.scheduledAt.split('T')[0]
       const nextDatePart = nextValue.split('T')[0]
       if (!prev.scheduledAt || currentDatePart !== nextDatePart) {
@@ -92,10 +92,22 @@ export function CreateClassDialog({
   }, [open, initialDate])
 
   const handleSubmit = async () => {
-    if (!form.title.trim()) { toast.error('Please enter a class title'); return }
-    if (!form.subject) { toast.error('Please select a subject'); return }
-    if (!form.gradeLevel) { toast.error('Please select a grade level'); return }
-    if (!form.scheduledAt) { toast.error('Please select date and time'); return }
+    if (!form.title.trim()) {
+      toast.error('Please enter a class title')
+      return
+    }
+    if (!form.subject) {
+      toast.error('Please select a subject')
+      return
+    }
+    if (!form.gradeLevel) {
+      toast.error('Please select a grade level')
+      return
+    }
+    if (!form.scheduledAt) {
+      toast.error('Please select date and time')
+      return
+    }
 
     setCreating(true)
     setApiError(null)
@@ -152,9 +164,10 @@ export function CreateClassDialog({
         toast.error(message)
       }
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : 'An error occurred. Please check your connection and try again.'
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'An error occurred. Please check your connection and try again.'
       setApiError(message)
       toast.error(message)
     } finally {
@@ -170,14 +183,24 @@ export function CreateClassDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px] border border-slate-200 shadow-2xl bg-white/95 backdrop-blur-md" aria-busy={creating} aria-describedby={apiError ? 'create-class-api-error' : undefined}>
+      <DialogContent
+        className="border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-[500px]"
+        aria-busy={creating}
+        aria-describedby={apiError ? 'create-class-api-error' : undefined}
+      >
         <DialogHeader>
           <DialogTitle>Create New Class</DialogTitle>
-          <DialogDescription>Schedule a new live class session for your students.</DialogDescription>
+          <DialogDescription>
+            Schedule a new live class session for your students.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           {apiError && (
-            <p id="create-class-api-error" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2" role="alert">
+            <p
+              id="create-class-api-error"
+              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+              role="alert"
+            >
               {apiError}
             </p>
           )}
@@ -195,18 +218,33 @@ export function CreateClassDialog({
             <div>
               <Label>Subject *</Label>
               <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
-                <SelectTrigger disabled={creating}><SelectValue placeholder="Select subject" /></SelectTrigger>
+                <SelectTrigger disabled={creating}>
+                  <SelectValue placeholder="Select subject" />
+                </SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  {SUBJECTS.map(s => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label>Grade Level *</Label>
-              <Select value={form.gradeLevel} onValueChange={v => setForm({ ...form, gradeLevel: v })}>
-                <SelectTrigger disabled={creating}><SelectValue placeholder="Select grade" /></SelectTrigger>
+              <Select
+                value={form.gradeLevel}
+                onValueChange={v => setForm({ ...form, gradeLevel: v })}
+              >
+                <SelectTrigger disabled={creating}>
+                  <SelectValue placeholder="Select grade" />
+                </SelectTrigger>
                 <SelectContent>
-                  {GRADE_LEVELS.map(g => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
+                  {GRADE_LEVELS.map(g => (
+                    <SelectItem key={g.value} value={g.value}>
+                      {g.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -232,8 +270,13 @@ export function CreateClassDialog({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Duration (minutes)</Label>
-              <Select value={form.durationMinutes.toString()} onValueChange={v => setForm({ ...form, durationMinutes: parseInt(v) })}>
-                <SelectTrigger disabled={creating}><SelectValue /></SelectTrigger>
+              <Select
+                value={form.durationMinutes.toString()}
+                onValueChange={v => setForm({ ...form, durationMinutes: parseInt(v) })}
+              >
+                <SelectTrigger disabled={creating}>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="30">30 minutes</SelectItem>
                   <SelectItem value="60">1 hour</SelectItem>
@@ -244,8 +287,13 @@ export function CreateClassDialog({
             </div>
             <div>
               <Label>Max Students</Label>
-              <Select value={form.maxStudents.toString()} onValueChange={v => setForm({ ...form, maxStudents: parseInt(v) })}>
-                <SelectTrigger disabled={creating}><SelectValue /></SelectTrigger>
+              <Select
+                value={form.maxStudents.toString()}
+                onValueChange={v => setForm({ ...form, maxStudents: parseInt(v) })}
+              >
+                <SelectTrigger disabled={creating}>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="10">10 students</SelectItem>
                   <SelectItem value="25">25 students</SelectItem>
@@ -257,9 +305,11 @@ export function CreateClassDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={creating}>Cancel</Button>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={creating}>
+            Cancel
+          </Button>
           <Button onClick={handleSubmit} disabled={creating} aria-busy={creating}>
-            {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Class
           </Button>
         </DialogFooter>

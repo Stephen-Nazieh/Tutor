@@ -14,64 +14,76 @@ import { convertToEditable, convertTopicsToEditable } from '@/lib/agents/course-
 
 const TYPES = ['curriculum', 'notes', 'topics'] as const
 
-export const POST = withCsrf(withAuth(async (req, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
+export const POST = withCsrf(
+  withAuth(
+    async (req, session, context) => {
+      const id = await getParamAsync(context?.params, 'id')
+      if (!id) return NextResponse.json({ error: 'Course ID required' }, { status: 400 })
 
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id, languageOfInstruction: curriculum.languageOfInstruction, courseMaterials: curriculum.courseMaterials })
-    .from(curriculum)
-    .where(eq(curriculum.id, id))
-  if (!curriculumRow) throw new NotFoundError('Course not found')
+      const [curriculumRow] = await drizzleDb
+        .select({
+          id: curriculum.id,
+          languageOfInstruction: curriculum.languageOfInstruction,
+          courseMaterials: curriculum.courseMaterials,
+        })
+        .from(curriculum)
+        .where(eq(curriculum.id, id))
+      if (!curriculumRow) throw new NotFoundError('Course not found')
 
-  const body = await req.json().catch(() => ({}))
-  const type = body.type as string
-  const text = typeof body.text === 'string' ? body.text.trim() : ''
+      const body = await req.json().catch(() => ({}))
+      const type = body.type as string
+      const text = typeof body.text === 'string' ? body.text.trim() : ''
 
-  if (!TYPES.includes(type as (typeof TYPES)[number])) {
-    throw new ValidationError('type must be curriculum, notes, or topics')
-  }
-  if (!text || text.length > 50000) {
-    throw new ValidationError('text is required and must be under 50000 characters')
-  }
+      if (!TYPES.includes(type as (typeof TYPES)[number])) {
+        throw new ValidationError('type must be curriculum, notes, or topics')
+      }
+      if (!text || text.length > 50000) {
+        throw new ValidationError('text is required and must be under 50000 characters')
+      }
 
-  const lang = curriculumRow.languageOfInstruction ?? 'en'
-  const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
+      const lang = curriculumRow.languageOfInstruction ?? 'en'
+      const materials = (curriculumRow.courseMaterials as Record<string, unknown>) ?? {}
 
-  let editable = ''
-  if (type === 'topics') {
-    const result = await convertTopicsToEditable({
-      topicsListText: text,
-      language: lang,
-    })
-    editable = result.editable
-    materials.editableTopics = editable
-    materials.topicsText = text
-  } else {
-    const result = await convertToEditable({
-      type: type as 'curriculum' | 'notes',
-      rawText: text,
-      language: lang,
-    })
-    editable = result.editable
-    if (type === 'curriculum') {
-      materials.curriculumText = text
-      materials.editableCurriculum = editable
-    } else {
-      materials.notesText = text
-      materials.editableNotes = editable
-    }
-  }
+      let editable = ''
+      if (type === 'topics') {
+        const result = await convertTopicsToEditable({
+          topicsListText: text,
+          language: lang,
+        })
+        editable = result.editable
+        materials.editableTopics = editable
+        materials.topicsText = text
+      } else {
+        const result = await convertToEditable({
+          type: type as 'curriculum' | 'notes',
+          rawText: text,
+          language: lang,
+        })
+        editable = result.editable
+        if (type === 'curriculum') {
+          materials.curriculumText = text
+          materials.editableCurriculum = editable
+        } else {
+          materials.notesText = text
+          materials.editableNotes = editable
+        }
+      }
 
-  await drizzleDb
-    .update(curriculum)
-    .set({ courseMaterials: materials as object })
-    .where(eq(curriculum.id, id))
+      await drizzleDb
+        .update(curriculum)
+        .set({ courseMaterials: materials as object })
+        .where(eq(curriculum.id, id))
 
-  return NextResponse.json({
-    type,
-    stored: true,
-    editable,
-    message: type === 'topics' ? 'Topics converted to editable format.' : 'Content converted to editable format.',
-  })
-}, { role: 'TUTOR' }))
+      return NextResponse.json({
+        type,
+        stored: true,
+        editable,
+        message:
+          type === 'topics'
+            ? 'Topics converted to editable format.'
+            : 'Content converted to editable format.',
+      })
+    },
+    { role: 'TUTOR' }
+  )
+)

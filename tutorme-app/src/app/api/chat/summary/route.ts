@@ -11,7 +11,6 @@ import { generateSessionSummary, SummaryOptions } from '@/lib/chat/summary'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, sessionParticipant } from '@/lib/db/schema'
 
-
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions, request)
@@ -24,7 +23,7 @@ export async function POST(request: NextRequest) {
       sessionId,
       type = 'session',
       maxLength = 'medium',
-      includeActionItems = true
+      includeActionItems = true,
     }: {
       sessionId: string
       type?: 'session' | 'topic' | 'student' | 'breakout'
@@ -33,10 +32,7 @@ export async function POST(request: NextRequest) {
     } = body
 
     if (!sessionId) {
-      return NextResponse.json(
-        { error: '缺少sessionId参数' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '缺少sessionId参数' }, { status: 400 })
     }
 
     // Verify user has access to this session (tutor or participant)
@@ -64,17 +60,14 @@ export async function POST(request: NextRequest) {
     const hasAccess = sessionRow && (isTutor || isParticipant)
 
     if (!hasAccess && session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: '无权访问该会话' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: '无权访问该会话' }, { status: 403 })
     }
 
     const options: SummaryOptions = {
       type,
       maxLength,
       includeActionItems,
-      language: 'zh'
+      language: 'zh',
     }
 
     const result = await generateSessionSummary(sessionId, options)
@@ -89,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: result.summary
+      data: result.summary,
     })
   } catch (error) {
     console.error('Failed to generate chat summary:', error)

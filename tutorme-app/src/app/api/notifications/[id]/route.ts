@@ -25,10 +25,7 @@ export const DELETE = withAuth(async (_req: NextRequest, session, context) => {
       .limit(1)
 
     if (!existing) {
-      return NextResponse.json(
-        { error: 'Notification not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Notification not found' }, { status: 404 })
     }
 
     await drizzleDb.delete(notification).where(eq(notification.id, id))

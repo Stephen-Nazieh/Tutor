@@ -22,220 +22,206 @@ const CreatePageSchema = z.object({
 })
 
 // GET - List pages
-export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const whiteboardId = await getParamAsync(context?.params, 'id')
-  if (!whiteboardId) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
+export const GET = withAuth(
+  async (req: NextRequest, session, context) => {
+    const whiteboardId = await getParamAsync(context?.params, 'id')
+    if (!whiteboardId) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+    }
+    const userId = session.user.id
 
-  try {
-    const [wb] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(
-        and(
-          eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.ownerId, userId),
-          isNull(whiteboard.deletedAt)
+    try {
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(
+            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
         )
-      )
-      .limit(1)
+        .limit(1)
 
-    if (!wb) {
-      return NextResponse.json(
-        { error: 'Whiteboard not found' },
-        { status: 404 }
-      )
-    }
+      if (!wb) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
 
-    const pages = await drizzleDb
-      .select()
-      .from(whiteboardPage)
-      .where(eq(whiteboardPage.whiteboardId, whiteboardId))
-      .orderBy(asc(whiteboardPage.order))
-
-    return NextResponse.json({ pages })
-  } catch (error) {
-    console.error('Fetch pages error:', error)
-    return handleApiError(error, 'Failed to fetch pages', 'api/whiteboards/[id]/pages/route.ts')
-  }
-}, { role: 'TUTOR' })
-
-// POST - Create page
-export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const whiteboardId = await getParamAsync(context?.params, 'id')
-  if (!whiteboardId) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
-
-  try {
-    const body = await req.json()
-    const validation = CreatePageSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const data = validation.data
-
-    const [wb] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(
-        and(
-          eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.ownerId, userId),
-          isNull(whiteboard.deletedAt)
-        )
-      )
-      .limit(1)
-
-    if (!wb) {
-      return NextResponse.json(
-        { error: 'Whiteboard not found' },
-        { status: 404 }
-      )
-    }
-
-    let order = data.order
-    if (order === undefined) {
-      const [maxRow] = await drizzleDb
-        .select({ order: whiteboardPage.order })
+      const pages = await drizzleDb
+        .select()
         .from(whiteboardPage)
         .where(eq(whiteboardPage.whiteboardId, whiteboardId))
-        .orderBy(desc(whiteboardPage.order))
-        .limit(1)
-      order = (maxRow?.order ?? -1) + 1
+        .orderBy(asc(whiteboardPage.order))
+
+      return NextResponse.json({ pages })
+    } catch (error) {
+      console.error('Fetch pages error:', error)
+      return handleApiError(error, 'Failed to fetch pages', 'api/whiteboards/[id]/pages/route.ts')
     }
+  },
+  { role: 'TUTOR' }
+)
 
-    const inserted = await drizzleDb
-      .insert(whiteboardPage)
-      .values({
-        id: crypto.randomUUID(),
-        whiteboardId,
-        name: data.name,
-        order,
-        backgroundColor: data.backgroundColor ?? null,
-        backgroundStyle: data.backgroundStyle ?? null,
-        backgroundImage: data.backgroundImage ?? null,
-        strokes: [],
-        shapes: [],
-        texts: [],
-        images: [],
-      })
-      .returning()
+// POST - Create page
+export const POST = withAuth(
+  async (req: NextRequest, session, context) => {
+    const whiteboardId = await getParamAsync(context?.params, 'id')
+    if (!whiteboardId) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+    }
+    const userId = session.user.id
 
-    return NextResponse.json({ page: inserted[0] }, { status: 201 })
-  } catch (error) {
-    console.error('Create page error:', error)
-    return handleApiError(error, 'Failed to create page', 'api/whiteboards/[id]/pages/route.ts')
-  }
-}, { role: 'TUTOR' })
+    try {
+      const body = await req.json()
+      const validation = CreatePageSchema.safeParse(body)
+
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
+
+      const data = validation.data
+
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(
+            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
+        )
+        .limit(1)
+
+      if (!wb) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      let order = data.order
+      if (order === undefined) {
+        const [maxRow] = await drizzleDb
+          .select({ order: whiteboardPage.order })
+          .from(whiteboardPage)
+          .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+          .orderBy(desc(whiteboardPage.order))
+          .limit(1)
+        order = (maxRow?.order ?? -1) + 1
+      }
+
+      const inserted = await drizzleDb
+        .insert(whiteboardPage)
+        .values({
+          id: crypto.randomUUID(),
+          whiteboardId,
+          name: data.name,
+          order,
+          backgroundColor: data.backgroundColor ?? null,
+          backgroundStyle: data.backgroundStyle ?? null,
+          backgroundImage: data.backgroundImage ?? null,
+          strokes: [],
+          shapes: [],
+          texts: [],
+          images: [],
+        })
+        .returning()
+
+      return NextResponse.json({ page: inserted[0] }, { status: 201 })
+    } catch (error) {
+      console.error('Create page error:', error)
+      return handleApiError(error, 'Failed to create page', 'api/whiteboards/[id]/pages/route.ts')
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // PUT - Reorder pages
-export const PUT = withAuth(async (req: NextRequest, session, context) => {
-  const whiteboardId = await getParamAsync(context?.params, 'id')
-  if (!whiteboardId) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
-
-  try {
-    const body = await req.json()
-    const { pageOrders } = body as { pageOrders: { id: string; order: number }[] }
-
-    if (!Array.isArray(pageOrders)) {
-      return NextResponse.json(
-        { error: 'pageOrders array is required' },
-        { status: 400 }
-      )
+export const PUT = withAuth(
+  async (req: NextRequest, session, context) => {
+    const whiteboardId = await getParamAsync(context?.params, 'id')
+    if (!whiteboardId) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
     }
-    if (
-      pageOrders.some(
-        (po) =>
-          typeof po?.id !== 'string' ||
-          !po.id ||
-          typeof po.order !== 'number' ||
-          !Number.isFinite(po.order)
-      )
-    ) {
-      return NextResponse.json(
-        { error: 'Each page order entry must include a valid id and numeric order' },
-        { status: 400 }
-      )
-    }
-    const pageIds = pageOrders.map((po) => po.id)
-    const uniquePageIds = new Set(pageIds)
-    if (uniquePageIds.size !== pageIds.length) {
-      return NextResponse.json(
-        { error: 'Duplicate page IDs are not allowed' },
-        { status: 400 }
-      )
-    }
+    const userId = session.user.id
 
-    const [wb] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(
-        and(
-          eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.ownerId, userId),
-          isNull(whiteboard.deletedAt)
-        )
-      )
-      .limit(1)
+    try {
+      const body = await req.json()
+      const { pageOrders } = body as { pageOrders: { id: string; order: number }[] }
 
-    if (!wb) {
-      return NextResponse.json(
-        { error: 'Whiteboard not found' },
-        { status: 404 }
-      )
-    }
-
-    const ownedPages = await drizzleDb
-      .select({ id: whiteboardPage.id })
-      .from(whiteboardPage)
-      .where(
-        and(
-          eq(whiteboardPage.whiteboardId, whiteboardId),
-          inArray(whiteboardPage.id, pageIds)
-        )
-      )
-    if (ownedPages.length !== pageOrders.length) {
-      return NextResponse.json(
-        { error: 'One or more pages do not belong to this whiteboard' },
-        { status: 400 }
-      )
-    }
-
-    await drizzleDb.transaction(async (tx) => {
-      for (const po of pageOrders) {
-        await tx
-          .update(whiteboardPage)
-          .set({ order: po.order })
-          .where(
-            and(
-              eq(whiteboardPage.id, po.id),
-              eq(whiteboardPage.whiteboardId, whiteboardId)
-            )
-          )
+      if (!Array.isArray(pageOrders)) {
+        return NextResponse.json({ error: 'pageOrders array is required' }, { status: 400 })
       }
-    })
+      if (
+        pageOrders.some(
+          po =>
+            typeof po?.id !== 'string' ||
+            !po.id ||
+            typeof po.order !== 'number' ||
+            !Number.isFinite(po.order)
+        )
+      ) {
+        return NextResponse.json(
+          { error: 'Each page order entry must include a valid id and numeric order' },
+          { status: 400 }
+        )
+      }
+      const pageIds = pageOrders.map(po => po.id)
+      const uniquePageIds = new Set(pageIds)
+      if (uniquePageIds.size !== pageIds.length) {
+        return NextResponse.json({ error: 'Duplicate page IDs are not allowed' }, { status: 400 })
+      }
 
-    const pages = await drizzleDb
-      .select()
-      .from(whiteboardPage)
-      .where(eq(whiteboardPage.whiteboardId, whiteboardId))
-      .orderBy(asc(whiteboardPage.order))
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(
+            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
+        )
+        .limit(1)
 
-    return NextResponse.json({ pages })
-  } catch (error) {
-    console.error('Reorder pages error:', error)
-    return handleApiError(error, 'Failed to reorder pages', 'api/whiteboards/[id]/pages/route.ts')
-  }
-}, { role: 'TUTOR' })
+      if (!wb) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      const ownedPages = await drizzleDb
+        .select({ id: whiteboardPage.id })
+        .from(whiteboardPage)
+        .where(
+          and(eq(whiteboardPage.whiteboardId, whiteboardId), inArray(whiteboardPage.id, pageIds))
+        )
+      if (ownedPages.length !== pageOrders.length) {
+        return NextResponse.json(
+          { error: 'One or more pages do not belong to this whiteboard' },
+          { status: 400 }
+        )
+      }
+
+      await drizzleDb.transaction(async tx => {
+        for (const po of pageOrders) {
+          await tx
+            .update(whiteboardPage)
+            .set({ order: po.order })
+            .where(and(eq(whiteboardPage.id, po.id), eq(whiteboardPage.whiteboardId, whiteboardId)))
+        }
+      })
+
+      const pages = await drizzleDb
+        .select()
+        .from(whiteboardPage)
+        .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+        .orderBy(asc(whiteboardPage.order))
+
+      return NextResponse.json({ pages })
+    } catch (error) {
+      console.error('Reorder pages error:', error)
+      return handleApiError(error, 'Failed to reorder pages', 'api/whiteboards/[id]/pages/route.ts')
+    }
+  },
+  { role: 'TUTOR' }
+)

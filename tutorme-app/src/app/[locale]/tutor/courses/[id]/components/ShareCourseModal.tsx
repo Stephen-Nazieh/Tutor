@@ -39,7 +39,7 @@ export function ShareCourseModal({
   const handleShare = async () => {
     const emailList = emails
       .split(/[\n,;]+/)
-      .map((e) => e.trim().toLowerCase())
+      .map(e => e.trim().toLowerCase())
       .filter(Boolean)
     if (emailList.length === 0) {
       toast.error('Enter at least one parent email')
@@ -100,7 +100,7 @@ export function ShareCourseModal({
 
   const emailList = emails
     .split(/[\n,;]+/)
-    .map((e) => e.trim().toLowerCase())
+    .map(e => e.trim().toLowerCase())
     .filter(Boolean)
 
   return (
@@ -112,7 +112,8 @@ export function ShareCourseModal({
             Share with Parents
           </DialogTitle>
           <DialogDescription>
-            Share &quot;{courseName}&quot; with parent accounts by email. They will receive a notification and can view the course outline.
+            Share &quot;{courseName}&quot; with parent accounts by email. They will receive a
+            notification and can view the course outline.
           </DialogDescription>
         </DialogHeader>
 
@@ -123,7 +124,7 @@ export function ShareCourseModal({
               id="emails"
               placeholder="parent1@example.com, parent2@example.com"
               value={emails}
-              onChange={(e) => setEmails(e.target.value)}
+              onChange={e => setEmails(e.target.value)}
               rows={3}
               className="resize-none"
             />
@@ -134,17 +135,17 @@ export function ShareCourseModal({
               id="message"
               placeholder="e.g. I recommend this course for your child. Please review the outline and let me know if you have questions."
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value)}
               rows={2}
               className="resize-none"
             />
           </div>
 
           {results && results.length > 0 && (
-            <div className="rounded-lg border p-3 space-y-2 max-h-32 overflow-y-auto">
+            <div className="max-h-32 space-y-2 overflow-y-auto rounded-lg border p-3">
               <p className="text-sm font-medium">Results</p>
-              {results.map((r) => (
-                <div key={r.email} className="text-xs flex justify-between gap-2">
+              {results.map(r => (
+                <div key={r.email} className="flex justify-between gap-2 text-xs">
                   <span className="truncate">{r.email}</span>
                   <span
                     className={
@@ -174,12 +175,12 @@ export function ShareCourseModal({
           <Button onClick={handleShare} disabled={sharing || !emails.trim() || !message.trim()}>
             {sharing ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Sharing…
               </>
             ) : (
               <>
-                <Share2 className="h-4 w-4 mr-2" />
+                <Share2 className="mr-2 h-4 w-4" />
                 Share
               </>
             )}

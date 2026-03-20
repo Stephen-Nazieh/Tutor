@@ -5,7 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -26,7 +32,7 @@ import {
   Share2,
   Users,
   Lock,
-  Globe
+  Globe,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -59,11 +65,16 @@ function formatFileSize(bytes: number): string {
 
 function getResourceIcon(type: string) {
   switch (type) {
-    case 'document': return <FileText className="h-8 w-8 text-blue-500" />
-    case 'image': return <Image className="h-8 w-8 text-green-500" />
-    case 'spreadsheet': return <FileSpreadsheet className="h-8 w-8 text-orange-500" />
-    case 'video': return <Video className="h-8 w-8 text-red-500" />
-    default: return <File className="h-8 w-8 text-gray-500" />
+    case 'document':
+      return <FileText className="h-8 w-8 text-blue-500" />
+    case 'image':
+      return <Image className="h-8 w-8 text-green-500" />
+    case 'spreadsheet':
+      return <FileSpreadsheet className="h-8 w-8 text-orange-500" />
+    case 'video':
+      return <Video className="h-8 w-8 text-red-500" />
+    default:
+      return <File className="h-8 w-8 text-gray-500" />
   }
 }
 
@@ -187,7 +198,10 @@ export default function TutorResourcesPage() {
           mimeType: selectedFile.type,
           url: finalUrl,
           key,
-          tags: uploadForm.tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: uploadForm.tags
+            .split(',')
+            .map(t => t.trim())
+            .filter(Boolean),
           isPublic: uploadForm.isPublic,
         }),
       })
@@ -212,7 +226,9 @@ export default function TutorResourcesPage() {
 
   const handleDownload = async (resource: Resource) => {
     try {
-      const res = await fetch(`/api/tutor/resources/${resource.id}/download`, { credentials: 'include' })
+      const res = await fetch(`/api/tutor/resources/${resource.id}/download`, {
+        credentials: 'include',
+      })
       if (!res.ok) throw new Error()
       const { downloadUrl } = await res.json()
       const link = document.createElement('a')
@@ -281,19 +297,17 @@ export default function TutorResourcesPage() {
   const filteredResources = resources
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
             <FolderOpen className="h-6 w-6" />
             Resources
           </h1>
-          <p className="text-gray-600 mt-1">
-            Manage your teaching materials and documents
-          </p>
+          <p className="mt-1 text-gray-600">Manage your teaching materials and documents</p>
         </div>
         <Button onClick={() => setUploadDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Upload Resource
         </Button>
       </div>
@@ -301,11 +315,11 @@ export default function TutorResourcesPage() {
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Search resources..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -313,13 +327,13 @@ export default function TutorResourcesPage() {
       </Card>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[1, 2, 3, 4].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-8 w-8 bg-gray-200 rounded mb-3" />
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div className="mb-3 h-8 w-8 rounded bg-gray-200" />
+                <div className="mb-2 h-4 w-3/4 rounded bg-gray-200" />
+                <div className="h-3 w-1/2 rounded bg-gray-200" />
               </CardContent>
             </Card>
           ))}
@@ -327,25 +341,25 @@ export default function TutorResourcesPage() {
       ) : filteredResources.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-700 mb-2">
+            <FolderOpen className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <h3 className="mb-2 text-lg font-medium text-gray-700">
               {searchQuery ? 'No resources found' : 'No resources yet'}
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="mb-4 text-gray-500">
               {searchQuery
                 ? 'Try adjusting your search'
                 : 'Upload your first teaching resource to get started'}
             </p>
             <Button onClick={() => setUploadDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Upload Resource
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredResources.map((resource) => (
-            <Card key={resource.id} className="hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredResources.map(resource => (
+            <Card key={resource.id} className="transition-shadow hover:shadow-md">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   {getResourceIcon(resource.type)}
@@ -357,35 +371,31 @@ export default function TutorResourcesPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleDownload(resource)}>
-                        <Download className="h-4 w-4 mr-2" />
+                        <Download className="mr-2 h-4 w-4" />
                         Download
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleShare(resource)}>
-                        <Share2 className="h-4 w-4 mr-2" />
+                        <Share2 className="mr-2 h-4 w-4" />
                         Share with Students
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
                         onClick={() => handleDelete(resource.id)}
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <h3 className="font-medium mt-3 truncate" title={resource.name}>
+                <h3 className="mt-3 truncate font-medium" title={resource.name}>
                   {resource.name}
                 </h3>
                 {resource.description && (
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                    {resource.description}
-                  </p>
+                  <p className="mt-1 line-clamp-2 text-sm text-gray-500">{resource.description}</p>
                 )}
-                <div className="flex items-center justify-between mt-3">
-                  <p className="text-sm text-gray-500">
-                    {formatFileSize(resource.size)}
-                  </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm text-gray-500">{formatFileSize(resource.size)}</p>
                   {resource.tags.length > 0 && (
                     <div className="flex gap-1">
                       {resource.tags.slice(0, 2).map((tag, i) => (
@@ -406,12 +416,12 @@ export default function TutorResourcesPage() {
           ))}
 
           <Card
-            className="border-dashed hover:shadow-md transition-shadow cursor-pointer"
+            className="cursor-pointer border-dashed transition-shadow hover:shadow-md"
             onClick={() => setUploadDialogOpen(true)}
           >
-            <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[160px]">
-              <Plus className="h-10 w-10 text-gray-400 mb-2" />
-              <p className="text-gray-500 font-medium">Upload New</p>
+            <CardContent className="flex h-full min-h-[160px] flex-col items-center justify-center p-4">
+              <Plus className="mb-2 h-10 w-10 text-gray-400" />
+              <p className="font-medium text-gray-500">Upload New</p>
             </CardContent>
           </Card>
         </div>
@@ -435,8 +445,11 @@ export default function TutorResourcesPage() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShareMode('all')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${shareMode === 'all' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
-                  }`}
+                className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                  shareMode === 'all'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:bg-gray-50'
+                }`}
               >
                 <Users className="h-6 w-6 text-blue-600" />
                 <span className="text-sm font-medium">All My Students</span>
@@ -444,8 +457,11 @@ export default function TutorResourcesPage() {
               </button>
               <button
                 onClick={() => setShareMode('specific')}
-                className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${shareMode === 'specific' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
-                  }`}
+                className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors ${
+                  shareMode === 'specific'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:bg-gray-50'
+                }`}
               >
                 <Lock className="h-6 w-6 text-purple-600" />
                 <span className="text-sm font-medium">Specific Students</span>
@@ -459,7 +475,7 @@ export default function TutorResourcesPage() {
               <Textarea
                 id="shareMsg"
                 value={shareMessage}
-                onChange={(e) => setShareMessage(e.target.value)}
+                onChange={e => setShareMessage(e.target.value)}
                 placeholder="Add a note for students..."
                 rows={2}
               />
@@ -467,9 +483,15 @@ export default function TutorResourcesPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShareDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={submitShare} disabled={sharing} className="gap-2">
-              {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
+              {sharing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Globe className="h-4 w-4" />
+              )}
               {sharing ? 'Sharing...' : 'Share'}
             </Button>
           </div>
@@ -498,14 +520,14 @@ export default function TutorResourcesPage() {
               />
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                className="cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors hover:bg-gray-50"
               >
                 {selectedFile ? (
                   <div className="flex items-center justify-center gap-2">
                     <FileText className="h-5 w-5 text-blue-500" />
                     <span className="font-medium">{selectedFile.name}</span>
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         setSelectedFile(null)
                       }}
@@ -516,9 +538,9 @@ export default function TutorResourcesPage() {
                   </div>
                 ) : (
                   <>
-                    <Plus className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <Plus className="mx-auto mb-2 h-8 w-8 text-gray-400" />
                     <p className="text-sm text-gray-500">Click to select a file</p>
-                    <p className="text-xs text-gray-400 mt-1">Max size: 100MB</p>
+                    <p className="mt-1 text-xs text-gray-400">Max size: 100MB</p>
                   </>
                 )}
               </div>
@@ -530,7 +552,7 @@ export default function TutorResourcesPage() {
               <Input
                 id="name"
                 value={uploadForm.name}
-                onChange={(e) => setUploadForm(prev => ({ ...prev, name: e.target.value }))}
+                onChange={e => setUploadForm(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Resource name"
               />
             </div>
@@ -541,7 +563,7 @@ export default function TutorResourcesPage() {
               <Textarea
                 id="description"
                 value={uploadForm.description}
-                onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={e => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description of the resource"
                 rows={2}
               />
@@ -550,13 +572,13 @@ export default function TutorResourcesPage() {
             {/* Tags */}
             <div className="space-y-2">
               <Label htmlFor="tags">
-                <Tag className="h-4 w-4 inline mr-1" />
+                <Tag className="mr-1 inline h-4 w-4" />
                 Tags (comma separated)
               </Label>
               <Input
                 id="tags"
                 value={uploadForm.tags}
-                onChange={(e) => setUploadForm(prev => ({ ...prev, tags: e.target.value }))}
+                onChange={e => setUploadForm(prev => ({ ...prev, tags: e.target.value }))}
                 placeholder="math, worksheet, grade-5"
               />
             </div>
@@ -567,10 +589,10 @@ export default function TutorResourcesPage() {
                 type="checkbox"
                 id="isPublic"
                 checked={uploadForm.isPublic}
-                onChange={(e) => setUploadForm(prev => ({ ...prev, isPublic: e.target.checked }))}
+                onChange={e => setUploadForm(prev => ({ ...prev, isPublic: e.target.checked }))}
                 className="rounded border-gray-300"
               />
-              <Label htmlFor="isPublic" className="text-sm cursor-pointer">
+              <Label htmlFor="isPublic" className="cursor-pointer text-sm">
                 Make this resource public to students
               </Label>
             </div>
@@ -580,18 +602,15 @@ export default function TutorResourcesPage() {
             <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleUpload}
-              disabled={!selectedFile || uploading}
-            >
+            <Button onClick={handleUpload} disabled={!selectedFile || uploading}>
               {uploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Uploading...
                 </>
               ) : (
                 <>
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Upload
                 </>
               )}

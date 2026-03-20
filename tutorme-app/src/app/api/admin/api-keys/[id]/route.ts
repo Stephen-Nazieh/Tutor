@@ -11,7 +11,9 @@ import { Permissions } from '@/lib/admin/permissions'
 
 export async function DELETE(
   req: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   const { response } = await requireAdmin(req, Permissions.API_KEYS_MANAGE)
   if (response) return response

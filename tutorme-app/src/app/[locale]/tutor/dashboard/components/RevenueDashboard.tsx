@@ -7,10 +7,23 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import {
@@ -30,7 +43,7 @@ import {
   Eye,
   ChevronRight,
   Mail,
-  Send
+  Send,
 } from 'lucide-react'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
@@ -68,21 +81,110 @@ interface TimeSlotPopularity {
 
 // Demo data
 const generateDemoEarnings = (): EarningRecord[] => [
-  { id: '1', date: '2026-02-15', description: 'Advanced Mathematics Class', amount: 150, type: 'class', status: 'completed', studentName: 'Alice Zhang' },
-  { id: '2', date: '2026-02-14', description: 'Physics 101 Course Sale', amount: 299, type: 'course', status: 'completed' },
-  { id: '3', date: '2026-02-13', description: 'English Literature Class', amount: 120, type: 'class', status: 'completed', studentName: 'Bob Li' },
-  { id: '4', date: '2026-02-12', description: 'Refund - Cancelled Class', amount: -150, type: 'refund', status: 'completed', studentName: 'Carol Wang' },
-  { id: '5', date: '2026-02-10', description: 'Monthly Payout', amount: -1200, type: 'payout', status: 'completed' },
-  { id: '6', date: '2026-02-09', description: 'Chemistry Tutoring', amount: 180, type: 'class', status: 'completed', studentName: 'David Chen' },
-  { id: '7', date: '2026-02-08', description: 'Math Course Bundle', amount: 499, type: 'course', status: 'completed' },
-  { id: '8', date: '2026-02-07', description: 'Private Session', amount: 200, type: 'class', status: 'pending', studentName: 'Emma Liu' },
+  {
+    id: '1',
+    date: '2026-02-15',
+    description: 'Advanced Mathematics Class',
+    amount: 150,
+    type: 'class',
+    status: 'completed',
+    studentName: 'Alice Zhang',
+  },
+  {
+    id: '2',
+    date: '2026-02-14',
+    description: 'Physics 101 Course Sale',
+    amount: 299,
+    type: 'course',
+    status: 'completed',
+  },
+  {
+    id: '3',
+    date: '2026-02-13',
+    description: 'English Literature Class',
+    amount: 120,
+    type: 'class',
+    status: 'completed',
+    studentName: 'Bob Li',
+  },
+  {
+    id: '4',
+    date: '2026-02-12',
+    description: 'Refund - Cancelled Class',
+    amount: -150,
+    type: 'refund',
+    status: 'completed',
+    studentName: 'Carol Wang',
+  },
+  {
+    id: '5',
+    date: '2026-02-10',
+    description: 'Monthly Payout',
+    amount: -1200,
+    type: 'payout',
+    status: 'completed',
+  },
+  {
+    id: '6',
+    date: '2026-02-09',
+    description: 'Chemistry Tutoring',
+    amount: 180,
+    type: 'class',
+    status: 'completed',
+    studentName: 'David Chen',
+  },
+  {
+    id: '7',
+    date: '2026-02-08',
+    description: 'Math Course Bundle',
+    amount: 499,
+    type: 'course',
+    status: 'completed',
+  },
+  {
+    id: '8',
+    date: '2026-02-07',
+    description: 'Private Session',
+    amount: 200,
+    type: 'class',
+    status: 'pending',
+    studentName: 'Emma Liu',
+  },
 ]
 
 const generateDemoCoursePerformance = (): CoursePerformance[] => [
-  { id: '1', name: 'Advanced Mathematics', enrollments: 45, revenue: 13455, conversionRate: 12.5, rating: 4.8 },
-  { id: '2', name: 'Physics 101', enrollments: 32, revenue: 9568, conversionRate: 8.3, rating: 4.6 },
-  { id: '3', name: 'English Literature', enrollments: 28, revenue: 5544, conversionRate: 6.7, rating: 4.9 },
-  { id: '4', name: 'Chemistry Basics', enrollments: 18, revenue: 5382, conversionRate: 5.2, rating: 4.4 },
+  {
+    id: '1',
+    name: 'Advanced Mathematics',
+    enrollments: 45,
+    revenue: 13455,
+    conversionRate: 12.5,
+    rating: 4.8,
+  },
+  {
+    id: '2',
+    name: 'Physics 101',
+    enrollments: 32,
+    revenue: 9568,
+    conversionRate: 8.3,
+    rating: 4.6,
+  },
+  {
+    id: '3',
+    name: 'English Literature',
+    enrollments: 28,
+    revenue: 5544,
+    conversionRate: 6.7,
+    rating: 4.9,
+  },
+  {
+    id: '4',
+    name: 'Chemistry Basics',
+    enrollments: 18,
+    revenue: 5382,
+    conversionRate: 5.2,
+    rating: 4.4,
+  },
 ]
 
 const generateDemoTimeSlots = (): TimeSlotPopularity[] => [
@@ -109,18 +211,19 @@ function EmailStatementDialog({
   emailAddress,
   setEmailAddress,
   sendingEmail,
-  onSend
+  onSend,
 }: EmailStatementDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5" />
+            <Mail className="h-5 w-5" />
             Email Statement
           </DialogTitle>
           <DialogDescription>
-            Send your revenue statement to any email address. The statement will include all transactions for the current period.
+            Send your revenue statement to any email address. The statement will include all
+            transactions for the current period.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -131,11 +234,11 @@ function EmailStatementDialog({
               type="email"
               placeholder="Enter email address..."
               value={emailAddress}
-              onChange={(e) => setEmailAddress(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onSend()}
+              onChange={e => setEmailAddress(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && onSend()}
             />
           </div>
-          <div className="p-3 bg-gray-50 rounded-lg text-sm">
+          <div className="rounded-lg bg-gray-50 p-3 text-sm">
             <p className="font-medium text-gray-700">Statement will include:</p>
             <ul className="mt-2 space-y-1 text-gray-600">
               <li>• Transaction history</li>
@@ -156,12 +259,12 @@ function EmailStatementDialog({
           >
             {sendingEmail ? (
               <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 Sending...
               </>
             ) : (
               <>
-                <Send className="w-4 h-4 mr-2" />
+                <Send className="mr-2 h-4 w-4" />
                 Send Statement
               </>
             )}
@@ -176,7 +279,7 @@ export function RevenueDashboard({
   compact = false,
   defaultTab = 'overview',
   externalEmailDialogOpen,
-  onExternalEmailDialogChange
+  onExternalEmailDialogChange,
 }: RevenueDashboardProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState(defaultTab)
@@ -189,7 +292,7 @@ export function RevenueDashboard({
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
@@ -204,7 +307,8 @@ export function RevenueDashboard({
   }, [themeId])
 
   // Use external dialog state if provided, otherwise use internal
-  const showEmailDialog = externalEmailDialogOpen !== undefined ? externalEmailDialogOpen : internalShowEmailDialog
+  const showEmailDialog =
+    externalEmailDialogOpen !== undefined ? externalEmailDialogOpen : internalShowEmailDialog
   const setShowEmailDialog = (open: boolean) => {
     if (onExternalEmailDialogChange) {
       onExternalEmailDialogChange(open)
@@ -221,9 +325,9 @@ export function RevenueDashboard({
     .filter(e => e.status === 'pending')
     .reduce((sum, e) => sum + e.amount, 0)
 
-  const availableBalance = totalRevenue - earnings
-    .filter(e => e.type === 'payout')
-    .reduce((sum, e) => sum + Math.abs(e.amount), 0)
+  const availableBalance =
+    totalRevenue -
+    earnings.filter(e => e.type === 'payout').reduce((sum, e) => sum + Math.abs(e.amount), 0)
 
   const thisMonthRevenue = earnings
     .filter(e => e.date.startsWith('2026-02') && e.type !== 'payout' && e.type !== 'refund')
@@ -245,20 +349,41 @@ export function RevenueDashboard({
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return <Badge variant="default" className="bg-green-600">Completed</Badge>
-      case 'pending': return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>
-      case 'processing': return <Badge variant="outline" className="text-blue-600 border-blue-600">Processing</Badge>
-      default: return <Badge variant="secondary">{status}</Badge>
+      case 'completed':
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Completed
+          </Badge>
+        )
+      case 'pending':
+        return (
+          <Badge variant="outline" className="border-yellow-600 text-yellow-600">
+            Pending
+          </Badge>
+        )
+      case 'processing':
+        return (
+          <Badge variant="outline" className="border-blue-600 text-blue-600">
+            Processing
+          </Badge>
+        )
+      default:
+        return <Badge variant="secondary">{status}</Badge>
     }
   }
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'class': return <Calendar className="w-4 h-4 text-blue-500" />
-      case 'course': return <BarChart3 className="w-4 h-4 text-purple-500" />
-      case 'refund': return <ArrowDownRight className="w-4 h-4 text-red-500" />
-      case 'payout': return <Wallet className="w-4 h-4 text-orange-500" />
-      default: return <DollarSign className="w-4 h-4 text-gray-500" />
+      case 'class':
+        return <Calendar className="h-4 w-4 text-blue-500" />
+      case 'course':
+        return <BarChart3 className="h-4 w-4 text-purple-500" />
+      case 'refund':
+        return <ArrowDownRight className="h-4 w-4 text-red-500" />
+      case 'payout':
+        return <Wallet className="h-4 w-4 text-orange-500" />
+      default:
+        return <DollarSign className="h-4 w-4 text-gray-500" />
     }
   }
 
@@ -283,12 +408,12 @@ export function RevenueDashboard({
           <CardHeader className="pb-3 text-foreground">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-green-500" />
+                <DollarSign className="h-5 w-5 text-green-500" />
                 <CardTitle className="text-base text-foreground">Revenue</CardTitle>
               </div>
               <Button variant="ghost" size="sm" onClick={() => router.push('/tutor/revenue')}>
                 View All
-                <ChevronRight className="w-4 h-4 ml-1" />
+                <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             </div>
           </CardHeader>
@@ -296,12 +421,14 @@ export function RevenueDashboard({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(availableBalance)}</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {formatCurrency(availableBalance)}
+                  </p>
                   <p className="text-xs text-muted-foreground">Available Balance</p>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center gap-1 text-green-600">
-                    <TrendingUp className="w-4 h-4" />
+                    <TrendingUp className="h-4 w-4" />
                     <span className="text-sm font-medium">+{revenueChange.toFixed(1)}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground">vs last month</p>
@@ -309,33 +436,39 @@ export function RevenueDashboard({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-muted rounded-lg border border-border">
+                <div className="rounded-lg border border-border bg-muted p-3">
                   <p className="text-lg font-bold text-foreground">{totalBookings}</p>
                   <p className="text-xs text-muted-foreground">Bookings</p>
                 </div>
-                <div className="p-3 bg-muted rounded-lg border border-border">
-                  <p className="text-lg font-bold text-foreground">{formatCurrency(avgBookingValue)}</p>
+                <div className="rounded-lg border border-border bg-muted p-3">
+                  <p className="text-lg font-bold text-foreground">
+                    {formatCurrency(avgBookingValue)}
+                  </p>
                   <p className="text-xs text-muted-foreground">Avg Value</p>
                 </div>
               </div>
 
               {pendingAmount > 0 && (
-                <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
                   <p className="text-sm text-yellow-800">
-                    <Clock className="w-4 h-4 inline mr-1" />
+                    <Clock className="mr-1 inline h-4 w-4" />
                     {formatCurrency(pendingAmount)} pending clearance
                   </p>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Button className="w-full" variant="outline" onClick={() => router.push('/tutor/revenue')}>
-                  <TrendingUp className="w-4 h-4 mr-2" />
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => router.push('/tutor/revenue')}
+                >
+                  <TrendingUp className="mr-2 h-4 w-4" />
                   Revenue & Analytics
                 </Button>
                 <div className="grid grid-cols-2 gap-2">
                   <Button className="w-full" variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-1" />
+                    <Download className="mr-1 h-4 w-4" />
                     Download
                   </Button>
                   <Button
@@ -344,7 +477,7 @@ export function RevenueDashboard({
                     size="sm"
                     onClick={() => setShowEmailDialog(true)}
                   >
-                    <Mail className="w-4 h-4 mr-1" />
+                    <Mail className="mr-1 h-4 w-4" />
                     Email
                   </Button>
                 </div>
@@ -366,328 +499,388 @@ export function RevenueDashboard({
 
   return (
     <>
-      <Card className="h-full flex flex-col border border-border bg-card" style={themeStyle}>
+      <Card className="flex h-full flex-col border border-border bg-card" style={themeStyle}>
         <CardHeader className="pb-3 text-foreground">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-500" />
-              <CardTitle className="text-base font-bold text-foreground">Revenue & Business</CardTitle>
+              <DollarSign className="h-5 w-5 text-green-500" />
+              <CardTitle className="text-base font-bold text-foreground">
+                Revenue & Business
+              </CardTitle>
             </div>
-              <div className="flex items-center gap-1">
-                {/* Theme Selector */}
-                <Select value={themeId} onValueChange={setThemeId}>
-                  <SelectTrigger className="h-8 w-[140px] border-border bg-background text-foreground text-xs">
-                    <SelectValue placeholder="Theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DASHBOARD_THEMES.map((theme) => (
-                      <SelectItem key={theme.id} value={theme.id}>
-                        {theme.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="sm" onClick={() => setShowEmailDialog(true)}>
-                  <Mail className="w-4 h-4 mr-1" />
-                  Email
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Download className="w-4 h-4 mr-1" />
-                  Export
-                </Button>
+            <div className="flex items-center gap-1">
+              {/* Theme Selector */}
+              <Select value={themeId} onValueChange={setThemeId}>
+                <SelectTrigger className="h-8 w-[140px] border-border bg-background text-xs text-foreground">
+                  <SelectValue placeholder="Theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DASHBOARD_THEMES.map(theme => (
+                    <SelectItem key={theme.id} value={theme.id}>
+                      {theme.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="sm" onClick={() => setShowEmailDialog(true)}>
+                <Mail className="mr-1 h-4 w-4" />
+                Email
+              </Button>
+              <Button variant="ghost" size="sm">
+                <Download className="mr-1 h-4 w-4" />
+                Export
+              </Button>
+            </div>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-border bg-green-50 p-3">
+              <p className="mb-1 text-xs text-green-600">Available Balance</p>
+              <p className="text-xl font-bold text-green-800">{formatCurrency(availableBalance)}</p>
+            </div>
+            <div className="rounded-xl border border-border bg-blue-50 p-3">
+              <p className="mb-1 text-xs text-blue-600">This Month</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xl font-bold text-blue-800">
+                  {formatCurrency(thisMonthRevenue)}
+                </p>
+                <Badge variant={revenueChange >= 0 ? 'default' : 'destructive'} className="text-xs">
+                  {revenueChange >= 0 ? '+' : ''}
+                  {revenueChange.toFixed(0)}%
+                </Badge>
               </div>
             </div>
+          </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="p-3 bg-green-50 rounded-xl border border-border">
-                <p className="text-xs text-green-600 mb-1">Available Balance</p>
-                <p className="text-xl font-bold text-green-800">{formatCurrency(availableBalance)}</p>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-xl border border-border">
-                <p className="text-xs text-blue-600 mb-1">This Month</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-bold text-blue-800">{formatCurrency(thisMonthRevenue)}</p>
-                  <Badge variant={revenueChange >= 0 ? 'default' : 'destructive'} className="text-xs">
-                    {revenueChange >= 0 ? '+' : ''}{revenueChange.toFixed(0)}%
-                  </Badge>
-                </div>
-              </div>
-            </div>
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab as any} className="mt-4">
+            <TabsList className="grid w-full grid-cols-4 bg-muted">
+              <TabsTrigger value="overview" className="text-xs">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="earnings" className="text-xs">
+                Earnings
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="text-xs">
+                Courses
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="text-xs">
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </CardHeader>
 
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab as any} className="mt-4">
-              <TabsList className="grid w-full grid-cols-4 bg-muted">
-                <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-                <TabsTrigger value="earnings" className="text-xs">Earnings</TabsTrigger>
-                <TabsTrigger value="courses" className="text-xs">Courses</TabsTrigger>
-                <TabsTrigger value="analytics" className="text-xs">Analytics</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </CardHeader>
-
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-[calc(100%-180px)]">
-              <div className="px-4 pb-4">
-                {activeTab === 'overview' && (
-                  <div className="space-y-4">
-                    {/* Key Metrics */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 bg-card rounded-lg text-center border border-border">
-                        <p className="text-lg font-bold text-foreground">{totalBookings}</p>
-                        <p className="text-xs text-muted-foreground">Total Bookings</p>
-                      </div>
-                      <div className="p-3 bg-card rounded-lg text-center border border-border">
-                        <p className="text-lg font-bold text-foreground">{formatCurrency(avgBookingValue)}</p>
-                        <p className="text-xs text-muted-foreground">Avg Booking Value</p>
-                      </div>
-                      <div className="p-3 bg-card rounded-lg text-center border border-border">
-                        <p className="text-lg font-bold text-foreground">{courses.length}</p>
-                        <p className="text-xs text-muted-foreground">Active Courses</p>
-                      </div>
-                      <div className="p-3 bg-card rounded-lg text-center border border-border">
-                        <p className="text-lg font-bold text-foreground">4.7</p>
-                        <p className="text-xs text-muted-foreground">Avg Rating</p>
-                      </div>
+        <CardContent className="flex-1 p-0">
+          <ScrollArea className="h-[calc(100%-180px)]">
+            <div className="px-4 pb-4">
+              {activeTab === 'overview' && (
+                <div className="space-y-4">
+                  {/* Key Metrics */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-border bg-card p-3 text-center">
+                      <p className="text-lg font-bold text-foreground">{totalBookings}</p>
+                      <p className="text-xs text-muted-foreground">Total Bookings</p>
                     </div>
-
-                    {/* Recent Earnings */}
-                    <div>
-                      <h3 className="text-sm font-medium mb-2 text-foreground">Recent Transactions</h3>
-                      <div className="space-y-2">
-                        {earnings.slice(0, 5).map((earning) => (
-                          <div key={earning.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                            <div className="flex items-center gap-2">
-                              {getTypeIcon(earning.type)}
-                              <div>
-                                <p className="text-sm font-medium text-foreground">{earning.description}</p>
-                                <p className="text-xs text-muted-foreground">{formatDate(earning.date)}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className={cn(
-                                "text-sm font-medium",
-                                earning.amount < 0 ? "text-red-600" : "text-green-600"
-                              )}>
-                                {earning.amount < 0 ? '' : '+'}{formatCurrency(earning.amount)}
-                              </p>
-                              {getStatusBadge(earning.status)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="rounded-lg border border-border bg-card p-3 text-center">
+                      <p className="text-lg font-bold text-foreground">
+                        {formatCurrency(avgBookingValue)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Avg Booking Value</p>
                     </div>
-
-                    {/* Payout Button */}
-                    {availableBalance > 0 && (
-                      <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600">
-                        <Wallet className="w-4 h-4 mr-2" />
-                        Request Payout ({formatCurrency(availableBalance)})
-                      </Button>
-                    )}
+                    <div className="rounded-lg border border-border bg-card p-3 text-center">
+                      <p className="text-lg font-bold text-foreground">{courses.length}</p>
+                      <p className="text-xs text-muted-foreground">Active Courses</p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-card p-3 text-center">
+                      <p className="text-lg font-bold text-foreground">4.7</p>
+                      <p className="text-xs text-muted-foreground">Avg Rating</p>
+                    </div>
                   </div>
-                )}
 
-                {activeTab === 'earnings' && (
-                  <div className="space-y-3">
-                    {earnings.map((earning) => (
-                      <div key={earning.id} className="p-3 border border-border rounded-lg bg-card">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                              {getTypeIcon(earning.type)}
-                            </div>
+                  {/* Recent Earnings */}
+                  <div>
+                    <h3 className="mb-2 text-sm font-medium text-foreground">
+                      Recent Transactions
+                    </h3>
+                    <div className="space-y-2">
+                      {earnings.slice(0, 5).map(earning => (
+                        <div
+                          key={earning.id}
+                          className="flex items-center justify-between rounded bg-muted p-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            {getTypeIcon(earning.type)}
                             <div>
-                              <p className="font-medium text-sm text-foreground">{earning.description}</p>
-                              {earning.studentName && (
-                                <p className="text-xs text-muted-foreground">Student: {earning.studentName}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground">{earning.date}</p>
+                              <p className="text-sm font-medium text-foreground">
+                                {earning.description}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(earning.date)}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className={cn(
-                              "font-bold",
-                              earning.amount < 0 ? "text-red-600" : "text-green-600"
-                            )}>
-                              {earning.amount < 0 ? '' : '+'}{formatCurrency(earning.amount)}
+                            <p
+                              className={cn(
+                                'text-sm font-medium',
+                                earning.amount < 0 ? 'text-red-600' : 'text-green-600'
+                              )}
+                            >
+                              {earning.amount < 0 ? '' : '+'}
+                              {formatCurrency(earning.amount)}
                             </p>
                             {getStatusBadge(earning.status)}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                )}
 
-                {activeTab === 'courses' && (
-                  <div className="space-y-3">
-                    {courses.map((course) => (
-                      <div key={course.id} className="p-3 border border-border rounded-lg bg-card">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium text-sm text-foreground">{course.name}</h4>
-                          <Badge variant="outline" className="text-xs">
-                            ⭐ {course.rating}
-                          </Badge>
+                  {/* Payout Button */}
+                  {availableBalance > 0 && (
+                    <Button className="w-full bg-gradient-to-r from-green-600 to-emerald-600">
+                      <Wallet className="mr-2 h-4 w-4" />
+                      Request Payout ({formatCurrency(availableBalance)})
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'earnings' && (
+                <div className="space-y-3">
+                  {earnings.map(earning => (
+                    <div key={earning.id} className="rounded-lg border border-border bg-card p-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                            {getTypeIcon(earning.type)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {earning.description}
+                            </p>
+                            {earning.studentName && (
+                              <p className="text-xs text-muted-foreground">
+                                Student: {earning.studentName}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground">{earning.date}</p>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="p-2 bg-muted rounded">
-                            <p className="text-lg font-bold text-foreground">{course.enrollments}</p>
-                            <p className="text-xs text-muted-foreground">Students</p>
-                          </div>
-                          <div className="p-2 bg-muted rounded">
-                            <p className="text-lg font-bold text-foreground">{formatCurrency(course.revenue)}</p>
-                            <p className="text-xs text-muted-foreground">Revenue</p>
-                          </div>
-                          <div className="p-2 bg-muted rounded">
-                            <p className="text-lg font-bold text-foreground">{course.conversionRate}%</p>
-                            <p className="text-xs text-muted-foreground">Conversion</p>
-                          </div>
+                        <div className="text-right">
+                          <p
+                            className={cn(
+                              'font-bold',
+                              earning.amount < 0 ? 'text-red-600' : 'text-green-600'
+                            )}
+                          >
+                            {earning.amount < 0 ? '' : '+'}
+                            {formatCurrency(earning.amount)}
+                          </p>
+                          {getStatusBadge(earning.status)}
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'courses' && (
+                <div className="space-y-3">
+                  {courses.map(course => (
+                    <div key={course.id} className="rounded-lg border border-border bg-card p-3">
+                      <div className="mb-2 flex items-start justify-between">
+                        <h4 className="text-sm font-medium text-foreground">{course.name}</h4>
+                        <Badge variant="outline" className="text-xs">
+                          ⭐ {course.rating}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded bg-muted p-2">
+                          <p className="text-lg font-bold text-foreground">{course.enrollments}</p>
+                          <p className="text-xs text-muted-foreground">Students</p>
+                        </div>
+                        <div className="rounded bg-muted p-2">
+                          <p className="text-lg font-bold text-foreground">
+                            {formatCurrency(course.revenue)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Revenue</p>
+                        </div>
+                        <div className="rounded bg-muted p-2">
+                          <p className="text-lg font-bold text-foreground">
+                            {course.conversionRate}%
+                          </p>
+                          <p className="text-xs text-muted-foreground">Conversion</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === 'analytics' && (
+                <div className="space-y-4">
+                  {/* Conversion Funnel - Moved to top for visibility */}
+                  <div className="rounded-lg border border-border bg-gradient-to-br from-blue-50/50 to-purple-50/50 p-4">
+                    <h3 className="mb-4 flex items-center gap-2 font-medium text-foreground">
+                      <TrendingUp className="h-5 w-5" />
+                      Conversion Funnel
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="mb-1 flex justify-between text-sm">
+                          <span className="font-medium text-gray-700">👀 Page Views</span>
+                          <span className="font-bold">1,245</span>
+                        </div>
+                        <div className="h-3 overflow-hidden rounded-full bg-blue-100">
+                          <div
+                            className="h-full rounded-full bg-blue-500"
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center">
+                        <div className="text-xs text-gray-500">▼ 36.6% conversion</div>
+                      </div>
+
+                      <div>
+                        <div className="mb-1 flex justify-between text-sm">
+                          <span className="font-medium text-gray-700">📚 Course Views</span>
+                          <span className="font-bold">456 (36.6%)</span>
+                        </div>
+                        <div className="h-3 overflow-hidden rounded-full bg-purple-100">
+                          <div
+                            className="h-full rounded-full bg-purple-500"
+                            style={{ width: '36.6%' }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center">
+                        <div className="text-xs text-gray-500">▼ 27.0% conversion</div>
+                      </div>
+
+                      <div>
+                        <div className="mb-1 flex justify-between text-sm">
+                          <span className="font-medium text-gray-700">✅ Enrollments</span>
+                          <span className="font-bold text-green-600">123 (27.0%)</span>
+                        </div>
+                        <div className="h-3 overflow-hidden rounded-full bg-green-100">
+                          <div
+                            className="h-full rounded-full bg-green-500"
+                            style={{ width: '27.0%' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 rounded bg-white/70 p-3 text-sm">
+                      <p className="text-gray-700">
+                        <strong>💡 Insight:</strong> Your course pages are converting well! Consider
+                        optimizing the landing page to increase views.
+                      </p>
+                    </div>
                   </div>
-                )}
 
-                {activeTab === 'analytics' && (
-                  <div className="space-y-4">
-                    {/* Conversion Funnel - Moved to top for visibility */}
-                    <div className="p-4 bg-gradient-to-br from-blue-50/50 to-purple-50/50 rounded-lg border border-border">
-                      <h3 className="font-medium mb-4 flex items-center gap-2 text-foreground">
-                        <TrendingUp className="w-5 h-5" />
-                        Conversion Funnel
-                      </h3>
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-700 font-medium">👀 Page Views</span>
-                            <span className="font-bold">1,245</span>
-                          </div>
-                          <div className="h-3 bg-blue-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500 rounded-full" style={{ width: '100%' }} />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-center">
-                          <div className="text-xs text-gray-500">▼ 36.6% conversion</div>
-                        </div>
-
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-700 font-medium">📚 Course Views</span>
-                            <span className="font-bold">456 (36.6%)</span>
-                          </div>
-                          <div className="h-3 bg-purple-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-purple-500 rounded-full" style={{ width: '36.6%' }} />
-                          </div>
-                        </div>
-
-                        <div className="flex justify-center">
-                          <div className="text-xs text-gray-500">▼ 27.0% conversion</div>
-                        </div>
-
-                        <div>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-gray-700 font-medium">✅ Enrollments</span>
-                            <span className="font-bold text-green-600">123 (27.0%)</span>
-                          </div>
-                          <div className="h-3 bg-green-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-green-500 rounded-full" style={{ width: '27.0%' }} />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 p-3 bg-white/70 rounded text-sm">
-                        <p className="text-gray-700">
-                          <strong>💡 Insight:</strong> Your course pages are converting well!
-                          Consider optimizing the landing page to increase views.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Popular Time Slots */}
-                    <div>
-                      <h3 className="text-sm font-medium mb-3 flex items-center gap-2 text-foreground">
-                        <Clock className="w-4 h-4" />
-                        Popular Time Slots
-                      </h3>
-                      <div className="space-y-2">
-                        {timeSlots.map((slot, idx) => (
-                          <div key={idx} className="flex items-center gap-3">
-                            <span className="text-xs w-32 truncate text-foreground">{slot.slot}</span>
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-purple-500 rounded-full"
-                                style={{ width: `${(slot.bookings / 50) * 100}%` }}
-                              />
-                            </div>
-                            <span className="text-xs w-12 text-right text-foreground">{slot.bookings}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Conversion Funnel */}
-                    <div className="p-3 bg-muted rounded-lg">
-                      <h3 className="text-sm font-medium mb-3 text-foreground">Conversion Funnel</h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Page Views</span>
-                          <span className="font-medium text-foreground">1,245</span>
-                        </div>
-                        <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full" style={{ width: '100%' }} />
-                        </div>
-
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Course Views</span>
-                          <span className="font-medium text-foreground">456 (36.6%)</span>
-                        </div>
-                        <div className="h-2 bg-blue-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-blue-500 rounded-full" style={{ width: '36.6%' }} />
-                        </div>
-
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Enrollments</span>
-                          <span className="font-medium text-foreground">123 (27.0%)</span>
-                        </div>
-                        <div className="h-2 bg-green-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500 rounded-full" style={{ width: '27.0%' }} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Revenue Trend */}
-                    <div className="p-3 bg-muted rounded-lg">
-                      <h3 className="text-sm font-medium mb-3 text-foreground">Monthly Revenue Trend</h3>
-                      <div className="flex items-end gap-2 h-24">
-                        {[65, 78, 45, 89, 92, 85, 95].map((height, idx) => (
-                          <div key={idx} className="flex-1 flex flex-col items-center gap-1">
+                  {/* Popular Time Slots */}
+                  <div>
+                    <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+                      <Clock className="h-4 w-4" />
+                      Popular Time Slots
+                    </h3>
+                    <div className="space-y-2">
+                      {timeSlots.map((slot, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <span className="w-32 truncate text-xs text-foreground">{slot.slot}</span>
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
                             <div
-                              className="w-full bg-purple-500 rounded-t"
-                              style={{ height: `${height}%` }}
+                              className="h-full rounded-full bg-purple-500"
+                              style={{ width: `${(slot.bookings / 50) * 100}%` }}
                             />
-                            <span className="text-xs text-muted-foreground">
-                              {['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'][idx]}
-                            </span>
                           </div>
-                        ))}
+                          <span className="w-12 text-right text-xs text-foreground">
+                            {slot.bookings}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Conversion Funnel */}
+                  <div className="rounded-lg bg-muted p-3">
+                    <h3 className="mb-3 text-sm font-medium text-foreground">Conversion Funnel</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Page Views</span>
+                        <span className="font-medium text-foreground">1,245</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-blue-100">
+                        <div
+                          className="h-full rounded-full bg-blue-500"
+                          style={{ width: '100%' }}
+                        />
+                      </div>
+
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Course Views</span>
+                        <span className="font-medium text-foreground">456 (36.6%)</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-blue-100">
+                        <div
+                          className="h-full rounded-full bg-blue-500"
+                          style={{ width: '36.6%' }}
+                        />
+                      </div>
+
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Enrollments</span>
+                        <span className="font-medium text-foreground">123 (27.0%)</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-green-100">
+                        <div
+                          className="h-full rounded-full bg-green-500"
+                          style={{ width: '27.0%' }}
+                        />
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-        <EmailStatementDialog
-          open={showEmailDialog}
-          onOpenChange={setShowEmailDialog}
-          emailAddress={emailAddress}
-          setEmailAddress={setEmailAddress}
-          sendingEmail={sendingEmail}
-          onSend={handleSendEmail}
-        />
-      </>
-    )
+
+                  {/* Revenue Trend */}
+                  <div className="rounded-lg bg-muted p-3">
+                    <h3 className="mb-3 text-sm font-medium text-foreground">
+                      Monthly Revenue Trend
+                    </h3>
+                    <div className="flex h-24 items-end gap-2">
+                      {[65, 78, 45, 89, 92, 85, 95].map((height, idx) => (
+                        <div key={idx} className="flex flex-1 flex-col items-center gap-1">
+                          <div
+                            className="w-full rounded-t bg-purple-500"
+                            style={{ height: `${height}%` }}
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'][idx]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+      <EmailStatementDialog
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
+        emailAddress={emailAddress}
+        setEmailAddress={setEmailAddress}
+        sendingEmail={sendingEmail}
+        onSend={handleSendEmail}
+      />
+    </>
+  )
 }

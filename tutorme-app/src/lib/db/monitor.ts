@@ -1,6 +1,6 @@
 /**
  * Database Performance Monitoring
- * 
+ *
  * Tracks query performance, connection pool usage, and cache hit rates.
  * Provides metrics for optimization and scaling decisions.
  */
@@ -47,7 +47,7 @@ class DatabaseMonitor {
       duration,
       timestamp: Date.now(),
       operation,
-      table
+      table,
     }
 
     this.queryLog.push(metric)
@@ -86,7 +86,7 @@ class DatabaseMonitor {
       hits: this.cacheHits,
       misses: this.cacheMisses,
       hitRate: total > 0 ? (this.cacheHits / total) * 100 : 0,
-      size: queryCache.size
+      size: queryCache.size,
     }
   }
 
@@ -121,7 +121,7 @@ class DatabaseMonitor {
       .map(([query, stats]) => ({
         query,
         count: stats.count,
-        avgDuration: stats.totalDuration / stats.count
+        avgDuration: stats.totalDuration / stats.count,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, limit)
@@ -194,7 +194,7 @@ class DatabaseMonitor {
       cache: cacheHealthy,
       latency: dbLatency,
       slowQueries: recentSlowQueries,
-      issues
+      issues,
     }
   }
 
@@ -213,15 +213,14 @@ class DatabaseMonitor {
       queries: {
         last1Minute: recentQueries.length,
         last5Minutes: fiveMinQueries.length,
-        avgDuration: recentQueries.length > 0
-          ? recentQueries.reduce((a, b) => a + b.duration, 0) / recentQueries.length
-          : 0,
-        maxDuration: recentQueries.length > 0
-          ? Math.max(...recentQueries.map(q => q.duration))
-          : 0
+        avgDuration:
+          recentQueries.length > 0
+            ? recentQueries.reduce((a, b) => a + b.duration, 0) / recentQueries.length
+            : 0,
+        maxDuration: recentQueries.length > 0 ? Math.max(...recentQueries.map(q => q.duration)) : 0,
       },
       cache: this.getCacheMetrics(),
-      slowQueries: this.getSlowQueries(100, 5)
+      slowQueries: this.getSlowQueries(100, 5),
     }
   }
 
@@ -274,7 +273,7 @@ export async function getHealthCheck() {
     stats: {
       queriesPerMinute: stats.queries.last1Minute,
       averageQueryTime: Math.round(stats.queries.avgDuration),
-      cacheHitRate: Math.round(stats.cache.hitRate)
-    }
+      cacheHitRate: Math.round(stats.cache.hitRate),
+    },
   }
 }

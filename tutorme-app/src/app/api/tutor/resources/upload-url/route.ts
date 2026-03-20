@@ -21,48 +21,52 @@ import {
   MAX_UPLOAD_BYTES,
 } from '@/lib/storage/s3'
 
-export const GET = withAuth(async (req: NextRequest, session) => {
-  const { searchParams } = new URL(req.url)
-  const filename = searchParams.get('filename')
-  const mimeType = searchParams.get('mimeType')
-  const size = parseInt(searchParams.get('size') || '0', 10)
-  const isPublic = searchParams.get('isPublic') === 'true'
+export const GET = withAuth(
+  async (req: NextRequest, session) => {
+    const { searchParams } = new URL(req.url)
+    const filename = searchParams.get('filename')
+    const mimeType = searchParams.get('mimeType')
+    const size = parseInt(searchParams.get('size') || '0', 10)
+    const isPublic = searchParams.get('isPublic') === 'true'
 
-  if (!filename || !mimeType) {
-    return NextResponse.json(
-      { error: 'Missing required parameters: filename, mimeType' },
-      { status: 400 }
-    )
-  }
-
-  if (size > MAX_UPLOAD_BYTES) {
-    return NextResponse.json(
-      { error: 'File size exceeds 100MB limit' },
-      { status: 400 }
-    )
-  }
-
-  const tutorId = session.user.id
-  const key = generateResourceKey(tutorId, filename)
-  const type = inferResourceType(mimeType)
-
-  // Real S3 presigned upload URL
-  if (isS3Configured()) {
-    try {
-      const { uploadUrl, publicUrl } = await createPresignedUploadUrl(key, mimeType, isPublic)
-      return NextResponse.json({ uploadUrl, key, type, publicUrl, usePresigned: true })
-    } catch (error) {
-      console.error('[upload-url] S3 presign failed:', error)
-      return handleApiError(error, 'Failed to generate upload URL', 'api/tutor/resources/upload-url/route.ts')
+    if (!filename || !mimeType) {
+      return NextResponse.json(
+        { error: 'Missing required parameters: filename, mimeType' },
+        { status: 400 }
+      )
     }
-  }
 
-  // Fallback: proxy upload via Next.js API route
-  return NextResponse.json({
-    uploadUrl: `/api/tutor/resources/upload-proxy`,
-    key,
-    type,
-    publicUrl: null,
-    usePresigned: false,
-  })
-}, { role: 'TUTOR' })
+    if (size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json({ error: 'File size exceeds 100MB limit' }, { status: 400 })
+    }
+
+    const tutorId = session.user.id
+    const key = generateResourceKey(tutorId, filename)
+    const type = inferResourceType(mimeType)
+
+    // Real S3 presigned upload URL
+    if (isS3Configured()) {
+      try {
+        const { uploadUrl, publicUrl } = await createPresignedUploadUrl(key, mimeType, isPublic)
+        return NextResponse.json({ uploadUrl, key, type, publicUrl, usePresigned: true })
+      } catch (error) {
+        console.error('[upload-url] S3 presign failed:', error)
+        return handleApiError(
+          error,
+          'Failed to generate upload URL',
+          'api/tutor/resources/upload-url/route.ts'
+        )
+      }
+    }
+
+    // Fallback: proxy upload via Next.js API route
+    return NextResponse.json({
+      uploadUrl: `/api/tutor/resources/upload-proxy`,
+      key,
+      type,
+      publicUrl: null,
+      usePresigned: false,
+    })
+  },
+  { role: 'TUTOR' }
+)

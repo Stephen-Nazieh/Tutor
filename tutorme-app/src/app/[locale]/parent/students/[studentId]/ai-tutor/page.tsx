@@ -3,13 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -132,7 +126,7 @@ export default function StudentAITutorPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex min-h-[400px] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     )
@@ -164,15 +158,13 @@ export default function StudentAITutorPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">AI 辅导</h1>
-            <p className="text-gray-500 text-sm">
-              AI互动历史、苏格拉底式对话与学习表现
-            </p>
+            <p className="text-sm text-gray-500">AI互动历史、苏格拉底式对话与学习表现</p>
           </div>
         </div>
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -227,15 +219,13 @@ export default function StudentAITutorPage() {
               <Lightbulb className="h-5 w-5" />
               学习建议
             </CardTitle>
-            <CardDescription>
-              基于AI辅导数据的个性化建议
-            </CardDescription>
+            <CardDescription>基于AI辅导数据的个性化建议</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
               {recommendations.map((rec, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-amber-500 mt-0.5">•</span>
+                  <span className="mt-0.5 text-amber-500">•</span>
                   <span>{rec}</span>
                 </li>
               ))}
@@ -251,26 +241,22 @@ export default function StudentAITutorPage() {
             <MessageSquare className="h-5 w-5" />
             课程对话记录
           </CardTitle>
-          <CardDescription>
-            课程中的AI辅导对话，采用苏格拉底式引导
-          </CardDescription>
+          <CardDescription>课程中的AI辅导对话，采用苏格拉底式引导</CardDescription>
         </CardHeader>
         <CardContent>
           {sessionSummaries.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">暂无课程对话记录</p>
+            <p className="py-8 text-center text-gray-500">暂无课程对话记录</p>
           ) : (
             <div className="space-y-4">
-              {sessionSummaries.slice(0, 15).map((s) => (
+              {sessionSummaries.slice(0, 15).map(s => (
                 <div
                   key={s.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50/50 transition-colors"
+                  className="rounded-lg border p-4 transition-colors hover:bg-gray-50/50"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-medium">
-                          {s.lessonTitle ?? '未命名课程'}
-                        </h3>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-medium">{s.lessonTitle ?? '未命名课程'}</h3>
                         {s.curriculumName && (
                           <Badge variant="outline" className="text-xs">
                             {s.curriculumName}
@@ -283,11 +269,11 @@ export default function StudentAITutorPage() {
                           {s.status === 'completed' ? '已完成' : s.currentSection}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="mt-1 text-sm text-gray-500">
                         {s.messageCount} 条消息 · 最后活动: {formatDate(s.lastActivityAt)}
                       </p>
                       {s.lastMessage && (
-                        <div className="mt-2 text-sm bg-gray-50 rounded p-2">
+                        <div className="mt-2 rounded bg-gray-50 p-2 text-sm">
                           <p className="text-gray-600">
                             <span className="font-medium text-gray-700">学生:</span>{' '}
                             {s.lastMessage.length > 100
@@ -295,7 +281,7 @@ export default function StudentAITutorPage() {
                               : s.lastMessage}
                           </p>
                           {s.lastResponse && (
-                            <p className="text-gray-600 mt-1">
+                            <p className="mt-1 text-gray-600">
                               <span className="font-medium text-purple-700">AI:</span>{' '}
                               {s.lastResponse.length > 150
                                 ? s.lastResponse.slice(0, 150) + '...'
@@ -321,17 +307,12 @@ export default function StudentAITutorPage() {
               <BookOpen className="h-5 w-5" />
               已注册科目
             </CardTitle>
-            <CardDescription>
-              AI辅导已注册的科目及使用情况
-            </CardDescription>
+            <CardDescription>AI辅导已注册的科目及使用情况</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {enrollments.map((e) => (
-                <div
-                  key={e.subjectCode}
-                  className="border rounded-lg p-4 flex flex-col gap-2"
-                >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {enrollments.map(e => (
+                <div key={e.subjectCode} className="flex flex-col gap-2 rounded-lg border p-4">
                   <span className="font-medium">{e.subjectCode}</span>
                   <p className="text-sm text-gray-500">
                     {e.totalSessions} 次对话 · {e.totalMinutes} 分钟
@@ -356,17 +337,12 @@ export default function StudentAITutorPage() {
               <BarChart3 className="h-5 w-5" />
               近期使用
             </CardTitle>
-            <CardDescription>
-              最近7天的AI辅导使用情况
-            </CardDescription>
+            <CardDescription>最近7天的AI辅导使用情况</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {dailyUsage.slice(0, 7).map((u) => (
-                <div
-                  key={u.date}
-                  className="shrink-0 w-24 border rounded-lg p-3 text-center"
-                >
+              {dailyUsage.slice(0, 7).map(u => (
+                <div key={u.date} className="w-24 shrink-0 rounded-lg border p-3 text-center">
                   <p className="text-xs text-gray-500">{formatDateShort(u.date)}</p>
                   <p className="font-semibold">{u.messageCount}</p>
                   <p className="text-xs text-gray-400">条消息</p>

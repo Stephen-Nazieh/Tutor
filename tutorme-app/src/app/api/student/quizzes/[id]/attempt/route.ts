@@ -22,11 +22,7 @@ export const POST = withCsrf(
       }
       const studentId = session.user.id
 
-      const [quizRow] = await drizzleDb
-        .select()
-        .from(quiz)
-        .where(eq(quiz.id, id))
-        .limit(1)
+      const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, id)).limit(1)
 
       if (!quizRow) {
         throw new NotFoundError('Quiz not found')
@@ -54,9 +50,7 @@ export const POST = withCsrf(
       const completedAttempts = countRow?.count ?? 0
 
       if (completedAttempts >= quizRow.allowedAttempts) {
-        throw new ForbiddenError(
-          'You have used all your attempts for this quiz'
-        )
+        throw new ForbiddenError('You have used all your attempts for this quiz')
       }
 
       const [existingAttempt] = await drizzleDb
@@ -76,10 +70,7 @@ export const POST = withCsrf(
           attemptId: existingAttempt.id,
           startedAt: existingAttempt.startedAt,
           timeRemaining: quizRow.timeLimit
-            ? calculateTimeRemaining(
-                existingAttempt.startedAt,
-                quizRow.timeLimit
-              )
+            ? calculateTimeRemaining(existingAttempt.startedAt, quizRow.timeLimit)
             : undefined,
         })
       }
@@ -111,10 +102,7 @@ export const POST = withCsrf(
   )
 )
 
-function calculateTimeRemaining(
-  startedAt: Date,
-  timeLimitMinutes: number
-): number {
+function calculateTimeRemaining(startedAt: Date, timeLimitMinutes: number): number {
   const elapsedMs = Date.now() - startedAt.getTime()
   const limitMs = timeLimitMinutes * 60 * 1000
   return Math.max(0, Math.floor((limitMs - elapsedMs) / 1000))

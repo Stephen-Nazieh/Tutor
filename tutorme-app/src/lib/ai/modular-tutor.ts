@@ -49,31 +49,31 @@ export async function generateModularResponse(
     {
       teachingAge: context.teachingAge,
       voiceGender: context.voiceGender,
-      voiceAccent: context.voiceAccent
+      voiceAccent: context.voiceAccent,
     }
   )
-  
+
   // Build the conversation
   const messages: Solocornssage[] = [
     { role: 'system', content: systemPrompt },
     ...context.conversationHistory.slice(-6), // Keep last 6 messages for context
-    { role: 'user', content: studentMessage }
+    { role: 'user', content: studentMessage },
   ]
-  
+
   // Generate response
   const result = await chatWithFallback(messages, {
     temperature: 0.7,
-    maxTokens: 800
+    maxTokens: 800,
   })
-  
+
   // Extract whiteboard items
   const whiteboardItems = extractWhiteboardItems(result.content)
-  
+
   return {
     message: result.content.trim(),
     mode: context.mode,
     isSocratic: useSocratic,
-    whiteboardItems: whiteboardItems.length > 0 ? whiteboardItems : undefined
+    whiteboardItems: whiteboardItems.length > 0 ? whiteboardItems : undefined,
   }
 }
 
@@ -91,17 +91,12 @@ export async function generateLessonPlan(
   practice: string
   summary: string
 }> {
-  const { systemPrompt } = buildPrompt(
-    subject,
-    'lesson',
-    topic,
-    {
-      teachingAge: context.teachingAge,
-      voiceGender: context.voiceGender,
-      voiceAccent: context.voiceAccent
-    }
-  )
-  
+  const { systemPrompt } = buildPrompt(subject, 'lesson', topic, {
+    teachingAge: context.teachingAge,
+    voiceGender: context.voiceGender,
+    voiceAccent: context.voiceAccent,
+  })
+
   const prompt = `${systemPrompt}\n\nGenerate a structured lesson plan for the topic: ${topic}\n
 Format your response exactly like this:
 
@@ -120,23 +115,26 @@ SUMMARY: [2-3 key takeaways]`
 
   const result = await chatWithFallback([{ role: 'user', content: prompt }], {
     temperature: 0.6,
-    maxTokens: 1000
+    maxTokens: 1000,
   })
-  
+
   const content = result.content
-  
+
   return {
     introduction: extractSection(content, 'INTRODUCTION'),
     concepts: extractList(content, 'CONCEPTS'),
     example: extractSection(content, 'EXAMPLE'),
     practice: extractSection(content, 'PRACTICE'),
-    summary: extractSection(content, 'SUMMARY')
+    summary: extractSection(content, 'SUMMARY'),
   }
 }
 
 // Helper to extract sections
 function extractSection(content: string, sectionName: string): string {
-  const regex = new RegExp(`${sectionName}:[\\s\\n]*([^\\n]+(?:\\n(?!(?:INTRODUCTION|CONCEPTS|EXAMPLE|PRACTICE|SUMMARY):)[^\\n]+)*)`, 'i')
+  const regex = new RegExp(
+    `${sectionName}:[\\s\\n]*([^\\n]+(?:\\n(?!(?:INTRODUCTION|CONCEPTS|EXAMPLE|PRACTICE|SUMMARY):)[^\\n]+)*)`,
+    'i'
+  )
   const match = content.match(regex)
   return match ? match[1].trim() : ''
 }

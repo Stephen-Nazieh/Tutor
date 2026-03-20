@@ -83,7 +83,7 @@ Common Strategies:
 - Work backwards
 - Make a table or list
 - Write an equation
-`
+`,
 }
 
 export const mathModeAdjustments: Record<string, string> = {
@@ -106,5 +106,5 @@ Math Lesson Structure:
 5. **Independent Practice**: Similar problem
 6. **Extension**: More challenging application
 7. **Summary**: Key formula/concept to remember
-`
+`,
 }

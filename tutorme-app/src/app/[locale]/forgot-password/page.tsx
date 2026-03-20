@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
     if (isLoading) return
     setIsLoading(true)
     setError('')
-    
+
     try {
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
@@ -38,14 +38,14 @@ export default function ForgotPasswordPage() {
         },
         body: JSON.stringify({ email }),
       })
-      
+
       const data = await response.json()
-      
+
       if (!response.ok) {
         setError(data.message || 'Something went wrong. Please try again.')
         return
       }
-      
+
       setSubmitted(true)
     } catch {
       setError('Something went wrong. Please try again.')
@@ -55,10 +55,10 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4 safe-top safe-bottom">
+    <div className="safe-top safe-bottom flex min-h-screen items-center justify-center bg-white p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl flex items-center justify-center gap-2">
+          <CardTitle className="flex items-center justify-center gap-2 text-2xl">
             <Mail className="h-6 w-6" />
             Forgot Password
           </CardTitle>
@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
         <CardContent>
           {submitted ? (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 text-green-700 rounded-lg text-sm">
+              <div className="rounded-lg bg-green-50 p-4 text-sm text-green-700">
                 If an account exists for that email, you will receive a password reset link shortly.
               </div>
               <Link href={`${localePrefix}/login`}>
@@ -81,8 +81,8 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
                   {error}
                 </div>
               )}
@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
                     type="email"
                     placeholder="your@email.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
                   />
@@ -118,10 +118,7 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="mt-6 text-center">
-            <Link
-              href={`${localePrefix}/login`}
-              className="text-sm text-[#1D4ED8] hover:underline"
-            >
+            <Link href={`${localePrefix}/login`} className="text-sm text-[#1D4ED8] hover:underline">
               ← Back to login
             </Link>
           </div>

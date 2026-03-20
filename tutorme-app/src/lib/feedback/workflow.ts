@@ -9,11 +9,16 @@ import { feedbackWorkflow, profile, user } from '@/lib/db/schema'
 import { generateWithFallback } from '@/lib/agents'
 
 export type FeedbackType = 'task_feedback' | 'progress_report' | 'encouragement' | 'correction'
-export type FeedbackStatus = 'ai_generated' | 'tutor_modified' | 'approved' | 'sent_to_student' | 'rejected'
+export type FeedbackStatus =
+  | 'ai_generated'
+  | 'tutor_modified'
+  | 'approved'
+  | 'sent_to_student'
+  | 'rejected'
 
 export interface FeedbackRequest {
   studentId: string
-  submissionId: string  // Required by schema
+  submissionId: string // Required by schema
   type: FeedbackType
   context: {
     taskId?: string
@@ -79,7 +84,7 @@ export async function generateFeedback(
       strengths: parsed.strengths,
       improvements: parsed.improvements,
       resources: parsed.resources,
-      aiConfidence: confidence
+      aiConfidence: confidence,
     }
 
     return { success: true, feedback }
@@ -87,7 +92,7 @@ export async function generateFeedback(
     console.error('Feedback generation failed:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : '生成反馈失败'
+      error: error instanceof Error ? error.message : '生成反馈失败',
     }
   }
 }
@@ -208,10 +213,7 @@ function createCorrectionPrompt(request: FeedbackRequest): string {
 /**
  * Parse AI response into structured feedback
  */
-function parseFeedbackResponse(
-  response: string,
-  type: FeedbackType
-): GeneratedFeedback {
+function parseFeedbackResponse(response: string, type: FeedbackType): GeneratedFeedback {
   try {
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
@@ -227,7 +229,7 @@ function parseFeedbackResponse(
       strengths: parsed.strengths || [],
       improvements: parsed.improvements || [],
       resources: parsed.resources || [],
-      aiConfidence: 0.7
+      aiConfidence: 0.7,
     }
   } catch (error) {
     // Fallback to raw response
@@ -237,7 +239,7 @@ function parseFeedbackResponse(
       strengths: [],
       improvements: [],
       resources: [],
-      aiConfidence: 0.5
+      aiConfidence: 0.5,
     }
   }
 }
@@ -301,7 +303,7 @@ export async function submitFeedbackForReview(
     return {
       success: false,
       autoApproved: false,
-      error: error instanceof Error ? error.message : '提交反馈失败'
+      error: error instanceof Error ? error.message : '提交反馈失败',
     }
   }
 }
@@ -354,17 +356,14 @@ export async function getPendingFeedback(
       .orderBy(asc(feedbackWorkflow.createdAt))
       .limit(options?.limit ?? 20)
       .offset(options?.offset ?? 0),
-    drizzleDb
-      .select({ id: feedbackWorkflow.id })
-      .from(feedbackWorkflow)
-      .where(statusFilter),
+    drizzleDb.select({ id: feedbackWorkflow.id }).from(feedbackWorkflow).where(statusFilter),
   ])
 
   const total = countResult.length
   const workflows = workflowsRows
 
   return {
-    items: workflows.map((w) => ({
+    items: workflows.map(w => ({
       id: w.id,
       studentId: w.studentId,
       submissionId: w.submissionId,
@@ -448,7 +447,7 @@ export async function reviewFeedback(
     console.error('Feedback review failed:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : '审核反馈失败'
+      error: error instanceof Error ? error.message : '审核反馈失败',
     }
   }
 }
@@ -456,9 +455,7 @@ export async function reviewFeedback(
 /**
  * Get feedback statistics for a tutor
  */
-export async function getFeedbackStats(
-  tutorId?: string
-): Promise<{
+export async function getFeedbackStats(tutorId?: string): Promise<{
   pendingCount: number
   approvedToday: number
   rejectedToday: number
@@ -468,12 +465,7 @@ export async function getFeedbackStats(
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const [
-    pendingRows,
-    approvedTodayRows,
-    rejectedTodayRows,
-    allWorkflows,
-  ] = await Promise.all([
+  const [pendingRows, approvedTodayRows, rejectedTodayRows, allWorkflows] = await Promise.all([
     drizzleDb
       .select({ id: feedbackWorkflow.id })
       .from(feedbackWorkflow)
@@ -490,9 +482,7 @@ export async function getFeedbackStats(
     drizzleDb
       .select({ id: feedbackWorkflow.id })
       .from(feedbackWorkflow)
-      .where(
-        and(eq(feedbackWorkflow.status, 'rejected'), gte(feedbackWorkflow.approvedAt, today))
-      ),
+      .where(and(eq(feedbackWorkflow.status, 'rejected'), gte(feedbackWorkflow.approvedAt, today))),
     drizzleDb.select({ autoApproved: feedbackWorkflow.autoApproved }).from(feedbackWorkflow),
   ])
 
@@ -500,14 +490,14 @@ export async function getFeedbackStats(
   const approvedToday = approvedTodayRows.length
   const rejectedToday = rejectedTodayRows.length
   const totalWorkflows = allWorkflows.length
-  const autoApprovedCount = allWorkflows.filter((w) => w.autoApproved).length
+  const autoApprovedCount = allWorkflows.filter(w => w.autoApproved).length
 
   return {
     pendingCount,
     approvedToday,
     rejectedToday,
     averageConfidence: totalWorkflows > 0 ? 0.75 : 0, // Estimate since we don't store confidence
-    autoApprovedRate: totalWorkflows > 0 ? autoApprovedCount / totalWorkflows : 0
+    autoApprovedRate: totalWorkflows > 0 ? autoApprovedCount / totalWorkflows : 0,
   }
 }
 

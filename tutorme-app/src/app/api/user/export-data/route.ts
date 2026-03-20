@@ -92,20 +92,22 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     const exportData = {
       exportedAt: new Date().toISOString(),
       dataSubjectId: userId,
-      profile: userProfile ? {
-        name: userProfile.name,
-        username: userProfile.username,
-        bio: userProfile.bio,
-        country: null, // not stored in profile directly
-        timezone: userProfile.timezone,
-        gradeLevel: userProfile.gradeLevel,
-        subjectsOfInterest: userProfile.subjectsOfInterest,
-        preferredLanguages: userProfile.preferredLanguages,
-        learningGoals: userProfile.learningGoals,
-        tosAcceptedAt: userProfile.tosAcceptedAt,
-        createdAt: userProfile.createdAt,
-        updatedAt: userProfile.updatedAt,
-      } : null,
+      profile: userProfile
+        ? {
+            name: userProfile.name,
+            username: userProfile.username,
+            bio: userProfile.bio,
+            country: null, // not stored in profile directly
+            timezone: userProfile.timezone,
+            gradeLevel: userProfile.gradeLevel,
+            subjectsOfInterest: userProfile.subjectsOfInterest,
+            preferredLanguages: userProfile.preferredLanguages,
+            learningGoals: userProfile.learningGoals,
+            tosAcceptedAt: userProfile.tosAcceptedAt,
+            createdAt: userProfile.createdAt,
+            updatedAt: userProfile.updatedAt,
+          }
+        : null,
       courseEnrollments: enrollments.map(e => ({
         curriculumId: e.curriculumId,
         enrolledAt: e.enrolledAt,
@@ -114,27 +116,30 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       })),
       quizAttempts,
       aiSessionSummaries: aiSessions,
-      gamification: gamification ? {
-        level: gamification.level,
-        xp: gamification.xp,
-        streakDays: gamification.streakDays,
-        longestStreak: gamification.longestStreak,
-        totalStudyMinutes: gamification.totalStudyMinutes,
-      } : null,
+      gamification: gamification
+        ? {
+            level: gamification.level,
+            xp: gamification.xp,
+            streakDays: gamification.streakDays,
+            longestStreak: gamification.longestStreak,
+            totalStudyMinutes: gamification.totalStudyMinutes,
+          }
+        : null,
       achievements: achievements.map(a => ({
         type: a.type,
         title: a.title,
         description: a.description,
         unlockedAt: a.unlockedAt,
       })),
-      notice: 'This export contains your personal data held by Solocorn as required by GDPR Art.20 (Right to Data Portability). AI conversation messages are not exported to protect session integrity but summaries are included.',
+      notice:
+        'This export contains your personal data held by Solocorn as required by GDPR Art.20 (Right to Data Portability). AI conversation messages are not exported to protect session integrity but summaries are included.',
     }
 
     return NextResponse.json(exportData, {
       headers: {
         'Content-Disposition': `attachment; filename="solocorn-data-export-${userId.slice(0, 8)}.json"`,
         'Content-Type': 'application/json',
-      }
+      },
     })
   } catch (error) {
     return handleApiError(error, 'Failed to export user data', 'api/user/export-data')

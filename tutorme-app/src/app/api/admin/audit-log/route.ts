@@ -27,8 +27,7 @@ export async function GET(req: NextRequest) {
     if (resourceType) conditions.push(eq(adminAuditLog.resourceType, resourceType))
     if (startDate) conditions.push(gte(adminAuditLog.createdAt, new Date(startDate)))
     if (endDate) conditions.push(lte(adminAuditLog.createdAt, new Date(endDate)))
-    const whereClause =
-      conditions.length > 0 ? and(...conditions) : undefined
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
     const logs = await drizzleDb
       .select()
@@ -43,7 +42,7 @@ export async function GET(req: NextRequest) {
       .from(adminAuditLog)
       .where(whereClause)
 
-    const adminIds = [...new Set(logs.map((l) => l.adminId))]
+    const adminIds = [...new Set(logs.map(l => l.adminId))]
     const admins =
       adminIds.length > 0
         ? await drizzleDb
@@ -61,10 +60,10 @@ export async function GET(req: NextRequest) {
             .from(profile)
             .where(inArray(profile.userId, adminIds))
         : []
-    const profileByUserId = new Map(profiles.map((p) => [p.userId, p]))
-    const userById = new Map(admins.map((u) => [u.id, u]))
+    const profileByUserId = new Map(profiles.map(p => [p.userId, p]))
+    const userById = new Map(admins.map(u => [u.id, u]))
 
-    const formattedLogs = logs.map((log) => ({
+    const formattedLogs = logs.map(log => ({
       id: log.id,
       admin: {
         id: log.adminId,

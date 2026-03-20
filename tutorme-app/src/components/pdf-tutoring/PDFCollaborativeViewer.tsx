@@ -10,7 +10,11 @@ import { Input } from '@/components/ui/input'
 import { Lock, Unlock, Upload, RefreshCw } from 'lucide-react'
 import { usePdfCollabSocket } from '@/hooks/use-pdf-collab-socket'
 import { percentToPx, pxToPercent } from '@/lib/pdf-tutoring/coordinates'
-import type { PdfCanvasEventPayload, PdfViewMode, PercentFabricObject } from '@/lib/pdf-tutoring/types'
+import type {
+  PdfCanvasEventPayload,
+  PdfViewMode,
+  PercentFabricObject,
+} from '@/lib/pdf-tutoring/types'
 
 const CLIENT_MODULE_LOADERS: Record<string, () => Promise<unknown>> = {
   fabric: () => import('fabric'),
@@ -77,188 +81,233 @@ export function PDFCollaborativeViewer({
 
   const userId = session?.user?.id
   const userName = session?.user?.name || 'Tutor'
-  const effectiveCapabilities = useMemo(() => ({
-    draw: capabilities?.draw ?? true,
-    erase: capabilities?.erase ?? true,
-    select: capabilities?.select ?? true,
-    text: capabilities?.text ?? true,
-    shapes: capabilities?.shapes ?? true,
-    clear: capabilities?.clear ?? true,
-    flatten: capabilities?.flatten ?? true,
-  }), [capabilities])
+  const effectiveCapabilities = useMemo(
+    () => ({
+      draw: capabilities?.draw ?? true,
+      erase: capabilities?.erase ?? true,
+      select: capabilities?.select ?? true,
+      text: capabilities?.text ?? true,
+      shapes: capabilities?.shapes ?? true,
+      clear: capabilities?.clear ?? true,
+      flatten: capabilities?.flatten ?? true,
+    }),
+    [capabilities]
+  )
 
-  const applyObjectPercentToPx = useCallback((object: PercentFabricObject, width: number, height: number) => {
-    const next: PercentFabricObject = {
-      ...object,
-      ...(typeof object.left === 'number' ? { left: percentToPx(object.left, width) } : {}),
-      ...(typeof object.top === 'number' ? { top: percentToPx(object.top, height) } : {}),
-      ...(typeof object.width === 'number' ? { width: percentToPx(object.width, width) } : {}),
-      ...(typeof object.height === 'number' ? { height: percentToPx(object.height, height) } : {}),
-      ...(typeof object.radius === 'number' ? { radius: percentToPx(object.radius, Math.min(width, height)) } : {}),
-      ...(typeof object.strokeWidth === 'number' ? { strokeWidth: percentToPx(object.strokeWidth, Math.min(width, height)) } : {}),
-      ...(typeof object.fontSize === 'number' ? { fontSize: percentToPx(object.fontSize, height) } : {}),
-    }
-
-    if (Array.isArray(next.points)) {
-      next.points = next.points.map((p) => ({
-        x: percentToPx(p.x, width),
-        y: percentToPx(p.y, height),
-      }))
-    }
-
-    if (Array.isArray(next.path)) {
-      next.path = next.path.map((segment) => {
-        if (!Array.isArray(segment) || segment.length < 3) return segment
-        const [cmd, ...nums] = segment
-        const converted: Array<string | number> = [String(cmd)]
-        for (let i = 0; i < nums.length; i += 2) {
-          const x = Number(nums[i])
-          const y = Number(nums[i + 1])
-          converted.push(percentToPx(x, width), percentToPx(y, height))
-        }
-        return converted
-      })
-    }
-
-    return next
-  }, [])
-
-  const serializeObjectToPercent = useCallback((obj: any, width: number, height: number): PercentFabricObject => {
-    const raw = obj.toObject([
-      'id', 'type', 'left', 'top', 'width', 'height', 'radius', 'scaleX', 'scaleY', 'strokeWidth',
-      'fontSize', 'angle', 'fill', 'stroke', 'text', 'path', 'points',
-    ]) as PercentFabricObject
-
-    const next: PercentFabricObject = {
-      ...raw,
-      id: raw.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      ...(typeof raw.left === 'number' ? { left: pxToPercent(raw.left, width) } : {}),
-      ...(typeof raw.top === 'number' ? { top: pxToPercent(raw.top, height) } : {}),
-      ...(typeof raw.width === 'number' ? { width: pxToPercent(raw.width, width) } : {}),
-      ...(typeof raw.height === 'number' ? { height: pxToPercent(raw.height, height) } : {}),
-      ...(typeof raw.radius === 'number' ? { radius: pxToPercent(raw.radius, Math.min(width, height)) } : {}),
-      ...(typeof raw.strokeWidth === 'number' ? { strokeWidth: pxToPercent(raw.strokeWidth, Math.min(width, height)) } : {}),
-      ...(typeof raw.fontSize === 'number' ? { fontSize: pxToPercent(raw.fontSize, height) } : {}),
-    }
-
-    if (Array.isArray(next.points)) {
-      next.points = next.points.map((p) => ({
-        x: pxToPercent(p.x, width),
-        y: pxToPercent(p.y, height),
-      }))
-    }
-
-    if (Array.isArray(next.path)) {
-      next.path = next.path.map((segment) => {
-        if (!Array.isArray(segment) || segment.length < 3) return segment
-        const [cmd, ...nums] = segment
-        const converted: Array<string | number> = [String(cmd)]
-        for (let i = 0; i < nums.length; i += 2) {
-          const x = Number(nums[i])
-          const y = Number(nums[i + 1])
-          converted.push(pxToPercent(x, width), pxToPercent(y, height))
-        }
-        return converted
-      })
-    }
-
-    return next
-  }, [])
-
-  const onCanvasEvent = useCallback(async (payload: PdfCanvasEventPayload) => {
-    if (payload.page !== pageNum) return
-    const fabricCanvas = fabricInstanceRef.current
-    if (!fabricCanvas || payload.actorId === userId) return
-
-    suppressBroadcastRef.current = true
-    try {
-      if (payload.action === 'removed' && payload.objectId) {
-        const target = fabricCanvas.getObjects().find((obj: any) => obj.id === payload.objectId)
-        if (target) {
-          fabricCanvas.remove(target)
-          fabricCanvas.renderAll()
-        }
-        return
+  const applyObjectPercentToPx = useCallback(
+    (object: PercentFabricObject, width: number, height: number) => {
+      const next: PercentFabricObject = {
+        ...object,
+        ...(typeof object.left === 'number' ? { left: percentToPx(object.left, width) } : {}),
+        ...(typeof object.top === 'number' ? { top: percentToPx(object.top, height) } : {}),
+        ...(typeof object.width === 'number' ? { width: percentToPx(object.width, width) } : {}),
+        ...(typeof object.height === 'number'
+          ? { height: percentToPx(object.height, height) }
+          : {}),
+        ...(typeof object.radius === 'number'
+          ? { radius: percentToPx(object.radius, Math.min(width, height)) }
+          : {}),
+        ...(typeof object.strokeWidth === 'number'
+          ? { strokeWidth: percentToPx(object.strokeWidth, Math.min(width, height)) }
+          : {}),
+        ...(typeof object.fontSize === 'number'
+          ? { fontSize: percentToPx(object.fontSize, height) }
+          : {}),
       }
 
-      if (!payload.object) return
-      const width = fabricCanvas.getWidth()
-      const height = fabricCanvas.getHeight()
-      const objectData = applyObjectPercentToPx(payload.object, width, height)
-
-      if (!objectData.id) return
-      const existing = fabricCanvas.getObjects().find((obj: any) => obj.id === objectData.id)
-      if (existing) {
-        existing.set(objectData)
-        existing.setCoords()
-        fabricCanvas.renderAll()
-        return
+      if (Array.isArray(next.points)) {
+        next.points = next.points.map(p => ({
+          x: percentToPx(p.x, width),
+          y: percentToPx(p.y, height),
+        }))
       }
 
-      const fabricMod = await loadOptionalModule('fabric')
-      const fabricApi = fabricMod?.fabric || fabricMod
-      const enliven = fabricApi?.util?.enlivenObjects
-      if (typeof enliven === 'function') {
-        enliven([objectData], (objects: any[]) => {
-          if (!objects?.[0]) return
-          fabricCanvas.add(objects[0])
-          fabricCanvas.renderAll()
+      if (Array.isArray(next.path)) {
+        next.path = next.path.map(segment => {
+          if (!Array.isArray(segment) || segment.length < 3) return segment
+          const [cmd, ...nums] = segment
+          const converted: Array<string | number> = [String(cmd)]
+          for (let i = 0; i < nums.length; i += 2) {
+            const x = Number(nums[i])
+            const y = Number(nums[i + 1])
+            converted.push(percentToPx(x, width), percentToPx(y, height))
+          }
+          return converted
         })
       }
-    } finally {
-      setTimeout(() => {
-        suppressBroadcastRef.current = false
-      }, 16)
-    }
-  }, [applyObjectPercentToPx, pageNum, userId])
 
-  const onCanvasState = useCallback(async (payload: { roomId: string; events: PdfCanvasEventPayload[] }) => {
-    const fabricCanvas = fabricInstanceRef.current
-    if (!fabricCanvas) return
+      return next
+    },
+    []
+  )
 
-    // Rebuild last known state from event stream for late joiners.
-    const byId = new Map<string, PdfCanvasEventPayload>()
-    for (const evt of payload.events) {
-      if (evt.page !== pageNum || !evt.objectId) continue
-      if (evt.action === 'removed') {
-        byId.delete(evt.objectId)
-        continue
+  const serializeObjectToPercent = useCallback(
+    (obj: any, width: number, height: number): PercentFabricObject => {
+      const raw = obj.toObject([
+        'id',
+        'type',
+        'left',
+        'top',
+        'width',
+        'height',
+        'radius',
+        'scaleX',
+        'scaleY',
+        'strokeWidth',
+        'fontSize',
+        'angle',
+        'fill',
+        'stroke',
+        'text',
+        'path',
+        'points',
+      ]) as PercentFabricObject
+
+      const next: PercentFabricObject = {
+        ...raw,
+        id: raw.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        ...(typeof raw.left === 'number' ? { left: pxToPercent(raw.left, width) } : {}),
+        ...(typeof raw.top === 'number' ? { top: pxToPercent(raw.top, height) } : {}),
+        ...(typeof raw.width === 'number' ? { width: pxToPercent(raw.width, width) } : {}),
+        ...(typeof raw.height === 'number' ? { height: pxToPercent(raw.height, height) } : {}),
+        ...(typeof raw.radius === 'number'
+          ? { radius: pxToPercent(raw.radius, Math.min(width, height)) }
+          : {}),
+        ...(typeof raw.strokeWidth === 'number'
+          ? { strokeWidth: pxToPercent(raw.strokeWidth, Math.min(width, height)) }
+          : {}),
+        ...(typeof raw.fontSize === 'number'
+          ? { fontSize: pxToPercent(raw.fontSize, height) }
+          : {}),
       }
-      byId.set(evt.objectId, evt)
-    }
 
-    suppressBroadcastRef.current = true
-    try {
-      fabricCanvas.clear()
-      const width = fabricCanvas.getWidth()
-      const height = fabricCanvas.getHeight()
-      const fabricMod = await loadOptionalModule('fabric')
-      const fabricApi = fabricMod?.fabric || fabricMod
-      const enliven = fabricApi?.util?.enlivenObjects
-      if (typeof enliven !== 'function') return
-      const objects = Array.from(byId.values())
-        .map((evt) => evt.object)
-        .filter((obj): obj is PercentFabricObject => Boolean(obj))
-        .map((obj) => applyObjectPercentToPx(obj, width, height))
-      enliven(objects, (liveObjects: any[]) => {
-        liveObjects.forEach((obj) => fabricCanvas.add(obj))
-        fabricCanvas.renderAll()
-      })
-    } finally {
-      setTimeout(() => {
-        suppressBroadcastRef.current = false
-      }, 16)
-    }
-  }, [applyObjectPercentToPx, pageNum])
+      if (Array.isArray(next.points)) {
+        next.points = next.points.map(p => ({
+          x: pxToPercent(p.x, width),
+          y: pxToPercent(p.y, height),
+        }))
+      }
 
-  const { isConnected, isLocked, latencyMs, participants, emitCanvasEvent, setLock } = usePdfCollabSocket({
-    roomId,
-    userId,
-    name: userName,
-    role,
-    onCanvasEvent,
-    onCanvasState,
-  })
+      if (Array.isArray(next.path)) {
+        next.path = next.path.map(segment => {
+          if (!Array.isArray(segment) || segment.length < 3) return segment
+          const [cmd, ...nums] = segment
+          const converted: Array<string | number> = [String(cmd)]
+          for (let i = 0; i < nums.length; i += 2) {
+            const x = Number(nums[i])
+            const y = Number(nums[i + 1])
+            converted.push(pxToPercent(x, width), pxToPercent(y, height))
+          }
+          return converted
+        })
+      }
+
+      return next
+    },
+    []
+  )
+
+  const onCanvasEvent = useCallback(
+    async (payload: PdfCanvasEventPayload) => {
+      if (payload.page !== pageNum) return
+      const fabricCanvas = fabricInstanceRef.current
+      if (!fabricCanvas || payload.actorId === userId) return
+
+      suppressBroadcastRef.current = true
+      try {
+        if (payload.action === 'removed' && payload.objectId) {
+          const target = fabricCanvas.getObjects().find((obj: any) => obj.id === payload.objectId)
+          if (target) {
+            fabricCanvas.remove(target)
+            fabricCanvas.renderAll()
+          }
+          return
+        }
+
+        if (!payload.object) return
+        const width = fabricCanvas.getWidth()
+        const height = fabricCanvas.getHeight()
+        const objectData = applyObjectPercentToPx(payload.object, width, height)
+
+        if (!objectData.id) return
+        const existing = fabricCanvas.getObjects().find((obj: any) => obj.id === objectData.id)
+        if (existing) {
+          existing.set(objectData)
+          existing.setCoords()
+          fabricCanvas.renderAll()
+          return
+        }
+
+        const fabricMod = await loadOptionalModule('fabric')
+        const fabricApi = fabricMod?.fabric || fabricMod
+        const enliven = fabricApi?.util?.enlivenObjects
+        if (typeof enliven === 'function') {
+          enliven([objectData], (objects: any[]) => {
+            if (!objects?.[0]) return
+            fabricCanvas.add(objects[0])
+            fabricCanvas.renderAll()
+          })
+        }
+      } finally {
+        setTimeout(() => {
+          suppressBroadcastRef.current = false
+        }, 16)
+      }
+    },
+    [applyObjectPercentToPx, pageNum, userId]
+  )
+
+  const onCanvasState = useCallback(
+    async (payload: { roomId: string; events: PdfCanvasEventPayload[] }) => {
+      const fabricCanvas = fabricInstanceRef.current
+      if (!fabricCanvas) return
+
+      // Rebuild last known state from event stream for late joiners.
+      const byId = new Map<string, PdfCanvasEventPayload>()
+      for (const evt of payload.events) {
+        if (evt.page !== pageNum || !evt.objectId) continue
+        if (evt.action === 'removed') {
+          byId.delete(evt.objectId)
+          continue
+        }
+        byId.set(evt.objectId, evt)
+      }
+
+      suppressBroadcastRef.current = true
+      try {
+        fabricCanvas.clear()
+        const width = fabricCanvas.getWidth()
+        const height = fabricCanvas.getHeight()
+        const fabricMod = await loadOptionalModule('fabric')
+        const fabricApi = fabricMod?.fabric || fabricMod
+        const enliven = fabricApi?.util?.enlivenObjects
+        if (typeof enliven !== 'function') return
+        const objects = Array.from(byId.values())
+          .map(evt => evt.object)
+          .filter((obj): obj is PercentFabricObject => Boolean(obj))
+          .map(obj => applyObjectPercentToPx(obj, width, height))
+        enliven(objects, (liveObjects: any[]) => {
+          liveObjects.forEach(obj => fabricCanvas.add(obj))
+          fabricCanvas.renderAll()
+        })
+      } finally {
+        setTimeout(() => {
+          suppressBroadcastRef.current = false
+        }, 16)
+      }
+    },
+    [applyObjectPercentToPx, pageNum]
+  )
+
+  const { isConnected, isLocked, latencyMs, participants, emitCanvasEvent, setLock } =
+    usePdfCollabSocket({
+      roomId,
+      userId,
+      name: userName,
+      role,
+      onCanvasEvent,
+      onCanvasState,
+    })
   const effectiveLocked = typeof forceLocked === 'boolean' ? forceLocked : isLocked
   const canDraw = effectiveCapabilities.draw && !effectiveLocked
   const canErase = effectiveCapabilities.erase && !effectiveLocked
@@ -331,7 +380,9 @@ export function PDFCollaborativeViewer({
       const fabricMod = await loadOptionalModule('fabric')
       const fabricApi = fabricMod?.fabric || fabricMod
       if (!fabricApi?.Canvas) {
-        console.error('[PDFCollaborativeViewer] fabric library not found. Please run: npm install fabric')
+        console.error(
+          '[PDFCollaborativeViewer] fabric library not found. Please run: npm install fabric'
+        )
         setFabricReady(false)
         return
       }
@@ -380,11 +431,13 @@ export function PDFCollaborativeViewer({
 
   useEffect(() => {
     let dispose: (() => void) | undefined
-    initializeFabric().then((fn) => {
-      if (typeof fn === 'function') dispose = fn
-    }).catch(() => {
-      setFabricReady(false)
-    })
+    initializeFabric()
+      .then(fn => {
+        if (typeof fn === 'function') dispose = fn
+      })
+      .catch(() => {
+        setFabricReady(false)
+      })
     return () => {
       if (renderTaskRef.current) {
         try {
@@ -405,7 +458,8 @@ export function PDFCollaborativeViewer({
       fabricInstanceRef.current.selection = canSelect
       if (fabricInstanceRef.current.freeDrawingBrush) {
         fabricInstanceRef.current.freeDrawingBrush.width = strokeWidth
-        fabricInstanceRef.current.freeDrawingBrush.color = tool === 'erase' ? '#ffffff' : strokeColor
+        fabricInstanceRef.current.freeDrawingBrush.color =
+          tool === 'erase' ? '#ffffff' : strokeColor
       }
     }
   }, [canDraw, canErase, canSelect, strokeColor, strokeWidth, tool])
@@ -482,7 +536,8 @@ export function PDFCollaborativeViewer({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         imageDataUrl: png,
-        rubric: 'Award partial credit for correct setup and intermediate algebraic transformations.',
+        rubric:
+          'Award partial credit for correct setup and intermediate algebraic transformations.',
       }),
     })
     const data = await res.json()
@@ -547,7 +602,9 @@ export function PDFCollaborativeViewer({
         page: pageNum,
         width: canvas.getWidth(),
         height: canvas.getHeight(),
-        objects: canvas.getObjects().map((obj: any) => serializeObjectToPercent(obj, canvas.getWidth(), canvas.getHeight())),
+        objects: canvas
+          .getObjects()
+          .map((obj: any) => serializeObjectToPercent(obj, canvas.getWidth(), canvas.getHeight())),
       },
     }
 
@@ -642,7 +699,9 @@ export function PDFCollaborativeViewer({
         page: pageNum,
         width: canvas.getWidth(),
         height: canvas.getHeight(),
-        objects: canvas.getObjects().map((obj: any) => serializeObjectToPercent(obj, canvas.getWidth(), canvas.getHeight())),
+        objects: canvas
+          .getObjects()
+          .map((obj: any) => serializeObjectToPercent(obj, canvas.getWidth(), canvas.getHeight())),
       }),
     })
   }, [roomId, pageNum, serializeObjectToPercent])
@@ -663,9 +722,12 @@ export function PDFCollaborativeViewer({
     const canvas = fabricInstanceRef.current
     if (!canvas) return
 
-    const res = await fetch(`/api/pdf-tutoring/snapshots?roomId=${encodeURIComponent(roomId)}&limit=1`, {
-      credentials: 'include',
-    })
+    const res = await fetch(
+      `/api/pdf-tutoring/snapshots?roomId=${encodeURIComponent(roomId)}&limit=1`,
+      {
+        credentials: 'include',
+      }
+    )
     if (!res.ok) return
     const data = await res.json()
     const latest = data?.snapshots?.[0]
@@ -680,21 +742,24 @@ export function PDFCollaborativeViewer({
     const enliven = fabricApi?.util?.enlivenObjects
     if (typeof enliven !== 'function') return
 
-    const mapped = payload.objects.map((obj: PercentFabricObject) => applyObjectPercentToPx(obj, width, height))
+    const mapped = payload.objects.map((obj: PercentFabricObject) =>
+      applyObjectPercentToPx(obj, width, height)
+    )
     enliven(mapped, (objects: any[]) => {
-      objects.forEach((obj) => canvas.add(obj))
+      objects.forEach(obj => canvas.add(obj))
       canvas.renderAll()
     })
   }
 
   const connectionBadge = useMemo(() => {
     if (!isConnected) return <Badge variant="destructive">Offline</Badge>
-    if (latencyMs !== null && latencyMs > 50) return <Badge variant="secondary">Sync {latencyMs}ms</Badge>
+    if (latencyMs !== null && latencyMs > 50)
+      return <Badge variant="secondary">Sync {latencyMs}ms</Badge>
     return <Badge variant="default">Sync &lt;50ms</Badge>
   }, [isConnected, latencyMs])
   const participantSummary = useMemo(() => {
     const total = participants.length
-    const tutors = participants.filter((participant) => participant.role === 'tutor').length
+    const tutors = participants.filter(participant => participant.role === 'tutor').length
     const students = total - tutors
     return { total, tutors, students }
   }, [participants])
@@ -702,11 +767,17 @@ export function PDFCollaborativeViewer({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Input type="file" accept="application/pdf" onChange={onFileSelected} className="max-w-sm" />
+        <Input
+          type="file"
+          accept="application/pdf"
+          onChange={onFileSelected}
+          className="max-w-sm"
+        />
         {showCollabStatus && connectionBadge}
         {showCollabStatus && (
           <Badge variant="outline">
-            Live: {participantSummary.total} ({participantSummary.tutors} tutor, {participantSummary.students} students)
+            Live: {participantSummary.total} ({participantSummary.tutors} tutor,{' '}
+            {participantSummary.students} students)
           </Badge>
         )}
         {showCollabStatus && (
@@ -716,18 +787,30 @@ export function PDFCollaborativeViewer({
         )}
         {(showLockControl ?? role === 'tutor') && (
           <Button variant="outline" size="sm" onClick={() => setLock(!effectiveLocked)}>
-            {effectiveLocked ? <Unlock className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
+            {effectiveLocked ? (
+              <Unlock className="mr-2 h-4 w-4" />
+            ) : (
+              <Lock className="mr-2 h-4 w-4" />
+            )}
             {effectiveLocked ? 'Unlock Canvas' : 'Lock Canvas'}
           </Button>
         )}
         {showAiActions && (
           <Button variant="outline" size="sm" onClick={callReadService}>
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             AI Cleaned Text
           </Button>
         )}
-        {showAiActions && <Button variant="outline" size="sm" onClick={callMarkService}>Run AI Marking</Button>}
-        {showAiActions && <Button variant="outline" size="sm" onClick={applyAiErrorCircles}>Apply AI Error Circles</Button>}
+        {showAiActions && (
+          <Button variant="outline" size="sm" onClick={callMarkService}>
+            Run AI Marking
+          </Button>
+        )}
+        {showAiActions && (
+          <Button variant="outline" size="sm" onClick={applyAiErrorCircles}>
+            Apply AI Error Circles
+          </Button>
+        )}
         {effectiveCapabilities.text && (
           <Button variant="outline" size="sm" onClick={addTextBox} disabled={effectiveLocked}>
             Add Text
@@ -743,13 +826,28 @@ export function PDFCollaborativeViewer({
             </Button>
           </>
         )}
-        <Button variant={tool === 'draw' ? 'default' : 'outline'} size="sm" onClick={() => setTool('draw')} disabled={!canDraw}>
+        <Button
+          variant={tool === 'draw' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setTool('draw')}
+          disabled={!canDraw}
+        >
           Draw
         </Button>
-        <Button variant={tool === 'erase' ? 'default' : 'outline'} size="sm" onClick={() => setTool('erase')} disabled={!canErase}>
+        <Button
+          variant={tool === 'erase' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setTool('erase')}
+          disabled={!canErase}
+        >
           Erase
         </Button>
-        <Button variant={tool === 'select' ? 'default' : 'outline'} size="sm" onClick={() => setTool('select')} disabled={!canSelect}>
+        <Button
+          variant={tool === 'select' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setTool('select')}
+          disabled={!canSelect}
+        >
           Select
         </Button>
         <label className="flex items-center gap-1 text-xs">
@@ -757,7 +855,7 @@ export function PDFCollaborativeViewer({
           <input
             type="color"
             value={strokeColor}
-            onChange={(e) => setStrokeColor(e.target.value)}
+            onChange={e => setStrokeColor(e.target.value)}
             disabled={effectiveLocked || (!canDraw && !canErase)}
             className="h-7 w-10 rounded border"
           />
@@ -770,7 +868,7 @@ export function PDFCollaborativeViewer({
             max={10}
             step={1}
             value={strokeWidth}
-            onChange={(e) => setStrokeWidth(Number(e.target.value))}
+            onChange={e => setStrokeWidth(Number(e.target.value))}
             disabled={effectiveLocked || (!canDraw && !canErase)}
           />
           <span>{strokeWidth}</span>
@@ -782,14 +880,22 @@ export function PDFCollaborativeViewer({
         )}
         {role === 'tutor' && (
           <>
-            <Button variant="outline" size="sm" onClick={saveSnapshot}>Save Snapshot</Button>
-            <Button variant="outline" size="sm" onClick={loadLatestSnapshot}>Load Latest Snapshot</Button>
+            <Button variant="outline" size="sm" onClick={saveSnapshot}>
+              Save Snapshot
+            </Button>
+            <Button variant="outline" size="sm" onClick={loadLatestSnapshot}>
+              Load Latest Snapshot
+            </Button>
           </>
         )}
-        {effectiveCapabilities.flatten && <Button size="sm" onClick={callFlattenService}>Flatten PDF</Button>}
+        {effectiveCapabilities.flatten && (
+          <Button size="sm" onClick={callFlattenService}>
+            Flatten PDF
+          </Button>
+        )}
       </div>
 
-      <Tabs value={mode} onValueChange={(value) => setMode(value as PdfViewMode)}>
+      <Tabs value={mode} onValueChange={value => setMode(value as PdfViewMode)}>
         <TabsList>
           <TabsTrigger value="original">Original View</TabsTrigger>
           {showAiActions && <TabsTrigger value="cleaned">AI Cleaned Text</TabsTrigger>}
@@ -798,29 +904,51 @@ export function PDFCollaborativeViewer({
       </Tabs>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" disabled={pageNum <= 1} onClick={() => setPageNum((prev) => prev - 1)}>Prev</Button>
-        <span className="text-sm">Page {pageNum} / {pageCount}</span>
-        <Button variant="outline" size="sm" disabled={pageNum >= pageCount} onClick={() => setPageNum((prev) => prev + 1)}>Next</Button>
-        {!fabricReady && <Badge variant="secondary">Install `fabric` package to enable drawing sync</Badge>}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pageNum <= 1}
+          onClick={() => setPageNum(prev => prev - 1)}
+        >
+          Prev
+        </Button>
+        <span className="text-sm">
+          Page {pageNum} / {pageCount}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pageNum >= pageCount}
+          onClick={() => setPageNum(prev => prev + 1)}
+        >
+          Next
+        </Button>
+        {!fabricReady && (
+          <Badge variant="secondary">Install `fabric` package to enable drawing sync</Badge>
+        )}
       </div>
 
       {mode === 'original' && (
-        <div className="relative inline-block border rounded-md overflow-hidden bg-white">
+        <div className="relative inline-block overflow-hidden rounded-md border bg-white">
           <canvas ref={pdfCanvasRef} className="block" />
           <canvas ref={fabricCanvasElementRef} className="absolute inset-0" />
         </div>
       )}
 
       {mode === 'cleaned' && showAiActions && (
-        <pre className="rounded-md border bg-muted p-4 text-xs whitespace-pre-wrap">{cleanedText || 'No cleaned text generated yet.'}</pre>
+        <pre className="whitespace-pre-wrap rounded-md border bg-muted p-4 text-xs">
+          {cleanedText || 'No cleaned text generated yet.'}
+        </pre>
       )}
 
       {mode === 'marked' && (
-        <pre className="rounded-md border bg-muted p-4 text-xs whitespace-pre-wrap">{markedFeedback || 'No marking feedback generated yet.'}</pre>
+        <pre className="whitespace-pre-wrap rounded-md border bg-muted p-4 text-xs">
+          {markedFeedback || 'No marking feedback generated yet.'}
+        </pre>
       )}
 
-      <div className="text-xs text-muted-foreground flex items-center gap-2">
-        <Upload className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Upload className="h-3.5 w-3.5" />
         Coordinates are normalized as 0-100 percentages before sync for cross-device consistency.
       </div>
     </div>

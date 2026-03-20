@@ -53,8 +53,8 @@ function getPrivateKey(): string {
 function sign(params: Record<string, string>, privateKey: string): string {
   const sortedKeys = Object.keys(params).sort()
   const signStr = sortedKeys
-    .filter((k) => params[k] !== '' && params[k] != null)
-    .map((k) => `${k}=${params[k]}`)
+    .filter(k => params[k] !== '' && params[k] != null)
+    .map(k => `${k}=${params[k]}`)
     .join('&')
   return crypto.createSign('RSA-SHA256').update(signStr).sign(privateKey, 'base64')
 }
@@ -66,11 +66,11 @@ function verifySign(params: Record<string, string>, signature: string, publicKey
   const signType = params.sign_type || 'RSA2'
   if (signType !== 'RSA2') return false
   const sortedKeys = Object.keys(params)
-    .filter((k) => k !== 'sign' && k !== 'sign_type')
+    .filter(k => k !== 'sign' && k !== 'sign_type')
     .sort()
   const signStr = sortedKeys
-    .filter((k) => params[k] !== '' && params[k] != null)
-    .map((k) => `${k}=${params[k]}`)
+    .filter(k => params[k] !== '' && params[k] != null)
+    .map(k => `${k}=${params[k]}`)
     .join('&')
   try {
     return crypto.createVerify('RSA-SHA256').update(signStr).verify(publicKey, signature, 'base64')
@@ -94,8 +94,7 @@ export class AlipayClient implements PaymentGateway {
     const outTradeNo = `A${Date.now()}${Math.random().toString(36).slice(2, 9)}`
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
     const returnUrl = request.successUrl ?? `${baseUrl}/payment/success`
-    const notifyUrl =
-      process.env.ALIPAY_NOTIFY_URL || `${baseUrl}/api/payments/webhooks/alipay`
+    const notifyUrl = process.env.ALIPAY_NOTIFY_URL || `${baseUrl}/api/payments/webhooks/alipay`
 
     const bizContent = {
       out_trade_no: outTradeNo,
@@ -134,7 +133,10 @@ export class AlipayClient implements PaymentGateway {
   }
 
   verifyWebhook(payload: unknown, signature: string): boolean {
-    const params = (typeof payload === 'object' && payload !== null ? payload : {}) as Record<string, string>
+    const params = (typeof payload === 'object' && payload !== null ? payload : {}) as Record<
+      string,
+      string
+    >
     const sig = params.sign ?? signature
     const publicKey = process.env.ALIPAY_PUBLIC_KEY
     if (!publicKey) return false
@@ -147,7 +149,11 @@ export class AlipayClient implements PaymentGateway {
     const outTradeNo = body.out_trade_no
 
     if (!outTradeNo) {
-      return { success: false, eventType: 'notify', error: getChineseErrorMessage('ALIPAY_SIGN_FAILED') }
+      return {
+        success: false,
+        eventType: 'notify',
+        error: getChineseErrorMessage('ALIPAY_SIGN_FAILED'),
+      }
     }
 
     const statusMap: Record<string, string> = {

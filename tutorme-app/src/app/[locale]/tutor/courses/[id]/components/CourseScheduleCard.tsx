@@ -20,14 +20,14 @@ export function CourseScheduleCard({
   subtitle,
 }: CourseScheduleCardProps) {
   const addSlot = () => {
-    onScheduleChange((prev) => [
+    onScheduleChange(prev => [
       ...prev,
       { dayOfWeek: DAYS[0], startTime: '09:00', durationMinutes: 60 },
     ])
   }
 
   const updateSlot = (index: number, field: keyof ScheduleItem, value: string | number) => {
-    onScheduleChange((prev) => {
+    onScheduleChange(prev => {
       const next = [...prev]
       next[index] = { ...next[index], [field]: value }
       return next
@@ -35,7 +35,7 @@ export function CourseScheduleCard({
   }
 
   const removeSlot = (index: number) => {
-    onScheduleChange((prev) => prev.filter((_, i) => i !== index))
+    onScheduleChange(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -45,13 +45,12 @@ export function CourseScheduleCard({
           <Calendar className="h-5 w-5" />
           Class schedule
           {subtitle && (
-            <span className="text-sm font-normal text-muted-foreground">
-              ({subtitle})
-            </span>
+            <span className="text-sm font-normal text-muted-foreground">({subtitle})</span>
           )}
         </CardTitle>
         <CardDescription>
-          Set recurring slots for this course. Save with &quot;Save settings only&quot; or &quot;Save all&quot; below.
+          Set recurring slots for this course. Save with &quot;Save settings only&quot; or
+          &quot;Save all&quot; below.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

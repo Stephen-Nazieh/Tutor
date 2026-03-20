@@ -15,12 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import type { LiveStudent, BreakoutRoom } from '../types'
-import { 
-  Users, 
-  Hand, 
-  MoreVertical, 
-  MicOff, 
-  VideoOff, 
+import {
+  Users,
+  Hand,
+  MoreVertical,
+  MicOff,
+  VideoOff,
   MessageCircle,
   UserPlus,
   LogOut,
@@ -28,7 +28,7 @@ import {
   Filter,
   Lightbulb,
   Bell,
-  LayoutGrid
+  LayoutGrid,
 } from 'lucide-react'
 
 interface StudentListProps {
@@ -42,22 +42,23 @@ interface StudentListProps {
   onInviteToBreakout?: (studentId: string) => void
 }
 
-export function StudentList({ 
-  students, 
+export function StudentList({
+  students,
   breakoutRooms,
   onCallOn,
   onAssignToRoom,
   onRemoveFromRoom,
   onPushHint,
   onSendNudge,
-  onInviteToBreakout
+  onInviteToBreakout,
 }: StudentListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'online' | 'away' | 'hand-raised'>('all')
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filterStatus === 'all' || 
+    const matchesFilter =
+      filterStatus === 'all' ||
       (filterStatus === 'online' && student.status === 'online') ||
       (filterStatus === 'away' && (student.status === 'idle' || student.status === 'away')) ||
       (filterStatus === 'hand-raised' && student.handRaised)
@@ -66,11 +67,16 @@ export function StudentList({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'bg-green-500'
-      case 'idle': return 'bg-yellow-500'
-      case 'away': return 'bg-orange-500'
-      case 'offline': return 'bg-gray-400'
-      default: return 'bg-gray-400'
+      case 'online':
+        return 'bg-green-500'
+      case 'idle':
+        return 'bg-yellow-500'
+      case 'away':
+        return 'bg-orange-500'
+      case 'offline':
+        return 'bg-gray-400'
+      default:
+        return 'bg-gray-400'
     }
   }
 
@@ -85,11 +91,11 @@ export function StudentList({
   const handRaisedCount = students.filter(s => s.handRaised).length
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="flex h-full flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
+            <Users className="h-4 w-4" />
             <CardTitle className="text-sm font-medium">Students</CardTitle>
             <Badge variant="secondary" className="text-xs">
               {onlineCount}/{students.length}
@@ -97,27 +103,27 @@ export function StudentList({
           </div>
           {handRaisedCount > 0 && (
             <Badge variant="destructive" className="gap-1">
-              <Hand className="w-3 h-3" />
+              <Hand className="h-3 w-3" />
               {handRaisedCount}
             </Badge>
           )}
         </div>
 
         {/* Search and Filter */}
-        <div className="flex gap-2 mt-3">
+        <div className="mt-3 flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search students..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9"
+              onChange={e => setSearchQuery(e.target.value)}
+              className="h-9 pl-9"
             />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="h-9 w-9">
-                <Filter className="w-4 h-4" />
+                <Filter className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -127,9 +133,7 @@ export function StudentList({
               <DropdownMenuItem onClick={() => setFilterStatus('online')}>
                 Online Only
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilterStatus('away')}>
-                Idle/Away
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilterStatus('away')}>Idle/Away</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setFilterStatus('hand-raised')}>
                 Hand Raised
               </DropdownMenuItem>
@@ -142,44 +146,51 @@ export function StudentList({
         <ScrollArea className="h-[calc(100%-100px)]">
           <div className="space-y-1 px-4 pb-4">
             {filteredStudents.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <div className="py-8 text-center">
+                <Users className="mx-auto mb-2 h-10 w-10 text-gray-300" />
                 <p className="text-sm text-gray-500">No students found</p>
               </div>
             ) : (
-              filteredStudents.map((student) => (
+              filteredStudents.map(student => (
                 <div
                   key={student.id}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border transition-all",
-                    student.handRaised 
-                      ? "bg-yellow-50 border-yellow-200" 
-                      : "bg-white border-gray-100 hover:border-gray-200"
+                    'flex items-center gap-3 rounded-lg border p-3 transition-all',
+                    student.handRaised
+                      ? 'border-yellow-200 bg-yellow-50'
+                      : 'border-gray-100 bg-white hover:border-gray-200'
                   )}
                 >
                   {/* Avatar with Status */}
                   <div className="relative">
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback className="bg-blue-100 text-blue-700 text-sm">
-                        {student.name.split(' ').map(n => n[0]).join('')}
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-blue-100 text-sm text-blue-700">
+                        {student.name
+                          .split(' ')
+                          .map(n => n[0])
+                          .join('')}
                       </AvatarFallback>
                     </Avatar>
-                    <span className={cn(
-                      "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white",
-                      getStatusColor(student.status)
-                    )} />
+                    <span
+                      className={cn(
+                        'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
+                        getStatusColor(student.status)
+                      )}
+                    />
                   </div>
 
                   {/* Student Info */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm truncate">{student.name}</span>
+                      <span className="truncate text-sm font-medium">{student.name}</span>
                       {student.handRaised && (
-                        <Hand className="w-4 h-4 text-yellow-600 animate-pulse" />
+                        <Hand className="h-4 w-4 animate-pulse text-yellow-600" />
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className={cn("font-medium", getEngagementColor(student.engagementScore))}>
+                      <span
+                        className={cn('font-medium', getEngagementColor(student.engagementScore))}
+                      >
                         {student.engagementScore}% engaged
                       </span>
                       {student.breakoutRoomId && (
@@ -193,38 +204,38 @@ export function StudentList({
                   {/* Actions */}
                   <div className="flex items-center gap-1">
                     {student.handRaised && (
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
-                        className="h-8 text-yellow-700 hover:text-yellow-800 hover:bg-yellow-100"
+                        className="h-8 text-yellow-700 hover:bg-yellow-100 hover:text-yellow-800"
                         onClick={() => onCallOn?.(student.id)}
                       >
                         Call On
                       </Button>
                     )}
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="w-4 h-4" />
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => onCallOn?.(student.id)}>
-                          <MessageCircle className="w-4 h-4 mr-2" />
+                          <MessageCircle className="mr-2 h-4 w-4" />
                           Send Message
                         </DropdownMenuItem>
-                        
+
                         {breakoutRooms.length > 0 && !student.breakoutRoomId && (
                           <DropdownMenuItem asChild>
                             <div className="relative">
-                              <UserPlus className="w-4 h-4 mr-2" />
+                              <UserPlus className="mr-2 h-4 w-4" />
                               Assign to Room
-                              <div className="absolute left-full top-0 ml-1 bg-white border rounded-lg shadow-lg p-1 min-w-[120px]">
+                              <div className="absolute left-full top-0 ml-1 min-w-[120px] rounded-lg border bg-white p-1 shadow-lg">
                                 {breakoutRooms.map(room => (
                                   <button
                                     key={room.id}
-                                    className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100 rounded"
+                                    className="w-full rounded px-2 py-1 text-left text-sm hover:bg-gray-100"
                                     onClick={() => onAssignToRoom?.(student.id, room.id)}
                                   >
                                     {room.name}
@@ -234,33 +245,41 @@ export function StudentList({
                             </div>
                           </DropdownMenuItem>
                         )}
-                        
+
                         {student.breakoutRoomId && (
                           <DropdownMenuItem onClick={() => onRemoveFromRoom?.(student.id)}>
-                            <LogOut className="w-4 h-4 mr-2" />
+                            <LogOut className="mr-2 h-4 w-4" />
                             Remove from Room
                           </DropdownMenuItem>
                         )}
-                        
-                        <DropdownMenuItem onClick={() => onPushHint?.(student.id, 'Remember to think about the key concept we discussed.', 'socratic')}>
-                          <Lightbulb className="w-4 h-4 mr-2" />
+
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onPushHint?.(
+                              student.id,
+                              'Remember to think about the key concept we discussed.',
+                              'socratic'
+                            )
+                          }
+                        >
+                          <Lightbulb className="mr-2 h-4 w-4" />
                           Send Socratic Hint
                         </DropdownMenuItem>
-                        
+
                         <DropdownMenuItem onClick={() => onSendNudge?.(student.id)}>
-                          <Bell className="w-4 h-4 mr-2" />
+                          <Bell className="mr-2 h-4 w-4" />
                           Send Nudge
                         </DropdownMenuItem>
-                        
+
                         {breakoutRooms.length > 0 && (
                           <DropdownMenuItem onClick={() => onInviteToBreakout?.(student.id)}>
-                            <LayoutGrid className="w-4 h-4 mr-2" />
+                            <LayoutGrid className="mr-2 h-4 w-4" />
                             Invite to Breakout
                           </DropdownMenuItem>
                         )}
-                        
+
                         <DropdownMenuItem className="text-red-600">
-                          <MicOff className="w-4 h-4 mr-2" />
+                          <MicOff className="mr-2 h-4 w-4" />
                           Mute
                         </DropdownMenuItem>
                       </DropdownMenuContent>

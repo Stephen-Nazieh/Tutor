@@ -2,7 +2,7 @@
  * AI Orchestrator
  * Manages AI providers with fallback chain:
  * 1. Kimi K2.5 (Moonshot AI) - PRIMARY
- * 
+ *
  * Response caching for repeated prompts (5 min TTL)
  */
 
@@ -37,7 +37,11 @@ function cacheKeyForPrompt(prompt: string): string {
 function cacheKeyForChat(messages: Array<{ role: string; content: string }>): string {
   const crypto = require('crypto') as typeof import('crypto')
   const payload = JSON.stringify(messages)
-  return AI_CACHE_PREFIX + 'chat:' + crypto.createHash('sha256').update(payload).digest('hex').slice(0, 32)
+  return (
+    AI_CACHE_PREFIX +
+    'chat:' +
+    crypto.createHash('sha256').update(payload).digest('hex').slice(0, 32)
+  )
 }
 
 /**
@@ -62,7 +66,7 @@ export async function generateWithFallback(
     return {
       content: `[MOCK AI RESPONSE] Processed prompt: ${prompt.substring(0, 200)}...`,
       provider: 'kimi',
-      latencyMs: 10
+      latencyMs: 10,
     }
   }
 
@@ -124,7 +128,7 @@ export async function chatWithFallback(
     return {
       content: `[MOCK AI RESPONSE] Processed chat with ${messages.length} messages.`,
       provider: 'kimi',
-      latencyMs: 10
+      latencyMs: 10,
     }
   }
 

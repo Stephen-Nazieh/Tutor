@@ -10,16 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import {
-  Settings,
-  Globe,
-  Shield,
-  Brain,
-  Bell,
-  AlertTriangle,
-  Save,
-  RefreshCw,
-} from 'lucide-react'
+import { Settings, Globe, Shield, Brain, Bell, AlertTriangle, Save, RefreshCw } from 'lucide-react'
 
 const settingCategories = [
   { value: 'general', label: 'General', icon: Globe },
@@ -36,7 +27,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
 
   const handleValueChange = (key: string, value: unknown) => {
-    setEditedSettings((prev) => ({
+    setEditedSettings(prev => ({
       ...prev,
       [key]: value,
     }))
@@ -50,7 +41,7 @@ export default function SettingsPage() {
         key,
         value: editedSettings[key],
       })
-      setEditedSettings((prev) => {
+      setEditedSettings(prev => {
         const next = { ...prev }
         delete next[key]
         return next
@@ -61,10 +52,13 @@ export default function SettingsPage() {
   }
 
   const renderSettingInput = (setting: Record<string, unknown>) => {
-    const settingValue = (setting.settingValue ?? setting.value) as Record<string, unknown> | undefined
-    const value = editedSettings[setting.key as string] !== undefined
-      ? editedSettings[setting.key as string]
-      : settingValue?.value
+    const settingValue = (setting.settingValue ?? setting.value) as
+      | Record<string, unknown>
+      | undefined
+    const value =
+      editedSettings[setting.key as string] !== undefined
+        ? editedSettings[setting.key as string]
+        : settingValue?.value
 
     const valueType = (setting.valueType as string) || 'string'
 
@@ -73,7 +67,7 @@ export default function SettingsPage() {
         return (
           <Switch
             checked={value as boolean}
-            onCheckedChange={(v) => handleValueChange(setting.key as string, v)}
+            onCheckedChange={v => handleValueChange(setting.key as string, v)}
           />
         )
       case 'number':
@@ -81,7 +75,7 @@ export default function SettingsPage() {
           <Input
             type="number"
             value={value as number}
-            onChange={(e) => handleValueChange(setting.key as string, parseFloat(e.target.value))}
+            onChange={e => handleValueChange(setting.key as string, parseFloat(e.target.value))}
           />
         )
       case 'json':
@@ -89,7 +83,7 @@ export default function SettingsPage() {
           <textarea
             className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={JSON.stringify(value, null, 2)}
-            onChange={(e) => {
+            onChange={e => {
               try {
                 handleValueChange(setting.key as string, JSON.parse(e.target.value))
               } catch {
@@ -102,7 +96,7 @@ export default function SettingsPage() {
         return (
           <Input
             value={value as string}
-            onChange={(e) => handleValueChange(setting.key as string, e.target.value)}
+            onChange={e => handleValueChange(setting.key as string, e.target.value)}
           />
         )
     }
@@ -113,24 +107,22 @@ export default function SettingsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">System Settings</h1>
-        <p className="text-slate-500">
-          Configure platform-wide settings and preferences
-        </p>
+        <p className="text-slate-500">Configure platform-wide settings and preferences</p>
       </div>
 
       {/* Settings Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5 lg:w-auto">
-          {settingCategories.map((cat) => (
+          {settingCategories.map(cat => (
             <TabsTrigger key={cat.value} value={cat.value} className="gap-2">
-              <cat.icon className="h-4 w-4 hidden sm:block" />
+              <cat.icon className="hidden h-4 w-4 sm:block" />
               <span className="hidden sm:inline">{cat.label}</span>
               <span className="sm:hidden">{cat.label.slice(0, 3)}</span>
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {settingCategories.map((category) => (
+        {settingCategories.map(category => (
           <TabsContent key={category.value} value={category.value}>
             <Card>
               <CardHeader>
@@ -144,11 +136,11 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {isLoading ? (
-                  Array(3).fill(0).map((_, i) => (
-                    <Skeleton key={i} className="h-20 w-full" />
-                  ))
+                  Array(3)
+                    .fill(0)
+                    .map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
                 ) : settings.length === 0 ? (
-                  <div className="text-center py-12">
+                  <div className="py-12 text-center">
                     <Settings className="mx-auto h-12 w-12 text-slate-300" />
                     <p className="mt-4 text-slate-500">No settings in this category</p>
                     <p className="text-sm text-slate-400">
@@ -159,12 +151,14 @@ export default function SettingsPage() {
                   settings.map((setting: Record<string, unknown>) => (
                     <div
                       key={setting.key as string}
-                      className="flex items-start justify-between gap-4 pb-6 border-b last:border-0 last:pb-0"
+                      className="flex items-start justify-between gap-4 border-b pb-6 last:border-0 last:pb-0"
                     >
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
                           <Label className="text-base font-medium">
-                            {String(setting.key).replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                            {String(setting.key)
+                              .replace(/_/g, ' ')
+                              .replace(/\b\w/g, l => l.toUpperCase())}
                           </Label>
                           {(setting.requiresRestart as boolean) && (
                             <Badge variant="secondary" className="text-xs">
@@ -178,17 +172,16 @@ export default function SettingsPage() {
                             </Badge>
                           )}
                         </div>
-                        {typeof setting.description === 'string' && setting.description.length > 0 && (
-                          <p className="text-sm text-slate-500">{setting.description}</p>
-                        )}
+                        {typeof setting.description === 'string' &&
+                          setting.description.length > 0 && (
+                            <p className="text-sm text-slate-500">{setting.description}</p>
+                          )}
                         <p className="text-xs text-slate-400">
                           Type: {(setting.valueType as string) || 'string'}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-48 sm:w-64">
-                          {renderSettingInput(setting)}
-                        </div>
+                        <div className="w-48 sm:w-64">{renderSettingInput(setting)}</div>
                         {editedSettings[setting.key as string] !== undefined && (
                           <Button
                             size="sm"
@@ -212,12 +205,12 @@ export default function SettingsPage() {
       <Card className="border-yellow-200 bg-yellow-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-yellow-600" />
             <div>
               <p className="font-medium text-yellow-800">Important</p>
               <p className="text-sm text-yellow-700">
-                Changes to system settings may affect all users. Some settings require a server restart to take effect.
-                Always test changes in a development environment first.
+                Changes to system settings may affect all users. Some settings require a server
+                restart to take effect. Always test changes in a development environment first.
               </p>
             </div>
           </div>

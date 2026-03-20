@@ -38,7 +38,7 @@ export class AISecurityManager {
         /from now on.*you are.*developer/gi,
         /new instructions.*ignore.*previous/gi,
         /system prompt.*override/gi,
-        /override.*all.*security.*rules/gi
+        /override.*all.*security.*rules/gi,
       ]
 
       for (const pattern of systemPrompts) {
@@ -51,7 +51,7 @@ export class AISecurityManager {
         /you.*are.*now.*assistant.*system/gi,
         /mode.*system.*administrator/gi,
         /bypass.*all.*restrictions/gi,
-        /unlock.*all.*capabilities/gi
+        /unlock.*all.*capabilities/gi,
       ]
 
       for (const pattern of jailbreakPatterns) {
@@ -67,7 +67,7 @@ export class AISecurityManager {
         /system\s+/gi,
         /shell\s+/gi,
         /bash\.*execute/gi,
-        /powershell\.*run/gi
+        /powershell\.*run/gi,
       ]
 
       for (const pattern of commandInjection) {
@@ -82,7 +82,7 @@ export class AISecurityManager {
         /onload\s*=/gi,
         /onerror\s*=/gi,
         /onclick\s*=/gi,
-        /eval\s*\(/gi
+        /eval\s*\(/gi,
       ]
 
       for (const pattern of dangerousCode) {
@@ -95,7 +95,7 @@ export class AISecurityManager {
         /admin/gi,
         /system.*override/gi,
         /override.*security.*settings/gi,
-        /disable.*all.*protections/gi
+        /disable.*all.*protections/gi,
       ]
 
       for (const pattern of systemControl) {
@@ -118,22 +118,22 @@ export class AISecurityManager {
         metadata: {
           originalLength: input.length,
           sanitizedLength: sanitized.length,
-          patternsRemoved: systemPrompts.length + jailbreakPatterns.length + commandInjection.length
-        }
+          patternsRemoved:
+            systemPrompts.length + jailbreakPatterns.length + commandInjection.length,
+        },
       })
 
       return sanitized.trim()
-
     } catch (error) {
       securityLogger.logEvent({
         eventType: 'AI_SECURITY_ERROR',
         description: 'AI input sanitization error occurred',
         severity: 'MEDIUM',
         metadata: {
-          error: error.message
-        }
+          error: error.message,
+        },
       })
-      
+
       // Return safe, empty response on sanitization error
       return ''
     }
@@ -156,13 +156,13 @@ export class AISecurityManager {
           securityLogger.logEvent({
             eventType: 'STUDENT_HASH_CONFIG_ERROR',
             description: 'Missing NEXTAUTH_SECRET for student hashing in production',
-            severity: 'HIGH'
+            severity: 'HIGH',
           })
           return 'anonymous_student'
         }
       }
       const hashSecret = secret || 'dev-secret'
-      
+
       // Create deterministic hash for consistent anonymization
       return crypto
         .createHash('sha256')
@@ -170,17 +170,16 @@ export class AISecurityManager {
         .update(hashSecret)
         .digest('hex')
         .substring(0, 16) // 16-character anonymized ID
-
     } catch (error) {
       securityLogger.logEvent({
         eventType: 'STUDENT_HASH_ERROR',
         description: 'Student hash creation failed',
         severity: 'LOW',
         metadata: {
-          error: error.message
-        }
+          error: error.message,
+        },
       })
-      
+
       // Fallback to generic anonymous identifier
       return 'anonymous_student'
     }
@@ -202,7 +201,7 @@ export class AISecurityManager {
       return {
         isValid: false,
         issues: ['AI response is invalid'],
-        severity: 'HIGH'
+        severity: 'HIGH',
       }
     }
 
@@ -212,7 +211,7 @@ export class AISecurityManager {
       /self.?harm(\.*|\s+)+advice/gi,
       /violence(\.*|\s+)+instructions/gi,
       /how.?to.?harm.+yourself/gi,
-      /end.?it.?all/gi
+      /end.?it.?all/gi,
     ]
 
     for (const pattern of inappropriatePatterns) {
@@ -227,7 +226,7 @@ export class AISecurityManager {
     const piiPatterns = [
       /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/i,
       /\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
-      /\b\d{3}-\d{2}-\d{4}\b/g
+      /\b\d{3}-\d{2}-\d{4}\b/g,
     ]
 
     for (const pattern of piiPatterns) {
@@ -248,7 +247,7 @@ export class AISecurityManager {
       /eval\s*\(/gi,
       /system\s*\(/gi,
       /download.*malicious/gi,
-      /install.*virus/gi
+      /install.*virus/gi,
     ]
 
     for (const pattern of maliciousContent) {
@@ -273,15 +272,15 @@ export class AISecurityManager {
         severity: severity,
         metadata: {
           issues: issues,
-          responseLength: response.length
-        }
+          responseLength: response.length,
+        },
       })
     }
 
     return {
       isValid: issues.length === 0,
       issues,
-      severity
+      severity,
     }
   }
 
@@ -296,20 +295,20 @@ export class AISecurityManager {
   ): { systemPrompt: string; userPrompt: string } {
     // Anonymize student identifier
     const studentHash = this.createStudentHash(studentId)
-    
+
     // Sanitize the question
     const sanitizedQuestion = this.sanitizeAiInput(question)
-    
+
     if (sanitizedQuestion.length === 0) {
       return {
         systemPrompt: this.createProtectedSystemPrompt(subject, gradeLevel),
-        userPrompt: 'Student provided invalid input - please redirect to proper input format'
+        userPrompt: 'Student provided invalid input - please redirect to proper input format',
       }
     }
 
     return {
       systemPrompt: this.createProtectedSystemPrompt(subject, gradeLevel, studentHash),
-      userPrompt: `Student ${studentHash} asks: "${sanitizedQuestion}"`
+      userPrompt: `Student ${studentHash} asks: "${sanitizedQuestion}"`,
     }
   }
 

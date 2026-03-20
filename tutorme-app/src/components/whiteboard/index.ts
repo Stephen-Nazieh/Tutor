@@ -1,6 +1,6 @@
 /**
  * Whiteboard Advanced Components
- * 
+ *
  * UI components for the 12 advanced whiteboard features.
  */
 

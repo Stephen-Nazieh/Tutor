@@ -28,7 +28,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       .from(curriculumEnrollment)
       .where(eq(curriculumEnrollment.studentId, requesterId))
 
-    const curriculumIds = enrollments.map((e) => e.curriculumId)
+    const curriculumIds = enrollments.map(e => e.curriculumId)
     if (curriculumIds.length === 0) {
       return NextResponse.json({ results: [] })
     }
@@ -37,13 +37,13 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       .select({ tutorId: curriculum.creatorId })
       .from(curriculum)
       .where(inArray(curriculum.id, curriculumIds))
-    const tutorIds = tutors.map((t) => t.tutorId).filter(Boolean) as string[]
+    const tutorIds = tutors.map(t => t.tutorId).filter(Boolean) as string[]
 
     const peers = await drizzleDb
       .select({ studentId: curriculumEnrollment.studentId })
       .from(curriculumEnrollment)
       .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
-    const peerIds = peers.map((p) => p.studentId)
+    const peerIds = peers.map(p => p.studentId)
 
     allowedUserIds = Array.from(new Set([...tutorIds, ...peerIds]))
   } else if (role === 'TUTOR') {
@@ -51,7 +51,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
       .select({ id: curriculum.id })
       .from(curriculum)
       .where(eq(curriculum.creatorId, requesterId))
-    const curriculumIds = curricula.map((c) => c.id)
+    const curriculumIds = curricula.map(c => c.id)
     if (curriculumIds.length === 0) {
       allowedUserIds = [requesterId]
     } else {
@@ -59,7 +59,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
         .select({ studentId: curriculumEnrollment.studentId })
         .from(curriculumEnrollment)
         .where(inArray(curriculumEnrollment.curriculumId, curriculumIds))
-      const studentIds = students.map((s) => s.studentId)
+      const studentIds = students.map(s => s.studentId)
       allowedUserIds = Array.from(new Set([requesterId, ...studentIds]))
     }
   } else if (role === 'ADMIN') {
@@ -69,10 +69,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   }
 
   const nameOrHandle = query
-    ? or(
-        ilike(profile.name, namePattern),
-        ilike(user.handle, handlePattern)
-      )
+    ? or(ilike(profile.name, namePattern), ilike(user.handle, handlePattern))
     : undefined
   const accessCondition = allowedUserIds ? inArray(user.id, allowedUserIds) : undefined
 
@@ -87,7 +84,9 @@ export const GET = withAuth(async (req: NextRequest, session) => {
     .leftJoin(profile, eq(profile.userId, user.id))
     .where(
       nameOrHandle
-        ? (accessCondition ? and(nameOrHandle, accessCondition) : nameOrHandle)
+        ? accessCondition
+          ? and(nameOrHandle, accessCondition)
+          : nameOrHandle
         : accessCondition
     )
     .orderBy(asc(profile.name))
@@ -96,7 +95,7 @@ export const GET = withAuth(async (req: NextRequest, session) => {
   const results = await baseQuery
 
   return NextResponse.json({
-    results: results.map((r) => ({
+    results: results.map(r => ({
       id: r.id,
       handle: r.handle,
       displayName: r.displayName ?? r.handle ?? 'User',

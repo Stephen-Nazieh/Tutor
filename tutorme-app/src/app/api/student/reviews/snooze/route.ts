@@ -9,31 +9,20 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { reviewId, days = 1 } = body
 
     if (!reviewId) {
-      return NextResponse.json(
-        { success: false, error: 'Review ID required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'Review ID required' }, { status: 400 })
     }
 
     const [schedule] = await drizzleDb
       .select()
       .from(reviewSchedule)
-      .where(
-        and(
-          eq(reviewSchedule.id, reviewId),
-          eq(reviewSchedule.studentId, session.user.id)
-        )
-      )
+      .where(and(eq(reviewSchedule.id, reviewId), eq(reviewSchedule.studentId, session.user.id)))
       .limit(1)
 
     if (!schedule) {
@@ -63,9 +52,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error snoozing review:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to snooze review' },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: 'Failed to snooze review' }, { status: 500 })
   }
 }

@@ -21,7 +21,15 @@ interface UsePdfCollabSocketArgs {
   onPresenceState?: (payload: { roomId: string; participants: PdfParticipant[] }) => void
 }
 
-export function usePdfCollabSocket({ roomId, userId, name, role = 'tutor', onCanvasEvent, onCanvasState, onPresenceState }: UsePdfCollabSocketArgs) {
+export function usePdfCollabSocket({
+  roomId,
+  userId,
+  name,
+  role = 'tutor',
+  onCanvasEvent,
+  onCanvasState,
+  onPresenceState,
+}: UsePdfCollabSocketArgs) {
   const { socket, isConnected } = useSimpleSocket(roomId, {
     userId,
     name,

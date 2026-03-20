@@ -32,7 +32,7 @@ export async function getAllFeatureFlags(): Promise<FeatureFlagRow[]> {
     .from(featureFlag)
     .where(isNull(featureFlag.deletedAt))
     .orderBy(asc(featureFlag.key))
-  flagsCache = new Map(flags.map((f) => [f.key, f]))
+  flagsCache = new Map(flags.map(f => [f.key, f]))
   cacheTimestamp = Date.now()
   return flags
 }
@@ -70,7 +70,7 @@ export async function checkFeatures(
   context?: FlagEvaluationContext
 ): Promise<Record<string, boolean>> {
   const flags = await getAllFeatureFlags()
-  const flagMap = new Map(flags.map((f) => [f.key, f]))
+  const flagMap = new Map(flags.map(f => [f.key, f]))
   const results: Record<string, boolean> = {}
   for (const key of keys) {
     const flag = flagMap.get(key)
@@ -135,7 +135,11 @@ export async function updateFeatureFlag(
   adminSession: AdminSession,
   changeReason?: string
 ): Promise<FeatureFlagRow> {
-  const [previousFlag] = await drizzleDb.select().from(featureFlag).where(eq(featureFlag.id, id)).limit(1)
+  const [previousFlag] = await drizzleDb
+    .select()
+    .from(featureFlag)
+    .where(eq(featureFlag.id, id))
+    .limit(1)
   if (!previousFlag) throw new Error('Feature flag not found')
   await drizzleDb.insert(featureFlagChange).values({
     id: crypto.randomUUID(),
@@ -226,19 +230,73 @@ export const DefaultFeatureFlags = {
 
 export async function initializeDefaultFeatureFlags(adminId: string): Promise<void> {
   const defaults = [
-    { key: DefaultFeatureFlags.AI_TUTOR_ENABLED, name: 'AI Tutor', description: 'Enable AI tutoring features', enabled: true },
-    { key: DefaultFeatureFlags.AI_TUTOR_SOCRATIC_MODE, name: 'Socratic Mode', description: 'Use Socratic questioning method', enabled: true },
-    { key: DefaultFeatureFlags.AI_TUTOR_REAL_TIME_FEEDBACK, name: 'Real-time Feedback', description: 'Provide instant feedback during AI tutoring', enabled: true },
-    { key: DefaultFeatureFlags.LIVE_WHITEBOARD, name: 'Live Whiteboard', description: 'Enable whiteboard in live sessions', enabled: true },
-    { key: DefaultFeatureFlags.LIVE_BREAKOUT_ROOMS, name: 'Breakout Rooms', description: 'Enable breakout rooms for group work', enabled: true },
-    { key: DefaultFeatureFlags.CONTENT_QUIZZES, name: 'Content Quizzes', description: 'Enable quizzes in video content', enabled: true },
-    { key: DefaultFeatureFlags.GAMIFICATION_ENABLED, name: 'Gamification', description: 'Enable gamification features', enabled: true },
-    { key: DefaultFeatureFlags.STUDY_GROUPS, name: 'Study Groups', description: 'Enable study group features', enabled: true },
-    { key: DefaultFeatureFlags.PAYMENTS_ENABLED, name: 'Payments', description: 'Enable payment processing', enabled: false },
-    { key: DefaultFeatureFlags.SUBSCRIPTIONS_ENABLED, name: 'Subscriptions', description: 'Enable subscription plans', enabled: false },
+    {
+      key: DefaultFeatureFlags.AI_TUTOR_ENABLED,
+      name: 'AI Tutor',
+      description: 'Enable AI tutoring features',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.AI_TUTOR_SOCRATIC_MODE,
+      name: 'Socratic Mode',
+      description: 'Use Socratic questioning method',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.AI_TUTOR_REAL_TIME_FEEDBACK,
+      name: 'Real-time Feedback',
+      description: 'Provide instant feedback during AI tutoring',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.LIVE_WHITEBOARD,
+      name: 'Live Whiteboard',
+      description: 'Enable whiteboard in live sessions',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.LIVE_BREAKOUT_ROOMS,
+      name: 'Breakout Rooms',
+      description: 'Enable breakout rooms for group work',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.CONTENT_QUIZZES,
+      name: 'Content Quizzes',
+      description: 'Enable quizzes in video content',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.GAMIFICATION_ENABLED,
+      name: 'Gamification',
+      description: 'Enable gamification features',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.STUDY_GROUPS,
+      name: 'Study Groups',
+      description: 'Enable study group features',
+      enabled: true,
+    },
+    {
+      key: DefaultFeatureFlags.PAYMENTS_ENABLED,
+      name: 'Payments',
+      description: 'Enable payment processing',
+      enabled: false,
+    },
+    {
+      key: DefaultFeatureFlags.SUBSCRIPTIONS_ENABLED,
+      name: 'Subscriptions',
+      description: 'Enable subscription plans',
+      enabled: false,
+    },
   ]
   for (const flag of defaults) {
-    const [existing] = await drizzleDb.select().from(featureFlag).where(eq(featureFlag.key, flag.key)).limit(1)
+    const [existing] = await drizzleDb
+      .select()
+      .from(featureFlag)
+      .where(eq(featureFlag.key, flag.key))
+      .limit(1)
     if (!existing) {
       await drizzleDb.insert(featureFlag).values({
         id: crypto.randomUUID(),

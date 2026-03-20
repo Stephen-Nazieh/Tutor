@@ -24,10 +24,20 @@ export async function batchLoadUsers(userIds: string[]) {
       if (userIds.length === 0) return []
       const users = await drizzleDb.select().from(user).where(inArray(user.id, userIds))
       const profiles =
-        users.length > 0 ? await drizzleDb.select().from(profile).where(inArray(profile.userId, users.map((u) => u.id))) : []
-      const profileMap = new Map(profiles.map((p) => [p.userId, p]))
+        users.length > 0
+          ? await drizzleDb
+              .select()
+              .from(profile)
+              .where(
+                inArray(
+                  profile.userId,
+                  users.map(u => u.id)
+                )
+              )
+          : []
+      const profileMap = new Map(profiles.map(p => [p.userId, p]))
       const userMap = new Map(
-        users.map((u) => [
+        users.map(u => [
           u.id,
           {
             ...u,
@@ -41,7 +51,7 @@ export async function batchLoadUsers(userIds: string[]) {
           },
         ])
       )
-      return userIds.map((id) => userMap.get(id) ?? null)
+      return userIds.map(id => userMap.get(id) ?? null)
     },
     300
   )
@@ -53,9 +63,12 @@ export async function batchLoadProfiles(userIds: string[]) {
     cacheKey,
     async () => {
       if (userIds.length === 0) return []
-      const profiles = await drizzleDb.select().from(profile).where(inArray(profile.userId, userIds))
-      const profileMap = new Map(profiles.map((p) => [p.userId, p]))
-      return userIds.map((id) => profileMap.get(id) ?? null)
+      const profiles = await drizzleDb
+        .select()
+        .from(profile)
+        .where(inArray(profile.userId, userIds))
+      const profileMap = new Map(profiles.map(p => [p.userId, p]))
+      return userIds.map(id => profileMap.get(id) ?? null)
     },
     300
   )
@@ -63,8 +76,8 @@ export async function batchLoadProfiles(userIds: string[]) {
 
 export async function batchLoadContentProgress(keys: { userId: string; contentId: string }[]) {
   if (keys.length === 0) return []
-  const userIds = [...new Set(keys.map((k) => k.userId))]
-  const contentIds = [...new Set(keys.map((k) => k.contentId))]
+  const userIds = [...new Set(keys.map(k => k.userId))]
+  const contentIds = [...new Set(keys.map(k => k.contentId))]
   const cacheKey = `${userIds.join(',')}:${contentIds.join(',')}`
 
   return cache.getOrSet(
@@ -74,9 +87,9 @@ export async function batchLoadContentProgress(keys: { userId: string; contentId
         .select()
         .from(contentProgress)
         .where(inArray(contentProgress.studentId, userIds))
-      const progressFiltered = progress.filter((p) => contentIds.includes(p.contentId))
-      const map = new Map(progressFiltered.map((p) => [`${p.studentId}:${p.contentId}`, p]))
-      return keys.map((key) => map.get(`${key.userId}:${key.contentId}`) ?? null)
+      const progressFiltered = progress.filter(p => contentIds.includes(p.contentId))
+      const map = new Map(progressFiltered.map(p => [`${p.studentId}:${p.contentId}`, p]))
+      return keys.map(key => map.get(`${key.userId}:${key.contentId}`) ?? null)
     },
     60
   )
@@ -99,7 +112,7 @@ export async function batchLoadClassesByTutor(tutorIds: string[]) {
         if (!grouped.has(c.tutorId)) grouped.set(c.tutorId, [])
         grouped.get(c.tutorId)!.push(c)
       }
-      return tutorIds.map((id) => grouped.get(id) ?? [])
+      return tutorIds.map(id => grouped.get(id) ?? [])
     },
     120
   )
@@ -111,15 +124,27 @@ export async function batchLoadBookingsByClass(classIds: string[]) {
     cacheKey,
     async () => {
       if (classIds.length === 0) return classIds.map(() => [])
-      const bookings = await drizzleDb.select().from(clinicBooking).where(inArray(clinicBooking.clinicId, classIds))
-      const studentIds = [...new Set(bookings.map((b) => b.studentId))]
+      const bookings = await drizzleDb
+        .select()
+        .from(clinicBooking)
+        .where(inArray(clinicBooking.clinicId, classIds))
+      const studentIds = [...new Set(bookings.map(b => b.studentId))]
       const profiles =
-        studentIds.length > 0 ? await drizzleDb.select().from(profile).where(inArray(profile.userId, studentIds)) : []
-      const profileMap = new Map(profiles.map((p) => [p.userId, p]))
-      const users = studentIds.length > 0 ? await drizzleDb.select().from(user).where(inArray(user.id, studentIds)) : []
-      const userMap = new Map(users.map((u) => [u.id, u]))
+        studentIds.length > 0
+          ? await drizzleDb.select().from(profile).where(inArray(profile.userId, studentIds))
+          : []
+      const profileMap = new Map(profiles.map(p => [p.userId, p]))
+      const users =
+        studentIds.length > 0
+          ? await drizzleDb.select().from(user).where(inArray(user.id, studentIds))
+          : []
+      const userMap = new Map(users.map(u => [u.id, u]))
       type BookingWithStudent = (typeof bookings)[0] & {
-        student: { id: string; email: string; profile: { name: string | null; avatarUrl: string | null } | null } | null
+        student: {
+          id: string
+          email: string
+          profile: { name: string | null; avatarUrl: string | null } | null
+        } | null
       }
       const grouped = new Map<string, BookingWithStudent[]>()
       for (const b of bookings) {
@@ -131,14 +156,17 @@ export async function batchLoadBookingsByClass(classIds: string[]) {
                 id: b.studentId,
                 email: userMap.get(b.studentId)!.email,
                 profile: profileMap.get(b.studentId)
-                  ? { name: profileMap.get(b.studentId)!.name, avatarUrl: profileMap.get(b.studentId)!.avatarUrl }
+                  ? {
+                      name: profileMap.get(b.studentId)!.name,
+                      avatarUrl: profileMap.get(b.studentId)!.avatarUrl,
+                    }
                   : null,
               }
             : null,
         }
         grouped.get(b.clinicId)!.push(item)
       }
-      return classIds.map((id) => grouped.get(id) ?? [])
+      return classIds.map(id => grouped.get(id) ?? [])
     },
     60
   )
@@ -150,9 +178,12 @@ export async function batchLoadGamification(userIds: string[]) {
     cacheKey,
     async () => {
       if (userIds.length === 0) return []
-      const stats = await drizzleDb.select().from(userGamification).where(inArray(userGamification.userId, userIds))
-      const statsMap = new Map(stats.map((s) => [s.userId, s]))
-      return userIds.map((id) => statsMap.get(id) ?? null)
+      const stats = await drizzleDb
+        .select()
+        .from(userGamification)
+        .where(inArray(userGamification.userId, userIds))
+      const statsMap = new Map(stats.map(s => [s.userId, s]))
+      return userIds.map(id => statsMap.get(id) ?? null)
     },
     60
   )
@@ -174,7 +205,7 @@ export async function batchLoadAchievements(userIds: string[]) {
         if (!grouped.has(a.userId)) grouped.set(a.userId, [])
         grouped.get(a.userId)!.push(a)
       }
-      return userIds.map((id) => grouped.get(id) ?? [])
+      return userIds.map(id => grouped.get(id) ?? [])
     },
     300
   )
@@ -195,7 +226,7 @@ export async function batchLoadEnrollments(userIds: string[]) {
         if (!grouped.has(e.studentId)) grouped.set(e.studentId, [])
         grouped.get(e.studentId)!.push(e)
       }
-      return userIds.map((id) => grouped.get(id) ?? [])
+      return userIds.map(id => grouped.get(id) ?? [])
     },
     120
   )
@@ -215,8 +246,8 @@ export function createBatchLoader<T, K>(
       cacheKey,
       async () => {
         const items = await fetchFn(uniqueIds)
-        const itemMap = new Map(items.map((item) => [getId(item), item]))
-        return ids.map((id) => itemMap.get(id) ?? null)
+        const itemMap = new Map(items.map(item => [getId(item), item]))
+        return ids.map(id => itemMap.get(id) ?? null)
       },
       ttlSeconds
     )

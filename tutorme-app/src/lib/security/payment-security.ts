@@ -15,7 +15,7 @@ import crypto from 'crypto'
 export interface PaymentValidationResult {
   isValid: boolean
   errors: string[]
-  warnings: string[]  
+  warnings: string[]
   fraudLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   riskFactors: string[]
 }
@@ -36,19 +36,16 @@ export class PaymentSecurityValidator {
     MAX_TRANSACTIONS_PER_DAY: 50,
     DUPLICATE_TIME_LIMIT: 60000, // 1 minute
     SUSPICIOUS_TIME_WINDOW: 300000, // 5 minutes for rapid-fire
-    EXPIRY_TIME_LIMIT: 30 * 60 * 1000 // 30 minutes for timestamps
+    EXPIRY_TIME_LIMIT: 30 * 60 * 1000, // 30 minutes for timestamps
   }
 
   private static readonly SUSPICIOUS_IPS = new Set([
     '192.168.1.1', // Example (in practice, use a real threat feed)
     '127.0.0.1',
-    '::1'
+    '::1',
   ])
 
-  private static readonly SUSPICIOUS_DOMAINS = new Set([
-    'tempmail.com',
-    '10minutemail.com'
-  ])
+  private static readonly SUSPICIOUS_DOMAINS = new Set(['tempmail.com', '10minutemail.com'])
 
   private static readonly WEBHOOK_REPLAY_TTL_MS = 5 * 60 * 1000
   private static webhookReplayCache = new Map<string, number>()
@@ -116,7 +113,7 @@ export class PaymentSecurityValidator {
       const deviceValidation = await this.validateDeviceContext({
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
-        studentId: data.studentId
+        studentId: data.studentId,
       })
 
       if (deviceValidation.isSuspicious) {
@@ -141,7 +138,6 @@ export class PaymentSecurityValidator {
 
       // Risk scoring
       const riskScore = this.calculateRiskScore(fraudLevel, riskFactors.length)
-
     } catch (error) {
       securityLogger.logEvent({
         eventType: 'PAYMENT_VALIDATION_ERROR',
@@ -150,8 +146,8 @@ export class PaymentSecurityValidator {
         metadata: {
           error: error.message,
           studentId: data.studentId,
-          amount: data.amount
-        }
+          amount: data.amount,
+        },
       })
 
       errors.push('Payment validation encountered technical error')
@@ -163,7 +159,7 @@ export class PaymentSecurityValidator {
       errors,
       warnings,
       fraudLevel,
-      riskFactors
+      riskFactors,
     }
   }
 
@@ -171,7 +167,7 @@ export class PaymentSecurityValidator {
    * Enhanced webhook security validation
    */
   static async validateWebhook(request: {
-    headers: Record<string, string | undefined> 
+    headers: Record<string, string | undefined>
     body: string
     signature?: string
     timestamp?: string
@@ -237,10 +233,9 @@ export class PaymentSecurityValidator {
           currentTime,
           isReplay,
           isTampered,
-          errors: errors.length
-        }
+          errors: errors.length,
+        },
       })
-
     } catch (error) {
       securityLogger.logEvent({
         eventType: 'WEBHOOK_VALIDATION_ERROR',
@@ -248,8 +243,8 @@ export class PaymentSecurityValidator {
         severity: 'HIGH',
         metadata: {
           error: error.message,
-          gateway: request.gateway
-        }
+          gateway: request.gateway,
+        },
       })
       errors.push('Webhook validation encountered technical error')
     }
@@ -260,7 +255,7 @@ export class PaymentSecurityValidator {
       isTampered,
       errors,
       timestamp,
-      signature: request.signature || 'unknown'
+      signature: request.signature || 'unknown',
     }
   }
 
@@ -315,18 +310,17 @@ export class PaymentSecurityValidator {
         .select({ id: clinicBooking.id })
         .from(clinicBooking)
         .where(eq(clinicBooking.studentId, studentId))
-      const ids = bookingRows.map((b) => b.id)
+      const ids = bookingRows.map(b => b.id)
       const conditions =
         ids.length > 0
-          ? or(
-              sql`(metadata->>'studentId') = ${studentId}`,
-              inArray(payment.bookingId, ids)
-            )
+          ? or(sql`(metadata->>'studentId') = ${studentId}`, inArray(payment.bookingId, ids))
           : sql`(metadata->>'studentId') = ${studentId}`
       const [recentRow] = await drizzleDb
         .select({ count: sql<number>`count(*)::int` })
         .from(payment)
-        .where(and(conditions, gte(payment.createdAt, cutoffRecent), eq(payment.status, 'COMPLETED')))
+        .where(
+          and(conditions, gte(payment.createdAt, cutoffRecent), eq(payment.status, 'COMPLETED'))
+        )
       const recentCount = recentRow?.count ?? 0
 
       if (recentCount >= 3) {
@@ -368,7 +362,6 @@ export class PaymentSecurityValidator {
         isSuspicious = true
         fraudLevel = 'CRITICAL'
       }
-
     } catch (error) {
       securityLogger.logEvent({
         eventType: 'VELOCITY_CHECK_ERROR',
@@ -376,8 +369,8 @@ export class PaymentSecurityValidator {
         severity: 'MEDIUM',
         metadata: {
           error: error.message,
-          studentId
-        }
+          studentId,
+        },
       })
     }
 
@@ -414,7 +407,7 @@ export class PaymentSecurityValidator {
           .select({ id: clinicBooking.id })
           .from(clinicBooking)
           .where(eq(clinicBooking.studentId, data.studentId))
-      ).map((b) => b.id)
+      ).map(b => b.id)
       const payCondition =
         studentBookingIds.length > 0
           ? or(
@@ -425,12 +418,17 @@ export class PaymentSecurityValidator {
       const recentPayments = await drizzleDb
         .select()
         .from(payment)
-        .where(and(payCondition, eq(payment.status, 'COMPLETED'), gte(payment.createdAt, weekCutoff)))
+        .where(
+          and(payCondition, eq(payment.status, 'COMPLETED'), gte(payment.createdAt, weekCutoff))
+        )
         .orderBy(desc(payment.createdAt))
         .limit(1)
       const paymentRow = recentPayments[0]
 
-      if (paymentRow && (paymentRow.metadata as Record<string, unknown>)?.ipAddress !== data.ipAddress) {
+      if (
+        paymentRow &&
+        (paymentRow.metadata as Record<string, unknown>)?.ipAddress !== data.ipAddress
+      ) {
         issues.push('Different IP address detected from recent transaction')
         isSuspicious = true
         fraudLevel = 'MEDIUM'
@@ -440,12 +438,14 @@ export class PaymentSecurityValidator {
         const recentPaymentsForDevice = await drizzleDb
           .select({ metadata: payment.metadata })
           .from(payment)
-          .where(and(payCondition, eq(payment.status, 'COMPLETED'), gte(payment.createdAt, weekCutoff)))
+          .where(
+            and(payCondition, eq(payment.status, 'COMPLETED'), gte(payment.createdAt, weekCutoff))
+          )
           .orderBy(desc(payment.createdAt))
           .limit(5)
 
         const consistentDevice = recentPaymentsForDevice.every(
-          (p) => (p.metadata as Record<string, unknown>)?.userAgent === data.userAgent
+          p => (p.metadata as Record<string, unknown>)?.userAgent === data.userAgent
         )
         if (!consistentDevice && recentPaymentsForDevice.length >= 3) {
           issues.push('Inconsistent device fingerprint detected')
@@ -453,7 +453,6 @@ export class PaymentSecurityValidator {
           fraudLevel = 'MEDIUM'
         }
       }
-
     } catch (error) {
       securityLogger.logEvent({
         eventType: 'DEVICE_VALIDATION_ERROR',
@@ -461,8 +460,8 @@ export class PaymentSecurityValidator {
         severity: 'LOW',
         metadata: {
           error: error.message,
-          studentId: data.studentId
-        }
+          studentId: data.studentId,
+        },
       })
     }
 
@@ -473,7 +472,7 @@ export class PaymentSecurityValidator {
    * Helper functions for various validation checks
    */
   private static isLoopbackAddress(ip: string): boolean {
-    return ['/127.', '/192.168.', '/10.', '/172.', 'localhost', '::1'].some(prefix => 
+    return ['/127.', '/192.168.', '/10.', '/172.', 'localhost', '::1'].some(prefix =>
       ip.includes(prefix.replace('/', ''))
     )
   }
@@ -485,7 +484,9 @@ export class PaymentSecurityValidator {
     const levels = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 }
     const numericCurrent = levels[current]
     const numericUpgrade = levels[upgrade]
-    return Object.keys(levels).find(key => levels[key] === Math.max(numericCurrent, numericUpgrade)) as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+    return Object.keys(levels).find(
+      key => levels[key] === Math.max(numericCurrent, numericUpgrade)
+    ) as 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   }
 
   private static calculateRiskScore(fraudLevel: string, riskFactorCount: number): number {
@@ -496,7 +497,10 @@ export class PaymentSecurityValidator {
   }
 
   // Placeholder implementations for comprehensive validation
-  private static async userQueryExists(queryFunction: () => Promise<boolean>, description: string): Promise<boolean> {
+  private static async userQueryExists(
+    queryFunction: () => Promise<boolean>,
+    description: string
+  ): Promise<boolean> {
     try {
       return await queryFunction()
     } catch (error) {
@@ -504,13 +508,17 @@ export class PaymentSecurityValidator {
         eventType: 'PAYMENT_VALIDATION_QUERY_ERROR',
         description: `Validation query failed: ${description}`,
         severity: 'LOW',
-        metadata: { error: error.message }
+        metadata: { error: error.message },
       })
       return true // Conservative approach - assume risk when queries fail
     }
   }
 
-  private static async checkAmountFrequency(studentId: string, amount: number, currency: string): Promise<{
+  private static async checkAmountFrequency(
+    studentId: string,
+    amount: number,
+    currency: string
+  ): Promise<{
     isSuspicious: boolean
     warning: string
   }> {
@@ -518,15 +526,17 @@ export class PaymentSecurityValidator {
       const dayCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000)
       const [row] = await drizzleDb
         .select({
-          count: sql<number>`count(*)`
+          count: sql<number>`count(*)`,
         })
         .from(payment)
-        .where(and(
-          gte(payment.createdAt, dayCutoff),
-          eq(payment.currency, currency),
-          eq(payment.amount, amount),
-          sql`((${payment.metadata}->>'studentId') = ${studentId} OR (${payment.metadata}->>'payerId') = ${studentId})`
-        ))
+        .where(
+          and(
+            gte(payment.createdAt, dayCutoff),
+            eq(payment.currency, currency),
+            eq(payment.amount, amount),
+            sql`((${payment.metadata}->>'studentId') = ${studentId} OR (${payment.metadata}->>'payerId') = ${studentId})`
+          )
+        )
         .limit(1)
 
       const count = row?.count ?? 0
@@ -538,14 +548,17 @@ export class PaymentSecurityValidator {
         eventType: 'AMOUNT_FREQUENCY_CHECK_ERROR',
         description: 'Failed to check amount frequency',
         severity: 'LOW',
-        metadata: { error: error.message, studentId }
+        metadata: { error: error.message, studentId },
       })
     }
 
     return { isSuspicious: false, warning: '' }
   }
 
-  private static async validateUserProfile(studentId: string, email?: string): Promise<{
+  private static async validateUserProfile(
+    studentId: string,
+    email?: string
+  ): Promise<{
     isSuspicious: boolean
     issues: string[]
     fraudLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
@@ -591,7 +604,7 @@ export class PaymentSecurityValidator {
         eventType: 'USER_PROFILE_VALIDATION_ERROR',
         description: 'User profile validation failed',
         severity: 'LOW',
-        metadata: { error: error.message, studentId }
+        metadata: { error: error.message, studentId },
       })
     }
 
@@ -612,12 +625,14 @@ export class PaymentSecurityValidator {
       const [existing] = await drizzleDb
         .select()
         .from(payment)
-        .where(and(
-          gte(payment.createdAt, cutoff),
-          eq(payment.amount, data.amount),
-          eq(payment.currency, data.currency),
-          sql`((${payment.metadata}->>'studentId') = ${data.studentId} OR (${payment.metadata}->>'payerId') = ${data.studentId})`
-        ))
+        .where(
+          and(
+            gte(payment.createdAt, cutoff),
+            eq(payment.amount, data.amount),
+            eq(payment.currency, data.currency),
+            sql`((${payment.metadata}->>'studentId') = ${data.studentId} OR (${payment.metadata}->>'payerId') = ${data.studentId})`
+          )
+        )
         .limit(1)
 
       if (existing) {
@@ -628,7 +643,7 @@ export class PaymentSecurityValidator {
         eventType: 'DUPLICATE_CHECK_ERROR',
         description: 'Failed to check duplicate payments',
         severity: 'LOW',
-        metadata: { error: error.message, studentId: data.studentId }
+        metadata: { error: error.message, studentId: data.studentId },
       })
     }
 
@@ -653,11 +668,11 @@ export class PaymentSecurityValidator {
 
   private static validateWebhookIP(ipAddress: string): string[] {
     const errors: string[] = []
-    
+
     if (this.isLoopbackAddress(ipAddress)) {
       errors.push('Invalid webhook IP address')
     }
-    
+
     if (this.SUSPICIOUS_IPS.has(ipAddress)) {
       errors.push('Suspicious webhook IP address detected')
     }
@@ -694,13 +709,17 @@ export class PaymentSecurityValidator {
         if (expected.length !== signature.length) {
           return { isValid: false, errors: ['Invalid Hitpay signature'] }
         }
-        const isValid = crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+        const isValid = crypto.timingSafeEqual(
+          Buffer.from(expected, 'hex'),
+          Buffer.from(signature, 'hex')
+        )
         if (!isValid) errors.push('Invalid Hitpay signature')
         return { isValid, errors }
       }
 
       if (gateway === 'AIRWALLEX') {
-        const timestamp = request.headers['x-timestamp'] || request.headers['x-airwallex-timestamp'] || ''
+        const timestamp =
+          request.headers['x-timestamp'] || request.headers['x-airwallex-timestamp'] || ''
         if (!timestamp) {
           return { isValid: false, errors: ['Missing Airwallex timestamp'] }
         }
@@ -708,14 +727,20 @@ export class PaymentSecurityValidator {
         if (!secret) {
           return { isValid: false, errors: ['AIRWALLEX_WEBHOOK_SECRET not configured'] }
         }
-        const expected = crypto.createHmac('sha256', secret).update(`${timestamp}${request.body}`).digest('hex')
+        const expected = crypto
+          .createHmac('sha256', secret)
+          .update(`${timestamp}${request.body}`)
+          .digest('hex')
         if (expected.toLowerCase() === signature.toLowerCase()) {
           return { isValid: true, errors: [] }
         }
         if (expected.length !== signature.length) {
           return { isValid: false, errors: ['Invalid Airwallex signature'] }
         }
-        const isValid = crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+        const isValid = crypto.timingSafeEqual(
+          Buffer.from(expected, 'hex'),
+          Buffer.from(signature, 'hex')
+        )
         if (!isValid) errors.push('Invalid Airwallex signature')
         return { isValid, errors }
       }
@@ -765,7 +790,7 @@ export class PaymentSecurityValidator {
         securityLogger.logEvent({
           eventType: 'STUDENT_HASH_CONFIG_ERROR',
           description: 'Missing NEXTAUTH_SECRET for payment hashing in production',
-          severity: 'HIGH'
+          severity: 'HIGH',
         })
         return 'anonymous_student'
       }
@@ -781,19 +806,19 @@ export class PaymentSecurityValidator {
 
   static sanitizeAiInput(input: string): string {
     if (!input || typeof input !== 'string') return ''
-    
+
     // Remove prompt injection attempts
     const injectionPatterns = [
       /ignore.*previous.*instructions/gi,
       /system.*prompt.*override/gi,
-      /you.*are.*now.*admin/gi
+      /you.*are.*now.*admin/gi,
     ]
-    
+
     let sanitized = input
     injectionPatterns.forEach(pattern => {
       sanitized = sanitized.replace(pattern, '[BLOCKED]')
     })
-    
+
     return sanitized.trim()
   }
 }

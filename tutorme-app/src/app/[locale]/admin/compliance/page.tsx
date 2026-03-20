@@ -6,8 +6,19 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  Shield, ShieldCheck, ShieldAlert, Trash2, Download, Users,
-  Eye, Clock, AlertTriangle, CheckCircle2, XCircle, ExternalLink, RefreshCw
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
+  Trash2,
+  Download,
+  Users,
+  Eye,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  ExternalLink,
+  RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -75,7 +86,9 @@ const COMPLIANCE_BADGES = [
 
 function ComplianceBadge({ ok, label }: { ok: boolean; label: string }) {
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border font-medium ${ok ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${ok ? 'border-green-200 bg-green-50 text-green-700' : 'border-red-200 bg-red-50 text-red-700'}`}
+    >
       {ok ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
       {label}
     </span>
@@ -100,9 +113,14 @@ export default function CompliancePage() {
     }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
-  const processDeletion = async (requestId: string, action: 'approve_deletion' | 'reject_deletion') => {
+  const processDeletion = async (
+    requestId: string,
+    action: 'approve_deletion' | 'reject_deletion'
+  ) => {
     setProcessingId(requestId)
     try {
       const res = await fetch('/api/admin/compliance', {
@@ -123,32 +141,44 @@ export default function CompliancePage() {
     }
   }
 
-  const formatDate = (iso: string) => new Date(iso).toLocaleString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-  })
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-    </div>
-  )
+  if (loading)
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
 
   const s = data?.summary
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl">
+    <div className="max-w-7xl space-y-6 p-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-3xl font-bold">
             <Shield className="h-7 w-7 text-blue-600" />
             Privacy & Compliance
           </h1>
-          <p className="text-muted-foreground mt-1">
-            COPPA, FERPA & GDPR compliance dashboard — manage data rights, access logs, and third-party audits.
+          <p className="mt-1 text-muted-foreground">
+            COPPA, FERPA & GDPR compliance dashboard — manage data rights, access logs, and
+            third-party audits.
           </p>
-          <div className="flex gap-2 mt-3">
+          <div className="mt-3 flex gap-2">
             {COMPLIANCE_BADGES.map(b => (
-              <span key={b.label} className={`border text-xs px-3 py-1 rounded-full font-bold ${b.color}`}>{b.label} Active</span>
+              <span
+                key={b.label}
+                className={`rounded-full border px-3 py-1 text-xs font-bold ${b.color}`}
+              >
+                {b.label} Active
+              </span>
             ))}
           </div>
         </div>
@@ -158,10 +188,10 @@ export default function CompliancePage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card className={s?.pendingDeletionRequests ? 'border-red-200 bg-red-50' : ''}>
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
               <Trash2 className="h-4 w-4 text-red-500" /> Deletion Requests
             </CardTitle>
           </CardHeader>
@@ -173,7 +203,7 @@ export default function CompliancePage() {
 
         <Card>
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
               <CheckCircle2 className="h-4 w-4 text-green-500" /> Deletions Done
             </CardTitle>
           </CardHeader>
@@ -185,7 +215,7 @@ export default function CompliancePage() {
 
         <Card>
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
               <Download className="h-4 w-4 text-blue-500" /> Export Requests
             </CardTitle>
           </CardHeader>
@@ -197,19 +227,21 @@ export default function CompliancePage() {
 
         <Card className={s?.minorsWithoutParentalConsent ? 'border-amber-200 bg-amber-50' : ''}>
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
               <AlertTriangle className="h-4 w-4 text-amber-500" /> Minors (COPPA)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{s?.minorsWithoutParentalConsent ?? 0}</div>
+            <div className="text-2xl font-bold text-amber-600">
+              {s?.minorsWithoutParentalConsent ?? 0}
+            </div>
             <p className="text-xs text-muted-foreground">missing consent</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
               <Eye className="h-4 w-4 text-purple-500" /> 3rd Parties
             </CardTitle>
           </CardHeader>
@@ -221,12 +253,14 @@ export default function CompliancePage() {
 
         <Card className={s?.thirdPartyServicesNonCompliant ? 'border-orange-200 bg-orange-50' : ''}>
           <CardHeader className="pb-1">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
+            <CardTitle className="flex items-center gap-1 text-sm font-medium">
               <ShieldAlert className="h-4 w-4 text-orange-500" /> Non-Compliant
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{s?.thirdPartyServicesNonCompliant ?? 0}</div>
+            <div className="text-2xl font-bold text-orange-600">
+              {s?.thirdPartyServicesNonCompliant ?? 0}
+            </div>
             <p className="text-xs text-muted-foreground">3rd parties</p>
           </CardContent>
         </Card>
@@ -237,7 +271,9 @@ export default function CompliancePage() {
           <TabsTrigger value="deletions">
             Deletion Requests
             {(s?.pendingDeletionRequests ?? 0) > 0 && (
-              <Badge variant="destructive" className="ml-2 h-5 text-xs">{s?.pendingDeletionRequests}</Badge>
+              <Badge variant="destructive" className="ml-2 h-5 text-xs">
+                {s?.pendingDeletionRequests}
+              </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="access-log">Access Audit Log</TabsTrigger>
@@ -255,34 +291,46 @@ export default function CompliancePage() {
             </CardHeader>
             <CardContent>
               {(data?.pendingDeletions ?? []).length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <ShieldCheck className="h-10 w-10 mx-auto mb-2 text-green-400" />
+                <div className="py-8 text-center text-muted-foreground">
+                  <ShieldCheck className="mx-auto mb-2 h-10 w-10 text-green-400" />
                   No pending deletion requests. All caught up!
                 </div>
               ) : (
                 <div className="space-y-3">
                   {data?.pendingDeletions.map(r => (
-                    <div key={r.id} className="border rounded-lg p-4 space-y-2">
+                    <div key={r.id} className="space-y-2 rounded-lg border p-4">
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="text-sm font-medium">User: <code className="bg-muted px-1 rounded text-xs">{r.userId.slice(0, 12)}...</code></div>
-                          <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <div className="text-sm font-medium">
+                            User:{' '}
+                            <code className="rounded bg-muted px-1 text-xs">
+                              {r.userId.slice(0, 12)}...
+                            </code>
+                          </div>
+                          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" /> Requested: {formatDate(r.requestedAt)}
                           </div>
-                          {r.reason && <div className="text-xs text-muted-foreground mt-1">Reason: {r.reason}</div>}
+                          {r.reason && (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              Reason: {r.reason}
+                            </div>
+                          )}
                         </div>
-                        <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                        <Badge
+                          variant="outline"
+                          className="border-amber-300 bg-amber-50 text-amber-600"
+                        >
                           {r.status}
                         </Badge>
                       </div>
-                      <div className="flex gap-2 mt-2">
+                      <div className="mt-2 flex gap-2">
                         <Button
                           size="sm"
                           variant="destructive"
                           disabled={processingId === r.id}
                           onClick={() => processDeletion(r.id, 'approve_deletion')}
                         >
-                          <Trash2 className="h-3 w-3 mr-1" /> Approve & Queue
+                          <Trash2 className="mr-1 h-3 w-3" /> Approve & Queue
                         </Button>
                         <Button
                           size="sm"
@@ -290,7 +338,7 @@ export default function CompliancePage() {
                           disabled={processingId === r.id}
                           onClick={() => processDeletion(r.id, 'reject_deletion')}
                         >
-                          <XCircle className="h-3 w-3 mr-1" /> Reject
+                          <XCircle className="mr-1 h-3 w-3" /> Reject
                         </Button>
                       </div>
                     </div>
@@ -307,23 +355,26 @@ export default function CompliancePage() {
             <CardHeader>
               <CardTitle>PII Access Audit Log</CardTitle>
               <CardDescription>
-                FERPA compliance — who accessed what data, when. Hashed IPs, no actual data values stored.
+                FERPA compliance — who accessed what data, when. Hashed IPs, no actual data values
+                stored.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {(data?.recentPiiAccess ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No access events logged yet.</p>
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No access events logged yet.
+                </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2 pr-4 font-medium">Accessor</th>
-                        <th className="text-left py-2 pr-4 font-medium">Role</th>
-                        <th className="text-left py-2 pr-4 font-medium">Resource</th>
-                        <th className="text-left py-2 pr-4 font-medium">Action</th>
-                        <th className="text-left py-2 pr-4 font-medium">Endpoint</th>
-                        <th className="text-left py-2 font-medium">Time</th>
+                        <th className="py-2 pr-4 text-left font-medium">Accessor</th>
+                        <th className="py-2 pr-4 text-left font-medium">Role</th>
+                        <th className="py-2 pr-4 text-left font-medium">Resource</th>
+                        <th className="py-2 pr-4 text-left font-medium">Action</th>
+                        <th className="py-2 pr-4 text-left font-medium">Endpoint</th>
+                        <th className="py-2 text-left font-medium">Time</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -331,18 +382,32 @@ export default function CompliancePage() {
                         <tr key={log.id} className="border-b hover:bg-muted/50">
                           <td className="py-2 pr-4 font-mono">{log.accessorId.slice(0, 8)}...</td>
                           <td className="py-2 pr-4">
-                            <Badge variant="outline" className="text-xs">{log.accessorRole}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {log.accessorRole}
+                            </Badge>
                           </td>
                           <td className="py-2 pr-4 text-muted-foreground">{log.resourceType}</td>
                           <td className="py-2 pr-4">
-                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                              log.action === 'delete' ? 'bg-red-100 text-red-700' :
-                              log.action === 'export' ? 'bg-blue-100 text-blue-700' :
-                              log.action === 'read' ? 'bg-gray-100 text-gray-700' : 'bg-amber-100 text-amber-700'
-                            }`}>{log.action}</span>
+                            <span
+                              className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                                log.action === 'delete'
+                                  ? 'bg-red-100 text-red-700'
+                                  : log.action === 'export'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : log.action === 'read'
+                                      ? 'bg-gray-100 text-gray-700'
+                                      : 'bg-amber-100 text-amber-700'
+                              }`}
+                            >
+                              {log.action}
+                            </span>
                           </td>
-                          <td className="py-2 pr-4 font-mono text-muted-foreground">{log.endpoint}</td>
-                          <td className="py-2 text-muted-foreground whitespace-nowrap">{formatDate(log.accessedAt)}</td>
+                          <td className="py-2 pr-4 font-mono text-muted-foreground">
+                            {log.endpoint}
+                          </td>
+                          <td className="whitespace-nowrap py-2 text-muted-foreground">
+                            {formatDate(log.accessedAt)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -359,27 +424,38 @@ export default function CompliancePage() {
             <CardHeader>
               <CardTitle>Third-Party Service Audit</CardTitle>
               <CardDescription>
-                Phase 3 compliance — all external services that process student data must be EdTech compliant.
+                Phase 3 compliance — all external services that process student data must be EdTech
+                compliant.
               </CardDescription>
             </CardHeader>
             <CardContent>
               {(data?.thirdParties ?? []).length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No third-party services audited yet.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Add services via the database to track compliance.</p>
+                <div className="py-8 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No third-party services audited yet.
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Add services via the database to track compliance.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {data?.thirdParties.map(tp => (
-                    <div key={tp.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-3">
+                    <div key={tp.id} className="rounded-lg border p-4">
+                      <div className="mb-3 flex items-start justify-between">
                         <div>
                           <div className="font-medium">{tp.serviceName}</div>
-                          <Badge variant="secondary" className="mt-1 text-xs">{tp.category}</Badge>
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            {tp.category}
+                          </Badge>
                         </div>
                         {tp.privacyPolicyUrl && (
-                          <a href={tp.privacyPolicyUrl} target="_blank" rel="noopener noreferrer"
-                            className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                          <a
+                            href={tp.privacyPolicyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-xs text-blue-500 hover:underline"
+                          >
                             Privacy Policy <ExternalLink className="h-3 w-3" />
                           </a>
                         )}
@@ -390,32 +466,36 @@ export default function CompliancePage() {
                         <ComplianceBadge ok={tp.ferpaCompliant} label="FERPA" />
                         <ComplianceBadge ok={tp.dataProcessingAgreement} label="DPA Signed" />
                         {tp.noTrainingClause && (
-                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200 font-medium">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
                             <ShieldCheck className="h-3 w-3" /> No-Training Clause
                           </span>
                         )}
                       </div>
-                      {tp.notes && <p className="text-xs text-muted-foreground mt-2">{tp.notes}</p>}
-                      <p className="text-xs text-muted-foreground mt-2">Last audited: {formatDate(tp.lastAuditedAt)}</p>
+                      {tp.notes && <p className="mt-2 text-xs text-muted-foreground">{tp.notes}</p>}
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Last audited: {formatDate(tp.lastAuditedAt)}
+                      </p>
                     </div>
                   ))}
                 </div>
               )}
 
               {/* Default third-party services info box */}
-              <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
-                <h4 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+              <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-blue-800">
                   <Shield className="h-4 w-4" /> Configured AI Data Policy
                 </h4>
                 <p className="text-xs text-blue-700">
-                  All AI providers (Kimi) are configured with the <strong>no-training</strong> system instruction.
-                  Student and tutor data is explicitly marked as not available for model training. This is stated in our Privacy Policy.
+                  All AI providers (Kimi) are configured with the <strong>no-training</strong>{' '}
+                  system instruction. Student and tutor data is explicitly marked as not available
+                  for model training. This is stated in our Privacy Policy.
                 </p>
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {[
-                    { name: 'Kimi K2.5', note: '⚠️ Verify DPA with Moonshot AI' },
-                  ].map(ai => (
-                    <div key={ai.name} className="text-xs bg-white rounded p-2 border border-blue-100">
+                <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+                  {[{ name: 'Kimi K2.5', note: '⚠️ Verify DPA with Moonshot AI' }].map(ai => (
+                    <div
+                      key={ai.name}
+                      className="rounded border border-blue-100 bg-white p-2 text-xs"
+                    >
                       <div className="font-medium">{ai.name}</div>
                       <div className="text-muted-foreground">{ai.note}</div>
                     </div>

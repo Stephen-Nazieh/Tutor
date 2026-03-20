@@ -5,15 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  BookOpen, 
-  Clock, 
-  ChevronRight, 
-  Plus,
-  GraduationCap,
-  Search,
-  Filter
-} from 'lucide-react'
+import { BookOpen, Clock, ChevronRight, Plus, GraduationCap, Search, Filter } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 
 interface Course {
@@ -38,42 +30,41 @@ export default function TutorCurriculumPage() {
 
   useEffect(() => {
     fetch('/api/tutor/courses', { credentials: 'include' })
-      .then(res => res.ok ? res.json() : { courses: [] })
+      .then(res => (res.ok ? res.json() : { courses: [] }))
       .then(data => setCourses(data.courses ?? []))
       .catch(() => setCourses([]))
       .finally(() => setLoading(false))
   }, [])
 
-  const filteredCourses = courses.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.subject.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCourses = courses.filter(
+    c =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.subject.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Courses</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your courses and curriculum
-          </p>
+          <p className="mt-1 text-gray-600">Manage your courses and curriculum</p>
         </div>
         <Button asChild>
           <Link href="/tutor/courses/new">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create New Course
           </Link>
         </Button>
       </div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <Input
             placeholder="Search courses..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -84,12 +75,12 @@ export default function TutorCurriculumPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
-                <div className="h-3 w-48 bg-gray-200 rounded" />
+                <div className="mb-2 h-4 w-32 rounded bg-gray-200" />
+                <div className="h-3 w-48 rounded bg-gray-200" />
               </CardContent>
             </Card>
           ))}
@@ -97,53 +88,51 @@ export default function TutorCurriculumPage() {
       ) : filteredCourses.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-700 mb-2">
+            <GraduationCap className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+            <h3 className="mb-2 text-lg font-medium text-gray-700">
               {searchQuery ? 'No courses found' : 'No courses yet'}
             </h3>
-            <p className="text-gray-500 mb-4">
-              {searchQuery 
-                ? 'Try adjusting your search' 
+            <p className="mb-4 text-gray-500">
+              {searchQuery
+                ? 'Try adjusting your search'
                 : 'Create your first course to get started'}
             </p>
             <Button asChild>
               <Link href="/tutor/courses/new">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Create New Course
               </Link>
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <Card key={course.id} className="hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredCourses.map(course => (
+            <Card key={course.id} className="transition-shadow hover:shadow-md">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
                     <BookOpen className="h-6 w-6 text-blue-600" />
                   </div>
                   <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                     {course.isPublished ? 'Published' : 'Draft'}
                   </Badge>
                 </div>
-                <CardTitle className="text-lg mt-3">{course.name}</CardTitle>
+                <CardTitle className="mt-3 text-lg">{course.name}</CardTitle>
                 <CardDescription className="line-clamp-2">
                   {course.description || 'No description'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="mb-4 flex flex-wrap gap-2">
                   <Badge variant="outline">{course.subject}</Badge>
-                  {course.gradeLevel && (
-                    <Badge variant="outline">{course.gradeLevel}</Badge>
-                  )}
+                  {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
                   <Badge variant="outline" className="capitalize">
                     {course.difficulty}
                   </Badge>
                 </div>
-                
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+
+                <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     <span>{course.estimatedHours}h</span>
@@ -162,7 +151,7 @@ export default function TutorCurriculumPage() {
                   <Button asChild className="flex-1">
                     <Link href={`/tutor/courses/${course.id}/builder`}>
                       Open Builder
-                      <ChevronRight className="h-4 w-4 ml-1" />
+                      <ChevronRight className="ml-1 h-4 w-4" />
                     </Link>
                   </Button>
                 </div>

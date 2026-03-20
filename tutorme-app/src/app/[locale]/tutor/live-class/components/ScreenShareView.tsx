@@ -14,18 +14,20 @@ export function ScreenShareView({ onStop, presenterName = 'You' }: ScreenShareVi
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   return (
-    <div className={cn(
-      "absolute inset-4 bg-gray-800 rounded-lg border-2 border-green-600 overflow-hidden z-40 flex flex-col",
-      isFullscreen && "fixed inset-0 z-50"
-    )}>
+    <div
+      className={cn(
+        'absolute inset-4 z-40 flex flex-col overflow-hidden rounded-lg border-2 border-green-600 bg-gray-800',
+        isFullscreen && 'fixed inset-0 z-50'
+      )}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-900 border-b border-gray-700">
+      <div className="flex items-center justify-between border-b border-gray-700 bg-gray-900 px-4 py-2">
         <div className="flex items-center gap-2">
-          <Badge className="bg-green-600 gap-1">
-            <MonitorUp className="w-3 h-3" />
+          <Badge className="gap-1 bg-green-600">
+            <MonitorUp className="h-3 w-3" />
             Sharing
           </Badge>
-          <span className="text-white text-sm">{presenterName} is presenting</span>
+          <span className="text-sm text-white">{presenterName} is presenting</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -34,25 +36,25 @@ export function ScreenShareView({ onStop, presenterName = 'You' }: ScreenShareVi
             className="text-gray-400 hover:text-white"
             onClick={() => setIsFullscreen(!isFullscreen)}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="text-red-400 hover:text-red-300 hover:bg-red-900/50"
+            className="text-red-400 hover:bg-red-900/50 hover:text-red-300"
             onClick={onStop}
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Screen Content Placeholder */}
-      <div className="flex-1 bg-gray-950 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center bg-gray-950">
         <div className="text-center">
-          <MonitorUp className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+          <MonitorUp className="mx-auto mb-4 h-16 w-16 text-gray-600" />
           <p className="text-gray-400">Screen sharing active</p>
-          <p className="text-gray-500 text-sm">Your screen is being shared with all participants</p>
+          <p className="text-sm text-gray-500">Your screen is being shared with all participants</p>
         </div>
       </div>
     </div>

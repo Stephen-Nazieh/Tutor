@@ -23,13 +23,15 @@ async function hashString(input: string): Promise<string> {
   const data = encoder.encode(input)
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 // POST /api/polls/[pollId]/vote - Submit a vote
 export async function POST(
   request: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   try {
     const session = await getServerSession(authOptions, request)
@@ -44,11 +46,7 @@ export async function POST(
     const body = await request.json()
     const validated = VoteSchema.parse(body)
 
-    const [pollRow] = await drizzleDb
-      .select()
-      .from(poll)
-      .where(eq(poll.id, pollId))
-      .limit(1)
+    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
 
     if (!pollRow) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
@@ -59,18 +57,22 @@ export async function POST(
     }
 
     const responses = await drizzleDb
-      .select({ id: pollResponse.id, studentId: pollResponse.studentId, respondentHash: pollResponse.respondentHash })
+      .select({
+        id: pollResponse.id,
+        studentId: pollResponse.studentId,
+        respondentHash: pollResponse.respondentHash,
+      })
       .from(pollResponse)
       .where(eq(pollResponse.pollId, pollId))
 
     if (!pollRow.isAnonymous) {
-      const existingVote = responses.find((r) => r.studentId === session.user.id)
+      const existingVote = responses.find(r => r.studentId === session.user.id)
       if (existingVote) {
         return NextResponse.json({ error: 'Already voted' }, { status: 409 })
       }
     } else {
       const respondentHash = await hashString(`${session.user.id}:${pollId}`)
-      const existingVote = responses.find((r) => r.respondentHash === respondentHash)
+      const existingVote = responses.find(r => r.respondentHash === respondentHash)
       if (existingVote) {
         return NextResponse.json({ error: 'Already voted' }, { status: 409 })
       }
@@ -122,10 +124,7 @@ export async function POST(
     return NextResponse.json({ response }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid input', details: error.issues },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 })
     }
     console.error('Failed to submit vote:', error)
     return handleApiError(error, 'Failed to submit vote', 'api/polls/[pollId]/vote/route.ts')

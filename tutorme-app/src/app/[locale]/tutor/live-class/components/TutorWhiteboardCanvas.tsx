@@ -72,7 +72,7 @@ export function TutorWhiteboardCanvas({
   onLayerSelect,
   onLayerToggle,
   isTutor,
-  userId
+  userId,
 }: TutorWhiteboardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -80,11 +80,11 @@ export function TutorWhiteboardCanvas({
     isDrawing: false,
     currentStroke: [],
     selectedTool: { type: 'pen', color: '#000000', size: 2 },
-    canvasTransform: { scale: 1, offsetX: 0, offsetY: 0 }
+    canvasTransform: { scale: 1, offsetX: 0, offsetY: 0 },
   })
 
-  const activeLayer = useMemo(() => 
-    layers.find(l => l.id === activeLayerId), 
+  const activeLayer = useMemo(
+    () => layers.find(l => l.id === activeLayerId),
     [layers, activeLayerId]
   )
 
@@ -154,7 +154,7 @@ export function TutorWhiteboardCanvas({
       if (layer.isBroadcasting && userId !== layer.ownerId) {
         // Student viewing broadcast - render at 90% overlay
         overlayCtx.save()
-        
+
         // Create 90% viewport overlay
         const overlayWidth = overlayCanvas.width * 0.9
         const overlayHeight = overlayCanvas.height * 0.9
@@ -173,7 +173,7 @@ export function TutorWhiteboardCanvas({
         // Scale layer content to fit 90% viewport
         overlayCtx.scale(0.9, 0.9)
         renderLayerContent(overlayCtx, layer)
-        
+
         overlayCtx.restore()
       } else {
         // Normal layer rendering
@@ -198,12 +198,11 @@ export function TutorWhiteboardCanvas({
     if (activeLayer) {
       drawLayerInfo(ctx, activeLayer)
     }
-
   }, [layers, canvasState, activeLayer, isTutor, userId])
 
   const renderLayerContent = (ctx: CanvasRenderingContext2D, layer: WhiteboardLayer) => {
     ctx.save()
-    
+
     // Render strokes
     layer.strokes.forEach(stroke => {
       if (stroke.points && stroke.points.length > 0) {
@@ -220,7 +219,7 @@ export function TutorWhiteboardCanvas({
             ctx.lineTo(point.x, point.y)
           }
         })
-        
+
         ctx.stroke()
       }
     })
@@ -265,7 +264,7 @@ export function TutorWhiteboardCanvas({
     ctx.save()
     ctx.strokeStyle = '#e0e0e0'
     ctx.lineWidth = 0.5
-    
+
     // Vertical lines
     for (let x = 0; x < canvas.width; x += 20) {
       ctx.beginPath()
@@ -273,7 +272,7 @@ export function TutorWhiteboardCanvas({
       ctx.lineTo(x, canvas.height)
       ctx.stroke()
     }
-    
+
     // Horizontal lines
     for (let y = 0; y < canvas.height; y += 20) {
       ctx.beginPath()
@@ -281,11 +280,15 @@ export function TutorWhiteboardCanvas({
       ctx.lineTo(canvas.width, y)
       ctx.stroke()
     }
-    
+
     ctx.restore()
   }
 
-  const drawCurrentStroke = (ctx: CanvasRenderingContext2D, currentStroke: any[], tool: CanvasTool) => {
+  const drawCurrentStroke = (
+    ctx: CanvasRenderingContext2D,
+    currentStroke: any[],
+    tool: CanvasTool
+  ) => {
     if (currentStroke.length < 2) return
 
     ctx.beginPath()
@@ -301,7 +304,7 @@ export function TutorWhiteboardCanvas({
         ctx.lineTo(point.x, point.y)
       }
     })
-    
+
     ctx.stroke()
   }
 
@@ -315,35 +318,42 @@ export function TutorWhiteboardCanvas({
   }
 
   // Mouse event handlers for drawing
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !hasWritePermission || !activeLayer) return
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!canvasRef.current || !hasWritePermission || !activeLayer) return
 
-    const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+      const rect = canvasRef.current.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
 
-    setCanvasState(prev => ({
-      ...prev,
-      isDrawing: true,
-      currentStroke: [{ x, y }]
-    }))
-  }, [hasWritePermission, activeLayer])
+      setCanvasState(prev => ({
+        ...prev,
+        isDrawing: true,
+        currentStroke: [{ x, y }],
+      }))
+    },
+    [hasWritePermission, activeLayer]
+  )
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !canvasState.isDrawing || !hasWritePermission || !activeLayer) return
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!canvasRef.current || !canvasState.isDrawing || !hasWritePermission || !activeLayer)
+        return
 
-    const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+      const rect = canvasRef.current.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
 
-    setCanvasState(prev => ({
-      ...prev,
-      currentStroke: [...prev.currentStroke, { x, y }]
-    }))
+      setCanvasState(prev => ({
+        ...prev,
+        currentStroke: [...prev.currentStroke, { x, y }],
+      }))
 
-    // Send real-time drawing update via socket
-    // This would trigger real-time updates to other users
-  }, [canvasState.isDrawing, hasWritePermission, activeLayer])
+      // Send real-time drawing update via socket
+      // This would trigger real-time updates to other users
+    },
+    [canvasState.isDrawing, hasWritePermission, activeLayer]
+  )
 
   const handleMouseUp = useCallback(() => {
     if (!canvasState.isDrawing || !activeLayer) return
@@ -354,17 +364,17 @@ export function TutorWhiteboardCanvas({
       color: canvasState.selectedTool.color,
       width: canvasState.selectedTool.size,
       tool: canvasState.selectedTool.type,
-      timestamp: new Date()
+      timestamp: new Date(),
     }
 
     const updatedLayer = {
       ...activeLayer,
-      strokes: [...activeLayer.strokes, newStroke]
+      strokes: [...activeLayer.strokes, newStroke],
     }
 
     // Update the layer
     onLayerContentUpdate(activeLayer.id, {
-      strokes: updatedLayer.strokes
+      strokes: updatedLayer.strokes,
     })
 
     // Send update via socket for real-time collaboration
@@ -373,16 +383,22 @@ export function TutorWhiteboardCanvas({
     setCanvasState(prev => ({
       ...prev,
       isDrawing: false,
-      currentStroke: []
+      currentStroke: [],
     }))
-  }, [canvasState.isDrawing, canvasState.currentStroke, canvasState.selectedTool, activeLayer, onLayerContentUpdate])
+  }, [
+    canvasState.isDrawing,
+    canvasState.currentStroke,
+    canvasState.selectedTool,
+    activeLayer,
+    onLayerContentUpdate,
+  ])
 
   return (
-    <div className="relative w-full h-full bg-white">
+    <div className="relative h-full w-full bg-white">
       {/* Main canvas for layer content */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full cursor-crosshair"
+        className="absolute inset-0 h-full w-full cursor-crosshair"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -392,12 +408,12 @@ export function TutorWhiteboardCanvas({
       {/* Overlay canvas for broadcast layer (90% rendering) */}
       <canvas
         ref={overlayCanvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none"
+        className="pointer-events-none absolute inset-0 h-full w-full"
       />
 
       {/* Layer info overlay */}
       {!hasWritePermission && activeLayer && (
-        <div className="absolute top-4 left-4 bg-yellow-100 border border-yellow-400 text-yellow-800 px-3 py-2 rounded-lg text-sm">
+        <div className="absolute left-4 top-4 rounded-lg border border-yellow-400 bg-yellow-100 px-3 py-2 text-sm text-yellow-800">
           <strong>View Only:</strong> {activeLayer.name} - No write permission
         </div>
       )}
@@ -405,8 +421,8 @@ export function TutorWhiteboardCanvas({
       {!hasViewPermission && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="text-center text-gray-500">
-            <div className="text-6xl mb-4">🔒</div>
-            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
+            <div className="mb-4 text-6xl">🔒</div>
+            <h3 className="mb-2 text-lg font-semibold">Access Denied</h3>
             <p>You do not have permission to view this layer</p>
           </div>
         </div>

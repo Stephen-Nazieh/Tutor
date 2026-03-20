@@ -11,4 +11,3 @@ process.env.DATABASE_URL ||= DEFAULT_DB_URL
 process.env.DIRECT_URL ||= process.env.DATABASE_URL
 process.env.NEXTAUTH_SECRET ||= 'integration-test-secret-insecure-but-long-enough-32chars'
 process.env.SECURITY_AUDIT ||= 'false'
-

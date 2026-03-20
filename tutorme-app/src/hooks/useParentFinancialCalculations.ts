@@ -97,9 +97,10 @@ const DEFAULT_DATA: ParentFinancialData = {
   revenueForecast: [],
 }
 
-export function useParentFinancialCalculations(
-  options?: { period?: 'monthly' | 'weekly'; studentId?: string }
-): UseParentFinancialCalculationsResult {
+export function useParentFinancialCalculations(options?: {
+  period?: 'monthly' | 'weekly'
+  studentId?: string
+}): UseParentFinancialCalculationsResult {
   const [data, setData] = useState<ParentFinancialData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -131,8 +132,7 @@ export function useParentFinancialCalculations(
       const merged: ParentFinancialData = {
         summary: dashboardJson.data?.summary ?? DEFAULT_DATA.summary,
         spendingTrends: spendingJson.data?.trends ?? DEFAULT_DATA.spendingTrends,
-        monthlySummaries:
-          spendingJson.data?.monthlySummaries ?? DEFAULT_DATA.monthlySummaries,
+        monthlySummaries: spendingJson.data?.monthlySummaries ?? DEFAULT_DATA.monthlySummaries,
         payments: paymentsJson.data?.payments ?? DEFAULT_DATA.payments,
         budgetVsActual: budgetJson.data?.budgetVsActual ?? null,
         revenueForecast: dashboardJson.data?.revenueForecast ?? DEFAULT_DATA.revenueForecast,

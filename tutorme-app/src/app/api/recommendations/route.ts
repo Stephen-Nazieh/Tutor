@@ -17,9 +17,7 @@ async function getHandler(_req: NextRequest, session: Session) {
     const weakAreas = await drizzleDb
       .select()
       .from(quizAttempt)
-      .where(
-        and(eq(quizAttempt.studentId, userId), lt(quizAttempt.score, 70))
-      )
+      .where(and(eq(quizAttempt.studentId, userId), lt(quizAttempt.score, 70)))
       .orderBy(desc(quizAttempt.completedAt))
       .limit(5)
 
@@ -36,7 +34,7 @@ async function getHandler(_req: NextRequest, session: Session) {
       .limit(3)
 
     const inProgressContent = await Promise.all(
-      inProgressRows.map(async (p) => {
+      inProgressRows.map(async p => {
         const [content] = await drizzleDb
           .select({
             id: contentItem.id,
@@ -50,10 +48,8 @@ async function getHandler(_req: NextRequest, session: Session) {
       })
     )
 
-    const weakQuizIds = weakAreas.map((a) => a.quizId)
-    const inProgressSubjects = inProgressContent
-      .map((p) => p.content?.subject)
-      .filter(Boolean)
+    const weakQuizIds = weakAreas.map(a => a.quizId)
+    const inProgressSubjects = inProgressContent.map(p => p.content?.subject).filter(Boolean)
 
     const prompt = `As an AI tutor, provide 3 personalized study recommendations for a student.
 
@@ -86,7 +82,7 @@ Focus on:
     try {
       const result = await generateWithFallback(prompt, {
         temperature: 0.7,
-        maxTokens: 800
+        maxTokens: 800,
       })
 
       const jsonMatch = result.content.match(/\{[\s\S]*\}/)
@@ -104,29 +100,29 @@ Focus on:
           title: 'Review Fundamentals',
           description: 'Focus on understanding the core concepts before moving forward.',
           priority: 'high',
-          estimatedTime: '20 minutes'
+          estimatedTime: '20 minutes',
         },
         {
           type: 'practice',
           title: 'Practice Problems',
           description: 'Complete practice exercises to reinforce learning.',
           priority: 'medium',
-          estimatedTime: '30 minutes'
+          estimatedTime: '30 minutes',
         },
         {
           type: 'new_topic',
           title: 'Explore Related Topics',
           description: 'Expand your knowledge with related concepts.',
           priority: 'low',
-          estimatedTime: '25 minutes'
-        }
+          estimatedTime: '25 minutes',
+        },
       ]
     }
 
     return NextResponse.json({
       recommendations,
       weakAreas: weakQuizIds,
-      inProgress: inProgressSubjects
+      inProgress: inProgressSubjects,
     })
   } catch (error) {
     return handleApiError(error, 'Failed to get recommendations', 'api/recommendations/route.ts')

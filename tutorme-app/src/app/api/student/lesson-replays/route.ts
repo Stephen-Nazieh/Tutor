@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest) {
       .select({ sessionId: sessionParticipant.sessionId })
       .from(sessionParticipant)
       .where(eq(sessionParticipant.studentId, studentId))
-    const sessionIds = [...new Set(participantRows.map((p) => p.sessionId))]
+    const sessionIds = [...new Set(participantRows.map(p => p.sessionId))]
 
     if (sessionIds.length === 0) {
       return NextResponse.json({
@@ -50,7 +50,7 @@ export async function GET(_req: NextRequest) {
       .orderBy(desc(liveSession.endedAt))
       .limit(30)
 
-    const endedSessions = sessions.filter((s) => s.endedAt != null)
+    const endedSessions = sessions.filter(s => s.endedAt != null)
 
     const replayBySession = new Map<string, typeof sessionReplayArtifact.$inferSelect>()
     if (endedSessions.length > 0) {
@@ -60,13 +60,13 @@ export async function GET(_req: NextRequest) {
         .where(
           inArray(
             sessionReplayArtifact.sessionId,
-            endedSessions.map((s) => s.id)
+            endedSessions.map(s => s.id)
           )
         )
-      replays.forEach((r) => replayBySession.set(r.sessionId, r))
+      replays.forEach(r => replayBySession.set(r.sessionId, r))
     }
 
-    const tutorIds = [...new Set(endedSessions.map((s) => s.tutorId))]
+    const tutorIds = [...new Set(endedSessions.map(s => s.tutorId))]
     const profiles =
       tutorIds.length > 0
         ? await drizzleDb
@@ -77,10 +77,10 @@ export async function GET(_req: NextRequest) {
             .from(profile)
             .where(inArray(profile.userId, tutorIds))
         : []
-    const tutorNameByUserId = new Map(profiles.map((p) => [p.userId, p.name]))
+    const tutorNameByUserId = new Map(profiles.map(p => [p.userId, p.name]))
 
     const data = await Promise.all(
-      endedSessions.map(async (liveSessionRow) => {
+      endedSessions.map(async liveSessionRow => {
         let taskCount = 0
         let submittedCount = 0
 
@@ -88,10 +88,8 @@ export async function GET(_req: NextRequest) {
           const modules = await drizzleDb
             .select({ id: curriculumModule.id })
             .from(curriculumModule)
-            .where(
-              eq(curriculumModule.curriculumId, liveSessionRow.curriculumId)
-            )
-          const moduleIds = modules.map((m) => m.id)
+            .where(eq(curriculumModule.curriculumId, liveSessionRow.curriculumId))
+          const moduleIds = modules.map(m => m.id)
           const lessonIds =
             moduleIds.length > 0
               ? (
@@ -99,16 +97,14 @@ export async function GET(_req: NextRequest) {
                     .select({ id: curriculumLesson.id })
                     .from(curriculumLesson)
                     .where(inArray(curriculumLesson.moduleId, moduleIds))
-                ).map((l) => l.id)
+                ).map(l => l.id)
               : []
           const batchIds = (
             await drizzleDb
               .select({ id: courseBatch.id })
               .from(courseBatch)
-              .where(
-                eq(courseBatch.curriculumId, liveSessionRow.curriculumId)
-              )
-          ).map((b) => b.id)
+              .where(eq(courseBatch.curriculumId, liveSessionRow.curriculumId))
+          ).map(b => b.id)
 
           const allTaskIds: string[] = []
           if (lessonIds.length > 0) {
@@ -121,7 +117,7 @@ export async function GET(_req: NextRequest) {
                   inArray(generatedTask.lessonId, lessonIds)
                 )
               )
-            allTaskIds.push(...byLesson.map((t) => t.id))
+            allTaskIds.push(...byLesson.map(t => t.id))
           }
           if (batchIds.length > 0) {
             const byBatch = await drizzleDb
@@ -133,7 +129,7 @@ export async function GET(_req: NextRequest) {
                   inArray(generatedTask.batchId, batchIds)
                 )
               )
-            allTaskIds.push(...byBatch.map((t) => t.id))
+            allTaskIds.push(...byBatch.map(t => t.id))
           }
           const uniqueTaskIds = [...new Set(allTaskIds)]
           taskCount = uniqueTaskIds.length
@@ -158,13 +154,10 @@ export async function GET(_req: NextRequest) {
           (typeof artifact?.summaryJson === 'object' &&
           artifact?.summaryJson &&
           'overview' in (artifact.summaryJson as Record<string, unknown>)
-            ? String(
-                (artifact.summaryJson as Record<string, unknown>).overview || ''
-              )
+            ? String((artifact.summaryJson as Record<string, unknown>).overview || '')
             : '')
         const summaryPreview = replaySummary.slice(0, 220)
-        const tutorName =
-          tutorNameByUserId.get(liveSessionRow.tutorId) ?? 'Tutor'
+        const tutorName = tutorNameByUserId.get(liveSessionRow.tutorId) ?? 'Tutor'
 
         return {
           id: liveSessionRow.id,
@@ -188,6 +181,10 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ success: true, data: { sessions: data } })
   } catch (error) {
     console.error('Failed to fetch lesson replays:', error)
-    return handleApiError(error, 'Failed to fetch lesson replays', 'api/student/lesson-replays/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch lesson replays',
+      'api/student/lesson-replays/route.ts'
+    )
   }
 }

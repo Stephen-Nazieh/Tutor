@@ -27,14 +27,14 @@ async function getHandler(_req: NextRequest, session: Session) {
       .where(eq(contentProgress.studentId, session.user.id))
       .orderBy(desc(contentProgress.updatedAt))
 
-    const contentIds = progressRows.map((p) => p.contentId)
+    const contentIds = progressRows.map(p => p.contentId)
     const contents =
       contentIds.length > 0
         ? await drizzleDb.select().from(contentItem).where(inArray(contentItem.id, contentIds))
         : []
-    const contentMap = new Map(contents.map((c) => [c.id, c]))
+    const contentMap = new Map(contents.map(c => [c.id, c]))
 
-    const progress = progressRows.map((p) => ({
+    const progress = progressRows.map(p => ({
       ...p,
       content: contentMap.get(p.contentId)
         ? {
@@ -63,7 +63,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const parsed = postBodySchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues.map((i) => i.message).join('; ') },
+        { error: parsed.error.issues.map(i => i.message).join('; ') },
         { status: 400 }
       )
     }
@@ -73,7 +73,9 @@ async function postHandler(req: NextRequest, session: Session) {
     const [existing] = await drizzleDb
       .select()
       .from(contentProgress)
-      .where(and(eq(contentProgress.contentId, contentId), eq(contentProgress.studentId, studentId)))
+      .where(
+        and(eq(contentProgress.contentId, contentId), eq(contentProgress.studentId, studentId))
+      )
       .limit(1)
 
     let updatedProgress

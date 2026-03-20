@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Bell, Globe, Lock, Moon } from 'lucide-react'
 
 export default function ParentSettingsPage() {
@@ -12,7 +18,7 @@ export default function ParentSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your preferences and account settings</p>
+        <p className="mt-1 text-gray-500">Manage your preferences and account settings</p>
       </div>
 
       <div className="grid gap-6">
@@ -28,13 +34,19 @@ export default function ParentSettingsPage() {
             {[
               { id: 'email', label: 'Email Notifications', desc: 'Receive updates via email' },
               { id: 'sms', label: 'SMS Notifications', desc: 'Receive text message alerts' },
-              { id: 'app', label: 'In-App Notifications', desc: 'Receive notifications in the app' },
+              {
+                id: 'app',
+                label: 'In-App Notifications',
+                desc: 'Receive notifications in the app',
+              },
               { id: 'weekly', label: 'Weekly Reports', desc: 'Get weekly progress summaries' },
-              { id: 'payments', label: 'Payment Alerts', desc: 'Get notified about payments' }
-            ].map((item) => (
+              { id: 'payments', label: 'Payment Alerts', desc: 'Get notified about payments' },
+            ].map(item => (
               <div key={item.id} className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor={item.id} className="font-medium">{item.label}</Label>
+                  <Label htmlFor={item.id} className="font-medium">
+                    {item.label}
+                  </Label>
                   <p className="text-sm text-gray-500">{item.desc}</p>
                 </div>
                 <Switch id={item.id} defaultChecked />

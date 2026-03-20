@@ -21,9 +21,8 @@ export function ReviewImpactViz({
   afterRetention,
   nextReviewDate,
   intervalDays,
-  previousInterval
+  previousInterval,
 }: ReviewImpactVizProps) {
-  
   // Generate curve data points
   const generateCurve = (startRetention: number, stability: number, days: number) => {
     const points: Array<{ day: number; retention: number }> = []
@@ -37,7 +36,7 @@ export function ReviewImpactViz({
 
   // Calculate stability from interval (when retention hits 85%)
   const calculateStability = (intervalDays: number) => {
-    return -intervalDays * 24 / Math.log(0.85)
+    return (-intervalDays * 24) / Math.log(0.85)
   }
 
   const beforeStability = calculateStability(previousInterval || 3)
@@ -70,22 +69,22 @@ export function ReviewImpactViz({
   }
 
   const improvement = afterRetention - beforeRetention
-  const intervalGrowth = ((intervalDays - previousInterval) / previousInterval * 100).toFixed(0)
+  const intervalGrowth = (((intervalDays - previousInterval) / previousInterval) * 100).toFixed(0)
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
     })
   }
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+    <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-green-600" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <TrendingUp className="h-5 w-5 text-green-600" />
               Review Impact
             </CardTitle>
             <CardDescription>How this review strengthened your memory</CardDescription>
@@ -124,7 +123,7 @@ export function ReviewImpactViz({
                 x={padding.left - 5}
                 y={yScale(y) + 4}
                 textAnchor="end"
-                className="text-xs fill-gray-400"
+                className="fill-gray-400 text-xs"
               >
                 {y}%
               </text>
@@ -182,7 +181,7 @@ export function ReviewImpactViz({
             <text
               x={padding.left}
               y={height - 5}
-              className="text-xs fill-gray-400"
+              className="fill-gray-400 text-xs"
               textAnchor="middle"
             >
               Now
@@ -190,7 +189,7 @@ export function ReviewImpactViz({
             <text
               x={xScale(intervalDays, intervalDays + 7)}
               y={height - 5}
-              className="text-xs fill-gray-400"
+              className="fill-gray-400 text-xs"
               textAnchor="middle"
             >
               +{intervalDays}d
@@ -198,17 +197,20 @@ export function ReviewImpactViz({
           </svg>
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 mt-2 text-xs">
+          <div className="mt-2 flex items-center justify-center gap-6 text-xs">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-0.5 bg-red-400 border-dashed" style={{ borderTop: '2px dashed' }} />
+              <span
+                className="h-0.5 w-3 border-dashed bg-red-400"
+                style={{ borderTop: '2px dashed' }}
+              />
               Before review
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-0.5 bg-green-500" style={{ borderTop: '3px solid' }} />
+              <span className="h-0.5 w-3 bg-green-500" style={{ borderTop: '3px solid' }} />
               After review
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
               Next review
             </span>
           </div>
@@ -216,18 +218,18 @@ export function ReviewImpactViz({
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 bg-white rounded-lg">
+          <div className="rounded-lg bg-white p-3 text-center">
             <p className="text-xs text-gray-500">Was</p>
             <p className="text-xl font-bold text-red-500">{beforeRetention.toFixed(0)}%</p>
           </div>
-          <div className="text-center p-3 bg-white rounded-lg">
+          <div className="rounded-lg bg-white p-3 text-center">
             <p className="text-xs text-gray-500">Now</p>
             <p className="text-xl font-bold text-green-600">{afterRetention.toFixed(0)}%</p>
           </div>
-          <div className="text-center p-3 bg-white rounded-lg">
+          <div className="rounded-lg bg-white p-3 text-center">
             <p className="text-xs text-gray-500">Next Review</p>
             <div className="flex items-center justify-center gap-1">
-              <Calendar className="w-4 h-4 text-blue-500" />
+              <Calendar className="h-4 w-4 text-blue-500" />
               <p className="text-sm font-bold">{intervalDays}d</p>
             </div>
           </div>
@@ -235,8 +237,8 @@ export function ReviewImpactViz({
 
         {/* Interval growth message */}
         {Number(intervalGrowth) > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-green-100 rounded-lg text-sm">
-            <TrendingUp className="w-4 h-4 text-green-600" />
+          <div className="flex items-center gap-2 rounded-lg bg-green-100 p-3 text-sm">
+            <TrendingUp className="h-4 w-4 text-green-600" />
             <span className="text-green-700">
               Great job! Next review extended by {intervalGrowth}% due to strong performance.
             </span>
@@ -246,7 +248,7 @@ export function ReviewImpactViz({
         {/* Next review info */}
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
+            <Clock className="h-4 w-4" />
             Next review scheduled
           </span>
           <span className="font-medium">{formatDate(nextReviewDate)}</span>

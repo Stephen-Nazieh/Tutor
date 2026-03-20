@@ -1,10 +1,24 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 import { TrendingUp, BookOpen, Award, Calendar } from 'lucide-react'
 import { ClientOnly } from '@/components/common/ClientOnly'
 
@@ -25,9 +39,27 @@ const subjectProgress = [
 ]
 
 const achievements = [
-  { id: '1', title: 'Math Whiz', description: 'Scored 90%+ on 5 consecutive math quizzes', date: '2026-02-10', icon: '🏆' },
-  { id: '2', title: 'Perfect Attendance', description: 'Attended all classes for 1 month', date: '2026-02-01', icon: '⭐' },
-  { id: '3', title: 'Science Star', description: 'Completed advanced science project', date: '2026-01-25', icon: '🔬' },
+  {
+    id: '1',
+    title: 'Math Whiz',
+    description: 'Scored 90%+ on 5 consecutive math quizzes',
+    date: '2026-02-10',
+    icon: '🏆',
+  },
+  {
+    id: '2',
+    title: 'Perfect Attendance',
+    description: 'Attended all classes for 1 month',
+    date: '2026-02-01',
+    icon: '⭐',
+  },
+  {
+    id: '3',
+    title: 'Science Star',
+    description: 'Completed advanced science project',
+    date: '2026-01-25',
+    icon: '🔬',
+  },
 ]
 
 export default function ParentProgressPage() {
@@ -36,7 +68,9 @@ export default function ParentProgressPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Progress Report</h1>
-          <p className="text-gray-500 mt-1">Track your child's academic progress and achievements</p>
+          <p className="mt-1 text-gray-500">
+            Track your child's academic progress and achievements
+          </p>
         </div>
         <Select defaultValue="emily">
           <SelectTrigger className="w-[200px]">
@@ -58,11 +92,11 @@ export default function ParentProgressPage() {
 
         <TabsContent value="overview" className="space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-100 rounded-lg">
+                  <div className="rounded-lg bg-blue-100 p-3">
                     <TrendingUp className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
@@ -75,7 +109,7 @@ export default function ParentProgressPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-green-100 rounded-lg">
+                  <div className="rounded-lg bg-green-100 p-3">
                     <BookOpen className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
@@ -88,7 +122,7 @@ export default function ParentProgressPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-purple-100 rounded-lg">
+                  <div className="rounded-lg bg-purple-100 p-3">
                     <Calendar className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
@@ -101,7 +135,7 @@ export default function ParentProgressPage() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-yellow-100 rounded-lg">
+                  <div className="rounded-lg bg-yellow-100 p-3">
                     <Award className="h-5 w-5 text-yellow-600" />
                   </div>
                   <div>
@@ -140,16 +174,16 @@ export default function ParentProgressPage() {
 
         <TabsContent value="subjects">
           <div className="grid gap-4">
-            {subjectProgress.map((subject) => (
+            {subjectProgress.map(subject => (
               <Card key={subject.subject}>
                 <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center gap-6">
+                  <div className="flex flex-col gap-6 md:flex-row md:items-center">
                     <div className="md:w-1/4">
-                      <h3 className="font-semibold text-lg">{subject.subject}</h3>
-                      <p className="text-3xl font-bold text-blue-600 mt-1">{subject.grade}</p>
+                      <h3 className="text-lg font-semibold">{subject.subject}</h3>
+                      <p className="mt-1 text-3xl font-bold text-blue-600">{subject.grade}</p>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center justify-between text-sm mb-2">
+                      <div className="mb-2 flex items-center justify-between text-sm">
                         <span className="text-gray-500">Progress</span>
                         <span className="font-medium">{subject.progress}%</span>
                       </div>
@@ -174,15 +208,15 @@ export default function ParentProgressPage() {
 
         <TabsContent value="achievements">
           <div className="grid gap-4">
-            {achievements.map((achievement) => (
+            {achievements.map(achievement => (
               <Card key={achievement.id}>
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     <div className="text-4xl">{achievement.icon}</div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{achievement.title}</h3>
-                      <p className="text-gray-600 mt-1">{achievement.description}</p>
-                      <p className="text-sm text-gray-400 mt-2">Earned on {achievement.date}</p>
+                      <h3 className="text-lg font-semibold">{achievement.title}</h3>
+                      <p className="mt-1 text-gray-600">{achievement.description}</p>
+                      <p className="mt-2 text-sm text-gray-400">Earned on {achievement.date}</p>
                     </div>
                   </div>
                 </CardContent>

@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Whiteboard Presence Hook
- * 
+ *
  * Manages user presence, editing halos, and conflict resolution
  * for collaborative whiteboard editing.
  */
@@ -70,12 +70,15 @@ export function useWhiteboardPresence(options: UseWhiteboardPresenceOptions) {
   /**
    * Update cursor position for current user
    */
-  const updateCursor = useCallback((x: number, y: number) => {
-    managerRef.current.updateUser({
-      userId,
-      cursor: { x, y },
-    })
-  }, [userId])
+  const updateCursor = useCallback(
+    (x: number, y: number) => {
+      managerRef.current.updateUser({
+        userId,
+        cursor: { x, y },
+      })
+    },
+    [userId]
+  )
 
   /**
    * Update remote user's cursor
@@ -91,36 +94,42 @@ export function useWhiteboardPresence(options: UseWhiteboardPresenceOptions) {
   /**
    * Start editing an element
    */
-  const startEditing = useCallback((
-    elementId: string,
-    elementType: EditingState['elementType'],
-    operation: EditingState['operation']
-  ): boolean => {
-    const result = managerRef.current.startEditing(userId, elementId, elementType, operation)
-    if (result === null) {
-      // Conflict detected
-      const hints = managerRef.current.getConflictHints()
-      setConflictHints(hints)
-      const newHint = hints.find((h) => h.elementId === elementId)
-      if (newHint && onConflict) {
-        onConflict(newHint)
+  const startEditing = useCallback(
+    (
+      elementId: string,
+      elementType: EditingState['elementType'],
+      operation: EditingState['operation']
+    ): boolean => {
+      const result = managerRef.current.startEditing(userId, elementId, elementType, operation)
+      if (result === null) {
+        // Conflict detected
+        const hints = managerRef.current.getConflictHints()
+        setConflictHints(hints)
+        const newHint = hints.find(h => h.elementId === elementId)
+        if (newHint && onConflict) {
+          onConflict(newHint)
+        }
+        return false
       }
-      return false
-    }
-    setEditingElements(new Set(managerRef.current['editingStates'].keys()))
-    setActivitySummary(managerRef.current.getActivitySummary())
-    return true
-  }, [userId, onConflict])
+      setEditingElements(new Set(managerRef.current['editingStates'].keys()))
+      setActivitySummary(managerRef.current.getActivitySummary())
+      return true
+    },
+    [userId, onConflict]
+  )
 
   /**
    * Stop editing an element
    */
-  const stopEditing = useCallback((elementId: string) => {
-    managerRef.current.stopEditing(userId, elementId)
-    setEditingElements(new Set(managerRef.current['editingStates'].keys()))
-    setConflictHints(managerRef.current.getConflictHints())
-    setActivitySummary(managerRef.current.getActivitySummary())
-  }, [userId])
+  const stopEditing = useCallback(
+    (elementId: string) => {
+      managerRef.current.stopEditing(userId, elementId)
+      setEditingElements(new Set(managerRef.current['editingStates'].keys()))
+      setConflictHints(managerRef.current.getConflictHints())
+      setActivitySummary(managerRef.current.getActivitySummary())
+    },
+    [userId]
+  )
 
   /**
    * Check if can edit an element
@@ -139,40 +148,47 @@ export function useWhiteboardPresence(options: UseWhiteboardPresenceOptions) {
   /**
    * Resolve a conflict
    */
-  const resolveConflict = useCallback((elementId: string, resolution: 'merge' | 'override' | 'cancel') => {
-    managerRef.current.resolveConflict(elementId, resolution)
-    setConflictHints(managerRef.current.getConflictHints())
-    setEditingElements(new Set(managerRef.current['editingStates'].keys()))
-  }, [])
+  const resolveConflict = useCallback(
+    (elementId: string, resolution: 'merge' | 'override' | 'cancel') => {
+      managerRef.current.resolveConflict(elementId, resolution)
+      setConflictHints(managerRef.current.getConflictHints())
+      setEditingElements(new Set(managerRef.current['editingStates'].keys()))
+    },
+    []
+  )
 
   /**
    * Update halos for rendering
    */
-  const updateHalos = useCallback((
-    elements: Array<{ id: string; x: number; y: number; width: number; height: number }>
-  ) => {
-    const newHalos = managerRef.current.getHalosForRendering(elements)
-    setHalos(newHalos)
-  }, [])
+  const updateHalos = useCallback(
+    (elements: Array<{ id: string; x: number; y: number; width: number; height: number }>) => {
+      const newHalos = managerRef.current.getHalosForRendering(elements)
+      setHalos(newHalos)
+    },
+    []
+  )
 
   /**
    * Create halos for strokes
    */
-  const createStrokeHalos = useCallback((
-    strokes: WhiteboardStroke[],
-    strokeUsers: Map<string, { userId: string; name: string; color: string }>
-  ): HaloRenderData[] => {
-    return strokes
-      .filter((stroke) => stroke.userId !== userId)
-      .map((stroke) => {
-        const user = strokeUsers.get(stroke.userId) || {
-          userId: stroke.userId,
-          name: 'Unknown',
-          color: '#999999',
-        }
-        return createStrokeHalo(stroke, user, 'drawing')
-      })
-  }, [userId])
+  const createStrokeHalos = useCallback(
+    (
+      strokes: WhiteboardStroke[],
+      strokeUsers: Map<string, { userId: string; name: string; color: string }>
+    ): HaloRenderData[] => {
+      return strokes
+        .filter(stroke => stroke.userId !== userId)
+        .map(stroke => {
+          const user = strokeUsers.get(stroke.userId) || {
+            userId: stroke.userId,
+            name: 'Unknown',
+            color: '#999999',
+          }
+          return createStrokeHalo(stroke, user, 'drawing')
+        })
+    },
+    [userId]
+  )
 
   /**
    * Get cursors for rendering
@@ -193,9 +209,12 @@ export function useWhiteboardPresence(options: UseWhiteboardPresenceOptions) {
   /**
    * Check if element is being edited by current user
    */
-  const isEditing = useCallback((elementId: string) => {
-    return editingElements.has(elementId)
-  }, [editingElements])
+  const isEditing = useCallback(
+    (elementId: string) => {
+      return editingElements.has(elementId)
+    },
+    [editingElements]
+  )
 
   /**
    * Get all users editing a specific element
@@ -236,52 +255,55 @@ export function useWhiteboardPresence(options: UseWhiteboardPresenceOptions) {
     return () => clearInterval(interval)
   }, [cleanup])
 
-  return useMemo(() => ({
-    // State
-    users,
-    conflictHints,
-    halos,
-    activitySummary,
-    editingElements,
+  return useMemo(
+    () => ({
+      // State
+      users,
+      conflictHints,
+      halos,
+      activitySummary,
+      editingElements,
 
-    // Actions
-    updateRemoteUser,
-    removeRemoteUser,
-    updateCursor,
-    updateRemoteCursor,
-    startEditing,
-    stopEditing,
-    canEdit,
-    getEditor,
-    resolveConflict,
-    updateHalos,
-    createStrokeHalos,
-    getCursorsForRendering,
-    cleanup,
-    isEditing,
-    getEditors,
-    requestEditAccess,
-  }), [
-    users,
-    conflictHints,
-    halos,
-    activitySummary,
-    editingElements,
-    updateRemoteUser,
-    removeRemoteUser,
-    updateCursor,
-    updateRemoteCursor,
-    startEditing,
-    stopEditing,
-    canEdit,
-    getEditor,
-    resolveConflict,
-    updateHalos,
-    createStrokeHalos,
-    getCursorsForRendering,
-    cleanup,
-    isEditing,
-    getEditors,
-    requestEditAccess,
-  ])
+      // Actions
+      updateRemoteUser,
+      removeRemoteUser,
+      updateCursor,
+      updateRemoteCursor,
+      startEditing,
+      stopEditing,
+      canEdit,
+      getEditor,
+      resolveConflict,
+      updateHalos,
+      createStrokeHalos,
+      getCursorsForRendering,
+      cleanup,
+      isEditing,
+      getEditors,
+      requestEditAccess,
+    }),
+    [
+      users,
+      conflictHints,
+      halos,
+      activitySummary,
+      editingElements,
+      updateRemoteUser,
+      removeRemoteUser,
+      updateCursor,
+      updateRemoteCursor,
+      startEditing,
+      stopEditing,
+      canEdit,
+      getEditor,
+      resolveConflict,
+      updateHalos,
+      createStrokeHalos,
+      getCursorsForRendering,
+      cleanup,
+      isEditing,
+      getEditors,
+      requestEditAccess,
+    ]
+  )
 }

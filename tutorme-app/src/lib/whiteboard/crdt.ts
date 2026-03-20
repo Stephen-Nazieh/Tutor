@@ -1,6 +1,6 @@
 /**
  * CRDT (Conflict-free Replicated Data Type) Implementation for Math Whiteboard
- * 
+ *
  * This module provides operational transform and conflict resolution
  * for collaborative whiteboard editing.
  */
@@ -67,11 +67,11 @@ export class VectorClockUtil {
    */
   static merge(a: VectorClock, b: VectorClock): VectorClock {
     const result: VectorClock = { ...a }
-    
+
     for (const [userId, count] of Object.entries(b)) {
       result[userId] = Math.max(result[userId] || 0, count)
     }
-    
+
     return result
   }
 
@@ -88,11 +88,11 @@ export class VectorClockUtil {
 
     // Check all keys from both clocks
     const allKeys = new Set([...Object.keys(a), ...Object.keys(b)])
-    
+
     for (const key of allKeys) {
       const aVal = a[key] || 0
       const bVal = b[key] || 0
-      
+
       if (aVal > bVal) aGreater = true
       if (bVal > aVal) bGreater = true
     }
@@ -136,7 +136,7 @@ export class OperationLog {
    */
   add(operation: Operation): void {
     this.operations.push(operation)
-    
+
     // Trim old operations if exceeding max size
     if (this.operations.length > this.maxSize) {
       this.operations = this.operations.slice(-this.maxSize)
@@ -304,10 +304,7 @@ export class CRDTManager {
    */
   applyOperation(operation: Operation): boolean {
     // Update vector clock
-    this.state.vectorClock = VectorClockUtil.merge(
-      this.state.vectorClock,
-      operation.vectorClock
-    )
+    this.state.vectorClock = VectorClockUtil.merge(this.state.vectorClock, operation.vectorClock)
 
     // Handle based on operation type
     switch (operation.type) {
@@ -329,7 +326,7 @@ export class CRDTManager {
     if (!operation.data) return false
 
     const element = operation.data as AnyMathElement
-    
+
     // Check for conflicts (element already exists)
     const existing = this.state.elements.get(element.id)
     if (existing) {
@@ -364,13 +361,10 @@ export class CRDTManager {
     const lastUpdate = elementOps.filter(op => op.type === 'update').pop()
 
     // Check for conflicts
-    if (lastUpdate && VectorClockUtil.isConcurrent(
-      operation.vectorClock,
-      lastUpdate.vectorClock
-    )) {
+    if (lastUpdate && VectorClockUtil.isConcurrent(operation.vectorClock, lastUpdate.vectorClock)) {
       // Conflict detected - use Last-Writer-Wins with user priority
       const resolution = this.resolveConflict(existing, operation, lastUpdate)
-      
+
       if (resolution.winner.id === operation.elementId) {
         // Apply the new operation
         const updated = { ...existing, ...operation.data } as AnyMathElement
@@ -386,7 +380,7 @@ export class CRDTManager {
     updated.version = (updated.version || 0) + 1
     updated.lastModified = Date.now()
     updated.modifiedBy = operation.userId
-    
+
     this.state.elements.set(operation.elementId, updated)
     this.operationLog.add(operation)
     return true
@@ -401,10 +395,10 @@ export class CRDTManager {
 
     // Add to tombstones
     this.state.tombstones.add(operation.elementId)
-    
+
     // Remove from elements
     this.state.elements.delete(operation.elementId)
-    
+
     this.operationLog.add(operation)
     return true
   }
@@ -423,12 +417,14 @@ export class CRDTManager {
 
     if (incomingPriority !== existingPriority) {
       return {
-        winner: incomingPriority > existingPriority 
-          ? { ...current, ...incoming.data } as AnyMathElement
-          : current,
-        loser: incomingPriority > existingPriority 
-          ? current
-          : { ...current, ...incoming.data } as AnyMathElement,
+        winner:
+          incomingPriority > existingPriority
+            ? ({ ...current, ...incoming.data } as AnyMathElement)
+            : current,
+        loser:
+          incomingPriority > existingPriority
+            ? current
+            : ({ ...current, ...incoming.data } as AnyMathElement),
         strategy: 'user-priority',
       }
     }
@@ -555,7 +551,7 @@ export class CRDTManager {
     const result: Partial<AnyMathElement> = {}
     for (const [key, value] of Object.entries(changes)) {
       if ((element as any)[key] !== value) {
-        (result as any)[key] = (element as any)[key]
+        ;(result as any)[key] = (element as any)[key]
       }
     }
     return result
@@ -583,10 +579,10 @@ export class UndoRedoManager {
    */
   push(operation: Operation): void {
     this.undoStack.push(operation)
-    
+
     // Clear redo stack when new operation is added
     this.redoStack = []
-    
+
     // Limit stack size
     if (this.undoStack.length > this.maxStackSize) {
       this.undoStack.shift()
@@ -742,12 +738,9 @@ export class SessionReplay {
   /**
    * Replay operations at a specific speed
    */
-  async replay(
-    onOperation: (op: Operation) => void,
-    speed: number = 1
-  ): Promise<void> {
+  async replay(onOperation: (op: Operation) => void, speed: number = 1): Promise<void> {
     let lastTime = 0
-    
+
     for (const op of this.operations) {
       const delay = (op.timestamp - lastTime) / speed
       if (delay > 0) {

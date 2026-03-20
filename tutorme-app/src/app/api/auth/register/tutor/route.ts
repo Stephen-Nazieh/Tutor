@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (error && typeof error === 'object' && 'issues' in error) {
       const zodError = error as { issues: Array<{ message: string }> }
       return NextResponse.json(
-        { error: zodError.issues.map((i) => i.message).join(', ') },
+        { error: zodError.issues.map(i => i.message).join(', ') },
         { status: 400 }
       )
     }

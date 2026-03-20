@@ -1,6 +1,6 @@
 /**
  * Real-time Confidence Meter
- * 
+ *
  * Displays confidence score during AI conversation
  */
 
@@ -16,11 +16,7 @@ interface ConfidenceMeterProps {
   className?: string
 }
 
-export function ConfidenceMeter({
-  isListening,
-  confidenceScore,
-  className,
-}: ConfidenceMeterProps) {
+export function ConfidenceMeter({ isListening, confidenceScore, className }: ConfidenceMeterProps) {
   const [displayScore, setDisplayScore] = useState(confidenceScore)
   const [pulses, setPulses] = useState(0)
 
@@ -62,19 +58,23 @@ export function ConfidenceMeter({
   }
 
   return (
-    <div className={cn(
-      'flex items-center gap-3 px-4 py-2 rounded-full transition-colors',
-      isListening ? 'bg-red-50' : 'bg-gray-50',
-      className
-    )}>
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-full px-4 py-2 transition-colors',
+        isListening ? 'bg-red-50' : 'bg-gray-50',
+        className
+      )}
+    >
       {/* Listening indicator */}
-      <div className={cn(
-        'relative w-8 h-8 rounded-full flex items-center justify-center',
-        isListening ? 'bg-red-500' : 'bg-gray-200'
-      )}>
+      <div
+        className={cn(
+          'relative flex h-8 w-8 items-center justify-center rounded-full',
+          isListening ? 'bg-red-500' : 'bg-gray-200'
+        )}
+      >
         {isListening ? (
           <>
-            <Mic className="w-4 h-4 text-white" />
+            <Mic className="h-4 w-4 text-white" />
             {/* Ripple effect */}
             {[...Array(3)].map((_, i) => (
               <span
@@ -87,13 +87,13 @@ export function ConfidenceMeter({
             ))}
           </>
         ) : (
-          <MicOff className="w-4 h-4 text-gray-500" />
+          <MicOff className="h-4 w-4 text-gray-500" />
         )}
       </div>
 
       {/* Confidence display */}
       <div className="flex items-center gap-2">
-        <Activity className={cn('w-4 h-4', getColor(displayScore))} />
+        <Activity className={cn('h-4 w-4', getColor(displayScore))} />
         <div>
           <div className="flex items-baseline gap-1">
             <span className={cn('text-lg font-bold', getColor(displayScore))}>
@@ -101,11 +101,14 @@ export function ConfidenceMeter({
             </span>
             <span className="text-xs text-gray-500">confidence</span>
           </div>
-          
+
           {/* Mini progress bar */}
-          <div className="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-200">
             <div
-              className={cn('h-full rounded-full transition-all duration-300', getBgColor(displayScore))}
+              className={cn(
+                'h-full rounded-full transition-all duration-300',
+                getBgColor(displayScore)
+              )}
               style={{ width: `${displayScore}%` }}
             />
           </div>
@@ -114,9 +117,7 @@ export function ConfidenceMeter({
 
       {/* Status text */}
       {isListening && (
-        <span className="text-xs text-red-600 font-medium animate-pulse">
-          Listening...
-        </span>
+        <span className="animate-pulse text-xs font-medium text-red-600">Listening...</span>
       )}
     </div>
   )

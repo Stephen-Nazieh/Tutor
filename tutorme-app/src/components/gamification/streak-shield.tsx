@@ -1,6 +1,6 @@
 /**
  * Streak Shield Component
- * 
+ *
  * PRO/ELITE feature to protect streaks
  */
 
@@ -40,14 +40,12 @@ export function StreakShield({
 
   if (!isEligible) {
     return (
-      <div className={cn('bg-gray-100 rounded-xl p-4', className)}>
+      <div className={cn('rounded-xl bg-gray-100 p-4', className)}>
         <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-gray-400" />
+          <Shield className="h-8 w-8 text-gray-400" />
           <div>
             <h4 className="font-medium text-gray-600">Streak Shield</h4>
-            <p className="text-xs text-gray-500">
-              Upgrade to PRO to protect your streak
-            </p>
+            <p className="text-xs text-gray-500">Upgrade to PRO to protect your streak</p>
           </div>
         </div>
       </div>
@@ -59,7 +57,7 @@ export function StreakShield({
       <div
         onClick={() => !hasShield && setShowDialog(true)}
         className={cn(
-          'rounded-xl p-4 cursor-pointer transition-all',
+          'cursor-pointer rounded-xl p-4 transition-all',
           hasShield
             ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
             : 'bg-purple-50 hover:bg-purple-100',
@@ -68,9 +66,9 @@ export function StreakShield({
       >
         <div className="flex items-center gap-3">
           {hasShield ? (
-            <ShieldCheck className="w-8 h-8 text-white" />
+            <ShieldCheck className="h-8 w-8 text-white" />
           ) : (
-            <ShieldAlert className="w-8 h-8 text-purple-600" />
+            <ShieldAlert className="h-8 w-8 text-purple-600" />
           )}
           <div className="flex-1">
             <h4 className={cn('font-medium', hasShield ? 'text-white' : 'text-purple-700')}>
@@ -82,16 +80,12 @@ export function StreakShield({
                 : 'Click to activate protection'}
             </p>
           </div>
-          {hasShield && (
-            <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
-          )}
+          {hasShield && <Sparkles className="h-5 w-5 animate-pulse text-yellow-300" />}
         </div>
 
         {hasShield && streakDays > 0 && (
-          <div className="mt-3 pt-3 border-t border-white/20">
-            <p className="text-sm text-white/90">
-              Your {streakDays}-day streak is protected! 🔥
-            </p>
+          <div className="mt-3 border-t border-white/20 pt-3">
+            <p className="text-sm text-white/90">Your {streakDays}-day streak is protected! 🔥</p>
           </div>
         )}
       </div>
@@ -101,7 +95,7 @@ export function StreakShield({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-purple-500" />
+              <Shield className="h-5 w-5 text-purple-500" />
               Activate Streak Shield
             </DialogTitle>
             <DialogDescription>
@@ -110,9 +104,9 @@ export function StreakShield({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <h4 className="font-medium text-purple-700 mb-2">How it works:</h4>
-              <ul className="text-sm text-purple-600 space-y-1">
+            <div className="rounded-lg bg-purple-50 p-4">
+              <h4 className="mb-2 font-medium text-purple-700">How it works:</h4>
+              <ul className="space-y-1 text-sm text-purple-600">
                 <li>• Protects your streak for 24 hours</li>
                 <li>• Automatic activation if you miss a day</li>
                 <li>• {tier === 'ELITE' ? 'Unlimited' : '3 uses per month'}</li>
@@ -120,11 +114,7 @@ export function StreakShield({
             </div>
 
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowDialog(false)}
-              >
+              <Button variant="outline" className="flex-1" onClick={() => setShowDialog(false)}>
                 Cancel
               </Button>
               <Button

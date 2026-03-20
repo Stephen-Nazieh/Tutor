@@ -16,7 +16,7 @@ import {
   DashboardCalendar,
   LearningPathCard,
   MissedClassesCard,
-  PendingAssignmentsCard
+  PendingAssignmentsCard,
 } from '../dashboard/components'
 import { SpacedRepetitionDashboard } from '@/components/spaced-repetition'
 import type { DashboardClass, DashboardData } from '../dashboard/types'
@@ -29,7 +29,13 @@ export default function StudentDashboardDetails() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [bookingClassId, setBookingClassId] = useState<string | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [reviewData, setReviewData] = useState<{ subjectCurves: any[]; upcomingReviews: any[]; overdueReviews: any[]; totalDue: number; reviewHistory?: any[] } | null>(null)
+  const [reviewData, setReviewData] = useState<{
+    subjectCurves: any[]
+    upcomingReviews: any[]
+    overdueReviews: any[]
+    totalDue: number
+    reviewHistory?: any[]
+  } | null>(null)
 
   const strings = getDashboardStrings('en')
 
@@ -40,13 +46,41 @@ export default function StudentDashboardDetails() {
 
     try {
       const responses = await Promise.all([
-        fetch('/api/content').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ contents: [] }) })),
-        fetch('/api/gamification').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false }) })),
-        fetch('/api/gamification/worlds').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false, data: [] }) })),
-        fetch('/api/recommendations').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ recommendations: [] }) })),
-        fetch('/api/classes?limit=3').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ classes: [] }) })),
-        fetch('/api/student/subjects').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ subjects: [] }) })),
-        fetch('/api/student/reviews').catch(() => ({ ok: true, status: 200, json: () => Promise.resolve({ success: false, data: null }) }))
+        fetch('/api/content').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ contents: [] }),
+        })),
+        fetch('/api/gamification').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: false }),
+        })),
+        fetch('/api/gamification/worlds').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: false, data: [] }),
+        })),
+        fetch('/api/recommendations').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ recommendations: [] }),
+        })),
+        fetch('/api/classes?limit=3').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ classes: [] }),
+        })),
+        fetch('/api/student/subjects').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ subjects: [] }),
+        })),
+        fetch('/api/student/reviews').catch(() => ({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ success: false, data: null }),
+        })),
       ])
 
       const authErrors = responses.filter(r => r.status === 401)
@@ -55,8 +89,15 @@ export default function StudentDashboardDetails() {
         return
       }
 
-      const [contentData, gamificationData, worldsData, recsData, classesData, subjectsData, reviewsData] =
-        await Promise.all(responses.map(r => r.json()))
+      const [
+        contentData,
+        gamificationData,
+        worldsData,
+        recsData,
+        classesData,
+        subjectsData,
+        reviewsData,
+      ] = await Promise.all(responses.map(r => r.json()))
 
       const subjects = subjectsData?.subjects ?? []
       setData({
@@ -67,17 +108,29 @@ export default function StudentDashboardDetails() {
         recommendations: recsData?.recommendations ?? [],
         classes: classesData?.classes ?? [],
         studyGroups: [],
-        courses: subjects.map((s: { id: string; name: string; subject: string; description?: string | null; progress: number; completedLessons: number; totalLessons: number; lastStudied?: string | null; enrollmentSource?: string | null }) => ({
-          id: s.id,
-          name: s.name,
-          subject: s.subject,
-          description: s.description ?? null,
-          progress: s.progress ?? 0,
-          completedLessons: s.completedLessons ?? 0,
-          totalLessons: s.totalLessons ?? 0,
-          lastStudied: s.lastStudied ?? null,
-          enrollmentSource: s.enrollmentSource ?? null
-        }))
+        courses: subjects.map(
+          (s: {
+            id: string
+            name: string
+            subject: string
+            description?: string | null
+            progress: number
+            completedLessons: number
+            totalLessons: number
+            lastStudied?: string | null
+            enrollmentSource?: string | null
+          }) => ({
+            id: s.id,
+            name: s.name,
+            subject: s.subject,
+            description: s.description ?? null,
+            progress: s.progress ?? 0,
+            completedLessons: s.completedLessons ?? 0,
+            totalLessons: s.totalLessons ?? 0,
+            lastStudied: s.lastStudied ?? null,
+            enrollmentSource: s.enrollmentSource ?? null,
+          })
+        ),
       })
       setReviewData(reviewsData?.data || null)
       setLoading(false)
@@ -106,7 +159,7 @@ export default function StudentDashboardDetails() {
       const response = await fetch('/api/classes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classId })
+        body: JSON.stringify({ classId }),
       })
       const result = await response.json()
 
@@ -120,18 +173,18 @@ export default function StudentDashboardDetails() {
         setData(prev =>
           prev
             ? {
-              ...prev,
-              classes: prev.classes.map(c =>
-                c.id === classId
-                  ? {
-                    ...c,
-                    isBooked: true,
-                    bookingId: result.booking?.id,
-                    currentBookings: (c.currentBookings ?? 0) + 1
-                  }
-                  : c
-              )
-            }
+                ...prev,
+                classes: prev.classes.map(c =>
+                  c.id === classId
+                    ? {
+                        ...c,
+                        isBooked: true,
+                        bookingId: result.booking?.id,
+                        currentBookings: (c.currentBookings ?? 0) + 1,
+                      }
+                    : c
+                ),
+              }
             : null
         )
       } else {
@@ -147,11 +200,11 @@ export default function StudentDashboardDetails() {
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white border-b sticky top-0 z-50 safe-top">
+        <nav className="safe-top sticky top-0 z-50 border-b bg-white">
           <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
-              <div className="h-7 w-24 bg-gray-200 rounded animate-pulse" />
-              <div className="h-9 w-9 bg-gray-100 rounded animate-pulse" />
+            <div className="flex h-16 items-center justify-between">
+              <div className="h-7 w-24 animate-pulse rounded bg-gray-200" />
+              <div className="h-9 w-9 animate-pulse rounded bg-gray-100" />
             </div>
           </div>
         </nav>
@@ -166,25 +219,33 @@ export default function StudentDashboardDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b sticky top-0 z-50 safe-top">
+      <nav className="safe-top sticky top-0 z-50 border-b bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex h-16 justify-between">
             <div className="flex items-center">
-              <Link href="/student/dashboard" className="inline-flex items-center" aria-label="Student dashboard">
+              <Link
+                href="/student/dashboard"
+                className="inline-flex items-center"
+                aria-label="Student dashboard"
+              >
                 <span className="sr-only">Dashboard</span>
                 <span className="h-2.5 w-2.5 rounded-full bg-blue-600" aria-hidden="true" />
               </Link>
             </div>
             <div className="flex items-center gap-4">
               {data?.gamification && (
-                <div className="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full">
+                <div className="flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1">
                   <Flame className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium">{data.gamification.streakDays} day streak</span>
+                  <span className="text-sm font-medium">
+                    {data.gamification.streakDays} day streak
+                  </span>
                 </div>
               )}
               <NotificationBell />
               <Link href="/student/settings">
-                <Button variant="ghost" size="icon"><Settings className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-5 w-5" />
+                </Button>
               </Link>
               <UserNav />
             </div>
@@ -192,7 +253,7 @@ export default function StudentDashboardDetails() {
         </div>
       </nav>
 
-      <main className="w-full px-4 sm:px-6 lg:px-8 py-8" aria-busy={loading}>
+      <main className="w-full px-4 py-8 sm:px-6 lg:px-8" aria-busy={loading}>
         {fetchError && (
           <div
             role="alert"
@@ -202,7 +263,12 @@ export default function StudentDashboardDetails() {
               <AlertCircle className="h-5 w-5 shrink-0" aria-hidden />
               <p className="text-sm font-medium">{strings.errorLoading}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => fetchDashboardData()} className="shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchDashboardData()}
+              className="shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
               {strings.retry}
             </Button>
           </div>
@@ -215,18 +281,35 @@ export default function StudentDashboardDetails() {
           <MissedClassesCard />
           <DashboardCalendar
             onRefresh={fetchDashboardData}
-            contents={(data?.contents ?? []) as { id: string; subject: string; topic: string; progress: number; lastStudied?: string }[]}
-            upcomingClasses={(data?.classes || []).map((c: DashboardClass & { scheduledAt?: string; tutor?: { name?: string }; _count?: { participants?: number }; type?: string }) => ({
-              id: c.id,
-              title: c.title,
-              subject: c.subject,
-              scheduledAt: c.startTime || c.scheduledAt || '',
-              duration: c.duration,
-              maxStudents: c.maxStudents,
-              students: c.currentBookings || c._count?.participants || 0,
-              tutorName: c.tutor?.name || 'Unknown Tutor',
-              type: (c.type || 'online') as 'online' | 'in-person'
-            }))}
+            contents={
+              (data?.contents ?? []) as {
+                id: string
+                subject: string
+                topic: string
+                progress: number
+                lastStudied?: string
+              }[]
+            }
+            upcomingClasses={(data?.classes || []).map(
+              (
+                c: DashboardClass & {
+                  scheduledAt?: string
+                  tutor?: { name?: string }
+                  _count?: { participants?: number }
+                  type?: string
+                }
+              ) => ({
+                id: c.id,
+                title: c.title,
+                subject: c.subject,
+                scheduledAt: c.startTime || c.scheduledAt || '',
+                duration: c.duration,
+                maxStudents: c.maxStudents,
+                students: c.currentBookings || c._count?.participants || 0,
+                tutorName: c.tutor?.name || 'Unknown Tutor',
+                type: (c.type || 'online') as 'online' | 'in-person',
+              })
+            )}
             bookingClassId={bookingClassId}
             onBookClass={handleBookClass}
           />

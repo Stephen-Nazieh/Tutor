@@ -32,7 +32,7 @@ import {
   Award,
   BarChart3,
   ChevronRight,
-  X
+  X,
 } from 'lucide-react'
 
 interface ReviewNodeModalProps {
@@ -64,7 +64,7 @@ export function ReviewNodeModal({
   review,
   onReviewComplete,
   onSnooze,
-  onMarkKnown
+  onMarkKnown,
 }: ReviewNodeModalProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -89,10 +89,22 @@ export function ReviewNodeModal({
   const getPriorityBadge = (priority: string, isOverdue: boolean) => {
     if (isOverdue) return <Badge variant="destructive">Overdue</Badge>
     switch (priority) {
-      case 'high': return <Badge variant="default" className="bg-orange-500">High Priority</Badge>
-      case 'medium': return <Badge variant="outline" className="text-yellow-600">Medium</Badge>
-      case 'low': return <Badge variant="secondary">Low</Badge>
-      default: return null
+      case 'high':
+        return (
+          <Badge variant="default" className="bg-orange-500">
+            High Priority
+          </Badge>
+        )
+      case 'medium':
+        return (
+          <Badge variant="outline" className="text-yellow-600">
+            Medium
+          </Badge>
+        )
+      case 'low':
+        return <Badge variant="secondary">Low</Badge>
+      default:
+        return null
     }
   }
 
@@ -117,9 +129,9 @@ export function ReviewNodeModal({
       const res = await fetch('/api/student/reviews/snooze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reviewId: review.id, days: 1 })
+        body: JSON.stringify({ reviewId: review.id, days: 1 }),
       })
-      
+
       if (res.ok) {
         toast.success('Review postponed until tomorrow')
         onSnooze?.()
@@ -141,12 +153,12 @@ export function ReviewNodeModal({
       const res = await fetch('/api/student/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          contentId: review.contentId, 
-          performance: 95 // High performance since marked as known
-        })
+        body: JSON.stringify({
+          contentId: review.contentId,
+          performance: 95, // High performance since marked as known
+        }),
       })
-      
+
       if (res.ok) {
         toast.success('Marked as known! Next review extended.')
         onMarkKnown?.()
@@ -167,17 +179,17 @@ export function ReviewNodeModal({
     averageScore: Math.round(review.currentRetention * 0.85 + Math.random() * 15),
     totalReviews: review.repetitionCount,
     streakDays: Math.floor(Math.random() * 7) + 1,
-    studyTimeMinutes: Math.floor(Math.random() * 60) + 15
+    studyTimeMinutes: Math.floor(Math.random() * 60) + 15,
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[650px]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="h-3 w-3 rounded-full"
                 style={{ backgroundColor: review.subjectColor }}
               />
               <DialogTitle className="text-lg">{review.contentTitle}</DialogTitle>
@@ -185,74 +197,77 @@ export function ReviewNodeModal({
             {getPriorityBadge(review.priority, !!isOverdue)}
           </div>
           <DialogDescription className="flex items-center gap-2 pt-1">
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="h-4 w-4" />
             {review.subjectName}
             <span className="mx-1">•</span>
-            <Clock className="w-4 h-4" />
-            {isOverdue 
+            <Clock className="h-4 w-4" />
+            {isOverdue
               ? `${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} overdue`
-              : daysUntilDue === 0 
+              : daysUntilDue === 0
                 ? 'Due today'
-                : `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}`
-            }
+                : `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}`}
           </DialogDescription>
         </DialogHeader>
 
         {/* Retention Status */}
-        <div className={cn("p-4 rounded-lg", retentionStatus.bg)}>
-          <div className="flex items-center justify-between mb-2">
+        <div className={cn('rounded-lg p-4', retentionStatus.bg)}>
+          <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Brain className={cn("w-5 h-5", retentionStatus.color)} />
+              <Brain className={cn('h-5 w-5', retentionStatus.color)} />
               <span className="font-medium">Current Retention</span>
             </div>
-            <span className={cn("text-2xl font-bold", retentionStatus.color)}>
+            <span className={cn('text-2xl font-bold', retentionStatus.color)}>
               {review.currentRetention}%
             </span>
           </div>
           <Progress value={review.currentRetention} className="h-2" />
-          <p className="text-sm mt-2 text-gray-600">
-            {review.currentRetention >= 80 
+          <p className="mt-2 text-sm text-gray-600">
+            {review.currentRetention >= 80
               ? 'You remember this well! Quick review recommended.'
               : review.currentRetention >= 60
                 ? 'Memory is stable. Review to maintain retention.'
                 : review.currentRetention >= 40
                   ? 'Content is fading. Review soon to strengthen memory.'
-                  : 'Urgent! You\'re at risk of forgetting this content.'
-            }
+                  : "Urgent! You're at risk of forgetting this content."}
           </p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <RotateCcw className="w-4 h-4" />
+          <div className="rounded-lg bg-gray-50 p-3">
+            <div className="mb-1 flex items-center gap-2 text-sm text-gray-500">
+              <RotateCcw className="h-4 w-4" />
               Times Reviewed
             </div>
             <p className="text-xl font-semibold">{mockStats.totalReviews}</p>
           </div>
-          
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Clock className="w-4 h-4" />
+
+          <div className="rounded-lg bg-gray-50 p-3">
+            <div className="mb-1 flex items-center gap-2 text-sm text-gray-500">
+              <Clock className="h-4 w-4" />
               Study Time
             </div>
             <p className="text-xl font-semibold">{mockStats.studyTimeMinutes}m</p>
           </div>
-          
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <Target className="w-4 h-4" />
+
+          <div className="rounded-lg bg-gray-50 p-3">
+            <div className="mb-1 flex items-center gap-2 text-sm text-gray-500">
+              <Target className="h-4 w-4" />
               Last Score
             </div>
-            <p className={cn("text-xl font-semibold", mockStats.lastScore >= 70 ? 'text-green-600' : 'text-yellow-600')}>
+            <p
+              className={cn(
+                'text-xl font-semibold',
+                mockStats.lastScore >= 70 ? 'text-green-600' : 'text-yellow-600'
+              )}
+            >
               {mockStats.lastScore}%
             </p>
           </div>
-          
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-              <BarChart3 className="w-4 h-4" />
+
+          <div className="rounded-lg bg-gray-50 p-3">
+            <div className="mb-1 flex items-center gap-2 text-sm text-gray-500">
+              <BarChart3 className="h-4 w-4" />
               Average
             </div>
             <p className="text-xl font-semibold">{mockStats.averageScore}%</p>
@@ -263,49 +278,54 @@ export function ReviewNodeModal({
 
         {/* Recommended Actions */}
         <div className="space-y-3">
-          <h4 className="font-medium text-sm flex items-center gap-2">
-            <Zap className="w-4 h-4 text-yellow-500" />
+          <h4 className="flex items-center gap-2 text-sm font-medium">
+            <Zap className="h-4 w-4 text-yellow-500" />
             Recommended Actions
           </h4>
-          
+
           <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" onClick={handleStartReview}>
+            <div
+              className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50"
+              onClick={handleStartReview}
+            >
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Brain className="w-5 h-5 text-blue-600" />
+                <div className="rounded-lg bg-blue-100 p-2">
+                  <Brain className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Full Review Session</p>
-                  <p className="text-xs text-gray-500">Recommended time: {getRecommendedStudyTime(review.currentRetention)}</p>
+                  <p className="text-sm font-medium">Full Review Session</p>
+                  <p className="text-xs text-gray-500">
+                    Recommended time: {getRecommendedStudyTime(review.currentRetention)}
+                  </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <ChevronRight className="h-5 w-5 text-gray-400" />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+            <div className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <BookOpen className="w-5 h-5 text-green-600" />
+                <div className="rounded-lg bg-green-100 p-2">
+                  <BookOpen className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Quick Flashcards</p>
+                  <p className="text-sm font-medium">Quick Flashcards</p>
                   <p className="text-xs text-gray-500">5-minute rapid review</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <ChevronRight className="h-5 w-5 text-gray-400" />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+            <div className="flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors hover:bg-gray-50">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Target className="w-5 h-5 text-purple-600" />
+                <div className="rounded-lg bg-purple-100 p-2">
+                  <Target className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Practice Quiz</p>
+                  <p className="text-sm font-medium">Practice Quiz</p>
                   <p className="text-xs text-gray-500">Test your knowledge</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <ChevronRight className="h-5 w-5 text-gray-400" />
             </div>
           </div>
         </div>
@@ -313,46 +333,42 @@ export function ReviewNodeModal({
         <Separator />
 
         {/* Spaced Repetition Info */}
-        <div className="bg-blue-50 p-3 rounded-lg">
+        <div className="rounded-lg bg-blue-50 p-3">
           <div className="flex items-start gap-2">
-            <Brain className="w-4 h-4 text-blue-500 mt-0.5" />
+            <Brain className="mt-0.5 h-4 w-4 text-blue-500" />
             <div className="text-sm">
               <p className="font-medium text-blue-900">Spaced Repetition</p>
-              <p className="text-blue-700 mt-1">
-                This review is scheduled based on your learning patterns. 
-                Reviewing at the optimal time strengthens long-term memory.
+              <p className="mt-1 text-blue-700">
+                This review is scheduled based on your learning patterns. Reviewing at the optimal
+                time strengthens long-term memory.
               </p>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
           <Button
             variant="outline"
             onClick={handleSnooze}
             disabled={isLoading}
             className="w-full sm:w-auto"
           >
-            <Clock className="w-4 h-4 mr-2" />
+            <Clock className="mr-2 h-4 w-4" />
             Snooze 1 Day
           </Button>
-          
+
           <Button
             variant="outline"
             onClick={handleMarkKnown}
             disabled={isLoading}
             className="w-full sm:w-auto"
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            <CheckCircle2 className="mr-2 h-4 w-4" />
             Mark as Known
           </Button>
-          
-          <Button 
-            onClick={handleStartReview}
-            disabled={isLoading}
-            className="w-full sm:w-auto"
-          >
-            <Brain className="w-4 h-4 mr-2" />
+
+          <Button onClick={handleStartReview} disabled={isLoading} className="w-full sm:w-auto">
+            <Brain className="mr-2 h-4 w-4" />
             Start Review
           </Button>
         </DialogFooter>

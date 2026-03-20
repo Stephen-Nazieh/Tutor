@@ -29,16 +29,11 @@ async function getHandler(_req: NextRequest, session: Session) {
     const [dailyUsage] = await drizzleDb
       .select()
       .from(aITutorDailyUsage)
-      .where(
-        and(
-          eq(aITutorDailyUsage.userId, session.user.id),
-          eq(aITutorDailyUsage.date, today)
-        )
-      )
+      .where(and(eq(aITutorDailyUsage.userId, session.user.id), eq(aITutorDailyUsage.date, today)))
       .limit(1)
 
     return NextResponse.json({
-      enrollments: enrollments.map((e) => ({
+      enrollments: enrollments.map(e => ({
         id: e.id,
         subjectCode: e.subjectCode,
         status: e.status,
@@ -67,10 +62,7 @@ async function patchHandler(req: NextRequest, session: Session) {
     const { enrollmentId, updates } = body
 
     if (!enrollmentId) {
-      return NextResponse.json(
-        { error: 'Enrollment ID required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Enrollment ID required' }, { status: 400 })
     }
 
     const [enrollment] = await drizzleDb
@@ -85,10 +77,7 @@ async function patchHandler(req: NextRequest, session: Session) {
       .limit(1)
 
     if (!enrollment) {
-      return NextResponse.json(
-        { error: 'Enrollment not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Enrollment not found' }, { status: 404 })
     }
 
     const allowedUpdates: { status?: string } = {}

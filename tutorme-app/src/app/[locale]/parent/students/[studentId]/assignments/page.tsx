@@ -3,13 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -119,21 +113,21 @@ export default function StudentAssignmentsPage() {
       case 'submitted':
         return (
           <Badge variant="default" className="bg-green-600">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
+            <CheckCircle2 className="mr-1 h-3 w-3" />
             已提交
           </Badge>
         )
       case 'overdue':
         return (
           <Badge variant="destructive">
-            <AlertCircle className="h-3 w-3 mr-1" />
+            <AlertCircle className="mr-1 h-3 w-3" />
             已逾期
           </Badge>
         )
       default:
         return (
           <Badge variant="secondary">
-            <Clock className="h-3 w-3 mr-1" />
+            <Clock className="mr-1 h-3 w-3" />
             待完成
           </Badge>
         )
@@ -162,15 +156,13 @@ export default function StudentAssignmentsPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">作业与测验</h1>
-            <p className="text-gray-500 text-sm">
-              查看孩子的作业完成情况、AI评分和教师反馈
-            </p>
+            <p className="text-sm text-gray-500">查看孩子的作业完成情况、AI评分和教师反馈</p>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -221,9 +213,7 @@ export default function StudentAssignmentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>全部作业</CardTitle>
-          <CardDescription>
-            包含作业、测验、练习等，支持AI评分与教师反馈
-          </CardDescription>
+          <CardDescription>包含作业、测验、练习等，支持AI评分与教师反馈</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -242,18 +232,14 @@ export default function StudentAssignmentsPage() {
               <TabsContent value={activeTab} className="mt-0">
                 <div className="space-y-4">
                   {assignments
-                    .filter((a) =>
-                      activeTab === 'all'
-                        ? true
-                        : a.status === activeTab
-                    )
-                    .map((a) => (
+                    .filter(a => (activeTab === 'all' ? true : a.status === activeTab))
+                    .map(a => (
                       <Card key={a.id} className="overflow-hidden">
                         <CardContent className="p-0">
-                          <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-semibold truncate">{a.title}</h3>
+                          <div className="flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="truncate font-semibold">{a.title}</h3>
                                 {getStatusBadge(a.status)}
                                 <Badge variant="outline" className="text-xs">
                                   {getTypeLabel(a.type)}
@@ -265,20 +251,14 @@ export default function StudentAssignmentsPage() {
                                 )}
                               </div>
                               {a.description && (
-                                <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                <p className="mt-1 line-clamp-2 text-sm text-gray-500">
                                   {a.description}
                                 </p>
                               )}
-                              <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                                {a.lessonTitle && (
-                                  <span>{a.lessonTitle}</span>
-                                )}
-                                {a.curriculumName && (
-                                  <span>· {a.curriculumName}</span>
-                                )}
-                                {a.tutorName && (
-                                  <span>· 教师: {a.tutorName}</span>
-                                )}
+                              <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500">
+                                {a.lessonTitle && <span>{a.lessonTitle}</span>}
+                                {a.curriculumName && <span>· {a.curriculumName}</span>}
+                                {a.tutorName && <span>· 教师: {a.tutorName}</span>}
                                 {a.dueDate && (
                                   <span className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
@@ -287,17 +267,15 @@ export default function StudentAssignmentsPage() {
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-4 shrink-0">
+                            <div className="flex shrink-0 items-center gap-4">
                               {a.status === 'submitted' && a.score != null && (
                                 <div className="flex items-center gap-1">
                                   <Trophy className="h-4 w-4 text-amber-500" />
-                                  <span className="font-semibold">
-                                    {Math.round(a.score)}%
-                                  </span>
+                                  <span className="font-semibold">{Math.round(a.score)}%</span>
                                 </div>
                               )}
                               <div className="text-sm text-gray-500">
-                                <FileQuestion className="h-4 w-4 inline mr-1" />
+                                <FileQuestion className="mr-1 inline h-4 w-4" />
                                 {a.questionCount} 题
                               </div>
                             </div>
@@ -305,25 +283,25 @@ export default function StudentAssignmentsPage() {
 
                           {/* AI & Teacher feedback */}
                           {(a.aiGraded || a.tutorFeedback) && (
-                            <div className="border-t bg-gray-50/50 px-4 py-3 space-y-2">
+                            <div className="space-y-2 border-t bg-gray-50/50 px-4 py-3">
                               {a.aiGraded && (
-                                <div className="flex gap-2 items-start">
-                                  <Bot className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
+                                <div className="flex items-start gap-2">
+                                  <Bot className="mt-0.5 h-4 w-4 shrink-0 text-purple-500" />
                                   <div className="text-sm">
                                     <span className="font-medium text-gray-700">
                                       AI 评分
                                       {a.aiScore != null && `: ${Math.round(a.aiScore)}%`}
                                     </span>
                                     {a.aiComments && (
-                                      <p className="text-gray-600 mt-1">{a.aiComments}</p>
+                                      <p className="mt-1 text-gray-600">{a.aiComments}</p>
                                     )}
                                     {a.aiStrengths.length > 0 && (
-                                      <p className="text-green-700 mt-1">
+                                      <p className="mt-1 text-green-700">
                                         优点: {a.aiStrengths.join('、')}
                                       </p>
                                     )}
                                     {a.aiImprovements.length > 0 && (
-                                      <p className="text-amber-700 mt-1">
+                                      <p className="mt-1 text-amber-700">
                                         改进: {a.aiImprovements.join('、')}
                                       </p>
                                     )}
@@ -331,8 +309,8 @@ export default function StudentAssignmentsPage() {
                                 </div>
                               )}
                               {a.tutorFeedback && (
-                                <div className="flex gap-2 items-start">
-                                  <User className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                                <div className="flex items-start gap-2">
+                                  <User className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
                                   <div className="text-sm">
                                     <span className="font-medium text-gray-700">
                                       教师反馈
@@ -342,7 +320,7 @@ export default function StudentAssignmentsPage() {
                                         </Badge>
                                       )}
                                     </span>
-                                    <p className="text-gray-600 mt-1">{a.tutorFeedback}</p>
+                                    <p className="mt-1 text-gray-600">{a.tutorFeedback}</p>
                                   </div>
                                 </div>
                               )}
@@ -352,19 +330,17 @@ export default function StudentAssignmentsPage() {
                           {a.status === 'submitted' && a.submittedAt && (
                             <div className="border-t px-4 py-2 text-xs text-gray-500">
                               提交于 {formatDate(a.submittedAt)}
-                              {a.timeSpent != null && ` · 用时 ${Math.round(a.timeSpent / 60)} 分钟`}
+                              {a.timeSpent != null &&
+                                ` · 用时 ${Math.round(a.timeSpent / 60)} 分钟`}
                               {a.attempts > 0 && ` · 第 ${a.attempts}/${a.maxAttempts} 次尝试`}
                             </div>
                           )}
                         </CardContent>
                       </Card>
                     ))}
-                  {assignments.filter((a) =>
-                    activeTab === 'all' ? true : a.status === activeTab
-                  ).length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
-                      暂无作业
-                    </div>
+                  {assignments.filter(a => (activeTab === 'all' ? true : a.status === activeTab))
+                    .length === 0 && (
+                    <div className="py-12 text-center text-gray-500">暂无作业</div>
                   )}
                 </div>
               </TabsContent>

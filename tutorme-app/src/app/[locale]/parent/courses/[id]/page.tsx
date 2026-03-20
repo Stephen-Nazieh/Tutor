@@ -15,14 +15,14 @@ export default function ParentCoursePage() {
   useEffect(() => {
     if (!courseId) return
     fetch(`/api/parent/courses/${courseId}`, { credentials: 'include' })
-      .then((res) => {
+      .then(res => {
         if (!res.ok) throw new Error(res.status === 404 ? 'Course not found' : 'Failed to load')
         return res.json()
       })
-      .then((data) => {
+      .then(data => {
         setCourseData(data.course ?? null)
       })
-      .catch((err) => {
+      .catch(err => {
         setError(err.message ?? 'Failed to load course')
       })
       .finally(() => {
@@ -32,8 +32,8 @@ export default function ParentCoursePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
-        <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="flex min-h-[300px] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         <span className="ml-3 text-gray-500">Loading course details...</span>
       </div>
     )
@@ -41,7 +41,7 @@ export default function ParentCoursePage() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
+      <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
         <p className="text-red-600">{error}</p>
         <Button variant="outline" onClick={() => window.location.reload()}>
           Retry
@@ -52,7 +52,7 @@ export default function ParentCoursePage() {
 
   if (!courseData) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
+      <div className="flex min-h-[300px] items-center justify-center">
         <p className="text-gray-500">Course not found</p>
       </div>
     )

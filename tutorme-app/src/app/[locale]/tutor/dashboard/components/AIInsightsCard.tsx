@@ -8,22 +8,28 @@ import { ChevronRight } from 'lucide-react'
 export function AIInsightsCard() {
   const router = useRouter()
   return (
-    <Card className="border border-slate-200 shadow-xl bg-white/95 backdrop-blur-md">
+    <Card className="border border-slate-200 bg-white/95 shadow-xl backdrop-blur-md">
       <CardHeader>
         <CardTitle>AI Insights</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="p-3 bg-yellow-50 rounded-lg border border-slate-200">
+          <div className="rounded-lg border border-slate-200 bg-yellow-50 p-3">
             <p className="text-sm font-medium text-yellow-800">Attention Needed</p>
-            <p className="text-sm text-yellow-700 mt-1">3 students struggling with systems of equations</p>
+            <p className="mt-1 text-sm text-yellow-700">
+              3 students struggling with systems of equations
+            </p>
           </div>
-          <div className="p-3 bg-green-50 rounded-lg border border-slate-200">
+          <div className="rounded-lg border border-slate-200 bg-green-50 p-3">
             <p className="text-sm font-medium text-green-800">Good Progress</p>
-            <p className="text-sm text-green-700 mt-1">85% mastered linear equations</p>
+            <p className="mt-1 text-sm text-green-700">85% mastered linear equations</p>
           </div>
-          <Button variant="outline" className="w-full" onClick={() => router.push('/tutor/reports')}>
-            View Full Report <ChevronRight className="w-4 h-4 ml-1" />
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push('/tutor/reports')}
+          >
+            View Full Report <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       </CardContent>

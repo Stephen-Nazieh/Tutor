@@ -1,6 +1,6 @@
 /**
  * Mission Context Layer (Layer 5)
- * 
+ *
  * Injects current mission/world context for structured learning
  */
 
@@ -30,13 +30,13 @@ Current Learning Context:
 ⭐ Difficulty: Level ${context.difficulty}
 🎮 Type: ${context.missionType}
 
-${context.vocabulary && context.vocabulary.length > 0 
-  ? `📚 Target Vocabulary: ${context.vocabulary.join(', ')}` 
-  : ''}
+${
+  context.vocabulary && context.vocabulary.length > 0
+    ? `📚 Target Vocabulary: ${context.vocabulary.join(', ')}`
+    : ''
+}
 
-${context.grammarFocus 
-  ? `📝 Grammar Focus: ${context.grammarFocus}` 
-  : ''}
+${context.grammarFocus ? `📝 Grammar Focus: ${context.grammarFocus}` : ''}
 
 Mission Flow:
 1. Briefly introduce today's objective (1 sentence)

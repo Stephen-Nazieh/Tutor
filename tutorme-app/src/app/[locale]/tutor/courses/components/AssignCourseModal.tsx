@@ -1,25 +1,37 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { 
-  BookOpen, 
-  Users, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Eye, 
+import {
+  BookOpen,
+  Users,
+  AlertTriangle,
+  CheckCircle2,
+  Eye,
   EyeOff,
   BarChart3,
   ArrowRight,
   Loader2,
-  Info
+  Info,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CourseWithAssignments } from '@/types/course-assignment'
@@ -40,13 +52,13 @@ interface AssignCourseModalProps {
 const DIFFICULTY_COLORS = {
   beginner: 'bg-green-100 text-green-700 border-green-200',
   intermediate: 'bg-blue-100 text-blue-700 border-blue-200',
-  advanced: 'bg-purple-100 text-purple-700 border-purple-200'
+  advanced: 'bg-purple-100 text-purple-700 border-purple-200',
 }
 
 const DIFFICULTY_LABELS = {
   beginner: 'Beginner',
   intermediate: 'Intermediate',
-  advanced: 'Advanced'
+  advanced: 'Advanced',
 }
 
 export function AssignCourseModal({
@@ -56,13 +68,13 @@ export function AssignCourseModal({
   courses,
   batches,
   preselectedCourseId,
-  preselectedBatchId
+  preselectedBatchId,
 }: AssignCourseModalProps) {
   const [selectedCourseId, setSelectedCourseId] = useState(preselectedCourseId || '')
   const [selectedBatchId, setSelectedBatchId] = useState(preselectedBatchId || '')
   const [assigning, setAssigning] = useState(false)
   const [step, setStep] = useState<'select' | 'preview'>('select')
-  
+
   const { preview, loading: previewLoading, generatePreview, clearPreview } = useAssignmentPreview()
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId)
@@ -85,13 +97,14 @@ export function AssignCourseModal({
     }
   }, [selectedCourseId, selectedBatchId, step, generatePreview])
 
-  const mismatchWarning = selectedCourse && selectedBatch 
-    ? getDifficultyMismatchWarning(undefined, selectedBatch.difficulty)
-    : null
+  const mismatchWarning =
+    selectedCourse && selectedBatch
+      ? getDifficultyMismatchWarning(undefined, selectedBatch.difficulty)
+      : null
 
   const handleAssign = async () => {
     if (!selectedCourseId || !selectedBatchId) return
-    
+
     setAssigning(true)
     try {
       await onAssign(selectedCourseId, selectedBatchId)
@@ -105,7 +118,7 @@ export function AssignCourseModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
@@ -114,7 +127,7 @@ export function AssignCourseModal({
         </DialogHeader>
 
         {step === 'select' ? (
-          <div className="space-y-6 py-4 overflow-y-auto">
+          <div className="space-y-6 overflow-y-auto py-4">
             {/* Course Selection */}
             <div className="space-y-2">
               <Label>Select Course</Label>
@@ -140,11 +153,11 @@ export function AssignCourseModal({
                   ))}
                 </SelectContent>
               </Select>
-              
+
               {selectedCourse && (
-                <div className="p-3 bg-gray-50 rounded-lg text-sm">
+                <div className="rounded-lg bg-gray-50 p-3 text-sm">
                   <p className="text-muted-foreground">{selectedCourse.description}</p>
-                  <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                  <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
                     <span>{selectedCourse.stats.moduleCount} modules</span>
                     <span>{selectedCourse.stats.lessonCount} lessons</span>
                     <span>{selectedCourse.stats.quizCount} quizzes</span>
@@ -178,10 +191,12 @@ export function AssignCourseModal({
               </Select>
 
               {selectedBatch && (
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="rounded-lg bg-gray-50 p-3">
+                  <div className="mb-2 flex items-center gap-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedBatch.enrollmentCount} students enrolled</span>
+                    <span className="text-sm">
+                      {selectedBatch.enrollmentCount} students enrolled
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -196,26 +211,26 @@ export function AssignCourseModal({
 
             {/* Mismatch Warning */}
             {mismatchWarning && (
-              <Alert className="bg-amber-50 border-amber-200">
+              <Alert className="border-amber-200 bg-amber-50">
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-700 text-sm">
+                <AlertDescription className="text-sm text-amber-700">
                   {mismatchWarning}
                 </AlertDescription>
               </Alert>
             )}
           </div>
         ) : (
-          <div className="space-y-4 py-4 overflow-y-auto">
+          <div className="space-y-4 overflow-y-auto py-4">
             {/* Assignment Summary */}
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
               <div className="flex items-center gap-4">
                 <div>
-                  <p className="font-medium text-sm">{selectedCourse?.name}</p>
+                  <p className="text-sm font-medium">{selectedCourse?.name}</p>
                   <p className="text-xs text-muted-foreground">Course</p>
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="font-medium text-sm">{selectedBatch?.name}</p>
+                  <p className="text-sm font-medium">{selectedBatch?.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {DIFFICULTY_LABELS[selectedBatch?.difficulty || 'beginner']} Group
                   </p>
@@ -236,30 +251,36 @@ export function AssignCourseModal({
               <>
                 {/* Resolution Stats */}
                 <div className="grid grid-cols-4 gap-3">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                  <div className="rounded-lg bg-gray-50 p-3 text-center">
                     <p className="text-2xl font-bold">{preview.resolution.totalModules}</p>
                     <p className="text-xs text-muted-foreground">Total Modules</p>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-600">{preview.resolution.visibleModules}</p>
+                  <div className="rounded-lg bg-green-50 p-3 text-center">
+                    <p className="text-2xl font-bold text-green-600">
+                      {preview.resolution.visibleModules}
+                    </p>
                     <p className="text-xs text-muted-foreground">Visible</p>
                   </div>
-                  <div className="text-center p-3 bg-amber-50 rounded-lg">
-                    <p className="text-2xl font-bold text-amber-600">{preview.resolution.adaptedContent}</p>
+                  <div className="rounded-lg bg-amber-50 p-3 text-center">
+                    <p className="text-2xl font-bold text-amber-600">
+                      {preview.resolution.adaptedContent}
+                    </p>
                     <p className="text-xs text-muted-foreground">Adapted</p>
                   </div>
-                  <div className="text-center p-3 bg-red-50 rounded-lg">
-                    <p className="text-2xl font-bold text-red-600">{preview.resolution.hiddenModules}</p>
+                  <div className="rounded-lg bg-red-50 p-3 text-center">
+                    <p className="text-2xl font-bold text-red-600">
+                      {preview.resolution.hiddenModules}
+                    </p>
                     <p className="text-xs text-muted-foreground">Hidden</p>
                   </div>
                 </div>
 
                 {/* Hidden Items Warning */}
                 {preview.hiddenItems.length > 0 && (
-                  <Alert variant="destructive" className="bg-red-50 border-red-200">
+                  <Alert variant="destructive" className="border-red-200 bg-red-50">
                     <EyeOff className="h-4 w-4 text-red-600" />
                     <AlertDescription>
-                      <p className="font-medium text-red-700 mb-1">
+                      <p className="mb-1 font-medium text-red-700">
                         {preview.hiddenItems.length} items will be hidden
                       </p>
                       <p className="text-sm text-red-600">
@@ -272,14 +293,14 @@ export function AssignCourseModal({
                 {/* Adapted Items */}
                 {preview.adaptedItems.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-sm font-medium flex items-center gap-2">
+                    <h4 className="flex items-center gap-2 text-sm font-medium">
                       <Info className="h-4 w-4" />
                       Content Adaptations
                     </h4>
-                    <ScrollArea className="h-40 border rounded-lg p-3">
+                    <ScrollArea className="h-40 rounded-lg border p-3">
                       <div className="space-y-2">
                         {preview.adaptedItems.map((item, idx) => (
-                          <div key={idx} className="text-sm p-2 bg-gray-50 rounded">
+                          <div key={idx} className="rounded bg-gray-50 p-2 text-sm">
                             <p className="font-medium">{item.title}</p>
                             <p className="text-xs text-muted-foreground">
                               {item.field}: {item.originalValue} → {item.adaptedValue}
@@ -292,10 +313,10 @@ export function AssignCourseModal({
                 )}
 
                 {/* Success Note */}
-                <Alert className="bg-green-50 border-green-200">
+                <Alert className="border-green-200 bg-green-50">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700 text-sm">
-                    Course content will automatically adapt to match the group&apos;s 
+                  <AlertDescription className="text-sm text-green-700">
+                    Course content will automatically adapt to match the group&apos;s
                     <strong> {selectedBatch?.difficulty}</strong> difficulty level.
                   </AlertDescription>
                 </Alert>
@@ -310,11 +331,7 @@ export function AssignCourseModal({
               <Button variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button 
-                onClick={() => setStep('preview')} 
-                disabled={!canProceed}
-                className="gap-2"
-              >
+              <Button onClick={() => setStep('preview')} disabled={!canProceed} className="gap-2">
                 <Eye className="h-4 w-4" />
                 Preview Assignment
               </Button>
@@ -324,11 +341,7 @@ export function AssignCourseModal({
               <Button variant="outline" onClick={() => setStep('select')}>
                 Back
               </Button>
-              <Button 
-                onClick={handleAssign} 
-                disabled={assigning}
-                className="gap-2"
-              >
+              <Button onClick={handleAssign} disabled={assigning} className="gap-2">
                 {assigning ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />

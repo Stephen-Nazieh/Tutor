@@ -13,24 +13,24 @@ export interface CourseGroupAssignment {
   batchId: string
   assignedAt: string
   assignedBy: string
-  
+
   /** The group's difficulty level at time of assignment */
   groupDifficulty: DifficultyLevel
-  
+
   /** How the course content was resolved for this group */
   resolutionStrategy: 'adaptive' | 'fixed' | 'filtered'
-  
+
   /** Status of the assignment */
   status: AssignmentStatus
-  
+
   /** Optional schedule dates */
   startDate?: string
   endDate?: string
-  
+
   /** Enrollment stats */
   enrollmentCount: number
   completionCount: number
-  
+
   /** Custom settings that override course defaults */
   overrides?: {
     price?: number
@@ -39,7 +39,7 @@ export interface CourseGroupAssignment {
     allowLateSubmissions?: boolean
     latePenaltyPercent?: number
   }
-  
+
   /** Cached course info for quick display */
   courseSnapshot: {
     title: string
@@ -58,7 +58,7 @@ export interface AssignmentWithDetails extends CourseGroupAssignment {
     subject: string
     isPublished: boolean
   }
-  
+
   /** Live batch/group data */
   batch?: {
     id: string
@@ -66,7 +66,7 @@ export interface AssignmentWithDetails extends CourseGroupAssignment {
     difficulty: DifficultyLevel
     enrollmentCount: number
   }
-  
+
   /** Computed stats */
   stats: {
     totalStudents: number
@@ -92,7 +92,7 @@ export interface AssignmentPreview {
     hiddenModules: number
     adaptedContent: number
   }
-  
+
   /** Items that will be hidden due to difficulty mismatch */
   hiddenItems: {
     type: 'module' | 'lesson' | 'task' | 'quiz'
@@ -100,7 +100,7 @@ export interface AssignmentPreview {
     title: string
     reason: string
   }[]
-  
+
   /** Items that will be adapted */
   adaptedItems: {
     type: 'module' | 'lesson' | 'task' | 'quiz'
@@ -129,7 +129,7 @@ export interface CourseWithAssignments {
     enrollmentCount: number
     joinLink: string
   }[]
-  
+
   /** Assignment summary */
   assignments: {
     total: number
@@ -137,10 +137,10 @@ export interface CourseWithAssignments {
     paused: number
     completed: number
   }
-  
+
   /** Total students across all assignments */
   totalStudents: number
-  
+
   /** Quick stats */
   stats: {
     moduleCount: number
@@ -154,7 +154,7 @@ export interface BatchWithCourses {
   name: string
   difficulty: DifficultyLevel
   enrollmentCount: number
-  
+
   /** Courses assigned to this batch */
   assignedCourses: {
     assignmentId: string
@@ -172,17 +172,17 @@ export interface BatchWithCourses {
 export interface ResolvedContent<T> {
   /** The resolved content (base or variant) */
   content: T
-  
+
   /** How this content was resolved */
   resolution: {
     type: 'base' | 'variant' | 'hidden'
     source?: 'all' | 'fixed' | 'adaptive' | 'variant'
     variantLevel?: DifficultyLevel
   }
-  
+
   /** If hidden, why */
   hiddenReason?: string
-  
+
   /** Original values that were overridden */
   originalValues?: Partial<T>
 }

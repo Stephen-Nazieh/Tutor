@@ -43,7 +43,7 @@ export function useParentRealTimeNotifications() {
     try {
       await markNotificationRead(notificationId)
       setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+        prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n))
       )
     } catch (error) {
       console.error('Failed to mark notification as read:', error)
@@ -55,6 +55,6 @@ export function useParentRealTimeNotifications() {
     allNotifications: notifications,
     unreadCount: notifications.filter(n => !n.isRead).length,
     markAsRead,
-    connectionStatus
+    connectionStatus,
   }
 }

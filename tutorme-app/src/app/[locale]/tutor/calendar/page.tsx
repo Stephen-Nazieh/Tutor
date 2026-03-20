@@ -5,7 +5,16 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Clock, Video, BookOpen, GraduationCap } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Clock,
+  Video,
+  BookOpen,
+  GraduationCap,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 interface CalendarEvent {
@@ -56,11 +65,11 @@ export default function TutorCalendarPage() {
     try {
       const start = new Date(year, month, 1).toISOString()
       const end = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
-      
+
       const res = await fetch(`/api/tutor/calendar/events?start=${start}&end=${end}`, {
         credentials: 'include',
       })
-      
+
       if (res.ok) {
         const data = await res.json()
         setEvents(data.events || [])
@@ -106,44 +115,58 @@ export default function TutorCalendarPage() {
   // Get event icon based on type
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'class': return <Video className="h-3 w-3" />
-      case 'clinic': return <Clock className="h-3 w-3" />
-      case 'course_start': return <GraduationCap className="h-3 w-3" />
-      default: return <BookOpen className="h-3 w-3" />
+      case 'class':
+        return <Video className="h-3 w-3" />
+      case 'clinic':
+        return <Clock className="h-3 w-3" />
+      case 'course_start':
+        return <GraduationCap className="h-3 w-3" />
+      default:
+        return <BookOpen className="h-3 w-3" />
     }
   }
 
   // Get event color based on type
   const getEventColor = (type: string) => {
     switch (type) {
-      case 'class': return 'bg-blue-100 text-blue-700 border-blue-200'
-      case 'clinic': return 'bg-purple-100 text-purple-700 border-purple-200'
-      case 'course_start': return 'bg-green-100 text-green-700 border-green-200'
-      default: return 'bg-gray-100 text-gray-700 border-gray-200'
+      case 'class':
+        return 'bg-blue-100 text-blue-700 border-blue-200'
+      case 'clinic':
+        return 'bg-purple-100 text-purple-700 border-purple-200'
+      case 'course_start':
+        return 'bg-green-100 text-green-700 border-green-200'
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200'
     }
   }
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ]
 
   // Get upcoming events (next 7 days)
-  const upcomingEvents = events
-    .filter(e => new Date(e.startTime) >= new Date())
-    .slice(0, 5)
+  const upcomingEvents = events.filter(e => new Date(e.startTime) >= new Date()).slice(0, 5)
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
             <CalendarDays className="h-6 w-6" />
             Calendar
           </h1>
-          <p className="text-gray-600 mt-1">
-            Manage your schedule and upcoming classes
-          </p>
+          <p className="mt-1 text-gray-600">Manage your schedule and upcoming classes</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={goToToday}>
@@ -151,14 +174,14 @@ export default function TutorCalendarPage() {
           </Button>
           <Link href="/tutor/dashboard?create=1">
             <Button>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Add Event
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Calendar */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -176,9 +199,9 @@ export default function TutorCalendarPage() {
           </CardHeader>
           <CardContent>
             {/* Day headers */}
-            <div className="grid grid-cols-7 gap-2 text-center mb-2">
+            <div className="mb-2 grid grid-cols-7 gap-2 text-center">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="font-semibold text-sm text-gray-500 py-2">
+                <div key={day} className="py-2 text-sm font-semibold text-gray-500">
                   {day}
                 </div>
               ))}
@@ -192,37 +215,32 @@ export default function TutorCalendarPage() {
                 }
 
                 const dayEvents = getEventsForDay(day)
-                const isToday = new Date().toDateString() === new Date(year, month, day).toDateString()
+                const isToday =
+                  new Date().toDateString() === new Date(year, month, day).toDateString()
 
                 return (
                   <div
                     key={day}
-                    className={`
-                      aspect-square border rounded-lg p-1 overflow-hidden
-                      ${isToday ? 'bg-blue-50 border-blue-300' : 'hover:bg-gray-50'}
-                      ${dayEvents.length > 0 ? 'cursor-pointer' : ''}
-                    `}
+                    className={`aspect-square overflow-hidden rounded-lg border p-1 ${isToday ? 'border-blue-300 bg-blue-50' : 'hover:bg-gray-50'} ${dayEvents.length > 0 ? 'cursor-pointer' : ''} `}
                   >
-                    <div className={`
-                      text-sm font-medium mb-1
-                      ${isToday ? 'text-blue-700' : 'text-gray-700'}
-                    `}>
+                    <div
+                      className={`mb-1 text-sm font-medium ${isToday ? 'text-blue-700' : 'text-gray-700'} `}
+                    >
                       {day}
                     </div>
                     <div className="space-y-1">
-                      {dayEvents.slice(0, 3).map((event) => (
+                      {dayEvents.slice(0, 3).map(event => (
                         <Link key={event.id} href={event.link}>
-                          <div className={`
-                            text-xs truncate px-1 py-0.5 rounded border
-                            ${getEventColor(event.type)}
-                          `}>
+                          <div
+                            className={`truncate rounded border px-1 py-0.5 text-xs ${getEventColor(event.type)} `}
+                          >
                             {formatTime(event.startTime)} {event.title.slice(0, 15)}
                             {event.title.length > 15 ? '...' : ''}
                           </div>
                         </Link>
                       ))}
                       {dayEvents.length > 3 && (
-                        <div className="text-xs text-gray-500 px-1">
+                        <div className="px-1 text-xs text-gray-500">
                           +{dayEvents.length - 3} more
                         </div>
                       )}
@@ -244,29 +262,25 @@ export default function TutorCalendarPage() {
             <CardContent>
               {loading ? (
                 <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
+                  {[1, 2, 3].map(i => (
                     <div key={i} className="animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-1" />
-                      <div className="h-3 bg-gray-200 rounded w-1/2" />
+                      <div className="mb-1 h-4 w-3/4 rounded bg-gray-200" />
+                      <div className="h-3 w-1/2 rounded bg-gray-200" />
                     </div>
                   ))}
                 </div>
               ) : upcomingEvents.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No upcoming events
-                </p>
+                <p className="py-4 text-center text-sm text-gray-500">No upcoming events</p>
               ) : (
                 <div className="space-y-3">
-                  {upcomingEvents.map((event) => (
+                  {upcomingEvents.map(event => (
                     <Link key={event.id} href={event.link}>
-                      <div className="p-3 border rounded-lg hover:bg-gray-50 transition-colors mb-2">
-                        <div className="flex items-center gap-2 mb-1">
+                      <div className="mb-2 rounded-lg border p-3 transition-colors hover:bg-gray-50">
+                        <div className="mb-1 flex items-center gap-2">
                           <Badge variant="outline" className={getEventColor(event.type)}>
                             {getEventIcon(event.type)}
                           </Badge>
-                          <span className="font-medium text-sm truncate">
-                            {event.title}
-                          </span>
+                          <span className="truncate text-sm font-medium">{event.title}</span>
                         </div>
                         <p className="text-xs text-gray-500">
                           {formatTime(event.startTime)} • {event.enrolledCount} enrolled
@@ -287,15 +301,15 @@ export default function TutorCalendarPage() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <div className="h-3 w-3 rounded-full bg-blue-500" />
                   <span className="text-sm">Class</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-purple-500" />
+                  <div className="h-3 w-3 rounded-full bg-purple-500" />
                   <span className="text-sm">Clinic</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
+                  <div className="h-3 w-3 rounded-full bg-green-500" />
                   <span className="text-sm">Course Start</span>
                 </div>
               </div>
@@ -309,13 +323,13 @@ export default function TutorCalendarPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3 text-center">
                   <p className="text-2xl font-bold text-blue-600">
                     {events.filter(e => e.type === 'class').length}
                   </p>
                   <p className="text-xs text-gray-500">Classes</p>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3 text-center">
                   <p className="text-2xl font-bold text-purple-600">
                     {events.filter(e => e.type === 'clinic').length}
                   </p>

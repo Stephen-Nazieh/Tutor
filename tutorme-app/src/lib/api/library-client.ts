@@ -43,7 +43,7 @@ export async function saveLibraryTask(input: CreateLibraryTaskInput): Promise<Li
   const res = await fetch('/api/library', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input)
+    body: JSON.stringify(input),
   })
   const data = await parseJson<{ task: LibraryTask }>(res)
   return data.task
@@ -53,7 +53,7 @@ export async function toggleFavoriteTask(taskId: string): Promise<LibraryTask> {
   const res = await fetch(`/api/library/${taskId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'toggleFavorite' })
+    body: JSON.stringify({ action: 'toggleFavorite' }),
   })
   const data = await parseJson<{ task: LibraryTask }>(res)
   return data.task
@@ -69,7 +69,7 @@ export async function incrementTaskUsage(taskId: string): Promise<boolean> {
   const res = await fetch(`/api/library/${taskId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'incrementUsage' })
+    body: JSON.stringify({ action: 'incrementUsage' }),
   })
   const data = await parseJson<{ success: boolean }>(res)
   return data.success

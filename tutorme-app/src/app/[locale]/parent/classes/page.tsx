@@ -14,7 +14,7 @@ const classes = [
     time: '16:00 - 17:30',
     status: 'active',
     nextClass: 'Today, 16:00',
-    student: 'Emily'
+    student: 'Emily',
   },
   {
     id: '2',
@@ -24,7 +24,7 @@ const classes = [
     time: '15:00 - 16:30',
     status: 'active',
     nextClass: 'Tomorrow, 15:00',
-    student: 'Michael'
+    student: 'Michael',
   },
   {
     id: '3',
@@ -34,8 +34,8 @@ const classes = [
     time: '10:00 - 11:30',
     status: 'upcoming',
     nextClass: 'Sat, 10:00',
-    student: 'Emily'
-  }
+    student: 'Emily',
+  },
 ]
 
 export default function ParentClassesPage() {
@@ -44,35 +44,35 @@ export default function ParentClassesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Classes & Schedule</h1>
-          <p className="text-gray-500 mt-1">View and manage your children&apos;s class schedules</p>
+          <p className="mt-1 text-gray-500">View and manage your children&apos;s class schedules</p>
         </div>
         <Button>
-          <BookOpen className="h-4 w-4 mr-2" />
+          <BookOpen className="mr-2 h-4 w-4" />
           Book New Class
         </Button>
       </div>
 
       <div className="grid gap-4">
-        {classes.map((cls) => (
+        {classes.map(cls => (
           <Card key={cls.id}>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
+                  <div className="rounded-lg bg-blue-100 p-3">
                     <BookOpen className="h-6 w-6 text-blue-600" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-lg">{cls.subject}</h3>
+                      <h3 className="text-lg font-semibold">{cls.subject}</h3>
                       <Badge variant={cls.status === 'active' ? 'default' : 'secondary'}>
                         {cls.status}
                       </Badge>
                     </div>
                     <p className="text-gray-500">{cls.tutor}</p>
-                    <p className="text-sm text-gray-400 mt-1">For: {cls.student}</p>
+                    <p className="mt-1 text-sm text-gray-400">For: {cls.student}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-6 text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-gray-400" />
@@ -85,12 +85,12 @@ export default function ParentClassesPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="text-right mr-4">
+                  <div className="mr-4 text-right">
                     <p className="text-sm text-gray-500">Next Class</p>
                     <p className="font-medium">{cls.nextClass}</p>
                   </div>
                   <Button variant="outline" size="sm">
-                    <Video className="h-4 w-4 mr-2" />
+                    <Video className="mr-2 h-4 w-4" />
                     Join
                   </Button>
                 </div>

@@ -22,64 +22,71 @@ const engagementSnapshotSchema = z.object({
   participationCount: z.number().default(0),
   chatMessages: z.number().default(0),
   whiteboardInteractions: z.number().default(0),
-  struggleIndicators: z.number().default(0)
+  struggleIndicators: z.number().default(0),
 })
 
 // GET - Retrieve engagement data for a session
-export const GET = withAuth(async (req: NextRequest) => {
-  const { searchParams } = new URL(req.url)
-  const roomId = searchParams.get('roomId')
+export const GET = withAuth(
+  async (req: NextRequest) => {
+    const { searchParams } = new URL(req.url)
+    const roomId = searchParams.get('roomId')
 
-  if (!roomId) {
-    return NextResponse.json({ error: 'roomId is required' }, { status: 400 })
-  }
-
-  try {
-    const snapshots = await drizzleDb
-      .select({
-        id: engagementSnapshot.id,
-        sessionId: engagementSnapshot.sessionId,
-        studentId: engagementSnapshot.studentId,
-        engagementScore: engagementSnapshot.engagementScore,
-        attentionLevel: engagementSnapshot.attentionLevel,
-        comprehensionEstimate: engagementSnapshot.comprehensionEstimate,
-        participationCount: engagementSnapshot.participationCount,
-        chatMessages: engagementSnapshot.chatMessages,
-        whiteboardInteractions: engagementSnapshot.whiteboardInteractions,
-        struggleIndicators: engagementSnapshot.struggleIndicators,
-        timestamp: engagementSnapshot.timestamp,
-        studentName: profile.name,
-        studentEmail: user.email
-      })
-      .from(engagementSnapshot)
-      .innerJoin(user, eq(engagementSnapshot.studentId, user.id))
-      .leftJoin(profile, eq(user.id, profile.userId))
-      .where(eq(engagementSnapshot.sessionId, roomId))
-      .orderBy(desc(engagementSnapshot.timestamp))
-
-    const distinctByStudent = new Map<string, (typeof snapshots)[0]>()
-    for (const row of snapshots) {
-      if (!distinctByStudent.has(row.studentId)) {
-        distinctByStudent.set(row.studentId, row)
-      }
+    if (!roomId) {
+      return NextResponse.json({ error: 'roomId is required' }, { status: 400 })
     }
-    const latestSnapshots = Array.from(distinctByStudent.values())
 
-    const [summary] = await drizzleDb
-      .select()
-      .from(sessionEngagementSummary)
-      .where(eq(sessionEngagementSummary.sessionId, roomId))
-      .limit(1)
+    try {
+      const snapshots = await drizzleDb
+        .select({
+          id: engagementSnapshot.id,
+          sessionId: engagementSnapshot.sessionId,
+          studentId: engagementSnapshot.studentId,
+          engagementScore: engagementSnapshot.engagementScore,
+          attentionLevel: engagementSnapshot.attentionLevel,
+          comprehensionEstimate: engagementSnapshot.comprehensionEstimate,
+          participationCount: engagementSnapshot.participationCount,
+          chatMessages: engagementSnapshot.chatMessages,
+          whiteboardInteractions: engagementSnapshot.whiteboardInteractions,
+          struggleIndicators: engagementSnapshot.struggleIndicators,
+          timestamp: engagementSnapshot.timestamp,
+          studentName: profile.name,
+          studentEmail: user.email,
+        })
+        .from(engagementSnapshot)
+        .innerJoin(user, eq(engagementSnapshot.studentId, user.id))
+        .leftJoin(profile, eq(user.id, profile.userId))
+        .where(eq(engagementSnapshot.sessionId, roomId))
+        .orderBy(desc(engagementSnapshot.timestamp))
 
-    return NextResponse.json({
-      snapshots: latestSnapshots,
-      summary: summary ?? null
-    })
-  } catch (error) {
-    console.error('Error fetching engagement data:', error)
-    return handleApiError(error, 'Failed to fetch engagement data', 'api/class/engagement/route.ts')
-  }
-}, { role: 'TUTOR' })
+      const distinctByStudent = new Map<string, (typeof snapshots)[0]>()
+      for (const row of snapshots) {
+        if (!distinctByStudent.has(row.studentId)) {
+          distinctByStudent.set(row.studentId, row)
+        }
+      }
+      const latestSnapshots = Array.from(distinctByStudent.values())
+
+      const [summary] = await drizzleDb
+        .select()
+        .from(sessionEngagementSummary)
+        .where(eq(sessionEngagementSummary.sessionId, roomId))
+        .limit(1)
+
+      return NextResponse.json({
+        snapshots: latestSnapshots,
+        summary: summary ?? null,
+      })
+    } catch (error) {
+      console.error('Error fetching engagement data:', error)
+      return handleApiError(
+        error,
+        'Failed to fetch engagement data',
+        'api/class/engagement/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // POST - Record engagement snapshot
 export const POST = withAuth(async (req: NextRequest) => {
@@ -98,17 +105,17 @@ export const POST = withAuth(async (req: NextRequest) => {
       participationCount: data.participationCount,
       chatMessages: data.chatMessages,
       whiteboardInteractions: data.whiteboardInteractions,
-      struggleIndicators: data.struggleIndicators
+      struggleIndicators: data.struggleIndicators,
     })
 
-    const [snapshot] = await drizzleDb.select().from(engagementSnapshot).where(eq(engagementSnapshot.id, id))
+    const [snapshot] = await drizzleDb
+      .select()
+      .from(engagementSnapshot)
+      .where(eq(engagementSnapshot.id, id))
     return NextResponse.json({ success: true, snapshot })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid data', issues: error.issues },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid data', issues: error.issues }, { status: 400 })
     }
     console.error('Error recording engagement:', error)
     return handleApiError(error, 'Failed to record engagement', 'api/class/engagement/route.ts')

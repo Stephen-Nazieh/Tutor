@@ -1,56 +1,88 @@
 /**
-* POST /api/payments/chinese-gateways
-* Enterprise Chinese payment gateway - WeChat Pay & Alipay
-*/
+ * POST /api/payments/chinese-gateways
+ * Enterprise Chinese payment gateway - WeChat Pay & Alipay
+ */
 
-import { NextRequest, NextResponse } from "next/server"
-import { eq } from "drizzle-orm"
-import { withAuth, ValidationError, withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
-import { WeChatPayClient } from "@/lib/payments/wechat-pay-client"
-import { AlipayClient } from "@/lib/payments/alipay-client"
-import { CHINESE_CURRENCY, getChineseErrorMessage, isValidChineseAmount } from "@/lib/payments/chinese-gateways"
-import { drizzleDb } from "@/lib/db/drizzle"
-import { user } from "@/lib/db/schema"
+import { NextRequest, NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
+import {
+  withAuth,
+  ValidationError,
+  withRateLimitPreset,
+  handleApiError,
+} from '@/lib/api/middleware'
+import { WeChatPayClient } from '@/lib/payments/wechat-pay-client'
+import { AlipayClient } from '@/lib/payments/alipay-client'
+import {
+  CHINESE_CURRENCY,
+  getChineseErrorMessage,
+  isValidChineseAmount,
+} from '@/lib/payments/chinese-gateways'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { user } from '@/lib/db/schema'
 
-const GATEWAYS = ["WECHAT_PAY", "ALIPAY"] as const
+const GATEWAYS = ['WECHAT_PAY', 'ALIPAY'] as const
 type GatewayParam = (typeof GATEWAYS)[number]
 
 function getClient(gateway: GatewayParam) {
   switch (gateway) {
-    case "WECHAT_PAY": return new WeChatPayClient()
-    case "ALIPAY": return new AlipayClient()
-    default: throw new ValidationError(getChineseErrorMessage("PAYMENT_SYSTEM_ERROR"))
+    case 'WECHAT_PAY':
+      return new WeChatPayClient()
+    case 'ALIPAY':
+      return new AlipayClient()
+    default:
+      throw new ValidationError(getChineseErrorMessage('PAYMENT_SYSTEM_ERROR'))
   }
 }
 
 export const POST = withAuth(async (req: NextRequest, session) => {
-  const { response: rateLimitResponse } = await withRateLimitPreset(req, "paymentCreate")
+  const { response: rateLimitResponse } = await withRateLimitPreset(req, 'paymentCreate')
   if (rateLimitResponse) return rateLimitResponse
 
-  let body: { gateway?: string; amount?: number; description?: string; currency?: string; successUrl?: string; cancelUrl?: string; metadata?: Record<string, unknown> }
-  try { body = await req.json() } catch {
-    return NextResponse.json({ error: getChineseErrorMessage("PAYMENT_SYSTEM_ERROR") }, { status: 400 })
+  let body: {
+    gateway?: string
+    amount?: number
+    description?: string
+    currency?: string
+    successUrl?: string
+    cancelUrl?: string
+    metadata?: Record<string, unknown>
+  }
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json(
+      { error: getChineseErrorMessage('PAYMENT_SYSTEM_ERROR') },
+      { status: 400 }
+    )
   }
 
   const { gateway, amount, description, currency, successUrl, cancelUrl, metadata } = body
 
   if (!gateway || !GATEWAYS.includes(gateway as GatewayParam)) {
-    return NextResponse.json({ error: getChineseErrorMessage("PAYMENT_SYSTEM_ERROR") }, { status: 400 })
+    return NextResponse.json(
+      { error: getChineseErrorMessage('PAYMENT_SYSTEM_ERROR') },
+      { status: 400 }
+    )
   }
 
-  const amt = typeof amount === "number" ? amount : parseFloat(String(amount ?? 0))
+  const amt = typeof amount === 'number' ? amount : parseFloat(String(amount ?? 0))
   if (!isValidChineseAmount(amt)) {
-    return NextResponse.json({ error: getChineseErrorMessage("PAYMENT_AMOUNT_INVALID") }, { status: 400 })
+    return NextResponse.json(
+      { error: getChineseErrorMessage('PAYMENT_AMOUNT_INVALID') },
+      { status: 400 }
+    )
   }
 
-  const desc = typeof description === "string" && description.trim() ? description.trim() : "课程/服务支付"
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ""
+  const desc =
+    typeof description === 'string' && description.trim() ? description.trim() : '课程/服务支付'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
   const [student] = await drizzleDb
     .select({ email: user.email })
     .from(user)
     .where(eq(user.id, session.user.id))
     .limit(1)
-  const studentEmail = student?.email ?? ""
+  const studentEmail = student?.email ?? ''
 
   const startTime = Date.now()
   try {
@@ -61,12 +93,17 @@ export const POST = withAuth(async (req: NextRequest, session) => {
       studentEmail,
       description: desc,
       metadata,
-      successUrl: successUrl ?? baseUrl + "/payment/success",
-      cancelUrl: cancelUrl ?? baseUrl + "/payment/cancel",
+      successUrl: successUrl ?? baseUrl + '/payment/success',
+      cancelUrl: cancelUrl ?? baseUrl + '/payment/cancel',
     })
-    return NextResponse.json({ paymentId: response.paymentId, checkoutUrl: response.checkoutUrl, status: response.status, isQrCode: gateway === "WECHAT_PAY" })
+    return NextResponse.json({
+      paymentId: response.paymentId,
+      checkoutUrl: response.checkoutUrl,
+      status: response.status,
+      isQrCode: gateway === 'WECHAT_PAY',
+    })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : getChineseErrorMessage("PAYMENT_SYSTEM_ERROR")
+    const msg = err instanceof Error ? err.message : getChineseErrorMessage('PAYMENT_SYSTEM_ERROR')
     return handleApiError(err, msg, 'api/payments/chinese-gateways/route.ts')
   }
 })

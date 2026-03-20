@@ -131,7 +131,7 @@ function randomBytes(len: number): Uint8Array {
 function randomId(byteLen: number): string {
   const bytes = randomBytes(byteLen)
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
+    .map(b => b.toString(16).padStart(2, '0'))
     .join('')
 }
 
@@ -142,13 +142,10 @@ async function deriveKey(
 ): Promise<CryptoKey> {
   const subtle = getSubtle()
   const enc = new TextEncoder()
-  const keyMaterial = await subtle.importKey(
-    'raw',
-    enc.encode(password),
-    'PBKDF2',
-    false,
-    ['deriveBits', 'deriveKey']
-  )
+  const keyMaterial = await subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, [
+    'deriveBits',
+    'deriveKey',
+  ])
   return subtle.deriveKey(
     {
       name: 'PBKDF2',
@@ -219,22 +216,9 @@ async function generateEcdhKeyPair(): Promise<CryptoKeyPair> {
   )
 }
 
-async function deriveAesFromEcdh(
-  privateKey: CryptoKey,
-  publicKey: CryptoKey
-): Promise<CryptoKey> {
-  const bits = await getSubtle().deriveBits(
-    { name: 'ECDH', public: publicKey },
-    privateKey,
-    256
-  )
-  return getSubtle().importKey(
-    'raw',
-    bits,
-    'AES-GCM',
-    false,
-    ['encrypt', 'decrypt']
-  )
+async function deriveAesFromEcdh(privateKey: CryptoKey, publicKey: CryptoKey): Promise<CryptoKey> {
+  const bits = await getSubtle().deriveBits({ name: 'ECDH', public: publicKey }, privateKey, 256)
+  return getSubtle().importKey('raw', bits, 'AES-GCM', false, ['encrypt', 'decrypt'])
 }
 
 // =============================================================================
@@ -269,9 +253,7 @@ class ClientEncryptionImpl {
       expiresAt: Date.now() + this.CACHE_TTL_MS,
     })
     if (this.keyCache.size > 20) {
-      const oldest = [...this.keyCache.entries()].sort(
-        (a, b) => a[1].expiresAt - b[1].expiresAt
-      )[0]
+      const oldest = [...this.keyCache.entries()].sort((a, b) => a[1].expiresAt - b[1].expiresAt)[0]
       if (oldest) this.keyCache.delete(oldest[0])
     }
     return key
@@ -310,19 +292,12 @@ class ClientEncryptionImpl {
     }
   }
 
-  async decryptField(
-    payload: EncryptedPayload,
-    password: string
-  ): Promise<string> {
+  async decryptField(payload: EncryptedPayload, password: string): Promise<string> {
     if (!payload.salt) throw new Error('ClientEncryption: missing salt')
     const salt = b64Decode(payload.salt)
     const cacheKey = `field:${payload.salt}`
     const key = await this.getOrDeriveKey(password, salt, cacheKey)
-    const pt = await decryptAesGcm(
-      key,
-      b64Decode(payload.ct),
-      b64Decode(payload.iv)
-    )
+    const pt = await decryptAesGcm(key, b64Decode(payload.ct), b64Decode(payload.iv))
     this.emitAudit({
       op: 'decrypt',
       layer: 'L1',
@@ -407,10 +382,7 @@ class ClientEncryptionImpl {
     recipientPublicKey: CryptoKey
   ): Promise<EncryptedPayload> {
     const keyPair = await generateEcdhKeyPair()
-    const sharedKey = await deriveAesFromEcdh(
-      keyPair.privateKey as CryptoKey,
-      recipientPublicKey
-    )
+    const sharedKey = await deriveAesFromEcdh(keyPair.privateKey as CryptoKey, recipientPublicKey)
     const enc = new TextEncoder()
     const { ciphertext, iv } = await encryptAesGcm(sharedKey, enc.encode(plaintext))
     const pubKey = await getSubtle().exportKey('raw', keyPair.publicKey as CryptoKey)
@@ -430,10 +402,7 @@ class ClientEncryptionImpl {
     }
   }
 
-  async decryptFromTransport(
-    payload: EncryptedPayload,
-    privateKey: CryptoKey
-  ): Promise<string> {
+  async decryptFromTransport(payload: EncryptedPayload, privateKey: CryptoKey): Promise<string> {
     if (!payload.pub) throw new Error('ClientEncryption: missing ephemeral public key')
     const pubKey = await getSubtle().importKey(
       'raw',
@@ -443,11 +412,7 @@ class ClientEncryptionImpl {
       []
     )
     const sharedKey = await deriveAesFromEcdh(privateKey, pubKey)
-    const pt = await decryptAesGcm(
-      sharedKey,
-      b64Decode(payload.ct),
-      b64Decode(payload.iv)
-    )
+    const pt = await decryptAesGcm(sharedKey, b64Decode(payload.ct), b64Decode(payload.iv))
     this.emitAudit({
       op: 'decrypt',
       layer: 'L4',
@@ -534,21 +499,9 @@ class ClientEncryptionImpl {
     if (Date.now() > exportData.expiresAt) {
       throw new Error('ClientEncryption: recovery key expired')
     }
-    const key = await deriveKey(recoveryPassphrase, b64Decode(exportData.salt), [
-      'decrypt',
-    ])
-    const pt = await decryptAesGcm(
-      key,
-      b64Decode(exportData.wrappedKey),
-      b64Decode(exportData.iv)
-    )
-    return getSubtle().importKey(
-      'raw',
-      pt,
-      'AES-GCM',
-      false,
-      ['encrypt', 'decrypt']
-    )
+    const key = await deriveKey(recoveryPassphrase, b64Decode(exportData.salt), ['decrypt'])
+    const pt = await decryptAesGcm(key, b64Decode(exportData.wrappedKey), b64Decode(exportData.iv))
+    return getSubtle().importKey('raw', pt, 'AES-GCM', false, ['encrypt', 'decrypt'])
   }
 
   async hasHardwareSecurity(): Promise<boolean> {
@@ -556,8 +509,11 @@ class ClientEncryptionImpl {
     try {
       return (
         typeof PublicKeyCredential !== 'undefined' &&
-        typeof (PublicKeyCredential as { isUserVerifyingPlatformAuthenticatorAvailable?: () => Promise<boolean> })
-          .isUserVerifyingPlatformAuthenticatorAvailable === 'function'
+        typeof (
+          PublicKeyCredential as {
+            isUserVerifyingPlatformAuthenticatorAvailable?: () => Promise<boolean>
+          }
+        ).isUserVerifyingPlatformAuthenticatorAvailable === 'function'
       )
     } catch {
       return false
@@ -567,8 +523,11 @@ class ClientEncryptionImpl {
   async isHardwareAuthenticatorAvailable(): Promise<boolean> {
     if (typeof window === 'undefined') return false
     try {
-      const fn = (PublicKeyCredential as { isUserVerifyingPlatformAuthenticatorAvailable?: () => Promise<boolean> })
-        .isUserVerifyingPlatformAuthenticatorAvailable
+      const fn = (
+        PublicKeyCredential as {
+          isUserVerifyingPlatformAuthenticatorAvailable?: () => Promise<boolean>
+        }
+      ).isUserVerifyingPlatformAuthenticatorAvailable
       return (await fn?.()) ?? false
     } catch {
       return false
@@ -605,11 +564,7 @@ class ClientEncryptionImpl {
     items: Array<{ value: string; password: string; dataCategory?: string }>
   ): Promise<EncryptedPayload[]> {
     const salt = randomBytes(ENCRYPTION_CONFIG.SALT_SIZE)
-    const key = await deriveKey(
-      items[0]?.password ?? '',
-      salt,
-      ['encrypt']
-    )
+    const key = await deriveKey(items[0]?.password ?? '', salt, ['encrypt'])
     const results: EncryptedPayload[] = []
     const enc = new TextEncoder()
     for (const item of items) {
@@ -653,10 +608,7 @@ export async function encryptField(
   return clientEncryption.encryptField(plaintext, password, options)
 }
 
-export async function decryptField(
-  payload: EncryptedPayload,
-  password: string
-): Promise<string> {
+export async function decryptField(payload: EncryptedPayload, password: string): Promise<string> {
   return clientEncryption.decryptField(payload, password)
 }
 
@@ -668,10 +620,7 @@ export async function encryptMessage(
   return clientEncryption.encryptMessage(plaintext, password, options)
 }
 
-export async function decryptMessage(
-  payload: EncryptedPayload,
-  password: string
-): Promise<string> {
+export async function decryptMessage(payload: EncryptedPayload, password: string): Promise<string> {
   return clientEncryption.decryptMessage(payload, password)
 }
 

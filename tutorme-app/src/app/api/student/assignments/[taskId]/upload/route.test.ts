@@ -32,4 +32,3 @@ describe('POST /api/student/assignments/[taskId]/upload', () => {
     expect(await res.json()).toEqual({ error: 'Unauthorized' })
   })
 })
-

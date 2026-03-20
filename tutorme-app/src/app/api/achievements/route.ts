@@ -57,16 +57,21 @@ async function postHandler(req: NextRequest, session: Session) {
   if (csrfError) return csrfError
 
   try {
-    const newAchievements: { id: string; userId: string; type: string; title: string; description: string; unlockedAt: Date; xpAwarded: number }[] = []
+    const newAchievements: {
+      id: string
+      userId: string
+      type: string
+      title: string
+      description: string
+      unlockedAt: Date
+      xpAwarded: number
+    }[] = []
 
     const [completedRow] = await drizzleDb
       .select({ count: sql<number>`count(*)::int` })
       .from(contentProgress)
       .where(
-        and(
-          eq(contentProgress.studentId, session.user.id),
-          eq(contentProgress.completed, true)
-        )
+        and(eq(contentProgress.studentId, session.user.id), eq(contentProgress.completed, true))
       )
     const completedLessons = completedRow?.count ?? 0
 
@@ -74,12 +79,7 @@ async function postHandler(req: NextRequest, session: Session) {
       const [existing] = await drizzleDb
         .select()
         .from(achievement)
-        .where(
-          and(
-            eq(achievement.userId, session.user.id),
-            eq(achievement.type, 'FIRST_LESSON')
-          )
-        )
+        .where(and(eq(achievement.userId, session.user.id), eq(achievement.type, 'FIRST_LESSON')))
         .limit(1)
       if (!existing) {
         const [created] = await drizzleDb
@@ -106,10 +106,7 @@ async function postHandler(req: NextRequest, session: Session) {
         .select()
         .from(achievement)
         .where(
-          and(
-            eq(achievement.userId, session.user.id),
-            eq(achievement.type, 'BOOKMARK_COLLECTOR')
-          )
+          and(eq(achievement.userId, session.user.id), eq(achievement.type, 'BOOKMARK_COLLECTOR'))
         )
         .limit(1)
       if (!existing) {

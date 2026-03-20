@@ -58,4 +58,3 @@ describe('grading agent quiz grading', () => {
     expect(res.provider).toBe('kimi')
   })
 })
-

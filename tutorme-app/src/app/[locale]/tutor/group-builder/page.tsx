@@ -8,7 +8,13 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Users,
   Plus,
@@ -30,7 +36,7 @@ import {
   DollarSign,
   Save,
   BookOpen,
-  X
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -74,7 +80,20 @@ const DIFFICULTY_LEVELS = [
   { value: 'advanced', label: 'Advanced' },
 ]
 
-const CURRENCIES = ['SGD', 'USD', 'CNY', 'MYR', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY', 'INR', 'KRW', 'HKD']
+const CURRENCIES = [
+  'SGD',
+  'USD',
+  'CNY',
+  'MYR',
+  'EUR',
+  'GBP',
+  'AUD',
+  'CAD',
+  'JPY',
+  'INR',
+  'KRW',
+  'HKD',
+]
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -102,11 +121,11 @@ const MOCK_BATCHES: BatchItem[] = [
     currency: 'USD',
     schedule: [
       { dayOfWeek: 'Monday', startTime: '10:00', durationMinutes: 60 },
-      { dayOfWeek: 'Wednesday', startTime: '10:00', durationMinutes: 60 }
+      { dayOfWeek: 'Wednesday', startTime: '10:00', durationMinutes: 60 },
     ],
     enrollmentCount: 15,
     isLive: true,
-    assignedCourses: []
+    assignedCourses: [],
   },
   {
     id: 'batch-2',
@@ -117,13 +136,11 @@ const MOCK_BATCHES: BatchItem[] = [
     languageOfInstruction: 'en',
     price: 149,
     currency: 'USD',
-    schedule: [
-      { dayOfWeek: 'Tuesday', startTime: '14:00', durationMinutes: 90 }
-    ],
+    schedule: [{ dayOfWeek: 'Tuesday', startTime: '14:00', durationMinutes: 90 }],
     enrollmentCount: 12,
     isLive: false,
-    assignedCourses: []
-  }
+    assignedCourses: [],
+  },
 ]
 
 export default function GroupBuilderPage() {
@@ -150,7 +167,10 @@ export default function GroupBuilderPage() {
       if (storedGroups) {
         try {
           const parsed = JSON.parse(storedGroups)
-          setBatches(prev => [...parsed, ...prev.filter(b => !parsed.find((pg: BatchItem) => pg.id === b.id))])
+          setBatches(prev => [
+            ...parsed,
+            ...prev.filter(b => !parsed.find((pg: BatchItem) => pg.id === b.id)),
+          ])
           if (!activeTab && parsed.length > 0) {
             setActiveTab(parsed[0].id)
           }
@@ -172,7 +192,7 @@ export default function GroupBuilderPage() {
     if (assignModalOpen) {
       setLoadingCourses(true)
       fetch('/api/tutor/courses', { credentials: 'include' })
-        .then(res => res.ok ? res.json() : { courses: [] })
+        .then(res => (res.ok ? res.json() : { courses: [] }))
         .then(data => {
           const formattedCourses: CourseWithAssignments[] = (data.courses || []).map((c: any) => ({
             id: c.id,
@@ -184,12 +204,12 @@ export default function GroupBuilderPage() {
               moduleCount: c._count?.modules || 0,
               lessonCount: c._count?.lessons || 0,
               quizCount: 0,
-              studentCount: c._count?.enrollments || 0
+              studentCount: c._count?.enrollments || 0,
             },
             assignments: {
               total: 0,
-              groups: []
-            }
+              groups: [],
+            },
           }))
           setCourses(formattedCourses)
         })
@@ -214,7 +234,7 @@ export default function GroupBuilderPage() {
       schedule: [],
       enrollmentCount: 0,
       isLive: false,
-      assignedCourses: []
+      assignedCourses: [],
     }
 
     setBatches(prev => [...prev, newBatch])
@@ -227,7 +247,7 @@ export default function GroupBuilderPage() {
   }
 
   const handleUpdateBatch = (batchId: string, updates: Partial<BatchItem>) => {
-    setBatches(prev => prev.map(b => b.id === batchId ? { ...b, ...updates } : b))
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, ...updates } : b)))
     setHasUnsavedChanges(true)
   }
 
@@ -261,7 +281,7 @@ export default function GroupBuilderPage() {
   }
 
   const handleToggleLive = (batchId: string, isLive: boolean) => {
-    setBatches(prev => prev.map(b => b.id === batchId ? { ...b, isLive } : b))
+    setBatches(prev => prev.map(b => (b.id === batchId ? { ...b, isLive } : b)))
     toast.success(isLive ? 'Group is now online' : 'Group is now offline')
   }
 
@@ -272,34 +292,40 @@ export default function GroupBuilderPage() {
   }
 
   const addScheduleSlot = (batchId: string) => {
-    setBatches(prev => prev.map(b => {
-      if (b.id !== batchId) return b
-      return {
-        ...b,
-        schedule: [
-          ...b.schedule,
-          { dayOfWeek: 'Monday', startTime: '09:00', durationMinutes: 60 }
-        ]
-      }
-    }))
+    setBatches(prev =>
+      prev.map(b => {
+        if (b.id !== batchId) return b
+        return {
+          ...b,
+          schedule: [
+            ...b.schedule,
+            { dayOfWeek: 'Monday', startTime: '09:00', durationMinutes: 60 },
+          ],
+        }
+      })
+    )
     setHasUnsavedChanges(true)
   }
 
   const updateScheduleSlot = (batchId: string, index: number, updates: Partial<ScheduleItem>) => {
-    setBatches(prev => prev.map(b => {
-      if (b.id !== batchId) return b
-      const newSchedule = [...b.schedule]
-      newSchedule[index] = { ...newSchedule[index], ...updates }
-      return { ...b, schedule: newSchedule }
-    }))
+    setBatches(prev =>
+      prev.map(b => {
+        if (b.id !== batchId) return b
+        const newSchedule = [...b.schedule]
+        newSchedule[index] = { ...newSchedule[index], ...updates }
+        return { ...b, schedule: newSchedule }
+      })
+    )
     setHasUnsavedChanges(true)
   }
 
   const removeScheduleSlot = (batchId: string, index: number) => {
-    setBatches(prev => prev.map(b => {
-      if (b.id !== batchId) return b
-      return { ...b, schedule: b.schedule.filter((_, i) => i !== index) }
-    }))
+    setBatches(prev =>
+      prev.map(b => {
+        if (b.id !== batchId) return b
+        return { ...b, schedule: b.schedule.filter((_, i) => i !== index) }
+      })
+    )
     setHasUnsavedChanges(true)
   }
 
@@ -312,47 +338,51 @@ export default function GroupBuilderPage() {
     const course = courses.find(c => c.id === courseId)
     if (!course) return
 
-    setBatches(prev => prev.map(b => {
-      if (b.id !== batchId) return b
-      const existingAssignments = b.assignedCourses || []
-      if (existingAssignments.some(ac => ac.courseId === courseId)) {
-        return b // Course already assigned
-      }
-      return {
-        ...b,
-        assignedCourses: [
-          ...existingAssignments,
-          {
-            courseId: course.id,
-            name: course.name,
-            description: course.description || null,
-            subject: course.subject,
-            difficulty: (course as any).difficulty || 'beginner',
-            assignedAt: new Date().toISOString()
-          }
-        ]
-      }
-    }))
+    setBatches(prev =>
+      prev.map(b => {
+        if (b.id !== batchId) return b
+        const existingAssignments = b.assignedCourses || []
+        if (existingAssignments.some(ac => ac.courseId === courseId)) {
+          return b // Course already assigned
+        }
+        return {
+          ...b,
+          assignedCourses: [
+            ...existingAssignments,
+            {
+              courseId: course.id,
+              name: course.name,
+              description: course.description || null,
+              subject: course.subject,
+              difficulty: (course as any).difficulty || 'beginner',
+              assignedAt: new Date().toISOString(),
+            },
+          ],
+        }
+      })
+    )
 
     setHasUnsavedChanges(true)
     toast.success(`Course "${course.name}" assigned to group`)
   }
 
   const handleRemoveCourse = (batchId: string, courseId: string) => {
-    setBatches(prev => prev.map(b => {
-      if (b.id !== batchId) return b
-      return {
-        ...b,
-        assignedCourses: (b.assignedCourses || []).filter(c => c.courseId !== courseId)
-      }
-    }))
+    setBatches(prev =>
+      prev.map(b => {
+        if (b.id !== batchId) return b
+        return {
+          ...b,
+          assignedCourses: (b.assignedCourses || []).filter(c => c.courseId !== courseId),
+        }
+      })
+    )
     setHasUnsavedChanges(true)
     toast.success('Course removed from group')
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
@@ -361,9 +391,9 @@ export default function GroupBuilderPage() {
   const currentBatch = batches.find(b => b.id === activeTab)
 
   return (
-    <div className="p-6 w-full">
+    <div className="w-full p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/tutor/dashboard">
@@ -371,7 +401,7 @@ export default function GroupBuilderPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="flex items-center gap-2 text-2xl font-bold">
               <Users className="h-6 w-6 text-blue-500" />
               Group Builder
             </h1>
@@ -393,9 +423,7 @@ export default function GroupBuilderPage() {
             </Button>
           )}
           <Button asChild variant="outline">
-            <Link href="/tutor/groups">
-              View My Groups
-            </Link>
+            <Link href="/tutor/groups">View My Groups</Link>
           </Button>
         </div>
       </div>
@@ -403,16 +431,20 @@ export default function GroupBuilderPage() {
       {batches.length === 0 ? (
         <Card>
           <CardContent className="p-8">
-            <p className="text-muted-foreground mb-4">No groups created yet.</p>
+            <p className="mb-4 text-muted-foreground">No groups created yet.</p>
             <div className="flex gap-2">
               <Input
                 placeholder="Group name (e.g. Batch 1, Jan 2025)"
                 value={newBatchName}
-                onChange={(e) => setNewBatchName(e.target.value)}
+                onChange={e => setNewBatchName(e.target.value)}
                 className="max-w-[300px]"
               />
               <Button onClick={handleCreateBatch} disabled={creatingBatch || !newBatchName.trim()}>
-                {creatingBatch ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                {creatingBatch ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 h-4 w-4" />
+                )}
                 Create Group
               </Button>
             </div>
@@ -421,30 +453,28 @@ export default function GroupBuilderPage() {
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex items-center gap-4 border-b pb-4">
-            <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-2">
-              {batches.map((batch) => (
+            <TabsList className="h-auto flex-wrap gap-2 bg-transparent p-0">
+              {batches.map(batch => (
                 <TabsTrigger
                   key={batch.id}
                   value={batch.id}
-                  className="data-[state=active]:bg-blue-50 data-[state=active]:border-blue-200 border px-4 py-2 rounded-lg"
+                  className="rounded-lg border px-4 py-2 data-[state=active]:border-blue-200 data-[state=active]:bg-blue-50"
                 >
                   <div className="flex items-center gap-2">
                     <span>{batch.name}</span>
                     <Badge variant="secondary" className="text-xs">
                       {String(batch.enrollmentCount)}
                     </Badge>
-                    {batch.isLive && (
-                      <Radio className="h-3 w-3 text-green-500 animate-pulse" />
-                    )}
+                    {batch.isLive && <Radio className="h-3 w-3 animate-pulse text-green-500" />}
                   </div>
                 </TabsTrigger>
               ))}
             </TabsList>
-            <div className="flex items-center gap-2 pl-4 border-l">
+            <div className="flex items-center gap-2 border-l pl-4">
               <Input
                 placeholder="New group name"
                 value={newBatchName}
-                onChange={(e) => setNewBatchName(e.target.value)}
+                onChange={e => setNewBatchName(e.target.value)}
                 className="w-[180px]"
               />
               <Button
@@ -452,19 +482,24 @@ export default function GroupBuilderPage() {
                 onClick={handleCreateBatch}
                 disabled={creatingBatch || !newBatchName.trim()}
               >
-                {creatingBatch ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {creatingBatch ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
 
-          {batches.map((batch) => (
+          {batches.map(batch => (
             <TabsContent key={batch.id} value={batch.id} className="space-y-6">
               {/* Group Header */}
-              <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold">{batch.name}</h2>
                   <p className="text-sm text-muted-foreground">
-                    {String(batch.enrollmentCount)} student{batch.enrollmentCount !== 1 ? 's' : ''} enrolled
+                    {String(batch.enrollmentCount)} student{batch.enrollmentCount !== 1 ? 's' : ''}{' '}
+                    enrolled
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -475,19 +510,20 @@ export default function GroupBuilderPage() {
                     disabled={saving}
                     className="gap-2"
                   >
-                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
                     Save Group
                   </Button>
                   <Button
-                    variant={batch.isLive ? "default" : "outline"}
+                    variant={batch.isLive ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleToggleLive(batch.id, !batch.isLive)}
-                    className={cn(
-                      "gap-2",
-                      batch.isLive && "bg-green-600 hover:bg-green-700"
-                    )}
+                    className={cn('gap-2', batch.isLive && 'bg-green-600 hover:bg-green-700')}
                   >
-                    <Radio className={cn("h-4 w-4", batch.isLive && "animate-pulse")} />
+                    <Radio className={cn('h-4 w-4', batch.isLive && 'animate-pulse')} />
                     {batch.isLive ? 'Online' : 'Offline'}
                   </Button>
                   <Button
@@ -499,18 +535,18 @@ export default function GroupBuilderPage() {
                     Enter Classroom
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => copyGroupLink(batch.id)}>
-                    <Copy className="h-4 w-4 mr-2" />
+                    <Copy className="mr-2 h-4 w-4" />
                     Copy Link
                   </Button>
                 </div>
               </div>
 
               {/* Settings Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Difficulty & Language */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
                       <BarChart3 className="h-4 w-4" />
                       Group Settings
                     </CardTitle>
@@ -519,19 +555,21 @@ export default function GroupBuilderPage() {
                     <div className="space-y-2">
                       <Label>Difficulty Level</Label>
                       <div className="flex gap-2">
-                        {DIFFICULTY_LEVELS.map((level) => (
+                        {DIFFICULTY_LEVELS.map(level => (
                           <button
                             key={level.value}
-                            onClick={() => handleUpdateBatch(batch.id, { difficulty: level.value as any })}
+                            onClick={() =>
+                              handleUpdateBatch(batch.id, { difficulty: level.value as any })
+                            }
                             className={cn(
-                              "flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all flex items-center justify-center gap-1",
+                              'flex flex-1 items-center justify-center gap-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
                               batch.difficulty === level.value
                                 ? level.value === 'beginner'
-                                  ? "bg-green-500 text-white border-green-500"
+                                  ? 'border-green-500 bg-green-500 text-white'
                                   : level.value === 'intermediate'
-                                    ? "bg-blue-500 text-white border-blue-500"
-                                    : "bg-purple-500 text-white border-purple-500"
-                                : "bg-white text-gray-700 hover:bg-gray-50"
+                                    ? 'border-blue-500 bg-blue-500 text-white'
+                                    : 'border-purple-500 bg-purple-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50'
                             )}
                           >
                             {level.value === 'beginner' && <SignalLow className="h-4 w-4" />}
@@ -550,13 +588,15 @@ export default function GroupBuilderPage() {
                       </Label>
                       <Select
                         value={batch.languageOfInstruction}
-                        onValueChange={(v) => handleUpdateBatch(batch.id, { languageOfInstruction: v })}
+                        onValueChange={v =>
+                          handleUpdateBatch(batch.id, { languageOfInstruction: v })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {LANGUAGES.map((l) => (
+                          {LANGUAGES.map(l => (
                             <SelectItem key={l.value} value={l.value}>
                               {l.label}
                             </SelectItem>
@@ -570,7 +610,7 @@ export default function GroupBuilderPage() {
                 {/* Price Settings */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
                       <DollarSign className="h-4 w-4" />
                       Pricing
                     </CardTitle>
@@ -585,20 +625,20 @@ export default function GroupBuilderPage() {
                           step={0.01}
                           placeholder="0.00"
                           value={batch.price ?? ''}
-                          onChange={(e) => {
+                          onChange={e => {
                             const price = e.target.value === '' ? null : Number(e.target.value)
                             handleUpdateBatch(batch.id, { price })
                           }}
                         />
                         <Select
                           value={batch.currency || 'USD'}
-                          onValueChange={(v) => handleUpdateBatch(batch.id, { currency: v })}
+                          onValueChange={v => handleUpdateBatch(batch.id, { currency: v })}
                         >
                           <SelectTrigger className="w-[100px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {CURRENCIES.map((c) => (
+                            {CURRENCIES.map(c => (
                               <SelectItem key={c} value={c}>
                                 {c}
                               </SelectItem>
@@ -607,7 +647,8 @@ export default function GroupBuilderPage() {
                         </Select>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Set a custom price for this group. Leave empty to use the default course price.
+                        Set a custom price for this group. Leave empty to use the default course
+                        price.
                       </p>
                     </div>
                   </CardContent>
@@ -617,53 +658,55 @@ export default function GroupBuilderPage() {
               {/* Assigned Courses Section */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <BookOpen className="h-4 w-4" />
                     Assigned Courses
                   </CardTitle>
                   <Button size="sm" onClick={() => openAssignCourse(batch.id)}>
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className="mr-1 h-4 w-4" />
                     Assign Course
                   </Button>
                 </CardHeader>
                 <CardContent>
                   {!batch.assignedCourses || batch.assignedCourses.length === 0 ? (
-                    <div className="text-center py-8">
-                      <BookOpen className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                      <p className="text-muted-foreground mb-4">
+                    <div className="py-8 text-center">
+                      <BookOpen className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                      <p className="mb-4 text-muted-foreground">
                         No courses assigned to this group yet.
                       </p>
                       <Button size="sm" onClick={() => openAssignCourse(batch.id)}>
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className="mr-1 h-4 w-4" />
                         Assign Your First Course
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {batch.assignedCourses.map((course) => (
+                      {batch.assignedCourses.map(course => (
                         <div
                           key={course.courseId}
-                          className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                          className="flex items-center justify-between rounded-lg bg-gray-50 p-4"
                         >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium truncate">{course.name}</h4>
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1 flex items-center gap-2">
+                              <h4 className="truncate font-medium">{course.name}</h4>
                               <Badge variant="outline" className="text-xs capitalize">
                                 {course.difficulty}
                               </Badge>
                             </div>
-                            <p className="text-sm text-muted-foreground line-clamp-1">
+                            <p className="line-clamp-1 text-sm text-muted-foreground">
                               {course.description || 'No description'}
                             </p>
-                            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                            <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
                               <span>Subject: {course.subject}</span>
-                              <span>Assigned: {new Date(course.assignedAt).toLocaleDateString()}</span>
+                              <span>
+                                Assigned: {new Date(course.assignedAt).toLocaleDateString()}
+                              </span>
                             </div>
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
                             onClick={() => handleRemoveCourse(batch.id, course.courseId)}
                           >
                             <X className="h-4 w-4" />
@@ -678,12 +721,12 @@ export default function GroupBuilderPage() {
               {/* Schedule Section */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <Calendar className="h-4 w-4" />
                     Class Schedule
                   </CardTitle>
                   <Button size="sm" onClick={() => addScheduleSlot(batch.id)}>
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className="mr-1 h-4 w-4" />
                     Add Class Slot
                   </Button>
                 </CardHeader>
@@ -695,16 +738,19 @@ export default function GroupBuilderPage() {
                   ) : (
                     <div className="space-y-3">
                       {batch.schedule.map((slot, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 rounded-lg bg-gray-50 p-3"
+                        >
                           <Select
                             value={slot.dayOfWeek}
-                            onValueChange={(v) => updateScheduleSlot(batch.id, idx, { dayOfWeek: v })}
+                            onValueChange={v => updateScheduleSlot(batch.id, idx, { dayOfWeek: v })}
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {DAYS.map((d) => (
+                              {DAYS.map(d => (
                                 <SelectItem key={d} value={d}>
                                   {d}
                                 </SelectItem>
@@ -714,10 +760,12 @@ export default function GroupBuilderPage() {
                           <Input
                             type="time"
                             value={slot.startTime}
-                            onChange={(e) => updateScheduleSlot(batch.id, idx, { startTime: e.target.value })}
+                            onChange={e =>
+                              updateScheduleSlot(batch.id, idx, { startTime: e.target.value })
+                            }
                             className="w-[120px]"
                           />
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex flex-1 items-center gap-2">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                             <Input
                               type="number"
@@ -725,7 +773,11 @@ export default function GroupBuilderPage() {
                               max={240}
                               step={15}
                               value={slot.durationMinutes}
-                              onChange={(e) => updateScheduleSlot(batch.id, idx, { durationMinutes: parseInt(e.target.value) || 60 })}
+                              onChange={e =>
+                                updateScheduleSlot(batch.id, idx, {
+                                  durationMinutes: parseInt(e.target.value) || 60,
+                                })
+                              }
                               className="w-[80px]"
                             />
                             <span className="text-sm text-muted-foreground">minutes</span>
@@ -733,7 +785,7 @@ export default function GroupBuilderPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                            className="text-red-500 hover:bg-red-50 hover:text-red-600"
                             onClick={() => removeScheduleSlot(batch.id, idx)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -746,9 +798,9 @@ export default function GroupBuilderPage() {
               </Card>
 
               {/* Share & Enrollment */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="border-blue-200 bg-blue-50">
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <LinkIcon className="h-4 w-4 text-blue-500" />
                     Share & Enrollment
                   </CardTitle>
@@ -761,20 +813,18 @@ export default function GroupBuilderPage() {
                     <Input
                       readOnly
                       value={`${typeof window !== 'undefined' ? window.location.origin : ''}/curriculum/enroll?group=${batch.id}`}
-                      className="font-mono text-sm bg-white flex-1"
+                      className="flex-1 bg-white font-mono text-sm"
                     />
-                    <Button
-                      variant="outline"
-                      onClick={() => copyGroupLink(batch.id)}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
+                    <Button variant="outline" onClick={() => copyGroupLink(batch.id)}>
+                      <Copy className="mr-2 h-4 w-4" />
                       Copy
                     </Button>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <CheckCircle2 className="h-4 w-4 text-blue-500" />
                     <span>
-                      <strong>{String(batch.enrollmentCount)}</strong> students enrolled in this group
+                      <strong>{String(batch.enrollmentCount)}</strong> students enrolled in this
+                      group
                     </span>
                   </div>
                 </CardContent>
@@ -790,7 +840,9 @@ export default function GroupBuilderPage() {
         onClose={() => setAssignModalOpen(false)}
         onAssign={handleAssignCourse}
         courses={courses}
-        batches={currentBatch && selectedBatchForAssign === currentBatch.id ? [currentBatch as any] : []}
+        batches={
+          currentBatch && selectedBatchForAssign === currentBatch.id ? [currentBatch as any] : []
+        }
         preselectedBatchId={selectedBatchForAssign || undefined}
       />
     </div>

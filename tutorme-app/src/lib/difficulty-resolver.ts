@@ -5,7 +5,10 @@
  */
 
 import type { DifficultyLevel, ResolvedContent } from '@/types/course-assignment'
-import type { WithDifficultyVariants, DifficultyVariant } from '@/app/tutor/dashboard/components/CourseBuilder'
+import type {
+  WithDifficultyVariants,
+  DifficultyVariant,
+} from '@/app/tutor/dashboard/components/CourseBuilder'
 
 /**
  * Resolve a single content item for a specific difficulty level
@@ -20,13 +23,16 @@ export function resolveContent<T extends WithDifficultyVariants & Record<string,
     filterHidden?: boolean
   } = {}
 ): ResolvedContent<T> | null {
-  const { variantFields = ['title', 'description', 'duration', 'instructions', 'points'], filterHidden = false } = options
+  const {
+    variantFields = ['title', 'description', 'duration', 'instructions', 'points'],
+    filterHidden = false,
+  } = options
 
   // Mode: All Levels - return base content as-is
   if (item.difficultyMode === 'all') {
     return {
       content: item,
-      resolution: { type: 'base', source: 'all' }
+      resolution: { type: 'base', source: 'all' },
     }
   }
 
@@ -37,12 +43,12 @@ export function resolveContent<T extends WithDifficultyVariants & Record<string,
       return {
         content: item,
         resolution: { type: 'hidden', source: 'fixed' },
-        hiddenReason: `Fixed to ${item.fixedDifficulty} level - not suitable for ${targetDifficulty} group`
+        hiddenReason: `Fixed to ${item.fixedDifficulty} level - not suitable for ${targetDifficulty} group`,
       }
     }
     return {
       content: item,
-      resolution: { type: 'base', source: 'fixed' }
+      resolution: { type: 'base', source: 'fixed' },
     }
   }
 
@@ -63,7 +69,7 @@ export function resolveContent<T extends WithDifficultyVariants & Record<string,
             originalValues[field] = item[field]
           }
           // Apply variant
-          ; (resolved as any)[field] = variant[field]
+          ;(resolved as any)[field] = variant[field]
         }
       }
 
@@ -72,23 +78,23 @@ export function resolveContent<T extends WithDifficultyVariants & Record<string,
         resolution: {
           type: 'variant',
           source: 'adaptive',
-          variantLevel: targetDifficulty
+          variantLevel: targetDifficulty,
         },
-        originalValues: Object.keys(originalValues).length > 0 ? originalValues : undefined
+        originalValues: Object.keys(originalValues).length > 0 ? originalValues : undefined,
       }
     }
 
     // No variant enabled, fall back to base
     return {
       content: item,
-      resolution: { type: 'base', source: 'adaptive' }
+      resolution: { type: 'base', source: 'adaptive' },
     }
   }
 
   // Unknown mode - return base
   return {
     content: item,
-    resolution: { type: 'base' }
+    resolution: { type: 'base' },
   }
 }
 
@@ -112,8 +118,7 @@ export function filterVisibleContent<T extends WithDifficultyVariants & Record<s
   items: T[],
   targetDifficulty: DifficultyLevel
 ): T[] {
-  return resolveContentArray(items, targetDifficulty, { filterHidden: true })
-    .map(r => r.content)
+  return resolveContentArray(items, targetDifficulty, { filterHidden: true }).map(r => r.content)
 }
 
 /**
@@ -130,27 +135,31 @@ export function getResolutionStats<T extends WithDifficultyVariants & Record<str
     visible: resolved.filter(r => r.resolution.type !== 'hidden').length,
     hidden: resolved.filter(r => r.resolution.type === 'hidden').length,
     adapted: resolved.filter(r => r.resolution.type === 'variant').length,
-    base: resolved.filter(r => r.resolution.type === 'base').length
+    base: resolved.filter(r => r.resolution.type === 'base').length,
   }
 }
 
 /**
  * Preview how a course will look for a specific group
  */
-export function previewCourseForGroup(
-  modules: any[],
-  groupDifficulty: DifficultyLevel
-) {
+export function previewCourseForGroup(modules: any[], groupDifficulty: DifficultyLevel) {
   const preview = {
     modules: [] as any[],
     stats: {
       totalModules: modules.length,
       visibleModules: 0,
       hiddenModules: 0,
-      adaptedContent: 0
+      adaptedContent: 0,
     },
     hiddenItems: [] as { type: string; id: string; title: string; reason: string }[],
-    adaptedItems: [] as { type: string; id: string; title: string; field: string; original: string; adapted: string }[]
+    adaptedItems: [] as {
+      type: string
+      id: string
+      title: string
+      field: string
+      original: string
+      adapted: string
+    }[],
   }
 
   for (const module of modules) {
@@ -162,7 +171,7 @@ export function previewCourseForGroup(
         type: 'module',
         id: module.id,
         title: module.title,
-        reason: resolvedModule.hiddenReason || 'Hidden'
+        reason: resolvedModule.hiddenReason || 'Hidden',
       })
       continue
     }
@@ -174,7 +183,7 @@ export function previewCourseForGroup(
 
     const modulePreview = {
       ...resolvedModule.content,
-      lessons: [] as any[]
+      lessons: [] as any[],
     }
 
     // Process lessons
@@ -186,7 +195,7 @@ export function previewCourseForGroup(
           type: 'lesson',
           id: lesson.id,
           title: lesson.title,
-          reason: resolvedLesson.hiddenReason || 'Hidden'
+          reason: resolvedLesson.hiddenReason || 'Hidden',
         })
         continue
       }
@@ -200,7 +209,7 @@ export function previewCourseForGroup(
             title: lesson.title,
             field,
             original: String(original),
-            adapted: String((resolvedLesson.content as any)[field])
+            adapted: String((resolvedLesson.content as any)[field]),
           })
         }
       }

@@ -8,17 +8,17 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { toast } from 'sonner'
-import { 
-  Sparkles, 
-  Send, 
-  Loader2, 
-  BookOpen, 
-  Users, 
+import {
+  Sparkles,
+  Send,
+  Loader2,
+  BookOpen,
+  Users,
   Lightbulb,
   Target,
   Plus,
   Trash2,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react'
 
 interface AIMessage {
@@ -156,9 +156,7 @@ export default function AIAssistantPage() {
           if (!prev) return null
           return {
             ...prev,
-            insights: prev.insights.map(i =>
-              i.id === insightId ? { ...i, applied: true } : i
-            ),
+            insights: prev.insights.map(i => (i.id === insightId ? { ...i, applied: true } : i)),
           }
         })
         toast.success('Marked as applied')
@@ -170,28 +168,38 @@ export default function AIAssistantPage() {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'lesson_idea': return <BookOpen className="w-4 h-4" />
-      case 'student_analysis': return <Users className="w-4 h-4" />
-      case 'content_suggestion': return <Lightbulb className="w-4 h-4" />
-      case 'engagement_tip': return <Target className="w-4 h-4" />
-      default: return <Sparkles className="w-4 h-4" />
+      case 'lesson_idea':
+        return <BookOpen className="h-4 w-4" />
+      case 'student_analysis':
+        return <Users className="h-4 w-4" />
+      case 'content_suggestion':
+        return <Lightbulb className="h-4 w-4" />
+      case 'engagement_tip':
+        return <Target className="h-4 w-4" />
+      default:
+        return <Sparkles className="h-4 w-4" />
     }
   }
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'lesson_idea': return 'bg-blue-100 text-blue-700'
-      case 'student_analysis': return 'bg-orange-100 text-orange-700'
-      case 'content_suggestion': return 'bg-green-100 text-green-700'
-      case 'engagement_tip': return 'bg-purple-100 text-purple-700'
-      default: return 'bg-gray-100 text-gray-700'
+      case 'lesson_idea':
+        return 'bg-blue-100 text-blue-700'
+      case 'student_analysis':
+        return 'bg-orange-100 text-orange-700'
+      case 'content_suggestion':
+        return 'bg-green-100 text-green-700'
+      case 'engagement_tip':
+        return 'bg-purple-100 text-purple-700'
+      default:
+        return 'bg-gray-100 text-gray-700'
     }
   }
 
   if (loading) {
     return (
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center h-[60vh]">
+      <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex h-[60vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         </div>
       </div>
@@ -199,23 +207,23 @@ export default function AIAssistantPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">AI Teaching Assistant</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="mt-1 text-gray-600">
           Get AI-powered insights and assistance for your teaching
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Chat Area */}
         <div className="lg:col-span-2">
-          <Card className="h-[600px] flex flex-col">
-            <CardHeader className="pb-3 border-b">
+          <Card className="flex h-[600px] flex-col">
+            <CardHeader className="border-b pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-white" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-blue-500">
+                    <Sparkles className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <CardTitle className="text-base">AI Assistant</CardTitle>
@@ -226,20 +234,20 @@ export default function AIAssistantPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={createNewSession}>
-                    <Plus className="w-4 h-4 mr-1" />
+                    <Plus className="mr-1 h-4 w-4" />
                     New Chat
                   </Button>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="flex-1 p-0 flex flex-col">
+            <CardContent className="flex flex-1 flex-col p-0">
               {/* Tabs */}
               <div className="flex border-b">
                 <button
                   className={`flex-1 py-2 text-sm font-medium ${
-                    activeTab === 'chat' 
-                      ? 'border-b-2 border-blue-500 text-blue-600' 
+                    activeTab === 'chat'
+                      ? 'border-b-2 border-blue-500 text-blue-600'
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                   onClick={() => setActiveTab('chat')}
@@ -248,8 +256,8 @@ export default function AIAssistantPage() {
                 </button>
                 <button
                   className={`flex-1 py-2 text-sm font-medium ${
-                    activeTab === 'insights' 
-                      ? 'border-b-2 border-blue-500 text-blue-600' 
+                    activeTab === 'insights'
+                      ? 'border-b-2 border-blue-500 text-blue-600'
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                   onClick={() => setActiveTab('insights')}
@@ -262,14 +270,14 @@ export default function AIAssistantPage() {
                 <>
                   <ScrollArea className="flex-1 p-4">
                     <div className="space-y-4">
-                      {session?.messages.map((message) => (
+                      {session?.messages.map(message => (
                         <div
                           key={message.id}
                           className={`flex gap-3 ${
                             message.role === 'user' ? 'flex-row-reverse' : ''
                           }`}
                         >
-                          <Avatar className="w-8 h-8 shrink-0">
+                          <Avatar className="h-8 w-8 shrink-0">
                             {message.role === 'user' ? (
                               <AvatarFallback className="bg-gray-200">You</AvatarFallback>
                             ) : (
@@ -279,14 +287,14 @@ export default function AIAssistantPage() {
                             )}
                           </Avatar>
                           <div
-                            className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                            className={`max-w-[80%] rounded-lg p-3 text-sm ${
                               message.role === 'user'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-gray-100 text-gray-800'
                             }`}
                           >
                             <div className="whitespace-pre-wrap">{message.content}</div>
-                            <span className="text-xs opacity-70 mt-1 block">
+                            <span className="mt-1 block text-xs opacity-70">
                               {new Date(message.createdAt).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -300,29 +308,27 @@ export default function AIAssistantPage() {
                   </ScrollArea>
 
                   {/* Input */}
-                  <div className="p-4 border-t">
+                  <div className="border-t p-4">
                     <div className="flex gap-2">
                       <Input
                         placeholder="Ask the AI Assistant..."
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && !sending && sendMessage()}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && !sending && sendMessage()}
                         disabled={sending}
                         className="flex-1"
                       />
-                      <Button 
-                        onClick={sendMessage} 
-                        disabled={sending || !input.trim()}
-                      >
+                      <Button onClick={sendMessage} disabled={sending || !input.trim()}>
                         {sending ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Send className="w-4 h-4" />
+                          <Send className="h-4 w-4" />
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
-                      Try: "Help me explain derivatives to struggling students" or "Generate a quiz on quadratic equations"
+                    <p className="mt-2 text-xs text-gray-400">
+                      Try: "Help me explain derivatives to struggling students" or "Generate a quiz
+                      on quadratic equations"
                     </p>
                   </div>
                 </>
@@ -330,15 +336,15 @@ export default function AIAssistantPage() {
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-3">
                     {session?.insights.filter(i => !i.applied).length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <Lightbulb className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <div className="py-8 text-center text-gray-500">
+                        <Lightbulb className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                         <p>No pending insights</p>
                         <p className="text-sm">Continue chatting to generate insights</p>
                       </div>
                     ) : (
                       session?.insights
                         .filter(i => !i.applied)
-                        .map((insight) => (
+                        .map(insight => (
                           <Card key={insight.id} className="overflow-hidden">
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between">
@@ -346,13 +352,13 @@ export default function AIAssistantPage() {
                                   <Badge className={getTypeColor(insight.type)}>
                                     {getTypeIcon(insight.type)}
                                   </Badge>
-                                  <span className="font-medium text-sm">{insight.title}</span>
+                                  <span className="text-sm font-medium">{insight.title}</span>
                                 </div>
                               </div>
-                              <p className="text-sm text-gray-600 mt-2 line-clamp-3">
+                              <p className="mt-2 line-clamp-3 text-sm text-gray-600">
                                 {insight.content}
                               </p>
-                              <div className="flex gap-2 mt-3">
+                              <div className="mt-3 flex gap-2">
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -381,23 +387,23 @@ export default function AIAssistantPage() {
             <CardContent>
               <ul className="space-y-3 text-sm text-gray-600">
                 <li className="flex items-start gap-2">
-                  <ChevronRight className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <ChevronRight className="mt-0.5 h-4 w-4 text-blue-500" />
                   Ask for lesson plan ideas for any topic
                 </li>
                 <li className="flex items-start gap-2">
-                  <ChevronRight className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <ChevronRight className="mt-0.5 h-4 w-4 text-blue-500" />
                   Get help explaining complex concepts
                 </li>
                 <li className="flex items-start gap-2">
-                  <ChevronRight className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <ChevronRight className="mt-0.5 h-4 w-4 text-blue-500" />
                   Generate practice questions and quizzes
                 </li>
                 <li className="flex items-start gap-2">
-                  <ChevronRight className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <ChevronRight className="mt-0.5 h-4 w-4 text-blue-500" />
                   Analyze student engagement strategies
                 </li>
                 <li className="flex items-start gap-2">
-                  <ChevronRight className="w-4 h-4 mt-0.5 text-blue-500" />
+                  <ChevronRight className="mt-0.5 h-4 w-4 text-blue-500" />
                   Request Socratic questioning examples
                 </li>
               </ul>
@@ -410,13 +416,13 @@ export default function AIAssistantPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3 text-center">
                   <p className="text-2xl font-bold text-blue-600">
                     {session?.messages.filter(m => m.role === 'user').length || 0}
                   </p>
                   <p className="text-xs text-gray-500">Your Messages</p>
                 </div>
-                <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3 text-center">
                   <p className="text-2xl font-bold text-purple-600">
                     {session?.insights.filter(i => !i.applied).length || 0}
                   </p>

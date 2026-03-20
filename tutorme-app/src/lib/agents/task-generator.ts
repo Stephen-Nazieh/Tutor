@@ -53,7 +53,10 @@ export interface StudentProfile {
 /**
  * Generate a prompt for task creation based on configuration
  */
-function createTaskGenerationPrompt(config: TaskConfiguration, studentProfile?: StudentProfile): string {
+function createTaskGenerationPrompt(
+  config: TaskConfiguration,
+  studentProfile?: StudentProfile
+): string {
   const basePrompt = `作为一位专业的教育AI助手，请为${config.subject}科目生成${config.count}道练习题。
 
 主题：${config.topics.join('、')}
@@ -149,10 +152,17 @@ export async function generatePersonalizedTasks(
 /**
  * Get student profiles for a curriculum
  */
-async function getStudentProfiles(studentIds: string[], _curriculumId?: string): Promise<StudentProfile[]> {
+async function getStudentProfiles(
+  studentIds: string[],
+  _curriculumId?: string
+): Promise<StudentProfile[]> {
   const profiles = await Promise.all(
-    studentIds.map(async (id) => {
-      const rows = await drizzleDb.select().from(studentPerformance).where(eq(studentPerformance.studentId, id)).limit(1)
+    studentIds.map(async id => {
+      const rows = await drizzleDb
+        .select()
+        .from(studentPerformance)
+        .where(eq(studentPerformance.studentId, id))
+        .limit(1)
       const performance = rows[0]
 
       if (!performance) {
@@ -208,7 +218,7 @@ export async function generateClusteredTasks(
     struggling: [],
   }
 
-  profiles.forEach((profile) => {
+  profiles.forEach(profile => {
     const cluster = profile.cluster || 'intermediate'
     clusters[cluster].push(profile)
   })
@@ -221,7 +231,11 @@ export async function generateClusteredTasks(
     const clusterConfig: TaskConfiguration = {
       ...config,
       difficulty:
-        clusterName === 'advanced' ? 'advanced' : clusterName === 'struggling' ? 'beginner' : 'intermediate',
+        clusterName === 'advanced'
+          ? 'advanced'
+          : clusterName === 'struggling'
+            ? 'beginner'
+            : 'intermediate',
     }
 
     const prompt = createTaskGenerationPrompt(clusterConfig)
@@ -271,20 +285,23 @@ export async function generateAndDistributeTasks(
     }
 
     if (mode === 'personalized') {
-      if (!params.targetStudentId) return { success: false, error: 'targetStudentId is required for personalized mode' }
+      if (!params.targetStudentId)
+        return { success: false, error: 'targetStudentId is required for personalized mode' }
       const profiles = await getStudentProfiles([params.targetStudentId], params.curriculumId)
       const tasks = await generatePersonalizedTasks(config, profiles[0]!)
       return { success: true, tasks: new Map([[params.targetStudentId, tasks]]) }
     }
 
     if (mode === 'clustered') {
-      if (studentIds.length === 0) return { success: false, error: 'studentIds required for clustered mode' }
+      if (studentIds.length === 0)
+        return { success: false, error: 'studentIds required for clustered mode' }
       const tasks = await generateClusteredTasks(config, studentIds, params.curriculumId)
       return { success: true, tasks }
     }
 
     if (mode === 'peer_group') {
-      if (studentIds.length === 0) return { success: false, error: 'studentIds required for peer_group mode' }
+      if (studentIds.length === 0)
+        return { success: false, error: 'studentIds required for peer_group mode' }
       const tasks = await generatePeerGroupTasks(config, studentIds, params.curriculumId)
       return { success: true, tasks }
     }
@@ -311,7 +328,7 @@ export async function saveGeneratedTasks(
 ): Promise<{ success: boolean; taskIds?: string[]; error?: string }> {
   try {
     const studentIds = Array.from(tasksByStudent.keys())
-    const firstTasks = studentIds.length > 0 ? tasksByStudent.get(studentIds[0]!) ?? [] : []
+    const firstTasks = studentIds.length > 0 ? (tasksByStudent.get(studentIds[0]!) ?? []) : []
 
     const toQuestion = (t: GeneratedTask, idx: number) => ({
       id: t.id || `q-${Date.now()}-${idx}`,
@@ -374,4 +391,3 @@ export async function getRecentTaskSubmissions(studentId: string, limit = 20) {
     .orderBy(desc(taskSubmission.submittedAt))
     .limit(limit)
 }
-

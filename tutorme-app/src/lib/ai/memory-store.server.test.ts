@@ -37,4 +37,3 @@ describe('memory-store.server', () => {
     expect(ctx).toBeNull()
   })
 })
-

@@ -1,6 +1,6 @@
 /**
  * Health Check API
- * 
+ *
  * Monitors database, cache, and system health.
  * Used by load balancers and monitoring systems.
  */
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/health
- * 
+ *
  * Returns system health status including:
  * - Database connectivity
  * - Cache connectivity
@@ -29,13 +29,16 @@ export async function GET(req: NextRequest) {
 
     // Basic health response
     if (!detailed) {
-      return NextResponse.json({
-        status: health.status,
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-      }, {
-        status: health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503
-      })
+      return NextResponse.json(
+        {
+          status: health.status,
+          timestamp: new Date().toISOString(),
+          uptime: process.uptime(),
+        },
+        {
+          status: health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503,
+        }
+      )
     }
 
     // Detailed health response
@@ -44,7 +47,8 @@ export async function GET(req: NextRequest) {
 
     try {
       const result = await drizzleDb.execute<{ version: string }>(sql`SELECT version() as version`)
-      const rows = (result as { rows?: { version: string }[] })?.rows ?? (Array.isArray(result) ? result : [])
+      const rows =
+        (result as { rows?: { version: string }[] })?.rows ?? (Array.isArray(result) ? result : [])
       dbVersion = rows[0]?.version ?? (result as any)[0]?.version
     } catch (e) {
       // Database query failed
@@ -63,40 +67,46 @@ export async function GET(req: NextRequest) {
       // Redis not available
     }
 
-    return NextResponse.json({
-      status: health.status,
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      node: {
-        version: process.version,
-        platform: process.platform,
-        memory: process.memoryUsage()
-      },
-      services: {
-        database: {
-          connected: health.database,
-          latency: health.latency,
-          version: dbVersion
+    return NextResponse.json(
+      {
+        status: health.status,
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        node: {
+          version: process.version,
+          platform: process.platform,
+          memory: process.memoryUsage(),
         },
-        cache: {
-          connected: health.cache,
-          type: redisInfo ? 'redis' : 'in-memory',
-          redisVersion: redisInfo ? redisInfo.match(/redis_version:(.+)/)?.[1] : null
-        }
+        services: {
+          database: {
+            connected: health.database,
+            latency: health.latency,
+            version: dbVersion,
+          },
+          cache: {
+            connected: health.cache,
+            type: redisInfo ? 'redis' : 'in-memory',
+            redisVersion: redisInfo ? redisInfo.match(/redis_version:(.+)/)?.[1] : null,
+          },
+        },
+        performance: health.stats,
+        issues: health.issues,
+        stats: dbMonitor.getStats(),
       },
-      performance: health.stats,
-      issues: health.issues,
-      stats: dbMonitor.getStats()
-    }, {
-      status: health.status === 'unhealthy' ? 503 : 200
-    })
+      {
+        status: health.status === 'unhealthy' ? 503 : 200,
+      }
+    )
   } catch (error) {
     console.error('[Health Check] Error:', error)
-    return NextResponse.json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      error: 'Health check failed'
-    }, { status: 503 })
+    return NextResponse.json(
+      {
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        error: 'Health check failed',
+      },
+      { status: 503 }
+    )
   }
 }
 

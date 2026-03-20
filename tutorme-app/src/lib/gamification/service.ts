@@ -111,9 +111,7 @@ export async function updateStreak(userId: string) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const lastActive = gamification.lastActiveDate
-    ? new Date(gamification.lastActiveDate)
-    : null
+  const lastActive = gamification.lastActiveDate ? new Date(gamification.lastActiveDate) : null
 
   let newStreak = gamification.streakDays
   let streakBonus = 0
@@ -176,9 +174,7 @@ export async function checkDailyLogin(userId: string) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  const lastActive = gamification.lastActiveDate
-    ? new Date(gamification.lastActiveDate)
-    : null
+  const lastActive = gamification.lastActiveDate ? new Date(gamification.lastActiveDate) : null
 
   if (!lastActive || lastActive.getTime() !== today.getTime()) {
     const streakResult = await updateStreak(userId)

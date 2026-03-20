@@ -94,7 +94,7 @@ export default function FeatureFlagsPage() {
   }
 
   const getScopeIcon = (scope: string) => {
-    const scopeConfig = scopes.find((s) => s.value === scope)
+    const scopeConfig = scopes.find(s => s.value === scope)
     const Icon = scopeConfig?.icon || Globe
     return <Icon className="h-4 w-4" />
   }
@@ -105,9 +105,7 @@ export default function FeatureFlagsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Feature Flags</h1>
-          <p className="text-slate-500">
-            Control feature availability across the platform
-          </p>
+          <p className="text-slate-500">Control feature availability across the platform</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -130,7 +128,7 @@ export default function FeatureFlagsPage() {
                   id="key"
                   placeholder="e.g., new_dashboard_enabled"
                   value={newFlag.key}
-                  onChange={(e) => setNewFlag({ ...newFlag, key: e.target.value })}
+                  onChange={e => setNewFlag({ ...newFlag, key: e.target.value })}
                 />
                 <p className="text-xs text-slate-500">
                   Use lowercase letters, numbers, and underscores
@@ -142,7 +140,7 @@ export default function FeatureFlagsPage() {
                   id="name"
                   placeholder="e.g., New Dashboard"
                   value={newFlag.name}
-                  onChange={(e) => setNewFlag({ ...newFlag, name: e.target.value })}
+                  onChange={e => setNewFlag({ ...newFlag, name: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -151,20 +149,20 @@ export default function FeatureFlagsPage() {
                   id="description"
                   placeholder="What does this flag control?"
                   value={newFlag.description}
-                  onChange={(e) => setNewFlag({ ...newFlag, description: e.target.value })}
+                  onChange={e => setNewFlag({ ...newFlag, description: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="scope">Scope</Label>
                 <Select
                   value={newFlag.scope}
-                  onValueChange={(v) => setNewFlag({ ...newFlag, scope: v })}
+                  onValueChange={v => setNewFlag({ ...newFlag, scope: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {scopes.map((scope) => (
+                    {scopes.map(scope => (
                       <SelectItem key={scope.value} value={scope.value}>
                         <div className="flex items-center gap-2">
                           <scope.icon className="h-4 w-4" />
@@ -180,7 +178,7 @@ export default function FeatureFlagsPage() {
                 <Switch
                   id="enabled"
                   checked={newFlag.enabled}
-                  onCheckedChange={(v) => setNewFlag({ ...newFlag, enabled: v })}
+                  onCheckedChange={v => setNewFlag({ ...newFlag, enabled: v })}
                 />
               </div>
             </div>
@@ -205,7 +203,7 @@ export default function FeatureFlagsPage() {
               placeholder="Search feature flags..."
               className="pl-9"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={e => setSearch(e.target.value)}
             />
           </div>
         </CardContent>
@@ -221,9 +219,7 @@ export default function FeatureFlagsPage() {
               `${filteredFlags.length} Feature Flags`
             )}
           </CardTitle>
-          <CardDescription>
-            Toggle features on/off or configure scoped access
-          </CardDescription>
+          <CardDescription>Toggle features on/off or configure scoped access</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -238,15 +234,27 @@ export default function FeatureFlagsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                Array(5).fill(0).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-10 w-full" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-20" /></TableCell>
-                  </TableRow>
-                ))
+                Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-10 w-full" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-20" />
+                      </TableCell>
+                    </TableRow>
+                  ))
               ) : filteredFlags.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-32 text-center">
@@ -261,7 +269,7 @@ export default function FeatureFlagsPage() {
                   <TableRow key={flag.id as string}>
                     <TableCell>
                       <div>
-                        <p className="font-medium font-mono text-sm">{flag.key as string}</p>
+                        <p className="font-mono text-sm font-medium">{flag.key as string}</p>
                         <p className="text-sm text-slate-500">{flag.name as string}</p>
                         {typeof flag.description === 'string' && flag.description.length > 0 && (
                           <p className="text-xs text-slate-400">{flag.description}</p>
@@ -280,10 +288,7 @@ export default function FeatureFlagsPage() {
                           checked={flag.enabled as boolean}
                           onCheckedChange={() => handleToggleFlag(flag)}
                         />
-                        <Badge
-                          variant={flag.enabled ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
+                        <Badge variant={flag.enabled ? 'default' : 'secondary'} className="text-xs">
                           {flag.enabled ? (
                             <>
                               <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -298,16 +303,12 @@ export default function FeatureFlagsPage() {
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className="text-slate-500 text-sm">
+                    <TableCell className="text-sm text-slate-500">
                       {new Date(flag.updatedAt as string).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingFlag(flag)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => setEditingFlag(flag)}>
                           <Edit2 className="h-4 w-4" />
                         </Button>
                         <Button

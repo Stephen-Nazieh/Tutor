@@ -25,7 +25,8 @@ export function VideoGrid({ participants, isVideoEnabled }: VideoGridProps) {
       return
     }
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: false })
       .then(stream => {
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream
@@ -47,54 +48,52 @@ export function VideoGrid({ participants, isVideoEnabled }: VideoGridProps) {
   const rows = Math.ceil(count / cols)
 
   return (
-    <div 
-      className="grid gap-2 h-full"
+    <div
+      className="grid h-full gap-2"
       style={{
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
       }}
     >
       {/* Local video */}
-      <div className="relative bg-gray-800 rounded-lg overflow-hidden">
+      <div className="relative overflow-hidden rounded-lg bg-gray-800">
         <video
           ref={localVideoRef}
           autoPlay
           muted
           playsInline
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
         />
-        <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-white text-sm">
+        <div className="absolute bottom-2 left-2 rounded bg-black/50 px-2 py-1 text-sm text-white">
           You {isVideoEnabled ? '' : '(Video Off)'}
         </div>
       </div>
 
       {/* Remote participants */}
-      {participants.map((participant) => (
-        <div 
+      {participants.map(participant => (
+        <div
           key={participant.id}
-          className="relative bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center"
+          className="relative flex items-center justify-center overflow-hidden rounded-lg bg-gray-800"
         >
           {participant.isVideoEnabled ? (
-            <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center bg-gray-700">
               <span className="text-gray-400">Video Placeholder</span>
             </div>
           ) : (
-            <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+            <div className="flex h-full w-full items-center justify-center bg-gray-700">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
                 {participant.name.charAt(0).toUpperCase()}
               </div>
             </div>
           )}
-          
-          <div className="absolute bottom-2 left-2 bg-black/50 px-2 py-1 rounded text-white text-sm flex items-center gap-2">
+
+          <div className="absolute bottom-2 left-2 flex items-center gap-2 rounded bg-black/50 px-2 py-1 text-sm text-white">
             <span>{participant.name}</span>
-            {!participant.isAudioEnabled && (
-              <span className="text-red-400">Muted</span>
-            )}
+            {!participant.isAudioEnabled && <span className="text-red-400">Muted</span>}
           </div>
 
           {participant.isScreenSharing && (
-            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+            <div className="absolute right-2 top-2 rounded bg-green-500 px-2 py-1 text-xs text-white">
               Sharing
             </div>
           )}

@@ -9,10 +9,8 @@ export default function ApiDocs() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Solocorn API Documentation</h1>
-          <p className="text-muted-foreground">
-            Complete reference for all Solocorn API endpoints
-          </p>
+          <h1 className="mb-2 text-3xl font-bold">Solocorn API Documentation</h1>
+          <p className="text-muted-foreground">Complete reference for all Solocorn API endpoints</p>
         </div>
         <SwaggerUI
           url="/api/openapi"

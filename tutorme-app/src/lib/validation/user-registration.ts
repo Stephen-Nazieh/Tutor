@@ -13,61 +13,70 @@ import { HANDLE_REGEX, isReservedHandle, normalizeHandle } from '@/lib/mentions/
 
 const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/
 
-export const tutorAdditionalDataSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(50),
-  middleName: z.string().max(50).optional(),
-  lastName: z.string().min(1, 'Last name is required').max(50),
-  legalName: z.string().min(2, 'Legal name is required').max(120),
-  countryOfResidence: z.string().min(2, 'Country of residence is required').max(100),
-  phoneCountryCode: z.string().min(1, 'Phone country code is required').max(10),
-  phoneNumber: z.string().regex(phoneRegex, 'Valid phone number required'),
-  educationLevel: z.enum(['High School Diploma', 'Bachelor', 'Masters', 'PhD']),
-  hasTeachingCertificate: z.boolean(),
-  certificateName: z.string().max(200).optional(),
-  certificateSubjects: z.string().max(500).optional(),
-  tutoringExperienceRange: z.enum(['0-2', '3-5', '6-10', '10+']),
-  globalExams: z.object({
-    standardizedEnglish: z.array(z.string()).optional().default([]),
-    undergradAdmissions: z.array(z.string()).optional().default([]),
-    apAdvancedPlacement: z.array(z.string()).optional().default([]),
-    internationalAS: z.array(z.string()).optional().default([]),
-  }).optional().default({
-    standardizedEnglish: [],
-    undergradAdmissions: [],
-    apAdvancedPlacement: [],
-    internationalAS: [],
-  }),
-  tutoringCountries: z.array(z.string()).optional().default([]),
-  countrySubjectSelections: z.record(z.string(), z.array(z.string())).optional().default({}),
-  categories: z.array(z.string()).min(1, 'Select at least one tutoring category'),
-  username: z
-    .string()
-    .min(3, 'Handle must be at least 3 characters')
-    .max(15, 'Handle must be at most 15 characters')
-    .regex(HANDLE_REGEX, 'Handle may only contain letters, numbers, and underscores')
-    .refine((value) => !isReservedHandle(value), 'This handle is reserved')
-    .transform((value) => normalizeHandle(value)),
-  socialLinks: z.object({
-    instagram: z.string().max(100).optional(),
-    tiktok: z.string().max(100).optional(),
-    youtube: z.string().max(100).optional(),
-    facebook: z.string().max(100).optional(),
-  }).optional(),
-  serviceDescription: z.string().min(10, 'Describe your service').max(500),
-  hourlyRate: z.number().min(0).max(10000).optional(),
-}).superRefine((data, ctx) => {
-  if (data.hasTeachingCertificate && !data.certificateName) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Teaching certificate is required when you select Yes',
-      path: ['certificateName'],
-    })
-  }
-})
+export const tutorAdditionalDataSchema = z
+  .object({
+    firstName: z.string().min(1, 'First name is required').max(50),
+    middleName: z.string().max(50).optional(),
+    lastName: z.string().min(1, 'Last name is required').max(50),
+    legalName: z.string().min(2, 'Legal name is required').max(120),
+    countryOfResidence: z.string().min(2, 'Country of residence is required').max(100),
+    phoneCountryCode: z.string().min(1, 'Phone country code is required').max(10),
+    phoneNumber: z.string().regex(phoneRegex, 'Valid phone number required'),
+    educationLevel: z.enum(['High School Diploma', 'Bachelor', 'Masters', 'PhD']),
+    hasTeachingCertificate: z.boolean(),
+    certificateName: z.string().max(200).optional(),
+    certificateSubjects: z.string().max(500).optional(),
+    tutoringExperienceRange: z.enum(['0-2', '3-5', '6-10', '10+']),
+    globalExams: z
+      .object({
+        standardizedEnglish: z.array(z.string()).optional().default([]),
+        undergradAdmissions: z.array(z.string()).optional().default([]),
+        apAdvancedPlacement: z.array(z.string()).optional().default([]),
+        internationalAS: z.array(z.string()).optional().default([]),
+      })
+      .optional()
+      .default({
+        standardizedEnglish: [],
+        undergradAdmissions: [],
+        apAdvancedPlacement: [],
+        internationalAS: [],
+      }),
+    tutoringCountries: z.array(z.string()).optional().default([]),
+    countrySubjectSelections: z.record(z.string(), z.array(z.string())).optional().default({}),
+    categories: z.array(z.string()).min(1, 'Select at least one tutoring category'),
+    username: z
+      .string()
+      .min(3, 'Handle must be at least 3 characters')
+      .max(15, 'Handle must be at most 15 characters')
+      .regex(HANDLE_REGEX, 'Handle may only contain letters, numbers, and underscores')
+      .refine(value => !isReservedHandle(value), 'This handle is reserved')
+      .transform(value => normalizeHandle(value)),
+    socialLinks: z
+      .object({
+        instagram: z.string().max(100).optional(),
+        tiktok: z.string().max(100).optional(),
+        youtube: z.string().max(100).optional(),
+        facebook: z.string().max(100).optional(),
+      })
+      .optional(),
+    serviceDescription: z.string().min(10, 'Describe your service').max(500),
+    hourlyRate: z.number().min(0).max(10000).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.hasTeachingCertificate && !data.certificateName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Teaching certificate is required when you select Yes',
+        path: ['certificateName'],
+      })
+    }
+  })
 
 export const tutorProfileDataSchema = z.object({
   timezone: z.string().default('Asia/Shanghai'),
-  preferredLanguage: z.enum(['en', 'zh-CN', 'es', 'fr', 'de', 'ja', 'ko', 'pt', 'ru', 'ar']).default('en'),
+  preferredLanguage: z
+    .enum(['en', 'zh-CN', 'es', 'fr', 'de', 'ja', 'ko', 'pt', 'ru', 'ar'])
+    .default('en'),
   bio: z.string().max(2000, 'Bio must be less than 2000 characters').optional(),
 })
 
@@ -132,14 +141,15 @@ export const ADMIN_PERMISSION_GROUPS = [
 
 export type AdminPermissionGroup = (typeof ADMIN_PERMISSION_GROUPS)[number]
 
-export const adminPermissionGroupsSchema = z.array(
-  z.enum(ADMIN_PERMISSION_GROUPS)
-)
+export const adminPermissionGroupsSchema = z.array(z.enum(ADMIN_PERMISSION_GROUPS))
 
 export const adminProfileDataSchema = z.object({
   phoneNumber: z.string().regex(/^\+?[\d\s\-\(\)]{10,}$/, 'Valid phone number required'),
   organizationName: z.string().min(2, 'Organization name must be at least 2 characters').max(200),
-  organizationSlug: z.string().regex(/^[a-z0-9\-]+$/, 'Slug: lowercase letters, numbers, hyphens only').optional(),
+  organizationSlug: z
+    .string()
+    .regex(/^[a-z0-9\-]+$/, 'Slug: lowercase letters, numbers, hyphens only')
+    .optional(),
   adminLevel: z.enum(['super', 'standard', 'limited']),
   jobTitle: z.string().max(100).optional(),
   department: z.string().max(100).optional(),
@@ -148,7 +158,9 @@ export const adminProfileDataSchema = z.object({
 export const adminAdditionalDataSchema = z.object({
   permissions: adminPermissionGroupsSchema.min(1, 'Select at least one permission group'),
   mfaEnabled: z.boolean().default(true),
-  ipWhitelist: z.array(z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Invalid IP address')).optional(),
+  ipWhitelist: z
+    .array(z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/, 'Invalid IP address'))
+    .optional(),
   timezone: z.string().default('Asia/Shanghai'),
   preferredLanguage: z.enum(['zh-CN', 'en']).default('zh-CN'),
 })
@@ -175,11 +187,11 @@ export const adminRegistrationSchema = z
     department: z.string().max(100).optional(),
     permissions: adminPermissionGroupsSchema.min(1, 'Select at least one permission group'),
     mfaEnabled: z.boolean().default(true),
-    tosAccepted: z.boolean().refine((val) => val === true, {
+    tosAccepted: z.boolean().refine(val => val === true, {
       message: 'You must accept the Terms of Service',
     }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
   })
@@ -208,11 +220,11 @@ export const parentRegistrationSchema = z
     students: z.array(parentStudentLinkingSchema).optional().default([]),
     emergencyContacts: z.array(emergencyContactSchema).max(3).optional().default([]),
     notificationPreferences: notificationSchema.optional().default({}),
-    tosAccepted: z.boolean().refine((val) => val === true, {
+    tosAccepted: z.boolean().refine(val => val === true, {
       message: 'You must accept the Terms of Service',
     }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
   })

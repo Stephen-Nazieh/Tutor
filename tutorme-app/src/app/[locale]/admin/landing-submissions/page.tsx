@@ -45,8 +45,11 @@ export default function LandingSubmissionsPage() {
 
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleString('en-US', {
-      year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
@@ -54,16 +57,18 @@ export default function LandingSubmissionsPage() {
   if (error) return <div className="p-8 text-center text-red-500">{error}</div>
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold">Landing Page Submissions</h1>
-        <p className="text-muted-foreground mt-1">Contact messages and tutor sign-up applications from the landing page.</p>
+        <p className="mt-1 text-muted-foreground">
+          Contact messages and tutor sign-up applications from the landing page.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Mail className="h-5 w-5 text-blue-500" />
               Contact Messages
             </CardTitle>
@@ -75,7 +80,7 @@ export default function LandingSubmissionsPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <UserPlus className="h-5 w-5 text-emerald-500" />
               Tutor Signups
             </CardTitle>
@@ -92,13 +97,17 @@ export default function LandingSubmissionsPage() {
           <TabsTrigger value="messages">
             Contact Messages
             {messages.length > 0 && (
-              <Badge className="ml-2" variant="secondary">{messages.length}</Badge>
+              <Badge className="ml-2" variant="secondary">
+                {messages.length}
+              </Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="signups">
             Tutor Signups
             {signups.length > 0 && (
-              <Badge className="ml-2" variant="secondary">{signups.length}</Badge>
+              <Badge className="ml-2" variant="secondary">
+                {signups.length}
+              </Badge>
             )}
           </TabsTrigger>
         </TabsList>
@@ -107,7 +116,7 @@ export default function LandingSubmissionsPage() {
           {messages.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <Mail className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
                 <p className="text-muted-foreground">No contact messages yet.</p>
               </CardContent>
             </Card>
@@ -119,7 +128,7 @@ export default function LandingSubmissionsPage() {
                     <div>
                       <CardTitle className="text-base">{msg.name}</CardTitle>
                       <CardDescription>
-                        <a href={`mailto:${msg.email}`} className="hover:underline text-blue-500">
+                        <a href={`mailto:${msg.email}`} className="text-blue-500 hover:underline">
                           {msg.email}
                         </a>
                       </CardDescription>
@@ -142,12 +151,12 @@ export default function LandingSubmissionsPage() {
           {signups.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
-                <UserPlus className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                <UserPlus className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
                 <p className="text-muted-foreground">No tutor applications yet.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {signups.map(signup => (
                 <Card key={signup.id}>
                   <CardHeader>
@@ -156,24 +165,24 @@ export default function LandingSubmissionsPage() {
                         <img
                           src={signup.photo}
                           alt={signup.username}
-                          className="w-12 h-12 rounded-full object-cover border"
+                          className="h-12 w-12 rounded-full border object-cover"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-lg font-bold text-emerald-600">
                           {signup.username[0]?.toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <CardTitle className="text-base truncate">@{signup.username}</CardTitle>
+                        <CardTitle className="truncate text-base">@{signup.username}</CardTitle>
                         <CardDescription>{signup.country || 'Unknown country'}</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {signup.bio && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">{signup.bio}</p>
+                      <p className="line-clamp-3 text-sm text-muted-foreground">{signup.bio}</p>
                     )}
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground pt-1 border-t">
+                    <div className="flex items-center gap-1 border-t pt-1 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
                       {formatDate(signup.createdAt)}
                     </div>

@@ -1,6 +1,6 @@
 /**
  * Enhanced CRDT (Conflict-free Replicated Data Type) System
- * 
+ *
  * Features:
  * - Schema validation for all operations
  * - Idempotency guarantees
@@ -26,19 +26,32 @@ export const StrokeSchema = z.object({
   points: z.array(PointSchema).min(1),
   color: z.string(),
   width: z.number().positive(),
-  type: z.enum(['pen', 'eraser', 'pencil', 'marker', 'highlighter', 'calligraphy', 'shape', 'text']),
+  type: z.enum([
+    'pen',
+    'eraser',
+    'pencil',
+    'marker',
+    'highlighter',
+    'calligraphy',
+    'shape',
+    'text',
+  ]),
   userId: z.string(),
   opacity: z.number().min(0).max(1).optional(),
   shapeType: z.enum(['line', 'arrow', 'rectangle', 'circle', 'triangle', 'connector']).optional(),
   text: z.string().optional(),
   fontSize: z.number().positive().optional(),
   fontFamily: z.string().optional(),
-  textStyle: z.object({
-    bold: z.boolean().optional(),
-    italic: z.boolean().optional(),
-    align: z.enum(['left', 'center', 'right']).optional(),
-  }).optional(),
-  layerId: z.enum(['tutor-broadcast', 'tutor-private', 'student-personal', 'shared-group']).optional(),
+  textStyle: z
+    .object({
+      bold: z.boolean().optional(),
+      italic: z.boolean().optional(),
+      align: z.enum(['left', 'center', 'right']).optional(),
+    })
+    .optional(),
+  layerId: z
+    .enum(['tutor-broadcast', 'tutor-private', 'student-personal', 'shared-group'])
+    .optional(),
   roomScope: z.enum(['main', 'breakout']).optional(),
   groupId: z.string().optional(),
   zIndex: z.number().optional(),
@@ -133,11 +146,11 @@ export class VectorClockManager {
    */
   merge(a: VectorClock, b: VectorClock): VectorClock {
     const result: VectorClock = { ...a }
-    
+
     for (const [userId, count] of Object.entries(b)) {
       result[userId] = Math.max(result[userId] || 0, count)
     }
-    
+
     return result
   }
 
@@ -153,11 +166,11 @@ export class VectorClockManager {
     let bGreater = false
 
     const allKeys = new Set([...Object.keys(a), ...Object.keys(b)])
-    
+
     for (const key of allKeys) {
       const aVal = a[key] || 0
       const bVal = b[key] || 0
-      
+
       if (aVal > bVal) aGreater = true
       if (bVal > aVal) bGreater = true
     }
@@ -220,20 +233,20 @@ export class SchemaValidator {
    */
   validateStroke(data: unknown): ValidationResult<ValidatedStroke> {
     const result = StrokeSchema.safeParse(data)
-    
+
     if (!result.success) {
       return {
         success: false,
         errors: result.error,
-        errorMessage: result.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        errorMessage: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
       }
     }
 
     // Additional validations
     const stroke = result.data
-    
+
     // Check for NaN values
-    if (stroke.points.some((p) => isNaN(p.x) || isNaN(p.y))) {
+    if (stroke.points.some(p => isNaN(p.x) || isNaN(p.y))) {
       return {
         success: false,
         errorMessage: 'Stroke contains NaN coordinates',
@@ -241,7 +254,7 @@ export class SchemaValidator {
     }
 
     // Check for infinite values
-    if (stroke.points.some((p) => !isFinite(p.x) || !isFinite(p.y))) {
+    if (stroke.points.some(p => !isFinite(p.x) || !isFinite(p.y))) {
       return {
         success: false,
         errorMessage: 'Stroke contains infinite coordinates',
@@ -256,12 +269,12 @@ export class SchemaValidator {
    */
   validateOperation(data: unknown): ValidationResult<ValidatedOperation> {
     const result = OperationSchema.safeParse(data)
-    
+
     if (!result.success) {
       return {
         success: false,
         errors: result.error,
-        errorMessage: result.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        errorMessage: result.error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
       }
     }
 
@@ -302,7 +315,7 @@ export class SchemaValidator {
    */
   private cleanupOldEntries(now: number): void {
     const cutoff = now - this.dedupWindowMs
-    
+
     for (const [id, timestamp] of this.idTimestamps) {
       if (timestamp < cutoff) {
         this.idTimestamps.delete(id)
@@ -332,15 +345,12 @@ export class CausalOrderingManager {
   /**
    * Check if an operation can be applied (causal ordering)
    */
-  checkCausalOrder(
-    operation: ValidatedOperation,
-    currentClock: VectorClock
-  ): CausalOrderResult {
+  checkCausalOrder(operation: ValidatedOperation, currentClock: VectorClock): CausalOrderResult {
     const opClock = operation.vectorClock
 
     // Check if this operation causally depends on unseen operations
     const missingDependencies: string[] = []
-    
+
     for (const [userId, seq] of Object.entries(opClock)) {
       const currentSeq = currentClock[userId] || 0
       if (seq > currentSeq + 1) {
@@ -403,7 +413,7 @@ export class CausalOrderingManager {
   private processPendingOperations(sessionId: string, currentClock: VectorClock): void {
     this.pendingOperations.forEach((operations, key) => {
       const stillPending: ValidatedOperation[] = []
-      
+
       for (const op of operations) {
         const result = this.checkCausalOrder(op, currentClock)
         if (!result.canApply) {
@@ -424,7 +434,7 @@ export class CausalOrderingManager {
    */
   getPendingCount(): number {
     let count = 0
-    this.pendingOperations.forEach((ops) => {
+    this.pendingOperations.forEach(ops => {
       count += ops.length
     })
     return count
@@ -462,10 +472,7 @@ export class DeadLetterQueue {
   /**
    * Add an entry to the dead letter queue
    */
-  add(
-    operation: unknown,
-    errors: { validation?: string[]; causal?: string[] }
-  ): void {
+  add(operation: unknown, errors: { validation?: string[]; causal?: string[] }): void {
     const entry: DeadLetterEntry = {
       operation,
       validationErrors: errors.validation,
@@ -493,7 +500,7 @@ export class DeadLetterQueue {
    * Get entries that can be retried
    */
   getRetryableEntries(): DeadLetterEntry[] {
-    return this.entries.filter((e) => e.retryCount < this.maxRetries)
+    return this.entries.filter(e => e.retryCount < this.maxRetries)
   }
 
   /**
@@ -533,7 +540,7 @@ export class DeadLetterQueue {
     return {
       total: this.entries.length,
       retryable: this.getRetryableEntries().length,
-      permanentlyFailed: this.entries.filter((e) => e.retryCount >= this.maxRetries).length,
+      permanentlyFailed: this.entries.filter(e => e.retryCount >= this.maxRetries).length,
     }
   }
 }
@@ -543,14 +550,18 @@ export class DeadLetterQueue {
 // =============================================================================
 
 export class TombstoneManager {
-  private tombstones = new Map<string, {
-    deletedAt: number
-    deletedBy: string
-    operationId: string
-  }>()
+  private tombstones = new Map<
+    string,
+    {
+      deletedAt: number
+      deletedBy: string
+      operationId: string
+    }
+  >()
   private readonly pruneThresholdMs: number
 
-  constructor(pruneThresholdMs: number = 86400000) { // 24 hours
+  constructor(pruneThresholdMs: number = 86400000) {
+    // 24 hours
     this.pruneThresholdMs = pruneThresholdMs
   }
 
@@ -575,11 +586,13 @@ export class TombstoneManager {
   /**
    * Get tombstone info
    */
-  getTombstone(elementId: string): {
-    deletedAt: number
-    deletedBy: string
-    operationId: string
-  } | undefined {
+  getTombstone(elementId: string):
+    | {
+        deletedAt: number
+        deletedBy: string
+        operationId: string
+      }
+    | undefined {
     return this.tombstones.get(elementId)
   }
 
@@ -659,7 +672,7 @@ export class EnhancedCRDTManager {
     // Step 3: Causal ordering check
     const currentClock = this.causalManager.getClock(this.sessionId)
     const causalResult = this.causalManager.checkCausalOrder(op, currentClock)
-    
+
     if (!causalResult.canApply) {
       this.dlq.add(operation, {
         causal: [`Missing dependencies: ${causalResult.missingDependencies?.join(', ')}`],
@@ -771,7 +784,7 @@ export class EnhancedCRDTManager {
 
     // Add tombstone
     this.tombstoneManager.add(op.elementId, op.userId, op.id)
-    
+
     // Remove element
     this.elements.delete(op.elementId)
     return true

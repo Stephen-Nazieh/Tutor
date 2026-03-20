@@ -26,12 +26,8 @@ export async function GET(req: NextRequest) {
     const endParam = searchParams.get('end')
 
     const now = new Date()
-    const start = startParam
-      ? new Date(startParam)
-      : new Date(now.getFullYear(), now.getMonth(), 1)
-    const end = endParam
-      ? new Date(endParam)
-      : new Date(now.getFullYear(), now.getMonth() + 2, 0)
+    const start = startParam ? new Date(startParam) : new Date(now.getFullYear(), now.getMonth(), 1)
+    const end = endParam ? new Date(endParam) : new Date(now.getFullYear(), now.getMonth() + 2, 0)
 
     const bookings = await drizzleDb
       .select({
@@ -57,11 +53,9 @@ export async function GET(req: NextRequest) {
       )
       .orderBy(asc(clinic.startTime))
 
-    const events = bookings.map((b) => {
+    const events = bookings.map(b => {
       const startTime = new Date(b.startTime)
-      const endTime = new Date(
-        startTime.getTime() + b.duration * 60 * 1000
-      )
+      const endTime = new Date(startTime.getTime() + b.duration * 60 * 1000)
       return {
         id: b.clinicId,
         bookingId: b.bookingId,
@@ -78,6 +72,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ events })
   } catch (error) {
     console.error('Failed to fetch calendar events:', error)
-    return handleApiError(error, 'Failed to fetch calendar events', 'api/student/calendar/events/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch calendar events',
+      'api/student/calendar/events/route.ts'
+    )
   }
 }

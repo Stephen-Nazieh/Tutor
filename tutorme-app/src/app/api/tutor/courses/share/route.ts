@@ -10,7 +10,13 @@ import { z } from 'zod'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { withAuth, withRateLimit } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { curriculum, user, curriculumShare, familyNotification, familyMember } from '@/lib/db/schema'
+import {
+  curriculum,
+  user,
+  curriculumShare,
+  familyNotification,
+  familyMember,
+} from '@/lib/db/schema'
 import { logAudit, AUDIT_ACTIONS } from '@/lib/security/audit'
 import crypto from 'crypto'
 
@@ -21,7 +27,10 @@ const shareSchema = z.object({
   parentIds: z.array(z.string()).optional(),
 })
 
-async function postHandler(req: NextRequest, session: { user: { id: string; name?: string | null } }) {
+async function postHandler(
+  req: NextRequest,
+  session: { user: { id: string; name?: string | null } }
+) {
   const rateLimit = await withRateLimit(req, 20)
   if (rateLimit.response) return rateLimit.response
 
@@ -35,18 +44,13 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
   }
   const data = parseResult.data
 
-  const [course] = await drizzleDb.select().from(curriculum).where(
-    and(
-      eq(curriculum.id, data.courseId),
-      eq(curriculum.creatorId, session.user.id)
-    )
-  )
+  const [course] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(and(eq(curriculum.id, data.courseId), eq(curriculum.creatorId, session.user.id)))
 
   if (!course) {
-    return NextResponse.json(
-      { error: 'Course not found or permission denied' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Course not found or permission denied' }, { status: 404 })
   }
 
   const results: Array<{ email: string; status: string; error?: string }> = []
@@ -58,14 +62,15 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
         with: {
           profile: { columns: { name: true } },
           familyMemberships: {
-            where: (fm, { or }) => or(
-              eq(sql`lower(${fm.relation})`, 'parent'),
-              eq(sql`lower(${fm.relation})`, 'children'),
-              eq(sql`lower(${fm.relation})`, 'guardian')
-            ),
-            columns: { familyAccountId: true }
-          }
-        }
+            where: (fm, { or }) =>
+              or(
+                eq(sql`lower(${fm.relation})`, 'parent'),
+                eq(sql`lower(${fm.relation})`, 'children'),
+                eq(sql`lower(${fm.relation})`, 'guardian')
+              ),
+            columns: { familyAccountId: true },
+          },
+        },
       })
 
       if (!recipient) {
@@ -82,7 +87,7 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
         where: and(
           eq(curriculumShare.curriculumId, data.courseId),
           eq(curriculumShare.recipientId, recipient.id)
-        )
+        ),
       })
 
       if (existingShare) {
@@ -127,7 +132,7 @@ async function postHandler(req: NextRequest, session: { user: { id: string; name
     resource: 'curriculum-share',
     resourceId: data.courseId,
     recipientCount: data.recipientEmails.length,
-    results: results.map((r) => ({ email: r.email, status: r.status })),
+    results: results.map(r => ({ email: r.email, status: r.status })),
   })
 
   return NextResponse.json({

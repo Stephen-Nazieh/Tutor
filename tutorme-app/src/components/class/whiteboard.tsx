@@ -127,7 +127,7 @@ export function Whiteboard({ onUpdate, readOnly = false }: WhiteboardProps) {
 
     return {
       x: clientX - rect.left,
-      y: clientY - rect.top
+      y: clientY - rect.top,
     }
   }
 
@@ -151,7 +151,7 @@ export function Whiteboard({ onUpdate, readOnly = false }: WhiteboardProps) {
         id: Date.now().toString(),
         points: currentStroke,
         color,
-        width: lineWidth
+        width: lineWidth,
       }
       const newStrokes = [...strokes, newStroke]
       setStrokes(newStrokes)
@@ -174,15 +174,15 @@ export function Whiteboard({ onUpdate, readOnly = false }: WhiteboardProps) {
   const colors = ['#ffffff', '#ef4444', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b']
 
   return (
-    <div className="flex flex-col h-full bg-gray-800 rounded-lg overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg bg-gray-800">
       {/* Toolbar */}
-      <div className="flex items-center gap-4 px-4 py-2 border-b border-gray-700">
+      <div className="flex items-center gap-4 border-b border-gray-700 px-4 py-2">
         <div className="flex items-center gap-2">
           {colors.map(c => (
             <button
               key={c}
               onClick={() => setColor(c)}
-              className={`w-6 h-6 rounded-full border-2 ${
+              className={`h-6 w-6 rounded-full border-2 ${
                 color === c ? 'border-white' : 'border-transparent'
               }`}
               style={{ backgroundColor: c }}
@@ -193,13 +193,13 @@ export function Whiteboard({ onUpdate, readOnly = false }: WhiteboardProps) {
         <div className="h-6 w-px bg-gray-600" />
 
         <div className="flex items-center gap-2">
-          <span className="text-gray-400 text-sm">Size:</span>
+          <span className="text-sm text-gray-400">Size:</span>
           <input
             type="range"
             min="1"
             max="10"
             value={lineWidth}
-            onChange={(e) => setLineWidth(Number(e.target.value))}
+            onChange={e => setLineWidth(Number(e.target.value))}
             className="w-20"
           />
         </div>
@@ -209,20 +209,20 @@ export function Whiteboard({ onUpdate, readOnly = false }: WhiteboardProps) {
         <button
           onClick={undoLast}
           disabled={strokes.length === 0}
-          className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 disabled:opacity-50 rounded"
+          className="rounded bg-gray-700 px-3 py-1 text-sm hover:bg-gray-600 disabled:opacity-50"
         >
           Undo
         </button>
         <button
           onClick={clearWhiteboard}
-          className="px-3 py-1 text-sm bg-red-600 hover:bg-red-500 rounded"
+          className="rounded bg-red-600 px-3 py-1 text-sm hover:bg-red-500"
         >
           Clear
         </button>
       </div>
 
       {/* Canvas */}
-      <div className="flex-1 relative">
+      <div className="relative flex-1">
         <canvas
           ref={canvasRef}
           onMouseDown={handleMouseDown}

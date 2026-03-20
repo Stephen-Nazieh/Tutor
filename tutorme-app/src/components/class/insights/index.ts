@@ -1,10 +1,7 @@
-export { 
-  StudentInsightCard, 
+export {
+  StudentInsightCard,
   StudentInsightsList,
-  type StudentInsight 
+  type StudentInsight,
 } from './student-insight-card'
 
-export {
-  PostSessionInsights,
-  type SessionInsights
-} from './post-session-insights'
+export { PostSessionInsights, type SessionInsights } from './post-session-insights'

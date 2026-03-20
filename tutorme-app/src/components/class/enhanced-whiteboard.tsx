@@ -54,7 +54,7 @@ import {
   Bot,
   ChevronUp,
   ChevronDown,
-  Maximize2
+  Maximize2,
 } from 'lucide-react'
 
 interface Point {
@@ -191,22 +191,24 @@ export function EnhancedWhiteboard({
   onPagesChange,
   onPageIndexChange,
   students: externalStudents,
-  onPushHint
+  onPushHint,
 }: EnhancedWhiteboardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const overlayTextareaRefs = useRef<Record<string, HTMLTextAreaElement>>({})
 
   // Internal page state (used if external not provided)
-  const [internalPages, setInternalPages] = useState<Page[]>([{
-    id: 'page-1',
-    name: 'Page 1',
-    strokes: [],
-    texts: [],
-    shapes: [],
-    backgroundColor: '#ffffff',
-    backgroundStyle: 'solid'
-  }])
+  const [internalPages, setInternalPages] = useState<Page[]>([
+    {
+      id: 'page-1',
+      name: 'Page 1',
+      strokes: [],
+      texts: [],
+      shapes: [],
+      backgroundColor: '#ffffff',
+      backgroundStyle: 'solid',
+    },
+  ])
   const [internalPageIndex, setInternalPageIndex] = useState(0)
 
   // Use external or internal state
@@ -220,7 +222,9 @@ export function EnhancedWhiteboard({
   const [currentStroke, setCurrentStroke] = useState<Point[]>([])
   const [color, setColor] = useState('#000000')
   const [lineWidth, setLineWidth] = useState(3)
-  const [tool, setTool] = useState<'pen' | 'eraser' | 'text' | 'hand' | 'line' | 'rectangle' | 'circle' | 'triangle' | 'select'>('pen')
+  const [tool, setTool] = useState<
+    'pen' | 'eraser' | 'text' | 'hand' | 'line' | 'rectangle' | 'circle' | 'triangle' | 'select'
+  >('pen')
 
   // Line drawing state
   const [lineStart, setLineStart] = useState<Point | null>(null)
@@ -258,10 +262,42 @@ export function EnhancedWhiteboard({
 
   // Mock students fallback
   const mockStudents: Student[] = [
-    { id: '1', name: 'Zhang Wei', status: 'active', engagement: 85, understanding: 80, frustration: 10, lastActive: new Date() },
-    { id: '2', name: 'Li Na', status: 'struggling', engagement: 60, understanding: 45, frustration: 60, lastActive: new Date() },
-    { id: '3', name: 'Wang Tao', status: 'active', engagement: 90, understanding: 85, frustration: 5, lastActive: new Date() },
-    { id: '4', name: 'Chen Xi', status: 'needs_help', engagement: 70, understanding: 55, frustration: 70, lastActive: new Date() },
+    {
+      id: '1',
+      name: 'Zhang Wei',
+      status: 'active',
+      engagement: 85,
+      understanding: 80,
+      frustration: 10,
+      lastActive: new Date(),
+    },
+    {
+      id: '2',
+      name: 'Li Na',
+      status: 'struggling',
+      engagement: 60,
+      understanding: 45,
+      frustration: 60,
+      lastActive: new Date(),
+    },
+    {
+      id: '3',
+      name: 'Wang Tao',
+      status: 'active',
+      engagement: 90,
+      understanding: 85,
+      frustration: 5,
+      lastActive: new Date(),
+    },
+    {
+      id: '4',
+      name: 'Chen Xi',
+      status: 'needs_help',
+      engagement: 70,
+      understanding: 55,
+      frustration: 70,
+      lastActive: new Date(),
+    },
   ]
 
   // Use external students or mock
@@ -276,7 +312,6 @@ export function EnhancedWhiteboard({
 
   // Canvas will be sized dynamically to fit container
   const [canvasSize, setCanvasSize] = useState({ width: 3000, height: 2000 })
-
 
   // Initialize canvas and handle resize - INFINITE CANVAS
   useEffect(() => {
@@ -299,7 +334,7 @@ export function EnhancedWhiteboard({
         const rect = container.getBoundingClientRect()
         setPan({
           x: CANVAS_WIDTH / 2 - rect.width / 2,
-          y: CANVAS_HEIGHT / 2 - rect.height / 2
+          y: CANVAS_HEIGHT / 2 - rect.height / 2,
         })
       }
 
@@ -317,7 +352,17 @@ export function EnhancedWhiteboard({
   // Redraw canvas when state changes
   useEffect(() => {
     redrawCanvas()
-  }, [pages, currentPageIndex, scale, pan, currentStroke, tempLineEnd, tempShape, selectedObject, canvasSize])
+  }, [
+    pages,
+    currentPageIndex,
+    scale,
+    pan,
+    currentStroke,
+    tempLineEnd,
+    tempShape,
+    selectedObject,
+    canvasSize,
+  ])
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current
@@ -370,7 +415,22 @@ export function EnhancedWhiteboard({
     if (selectedObject) drawSelectionHighlight(ctx, selectedObject)
 
     ctx.restore()
-  }, [pages, currentPageIndex, currentStroke, lineStart, tempLineEnd, tempShape, color, lineWidth, tool, scale, pan, selectedObject, currentPage, canvasSize])
+  }, [
+    pages,
+    currentPageIndex,
+    currentStroke,
+    lineStart,
+    tempLineEnd,
+    tempShape,
+    color,
+    lineWidth,
+    tool,
+    scale,
+    pan,
+    selectedObject,
+    currentPage,
+    canvasSize,
+  ])
 
   const drawBackgroundPattern = (ctx: CanvasRenderingContext2D, style: string, bgColor: string) => {
     const patternColor = bgColor === '#ffffff' ? '#e5e7eb' : '#4b5563'
@@ -380,29 +440,45 @@ export function EnhancedWhiteboard({
     switch (style) {
       case 'grid':
         for (let x = 0; x < canvasSize.width; x += 40) {
-          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasSize.height); ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(x, 0)
+          ctx.lineTo(x, canvasSize.height)
+          ctx.stroke()
         }
         for (let y = 0; y < canvasSize.height; y += 40) {
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasSize.width, y); ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(canvasSize.width, y)
+          ctx.stroke()
         }
         break
       case 'dots':
         ctx.fillStyle = patternColor
         for (let x = 20; x < canvasSize.width; x += 40) {
           for (let y = 20; y < canvasSize.height; y += 40) {
-            ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill()
+            ctx.beginPath()
+            ctx.arc(x, y, 2, 0, Math.PI * 2)
+            ctx.fill()
           }
         }
         break
       case 'lines':
         for (let y = 0; y < canvasSize.height; y += 40) {
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvasSize.width, y); ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(canvasSize.width, y)
+          ctx.stroke()
         }
         break
     }
   }
 
-  const drawStroke = (ctx: CanvasRenderingContext2D, points: Point[], strokeColor: string, width: number) => {
+  const drawStroke = (
+    ctx: CanvasRenderingContext2D,
+    points: Point[],
+    strokeColor: string,
+    width: number
+  ) => {
     if (points.length < 2) return
     ctx.strokeStyle = strokeColor
     ctx.lineWidth = width
@@ -441,7 +517,15 @@ export function EnhancedWhiteboard({
       ctx.strokeRect(shape.x, shape.y, shape.width, shape.height)
     } else if (shape.type === 'circle') {
       ctx.beginPath()
-      ctx.ellipse(shape.x + shape.width / 2, shape.y + shape.height / 2, Math.abs(shape.width) / 2, Math.abs(shape.height) / 2, 0, 0, Math.PI * 2)
+      ctx.ellipse(
+        shape.x + shape.width / 2,
+        shape.y + shape.height / 2,
+        Math.abs(shape.width) / 2,
+        Math.abs(shape.height) / 2,
+        0,
+        0,
+        Math.PI * 2
+      )
       ctx.stroke()
     } else if (shape.type === 'triangle') {
       ctx.beginPath()
@@ -518,16 +602,27 @@ export function EnhancedWhiteboard({
     const rect = container.getBoundingClientRect()
     return {
       x: (screenX - rect.left - pan.x) / scale,
-      y: (screenY - rect.top - pan.y) / scale
+      y: (screenY - rect.top - pan.y) / scale,
     }
   }
 
   const hitTest = (point: Point): SelectedObject | null => {
     for (let i = currentPage.texts.length - 1; i >= 0; i--) {
       const text = currentPage.texts[i]
-      if (point.x >= text.x && point.x <= text.x + text.width &&
-        point.y >= text.y && point.y <= text.y + text.height) {
-        return { type: 'text', id: text.id, x: text.x, y: text.y, width: text.width, height: text.height }
+      if (
+        point.x >= text.x &&
+        point.x <= text.x + text.width &&
+        point.y >= text.y &&
+        point.y <= text.y + text.height
+      ) {
+        return {
+          type: 'text',
+          id: text.id,
+          x: text.x,
+          y: text.y,
+          width: text.width,
+          height: text.height,
+        }
       }
     }
 
@@ -539,13 +634,31 @@ export function EnhancedWhiteboard({
         const minY = Math.min(shape.y, shape.height) - 10
         const maxY = Math.max(shape.y, shape.height) + 10
         if (point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY) {
-          return { type: 'shape', id: shape.id, x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+          return {
+            type: 'shape',
+            id: shape.id,
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY,
+          }
         }
       } else {
         const tolerance = 10
-        if (point.x >= shape.x - tolerance && point.x <= shape.x + shape.width + tolerance &&
-          point.y >= shape.y - tolerance && point.y <= shape.y + shape.height + tolerance) {
-          return { type: 'shape', id: shape.id, x: shape.x, y: shape.y, width: shape.width, height: shape.height }
+        if (
+          point.x >= shape.x - tolerance &&
+          point.x <= shape.x + shape.width + tolerance &&
+          point.y >= shape.y - tolerance &&
+          point.y <= shape.y + shape.height + tolerance
+        ) {
+          return {
+            type: 'shape',
+            id: shape.id,
+            x: shape.x,
+            y: shape.y,
+            width: shape.width,
+            height: shape.height,
+          }
         }
       }
     }
@@ -558,7 +671,14 @@ export function EnhancedWhiteboard({
           const maxX = Math.max(...stroke.points.map(p => p.x))
           const minY = Math.min(...stroke.points.map(p => p.y))
           const maxY = Math.max(...stroke.points.map(p => p.y))
-          return { type: 'stroke', id: stroke.id, x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+          return {
+            type: 'stroke',
+            id: stroke.id,
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY,
+          }
         }
       }
     }
@@ -590,8 +710,12 @@ export function EnhancedWhiteboard({
         const rect = container.getBoundingClientRect()
         const videoX = rect.width - 320 - videoPosition.x
         const videoY = 16 + videoPosition.y
-        if (e.clientX - rect.left >= videoX && e.clientX - rect.left <= videoX + 320 &&
-          e.clientY - rect.top >= videoY && e.clientY - rect.top <= videoY + 180) {
+        if (
+          e.clientX - rect.left >= videoX &&
+          e.clientX - rect.left <= videoX + 320 &&
+          e.clientY - rect.top >= videoY &&
+          e.clientY - rect.top <= videoY + 180
+        ) {
           setIsDraggingVideo(true)
           setVideoDragOffset({ x: e.clientX - videoX, y: e.clientY - videoY })
           return
@@ -613,14 +737,22 @@ export function EnhancedWhiteboard({
       const screenH = ov.height * scale
 
       // Check resize handle (bottom-right corner)
-      if (e.clientX >= screenX + screenW - 16 && e.clientX <= screenX + screenW &&
-        e.clientY >= screenY + screenH - 16 && e.clientY <= screenY + screenH) {
+      if (
+        e.clientX >= screenX + screenW - 16 &&
+        e.clientX <= screenX + screenW &&
+        e.clientY >= screenY + screenH - 16 &&
+        e.clientY <= screenY + screenH
+      ) {
         return 'resize'
       }
 
       // Check entire overlay
-      if (e.clientX >= screenX && e.clientX <= screenX + screenW &&
-        e.clientY >= screenY && e.clientY <= screenY + screenH) {
+      if (
+        e.clientX >= screenX &&
+        e.clientX <= screenX + screenW &&
+        e.clientY >= screenY &&
+        e.clientY <= screenY + screenH
+      ) {
         return 'drag'
       }
       return false
@@ -633,14 +765,18 @@ export function EnhancedWhiteboard({
       const screenW = overlayHit.width * scale
       const screenH = overlayHit.height * scale
 
-      if (e.clientX >= screenX + screenW - 16 && e.clientX <= screenX + screenW &&
-        e.clientY >= screenY + screenH - 16 && e.clientY <= screenY + screenH) {
+      if (
+        e.clientX >= screenX + screenW - 16 &&
+        e.clientX <= screenX + screenW &&
+        e.clientY >= screenY + screenH - 16 &&
+        e.clientY <= screenY + screenH
+      ) {
         setResizingOverlay(overlayHit.id)
         setResizeStart({
           x: e.clientX,
           y: e.clientY,
           width: overlayHit.width,
-          height: overlayHit.height
+          height: overlayHit.height,
         })
         return
       }
@@ -648,7 +784,7 @@ export function EnhancedWhiteboard({
       setDraggingOverlay(overlayHit.id)
       setOverlayDragOffset({
         x: (e.clientX - pan.x) / scale - overlayHit.x,
-        y: (e.clientY - pan.y) / scale - overlayHit.y
+        y: (e.clientY - pan.y) / scale - overlayHit.y,
       })
       return
     }
@@ -667,9 +803,12 @@ export function EnhancedWhiteboard({
         const newShape: ShapeElement = {
           id: Date.now().toString(),
           type: 'line',
-          x: lineStart.x, y: lineStart.y,
-          width: point.x, height: point.y,
-          color, lineWidth
+          x: lineStart.x,
+          y: lineStart.y,
+          width: point.x,
+          height: point.y,
+          color,
+          lineWidth,
         }
         updateCurrentPage({ ...currentPage, shapes: [...currentPage.shapes, newShape] })
         setLineStart(null)
@@ -692,7 +831,7 @@ export function EnhancedWhiteboard({
         fontSize: 20,
         format: { align: 'left', color: color },
         width: 300,
-        height: 200
+        height: 200,
       }
       setTextOverlays(prev => [...prev, newOverlay])
       return
@@ -730,24 +869,28 @@ export function EnhancedWhiteboard({
     if (resizingOverlay) {
       const dx = (e.clientX - resizeStart.x) / scale
       const dy = (e.clientY - resizeStart.y) / scale
-      setTextOverlays(overlays => overlays.map(ov =>
-        ov.id === resizingOverlay
-          ? {
-            ...ov,
-            width: Math.max(200, resizeStart.width + dx),
-            height: Math.max(150, resizeStart.height + dy)
-          }
-          : ov
-      ))
+      setTextOverlays(overlays =>
+        overlays.map(ov =>
+          ov.id === resizingOverlay
+            ? {
+                ...ov,
+                width: Math.max(200, resizeStart.width + dx),
+                height: Math.max(150, resizeStart.height + dy),
+              }
+            : ov
+        )
+      )
       return
     }
 
     if (draggingOverlay) {
-      setTextOverlays(overlays => overlays.map(ov =>
-        ov.id === draggingOverlay
-          ? { ...ov, x: point.x - overlayDragOffset.x, y: point.y - overlayDragOffset.y }
-          : ov
-      ))
+      setTextOverlays(overlays =>
+        overlays.map(ov =>
+          ov.id === draggingOverlay
+            ? { ...ov, x: point.x - overlayDragOffset.x, y: point.y - overlayDragOffset.y }
+            : ov
+        )
+      )
       return
     }
 
@@ -764,7 +907,8 @@ export function EnhancedWhiteboard({
         y: shapeStart.y,
         width: point.x - shapeStart.x,
         height: point.y - shapeStart.y,
-        color, lineWidth
+        color,
+        lineWidth,
       })
       return
     }
@@ -780,7 +924,7 @@ export function EnhancedWhiteboard({
           ...currentPage,
           texts: currentPage.texts.map(t =>
             t.id === selectedObject.id ? { ...t, x: newX, y: newY } : t
-          )
+          ),
         })
         setSelectedObject({ ...selectedObject, x: newX, y: newY })
       } else if (selectedObject.type === 'shape') {
@@ -795,14 +939,14 @@ export function EnhancedWhiteboard({
                 s.id === selectedObject.id
                   ? { ...s, x: newX, y: newY, width: s.width + dx, height: s.height + dy }
                   : s
-              )
+              ),
             })
           } else {
             updateCurrentPage({
               ...currentPage,
               shapes: currentPage.shapes.map(s =>
                 s.id === selectedObject.id ? { ...s, x: newX, y: newY } : s
-              )
+              ),
             })
           }
           setSelectedObject({ ...selectedObject, x: newX, y: newY })
@@ -815,19 +959,37 @@ export function EnhancedWhiteboard({
   }
 
   const handleMouseUp = () => {
-    if (isDraggingVideo) { setIsDraggingVideo(false); return }
-    if (isPanning) { setIsPanning(false); return }
-    if (resizingOverlay) { setResizingOverlay(null); return }
-    if (draggingOverlay) { setDraggingOverlay(null); return }
-    if (isDragging) { setIsDragging(false); return }
+    if (isDraggingVideo) {
+      setIsDraggingVideo(false)
+      return
+    }
+    if (isPanning) {
+      setIsPanning(false)
+      return
+    }
+    if (resizingOverlay) {
+      setResizingOverlay(null)
+      return
+    }
+    if (draggingOverlay) {
+      setDraggingOverlay(null)
+      return
+    }
+    if (isDragging) {
+      setIsDragging(false)
+      return
+    }
 
     if (shapeStart && tempShape) {
       const newShape: ShapeElement = {
         id: Date.now().toString(),
         type: tempShape.type,
-        x: tempShape.x, y: tempShape.y,
-        width: tempShape.width, height: tempShape.height,
-        color, lineWidth
+        x: tempShape.x,
+        y: tempShape.y,
+        width: tempShape.width,
+        height: tempShape.height,
+        color,
+        lineWidth,
       }
       updateCurrentPage({ ...currentPage, shapes: [...currentPage.shapes, newShape] })
       setShapeStart(null)
@@ -844,7 +1006,7 @@ export function EnhancedWhiteboard({
         points: currentStroke,
         color: tool === 'eraser' ? '' : color,
         width: lineWidth,
-        type: tool === 'eraser' ? 'eraser' : 'pen'
+        type: tool === 'eraser' ? 'eraser' : 'pen',
       }
       updateCurrentPage({ ...currentPage, strokes: [...currentPage.strokes, newStroke] })
       setCurrentStroke([])
@@ -874,7 +1036,7 @@ export function EnhancedWhiteboard({
       fontSize: overlay.fontSize,
       format: overlay.format,
       width: overlay.width,
-      height: overlay.height
+      height: overlay.height,
     }
 
     updateCurrentPage({ ...currentPage, texts: [...currentPage.texts, newText] })
@@ -891,7 +1053,7 @@ export function EnhancedWhiteboard({
 
     updateCurrentPage({
       ...currentPage,
-      texts: currentPage.texts.filter(t => t.id !== textId)
+      texts: currentPage.texts.filter(t => t.id !== textId),
     })
 
     const overlay: TextOverlay = {
@@ -902,21 +1064,19 @@ export function EnhancedWhiteboard({
       fontSize: text.fontSize,
       format: text.format,
       width: text.width,
-      height: text.height
+      height: text.height,
     }
     setTextOverlays(prev => [...prev, overlay])
   }
 
   const updateOverlayText = (id: string, newText: string) => {
-    setTextOverlays(overlays => overlays.map(o =>
-      o.id === id ? { ...o, text: newText } : o
-    ))
+    setTextOverlays(overlays => overlays.map(o => (o.id === id ? { ...o, text: newText } : o)))
   }
 
   const updateOverlayFormat = (id: string, formatUpdate: Partial<TextFormat>) => {
-    setTextOverlays(overlays => overlays.map(o =>
-      o.id === id ? { ...o, format: { ...o.format, ...formatUpdate } } : o
-    ))
+    setTextOverlays(overlays =>
+      overlays.map(o => (o.id === id ? { ...o, format: { ...o.format, ...formatUpdate } } : o))
+    )
   }
 
   // Asset handling
@@ -931,7 +1091,7 @@ export function EnhancedWhiteboard({
         type: file.type.startsWith('image/') ? 'image' : 'document',
         name: file.name,
         url: url,
-        thumbnail: file.type.startsWith('image/') ? url : undefined
+        thumbnail: file.type.startsWith('image/') ? url : undefined,
       }
       setAssets(prev => [...prev, newAsset])
     })
@@ -942,7 +1102,7 @@ export function EnhancedWhiteboard({
       updateCurrentPage({
         ...currentPage,
         backgroundImage: asset.url,
-        backgroundStyle: 'solid'
+        backgroundStyle: 'solid',
       })
     }
   }
@@ -952,9 +1112,11 @@ export function EnhancedWhiteboard({
     const newPage: Page = {
       id: `page-${pages.length + 1}`,
       name: `Page ${pages.length + 1}`,
-      strokes: [], texts: [], shapes: [],
+      strokes: [],
+      texts: [],
+      shapes: [],
       backgroundColor: '#ffffff',
-      backgroundStyle: 'solid'
+      backgroundStyle: 'solid',
     }
     setPages([...pages, newPage])
     setCurrentPageIndex(pages.length)
@@ -977,11 +1139,20 @@ export function EnhancedWhiteboard({
   const deleteSelected = () => {
     if (!selectedObject) return
     if (selectedObject.type === 'text') {
-      updateCurrentPage({ ...currentPage, texts: currentPage.texts.filter(t => t.id !== selectedObject.id) })
+      updateCurrentPage({
+        ...currentPage,
+        texts: currentPage.texts.filter(t => t.id !== selectedObject.id),
+      })
     } else if (selectedObject.type === 'shape') {
-      updateCurrentPage({ ...currentPage, shapes: currentPage.shapes.filter(s => s.id !== selectedObject.id) })
+      updateCurrentPage({
+        ...currentPage,
+        shapes: currentPage.shapes.filter(s => s.id !== selectedObject.id),
+      })
     } else if (selectedObject.type === 'stroke') {
-      updateCurrentPage({ ...currentPage, strokes: currentPage.strokes.filter(s => s.id !== selectedObject.id) })
+      updateCurrentPage({
+        ...currentPage,
+        strokes: currentPage.strokes.filter(s => s.id !== selectedObject.id),
+      })
     }
     setSelectedObject(null)
   }
@@ -1002,7 +1173,10 @@ export function EnhancedWhiteboard({
 
   const zoomIn = () => setScale(prev => Math.min(5, prev * 1.2))
   const zoomOut = () => setScale(prev => Math.max(0.1, prev / 1.2))
-  const resetView = () => { setScale(1); setPan({ x: 0, y: 0 }) }
+  const resetView = () => {
+    setScale(1)
+    setPan({ x: 0, y: 0 })
+  }
 
   const updateBackground = (bgColor: string, style: Page['backgroundStyle']) => {
     updateCurrentPage({ ...currentPage, backgroundColor: bgColor, backgroundStyle: style })
@@ -1015,7 +1189,11 @@ export function EnhancedWhiteboard({
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         undoLast()
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedObject && !textOverlays.some(o => document.activeElement?.tagName === 'TEXTAREA')) {
+      if (
+        (e.key === 'Delete' || e.key === 'Backspace') &&
+        selectedObject &&
+        !textOverlays.some(o => document.activeElement?.tagName === 'TEXTAREA')
+      ) {
         deleteSelected()
       }
     }
@@ -1024,36 +1202,93 @@ export function EnhancedWhiteboard({
   }, [selectedObject, textOverlays, currentPage])
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 rounded-lg overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">
       {/* Top Toolbar */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-700 bg-slate-800">
+      <div className="flex items-center gap-2 border-b border-slate-700 bg-slate-800 px-4 py-2">
         <div className="flex items-center gap-1">
-          <Button variant={tool === 'select' ? 'default' : 'outline'} size="sm" onClick={() => setTool('select')} className="h-8 w-8 p-0" title="Select/Move">
-            <MousePointer2 className="w-4 h-4" />
+          <Button
+            variant={tool === 'select' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('select')}
+            className="h-8 w-8 p-0"
+            title="Select/Move"
+          >
+            <MousePointer2 className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'pen' ? 'default' : 'outline'} size="sm" onClick={() => setTool('pen')} className="h-8 w-8 p-0" title="Pen">
-            <div className="w-3 h-3 rounded-full bg-current" />
+          <Button
+            variant={tool === 'pen' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('pen')}
+            className="h-8 w-8 p-0"
+            title="Pen"
+          >
+            <div className="h-3 w-3 rounded-full bg-current" />
           </Button>
-          <Button variant={tool === 'line' ? 'default' : 'outline'} size="sm" onClick={() => { setTool('line'); setLineStart(null); }} className="h-8 w-8 p-0" title="Line">
-            <Minus className="w-4 h-4" />
+          <Button
+            variant={tool === 'line' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setTool('line')
+              setLineStart(null)
+            }}
+            className="h-8 w-8 p-0"
+            title="Line"
+          >
+            <Minus className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'rectangle' ? 'default' : 'outline'} size="sm" onClick={() => setTool('rectangle')} className="h-8 w-8 p-0" title="Rectangle">
-            <Square className="w-4 h-4" />
+          <Button
+            variant={tool === 'rectangle' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('rectangle')}
+            className="h-8 w-8 p-0"
+            title="Rectangle"
+          >
+            <Square className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'circle' ? 'default' : 'outline'} size="sm" onClick={() => setTool('circle')} className="h-8 w-8 p-0" title="Circle">
-            <Circle className="w-4 h-4" />
+          <Button
+            variant={tool === 'circle' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('circle')}
+            className="h-8 w-8 p-0"
+            title="Circle"
+          >
+            <Circle className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'triangle' ? 'default' : 'outline'} size="sm" onClick={() => setTool('triangle')} className="h-8 w-8 p-0" title="Triangle">
-            <Triangle className="w-4 h-4" />
+          <Button
+            variant={tool === 'triangle' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('triangle')}
+            className="h-8 w-8 p-0"
+            title="Triangle"
+          >
+            <Triangle className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'eraser' ? 'default' : 'outline'} size="sm" onClick={() => setTool('eraser')} className="h-8 w-8 p-0" title="Eraser">
-            <Trash2 className="w-4 h-4" />
+          <Button
+            variant={tool === 'eraser' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('eraser')}
+            className="h-8 w-8 p-0"
+            title="Eraser"
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'text' ? 'default' : 'outline'} size="sm" onClick={() => setTool('text')} className="h-8 w-8 p-0" title="Text">
-            <Type className="w-4 h-4" />
+          <Button
+            variant={tool === 'text' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('text')}
+            className="h-8 w-8 p-0"
+            title="Text"
+          >
+            <Type className="h-4 w-4" />
           </Button>
-          <Button variant={tool === 'hand' ? 'default' : 'outline'} size="sm" onClick={() => setTool('hand')} className="h-8 w-8 p-0" title="Pan">
-            <Hand className="w-4 h-4" />
+          <Button
+            variant={tool === 'hand' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTool('hand')}
+            className="h-8 w-8 p-0"
+            title="Pan"
+          >
+            <Hand className="h-4 w-4" />
           </Button>
         </div>
 
@@ -1061,23 +1296,49 @@ export function EnhancedWhiteboard({
 
         <div className="flex items-center gap-1">
           {COLORS.map(c => (
-            <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-white ring-1 ring-slate-400' : 'border-transparent'}`} style={{ backgroundColor: c }} />
+            <button
+              key={c}
+              onClick={() => setColor(c)}
+              className={`h-6 w-6 rounded-full border-2 ${color === c ? 'border-white ring-1 ring-slate-400' : 'border-transparent'}`}
+              style={{ backgroundColor: c }}
+            />
           ))}
         </div>
 
         <div className="h-6 w-px bg-slate-600" />
 
         <div className="flex items-center gap-2">
-          <span className="text-slate-400 text-xs">Size:</span>
-          <input type="range" min="1" max="20" value={lineWidth} onChange={(e) => setLineWidth(Number(e.target.value))} className="w-20" />
+          <span className="text-xs text-slate-400">Size:</span>
+          <input
+            type="range"
+            min="1"
+            max="20"
+            value={lineWidth}
+            onChange={e => setLineWidth(Number(e.target.value))}
+            className="w-20"
+          />
         </div>
 
         <div className="flex-1" />
 
         {selectedObject && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">{selectedObject.type === 'text' ? 'Text' : selectedObject.type === 'shape' ? 'Shape' : 'Stroke'} selected</span>
-            <Button variant="destructive" size="sm" onClick={deleteSelected} className="h-7 text-xs">Delete</Button>
+            <span className="text-xs text-slate-400">
+              {selectedObject.type === 'text'
+                ? 'Text'
+                : selectedObject.type === 'shape'
+                  ? 'Shape'
+                  : 'Stroke'}{' '}
+              selected
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={deleteSelected}
+              className="h-7 text-xs"
+            >
+              Delete
+            </Button>
             <div className="h-6 w-px bg-slate-600" />
           </div>
         )}
@@ -1085,16 +1346,29 @@ export function EnhancedWhiteboard({
         {lineStart && <span className="text-xs text-yellow-400">Click to end line</span>}
 
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" onClick={zoomOut} className="h-8 w-8 p-0"><ZoomOut className="w-4 h-4" /></Button>
-          <span className="text-slate-400 text-sm min-w-[50px] text-center">{Math.round(scale * 100)}%</span>
-          <Button variant="outline" size="sm" onClick={zoomIn} className="h-8 w-8 p-0"><ZoomIn className="w-4 h-4" /></Button>
-          <Button variant="outline" size="sm" onClick={resetView} className="text-xs">Reset</Button>
+          <Button variant="outline" size="sm" onClick={zoomOut} className="h-8 w-8 p-0">
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <span className="min-w-[50px] text-center text-sm text-slate-400">
+            {Math.round(scale * 100)}%
+          </span>
+          <Button variant="outline" size="sm" onClick={zoomIn} className="h-8 w-8 p-0">
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={resetView} className="text-xs">
+            Reset
+          </Button>
         </div>
 
         <div className="h-6 w-px bg-slate-600" />
 
-        <Button variant="outline" size="sm" onClick={() => setShowBackgroundPanel(!showBackgroundPanel)} className="h-8">
-          <Palette className="w-4 h-4 mr-1" /> Background
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowBackgroundPanel(!showBackgroundPanel)}
+          className="h-8"
+        >
+          <Palette className="mr-1 h-4 w-4" /> Background
         </Button>
 
         <Button
@@ -1103,54 +1377,84 @@ export function EnhancedWhiteboard({
           onClick={() => setShowTeachingAssistant(!showTeachingAssistant)}
           className="h-8"
         >
-          <Bot className="w-4 h-4 mr-1" /> AI Assistant
+          <Bot className="mr-1 h-4 w-4" /> AI Assistant
         </Button>
 
         <div className="h-6 w-px bg-slate-600" />
 
-        <Button variant="outline" size="sm" onClick={undoLast}>Undo</Button>
-        <Button variant="destructive" size="sm" onClick={clearPage}>Clear</Button>
+        <Button variant="outline" size="sm" onClick={undoLast}>
+          Undo
+        </Button>
+        <Button variant="destructive" size="sm" onClick={clearPage}>
+          Clear
+        </Button>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="relative flex flex-1 overflow-hidden">
         {/* Asset Sidebar */}
         {showAssetSidebar && (
-          <div className="w-64 bg-slate-800 border-r border-slate-700 flex flex-col">
-            <div className="p-3 border-b border-slate-700 flex items-center justify-between">
-              <span className="font-medium text-sm">Assets</span>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowAssetSidebar(false)}>
-                <X className="w-4 h-4" />
+          <div className="flex w-64 flex-col border-r border-slate-700 bg-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-700 p-3">
+              <span className="text-sm font-medium">Assets</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setShowAssetSidebar(false)}
+              >
+                <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="p-3 border-b border-slate-700">
-              <label className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded cursor-pointer text-sm">
-                <Upload className="w-4 h-4" />
+            <div className="border-b border-slate-700 p-3">
+              <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded bg-blue-600 px-3 py-2 text-sm hover:bg-blue-500">
+                <Upload className="h-4 w-4" />
                 Upload Files
-                <input type="file" multiple accept="image/*,.pdf,.doc,.docx" className="hidden" onChange={handleAssetUpload} />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx"
+                  className="hidden"
+                  onChange={handleAssetUpload}
+                />
               </label>
             </div>
             <ScrollArea className="flex-1 p-3">
               <div className="space-y-2">
                 {assets.length === 0 && (
-                  <p className="text-slate-500 text-sm text-center py-4">No assets yet.<br />Upload images or documents.</p>
+                  <p className="py-4 text-center text-sm text-slate-500">
+                    No assets yet.
+                    <br />
+                    Upload images or documents.
+                  </p>
                 )}
                 {assets.map(asset => (
-                  <div key={asset.id} className="group relative bg-slate-700 rounded-lg p-2 cursor-pointer hover:bg-slate-600" onClick={() => setAssetAsBackground(asset)}>
+                  <div
+                    key={asset.id}
+                    className="group relative cursor-pointer rounded-lg bg-slate-700 p-2 hover:bg-slate-600"
+                    onClick={() => setAssetAsBackground(asset)}
+                  >
                     {asset.thumbnail ? (
-                      <img src={asset.thumbnail} alt={asset.name} className="w-full h-24 object-cover rounded mb-2" />
+                      <img
+                        src={asset.thumbnail}
+                        alt={asset.name}
+                        className="mb-2 h-24 w-full rounded object-cover"
+                      />
                     ) : (
-                      <div className="w-full h-24 bg-slate-600 rounded flex items-center justify-center mb-2">
-                        <FileText className="w-8 h-8 text-slate-400" />
+                      <div className="mb-2 flex h-24 w-full items-center justify-center rounded bg-slate-600">
+                        <FileText className="h-8 w-8 text-slate-400" />
                       </div>
                     )}
-                    <p className="text-xs text-slate-300 truncate">{asset.name}</p>
+                    <p className="truncate text-xs text-slate-300">{asset.name}</p>
                     <p className="text-xs text-slate-500">Click to set as background</p>
                     <button
-                      className="absolute top-1 right-1 p-1 bg-red-600 rounded opacity-0 group-hover:opacity-100"
-                      onClick={(e) => { e.stopPropagation(); setAssets(prev => prev.filter(a => a.id !== asset.id)); }}
+                      className="absolute right-1 top-1 rounded bg-red-600 p-1 opacity-0 group-hover:opacity-100"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setAssets(prev => prev.filter(a => a.id !== asset.id))
+                      }}
                     >
-                      <X className="w-3 h-3" />
+                      <X className="h-3 w-3" />
                     </button>
                   </div>
                 ))}
@@ -1160,26 +1464,69 @@ export function EnhancedWhiteboard({
         )}
 
         {/* Canvas Container */}
-        <div ref={containerRef} className="flex-1 relative overflow-hidden bg-slate-700" onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel} style={{ cursor: tool === 'hand' ? (isPanning ? 'grabbing' : 'grab') : tool === 'text' ? 'text' : tool === 'pen' || tool === 'eraser' ? 'crosshair' : selectedObject && !isDrawing ? 'move' : lineStart ? 'crosshair' : resizingOverlay ? 'nw-resize' : 'default' }}>
+        <div
+          ref={containerRef}
+          className="relative flex-1 overflow-hidden bg-slate-700"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          style={{
+            cursor:
+              tool === 'hand'
+                ? isPanning
+                  ? 'grabbing'
+                  : 'grab'
+                : tool === 'text'
+                  ? 'text'
+                  : tool === 'pen' || tool === 'eraser'
+                    ? 'crosshair'
+                    : selectedObject && !isDrawing
+                      ? 'move'
+                      : lineStart
+                        ? 'crosshair'
+                        : resizingOverlay
+                          ? 'nw-resize'
+                          : 'default',
+          }}
+        >
           {/* Canvas - Fixed size, transformed by scale/pan */}
           <canvas
             ref={canvasRef}
-            className="absolute top-0 left-0"
+            className="absolute left-0 top-0"
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`,
               transformOrigin: '0 0',
               width: canvasSize.width,
-              height: canvasSize.height
+              height: canvasSize.height,
             }}
           />
 
           {/* Confirmed Text Elements - with edit buttons */}
           {currentPage.texts.map(text => (
-            <div key={text.id} className="absolute" style={{ left: text.x * scale + pan.x, top: text.y * scale + pan.y, width: text.width * scale, height: text.height * scale, pointerEvents: 'none' }}>
+            <div
+              key={text.id}
+              className="absolute"
+              style={{
+                left: text.x * scale + pan.x,
+                top: text.y * scale + pan.y,
+                width: text.width * scale,
+                height: text.height * scale,
+                pointerEvents: 'none',
+              }}
+            >
               {selectedObject?.id === text.id && (
-                <div className="absolute inset-0 border-2 border-blue-500 border-dashed pointer-events-auto">
-                  <button onClick={(e) => { e.stopPropagation(); editTextElement(text.id); }} className="absolute -top-6 -right-6 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 shadow-lg" title="Edit text">
-                    <Edit3 className="w-3 h-3 text-white" />
+                <div className="pointer-events-auto absolute inset-0 border-2 border-dashed border-blue-500">
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      editTextElement(text.id)
+                    }}
+                    className="absolute -right-6 -top-6 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 shadow-lg hover:bg-blue-600"
+                    title="Edit text"
+                  >
+                    <Edit3 className="h-3 w-3 text-white" />
                   </button>
                 </div>
               )}
@@ -1188,59 +1535,108 @@ export function EnhancedWhiteboard({
 
           {/* Draggable and Resizable Text Input Overlays */}
           {textOverlays.map(overlay => (
-            <div key={overlay.id} className="absolute z-20" style={{ left: overlay.x * scale + pan.x, top: overlay.y * scale + pan.y, width: overlay.width * scale, height: overlay.height * scale }}>
-              <div className="w-full h-full bg-white rounded-lg shadow-2xl border border-gray-300 overflow-hidden flex flex-col">
+            <div
+              key={overlay.id}
+              className="absolute z-20"
+              style={{
+                left: overlay.x * scale + pan.x,
+                top: overlay.y * scale + pan.y,
+                width: overlay.width * scale,
+                height: overlay.height * scale,
+              }}
+            >
+              <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-300 bg-white shadow-2xl">
                 {/* Drag handle and header */}
-                <div className="flex items-center justify-between px-2 py-1 bg-gray-100 border-b border-gray-200 cursor-move shrink-0">
+                <div className="flex shrink-0 cursor-move items-center justify-between border-b border-gray-200 bg-gray-100 px-2 py-1">
                   <div className="flex items-center gap-1">
-                    <GripVertical className="w-4 h-4 text-slate-400" />
+                    <GripVertical className="h-4 w-4 text-slate-400" />
                     <span className="text-xs text-slate-500">Drag to move</span>
                   </div>
                   <div className="flex items-center gap-1">
                     {/* TTS Button */}
                     <button
-                      onClick={(e) => { e.stopPropagation(); speakText(overlay.text); }}
-                      className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded"
+                      onClick={e => {
+                        e.stopPropagation()
+                        speakText(overlay.text)
+                      }}
+                      className="rounded p-1 text-slate-500 hover:bg-blue-100 hover:text-blue-600"
                       title="Text to Speech"
                     >
-                      <Volume2 className="w-4 h-4" />
+                      <Volume2 className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); cancelTextOverlay(overlay.id); }}
-                      className="text-slate-400 hover:text-slate-600 p-1"
+                      onClick={e => {
+                        e.stopPropagation()
+                        cancelTextOverlay(overlay.id)
+                      }}
+                      className="p-1 text-slate-400 hover:text-slate-600"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
 
                 {/* Formatting toolbar */}
-                <div className="flex items-center gap-1 px-2 py-1 border-b border-gray-200 flex-wrap shrink-0">
-                  <Button variant={overlay.format.bold ? 'default' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={() => updateOverlayFormat(overlay.id, { bold: !overlay.format.bold })}>
-                    <Bold className="w-3 h-3" />
+                <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-gray-200 px-2 py-1">
+                  <Button
+                    variant={overlay.format.bold ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => updateOverlayFormat(overlay.id, { bold: !overlay.format.bold })}
+                  >
+                    <Bold className="h-3 w-3" />
                   </Button>
-                  <Button variant={overlay.format.italic ? 'default' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={() => updateOverlayFormat(overlay.id, { italic: !overlay.format.italic })}>
-                    <Italic className="w-3 h-3" />
+                  <Button
+                    variant={overlay.format.italic ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() =>
+                      updateOverlayFormat(overlay.id, { italic: !overlay.format.italic })
+                    }
+                  >
+                    <Italic className="h-3 w-3" />
                   </Button>
-                  <Button variant={overlay.format.underline ? 'default' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={() => updateOverlayFormat(overlay.id, { underline: !overlay.format.underline })}>
-                    <Underline className="w-3 h-3" />
+                  <Button
+                    variant={overlay.format.underline ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() =>
+                      updateOverlayFormat(overlay.id, { underline: !overlay.format.underline })
+                    }
+                  >
+                    <Underline className="h-3 w-3" />
                   </Button>
-                  <div className="h-4 w-px bg-gray-300 mx-1" />
-                  <Button variant={overlay.format.align === 'left' ? 'default' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={() => updateOverlayFormat(overlay.id, { align: 'left' })}>
-                    <AlignLeft className="w-3 h-3" />
+                  <div className="mx-1 h-4 w-px bg-gray-300" />
+                  <Button
+                    variant={overlay.format.align === 'left' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => updateOverlayFormat(overlay.id, { align: 'left' })}
+                  >
+                    <AlignLeft className="h-3 w-3" />
                   </Button>
-                  <Button variant={overlay.format.align === 'center' ? 'default' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={() => updateOverlayFormat(overlay.id, { align: 'center' })}>
-                    <AlignCenter className="w-3 h-3" />
+                  <Button
+                    variant={overlay.format.align === 'center' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => updateOverlayFormat(overlay.id, { align: 'center' })}
+                  >
+                    <AlignCenter className="h-3 w-3" />
                   </Button>
-                  <Button variant={overlay.format.align === 'right' ? 'default' : 'ghost'} size="sm" className="h-7 w-7 p-0" onClick={() => updateOverlayFormat(overlay.id, { align: 'right' })}>
-                    <AlignRight className="w-3 h-3" />
+                  <Button
+                    variant={overlay.format.align === 'right' ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    onClick={() => updateOverlayFormat(overlay.id, { align: 'right' })}
+                  >
+                    <AlignRight className="h-3 w-3" />
                   </Button>
-                  <div className="h-4 w-px bg-gray-300 mx-1" />
+                  <div className="mx-1 h-4 w-px bg-gray-300" />
                   {COLORS.slice(0, 5).map(c => (
                     <button
                       key={c}
                       onClick={() => updateOverlayFormat(overlay.id, { color: c })}
-                      className={`w-5 h-5 rounded-full border ${overlay.format.color === c ? 'ring-1 ring-offset-1 ring-gray-400' : ''}`}
+                      className={`h-5 w-5 rounded-full border ${overlay.format.color === c ? 'ring-1 ring-gray-400 ring-offset-1' : ''}`}
                       style={{ backgroundColor: c }}
                     />
                   ))}
@@ -1248,38 +1644,73 @@ export function EnhancedWhiteboard({
 
                 {/* Text area - flexible */}
                 <textarea
-                  ref={el => { if (el) overlayTextareaRefs.current[overlay.id] = el; }}
+                  ref={el => {
+                    if (el) overlayTextareaRefs.current[overlay.id] = el
+                  }}
                   autoFocus
                   value={overlay.text}
-                  onChange={(e) => updateOverlayText(overlay.id, e.target.value)}
+                  onChange={e => updateOverlayText(overlay.id, e.target.value)}
                   placeholder="Type your text here..."
-                  className="flex-1 w-full p-3 text-gray-800 resize-none outline-none min-h-0"
+                  className="min-h-0 w-full flex-1 resize-none p-3 text-gray-800 outline-none"
                   style={{
                     fontSize: `${overlay.fontSize}px`,
                     fontWeight: overlay.format.bold ? 'bold' : 'normal',
                     fontStyle: overlay.format.italic ? 'italic' : 'normal',
                     textDecoration: overlay.format.underline ? 'underline' : 'none',
                     textAlign: overlay.format.align || 'left',
-                    color: overlay.format.color || '#000000'
+                    color: overlay.format.color || '#000000',
                   }}
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={e => e.stopPropagation()}
                 />
 
                 {/* Size and actions */}
-                <div className="flex items-center gap-2 px-3 py-2 border-t border-gray-200 bg-gray-50 shrink-0">
+                <div className="flex shrink-0 items-center gap-2 border-t border-gray-200 bg-gray-50 px-3 py-2">
                   <span className="text-xs text-slate-500">Size:</span>
-                  <input type="range" min="12" max="72" value={overlay.fontSize} onChange={(e) => setTextOverlays(overlays => overlays.map(o => o.id === overlay.id ? { ...o, fontSize: Number(e.target.value) } : o))} className="flex-1" />
-                  <span className="text-xs text-slate-500 w-10 text-right">{overlay.fontSize}px</span>
+                  <input
+                    type="range"
+                    min="12"
+                    max="72"
+                    value={overlay.fontSize}
+                    onChange={e =>
+                      setTextOverlays(overlays =>
+                        overlays.map(o =>
+                          o.id === overlay.id ? { ...o, fontSize: Number(e.target.value) } : o
+                        )
+                      )
+                    }
+                    className="flex-1"
+                  />
+                  <span className="w-10 text-right text-xs text-slate-500">
+                    {overlay.fontSize}px
+                  </span>
                 </div>
 
-                <div className="flex gap-2 p-2 border-t border-gray-200 bg-gray-50 shrink-0">
-                  <Button size="sm" onClick={(e) => { e.stopPropagation(); confirmTextOverlay(overlay.id); }} className="flex-1">Add</Button>
-                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); cancelTextOverlay(overlay.id); }}>Cancel</Button>
+                <div className="flex shrink-0 gap-2 border-t border-gray-200 bg-gray-50 p-2">
+                  <Button
+                    size="sm"
+                    onClick={e => {
+                      e.stopPropagation()
+                      confirmTextOverlay(overlay.id)
+                    }}
+                    className="flex-1"
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={e => {
+                      e.stopPropagation()
+                      cancelTextOverlay(overlay.id)
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 </div>
 
                 {/* Resize handle */}
                 <div
-                  className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize flex items-center justify-center"
+                  className="absolute bottom-0 right-0 flex h-4 w-4 cursor-nw-resize items-center justify-center"
                   style={{ background: 'linear-gradient(135deg, transparent 50%, #3b82f6 50%)' }}
                   title="Drag to resize"
                 />
@@ -1289,16 +1720,37 @@ export function EnhancedWhiteboard({
 
           {/* Video Overlay - Draggable */}
           {videoOverlay && videoComponent && showVideo && !isVideoFullscreen && (
-            <div className="absolute z-10 bg-black rounded-lg shadow-lg overflow-hidden border border-slate-600" style={{ width: '320px', height: '180px', right: `${16 + videoPosition.x}px`, top: `${16 + videoPosition.y}px` }}>
-              <div className="absolute top-2 left-2 z-20 cursor-move p-1 bg-slate-800/50 rounded hover:bg-slate-700" title="Drag to move">
-                <GripVertical className="w-4 h-4 text-white" />
+            <div
+              className="absolute z-10 overflow-hidden rounded-lg border border-slate-600 bg-black shadow-lg"
+              style={{
+                width: '320px',
+                height: '180px',
+                right: `${16 + videoPosition.x}px`,
+                top: `${16 + videoPosition.y}px`,
+              }}
+            >
+              <div
+                className="absolute left-2 top-2 z-20 cursor-move rounded bg-slate-800/50 p-1 hover:bg-slate-700"
+                title="Drag to move"
+              >
+                <GripVertical className="h-4 w-4 text-white" />
               </div>
-              <div className="absolute top-2 right-2 z-20 flex gap-1">
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700" onClick={onToggleVideoFullscreen}>
-                  <Maximize className="w-3 h-3 text-white" />
+              <div className="absolute right-2 top-2 z-20 flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 bg-slate-800/50 p-0 hover:bg-slate-700"
+                  onClick={onToggleVideoFullscreen}
+                >
+                  <Maximize className="h-3 w-3 text-white" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 bg-slate-800/50 hover:bg-slate-700" onClick={() => setShowVideo(false)}>
-                  <X className="w-3 h-3 text-white" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 bg-slate-800/50 p-0 hover:bg-slate-700"
+                  onClick={() => setShowVideo(false)}
+                >
+                  <X className="h-3 w-3 text-white" />
                 </Button>
               </div>
               {videoComponent}
@@ -1307,11 +1759,18 @@ export function EnhancedWhiteboard({
 
           {/* Show Video Button */}
           {!showVideo && (
-            <Button variant="outline" size="sm" className="absolute top-4 right-4 z-10" onClick={() => setShowVideo(true)}>Show Video</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute right-4 top-4 z-10"
+              onClick={() => setShowVideo(true)}
+            >
+              Show Video
+            </Button>
           )}
 
           {/* Page Info */}
-          <div className="absolute bottom-4 left-4 bg-slate-800/80 px-3 py-1 rounded text-sm text-slate-300">
+          <div className="absolute bottom-4 left-4 rounded bg-slate-800/80 px-3 py-1 text-sm text-slate-300">
             Page {currentPageIndex + 1} of {pages.length} • {Math.round(scale * 100)}%
             {selectedObject && <span className="ml-2 text-blue-400">• Object selected</span>}
           </div>
@@ -1319,47 +1778,59 @@ export function EnhancedWhiteboard({
 
         {/* Video Fullscreen Overlay - 70% centered */}
         {isVideoFullscreen && videoComponent && (
-          <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center">
-            <div className="relative bg-black rounded-lg shadow-2xl overflow-hidden border border-slate-600" style={{ width: '70%', height: '70%' }}>
-              <div className="absolute top-4 right-4 z-10">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div
+              className="relative overflow-hidden rounded-lg border border-slate-600 bg-black shadow-2xl"
+              style={{ width: '70%', height: '70%' }}
+            >
+              <div className="absolute right-4 top-4 z-10">
                 <Button variant="outline" size="sm" onClick={onToggleVideoFullscreen}>
-                  <Minimize className="w-4 h-4 mr-2" /> Minimize
+                  <Minimize className="mr-2 h-4 w-4" /> Minimize
                 </Button>
               </div>
-              <div className="w-full h-full">
-                {videoComponent}
-              </div>
+              <div className="h-full w-full">{videoComponent}</div>
             </div>
           </div>
         )}
 
         {/* Background Panel - Color & Style Selection */}
         {showBackgroundPanel && (
-          <div className="absolute top-16 right-4 z-50 bg-slate-800 border border-slate-700 rounded-lg shadow-xl p-4 w-80">
-            <div className="flex items-center justify-between mb-3">
+          <div className="absolute right-4 top-16 z-50 w-80 rounded-lg border border-slate-700 bg-slate-800 p-4 shadow-xl">
+            <div className="mb-3 flex items-center justify-between">
               <h3 className="font-semibold text-white">Background</h3>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowBackgroundPanel(false)}>
-                <X className="w-4 h-4" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setShowBackgroundPanel(false)}
+              >
+                <X className="h-4 w-4" />
               </Button>
             </div>
 
             <div className="space-y-4">
               {/* Background Colors */}
               <div>
-                <label className="text-sm text-slate-400 mb-2 block">Color</label>
+                <label className="mb-2 block text-sm text-slate-400">Color</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {BACKGROUND_COLORS.map((c) => (
+                  {BACKGROUND_COLORS.map(c => (
                     <button
                       key={c.value}
                       onClick={() => updateBackground(c.value, currentPage.backgroundStyle)}
-                      className={`h-12 rounded border-2 transition-all flex flex-col items-center justify-center ${currentPage.backgroundColor === c.value
-                        ? 'border-blue-500 ring-2 ring-blue-500/50'
-                        : 'border-slate-600 hover:border-gray-400'
-                        }`}
+                      className={`flex h-12 flex-col items-center justify-center rounded border-2 transition-all ${
+                        currentPage.backgroundColor === c.value
+                          ? 'border-blue-500 ring-2 ring-blue-500/50'
+                          : 'border-slate-600 hover:border-gray-400'
+                      }`}
                       style={{ backgroundColor: c.value }}
                     >
-                      <span className={`text-xs font-medium ${c.value === '#ffffff' || c.value === '#fef3c7' ? 'text-gray-800' : 'text-white'
-                        }`}>
+                      <span
+                        className={`text-xs font-medium ${
+                          c.value === '#ffffff' || c.value === '#fef3c7'
+                            ? 'text-gray-800'
+                            : 'text-white'
+                        }`}
+                      >
                         {c.name}
                       </span>
                     </button>
@@ -1369,16 +1840,17 @@ export function EnhancedWhiteboard({
 
               {/* Background Styles */}
               <div>
-                <label className="text-sm text-slate-400 mb-2 block">Style</label>
+                <label className="mb-2 block text-sm text-slate-400">Style</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['solid', 'grid', 'dots', 'lines'] as const).map((style) => (
+                  {(['solid', 'grid', 'dots', 'lines'] as const).map(style => (
                     <button
                       key={style}
                       onClick={() => updateBackground(currentPage.backgroundColor, style)}
-                      className={`px-3 py-2 rounded border text-sm capitalize ${currentPage.backgroundStyle === style
-                        ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                        : 'border-slate-600 text-slate-300 hover:border-gray-400'
-                        }`}
+                      className={`rounded border px-3 py-2 text-sm capitalize ${
+                        currentPage.backgroundStyle === style
+                          ? 'border-blue-500 bg-blue-500/20 text-blue-300'
+                          : 'border-slate-600 text-slate-300 hover:border-gray-400'
+                      }`}
                     >
                       {style}
                     </button>
@@ -1394,32 +1866,60 @@ export function EnhancedWhiteboard({
           <TeachingAssistant
             students={students}
             roomId="class-room"
-            onPushHint={(studentId, hint, type: 'socratic' | 'direct' | 'encouragement') => onPushHint?.(studentId, hint)}
-            onInviteBreakout={(studentId) => console.log('Invite to breakout:', studentId)}
+            onPushHint={(studentId, hint, type: 'socratic' | 'direct' | 'encouragement') =>
+              onPushHint?.(studentId, hint)
+            }
+            onInviteBreakout={studentId => console.log('Invite to breakout:', studentId)}
           />
         )}
       </div>
 
       {/* Bottom Page Navigation - only show when using internal state */}
       {!externalPages && (
-        <div className="flex items-center gap-2 px-4 py-2 border-t border-slate-700 bg-slate-800">
-          <Button variant="outline" size="sm" onClick={addPage} className="gap-1 h-8">
-            <Plus className="w-4 h-4" /> New Page
+        <div className="flex items-center gap-2 border-t border-slate-700 bg-slate-800 px-4 py-2">
+          <Button variant="outline" size="sm" onClick={addPage} className="h-8 gap-1">
+            <Plus className="h-4 w-4" /> New Page
           </Button>
-          <div className="h-6 w-px bg-slate-600 mx-1" />
-          <Button variant="outline" size="sm" onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))} disabled={currentPageIndex === 0} className="h-8 w-8 p-0"><ChevronLeft className="w-4 h-4" /></Button>
-          <div className="flex items-center gap-1 overflow-x-auto max-w-md">
+          <div className="mx-1 h-6 w-px bg-slate-600" />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+            disabled={currentPageIndex === 0}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex max-w-md items-center gap-1 overflow-x-auto">
             {pages.map((page, index) => (
-              <button key={page.id} onClick={() => setCurrentPageIndex(index)} className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm whitespace-nowrap transition-colors ${index === currentPageIndex ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
-                <Grid3X3 className="w-3 h-3" />
+              <button
+                key={page.id}
+                onClick={() => setCurrentPageIndex(index)}
+                className={`flex items-center gap-1 whitespace-nowrap rounded px-3 py-1.5 text-sm transition-colors ${index === currentPageIndex ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+              >
+                <Grid3X3 className="h-3 w-3" />
                 <span className="max-w-[80px] truncate">{page.name}</span>
                 {pages.length > 1 && index === currentPageIndex && (
-                  <X className="w-3 h-3 ml-1 opacity-70 hover:opacity-100 hover:bg-red-500 rounded" onClick={(e) => { e.stopPropagation(); deletePage(index); }} />
+                  <X
+                    className="ml-1 h-3 w-3 rounded opacity-70 hover:bg-red-500 hover:opacity-100"
+                    onClick={e => {
+                      e.stopPropagation()
+                      deletePage(index)
+                    }}
+                  />
                 )}
               </button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))} disabled={currentPageIndex === pages.length - 1} className="h-8 w-8 p-0"><ChevronRight className="w-4 h-4" /></Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPageIndex(Math.min(pages.length - 1, currentPageIndex + 1))}
+            disabled={currentPageIndex === pages.length - 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
           <div className="flex-1" />
           <span className="text-xs text-slate-500">
             {tool === 'line' && !lineStart && 'Click to start line'}

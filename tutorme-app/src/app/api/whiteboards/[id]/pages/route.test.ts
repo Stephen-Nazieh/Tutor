@@ -49,10 +49,7 @@ describe('PUT /api/whiteboards/[id]/pages reorder guards', () => {
   })
 
   it('returns 400 when a page id is outside the target whiteboard', async () => {
-    mocks.selectResults = [
-      [{ id: 'wb-1', ownerId: 'tutor-1' }],
-      [{ id: 'page-1' }],
-    ]
+    mocks.selectResults = [[{ id: 'wb-1', ownerId: 'tutor-1' }], [{ id: 'page-1' }]]
     const req = new Request('http://localhost/api/whiteboards/wb-1/pages', {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
@@ -69,7 +66,9 @@ describe('PUT /api/whiteboards/[id]/pages reorder guards', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'One or more pages do not belong to this whiteboard' })
+    expect(await res.json()).toEqual({
+      error: 'One or more pages do not belong to this whiteboard',
+    })
     expect(mocks.transaction).not.toHaveBeenCalled()
   })
 })

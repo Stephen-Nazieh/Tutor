@@ -55,13 +55,13 @@ function setGeoCache(ip: string, coords: GeoCoordinates) {
  */
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions, request)
-  
+
   if (!session?.user?.role || !['ADMIN', 'TUTOR'].includes(session.user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const ip = request.nextUrl.searchParams.get('ip')
-  
+
   if (!ip) {
     return NextResponse.json({ error: 'IP address required' }, { status: 400 })
   }
@@ -86,12 +86,12 @@ export async function GET(request: NextRequest) {
   try {
     const response = await fetch(
       `http://ip-api.com/json/${ip}?fields=status,lat,lon,city,country,regionName`,
-      { 
+      {
         signal: AbortSignal.timeout(5000),
-        headers: { 'Accept': 'application/json' }
+        headers: { Accept: 'application/json' },
       }
     )
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
     }
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions, request)
-  
+
   if (!session?.user?.role || !['ADMIN', 'TUTOR'].includes(session.user.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -147,17 +147,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Maximum 50 IPs per request' }, { status: 400 })
     }
 
-    const parsedIps = ips.map((ip) => ({ ip, parsed: parseIPv4(ip) }))
-    const invalidIps = parsedIps.filter((p) => !p.parsed).map((p) => p.ip)
+    const parsedIps = ips.map(ip => ({ ip, parsed: parseIPv4(ip) }))
+    const invalidIps = parsedIps.filter(p => !p.parsed).map(p => p.ip)
     if (invalidIps.length > 0) {
-      return NextResponse.json(
-        { error: 'Invalid IP format', invalidIps },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid IP format', invalidIps }, { status: 400 })
     }
 
     const results = new Map<string, GeoCoordinates>()
-    
+
     // Process sequentially to respect rate limits
     for (const { ip, parsed } of parsedIps) {
       // Check cache first
@@ -177,12 +174,12 @@ export async function POST(request: NextRequest) {
       try {
         const response = await fetch(
           `http://ip-api.com/json/${ip}?fields=status,lat,lon,city,country,regionName`,
-          { 
+          {
             signal: AbortSignal.timeout(5000),
-            headers: { 'Accept': 'application/json' }
+            headers: { Accept: 'application/json' },
           }
         )
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`)
         }
@@ -239,7 +236,7 @@ function getRandomMockCoordinates(): GeoCoordinates {
   ]
 
   const region = regions[Math.floor(Math.random() * regions.length)]
-  
+
   return {
     lat: region.latRange[0] + Math.random() * (region.latRange[1] - region.latRange[0]),
     lon: region.lonRange[0] + Math.random() * (region.lonRange[1] - region.lonRange[0]),

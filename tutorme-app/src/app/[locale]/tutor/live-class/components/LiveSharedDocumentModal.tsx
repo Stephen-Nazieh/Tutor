@@ -1,7 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -9,16 +15,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { PDFCollaborativeViewer } from '@/components/pdf-tutoring/PDFCollaborativeViewer'
-import { 
-  Eye, 
-  EyeOff, 
-  Users, 
+import {
+  Eye,
+  EyeOff,
+  Users,
   BrainCircuit,
   Clock,
   Pencil,
   Type,
   Shapes,
-  Presentation
+  Presentation,
 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { QuizQuestion } from '../../dashboard/components/CourseBuilder'
@@ -88,7 +94,10 @@ export function LiveSharedDocumentModal({
 }: LiveSharedDocumentModalProps) {
   const questions = Array.isArray(share?.questions) ? share?.questions : []
   const isQuestionShare = questions.length > 0
-  const isPdf = !isQuestionShare && ((share?.mimeType || '').includes('pdf') || (share?.fileUrl || '').toLowerCase().includes('.pdf'))
+  const isPdf =
+    !isQuestionShare &&
+    ((share?.mimeType || '').includes('pdf') ||
+      (share?.fileUrl || '').toLowerCase().includes('.pdf'))
   const isReadOnly = share ? !share.allowCollaborativeWrite && !canManageShare : true
   const collaborationPolicy: LiveDocumentCollaborationPolicy = {
     allowDrawing: share?.collaborationPolicy?.allowDrawing ?? true,
@@ -130,7 +139,10 @@ export function LiveSharedDocumentModal({
     }
   }, [currentQuestion?.id])
 
-  const requestExtendedQuestion = async (baseQuestion: QuizQuestion, difficulty: 'easier' | 'harder') => {
+  const requestExtendedQuestion = async (
+    baseQuestion: QuizQuestion,
+    difficulty: 'easier' | 'harder'
+  ) => {
     try {
       setExtendLoading(true)
       const res = await fetch('/api/live-class/questions/extend', {
@@ -155,7 +167,7 @@ export function LiveSharedDocumentModal({
     if (question.type === 'multiselect') {
       const selected = Array.isArray(value) ? value : []
       const expected = Array.isArray(correct) ? correct : []
-      return selected.length === expected.length && selected.every((v) => expected.includes(v))
+      return selected.length === expected.length && selected.every(v => expected.includes(v))
     }
     if (question.type === 'matching') {
       const selected = Array.isArray(value) ? value : []
@@ -191,7 +203,7 @@ export function LiveSharedDocumentModal({
         setExtendStreak(0)
         setExtendQuestion(null)
         setExtendBaseQuestion(null)
-        setCurrentIndex((prev) => Math.min(prev + 1, questions.length))
+        setCurrentIndex(prev => Math.min(prev + 1, questions.length))
         return
       }
       const nextDifficulty: 'easier' | 'harder' = correct ? 'harder' : 'easier'
@@ -207,7 +219,7 @@ export function LiveSharedDocumentModal({
     if (isLast && onSubmitToTutor && viewerRole === 'student') {
       onSubmitToTutor()
     }
-    setCurrentIndex((prev) => Math.min(prev + 1, questions.length))
+    setCurrentIndex(prev => Math.min(prev + 1, questions.length))
   }
 
   const handleTimeLimitChange = (value: string) => {
@@ -228,38 +240,36 @@ export function LiveSharedDocumentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] w-[95vw] max-w-[1300px] overflow-hidden p-0">
         <div className="flex h-full flex-col">
-          <DialogHeader className="border-b px-5 py-4 shrink-0">
-            <div className="flex items-center gap-2 flex-wrap">
+          <DialogHeader className="shrink-0 border-b px-5 py-4">
+            <div className="flex flex-wrap items-center gap-2">
               <DialogTitle>{share.title}</DialogTitle>
               <Badge variant="outline">Owner: {share.ownerName}</Badge>
-              
+
               {/* Clickable visibility badge */}
               {canManageShare ? (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleVisibilityToggle}
-                  className="h-6 px-2 py-0 gap-1"
+                  className="h-6 gap-1 px-2 py-0"
                   title="Click to toggle visibility"
                 >
-                  <Badge 
+                  <Badge
                     variant={share.visibleToAll ? 'default' : 'secondary'}
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    className="cursor-pointer transition-opacity hover:opacity-80"
                   >
-                    <Users className="h-3 w-3 mr-1" />
+                    <Users className="mr-1 h-3 w-3" />
                     {share.visibleToAll ? 'Visible to class' : 'Private'}
                   </Badge>
                 </Button>
               ) : (
                 <Badge variant={share.visibleToAll ? 'default' : 'secondary'}>
-                  <Users className="h-3 w-3 mr-1" />
+                  <Users className="mr-1 h-3 w-3" />
                   {share.visibleToAll ? 'Visible to class' : 'Private'}
                 </Badge>
               )}
-              
-              <Badge variant="outline">
-                Submissions: {share.submissions?.length || 0}
-              </Badge>
+
+              <Badge variant="outline">Submissions: {share.submissions?.length || 0}</Badge>
 
               {/* Open in Whiteboard button */}
               {canManageShare && onOpenInWhiteboard && (
@@ -270,7 +280,7 @@ export function LiveSharedDocumentModal({
                     onOpenInWhiteboard()
                     onOpenChange(false)
                   }}
-                  className="gap-1 ml-auto"
+                  className="ml-auto gap-1"
                 >
                   <Presentation className="h-4 w-4" />
                   Open in Whiteboard
@@ -283,33 +293,37 @@ export function LiveSharedDocumentModal({
           </DialogHeader>
 
           {canManageShare && (
-            <ScrollArea className="border-b shrink-0">
-              <div className="px-5 py-3 space-y-3">
+            <ScrollArea className="shrink-0 border-b">
+              <div className="space-y-3 px-5 py-3">
                 {/* Row 1: Visibility Controls - Answer toggles */}
                 {isQuestionShare && (
                   <div className="flex flex-wrap items-center gap-4">
                     {/* Answers label */}
-                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Answers:
                     </span>
 
                     {/* Me - Icon button with short label */}
                     <Button
                       type="button"
-                      variant={showTutorAnswers ? "default" : "outline"}
+                      variant={showTutorAnswers ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setShowTutorAnswers(!showTutorAnswers)}
                       className="gap-2"
                       title="Reveal answers to me"
                     >
-                      {showTutorAnswers ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      {showTutorAnswers ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
                       <span>Me</span>
                     </Button>
-                    
+
                     {/* Students - Icon button with short label */}
                     <Button
                       type="button"
-                      variant={share.revealAnswersToStudents ? "default" : "outline"}
+                      variant={share.revealAnswersToStudents ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => {
                         const newValue = !share.revealAnswersToStudents
@@ -319,24 +333,31 @@ export function LiveSharedDocumentModal({
                       className="gap-2"
                       title="Reveal answers to students"
                     >
-                      {share.revealAnswersToStudents ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      {share.revealAnswersToStudents ? (
+                        <Eye className="h-4 w-4" />
+                      ) : (
+                        <EyeOff className="h-4 w-4" />
+                      )}
                       <span>Students</span>
                     </Button>
                   </div>
                 )}
 
                 {/* Row 2: AI Grading, Timer & Collaboration Policy */}
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2 border-t">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t pt-2">
                   {isQuestionShare && (
                     <>
                       {/* AI grading */}
                       <div className="flex items-center gap-2">
-                        <Switch 
-                          checked={share.isAiGraded ?? false} 
+                        <Switch
+                          checked={share.isAiGraded ?? false}
                           onCheckedChange={onAiGradingChange}
                           id="ai-grading"
                         />
-                        <Label htmlFor="ai-grading" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                        <Label
+                          htmlFor="ai-grading"
+                          className="flex cursor-pointer items-center gap-1.5 text-sm"
+                        >
                           <BrainCircuit className="h-4 w-4 text-purple-500" />
                           AI grading
                         </Label>
@@ -345,15 +366,17 @@ export function LiveSharedDocumentModal({
                       {/* Timer */}
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        <Label htmlFor="time-limit" className="text-sm">Time limit:</Label>
+                        <Label htmlFor="time-limit" className="text-sm">
+                          Time limit:
+                        </Label>
                         <Input
                           id="time-limit"
                           type="number"
                           min={0}
                           max={180}
                           value={timeLimitInput}
-                          onChange={(e) => handleTimeLimitChange(e.target.value)}
-                          className="w-20 h-8"
+                          onChange={e => handleTimeLimitChange(e.target.value)}
+                          className="h-8 w-20"
                         />
                         <span className="text-sm text-muted-foreground">min</span>
                       </div>
@@ -365,10 +388,18 @@ export function LiveSharedDocumentModal({
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={collaborationPolicy.allowDrawing}
-                        onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowDrawing: checked })}
+                        onCheckedChange={checked =>
+                          onCollaborationPolicyChange?.({
+                            ...collaborationPolicy,
+                            allowDrawing: checked,
+                          })
+                        }
                         id="allow-drawing"
                       />
-                      <Label htmlFor="allow-drawing" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                      <Label
+                        htmlFor="allow-drawing"
+                        className="flex cursor-pointer items-center gap-1.5 text-sm"
+                      >
                         <Pencil className="h-3.5 w-3.5" />
                         Allow drawing
                       </Label>
@@ -376,10 +407,18 @@ export function LiveSharedDocumentModal({
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={collaborationPolicy.allowTyping}
-                        onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowTyping: checked })}
+                        onCheckedChange={checked =>
+                          onCollaborationPolicyChange?.({
+                            ...collaborationPolicy,
+                            allowTyping: checked,
+                          })
+                        }
                         id="allow-typing"
                       />
-                      <Label htmlFor="allow-typing" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                      <Label
+                        htmlFor="allow-typing"
+                        className="flex cursor-pointer items-center gap-1.5 text-sm"
+                      >
                         <Type className="h-3.5 w-3.5" />
                         Allow typing
                       </Label>
@@ -387,10 +426,18 @@ export function LiveSharedDocumentModal({
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={collaborationPolicy.allowShapes}
-                        onCheckedChange={(checked) => onCollaborationPolicyChange?.({ ...collaborationPolicy, allowShapes: checked })}
+                        onCheckedChange={checked =>
+                          onCollaborationPolicyChange?.({
+                            ...collaborationPolicy,
+                            allowShapes: checked,
+                          })
+                        }
                         id="allow-shapes"
                       />
-                      <Label htmlFor="allow-shapes" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                      <Label
+                        htmlFor="allow-shapes"
+                        className="flex cursor-pointer items-center gap-1.5 text-sm"
+                      >
                         <Shapes className="h-3.5 w-3.5" />
                         Allow shapes
                       </Label>
@@ -402,7 +449,7 @@ export function LiveSharedDocumentModal({
           )}
 
           {!canManageShare && onSubmitToTutor && (
-            <div className="border-b px-5 py-3 shrink-0">
+            <div className="shrink-0 border-b px-5 py-3">
               <button
                 type="button"
                 onClick={onSubmitToTutor}
@@ -416,7 +463,7 @@ export function LiveSharedDocumentModal({
 
           <div className="min-h-0 flex-1 overflow-auto p-0">
             {isQuestionShare ? (
-              <div className="p-6 space-y-4">
+              <div className="space-y-4 p-6">
                 {extendMode && (
                   <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
                     Extend mode active. Keep answering to complete the extension streak.
@@ -432,14 +479,16 @@ export function LiveSharedDocumentModal({
                       {share.timeLimit && share.timeLimit > 0 && (
                         <div className="flex items-center gap-1 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Time limit: {share.timeLimit} min</span>
+                          <span className="text-muted-foreground">
+                            Time limit: {share.timeLimit} min
+                          </span>
                         </div>
                       )}
                     </div>
-                    <ScrollArea className="h-[50vh] border rounded-lg p-4">
+                    <ScrollArea className="h-[50vh] rounded-lg border p-4">
                       <div className="space-y-3">
                         {questions.map((q, idx) => (
-                          <div key={q.id} className="rounded-lg border p-4 space-y-2">
+                          <div key={q.id} className="space-y-2 rounded-lg border p-4">
                             <div className="text-sm font-medium">
                               Q{idx + 1}. {q.question}
                             </div>
@@ -450,12 +499,18 @@ export function LiveSharedDocumentModal({
                             ) : null}
                             {q.type === 'matching' && q.matchingPairs && (
                               <div className="text-xs text-muted-foreground">
-                                Pairs: {q.matchingPairs.map((pair) => `${pair.left} → ${pair.right}`).join(' | ')}
+                                Pairs:{' '}
+                                {q.matchingPairs
+                                  .map(pair => `${pair.left} → ${pair.right}`)
+                                  .join(' | ')}
                               </div>
                             )}
                             {showTutorAnswers && (
                               <div className="text-xs text-emerald-700">
-                                Answer: {Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : q.correctAnswer || '—'}
+                                Answer:{' '}
+                                {Array.isArray(q.correctAnswer)
+                                  ? q.correctAnswer.join(', ')
+                                  : q.correctAnswer || '—'}
                               </div>
                             )}
                           </div>
@@ -467,22 +522,25 @@ export function LiveSharedDocumentModal({
                   <>
                     <div className="flex items-center justify-between">
                       <div className="text-xs text-muted-foreground">
-                        Question {Math.min(currentIndex + 1, questions.length)} of {questions.length}
+                        Question {Math.min(currentIndex + 1, questions.length)} of{' '}
+                        {questions.length}
                       </div>
                       {extendLoading && <Badge variant="secondary">Generating follow-up…</Badge>}
                       {/* Timer display for students */}
                       {share.timeLimit && share.timeLimit > 0 && (
                         <div className="flex items-center gap-1 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Time limit: {share.timeLimit} min</span>
+                          <span className="text-muted-foreground">
+                            Time limit: {share.timeLimit} min
+                          </span>
                         </div>
                       )}
                     </div>
-                    <div className="rounded-lg border p-4 space-y-3">
+                    <div className="space-y-3 rounded-lg border p-4">
                       <div className="font-medium">{currentQuestion.question}</div>
                       {currentQuestion.type === 'mcq' && currentQuestion.options && (
                         <div className="space-y-2">
-                          {currentQuestion.options.map((opt) => (
+                          {currentQuestion.options.map(opt => (
                             <label key={opt} className="flex items-center gap-2 text-sm">
                               <input
                                 type="radio"
@@ -498,7 +556,7 @@ export function LiveSharedDocumentModal({
                       )}
                       {currentQuestion.type === 'truefalse' && (
                         <div className="flex gap-4">
-                          {['True', 'False'].map((opt) => (
+                          {['True', 'False'].map(opt => (
                             <label key={opt} className="flex items-center gap-2 text-sm">
                               <input
                                 type="radio"
@@ -514,7 +572,7 @@ export function LiveSharedDocumentModal({
                       )}
                       {currentQuestion.type === 'multiselect' && currentQuestion.options && (
                         <div className="space-y-2">
-                          {currentQuestion.options.map((opt) => {
+                          {currentQuestion.options.map(opt => {
                             const selected = Array.isArray(answer) ? answer : []
                             const checked = selected.includes(opt)
                             return (
@@ -522,7 +580,7 @@ export function LiveSharedDocumentModal({
                                 <input
                                   type="checkbox"
                                   checked={checked}
-                                  onChange={(e) => {
+                                  onChange={e => {
                                     const next = new Set(selected)
                                     if (e.target.checked) next.add(opt)
                                     else next.delete(opt)
@@ -548,13 +606,15 @@ export function LiveSharedDocumentModal({
                           <div className="space-y-2">
                             {(currentQuestion.matchingPairs || []).map((pair, idx) => {
                               const selected = Array.isArray(answer) ? answer : []
-                              const rightOptions = (currentQuestion.matchingPairs || []).map((p) => p.right)
+                              const rightOptions = (currentQuestion.matchingPairs || []).map(
+                                p => p.right
+                              )
                               return (
                                 <select
                                   key={`right-${idx}`}
                                   className="w-full rounded border px-2 py-1"
                                   value={selected[idx] || ''}
-                                  onChange={(e) => {
+                                  onChange={e => {
                                     const next = [...selected]
                                     next[idx] = e.target.value
                                     setAnswer(next)
@@ -562,7 +622,7 @@ export function LiveSharedDocumentModal({
                                   disabled={!isStudent}
                                 >
                                   <option value="">Select match</option>
-                                  {rightOptions.map((opt) => (
+                                  {rightOptions.map(opt => (
                                     <option key={opt} value={opt}>
                                       {opt || '—'}
                                     </option>
@@ -573,10 +633,11 @@ export function LiveSharedDocumentModal({
                           </div>
                         </div>
                       )}
-                      {(currentQuestion.type === 'shortanswer' || currentQuestion.type === 'fillblank') && (
+                      {(currentQuestion.type === 'shortanswer' ||
+                        currentQuestion.type === 'fillblank') && (
                         <Input
                           value={typeof answer === 'string' ? answer : ''}
-                          onChange={(e) => setAnswer(e.target.value)}
+                          onChange={e => setAnswer(e.target.value)}
                           placeholder="Type your answer"
                           disabled={!isStudent}
                         />
@@ -584,7 +645,7 @@ export function LiveSharedDocumentModal({
                       {currentQuestion.type === 'essay' && (
                         <Textarea
                           value={typeof answer === 'string' ? answer : ''}
-                          onChange={(e) => setAnswer(e.target.value)}
+                          onChange={e => setAnswer(e.target.value)}
                           placeholder="Write your response"
                           rows={4}
                           disabled={!isStudent}
@@ -592,7 +653,8 @@ export function LiveSharedDocumentModal({
                       )}
                       {share.revealAnswersToStudents && (
                         <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                          Answer: {Array.isArray(currentQuestion.correctAnswer)
+                          Answer:{' '}
+                          {Array.isArray(currentQuestion.correctAnswer)
                             ? currentQuestion.correctAnswer.join(', ')
                             : currentQuestion.correctAnswer || '—'}
                         </div>
@@ -620,10 +682,18 @@ export function LiveSharedDocumentModal({
                 showCollabStatus={viewerRole === 'tutor'}
                 showAiActions={viewerRole === 'tutor'}
                 capabilities={{
-                  draw: canManageShare || (share.allowCollaborativeWrite && collaborationPolicy.allowDrawing),
-                  erase: canManageShare || (share.allowCollaborativeWrite && collaborationPolicy.allowDrawing),
-                  text: canManageShare || (share.allowCollaborativeWrite && collaborationPolicy.allowTyping),
-                  shapes: canManageShare || (share.allowCollaborativeWrite && collaborationPolicy.allowShapes),
+                  draw:
+                    canManageShare ||
+                    (share.allowCollaborativeWrite && collaborationPolicy.allowDrawing),
+                  erase:
+                    canManageShare ||
+                    (share.allowCollaborativeWrite && collaborationPolicy.allowDrawing),
+                  text:
+                    canManageShare ||
+                    (share.allowCollaborativeWrite && collaborationPolicy.allowTyping),
+                  shapes:
+                    canManageShare ||
+                    (share.allowCollaborativeWrite && collaborationPolicy.allowShapes),
                   select: canManageShare || share.allowCollaborativeWrite,
                   clear: canManageShare || share.allowCollaborativeWrite,
                 }}
@@ -632,7 +702,8 @@ export function LiveSharedDocumentModal({
               <div className="m-4 rounded-lg border bg-muted/20 p-4 text-sm">
                 <p className="font-medium">This file is not a PDF.</p>
                 <p className="text-muted-foreground">
-                  Open the source file in a new tab. PDF canvas annotation is available for PDF files.
+                  Open the source file in a new tab. PDF canvas annotation is available for PDF
+                  files.
                 </p>
                 {share.fileUrl && (
                   <a

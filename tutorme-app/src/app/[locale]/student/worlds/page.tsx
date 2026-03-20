@@ -1,6 +1,6 @@
 /**
  * World Selection Page
- * 
+ *
  * Browse and select learning worlds
  */
 
@@ -40,7 +40,7 @@ export default function WorldsPage() {
     try {
       const response = await fetch('/api/gamification/worlds')
       const data = await response.json()
-      
+
       if (data.success) {
         setWorlds(data.data)
         // Get user level from first world's context or default
@@ -73,8 +73,8 @@ export default function WorldsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
       </div>
     )
   }
@@ -82,42 +82,34 @@ export default function WorldsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+      <header className="border-b bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/student/dashboard')}
-            >
-              <ChevronRight className="w-5 h-5 rotate-180" />
+            <Button variant="ghost" size="icon" onClick={() => router.push('/student/dashboard')}>
+              <ChevronRight className="h-5 w-5 rotate-180" />
             </Button>
             <div>
               <h1 className="text-xl font-semibold">Learning Worlds</h1>
-              <p className="text-sm text-gray-500">
-                Choose your adventure • Level {userLevel}
-              </p>
+              <p className="text-sm text-gray-500">Choose your adventure • Level {userLevel}</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         {/* Intro */}
         <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Where will you learn today?
-          </h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Each world offers unique missions and challenges to help you master 
-            English in different contexts.
+          <h2 className="mb-2 text-2xl font-bold text-gray-800">Where will you learn today?</h2>
+          <p className="mx-auto max-w-xl text-gray-600">
+            Each world offers unique missions and challenges to help you master English in different
+            contexts.
           </p>
         </div>
 
         {/* Worlds Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {worlds.map((world) => (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {worlds.map(world => (
             <WorldCard
               key={world.id}
               world={world}
@@ -146,71 +138,67 @@ function WorldCard({
   return (
     <Card
       className={cn(
-        'overflow-hidden transition-all cursor-pointer group',
-        isLocked
-          ? 'opacity-75 grayscale'
-          : 'hover:shadow-lg hover:scale-[1.02]'
+        'group cursor-pointer overflow-hidden transition-all',
+        isLocked ? 'opacity-75 grayscale' : 'hover:scale-[1.02] hover:shadow-lg'
       )}
       onClick={onClick}
     >
       {/* Banner */}
-      <div className={cn(
-        'h-32 flex items-center justify-center relative',
-        isLocked ? 'bg-gray-200' : 'bg-gradient-to-br from-blue-500 to-purple-600'
-      )}>
+      <div
+        className={cn(
+          'relative flex h-32 items-center justify-center',
+          isLocked ? 'bg-gray-200' : 'bg-gradient-to-br from-blue-500 to-purple-600'
+        )}
+      >
         <span className="text-6xl">{world.emoji}</span>
-        
+
         {/* Lock overlay */}
         {isLocked && (
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
             {canUnlock ? (
-              <Unlock className="w-8 h-8 text-white" />
+              <Unlock className="h-8 w-8 text-white" />
             ) : (
-              <Lock className="w-8 h-8 text-white" />
+              <Lock className="h-8 w-8 text-white" />
             )}
           </div>
         )}
       </div>
 
       <CardContent className="p-5">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-bold text-lg text-gray-800">{world.name}</h3>
+        <div className="mb-2 flex items-start justify-between">
+          <h3 className="text-lg font-bold text-gray-800">{world.name}</h3>
           {world.progress > 0 && !isLocked && (
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+            <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
               {world.progress}%
             </span>
           )}
         </div>
 
-        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-          {world.description}
-        </p>
+        <p className="mb-3 line-clamp-2 text-sm text-gray-600">{world.description}</p>
 
         {/* Story arc preview */}
-        <p className="text-xs text-gray-500 italic mb-4 line-clamp-2">
-          "{world.storyArc}"
-        </p>
+        <p className="mb-4 line-clamp-2 text-xs italic text-gray-500">"{world.storyArc}"</p>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t">
+        <div className="flex items-center justify-between border-t pt-3">
           {isLocked ? (
-            <span className="text-sm text-gray-500">
-              Level {world.unlockLevel} required
-            </span>
+            <span className="text-sm text-gray-500">Level {world.unlockLevel} required</span>
           ) : (
             <div className="flex items-center gap-1 text-sm text-blue-600">
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className="h-4 w-4" />
               <span>Enter World</span>
             </div>
           )}
 
-          <span className={cn(
-            'text-xs px-2 py-1 rounded-full',
-            world.difficultyLevel === 1 && 'bg-green-100 text-green-700',
-            world.difficultyLevel === 2 && 'bg-yellow-100 text-yellow-700',
-            world.difficultyLevel === 3 && 'bg-orange-100 text-orange-700',
-            world.difficultyLevel === 4 && 'bg-red-100 text-red-700'
-          )}>
+          <span
+            className={cn(
+              'rounded-full px-2 py-1 text-xs',
+              world.difficultyLevel === 1 && 'bg-green-100 text-green-700',
+              world.difficultyLevel === 2 && 'bg-yellow-100 text-yellow-700',
+              world.difficultyLevel === 3 && 'bg-orange-100 text-orange-700',
+              world.difficultyLevel === 4 && 'bg-red-100 text-red-700'
+            )}
+          >
             Difficulty {world.difficultyLevel}
           </span>
         </div>

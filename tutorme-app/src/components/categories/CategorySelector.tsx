@@ -13,7 +13,7 @@ import {
   GLOBAL_EXAM_CATEGORIES,
   OTHER_COUNTRY,
   type ExamCategory,
-  getCategoriesForCountry
+  getCategoriesForCountry,
 } from '@/lib/tutoring/categories-new'
 import { Globe, MapPin, BookOpen, GraduationCap, Check } from 'lucide-react'
 
@@ -32,7 +32,7 @@ export function CategorySelector({
   onCountryChange,
   onCategoriesChange,
   className,
-  maxHeight = '400px'
+  maxHeight = '400px',
 }: CategorySelectorProps) {
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null)
 
@@ -74,12 +74,14 @@ export function CategorySelector({
   }
 
   return (
-    <div className={cn("w-full bg-white rounded-lg border border-gray-200 overflow-hidden", className)}>
+    <div
+      className={cn('w-full overflow-hidden rounded-lg border border-gray-200 bg-white', className)}
+    >
       {/* Header with Region and Country Selection */}
-      <div className="p-4 bg-gray-50 border-b border-gray-200 space-y-4">
+      <div className="space-y-4 border-b border-gray-200 bg-gray-50 p-4">
         {/* Region Selection */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-2">
+          <Label className="flex items-center gap-2 text-sm font-medium">
             <Globe className="h-4 w-4 text-[#4FD1C5]" />
             Select Region
           </Label>
@@ -93,9 +95,7 @@ export function CategorySelector({
                   setSelectedRegion(region.id)
                   onCountryChange(null)
                 }}
-                className={cn(
-                  selectedRegion === region.id && "bg-[#1D4ED8] hover:bg-[#1e40af]"
-                )}
+                className={cn(selectedRegion === region.id && 'bg-[#1D4ED8] hover:bg-[#1e40af]')}
               >
                 {region.name}
               </Button>
@@ -106,7 +106,7 @@ export function CategorySelector({
         {/* Country Selection */}
         {selectedRegion && (
           <div className="space-y-2">
-            <Label className="text-sm font-medium flex items-center gap-2">
+            <Label className="flex items-center gap-2 text-sm font-medium">
               <MapPin className="h-4 w-4 text-[#F17623]" />
               Select Country
             </Label>
@@ -116,9 +116,11 @@ export function CategorySelector({
                   key={country.code}
                   variant={selectedCountry === country.code ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => onCountryChange(country.code === selectedCountry ? null : country.code)}
+                  onClick={() =>
+                    onCountryChange(country.code === selectedCountry ? null : country.code)
+                  }
                   className={cn(
-                    selectedCountry === country.code && "bg-[#F17623] hover:bg-[#e06613]"
+                    selectedCountry === country.code && 'bg-[#F17623] hover:bg-[#e06613]'
                   )}
                 >
                   {country.name}
@@ -130,10 +132,11 @@ export function CategorySelector({
 
         {/* Selected Categories Summary */}
         {selectedCategories.length > 0 && (
-          <div className="flex items-center gap-2 pt-2 border-t">
+          <div className="flex items-center gap-2 border-t pt-2">
             <Check className="h-4 w-4 text-green-500" />
             <span className="text-sm text-gray-600">
-              {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
+              {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'}{' '}
+              selected
             </span>
           </div>
         )}
@@ -141,12 +144,16 @@ export function CategorySelector({
 
       {/* Categories Tabs */}
       <Tabs defaultValue="global" className="w-full">
-        <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
+        <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
           <TabsTrigger value="global" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             Global Exams
           </TabsTrigger>
-          <TabsTrigger value="national" className="flex items-center gap-2" disabled={!selectedCountry || selectedCountry === 'OTHER'}>
+          <TabsTrigger
+            value="national"
+            className="flex items-center gap-2"
+            disabled={!selectedCountry || selectedCountry === 'OTHER'}
+          >
             <GraduationCap className="h-4 w-4" />
             National
             {selectedCountry && selectedCountry !== 'OTHER' && (
@@ -160,7 +167,7 @@ export function CategorySelector({
         {/* Global Exams Tab */}
         <TabsContent value="global" className="m-0">
           <ScrollArea className="h-[400px]" style={{ maxHeight }}>
-            <div className="p-4 space-y-6">
+            <div className="space-y-6 p-4">
               {globalCategories.map(category => (
                 <ExamCategorySection
                   key={category.id}
@@ -178,12 +185,12 @@ export function CategorySelector({
         {/* National Exams Tab */}
         <TabsContent value="national" className="m-0">
           <ScrollArea className="h-[400px]" style={{ maxHeight }}>
-            <div className="p-4 space-y-6">
+            <div className="space-y-6 p-4">
               {nationalCategories.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <GraduationCap className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <div className="py-8 text-center text-gray-500">
+                  <GraduationCap className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                   <p>No national exams available for the selected country.</p>
-                  <p className="text-sm mt-1">Select Global Exams instead.</p>
+                  <p className="mt-1 text-sm">Select Global Exams instead.</p>
                 </div>
               ) : (
                 nationalCategories.map(category => (
@@ -219,7 +226,7 @@ function ExamCategorySection({
   selectedCategories,
   onToggle,
   onSelectAll,
-  onClearAll
+  onClearAll,
 }: ExamCategorySectionProps) {
   const selectedCount = category.exams.filter(exam => selectedCategories.includes(exam)).length
   const isFullySelected = selectedCount === category.exams.length && category.exams.length > 0
@@ -231,7 +238,7 @@ function ExamCategorySection({
           <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
           <h4 className="font-semibold text-gray-900">{category.label}</h4>
           {selectedCount > 0 && (
-            <Badge variant="secondary" className="text-xs bg-[#4FD1C5]/20 text-[#1F2933]">
+            <Badge variant="secondary" className="bg-[#4FD1C5]/20 text-xs text-[#1F2933]">
               {selectedCount}/{category.exams.length}
             </Badge>
           )}
@@ -255,26 +262,28 @@ function ExamCategorySection({
           </Button>
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
         {category.exams.map(exam => (
           <label
             key={exam}
             className={cn(
-              "flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors",
-              selectedCategories.includes(exam) 
-                ? "bg-[#4FD1C5]/10 border border-[#4FD1C5]/30" 
-                : "hover:bg-gray-50 border border-transparent"
+              'flex cursor-pointer items-center gap-2 rounded-md p-2 transition-colors',
+              selectedCategories.includes(exam)
+                ? 'border border-[#4FD1C5]/30 bg-[#4FD1C5]/10'
+                : 'border border-transparent hover:bg-gray-50'
             )}
           >
             <Checkbox
               checked={selectedCategories.includes(exam)}
               onCheckedChange={() => onToggle(exam)}
             />
-            <span className={cn(
-              "text-sm",
-              selectedCategories.includes(exam) ? "text-[#1F2933] font-medium" : "text-gray-700"
-            )}>
+            <span
+              className={cn(
+                'text-sm',
+                selectedCategories.includes(exam) ? 'font-medium text-[#1F2933]' : 'text-gray-700'
+              )}
+            >
               {exam}
             </span>
           </label>

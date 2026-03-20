@@ -29,10 +29,10 @@ export class DailyCoProvider implements VideoProvider {
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        ...options.headers
-      }
+        ...options.headers,
+      },
     })
 
     if (!response.ok) {
@@ -43,14 +43,17 @@ export class DailyCoProvider implements VideoProvider {
     return response.json()
   }
 
-  async createRoom(sessionId: string, options?: {
-    maxParticipants?: number
-    durationMinutes?: number
-    enableRecording?: boolean
-  }): Promise<VideoRoom> {
+  async createRoom(
+    sessionId: string,
+    options?: {
+      maxParticipants?: number
+      durationMinutes?: number
+      enableRecording?: boolean
+    }
+  ): Promise<VideoRoom> {
     const roomName = `tutorme-${sessionId}-${Date.now()}`
-    
-    const expiry = options?.durationMinutes 
+
+    const expiry = options?.durationMinutes
       ? new Date(Date.now() + options.durationMinutes * 60 * 1000)
       : new Date(Date.now() + 4 * 60 * 60 * 1000) // Default 4 hours
 
@@ -60,7 +63,7 @@ export class DailyCoProvider implements VideoProvider {
       return {
         id: roomName,
         url: `https://mock.daily.co/${roomName}`,
-        expiry
+        expiry,
       }
     }
 
@@ -77,24 +80,27 @@ export class DailyCoProvider implements VideoProvider {
           exp: Math.floor(expiry.getTime() / 1000),
           // Auto-join with mic/video off for students
           start_audio_off: true,
-          start_video_off: true
-        }
-      })
+          start_video_off: true,
+        },
+      }),
     })
 
     return {
       id: room.name,
       url: room.url,
-      expiry
+      expiry,
     }
   }
 
-  async createBreakoutRoom(parentSessionId: string, options?: {
-    durationMinutes?: number
-  }): Promise<VideoRoom> {
+  async createBreakoutRoom(
+    parentSessionId: string,
+    options?: {
+      durationMinutes?: number
+    }
+  ): Promise<VideoRoom> {
     const roomName = `tutorme-breakout-${parentSessionId}-${Date.now()}`
-    
-    const expiry = options?.durationMinutes 
+
+    const expiry = options?.durationMinutes
       ? new Date(Date.now() + options.durationMinutes * 60 * 1000)
       : new Date(Date.now() + 60 * 60 * 1000) // Default 1 hour for breakout
 
@@ -103,7 +109,7 @@ export class DailyCoProvider implements VideoProvider {
       return {
         id: roomName,
         url: `https://mock.daily.co/${roomName}`,
-        expiry
+        expiry,
       }
     }
 
@@ -119,22 +125,26 @@ export class DailyCoProvider implements VideoProvider {
           enable_recording: 'cloud',
           exp: Math.floor(expiry.getTime() / 1000),
           start_audio_off: false,
-          start_video_off: false
-        }
-      })
+          start_video_off: false,
+        },
+      }),
     })
 
     return {
       id: room.name,
       url: room.url,
-      expiry
+      expiry,
     }
   }
 
-  async createMeetingToken(roomName: string, userId: string, options?: {
-    isOwner?: boolean
-    durationMinutes?: number
-  }): Promise<string> {
+  async createMeetingToken(
+    roomName: string,
+    userId: string,
+    options?: {
+      isOwner?: boolean
+      durationMinutes?: number
+    }
+  ): Promise<string> {
     if (this.mockMode) {
       return `mock-token-${userId}-${Date.now()}`
     }
@@ -150,9 +160,9 @@ export class DailyCoProvider implements VideoProvider {
           room_name: roomName,
           user_id: userId,
           is_owner: options?.isOwner || false,
-          exp: expiry
-        }
-      })
+          exp: expiry,
+        },
+      }),
     })
 
     return token.token
@@ -165,7 +175,7 @@ export class DailyCoProvider implements VideoProvider {
     }
 
     await this.fetchDaily(`/rooms/${roomId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     })
   }
 

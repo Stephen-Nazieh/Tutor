@@ -2,7 +2,7 @@
  * Tutor Calendar Availability API
  * GET /api/tutor/calendar/availability - Get tutor's availability
  * POST /api/tutor/calendar/availability - Set availability slot
- * 
+ *
  * Query params for GET:
  * - start: ISO date string
  * - end: ISO date string
@@ -33,157 +33,175 @@ const AvailabilityDeleteSchema = z.object({
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
 })
 
-export const GET = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
-  const { searchParams } = new URL(req.url)
-  
-  const start = searchParams.get('start')
-  const end = searchParams.get('end')
-  const check = searchParams.get('check') === 'true'
-  
-  try {
-    const now = new Date()
-    const availabilityWhere = and(
-      eq(calendarAvailability.tutorId, tutorId),
-      or(isNull(calendarAvailability.validUntil), gte(calendarAvailability.validUntil, now))
-    )
-    const availability = await drizzleDb
-      .select()
-      .from(calendarAvailability)
-      .where(availabilityWhere)
-      .orderBy(asc(calendarAvailability.dayOfWeek), asc(calendarAvailability.startTime))
+export const GET = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
+    const { searchParams } = new URL(req.url)
 
-    const exceptionConditions = [eq(calendarException.tutorId, tutorId)]
-    if (start) exceptionConditions.push(gte(calendarException.date, new Date(start)))
-    if (end) exceptionConditions.push(lte(calendarException.date, new Date(end)))
-    const exceptions = await drizzleDb
-      .select()
-      .from(calendarException)
-      .where(and(...exceptionConditions))
-    
-    if (!check) {
-      // Return raw availability data
-      return NextResponse.json({
-        availability,
-        exceptions,
-      })
-    }
-    
-    // Generate available time slots for booking
-    if (!start || !end) {
-      return NextResponse.json(
-        { error: 'Start and end dates required for availability check' },
-        { status: 400 }
+    const start = searchParams.get('start')
+    const end = searchParams.get('end')
+    const check = searchParams.get('check') === 'true'
+
+    try {
+      const now = new Date()
+      const availabilityWhere = and(
+        eq(calendarAvailability.tutorId, tutorId),
+        or(isNull(calendarAvailability.validUntil), gte(calendarAvailability.validUntil, now))
       )
-    }
-    
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const availableSlots = await generateAvailableSlots(
-      tutorId,
-      startDate,
-      endDate,
-      availability,
-      exceptions
-    )
-    
-    return NextResponse.json({
-      availableSlots,
-      range: { start, end },
-    })
-  } catch (error) {
-    console.error('Fetch availability error:', error)
-    return handleApiError(error, 'Failed to fetch availability', 'api/tutor/calendar/availability/route.ts')
-  }
-}, { role: 'TUTOR' })
+      const availability = await drizzleDb
+        .select()
+        .from(calendarAvailability)
+        .where(availabilityWhere)
+        .orderBy(asc(calendarAvailability.dayOfWeek), asc(calendarAvailability.startTime))
 
-export const POST = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
-  
-  try {
-    const body = await req.json()
-    const validation = AvailabilitySchema.safeParse(body)
-    
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-    
-    const data = validation.data
-    
-    // Validate times
-    if (data.startTime >= data.endTime) {
-      return NextResponse.json(
-        { error: 'End time must be after start time' },
-        { status: 400 }
-      )
-    }
-    
-    const [created] = await drizzleDb
-      .insert(calendarAvailability)
-      .values({
-        id: nanoid(),
-        tutorId,
-        dayOfWeek: data.dayOfWeek,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        timezone: data.timezone,
-        isAvailable: data.isAvailable,
-        validFrom: data.validFrom ? new Date(data.validFrom) : null,
-        validUntil: data.validUntil ? new Date(data.validUntil) : null,
-      })
-      .returning()
-    const availability = created!
+      const exceptionConditions = [eq(calendarException.tutorId, tutorId)]
+      if (start) exceptionConditions.push(gte(calendarException.date, new Date(start)))
+      if (end) exceptionConditions.push(lte(calendarException.date, new Date(end)))
+      const exceptions = await drizzleDb
+        .select()
+        .from(calendarException)
+        .where(and(...exceptionConditions))
 
-    return NextResponse.json({ availability }, { status: 201 })
-  } catch (error: any) {
-    if (error.code === '23505') {
-      return NextResponse.json(
-        { error: 'Availability slot already exists for this time' },
-        { status: 409 }
-      )
-    }
-    
-    console.error('Create availability error:', error)
-    return handleApiError(error, 'Failed to create availability', 'api/tutor/calendar/availability/route.ts')
-  }
-}, { role: 'TUTOR' })
+      if (!check) {
+        // Return raw availability data
+        return NextResponse.json({
+          availability,
+          exceptions,
+        })
+      }
 
-export const DELETE = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
-
-  try {
-    const body = await req.json()
-    const validation = AvailabilityDeleteSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
-
-    const data = validation.data
-
-    await drizzleDb
-      .delete(calendarAvailability)
-      .where(
-        and(
-          eq(calendarAvailability.tutorId, tutorId),
-          eq(calendarAvailability.dayOfWeek, data.dayOfWeek),
-          eq(calendarAvailability.startTime, data.startTime),
-          eq(calendarAvailability.endTime, data.endTime)
+      // Generate available time slots for booking
+      if (!start || !end) {
+        return NextResponse.json(
+          { error: 'Start and end dates required for availability check' },
+          { status: 400 }
         )
+      }
+
+      const startDate = new Date(start)
+      const endDate = new Date(end)
+      const availableSlots = await generateAvailableSlots(
+        tutorId,
+        startDate,
+        endDate,
+        availability,
+        exceptions
       )
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Delete availability error:', error)
-    return handleApiError(error, 'Failed to delete availability', 'api/tutor/calendar/availability/route.ts')
-  }
-}, { role: 'TUTOR' })
+      return NextResponse.json({
+        availableSlots,
+        range: { start, end },
+      })
+    } catch (error) {
+      console.error('Fetch availability error:', error)
+      return handleApiError(
+        error,
+        'Failed to fetch availability',
+        'api/tutor/calendar/availability/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
+
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
+
+    try {
+      const body = await req.json()
+      const validation = AvailabilitySchema.safeParse(body)
+
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
+
+      const data = validation.data
+
+      // Validate times
+      if (data.startTime >= data.endTime) {
+        return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 })
+      }
+
+      const [created] = await drizzleDb
+        .insert(calendarAvailability)
+        .values({
+          id: nanoid(),
+          tutorId,
+          dayOfWeek: data.dayOfWeek,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          timezone: data.timezone,
+          isAvailable: data.isAvailable,
+          validFrom: data.validFrom ? new Date(data.validFrom) : null,
+          validUntil: data.validUntil ? new Date(data.validUntil) : null,
+        })
+        .returning()
+      const availability = created!
+
+      return NextResponse.json({ availability }, { status: 201 })
+    } catch (error: any) {
+      if (error.code === '23505') {
+        return NextResponse.json(
+          { error: 'Availability slot already exists for this time' },
+          { status: 409 }
+        )
+      }
+
+      console.error('Create availability error:', error)
+      return handleApiError(
+        error,
+        'Failed to create availability',
+        'api/tutor/calendar/availability/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
+
+export const DELETE = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
+
+    try {
+      const body = await req.json()
+      const validation = AvailabilityDeleteSchema.safeParse(body)
+
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
+
+      const data = validation.data
+
+      await drizzleDb
+        .delete(calendarAvailability)
+        .where(
+          and(
+            eq(calendarAvailability.tutorId, tutorId),
+            eq(calendarAvailability.dayOfWeek, data.dayOfWeek),
+            eq(calendarAvailability.startTime, data.startTime),
+            eq(calendarAvailability.endTime, data.endTime)
+          )
+        )
+
+      return NextResponse.json({ success: true })
+    } catch (error) {
+      console.error('Delete availability error:', error)
+      return handleApiError(
+        error,
+        'Failed to delete availability',
+        'api/tutor/calendar/availability/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // Generate available time slots for booking
 async function generateAvailableSlots(
@@ -195,7 +213,7 @@ async function generateAvailableSlots(
 ): Promise<any[]> {
   const slots: any[] = []
   const currentDate = new Date(startDate)
-  
+
   const existingEvents = await drizzleDb
     .select()
     .from(calendarEvent)
@@ -205,50 +223,42 @@ async function generateAvailableSlots(
         isNull(calendarEvent.deletedAt),
         eq(calendarEvent.isCancelled, false),
         or(
-          and(
-            gte(calendarEvent.startTime, startDate),
-            lte(calendarEvent.startTime, endDate)
-          ),
-          and(
-            gte(calendarEvent.endTime, startDate),
-            lte(calendarEvent.endTime, endDate)
-          )
+          and(gte(calendarEvent.startTime, startDate), lte(calendarEvent.startTime, endDate)),
+          and(gte(calendarEvent.endTime, startDate), lte(calendarEvent.endTime, endDate))
         )
       )
     )
-  
+
   while (currentDate <= endDate) {
     const dayOfWeek = currentDate.getDay()
     const dateStr = currentDate.toISOString().split('T')[0]
-    
+
     // Check if there's an exception for this date
-    const dayException = exceptions.find(
-      e => e.date.toISOString().split('T')[0] === dateStr
-    )
-    
+    const dayException = exceptions.find(e => e.date.toISOString().split('T')[0] === dateStr)
+
     if (dayException && !dayException.isAvailable) {
       // Day is blocked
       currentDate.setDate(currentDate.getDate() + 1)
       continue
     }
-    
+
     // Get availability for this day
     const dayAvailability = availability.filter(a => a.dayOfWeek === dayOfWeek)
-    
+
     for (const slot of dayAvailability) {
       if (!slot.isAvailable) continue
-      
+
       const slotStart = new Date(`${dateStr}T${slot.startTime}`)
       const slotEnd = new Date(`${dateStr}T${slot.endTime}`)
-      
+
       // Check if slot is in the past
       if (slotEnd <= new Date()) continue
-      
+
       // Check for conflicts with existing events
       const hasConflict = existingEvents.some((event: any) => {
         return slotStart < event.endTime && slotEnd > event.startTime
       })
-      
+
       if (!hasConflict) {
         // Check exception time ranges
         const timeException = exceptions.find(e => {
@@ -258,7 +268,7 @@ async function generateAvailableSlots(
           const exEnd = new Date(`${dateStr}T${e.endTime}`)
           return slotStart < exEnd && slotEnd > exStart
         })
-        
+
         if (!timeException) {
           slots.push({
             date: dateStr,
@@ -270,9 +280,9 @@ async function generateAvailableSlots(
         }
       }
     }
-    
+
     currentDate.setDate(currentDate.getDate() + 1)
   }
-  
+
   return slots
 }

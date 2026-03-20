@@ -1,7 +1,7 @@
 /**
  * Message Search API
  * GET /api/conversations/[id]/messages/search?q=query
- * 
+ *
  * Search messages within a conversation
  */
 
@@ -27,10 +27,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const offset = parseBoundedInt(searchParams.get('offset'), 0, { min: 0, max: 5000 })
 
   if (!query) {
-    return NextResponse.json(
-      { error: 'Search query is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Search query is required' }, { status: 400 })
   }
 
   const [conv] = await drizzleDb
@@ -39,19 +36,13 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .where(
       and(
         eq(conversation.id, id),
-        or(
-          eq(conversation.participant1Id, userId),
-          eq(conversation.participant2Id, userId)
-        )
+        or(eq(conversation.participant1Id, userId), eq(conversation.participant2Id, userId))
       )
     )
     .limit(1)
 
   if (!conv) {
-    return NextResponse.json(
-      { error: 'Conversation not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
   }
 
   const [p1] = await drizzleDb
@@ -66,10 +57,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .limit(1)
 
   if (!p1 || !p2 || !isConversationAllowedByRoles(p1.role as AppRole, p2.role as AppRole)) {
-    return NextResponse.json(
-      { error: 'Conversation not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
   }
 
   const searchPattern = `%${query}%`
@@ -90,12 +78,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .from(directMessage)
     .innerJoin(user, eq(user.id, directMessage.senderId))
     .leftJoin(profile, eq(profile.userId, user.id))
-    .where(
-      and(
-        eq(directMessage.conversationId, id),
-        ilike(directMessage.content, searchPattern)
-      )
-    )
+    .where(and(eq(directMessage.conversationId, id), ilike(directMessage.content, searchPattern)))
     .orderBy(desc(directMessage.createdAt))
     .limit(limit)
     .offset(offset)
@@ -103,14 +86,9 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const [{ count: total }] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
     .from(directMessage)
-    .where(
-      and(
-        eq(directMessage.conversationId, id),
-        ilike(directMessage.content, searchPattern)
-      )
-    )
+    .where(and(eq(directMessage.conversationId, id), ilike(directMessage.content, searchPattern)))
 
-  const messages = messagesRows.map((m) => ({
+  const messages = messagesRows.map(m => ({
     id: m.id,
     conversationId: m.conversationId,
     senderId: m.senderId,

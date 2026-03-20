@@ -47,7 +47,11 @@ interface CreateCourseDialogProps {
   onCourseCreated?: () => void
 }
 
-export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: CreateCourseDialogProps) {
+export function CreateCourseDialog({
+  open,
+  onOpenChange,
+  onCourseCreated,
+}: CreateCourseDialogProps) {
   const router = useRouter()
   const [creating, setCreating] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
@@ -88,14 +92,14 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
       { key: 'finance', label: 'Business' },
     ]
 
-    categories.forEach((category) => {
+    categories.forEach(category => {
       const normalized = category.toLowerCase()
-      subjectMap.forEach((entry) => {
+      subjectMap.forEach(entry => {
         if (normalized.includes(entry.key)) subjectSet.add(entry.label)
       })
     })
 
-    subjects.forEach((subject) => subjectSet.add(subject))
+    subjects.forEach(subject => subjectSet.add(subject))
     return Array.from(subjectSet)
   }, [categories, subjects])
 
@@ -105,15 +109,15 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
   const handleAddCategory = () => {
     const trimmed = categoryInput.trim()
     if (!trimmed) return
-    setCategories((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
+    setCategories(prev => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
     setCategoryInput('')
   }
 
   const handleAddSubject = () => {
     const trimmed = subjectInput.trim()
     if (!trimmed) return
-    setSubjects((prev) => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
-    setForm((prev) => ({ ...prev, subject: trimmed }))
+    setSubjects(prev => (prev.includes(trimmed) ? prev : [...prev, trimmed]))
+    setForm(prev => ({ ...prev, subject: trimmed }))
     setSubjectInput('')
   }
 
@@ -206,19 +210,28 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]" aria-busy={creating} aria-describedby={apiError ? 'create-course-api-error' : undefined}>
+      <DialogContent
+        className="sm:max-w-[500px]"
+        aria-busy={creating}
+        aria-describedby={apiError ? 'create-course-api-error' : undefined}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-500" />
+            <BookOpen className="h-5 w-5 text-blue-500" />
             Create New Course
           </DialogTitle>
           <DialogDescription>
-            Create a whole course (curriculum) with modules and lessons. You can add more modules and lessons after creation.
+            Create a whole course (curriculum) with modules and lessons. You can add more modules
+            and lessons after creation.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           {apiError && (
-            <p id="create-course-api-error" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2" role="alert">
+            <p
+              id="create-course-api-error"
+              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+              role="alert"
+            >
               {apiError}
             </p>
           )}
@@ -229,11 +242,18 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
               {selectedCategories.length === 0 && (
                 <p className="text-sm text-gray-500">No categories selected yet.</p>
               )}
-              {selectedCategories.map((category) => (
-                <span key={category} className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700">
+              {selectedCategories.map(category => (
+                <span
+                  key={category}
+                  className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
+                >
                   {category}
-                  <button type="button" onClick={() => setCategories((prev) => prev.filter((c) => c !== category))} className="text-blue-400 hover:text-blue-700">
-                    <X className="w-3 h-3" />
+                  <button
+                    type="button"
+                    onClick={() => setCategories(prev => prev.filter(c => c !== category))}
+                    className="text-blue-400 hover:text-blue-700"
+                  >
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
@@ -241,12 +261,18 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
             <div className="flex gap-2">
               <Input
                 value={categoryInput}
-                onChange={(e) => setCategoryInput(e.target.value)}
+                onChange={e => setCategoryInput(e.target.value)}
                 placeholder="Add a category"
                 disabled={creating}
               />
-              <Button type="button" variant="outline" size="sm" onClick={handleAddCategory} disabled={creating}>
-                <Plus className="w-4 h-4 mr-1" />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddCategory}
+                disabled={creating}
+              >
+                <Plus className="mr-1 h-4 w-4" />
                 Add
               </Button>
             </div>
@@ -254,12 +280,12 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
 
           <div className="space-y-2">
             <Label>Subject *</Label>
-            <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
+            <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
               <SelectTrigger disabled={creating}>
                 <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent>
-                {allSubjects.map((subject) => (
+                {allSubjects.map(subject => (
                   <SelectItem key={subject} value={subject}>
                     {subject}
                   </SelectItem>
@@ -269,26 +295,37 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
             <div className="flex gap-2">
               <Input
                 value={subjectInput}
-                onChange={(e) => setSubjectInput(e.target.value)}
+                onChange={e => setSubjectInput(e.target.value)}
                 placeholder="Add a subject"
                 disabled={creating}
               />
-              <Button type="button" variant="outline" size="sm" onClick={handleAddSubject} disabled={creating}>
-                <Plus className="w-4 h-4 mr-1" />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddSubject}
+                disabled={creating}
+              >
+                <Plus className="mr-1 h-4 w-4" />
                 Add
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Subjects are suggested from your categories. You can add more.</p>
+            <p className="text-xs text-muted-foreground">
+              Subjects are suggested from your categories. You can add more.
+            </p>
           </div>
 
           <div>
             <Label>Grade</Label>
-            <Select value={form.gradeLevel} onValueChange={(v) => setForm({ ...form, gradeLevel: v })}>
+            <Select
+              value={form.gradeLevel}
+              onValueChange={v => setForm({ ...form, gradeLevel: v })}
+            >
               <SelectTrigger disabled={creating}>
                 <SelectValue placeholder="Select grade" />
               </SelectTrigger>
               <SelectContent>
-                {GRADE_LEVELS.map((g) => (
+                {GRADE_LEVELS.map(g => (
                   <SelectItem key={g.value} value={g.value}>
                     {g.label}
                   </SelectItem>
@@ -319,7 +356,7 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
                     })
                     const data = await res.json()
                     if (res.ok && data.description) {
-                      setForm((f) => ({ ...f, description: data.description }))
+                      setForm(f => ({ ...f, description: data.description }))
                       toast.success('Description generated')
                     } else {
                       toast.error(data.error ?? 'Failed to generate description')
@@ -331,13 +368,13 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
                   }
                 }}
               >
-                {generatingDescription && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
+                {generatingDescription && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
                 Generate description
               </Button>
             </div>
             <Textarea
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={e => setForm({ ...form, description: e.target.value })}
               placeholder="AI-generated or write your own. What will students learn?"
               disabled={creating}
               rows={3}
@@ -350,11 +387,13 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
               type="checkbox"
               id="isLiveOnline"
               checked={form.isLiveOnline}
-              onChange={(e) => setForm({ ...form, isLiveOnline: e.target.checked })}
+              onChange={e => setForm({ ...form, isLiveOnline: e.target.checked })}
               disabled={creating}
               className="rounded"
             />
-            <Label htmlFor="isLiveOnline">Make course live/online so students can join now (uncheck to keep offline for later)</Label>
+            <Label htmlFor="isLiveOnline">
+              Make course live/online so students can join now (uncheck to keep offline for later)
+            </Label>
           </div>
         </div>
         <DialogFooter>
@@ -362,7 +401,7 @@ export function CreateCourseDialog({ open, onOpenChange, onCourseCreated }: Crea
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={creating} aria-busy={creating}>
-            {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Continue
           </Button>
         </DialogFooter>

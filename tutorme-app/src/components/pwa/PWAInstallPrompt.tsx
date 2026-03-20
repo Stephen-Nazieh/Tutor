@@ -1,65 +1,64 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
+import { X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
-const DISMISS_KEY = 'pwa-install-dismissed';
-const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const DISMISS_KEY = 'pwa-install-dismissed'
+const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 interface BeforeInstallPromptEvent extends Event {
-  readonly prompt: () => Promise<void>;
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  readonly prompt: () => Promise<void>
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
 }
 
 export function PWAInstallPrompt() {
-  const t = useTranslations('pwa');
-  const locale = useLocale();
+  const t = useTranslations('pwa')
+  const locale = useLocale()
 
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [isInstallable, setIsInstallable] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return
 
     // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js', { scope: '/', updateViaCache: 'none' })
-        .then((registration) => {
-          registration.update().catch(() => {});
-          registration.waiting?.postMessage({ type: 'SKIP-WAITING' });
+        .then(registration => {
+          registration.update().catch(() => {})
+          registration.waiting?.postMessage({ type: 'SKIP-WAITING' })
         })
-        .catch(() => {});
+        .catch(() => {})
     }
 
     // Trigger offline sync when coming back online
     const handleOnline = () => {
       navigator.serviceWorker?.controller?.postMessage({
         type: 'OFFLINE_SYNC_REQUEST',
-      });
-    };
-    window.addEventListener('online', handleOnline);
+      })
+    }
+    window.addEventListener('online', handleOnline)
 
     // Check if PWA is already installed
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as { standalone?: boolean }).standalone === true;
+      (window.navigator as { standalone?: boolean }).standalone === true
 
     if (isStandalone) {
-      return () => window.removeEventListener('online', handleOnline);
+      return () => window.removeEventListener('online', handleOnline)
     }
 
     // Check dismissal with cooldown
     try {
-      const stored = localStorage.getItem(DISMISS_KEY);
+      const stored = localStorage.getItem(DISMISS_KEY)
       if (stored) {
-        const { timestamp } = JSON.parse(stored);
+        const { timestamp } = JSON.parse(stored)
         if (Date.now() - timestamp < DISMISS_COOLDOWN_MS) {
-          return;
+          return
         }
       }
     } catch {
@@ -67,66 +66,58 @@ export function PWAInstallPrompt() {
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsInstallable(true);
-      setTimeout(() => setShowPrompt(true), 3000);
-    };
+      e.preventDefault()
+      setDeferredPrompt(e as BeforeInstallPromptEvent)
+      setIsInstallable(true)
+      setTimeout(() => setShowPrompt(true), 3000)
+    }
 
     const isIOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-      !(window as unknown as { MSStream?: boolean }).MSStream;
-    const isSafari = /^((?!CriOS|FxiOS|EdgiOS).)*Safari/.test(
-      navigator.userAgent
-    );
+      !(window as unknown as { MSStream?: boolean }).MSStream
+    const isSafari = /^((?!CriOS|FxiOS|EdgiOS).)*Safari/.test(navigator.userAgent)
 
     if (isIOS && isSafari) {
       setTimeout(() => {
-        setShowPrompt(true);
-        setIsInstallable(false);
-      }, 5000);
+        setShowPrompt(true)
+        setIsInstallable(false)
+      }, 5000)
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener(
-        'beforeinstallprompt',
-        handleBeforeInstallPrompt
-      );
-    };
-  }, []);
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    }
+  }, [])
 
   const handleInstall = async () => {
     if (deferredPrompt) {
       try {
-        await deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        await deferredPrompt.prompt()
+        const { outcome } = await deferredPrompt.userChoice
         if (outcome === 'accepted') {
-          setShowPrompt(false);
+          setShowPrompt(false)
         }
-        setDeferredPrompt(null);
+        setDeferredPrompt(null)
       } catch (err) {
-        console.error('[PWA] Install prompt error:', err);
+        console.error('[PWA] Install prompt error:', err)
       }
     }
-    setShowPrompt(false);
-  };
+    setShowPrompt(false)
+  }
 
   const handleDismiss = () => {
-    setShowPrompt(false);
+    setShowPrompt(false)
     try {
-      localStorage.setItem(
-        DISMISS_KEY,
-        JSON.stringify({ timestamp: Date.now(), locale })
-      );
+      localStorage.setItem(DISMISS_KEY, JSON.stringify({ timestamp: Date.now(), locale }))
     } catch {
       /* ignore */
     }
-  };
+  }
 
-  if (!showPrompt) return null;
+  if (!showPrompt) return null
 
   return (
     <div
@@ -163,22 +154,13 @@ export function PWAInstallPrompt() {
             {t('install_title')}
           </h3>
 
-          <p
-            id="pwa-install-desc"
-            className="mt-1 text-sm text-gray-500 dark:text-gray-400"
-          >
-            {isInstallable
-              ? t('install_description')
-              : t('ios_install_description')}
+          <p id="pwa-install-desc" className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {isInstallable ? t('install_description') : t('ios_install_description')}
           </p>
 
           {isInstallable ? (
             <div className="mt-3 flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleInstall}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
+              <Button size="sm" onClick={handleInstall} className="bg-blue-600 hover:bg-blue-700">
                 {t('install_button')}
               </Button>
               <Button size="sm" variant="outline" onClick={handleDismiss}>
@@ -198,12 +180,7 @@ export function PWAInstallPrompt() {
                 </div>
               </details>
 
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-2"
-                onClick={handleDismiss}
-              >
+              <Button size="sm" variant="outline" className="mt-2" onClick={handleDismiss}>
                 {t('install_got_it')}
               </Button>
             </div>
@@ -221,5 +198,5 @@ export function PWAInstallPrompt() {
         </Button>
       </div>
     </div>
-  );
+  )
 }

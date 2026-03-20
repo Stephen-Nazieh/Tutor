@@ -15,7 +15,9 @@ import { z } from 'zod'
 // GET /api/polls/[pollId] - Get a specific poll
 export async function GET(
   request: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   try {
     const session = await getServerSession(authOptions, request)
@@ -28,11 +30,7 @@ export async function GET(
       return NextResponse.json({ error: 'Poll ID required' }, { status: 400 })
     }
 
-    const [pollRow] = await drizzleDb
-      .select()
-      .from(poll)
-      .where(eq(poll.id, pollId))
-      .limit(1)
+    const [pollRow] = await drizzleDb.select().from(poll).where(eq(poll.id, pollId)).limit(1)
 
     if (!pollRow) {
       return NextResponse.json({ error: 'Poll not found' }, { status: 404 })
@@ -60,7 +58,7 @@ export async function GET(
       ...pollRow,
       options,
       responses: pollRow.isAnonymous
-        ? responses.map((r) => ({ ...r, studentId: undefined }))
+        ? responses.map(r => ({ ...r, studentId: undefined }))
         : responses,
       totalResponses: responses.length,
     }
@@ -81,7 +79,9 @@ const UpdatePollSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   try {
     const session = await getServerSession(authOptions, request)
@@ -168,7 +168,9 @@ export async function PATCH(
 // DELETE /api/polls/[pollId] - Delete a poll
 export async function DELETE(
   request: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   try {
     const session = await getServerSession(authOptions, request)

@@ -1,6 +1,6 @@
-export { 
-  CommandPalette, 
-  useCommandPalette, 
+export {
+  CommandPalette,
+  useCommandPalette,
   createClassroomActions,
-  type CommandAction 
+  type CommandAction,
 } from './command-palette'

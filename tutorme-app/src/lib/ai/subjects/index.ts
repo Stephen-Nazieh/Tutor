@@ -20,7 +20,7 @@ const subjectRegistry: Record<string, SubjectContext> = {
   literature: englishContext,
   language_arts: englishContext,
   // Default/fallback context
-  general: createGeneralContext()
+  general: createGeneralContext(),
 }
 
 /**
@@ -28,19 +28,19 @@ const subjectRegistry: Record<string, SubjectContext> = {
  */
 export function getSubjectContext(subject: string): SubjectContext {
   const normalizedSubject = subject.toLowerCase().trim()
-  
+
   // Try exact match first
   if (subjectRegistry[normalizedSubject]) {
     return subjectRegistry[normalizedSubject]
   }
-  
+
   // Try partial matches
   for (const [key, context] of Object.entries(subjectRegistry)) {
     if (normalizedSubject.includes(key) || key.includes(normalizedSubject)) {
       return context
     }
   }
-  
+
   // Return general context as fallback
   return subjectRegistry.general
 }
@@ -50,10 +50,12 @@ export function getSubjectContext(subject: string): SubjectContext {
  */
 export function isSubjectSupported(subject: string): boolean {
   const normalizedSubject = subject.toLowerCase().trim()
-  return !!subjectRegistry[normalizedSubject] || 
-    Object.keys(subjectRegistry).some(key => 
-      normalizedSubject.includes(key) || key.includes(normalizedSubject)
+  return (
+    !!subjectRegistry[normalizedSubject] ||
+    Object.keys(subjectRegistry).some(
+      key => normalizedSubject.includes(key) || key.includes(normalizedSubject)
     )
+  )
 }
 
 /**
@@ -61,9 +63,10 @@ export function isSubjectSupported(subject: string): boolean {
  */
 export function getAvailableSubjects(): { id: string; name: string }[] {
   return Object.values(subjectRegistry)
-    .filter((ctx, index, self) => 
-      // Remove duplicates (e.g., math/mathematics)
-      self.findIndex(c => c.id === ctx.id) === index
+    .filter(
+      (ctx, index, self) =>
+        // Remove duplicates (e.g., math/mathematics)
+        self.findIndex(c => c.id === ctx.id) === index
     )
     .map(ctx => ({ id: ctx.id, name: ctx.name }))
 }
@@ -71,65 +74,68 @@ export function getAvailableSubjects(): { id: string; name: string }[] {
 /**
  * Build system prompt with subject context
  */
-export function buildSystemPrompt(subject: string, options?: {
-  includeCommonMistakes?: boolean
-  includePedagogy?: boolean
-  includeTools?: boolean
-  teachingAge?: number
-  voiceGender?: string
-  voiceAccent?: string
-}): string {
+export function buildSystemPrompt(
+  subject: string,
+  options?: {
+    includeCommonMistakes?: boolean
+    includePedagogy?: boolean
+    includeTools?: boolean
+    teachingAge?: number
+    voiceGender?: string
+    voiceAccent?: string
+  }
+): string {
   const context = getSubjectContext(subject)
-  const opts = { 
-    includeCommonMistakes: true, 
-    includePedagogy: true, 
+  const opts = {
+    includeCommonMistakes: true,
+    includePedagogy: true,
     includeTools: true,
     teachingAge: 15,
     voiceGender: 'female',
     voiceAccent: 'us',
-    ...options 
+    ...options,
   }
-  
+
   let prompt = `# Solocorn AI Tutor - ${context.name}\n\n`
   prompt += `## Core Persona\n`
   prompt += `You are a patient, encouraging Socratic tutor. You NEVER give direct answers. `
   prompt += `Instead, you guide students to discover solutions through questions, hints, and encouragement.\n\n`
-  
+
   // NEW: Age-based teaching
   prompt += getAgeBasedPrompt(opts.teachingAge)
-  
+
   // NEW: Voice/Accent guidance
   prompt += getVoicePrompt(opts.voiceGender, opts.voiceAccent)
-  
+
   // Add subject context
   prompt += context.promptAdditions
-  
+
   if (opts.includeCommonMistakes && context.commonMistakes.length > 0) {
     prompt += `\n\n## Watch For These Common Mistakes\n`
     context.commonMistakes.slice(0, 5).forEach(mistake => {
       prompt += `- **${mistake.pattern}**: ${mistake.description}\n`
     })
   }
-  
+
   if (opts.includePedagogy) {
     prompt += `\n\n## Question Templates\n`
     context.pedagogicalApproach.questionTemplates.slice(0, 3).forEach(qt => {
       prompt += `- "${qt.template}"\n`
     })
   }
-  
+
   if (opts.includeTools && context.availableTools.length > 0) {
     prompt += `\n\n## Available Tools\n`
     prompt += `You can suggest using: ${context.availableTools.join(', ')}\n`
   }
-  
+
   prompt += `\n\n## Response Guidelines\n`
   prompt += `1. Keep responses under 3-4 sentences\n`
   prompt += `2. Ask ONE guiding question at a time\n`
   prompt += `3. Acknowledge correct reasoning before correcting errors\n`
   prompt += `4. Use encouraging language\n`
   prompt += `5. Reference specific concepts from the knowledge graph when relevant\n`
-  
+
   return prompt
 }
 
@@ -191,15 +197,15 @@ function getAgeBasedPrompt(age: number): string {
 - Challenge with primary source analysis
 - Support professional/academic writing development
 - Example: "Evaluate the theoretical implications of the text's structural choices within its genre conventions."
-`
+`,
   }
-  
+
   // Find closest age bracket
   const ages = [5, 8, 10, 12, 15, 18]
-  const closestAge = ages.reduce((prev, curr) => 
+  const closestAge = ages.reduce((prev, curr) =>
     Math.abs(curr - age) < Math.abs(prev - age) ? curr : prev
   )
-  
+
   return ageGuidelines[closestAge] || ageGuidelines[15]
 }
 
@@ -209,9 +215,9 @@ function getVoicePrompt(gender: string, accent: string): string {
     us: 'American English',
     uk: 'British English',
     au: 'Australian English',
-    ca: 'Canadian English'
+    ca: 'Canadian English',
   }
-  
+
   return `
 ## Voice & Tone
 - Speak with a ${accentDescriptions[accent] || 'neutral'} accent
@@ -226,12 +232,12 @@ function getVoicePrompt(gender: string, accent: string): string {
 export function getConceptHints(subject: string, conceptId: string): string[] {
   const context = getSubjectContext(subject)
   const concept = context.concepts.find(c => c.id === conceptId)
-  
+
   if (!concept) return []
-  
+
   return [
     ...concept.commonMisconceptions.map(m => `Watch out: ${m}`),
-    ...concept.exampleProblems.map(p => `Example: ${p.hint}`)
+    ...concept.exampleProblems.map(p => `Example: ${p.hint}`),
   ]
 }
 
@@ -241,12 +247,13 @@ export function getConceptHints(subject: string, conceptId: string): string[] {
 export function findRelevantConcepts(subject: string, query: string): string[] {
   const context = getSubjectContext(subject)
   const queryLower = query.toLowerCase()
-  
+
   return context.concepts
-    .filter(concept => 
-      concept.name.toLowerCase().includes(queryLower) ||
-      concept.description.toLowerCase().includes(queryLower) ||
-      concept.relatedConcepts.some(rc => rc.toLowerCase().includes(queryLower))
+    .filter(
+      concept =>
+        concept.name.toLowerCase().includes(queryLower) ||
+        concept.description.toLowerCase().includes(queryLower) ||
+        concept.relatedConcepts.some(rc => rc.toLowerCase().includes(queryLower))
     )
     .map(c => c.id)
 }
@@ -256,12 +263,13 @@ export function findRelevantConcepts(subject: string, query: string): string[] {
  */
 export function getCommonMistakeHelp(subject: string, errorPattern: string): string | null {
   const context = getSubjectContext(subject)
-  
-  const mistake = context.commonMistakes.find(m => 
-    errorPattern.toLowerCase().includes(m.pattern.toLowerCase()) ||
-    m.pattern.toLowerCase().includes(errorPattern.toLowerCase())
+
+  const mistake = context.commonMistakes.find(
+    m =>
+      errorPattern.toLowerCase().includes(m.pattern.toLowerCase()) ||
+      m.pattern.toLowerCase().includes(errorPattern.toLowerCase())
   )
-  
+
   return mistake?.correctivePrompt || null
 }
 
@@ -279,43 +287,44 @@ function createGeneralContext(): SubjectContext {
         id: 'rushing',
         pattern: 'Rushing to answer',
         description: 'Not reading the full question or thinking before answering',
-        correctivePrompt: 'Take a moment to read the question again. What is it really asking?'
+        correctivePrompt: 'Take a moment to read the question again. What is it really asking?',
       },
       {
         id: 'giving_up',
         pattern: 'Giving up too quickly',
         description: 'Stating "I don\'t know" without attempting',
-        correctivePrompt: 'What DO you know about this topic? Let\'s start from there.'
-      }
+        correctivePrompt: "What DO you know about this topic? Let's start from there.",
+      },
     ],
     pedagogicalApproach: {
-      socraticStyle: 'Ask probing questions to help students discover answers. Encourage metacognition.',
+      socraticStyle:
+        'Ask probing questions to help students discover answers. Encourage metacognition.',
       emphasisAreas: [
         'Critical thinking',
         'Problem decomposition',
         'Self-reflection',
-        'Connecting to prior knowledge'
+        'Connecting to prior knowledge',
       ],
       questionTemplates: [
         {
           id: 'what_do_you_know',
           template: 'What do you already know about this?',
           whenToUse: 'Starting any new problem',
-          example: 'Any subject'
+          example: 'Any subject',
         },
         {
           id: 'similar_problem',
           template: 'Have you solved a similar problem before?',
           whenToUse: 'When student is stuck',
-          example: 'Transfer learning'
+          example: 'Transfer learning',
         },
         {
           id: 'explain_back',
           template: 'Can you explain your reasoning to me?',
           whenToUse: 'Checking understanding',
-          example: 'Any subject'
-        }
-      ]
+          example: 'Any subject',
+        },
+      ],
     },
     availableTools: [],
     promptAdditions: `
@@ -344,8 +353,8 @@ function createGeneralContext(): SubjectContext {
       useLatex: false,
       useDiagrams: true,
       useCodeBlocks: true,
-      customNotation: 'General text'
-    }
+      customNotation: 'General text',
+    },
   }
 }
 

@@ -18,7 +18,11 @@ export async function enrollStudentInCurriculum(
   studentId: string,
   curriculumId: string
 ): Promise<{ enrolled: boolean; progress?: { id: string } }> {
-  const [curriculumRow] = await drizzleDb.select().from(curriculum).where(eq(curriculum.id, curriculumId)).limit(1)
+  const [curriculumRow] = await drizzleDb
+    .select()
+    .from(curriculum)
+    .where(eq(curriculum.id, curriculumId))
+    .limit(1)
   if (!curriculumRow) {
     throw new Error('Curriculum not found')
   }
@@ -27,7 +31,7 @@ export async function enrollStudentInCurriculum(
     .select()
     .from(curriculumModule)
     .where(eq(curriculumModule.curriculumId, curriculumId))
-  const moduleIds = modules.map((m) => m.id)
+  const moduleIds = modules.map(m => m.id)
   const totalLessonsResult =
     moduleIds.length > 0
       ? await drizzleDb
@@ -40,7 +44,12 @@ export async function enrollStudentInCurriculum(
   const [existingProgress] = await drizzleDb
     .select()
     .from(curriculumProgress)
-    .where(and(eq(curriculumProgress.studentId, studentId), eq(curriculumProgress.curriculumId, curriculumId)))
+    .where(
+      and(
+        eq(curriculumProgress.studentId, studentId),
+        eq(curriculumProgress.curriculumId, curriculumId)
+      )
+    )
     .limit(1)
   if (existingProgress) {
     return { enrolled: false }
@@ -49,7 +58,12 @@ export async function enrollStudentInCurriculum(
   const [existingEnrollment] = await drizzleDb
     .select()
     .from(curriculumEnrollment)
-    .where(and(eq(curriculumEnrollment.studentId, studentId), eq(curriculumEnrollment.curriculumId, curriculumId)))
+    .where(
+      and(
+        eq(curriculumEnrollment.studentId, studentId),
+        eq(curriculumEnrollment.curriculumId, curriculumId)
+      )
+    )
     .limit(1)
 
   if (existingEnrollment) {

@@ -2,26 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { handleApiError } from '@/lib/api/middleware'
 import { requireAdmin, logAdminAction, getClientIp } from '@/lib/admin/auth'
 import { Permissions } from '@/lib/admin/permissions'
-import { getAllFeatureFlags, createFeatureFlag, deleteFeatureFlag, updateFeatureFlag } from '@/lib/admin/feature-flags'
+import {
+  getAllFeatureFlags,
+  createFeatureFlag,
+  deleteFeatureFlag,
+  updateFeatureFlag,
+} from '@/lib/admin/feature-flags'
 
 export async function GET(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.FEATURES_READ)
-  
+
   if (!session) return response!
 
   try {
     const flags = await getAllFeatureFlags()
-    
+
     return NextResponse.json({ flags })
   } catch (error) {
     console.error('Error fetching feature flags:', error)
-    return handleApiError(error, 'Failed to fetch feature flags', 'api/admin/feature-flags/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch feature flags',
+      'api/admin/feature-flags/route.ts'
+    )
   }
 }
 
 export async function POST(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.FEATURES_WRITE)
-  
+
   if (!session) return response!
 
   try {
@@ -29,10 +38,7 @@ export async function POST(req: NextRequest) {
     const { key, name, description, enabled, scope, targetValue, config } = body
 
     if (!key || !name) {
-      return NextResponse.json(
-        { error: 'Key and name are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Key and name are required' }, { status: 400 })
     }
 
     const flag = await createFeatureFlag(
@@ -59,13 +65,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ flag })
   } catch (error) {
     console.error('Error creating feature flag:', error)
-    return handleApiError(error, 'Failed to create feature flag', 'api/admin/feature-flags/route.ts')
+    return handleApiError(
+      error,
+      'Failed to create feature flag',
+      'api/admin/feature-flags/route.ts'
+    )
   }
 }
 
 export async function PATCH(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.FEATURES_WRITE)
-  
+
   if (!session) return response!
 
   try {
@@ -73,18 +83,10 @@ export async function PATCH(req: NextRequest) {
     const { id, ...updates } = body
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Flag ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Flag ID is required' }, { status: 400 })
     }
 
-    const flag = await updateFeatureFlag(
-      id,
-      updates,
-      session,
-      updates.changeReason
-    )
+    const flag = await updateFeatureFlag(id, updates, session, updates.changeReason)
 
     await logAdminAction(session.adminId, 'feature_flag.update', {
       resourceType: 'feature_flag',
@@ -97,13 +99,17 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ flag })
   } catch (error) {
     console.error('Error updating feature flag:', error)
-    return handleApiError(error, 'Failed to update feature flag', 'api/admin/feature-flags/route.ts')
+    return handleApiError(
+      error,
+      'Failed to update feature flag',
+      'api/admin/feature-flags/route.ts'
+    )
   }
 }
 
 export async function DELETE(req: NextRequest) {
   const { session, response } = await requireAdmin(req, Permissions.FEATURES_DELETE)
-  
+
   if (!session) return response!
 
   try {
@@ -111,10 +117,7 @@ export async function DELETE(req: NextRequest) {
     const id = searchParams.get('id')
 
     if (!id) {
-      return NextResponse.json(
-        { error: 'Flag ID is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Flag ID is required' }, { status: 400 })
     }
 
     await deleteFeatureFlag(id, session)
@@ -129,6 +132,10 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting feature flag:', error)
-    return handleApiError(error, 'Failed to delete feature flag', 'api/admin/feature-flags/route.ts')
+    return handleApiError(
+      error,
+      'Failed to delete feature flag',
+      'api/admin/feature-flags/route.ts'
+    )
   }
 }

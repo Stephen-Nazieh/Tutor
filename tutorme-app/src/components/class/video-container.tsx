@@ -13,11 +13,11 @@ interface VideoContainerProps {
   isScreenSharing: boolean
 }
 
-export function VideoContainer({ 
-  participants, 
-  isAudioEnabled, 
+export function VideoContainer({
+  participants,
+  isAudioEnabled,
   isVideoEnabled,
-  isScreenSharing 
+  isScreenSharing,
 }: VideoContainerProps) {
   const [localVideoTrack, setLocalVideoTrack] = useState<MediaStreamTrack | null>(null)
   const [localAudioTrack, setLocalAudioTrack] = useState<MediaStreamTrack | null>(null)
@@ -30,15 +30,15 @@ export function VideoContainer({
         if (isVideoEnabled || isAudioEnabled) {
           const stream = await navigator.mediaDevices.getUserMedia({
             video: isVideoEnabled,
-            audio: isAudioEnabled
+            audio: isAudioEnabled,
           })
-          
+
           const videoTrack = stream.getVideoTracks()[0]
           const audioTrack = stream.getAudioTracks()[0]
-          
+
           if (videoTrack) setLocalVideoTrack(videoTrack)
           if (audioTrack) setLocalAudioTrack(audioTrack)
-          
+
           if (localVideoRef.current && videoTrack) {
             localVideoRef.current.srcObject = stream
           }
@@ -71,14 +71,24 @@ export function VideoContainer({
   const gridRows = Math.ceil(participantCount / gridCols)
 
   return (
-    <div className="w-full h-full bg-gray-800 rounded-lg overflow-hidden">
+    <div className="h-full w-full overflow-hidden rounded-lg bg-gray-800">
       {participants.length === 0 ? (
         // Waiting state
-        <div className="w-full h-full flex items-center justify-center">
+        <div className="flex h-full w-full items-center justify-center">
           <div className="text-center">
-            <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-700">
+              <svg
+                className="h-10 w-10 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
               </svg>
             </div>
             <p className="text-gray-400">Waiting for participants...</p>
@@ -86,76 +96,84 @@ export function VideoContainer({
         </div>
       ) : (
         // Video grid
-        <div 
-          className="w-full h-full p-2 grid gap-2"
+        <div
+          className="grid h-full w-full gap-2 p-2"
           style={{
             gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
-            gridTemplateRows: `repeat(${gridRows}, 1fr)`
+            gridTemplateRows: `repeat(${gridRows}, 1fr)`,
           }}
         >
           {/* Local participant */}
-          <div className="relative bg-gray-700 rounded-lg overflow-hidden">
+          <div className="relative overflow-hidden rounded-lg bg-gray-700">
             {isVideoEnabled && localVideoTrack ? (
               <video
                 ref={localVideoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="flex h-full w-full items-center justify-center">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <span className="text-white text-xl font-semibold">You</span>
+                  <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600">
+                    <span className="text-xl font-semibold text-white">You</span>
                   </div>
-                  <p className="text-gray-400 text-sm">Camera Off</p>
+                  <p className="text-sm text-gray-400">Camera Off</p>
                 </div>
               </div>
             )}
-            
+
             {/* Status indicators */}
             <div className="absolute bottom-2 left-2 flex gap-2">
-              <span className="px-2 py-1 bg-black/50 rounded text-xs text-white">You</span>
+              <span className="rounded bg-black/50 px-2 py-1 text-xs text-white">You</span>
               {!isAudioEnabled && (
-                <span className="px-2 py-1 bg-red-600/80 rounded text-xs text-white">Muted</span>
+                <span className="rounded bg-red-600/80 px-2 py-1 text-xs text-white">Muted</span>
               )}
               {isScreenSharing && (
-                <span className="px-2 py-1 bg-green-600/80 rounded text-xs text-white">Sharing</span>
+                <span className="rounded bg-green-600/80 px-2 py-1 text-xs text-white">
+                  Sharing
+                </span>
               )}
             </div>
           </div>
 
           {/* Remote participants */}
-          {participants.filter(p => p.name !== 'Anonymous').map((participant) => (
-            <div key={participant.id} className="relative bg-gray-700 rounded-lg overflow-hidden">
-              {/* Remote video placeholder - in a real implementation, 
+          {participants
+            .filter(p => p.name !== 'Anonymous')
+            .map(participant => (
+              <div key={participant.id} className="relative overflow-hidden rounded-lg bg-gray-700">
+                {/* Remote video placeholder - in a real implementation, 
                   you'd attach the remote video track here */}
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <span className="text-white text-xl font-semibold">
-                      {participant.name.charAt(0).toUpperCase()}
-                    </span>
+                <div className="flex h-full w-full items-center justify-center">
+                  <div className="text-center">
+                    <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-green-600">
+                      <span className="text-xl font-semibold text-white">
+                        {participant.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-400">{participant.name}</p>
                   </div>
-                  <p className="text-gray-400 text-sm">{participant.name}</p>
+                </div>
+
+                {/* Status indicators */}
+                <div className="absolute bottom-2 left-2 flex gap-2">
+                  <span className="rounded bg-black/50 px-2 py-1 text-xs text-white">
+                    {participant.name}
+                  </span>
+                  {!participant.isAudioEnabled && (
+                    <span className="rounded bg-red-600/80 px-2 py-1 text-xs text-white">
+                      Muted
+                    </span>
+                  )}
+                  {participant.isScreenSharing && (
+                    <span className="rounded bg-green-600/80 px-2 py-1 text-xs text-white">
+                      Sharing
+                    </span>
+                  )}
                 </div>
               </div>
-              
-              {/* Status indicators */}
-              <div className="absolute bottom-2 left-2 flex gap-2">
-                <span className="px-2 py-1 bg-black/50 rounded text-xs text-white">
-                  {participant.name}
-                </span>
-                {!participant.isAudioEnabled && (
-                  <span className="px-2 py-1 bg-red-600/80 rounded text-xs text-white">Muted</span>
-                )}
-                {participant.isScreenSharing && (
-                  <span className="px-2 py-1 bg-green-600/80 rounded text-xs text-white">Sharing</span>
-                )}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </div>

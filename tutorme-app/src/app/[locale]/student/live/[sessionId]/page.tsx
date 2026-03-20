@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { ArrowLeft, Loader2, ExternalLink, Video, Layers, Users, Calculator } from 'lucide-react'
 import { MultiLayerWhiteboardInterface } from '@/app/[locale]/tutor/live-class/components/MultiLayerWhiteboardInterface'
@@ -133,7 +139,7 @@ export default function StudentLiveSessionPage() {
     return (
       <div className="w-full p-6">
         <div className="flex items-center justify-center py-24 text-gray-500">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" />
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Joining live class...
         </div>
       </div>
@@ -162,14 +168,14 @@ export default function StudentLiveSessionPage() {
   const session = joinData.session
 
   return (
-    <div className="w-full p-4 sm:p-6 space-y-4">
+    <div className="w-full space-y-4 p-4 sm:p-6">
       <Dialog open={showRecordingNotice} onOpenChange={setShowRecordingNotice}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>This class is being recorded</DialogTitle>
             <DialogDescription>
-              Recordings help with safety, lesson replays, missed-lesson recovery, and AI-generated lesson summaries.
-              Continue only if you consent to this class recording policy.
+              Recordings help with safety, lesson replays, missed-lesson recovery, and AI-generated
+              lesson summaries. Continue only if you consent to this class recording policy.
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
@@ -177,7 +183,7 @@ export default function StudentLiveSessionPage() {
 
       <div className="flex items-center justify-between gap-3">
         <Button variant="ghost" onClick={() => router.push('/student/live/join')}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
         <div className="flex items-center gap-2">
@@ -191,29 +197,30 @@ export default function StudentLiveSessionPage() {
           <CardTitle className="flex items-center justify-between gap-3">
             <span>{session.title}</span>
             <Button onClick={openVideoClassroom}>
-              <Video className="w-4 h-4 mr-2" />
+              <Video className="mr-2 h-4 w-4" />
               Open Classroom
-              <ExternalLink className="w-4 h-4 ml-2" />
+              <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
           </CardTitle>
           <CardDescription>
-            Tutor: {session.tutor?.profile?.name || 'Tutor'} • Participants: {session.participants.length}/{session.maxStudents}
+            Tutor: {session.tutor?.profile?.name || 'Tutor'} • Participants:{' '}
+            {session.participants.length}/{session.maxStudents}
           </CardDescription>
         </CardHeader>
       </Card>
 
       <Tabs defaultValue="whiteboard" className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full max-w-lg">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="whiteboard" className="gap-1">
-            <Layers className="w-4 h-4" />
+            <Layers className="h-4 w-4" />
             Whiteboard
           </TabsTrigger>
           <TabsTrigger value="math" className="gap-1">
-            <Calculator className="w-4 h-4" />
+            <Calculator className="h-4 w-4" />
             Math
           </TabsTrigger>
           <TabsTrigger value="session" className="gap-1">
-            <Users className="w-4 h-4" />
+            <Users className="h-4 w-4" />
             Session
           </TabsTrigger>
         </TabsList>
@@ -248,7 +255,7 @@ export default function StudentLiveSessionPage() {
             </CardHeader>
             <CardContent>
               <Button onClick={openVideoClassroom}>
-                <Video className="w-4 h-4 mr-2" />
+                <Video className="mr-2 h-4 w-4" />
                 Open Classroom
               </Button>
             </CardContent>

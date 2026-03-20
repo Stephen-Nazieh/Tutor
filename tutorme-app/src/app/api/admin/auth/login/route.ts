@@ -25,17 +25,18 @@ export async function POST(req: NextRequest) {
     const password = typeof body.password === 'string' ? body.password : ''
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
     const clientIp = getClientIp(req)
     const skipSuspiciousInDev =
-      process.env.NODE_ENV === 'development' &&
-      (process.env.ADMIN_SKIP_SUSPICIOUS_IP !== 'false')
-    if (!skipSuspiciousInDev && clientIp && clientIp !== 'unknown' && (await isSuspiciousIp(clientIp))) {
+      process.env.NODE_ENV === 'development' && process.env.ADMIN_SKIP_SUSPICIOUS_IP !== 'false'
+    if (
+      !skipSuspiciousInDev &&
+      clientIp &&
+      clientIp !== 'unknown' &&
+      (await isSuspiciousIp(clientIp))
+    ) {
       return NextResponse.json(
         { error: 'Too many failed login attempts. Please try again later.' },
         { status: 429 }
@@ -44,7 +45,8 @@ export async function POST(req: NextRequest) {
 
     const skipWhitelistInDev =
       process.env.NODE_ENV === 'development' &&
-      (process.env.ADMIN_SKIP_IP_WHITELIST === 'true' || process.env.ADMIN_SKIP_IP_WHITELIST === '1')
+      (process.env.ADMIN_SKIP_IP_WHITELIST === 'true' ||
+        process.env.ADMIN_SKIP_IP_WHITELIST === '1')
     const whitelistCountResult = skipWhitelistInDev
       ? [{ count: 0 }]
       : await drizzleDb
@@ -56,30 +58,25 @@ export async function POST(req: NextRequest) {
     if (whitelistCount > 0) {
       const whitelisted = await isIpWhitelisted(clientIp)
       if (!whitelisted) {
-        return NextResponse.json(
-          { error: 'Access denied from this IP address' },
-          { status: 403 }
-        )
+        return NextResponse.json({ error: 'Access denied from this IP address' }, { status: 403 })
       }
     }
 
-    const users = await drizzleDb
-      .select()
-      .from(user)
-      .where(ilike(user.email, email))
-      .limit(1)
+    const users = await drizzleDb.select().from(user).where(ilike(user.email, email)).limit(1)
     const foundUser = users[0]
     if (!foundUser || !foundUser.password) {
       await logFailedLogin(clientIp, email || undefined)
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
     const passwordCandidates = Array.from(
       new Set(
-        [password, password.trim(), password.normalize('NFC'), password.trim().normalize('NFC')].filter(Boolean)
+        [
+          password,
+          password.trim(),
+          password.normalize('NFC'),
+          password.trim().normalize('NFC'),
+        ].filter(Boolean)
       )
     )
     let isValidPassword = false
@@ -98,10 +95,7 @@ export async function POST(req: NextRequest) {
 
     if (!isValidPassword) {
       await logFailedLogin(clientIp, email || undefined)
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
     const [userProfile] = await drizzleDb
@@ -117,12 +111,9 @@ export async function POST(req: NextRequest) {
     const hasAdminEntitlement = assignments.length > 0 || foundUser.role === 'ADMIN'
     if (!hasAdminEntitlement) {
       await logFailedLogin(clientIp, email || undefined)
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
-    const roles = assignments.length > 0 ? assignments.map((a) => a.roleName) : [foundUser.role]
+    const roles = assignments.length > 0 ? assignments.map(a => a.roleName) : [foundUser.role]
 
     const userAgent = req.headers.get('user-agent') || undefined
     const token = await createAdminSession(foundUser.id, clientIp, userAgent)

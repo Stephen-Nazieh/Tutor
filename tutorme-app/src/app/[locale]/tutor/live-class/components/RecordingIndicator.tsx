@@ -2,12 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { Radio, Pause, Square } from 'lucide-react'
 
@@ -18,7 +13,12 @@ interface RecordingIndicatorProps {
   onStop: () => void
 }
 
-export function RecordingIndicator({ duration, isPaused, onPause, onStop }: RecordingIndicatorProps) {
+export function RecordingIndicator({
+  duration,
+  isPaused,
+  onPause,
+  onStop,
+}: RecordingIndicatorProps) {
   const formatDuration = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600)
     const mins = Math.floor((seconds % 3600) / 60)
@@ -31,21 +31,14 @@ export function RecordingIndicator({ duration, isPaused, onPause, onStop }: Reco
 
   return (
     <TooltipProvider>
-      <div className="flex items-center gap-2 bg-red-900/80 rounded-lg px-3 py-1.5">
+      <div className="flex items-center gap-2 rounded-lg bg-red-900/80 px-3 py-1.5">
         <div className="flex items-center gap-2">
-          <Radio className={cn(
-            "w-4 h-4 text-red-500",
-            !isPaused && "animate-pulse"
-          )} />
-          <span className="text-white font-mono text-sm">
-            {formatDuration(duration)}
-          </span>
-          {isPaused && (
-            <span className="text-xs text-yellow-400 ml-1">(Paused)</span>
-          )}
+          <Radio className={cn('h-4 w-4 text-red-500', !isPaused && 'animate-pulse')} />
+          <span className="font-mono text-sm text-white">{formatDuration(duration)}</span>
+          {isPaused && <span className="ml-1 text-xs text-yellow-400">(Paused)</span>}
         </div>
-        
-        <div className="flex items-center gap-1 ml-2">
+
+        <div className="ml-2 flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -55,15 +48,15 @@ export function RecordingIndicator({ duration, isPaused, onPause, onStop }: Reco
                 onClick={onPause}
               >
                 {isPaused ? (
-                  <div className="w-3 h-3 border-l-2 border-r-2 border-white" />
+                  <div className="h-3 w-3 border-l-2 border-r-2 border-white" />
                 ) : (
-                  <Pause className="w-3 h-3" />
+                  <Pause className="h-3 w-3" />
                 )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>{isPaused ? 'Resume' : 'Pause'}</TooltipContent>
           </Tooltip>
-          
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -72,7 +65,7 @@ export function RecordingIndicator({ duration, isPaused, onPause, onStop }: Reco
                 className="h-6 w-6 text-white hover:bg-red-800"
                 onClick={onStop}
               >
-                <Square className="w-3 h-3 fill-current" />
+                <Square className="h-3 w-3 fill-current" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Stop Recording</TooltipContent>

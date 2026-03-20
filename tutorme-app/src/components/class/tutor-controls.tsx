@@ -6,7 +6,17 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Users, AlertTriangle, Send, Plus, ChevronLeft, ChevronRight, X, Grid3X3, MoreHorizontal } from 'lucide-react'
+import {
+  Users,
+  AlertTriangle,
+  Send,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Grid3X3,
+  MoreHorizontal,
+} from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -38,15 +48,15 @@ interface TutorControlsProps {
   onDeletePage?: (index: number) => void
 }
 
-export function TutorControls({ 
-  studentCount, 
+export function TutorControls({
+  studentCount,
   strugglingCount,
   onBroadcast,
   pages = [],
   currentPageIndex = 0,
   onPageChange,
   onAddPage,
-  onDeletePage
+  onDeletePage,
 }: TutorControlsProps) {
   const [broadcastText, setBroadcastText] = useState('')
   const [targetGroup, setTargetGroup] = useState<'all' | 'struggling' | 'needs_help'>('all')
@@ -58,27 +68,27 @@ export function TutorControls({
   }
 
   const quickMessages = [
-    { label: 'Let\'s start', text: 'Welcome everyone! Let\'s begin today\'s class session.' },
+    { label: "Let's start", text: "Welcome everyone! Let's begin today's class session." },
     { label: 'Good job', text: 'Great work so far! Keep it up.' },
-    { label: 'Need help?', text: 'If you\'re stuck, don\'t hesitate to ask questions in chat.' },
-    { label: 'Break', text: 'Let\'s take a 5-minute break. See you soon!' },
-    { label: 'Wrapping up', text: 'We\'re wrapping up in 10 minutes. Finish your current task.' },
+    { label: 'Need help?', text: "If you're stuck, don't hesitate to ask questions in chat." },
+    { label: 'Break', text: "Let's take a 5-minute break. See you soon!" },
+    { label: 'Wrapping up', text: "We're wrapping up in 10 minutes. Finish your current task." },
   ]
 
   const hasPages = pages.length > 0
 
   return (
-    <div className="bg-slate-800 border-t border-slate-700 px-4 py-3">
+    <div className="border-t border-slate-700 bg-slate-800 px-4 py-3">
       <div className="flex items-center gap-4">
         {/* Stats */}
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-2 text-slate-400">
-            <Users className="w-4 h-4" />
+            <Users className="h-4 w-4" />
             <span>{studentCount} students</span>
           </div>
           {strugglingCount > 0 && (
             <div className="flex items-center gap-2 text-red-400">
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="h-4 w-4" />
               <span>{strugglingCount} need attention</span>
             </div>
           )}
@@ -88,28 +98,32 @@ export function TutorControls({
 
         {/* Quick Messages: 2 visible on small screens, rest in More (ClassRoom.md: footer streamlining) */}
         <div className="flex items-center gap-2">
-          {quickMessages.slice(0, 2).map((msg) => (
+          {quickMessages.slice(0, 2).map(msg => (
             <button
               key={msg.label}
               onClick={() => onBroadcast(msg.text, 'all')}
-              className="px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 rounded text-slate-300 whitespace-nowrap"
+              className="whitespace-nowrap rounded bg-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-600"
             >
               {msg.label}
             </button>
           ))}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-2 text-slate-400 border-slate-600 hover:bg-slate-700">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 border-slate-600 px-2 text-slate-400 hover:bg-slate-700"
+              >
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">More quick messages</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-slate-800 border-slate-700">
-              {quickMessages.map((msg) => (
+            <DropdownMenuContent align="start" className="border-slate-700 bg-slate-800">
+              {quickMessages.map(msg => (
                 <DropdownMenuItem
                   key={msg.label}
                   onClick={() => onBroadcast(msg.text, 'all')}
-                  className="text-slate-200 focus:bg-slate-700 focus:text-white cursor-pointer"
+                  className="cursor-pointer text-slate-200 focus:bg-slate-700 focus:text-white"
                 >
                   {msg.label}
                 </DropdownMenuItem>
@@ -123,56 +137,54 @@ export function TutorControls({
         {/* Page Navigation */}
         {hasPages && onPageChange && (
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onAddPage} 
-              className="gap-1 h-8 text-xs"
-            >
-              <Plus className="w-3 h-3" /> New Page
+            <Button variant="outline" size="sm" onClick={onAddPage} className="h-8 gap-1 text-xs">
+              <Plus className="h-3 w-3" /> New Page
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onPageChange(Math.max(0, currentPageIndex - 1))} 
-              disabled={currentPageIndex === 0} 
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(Math.max(0, currentPageIndex - 1))}
+              disabled={currentPageIndex === 0}
               className="h-8 w-8 p-0"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-            
+
             <div className="flex items-center gap-1">
               {pages.map((page, index) => (
-                <button 
-                  key={page.id} 
-                  onClick={() => onPageChange(index)} 
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs whitespace-nowrap transition-colors ${
-                    index === currentPageIndex 
-                      ? 'bg-blue-600 text-white' 
+                <button
+                  key={page.id}
+                  onClick={() => onPageChange(index)}
+                  className={`flex items-center gap-1 whitespace-nowrap rounded px-2 py-1 text-xs transition-colors ${
+                    index === currentPageIndex
+                      ? 'bg-blue-600 text-white'
                       : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                   }`}
                 >
-                  <Grid3X3 className="w-3 h-3" />
+                  <Grid3X3 className="h-3 w-3" />
                   <span className="max-w-[60px] truncate">{page.name}</span>
                   {pages.length > 1 && index === currentPageIndex && onDeletePage && (
-                    <X 
-                      className="w-3 h-3 ml-1 opacity-70 hover:opacity-100 hover:bg-red-500 rounded" 
-                      onClick={(e) => { e.stopPropagation(); onDeletePage(index); }} 
+                    <X
+                      className="ml-1 h-3 w-3 rounded opacity-70 hover:bg-red-500 hover:opacity-100"
+                      onClick={e => {
+                        e.stopPropagation()
+                        onDeletePage(index)
+                      }}
                     />
                   )}
                 </button>
               ))}
             </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onPageChange(Math.min(pages.length - 1, currentPageIndex + 1))} 
-              disabled={currentPageIndex === pages.length - 1} 
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(Math.min(pages.length - 1, currentPageIndex + 1))}
+              disabled={currentPageIndex === pages.length - 1}
               className="h-8 w-8 p-0"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}
@@ -181,30 +193,36 @@ export function TutorControls({
 
         {/* Broadcast Input */}
         <div className="flex items-center gap-2">
-          <Select 
-            value={targetGroup} 
+          <Select
+            value={targetGroup}
             onValueChange={(v: 'all' | 'struggling' | 'needs_help') => setTargetGroup(v)}
           >
-            <SelectTrigger className="w-36 bg-slate-700 border-slate-600 text-white">
+            <SelectTrigger className="w-36 border-slate-600 bg-slate-700 text-white">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-slate-700 border-slate-600">
-              <SelectItem value="all" className="text-white">All Students</SelectItem>
-              <SelectItem value="struggling" className="text-white">Struggling Only</SelectItem>
-              <SelectItem value="needs_help" className="text-white">Need Help</SelectItem>
+            <SelectContent className="border-slate-600 bg-slate-700">
+              <SelectItem value="all" className="text-white">
+                All Students
+              </SelectItem>
+              <SelectItem value="struggling" className="text-white">
+                Struggling Only
+              </SelectItem>
+              <SelectItem value="needs_help" className="text-white">
+                Need Help
+              </SelectItem>
             </SelectContent>
           </Select>
 
           <Input
             value={broadcastText}
-            onChange={(e) => setBroadcastText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleBroadcast()}
+            onChange={e => setBroadcastText(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleBroadcast()}
             placeholder="Broadcast message to students..."
-            className="w-80 bg-slate-700 border-slate-600 text-white"
+            className="w-80 border-slate-600 bg-slate-700 text-white"
           />
 
           <Button onClick={handleBroadcast} size="icon">
-            <Send className="w-4 h-4" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>

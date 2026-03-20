@@ -3,31 +3,31 @@
 
 /**
  * Database Client with Connection Pooling
- * 
+ *
  * Features:
  * - Connection pooling for high concurrency (100+ users)
  * - Query caching with Redis
  * - Read replica support for scaling
  * - N+1 query prevention with dataloaders
- * 
+ *
  * Note: Redis is lazily initialized to avoid bundling issues
  */
 
 // Connection pool configuration
 const POOL_CONFIG = {
   // Connection pool settings for 100+ concurrent users
-  min: 5,                    // Minimum connections
-  max: 50,                   // Maximum connections (supports 100+ concurrent users)
-  idleTimeoutMillis: 30000,  // Close idle connections after 30s
+  min: 5, // Minimum connections
+  max: 50, // Maximum connections (supports 100+ concurrent users)
+  idleTimeoutMillis: 30000, // Close idle connections after 30s
   connectionTimeoutMillis: 5000, // Connection timeout
-  allowExitOnIdle: false,    // Keep pool alive
+  allowExitOnIdle: false, // Keep pool alive
 }
 
 // Query cache configuration
 const CACHE_CONFIG = {
-  ttl: 60,                   // Default cache TTL in seconds
-  staleWhileRevalidate: 30,  // Serve stale data while refreshing
-  prefix: 'tutorme:query:',  // Cache key prefix
+  ttl: 60, // Default cache TTL in seconds
+  staleWhileRevalidate: 30, // Serve stale data while refreshing
+  prefix: 'tutorme:query:', // Cache key prefix
 }
 
 let db: any
@@ -37,7 +37,8 @@ let redisInitialized = false
 
 // Safe check for server-side environment (not Edge Runtime)
 // Edge Runtime (used by Next.js middleware) doesn't support node-postgres
-const isEdgeRuntime = typeof (globalThis as any).EdgeRuntime !== 'undefined' || 
+const isEdgeRuntime =
+  typeof (globalThis as any).EdgeRuntime !== 'undefined' ||
   (typeof process !== 'undefined' && process.env.NEXT_RUNTIME === 'edge')
 const isServer = typeof window === 'undefined' && !isEdgeRuntime
 
@@ -54,7 +55,7 @@ function getQueryCache() {
 async function initRedis() {
   if (!isServer) return null
   if (redisInitialized) return redis
-  
+
   try {
     const redisUrl = process.env.REDIS_URL
     if (!redisUrl) {
@@ -62,19 +63,19 @@ async function initRedis() {
       redisInitialized = true
       return null
     }
-    
+
     // Dynamic import to avoid bundling issues
     const { Redis } = await import('ioredis')
     redis = new Redis(redisUrl, {
-      retryStrategy: (times) => Math.min(times * 50, 2000),
+      retryStrategy: times => Math.min(times * 50, 2000),
       maxRetriesPerRequest: 3,
     })
-    
+
     redis.on('error', (err: any) => {
       console.error('[Redis] Connection error:', err)
       redis = null
     })
-    
+
     console.log('[DB] Redis cache initialized')
     redisInitialized = true
     return redis
@@ -142,9 +143,9 @@ export const cache = {
    */
   async get<T>(key: string): Promise<T | null> {
     if (!isServer) return null
-    
+
     const fullKey = CACHE_CONFIG.prefix + key
-    
+
     // Try Redis first
     const client = await this.ensureRedis()
     if (client) {
@@ -155,28 +156,28 @@ export const cache = {
         console.error('[Cache] Redis get error:', e)
       }
     }
-    
+
     // Fallback to in-memory cache
     const cache = getQueryCache()
     if (!cache) return null
-    
+
     const cached = cache.get(fullKey)
     if (cached && cached.expires > Date.now()) {
       return cached.data
     }
-    
+
     cache.delete(fullKey)
     return null
   },
-  
+
   /**
    * Set cached value
    */
   async set<T>(key: string, value: T, ttlSeconds = CACHE_CONFIG.ttl): Promise<void> {
     if (!isServer) return
-    
+
     const fullKey = CACHE_CONFIG.prefix + key
-    
+
     // Try Redis first
     const client = await this.ensureRedis()
     if (client) {
@@ -187,25 +188,25 @@ export const cache = {
         console.error('[Cache] Redis set error:', e)
       }
     }
-    
+
     // Fallback to in-memory cache
     const cache = getQueryCache()
     if (cache) {
       cache.set(fullKey, {
         data: value,
-        expires: Date.now() + ttlSeconds * 1000
+        expires: Date.now() + ttlSeconds * 1000,
       })
     }
   },
-  
+
   /**
    * Delete cached value
    */
   async delete(key: string): Promise<void> {
     if (!isServer) return
-    
+
     const fullKey = CACHE_CONFIG.prefix + key
-    
+
     const client = await this.ensureRedis()
     if (client) {
       try {
@@ -214,17 +215,17 @@ export const cache = {
         console.error('[Cache] Redis del error:', e)
       }
     }
-    
+
     const cache = getQueryCache()
     if (cache) cache.delete(fullKey)
   },
-  
+
   /**
    * Clear all cached values
    */
   async clear(): Promise<void> {
     if (!isServer) return
-    
+
     const client = await this.ensureRedis()
     if (client) {
       try {
@@ -236,11 +237,11 @@ export const cache = {
         console.error('[Cache] Redis clear error:', e)
       }
     }
-    
+
     const cache = getQueryCache()
     if (cache) cache.clear()
   },
-  
+
   /**
    * Get or set cached value
    */
@@ -251,7 +252,7 @@ export const cache = {
   ): Promise<T> {
     const cached = await this.get<T>(key)
     if (cached !== null) return cached
-    
+
     const value = await factory()
     await this.set(key, value, ttlSeconds)
     return value
@@ -262,7 +263,7 @@ export const cache = {
    */
   async invalidatePattern(pattern: string): Promise<void> {
     if (!isServer) return
-    
+
     const client = await this.ensureRedis()
     if (client) {
       try {
@@ -274,7 +275,7 @@ export const cache = {
         console.error('[Cache] Pattern invalidation error:', e)
       }
     }
-    
+
     // Clear in-memory cache matching pattern
     const cache = getQueryCache()
     if (cache) {
@@ -283,7 +284,7 @@ export const cache = {
         if (regex.test(key)) cache.delete(key)
       }
     }
-  }
+  },
 }
 
 /**
@@ -300,20 +301,20 @@ export const queryOptimizer = {
   ): Promise<(T | null)[]> {
     if (!isServer) return ids.map(() => null)
     if (ids.length === 0) return []
-    
+
     // Deduplicate IDs
     const uniqueIds = [...new Set(ids)]
-    
+
     // Fetch all items in one query
     const items = await fetchFn(uniqueIds)
-    
+
     // Create lookup map
     const itemMap = new Map(items.map(item => [getId(item), item]))
-    
+
     // Return items in original order
     return ids.map(id => itemMap.get(id) || null)
   },
-  
+
   /**
    * Wrap a query with caching
    */
@@ -323,7 +324,7 @@ export const queryOptimizer = {
     ttlSeconds = CACHE_CONFIG.ttl
   ): Promise<T> {
     return cache.getOrSet(cacheKey, queryFn, ttlSeconds)
-  }
+  },
 }
 
 /**
@@ -336,7 +337,7 @@ export const readReplica = {
   isConfigured(): boolean {
     return isServer && !!process.env.DATABASE_READ_REPLICA_URL
   },
-  
+
   /**
    * Get read-only database client
    * Falls back to primary if replicas not configured
@@ -345,7 +346,7 @@ export const readReplica = {
     // For now, return the same client
     // In production, this would return a connection to the read replica
     return db
-  }
+  },
 }
 
 export { db }

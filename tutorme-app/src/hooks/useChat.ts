@@ -19,7 +19,11 @@ interface UseChatProps {
   maxMessages?: number
 }
 
-export function useChat({ initialMessages = [], onSendMessage, maxMessages = 100 }: UseChatProps = {}) {
+export function useChat({
+  initialMessages = [],
+  onSendMessage,
+  maxMessages = 100,
+}: UseChatProps = {}) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,53 +35,62 @@ export function useChat({ initialMessages = [], onSendMessage, maxMessages = 100
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const addMessage = useCallback((message: Omit<Message, 'id' | 'timestamp'>) => {
-    const newMessage: Message = {
-      ...message,
-      id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-      timestamp: new Date().toISOString()
-    }
-    setMessages(prev => {
-      const updated = [...prev, newMessage]
-      // Keep only last maxMessages
-      return updated.slice(-maxMessages)
-    })
-    return newMessage.id
-  }, [maxMessages])
-
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || loading) return
-
-    setLoading(true)
-    setError(null)
-
-    // Add user message immediately
-    addMessage({ role: 'user', content: content.trim() })
-    setInput('')
-
-    try {
-      if (onSendMessage) {
-        await onSendMessage(content.trim())
+  const addMessage = useCallback(
+    (message: Omit<Message, 'id' | 'timestamp'>) => {
+      const newMessage: Message = {
+        ...message,
+        id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        timestamp: new Date().toISOString(),
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message')
-      // Add error message
-      addMessage({
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-        hintType: 'encouragement'
+      setMessages(prev => {
+        const updated = [...prev, newMessage]
+        // Keep only last maxMessages
+        return updated.slice(-maxMessages)
       })
-    } finally {
-      setLoading(false)
-    }
-  }, [addMessage, loading, onSendMessage])
+      return newMessage.id
+    },
+    [maxMessages]
+  )
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage(input)
-    }
-  }, [input, sendMessage])
+  const sendMessage = useCallback(
+    async (content: string) => {
+      if (!content.trim() || loading) return
+
+      setLoading(true)
+      setError(null)
+
+      // Add user message immediately
+      addMessage({ role: 'user', content: content.trim() })
+      setInput('')
+
+      try {
+        if (onSendMessage) {
+          await onSendMessage(content.trim())
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to send message')
+        // Add error message
+        addMessage({
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+          hintType: 'encouragement',
+        })
+      } finally {
+        setLoading(false)
+      }
+    },
+    [addMessage, loading, onSendMessage]
+  )
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        sendMessage(input)
+      }
+    },
+    [input, sendMessage]
+  )
 
   const clearMessages = useCallback(() => {
     setMessages([])
@@ -89,9 +102,7 @@ export function useChat({ initialMessages = [], onSendMessage, maxMessages = 100
   }, [])
 
   const editMessage = useCallback((id: string, newContent: string) => {
-    setMessages(prev =>
-      prev.map(m => m.id === id ? { ...m, content: newContent } : m)
-    )
+    setMessages(prev => prev.map(m => (m.id === id ? { ...m, content: newContent } : m)))
   }, [])
 
   const lastAssistantMessage = messages.filter(m => m.role === 'assistant').pop()
@@ -109,6 +120,6 @@ export function useChat({ initialMessages = [], onSendMessage, maxMessages = 100
     addMessage,
     clearMessages,
     deleteMessage,
-    editMessage
+    editMessage,
   }
 }

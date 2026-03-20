@@ -92,8 +92,7 @@ export const SECURITY_EVENT_TYPES = {
   CROSS_BORDER_TRANSFER: 'CROSS_BORDER_TRANSFER',
 } as const
 
-export type SecurityEventType =
-  (typeof SECURITY_EVENT_TYPES)[keyof typeof SECURITY_EVENT_TYPES]
+export type SecurityEventType = (typeof SECURITY_EVENT_TYPES)[keyof typeof SECURITY_EVENT_TYPES]
 
 // Global security severity levels
 export const SECURITY_SEVERITY = {
@@ -103,8 +102,7 @@ export const SECURITY_SEVERITY = {
   CRITICAL: 'CRITICAL',
 } as const
 
-export type SecuritySeverity =
-  (typeof SECURITY_SEVERITY)[keyof typeof SECURITY_SEVERITY]
+export type SecuritySeverity = (typeof SECURITY_SEVERITY)[keyof typeof SECURITY_SEVERITY]
 
 // Global security context interface
 export interface SecurityContext {
@@ -186,43 +184,38 @@ export class SecurityAudit {
         },
       }
 
-      const [event] = await drizzleDb.insert(securityEvent).values({
-        id: crypto.randomUUID(),
-        eventType: action,
-        action,
-        userId: userId || null,
-        actorId: actorId || null,
-        targetType: targetType || null,
-        targetId: targetId || null,
-        severity,
-        description,
-        ip: context?.ipAddress || null,
-        originIp: context?.ipAddress || null,
-        userAgent: context?.userAgent || null,
-        countryCode: (locationData?.countryCode ?? context?.countryCode) || null,
-        region: (locationData?.region ?? context?.region) || null,
-        city: (locationData?.city ?? context?.city) || null,
-        deviceId: context?.deviceId || null,
-        sessionId: context?.sessionId || null,
-        correlationId: context?.correlationId || null,
-        metadata: enhancedMetadata as object,
-        occurredAt: new Date(),
-        createdAt: new Date(),
-      }).returning()
+      const [event] = await drizzleDb
+        .insert(securityEvent)
+        .values({
+          id: crypto.randomUUID(),
+          eventType: action,
+          action,
+          userId: userId || null,
+          actorId: actorId || null,
+          targetType: targetType || null,
+          targetId: targetId || null,
+          severity,
+          description,
+          ip: context?.ipAddress || null,
+          originIp: context?.ipAddress || null,
+          userAgent: context?.userAgent || null,
+          countryCode: (locationData?.countryCode ?? context?.countryCode) || null,
+          region: (locationData?.region ?? context?.region) || null,
+          city: (locationData?.city ?? context?.city) || null,
+          deviceId: context?.deviceId || null,
+          sessionId: context?.sessionId || null,
+          correlationId: context?.correlationId || null,
+          metadata: enhancedMetadata as object,
+          occurredAt: new Date(),
+          createdAt: new Date(),
+        })
+        .returning()
 
-      if (
-        severity === SECURITY_SEVERITY.HIGH ||
-        severity === SECURITY_SEVERITY.CRITICAL
-      ) {
+      if (severity === SECURITY_SEVERITY.HIGH || severity === SECURITY_SEVERITY.CRITICAL) {
         await this.notifySecurityTeam(event)
       }
 
-      await this.handleComplianceLogging(
-        action,
-        userId,
-        actorId,
-        enhancedMetadata
-      )
+      await this.handleComplianceLogging(action, userId, actorId, enhancedMetadata)
 
       await this.notifyExternalSecuritySystems(event)
 
@@ -266,10 +259,7 @@ export class SecurityAudit {
     }
   }
 
-  private calculateRiskLevel(
-    severity: SecuritySeverity,
-    action: SecurityEventType
-  ): number {
+  private calculateRiskLevel(severity: SecuritySeverity, action: SecurityEventType): number {
     const baseRisk = {
       [SECURITY_SEVERITY.LOW]: 1,
       [SECURITY_SEVERITY.MEDIUM]: 3,
@@ -291,10 +281,7 @@ export class SecurityAudit {
     return Math.max(baseRisk, actionRiskValue)
   }
 
-  private detectSecurityPattern(
-    action: SecurityEventType,
-    context?: SecurityContext
-  ): string[] {
+  private detectSecurityPattern(action: SecurityEventType, context?: SecurityContext): string[] {
     const patterns: string[] = []
 
     if (action === SECURITY_EVENT_TYPES.LOGIN_FAILURE) {
@@ -358,11 +345,7 @@ export class SecurityAudit {
       SECURITY_EVENT_TYPES.PII_ACCESS,
     ]
     if (gdprEvents.includes(action) && userId) {
-      await complianceAudit.logDataAccess(
-        userId,
-        action,
-        metadata as Record<string, unknown>
-      )
+      await complianceAudit.logDataAccess(userId, action, metadata as Record<string, unknown>)
     }
 
     const piplEvents: SecurityEventType[] = [
@@ -379,11 +362,11 @@ export class SecurityAudit {
     }
   }
 
-  private async notifySecurityTeam(
-    event: SecurityEvent
-  ): Promise<void> {
+  private async notifySecurityTeam(event: SecurityEvent): Promise<void> {
     try {
-      const meta = event.metadata as { _security?: { riskLevel?: number; pattern?: string[] } } | null
+      const meta = event.metadata as {
+        _security?: { riskLevel?: number; pattern?: string[] }
+      } | null
       const securityAlert = {
         severity: event.severity,
         action: event.action,
@@ -401,16 +384,14 @@ export class SecurityAudit {
       }
       globalErrorHandler.handleWarning('Security Alert', securityAlert)
     } catch (error) {
-      globalErrorHandler.handleError(
-        new Error('Failed to notify security team'),
-        { originalEvent: event.id, error }
-      )
+      globalErrorHandler.handleError(new Error('Failed to notify security team'), {
+        originalEvent: event.id,
+        error,
+      })
     }
   }
 
-  private async notifyExternalSecuritySystems(
-    event: SecurityEvent
-  ): Promise<void> {
+  private async notifyExternalSecuritySystems(event: SecurityEvent): Promise<void> {
     // Placeholder for SIEM, WAF, fraud detection integrations
     if (process.env.NODE_ENV === 'development') {
       console.debug('[SecurityAudit] External notification:', event.id)
@@ -441,12 +422,7 @@ export class SecurityAudit {
       const events = await drizzleDb
         .select()
         .from(securityEvent)
-        .where(
-          and(
-            gte(securityEvent.createdAt, startDate),
-            lte(securityEvent.createdAt, endDate)
-          )
-        )
+        .where(and(gte(securityEvent.createdAt, startDate), lte(securityEvent.createdAt, endDate)))
         .orderBy(desc(securityEvent.createdAt))
 
       const report = {
@@ -461,12 +437,8 @@ export class SecurityAudit {
           byCountry: this.groupByCountry(events),
           riskTrends: this.assessRiskTrends(events),
         },
-        criticalEvents: events.filter(
-          (e) => e.severity === SECURITY_SEVERITY.CRITICAL
-        ),
-        highRiskEvents: events.filter(
-          (e) => e.severity === SECURITY_SEVERITY.HIGH
-        ),
+        criticalEvents: events.filter(e => e.severity === SECURITY_SEVERITY.CRITICAL),
+        highRiskEvents: events.filter(e => e.severity === SECURITY_SEVERITY.HIGH),
         complianceStatus: this.getComplianceStatus(events),
         recommendations: this.generateRecommendations(events),
       }
@@ -482,9 +454,7 @@ export class SecurityAudit {
     }
   }
 
-  private groupBySeverity(
-    events: SecurityEvent[]
-  ): Record<string, number> {
+  private groupBySeverity(events: SecurityEvent[]): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const event of events) {
       const s = event.severity ?? 'UNKNOWN'
@@ -493,9 +463,7 @@ export class SecurityAudit {
     return counts
   }
 
-  private groupByAction(
-    events: SecurityEvent[]
-  ): Record<string, number> {
+  private groupByAction(events: SecurityEvent[]): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const event of events) {
       const a = event.action ?? event.eventType ?? 'UNKNOWN'
@@ -504,9 +472,7 @@ export class SecurityAudit {
     return counts
   }
 
-  private groupByCountry(
-    events: SecurityEvent[]
-  ): Record<string, number> {
+  private groupByCountry(events: SecurityEvent[]): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const event of events) {
       const country = event.countryCode ?? 'UNKNOWN'
@@ -518,26 +484,22 @@ export class SecurityAudit {
   private assessRiskTrends(events: SecurityEvent[]): string[] {
     const trends: string[] = []
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    const recentEvents = events.filter(
-      (e) => (e.occurredAt ?? e.createdAt) > weekAgo
-    )
+    const recentEvents = events.filter(e => (e.occurredAt ?? e.createdAt) > weekAgo)
 
     const bruteForceCount = recentEvents.filter(
-      (e) => e.action === SECURITY_EVENT_TYPES.BRUTE_FORCE_ATTEMPT
+      e => e.action === SECURITY_EVENT_TYPES.BRUTE_FORCE_ATTEMPT
     ).length
     if (bruteForceCount > 5) trends.push('INCREASE_BRUTE_FORCE_ATTEMPTS')
 
     const fraudCount = recentEvents.filter(
-      (e) => e.action === SECURITY_EVENT_TYPES.FRAUD_FLAGGED
+      e => e.action === SECURITY_EVENT_TYPES.FRAUD_FLAGGED
     ).length
     if (fraudCount > 3) trends.push('PAYMENT_FRAUD_DETECTION')
 
     return trends
   }
 
-  private getComplianceStatus(
-    events: SecurityEvent[]
-  ): Record<string, string> {
+  private getComplianceStatus(events: SecurityEvent[]): Record<string, string> {
     const status: Record<string, string> = {}
     for (const event of events) {
       const meta = event.metadata as { _security?: { complianceFlags?: string[] } } | null
@@ -549,37 +511,29 @@ export class SecurityAudit {
     return status
   }
 
-  private generateRecommendations(
-    events: SecurityEvent[]
-  ): string[] {
+  private generateRecommendations(events: SecurityEvent[]): string[] {
     const recommendations: string[] = []
 
     const rateLimitCount = events.filter(
-      (e) => e.action === SECURITY_EVENT_TYPES.RATE_LIMIT_TRIGGERED
+      e => e.action === SECURITY_EVENT_TYPES.RATE_LIMIT_TRIGGERED
     ).length
     if (rateLimitCount > 10) {
-      recommendations.push(
-        'Consider stricter rate limits for your API endpoints'
-      )
+      recommendations.push('Consider stricter rate limits for your API endpoints')
     }
 
-    const loginCount = events.filter(
-      (e) => e.action === SECURITY_EVENT_TYPES.LOGIN_ATTEMPT
-    ).length
+    const loginCount = events.filter(e => e.action === SECURITY_EVENT_TYPES.LOGIN_ATTEMPT).length
     if (loginCount > 100) {
       recommendations.push(
         'Consider enforcing multi-factor authentication for high-traffic sessions'
       )
     }
 
-    const highRiskCount = events.filter((e) => {
+    const highRiskCount = events.filter(e => {
       const meta = e.metadata as { _security?: { riskLevel?: number } } | null
       return (meta?._security?.riskLevel ?? 0) > 7
     }).length
     if (highRiskCount > 5) {
-      recommendations.push(
-        'Monitor high-risk data access events more closely'
-      )
+      recommendations.push('Monitor high-risk data access events more closely')
     }
 
     return recommendations
@@ -587,4 +541,3 @@ export class SecurityAudit {
 }
 
 export const securityAudit = SecurityAudit.getInstance()
-

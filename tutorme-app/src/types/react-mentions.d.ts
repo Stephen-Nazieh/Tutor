@@ -25,7 +25,9 @@ declare module 'react-mentions' {
 
   export interface MentionProps {
     trigger: string | RegExp
-    data: SuggestionDataItem[] | ((search: string, callback: (data: SuggestionDataItem[]) => void) => void)
+    data:
+      | SuggestionDataItem[]
+      | ((search: string, callback: (data: SuggestionDataItem[]) => void) => void)
     markup?: string
     displayTransform?: (id: string, display: string) => string
     renderSuggestion?: (

@@ -12,7 +12,8 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/lib/api/middleware', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/api/middleware')>('@/lib/api/middleware')
+  const actual =
+    await vi.importActual<typeof import('@/lib/api/middleware')>('@/lib/api/middleware')
   return {
     ...actual,
     withAuth: (handler: (...args: unknown[]) => Promise<Response> | Response) => {
@@ -87,14 +88,18 @@ describe('POST /api/class/join', () => {
   })
 
   it('returns 400 when class session is not active', async () => {
-    mocks.selectQueue = [[{
-      id: 'session-1',
-      roomId: 'room-1',
-      tutorId: 'tutor-1',
-      status: 'SCHEDULED',
-      maxStudents: 50,
-      roomUrl: 'https://daily.co/room-1',
-    }]]
+    mocks.selectQueue = [
+      [
+        {
+          id: 'session-1',
+          roomId: 'room-1',
+          tutorId: 'tutor-1',
+          status: 'SCHEDULED',
+          maxStudents: 50,
+          roomUrl: 'https://daily.co/room-1',
+        },
+      ],
+    ]
     const req = new Request('http://localhost/api/class/join', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -109,14 +114,16 @@ describe('POST /api/class/join', () => {
 
   it('joins by session id and creates participant when missing', async () => {
     mocks.selectQueue = [
-      [{
-        id: 'session-1',
-        roomId: 'room-1',
-        tutorId: 'tutor-1',
-        status: 'ACTIVE',
-        maxStudents: 50,
-        roomUrl: 'https://daily.co/room-1',
-      }],
+      [
+        {
+          id: 'session-1',
+          roomId: 'room-1',
+          tutorId: 'tutor-1',
+          status: 'ACTIVE',
+          maxStudents: 50,
+          roomUrl: 'https://daily.co/room-1',
+        },
+      ],
       [],
       [],
     ]
@@ -139,10 +146,6 @@ describe('POST /api/class/join', () => {
       token: 'meeting-token',
     })
     expect(mocks.insertValues).toHaveBeenCalled()
-    expect(mocks.createMeetingToken).toHaveBeenCalledWith(
-      'room-1',
-      'student-1',
-      { isOwner: false }
-    )
+    expect(mocks.createMeetingToken).toHaveBeenCalledWith('room-1', 'student-1', { isOwner: false })
   })
 })

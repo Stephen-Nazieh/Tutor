@@ -1,6 +1,6 @@
 /**
  * Operation Durability System
- * 
+ *
  * Features:
  * - Redis stream persistence for whiteboard operations
  * - Resumable replay with sequence numbers
@@ -77,7 +77,7 @@ function generateChecksum(data: string): string {
   let hash = 0
   for (let i = 0; i < data.length; i++) {
     const char = data.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
+    hash = (hash << 5) - hash + char
     hash = hash & hash
   }
   return Math.abs(hash).toString(16)
@@ -192,21 +192,21 @@ export class OperationDurabilityManager {
     let entries: [string, string[]][]
 
     if (reverse) {
-      entries = await this.redis.xrevrange(
+      entries = (await this.redis.xrevrange(
         streamKey,
         endSeq ? `${endSeq}` : '+',
         startSeq ? `${startSeq}` : '-',
         'COUNT',
         count
-      ) as [string, string[]][]
+      )) as [string, string[]][]
     } else {
-      entries = await this.redis.xrange(
+      entries = (await this.redis.xrange(
         streamKey,
         startSeq ? `${startSeq}` : '-',
         endSeq ? `${endSeq}` : '+',
         'COUNT',
         count
-      ) as [string, string[]][]
+      )) as [string, string[]][]
     }
 
     const operations: DurableOperation[] = []
@@ -247,11 +247,7 @@ export class OperationDurabilityManager {
   /**
    * Create a snapshot of current state
    */
-  async createSnapshot(
-    roomId: string,
-    state: unknown,
-    seq: number
-  ): Promise<OperationSnapshot> {
+  async createSnapshot(roomId: string, state: unknown, seq: number): Promise<OperationSnapshot> {
     const snapshotKey = `${this.snapshotPrefix}:${roomId}`
     const positionKey = `${this.positionPrefix}:${roomId}`
 
@@ -352,10 +348,10 @@ export class OperationDurabilityManager {
         'STREAMS',
         streamKey,
         cursor
-      ) as unknown) as [string, [string, string[]][]] | null
+      )) as unknown as [string, [string, string[]][]] | null
 
       if (!result) break
-      
+
       const [newCursor, entries] = result
       cursor = newCursor
 
@@ -418,11 +414,7 @@ export class OperationDurabilityManager {
   /**
    * Add an operation to the dead letter queue
    */
-  async addToDeadLetter(
-    roomId: string,
-    operation: DurableOperation,
-    error: string
-  ): Promise<void> {
+  async addToDeadLetter(roomId: string, operation: DurableOperation, error: string): Promise<void> {
     const dlqKey = `${this.deadLetterPrefix}:${roomId}`
 
     const entry: DeadLetterEntry = {
@@ -443,13 +435,15 @@ export class OperationDurabilityManager {
     const dlqKey = `${this.deadLetterPrefix}:${roomId}`
     const entries = await this.redis.lrange(dlqKey, 0, count - 1)
 
-    return entries.map((entry) => {
-      try {
-        return JSON.parse(entry)
-      } catch {
-        return null
-      }
-    }).filter((e): e is DeadLetterEntry => e !== null)
+    return entries
+      .map(entry => {
+        try {
+          return JSON.parse(entry)
+        } catch {
+          return null
+        }
+      })
+      .filter((e): e is DeadLetterEntry => e !== null)
   }
 
   /**
@@ -534,13 +528,11 @@ export class OperationDurabilityManager {
     const dlqKey = `${this.deadLetterPrefix}:${roomId}`
     const positionKey = `${this.positionPrefix}:${roomId}`
 
-    const [
-      streamInfo,
-      snapshotData,
-      dlqLen,
-      positionData,
-    ] = await Promise.all([
-      this.redis.xinfo('STREAM', streamKey).catch(() => null) as Promise<Record<string, string> | null>,
+    const [streamInfo, snapshotData, dlqLen, positionData] = await Promise.all([
+      this.redis.xinfo('STREAM', streamKey).catch(() => null) as Promise<Record<
+        string,
+        string
+      > | null>,
       this.redis.hgetall(snapshotKey),
       this.redis.llen(dlqKey),
       this.redis.hgetall(positionKey),

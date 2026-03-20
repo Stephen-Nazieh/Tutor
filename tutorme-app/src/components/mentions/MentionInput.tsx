@@ -74,22 +74,35 @@ const darkStyle = {
   },
 }
 
-export function MentionInput({ value, onChange, placeholder, disabled, className, onKeyDown, variant = 'default' }: MentionInputProps) {
-  const fetchSuggestions = useCallback((query: string, callback: (data: MentionSuggestion[]) => void) => {
-    const q = (query || '').trim().replace(/^@+/, '')
-    fetch(`/api/users/search?query=${encodeURIComponent(q)}`, { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : { results: [] }))
-      .then((data) => {
-        const suggestions = (data.results || []).map((user: { id: string; displayName?: string; handle?: string; avatarUrl?: string }) => ({
-          id: user.id,
-          display: user.displayName || user.handle || 'User',
-          handle: user.handle,
-          avatarUrl: user.avatarUrl,
-        }))
-        callback(suggestions)
-      })
-      .catch(() => callback([]))
-  }, [])
+export function MentionInput({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  className,
+  onKeyDown,
+  variant = 'default',
+}: MentionInputProps) {
+  const fetchSuggestions = useCallback(
+    (query: string, callback: (data: MentionSuggestion[]) => void) => {
+      const q = (query || '').trim().replace(/^@+/, '')
+      fetch(`/api/users/search?query=${encodeURIComponent(q)}`, { credentials: 'include' })
+        .then(res => (res.ok ? res.json() : { results: [] }))
+        .then(data => {
+          const suggestions = (data.results || []).map(
+            (user: { id: string; displayName?: string; handle?: string; avatarUrl?: string }) => ({
+              id: user.id,
+              display: user.displayName || user.handle || 'User',
+              handle: user.handle,
+              avatarUrl: user.avatarUrl,
+            })
+          )
+          callback(suggestions)
+        })
+        .catch(() => callback([]))
+    },
+    []
+  )
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const MentionsInputComponent = MentionsInput as any
@@ -99,7 +112,9 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
   return (
     <MentionsInputComponent
       value={value}
-      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(event.target.value)}
+      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        onChange(event.target.value)
+      }
       placeholder={placeholder}
       disabled={disabled}
       className={className}
@@ -112,7 +127,11 @@ export function MentionInput({ value, onChange, placeholder, disabled, className
         markup="@[__display__](__id__)"
         displayTransform={(_id: string, display: string) => `@${display}`}
         allowSpaceInQuery
-        renderSuggestion={(suggestion: MentionSuggestion, _search: string, highlightedDisplay: ReactNode) => (
+        renderSuggestion={(
+          suggestion: MentionSuggestion,
+          _search: string,
+          highlightedDisplay: ReactNode
+        ) => (
           <div className="flex items-center justify-between gap-2">
             <span>{highlightedDisplay}</span>
             {suggestion.handle ? (

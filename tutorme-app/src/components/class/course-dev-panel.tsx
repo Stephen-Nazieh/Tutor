@@ -12,15 +12,10 @@ import {
   saveLibraryTask,
   toggleFavoriteTask,
   deleteLibraryTask,
-  incrementTaskUsage
+  incrementTaskUsage,
 } from '@/lib/api/library-client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,7 +55,6 @@ import {
   Copy,
   Square,
   CheckSquare,
-
   Library,
   Search,
   FolderHeart,
@@ -68,7 +62,7 @@ import {
   FileText,
   FileUp,
   X,
-  Target
+  Target,
 } from 'lucide-react'
 import { AssetsPanel } from './assets-panel'
 import { toast } from 'sonner'
@@ -121,7 +115,7 @@ const QUICK_TEMPLATES = [
     id: 'science-forces',
     name: 'Science: Forces & Motion',
     subject: 'Physics',
-    topics: 'Newton\'s Laws, Force, Acceleration, Friction',
+    topics: "Newton's Laws, Force, Acceleration, Friction",
     difficulty: 'intermediate' as const,
     count: 8,
     icon: '⚛️',
@@ -166,7 +160,9 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
   const [importFile, setImportFile] = useState<File | null>(null)
 
   // Phase 14: Source Selection & Assets Integration
-  const [sourceType, setSourceType] = useState<'lesson_transcript' | 'uploaded_documents' | 'all_sources'>('lesson_transcript')
+  const [sourceType, setSourceType] = useState<
+    'lesson_transcript' | 'uploaded_documents' | 'all_sources'
+  >('lesson_transcript')
   const [showAssetsPanel, setShowAssetsPanel] = useState(false)
   const [selectedAssets, setSelectedAssets] = useState<any[]>([])
 
@@ -176,7 +172,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     title: '',
     timeLimit: 30, // minutes
     passingScore: 70, // percentage
-    shuffle: true
+    shuffle: true,
   })
 
   const [generatedTasks, setGeneratedTasks] = useState<any[]>([])
@@ -194,7 +190,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     difficulty: 'intermediate',
     count: 5,
     distributionMode: 'personalized' as 'uniform' | 'personalized' | 'clustered',
-    questionType: 'mixed' as 'mixed' | 'multiple_choice' | 'short_answer'
+    questionType: 'mixed' as 'mixed' | 'multiple_choice' | 'short_answer',
   })
 
   // Smart Defaults: Load from localStorage on mount
@@ -241,12 +237,15 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
   // Save preferences when generating
   const savePreferences = () => {
     try {
-      localStorage.setItem('coursedev-preferences', JSON.stringify({
-        recentSubject: config.subject,
-        recentTopics: config.topics,
-        preferredDifficulty: config.difficulty,
-        lastUsed: new Date().toISOString(),
-      }))
+      localStorage.setItem(
+        'coursedev-preferences',
+        JSON.stringify({
+          recentSubject: config.subject,
+          recentTopics: config.topics,
+          preferredDifficulty: config.difficulty,
+          lastUsed: new Date().toISOString(),
+        })
+      )
     } catch (error) {
       console.error('Failed to save preferences:', error)
     }
@@ -261,7 +260,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     // Phase 14: Validate source-specific requirements
     if (sourceType === 'uploaded_documents' && selectedAssets.length === 0) {
       toast.error('Please select materials', {
-        description: 'Click "Browse & Select Materials" to choose documents'
+        description: 'Click "Browse & Select Materials" to choose documents',
       })
       return
     }
@@ -328,17 +327,21 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
         }
 
         // Add source indicator to question for demo
-        const sourceIndicator = sourceType === 'lesson_transcript'
-          ? '[From Lesson]'
-          : sourceType === 'uploaded_documents'
-            ? '[From Docs]'
-            : '[All Sources]'
+        const sourceIndicator =
+          sourceType === 'lesson_transcript'
+            ? '[From Lesson]'
+            : sourceType === 'uploaded_documents'
+              ? '[From Docs]'
+              : '[All Sources]'
 
         return {
           id: `task-${Date.now()}-${i}`,
           type: type === 'multiple_choice' ? 'multiple_choice' : 'short_answer',
           question: `${sourceIndicator} Sample ${config.subject} question ${i + 1} (${type}) about ${config.topics.split(',')[0]?.trim() || 'topic'}`,
-          options: type === 'multiple_choice' ? ['Option A', 'Option B', 'Option C', 'Option D'] : undefined,
+          options:
+            type === 'multiple_choice'
+              ? ['Option A', 'Option B', 'Option C', 'Option D']
+              : undefined,
           correctAnswer: type === 'multiple_choice' ? 'Option A' : undefined,
           explanation: `This tests understanding of core concepts. ${contextPrompt.substring(0, 100)}...`,
           difficulty: config.difficulty,
@@ -349,11 +352,12 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
       setIsGenerating(false)
 
       // Enhanced success message showing source
-      const sourceLabel = sourceType === 'lesson_transcript'
-        ? 'lesson transcript'
-        : sourceType === 'uploaded_documents'
-          ? `${selectedAssets.length} document(s)`
-          : 'all sources'
+      const sourceLabel =
+        sourceType === 'lesson_transcript'
+          ? 'lesson transcript'
+          : sourceType === 'uploaded_documents'
+            ? `${selectedAssets.length} document(s)`
+            : 'all sources'
 
       toast.success(`Generated ${mockTasks.length} tasks from ${sourceLabel}`)
     }, 1500)
@@ -372,12 +376,14 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     // Simulate generation + assignment
     setTimeout(() => {
       const taskCount = config.count
-      const targetStudents = target === 'all' ? students : students.filter(s => s.status === 'struggling')
+      const targetStudents =
+        target === 'all' ? students : students.filter(s => s.status === 'struggling')
 
       toast.success(
         `✅ Generated ${taskCount} tasks and assigned to ${targetStudents.length} student${targetStudents.length !== 1 ? 's' : ''}!`,
         {
-          description: target === 'struggling' ? 'Helping struggling students' : 'Assigned to all students',
+          description:
+            target === 'struggling' ? 'Helping struggling students' : 'Assigned to all students',
           duration: 4000,
         }
       )
@@ -387,7 +393,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
   }
 
   // Load template
-  const loadTemplate = (template: typeof QUICK_TEMPLATES[0]) => {
+  const loadTemplate = (template: (typeof QUICK_TEMPLATES)[0]) => {
     setConfig(prev => ({
       ...prev,
       subject: template.subject,
@@ -401,9 +407,9 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
   // Phase 2: Update task
   const updateTask = (taskId: string, updates: Partial<any>) => {
-    setGeneratedTasks(prev => prev.map(task =>
-      task.id === taskId ? { ...task, ...updates } : task
-    ))
+    setGeneratedTasks(prev =>
+      prev.map(task => (task.id === taskId ? { ...task, ...updates } : task))
+    )
   }
 
   // Phase 2: Duplicate task
@@ -443,9 +449,9 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
   }
 
   const bulkSetDifficulty = (difficulty: string) => {
-    setGeneratedTasks(prev => prev.map(task =>
-      selectedTasks.has(task.id) ? { ...task, difficulty } : task
-    ))
+    setGeneratedTasks(prev =>
+      prev.map(task => (selectedTasks.has(task.id) ? { ...task, difficulty } : task))
+    )
     toast.success(`Updated ${selectedTasks.size} tasks to ${difficulty}`)
     setSelectedTasks(new Set())
   }
@@ -459,7 +465,6 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
   // Phase 3: Library helpers
 
-
   // Phase 3: Save to library (Server Action)
   const saveToLibrary = async (task: any) => {
     startTransition(async () => {
@@ -467,12 +472,12 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
         const newTask = await saveLibraryTask({
           ...task,
           subject: config.subject,
-          topics: config.topics.split(',').map(t => t.trim())
+          topics: config.topics.split(',').map(t => t.trim()),
         })
 
         setLibrary(prev => ({
           ...prev,
-          tasks: [...prev.tasks, newTask as any]
+          tasks: [...prev.tasks, newTask as any],
         }))
         toast.success('Task saved to library')
       } catch (error) {
@@ -501,7 +506,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
           t.id === libraryTask.id
             ? { ...t, usedCount: t.usedCount + 1, lastUsed: new Date().toISOString() }
             : t
-        )
+        ),
       }))
     })
 
@@ -513,9 +518,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     // Optimistic update
     setLibrary(prev => ({
       ...prev,
-      tasks: prev.tasks.map(t =>
-        t.id === taskId ? { ...t, isFavorite: !t.isFavorite } : t
-      )
+      tasks: prev.tasks.map(t => (t.id === taskId ? { ...t, isFavorite: !t.isFavorite } : t)),
     }))
 
     startTransition(async () => {
@@ -525,9 +528,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
         // Revert on failure
         setLibrary(prev => ({
           ...prev,
-          tasks: prev.tasks.map(t =>
-            t.id === taskId ? { ...t, isFavorite: !t.isFavorite } : t
-          )
+          tasks: prev.tasks.map(t => (t.id === taskId ? { ...t, isFavorite: !t.isFavorite } : t)),
         }))
         toast.error('Failed to update favorite')
       }
@@ -540,7 +541,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     const previousLibrary = library
     setLibrary(prev => ({
       ...prev,
-      tasks: prev.tasks.filter(t => t.id !== taskId)
+      tasks: prev.tasks.filter(t => t.id !== taskId),
     }))
 
     startTransition(async () => {
@@ -565,10 +566,11 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      tasks = tasks.filter(t =>
-        t.question.toLowerCase().includes(query) ||
-        t.subject.toLowerCase().includes(query) ||
-        t.topics.some(topic => topic.toLowerCase().includes(query))
+      tasks = tasks.filter(
+        t =>
+          t.question.toLowerCase().includes(query) ||
+          t.subject.toLowerCase().includes(query) ||
+          t.topics.some(topic => topic.toLowerCase().includes(query))
       )
     }
 
@@ -580,8 +582,6 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
       return b.usedCount - a.usedCount
     })
   }
-
-
 
   // Phase 4: Auto-detect difficulty
   const autoDetectDifficulty = () => {
@@ -647,37 +647,39 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     const mockTasks = [
       {
         id: `imported-${Date.now()}-1`,
-        question: "What is the primary function of the mitochondria?",
-        type: "multiple_choice",
-        options: ["Energy production", "Protein synthesis", "Waste disposal", "Cell division"],
-        correctAnswer: "Energy production",
-        subject: "Biology",
-        topics: ["Cell Biology"],
-        difficulty: "intermediate"
+        question: 'What is the primary function of the mitochondria?',
+        type: 'multiple_choice',
+        options: ['Energy production', 'Protein synthesis', 'Waste disposal', 'Cell division'],
+        correctAnswer: 'Energy production',
+        subject: 'Biology',
+        topics: ['Cell Biology'],
+        difficulty: 'intermediate',
       },
       {
         id: `imported-${Date.now()}-2`,
-        question: "Describe the process of osmosis.",
-        type: "short_answer",
-        subject: "Biology",
-        topics: ["Cell Biology"],
-        difficulty: "intermediate"
+        question: 'Describe the process of osmosis.',
+        type: 'short_answer',
+        subject: 'Biology',
+        topics: ['Cell Biology'],
+        difficulty: 'intermediate',
       },
       {
         id: `imported-${Date.now()}-3`,
         question: "Which organelle is known as the 'brain' of the cell?",
-        type: "multiple_choice",
-        options: ["Nucleus", "Ribosome", "Golgi apparatus", "Endoplasmic reticulum"],
-        correctAnswer: "Nucleus",
-        subject: "Biology",
-        topics: ["Cell Biology"],
-        difficulty: "beginner"
-      }
+        type: 'multiple_choice',
+        options: ['Nucleus', 'Ribosome', 'Golgi apparatus', 'Endoplasmic reticulum'],
+        correctAnswer: 'Nucleus',
+        subject: 'Biology',
+        topics: ['Cell Biology'],
+        difficulty: 'beginner',
+      },
     ]
 
     setImportedTasks(mockTasks)
     setIsAnalyzing(false)
-    toast.success('Analysis Complete', { description: `Extracted ${mockTasks.length} questions from ${file.name}` })
+    toast.success('Analysis Complete', {
+      description: `Extracted ${mockTasks.length} questions from ${file.name}`,
+    })
   }
 
   const importExtractedTasks = () => {
@@ -686,7 +688,9 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     setImportedTasks([])
     setImportFile(null)
     setStep('review')
-    toast.success('Import Successful', { description: `Added ${importedTasks.length} tasks to your set` })
+    toast.success('Import Successful', {
+      description: `Added ${importedTasks.length} tasks to your set`,
+    })
   }
 
   const getStatusCounts = () => ({
@@ -703,45 +707,79 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
     setSelectedAssets(assets)
     setShowAssetsPanel(false)
     toast.success(`Selected ${assets.length} material(s)`, {
-      description: 'Assets ready for AI task generation'
+      description: 'Assets ready for AI task generation',
     })
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-900 text-white">
+    <div className="flex h-full flex-col bg-gray-900 text-white">
       {/* Progress Steps */}
-      <div className="px-6 py-4 border-b border-gray-700 bg-gray-800">
+      <div className="border-b border-gray-700 bg-gray-800 px-6 py-4">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setStep('generate')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${step === 'generate' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
-              }`}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition-colors ${
+              step === 'generate' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'
+            }`}
           >
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm ${step === 'generate' ? 'bg-white text-blue-600' : 'bg-gray-700'
-              }`}>1</div>
+            <div
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-sm ${
+                step === 'generate' ? 'bg-white text-blue-600' : 'bg-gray-700'
+              }`}
+            >
+              1
+            </div>
             <span className="font-medium">Configure</span>
           </button>
-          <div className="w-8 h-px bg-gray-700" />
+          <div className="h-px w-8 bg-gray-700" />
           <button
             onClick={() => generatedTasks.length > 0 && setStep('review')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${step === 'review' ? 'bg-blue-600 text-white' : generatedTasks.length > 0 ? 'text-gray-400 hover:text-white' : 'text-gray-600 cursor-not-allowed'
-              }`}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition-colors ${
+              step === 'review'
+                ? 'bg-blue-600 text-white'
+                : generatedTasks.length > 0
+                  ? 'text-gray-400 hover:text-white'
+                  : 'cursor-not-allowed text-gray-600'
+            }`}
           >
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm ${step === 'review' ? 'bg-white text-blue-600' : generatedTasks.length > 0 ? 'bg-gray-700' : 'bg-gray-800'
-              }`}>2</div>
+            <div
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-sm ${
+                step === 'review'
+                  ? 'bg-white text-blue-600'
+                  : generatedTasks.length > 0
+                    ? 'bg-gray-700'
+                    : 'bg-gray-800'
+              }`}
+            >
+              2
+            </div>
             <span className="font-medium">Review</span>
             {generatedTasks.length > 0 && (
               <Badge className="bg-blue-500">{generatedTasks.length}</Badge>
             )}
           </button>
-          <div className="w-8 h-px bg-gray-700" />
+          <div className="h-px w-8 bg-gray-700" />
           <button
             onClick={() => generatedTasks.length > 0 && setStep('assign')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${step === 'assign' ? 'bg-blue-600 text-white' : generatedTasks.length > 0 ? 'text-gray-400 hover:text-white' : 'text-gray-600 cursor-not-allowed'
-              }`}
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 transition-colors ${
+              step === 'assign'
+                ? 'bg-blue-600 text-white'
+                : generatedTasks.length > 0
+                  ? 'text-gray-400 hover:text-white'
+                  : 'cursor-not-allowed text-gray-600'
+            }`}
           >
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm ${step === 'assign' ? 'bg-white text-blue-600' : generatedTasks.length > 0 ? 'bg-gray-700' : 'bg-gray-800'
-              }`}>3</div>
+            <div
+              className={`flex h-6 w-6 items-center justify-center rounded-full text-sm ${
+                step === 'assign'
+                  ? 'bg-white text-blue-600'
+                  : generatedTasks.length > 0
+                    ? 'bg-gray-700'
+                    : 'bg-gray-800'
+              }`}
+            >
+              3
+            </div>
             <span className="font-medium">Assign</span>
           </button>
         </div>
@@ -750,19 +788,21 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {step === 'generate' && (
-          <div className="h-full flex">
+          <div className="flex h-full">
             {/* Configuration Form */}
-            <div className="flex-1 p-6 overflow-auto">
-              <div className="max-w-3xl mx-auto space-y-6">
+            <div className="flex-1 overflow-auto p-6">
+              <div className="mx-auto max-w-3xl space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Task Configuration</h2>
-                  <p className="text-gray-400">Configure AI to generate personalized learning tasks</p>
+                  <h2 className="mb-2 text-2xl font-bold">Task Configuration</h2>
+                  <p className="text-gray-400">
+                    Configure AI to generate personalized learning tasks
+                  </p>
                 </div>
 
                 {/* Quick Start Templates */}
-                <Card className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 border-blue-700">
+                <Card className="border-blue-700 bg-gradient-to-br from-blue-900/30 to-purple-900/30">
                   <CardHeader>
-                    <CardTitle className="text-white text-base flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base text-white">
                       <Sparkles className="h-5 w-5 text-yellow-400" />
                       Quick Start Templates
                     </CardTitle>
@@ -772,16 +812,16 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-3">
-                      {QUICK_TEMPLATES.map((template) => (
+                      {QUICK_TEMPLATES.map(template => (
                         <button
                           key={template.id}
                           onClick={() => loadTemplate(template)}
-                          className="p-4 rounded-lg border-2 border-gray-600 bg-gray-800 hover:border-blue-500 hover:bg-gray-700 transition-all text-left group"
+                          className="group rounded-lg border-2 border-gray-600 bg-gray-800 p-4 text-left transition-all hover:border-blue-500 hover:bg-gray-700"
                         >
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="mb-2 flex items-center gap-3">
                             <span className="text-2xl">{template.icon}</span>
                             <div className="flex-1">
-                              <div className="font-semibold text-sm group-hover:text-blue-400 transition-colors">
+                              <div className="text-sm font-semibold transition-colors group-hover:text-blue-400">
                                 {template.name}
                               </div>
                               <div className="text-xs text-gray-400">
@@ -795,18 +835,16 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       {/* Phase 14: Browse Assets Card */}
                       <button
                         onClick={() => setShowAssetsPanel(true)}
-                        className="p-4 rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/50 hover:border-purple-500 hover:bg-gray-800 transition-all text-left group flex flex-col justify-center items-center gap-2"
+                        className="group flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/50 p-4 text-left transition-all hover:border-purple-500 hover:bg-gray-800"
                       >
-                        <div className="w-12 h-12 rounded-full bg-purple-900/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-900/30 transition-transform group-hover:scale-110">
                           <Library className="h-6 w-6 text-purple-400" />
                         </div>
                         <div className="text-center">
-                          <div className="font-semibold text-sm group-hover:text-purple-400 transition-colors">
+                          <div className="text-sm font-semibold transition-colors group-hover:text-purple-400">
                             Browse & Select Materials
                           </div>
-                          <div className="text-xs text-gray-400">
-                            From Assets Panel
-                          </div>
+                          <div className="text-xs text-gray-400">From Assets Panel</div>
                         </div>
                       </button>
                     </div>
@@ -819,14 +857,14 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                     <div className="w-full border-t border-gray-700"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-gray-900 text-gray-400">OR BUILD CUSTOM</span>
+                    <span className="bg-gray-900 px-4 text-gray-400">OR BUILD CUSTOM</span>
                   </div>
                 </div>
 
                 {/* Phase 14: AI Source Selection */}
-                <Card className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border-purple-700/50">
+                <Card className="border-purple-700/50 bg-gradient-to-br from-purple-900/20 to-blue-900/20">
                   <CardHeader>
-                    <CardTitle className="text-white text-base flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base text-white">
                       <Target className="h-5 w-5 text-purple-400" />
                       AI Source Selection
                     </CardTitle>
@@ -839,23 +877,29 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       {/* Lesson Transcript Option */}
                       <button
                         onClick={() => setSourceType('lesson_transcript')}
-                        className={`w-full p-4 rounded-lg border-2 transition-all text-left ${sourceType === 'lesson_transcript'
-                          ? 'border-purple-500 bg-purple-900/30'
-                          : 'border-gray-600 bg-gray-800 hover:border-gray-500'
-                          }`}
+                        className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                          sourceType === 'lesson_transcript'
+                            ? 'border-purple-500 bg-purple-900/30'
+                            : 'border-gray-600 bg-gray-800 hover:border-gray-500'
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${sourceType === 'lesson_transcript'
-                            ? 'border-purple-500'
-                            : 'border-gray-500'
-                            }`}>
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                              sourceType === 'lesson_transcript'
+                                ? 'border-purple-500'
+                                : 'border-gray-500'
+                            }`}
+                          >
                             {sourceType === 'lesson_transcript' && (
-                              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                              <div className="h-3 w-3 rounded-full bg-purple-500"></div>
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="font-semibold text-white">Lesson Transcript</div>
-                            <div className="text-sm text-gray-400">Generate from today's classroom session</div>
+                            <div className="text-sm text-gray-400">
+                              Generate from today's classroom session
+                            </div>
                           </div>
                         </div>
                       </button>
@@ -863,18 +907,22 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       {/* Uploaded Documents Option */}
                       <button
                         onClick={() => setSourceType('uploaded_documents')}
-                        className={`w-full p-4 rounded-lg border-2 transition-all text-left ${sourceType === 'uploaded_documents'
-                          ? 'border-purple-500 bg-purple-900/30'
-                          : 'border-gray-600 bg-gray-800 hover:border-gray-500'
-                          }`}
+                        className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                          sourceType === 'uploaded_documents'
+                            ? 'border-purple-500 bg-purple-900/30'
+                            : 'border-gray-600 bg-gray-800 hover:border-gray-500'
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${sourceType === 'uploaded_documents'
-                            ? 'border-purple-500'
-                            : 'border-gray-500'
-                            }`}>
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                              sourceType === 'uploaded_documents'
+                                ? 'border-purple-500'
+                                : 'border-gray-500'
+                            }`}
+                          >
                             {sourceType === 'uploaded_documents' && (
-                              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                              <div className="h-3 w-3 rounded-full bg-purple-500"></div>
                             )}
                           </div>
                           <div className="flex-1">
@@ -890,23 +938,27 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       {/* All Sources Option */}
                       <button
                         onClick={() => setSourceType('all_sources')}
-                        className={`w-full p-4 rounded-lg border-2 transition-all text-left ${sourceType === 'all_sources'
-                          ? 'border-purple-500 bg-purple-900/30'
-                          : 'border-gray-600 bg-gray-800 hover:border-gray-500'
-                          }`}
+                        className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
+                          sourceType === 'all_sources'
+                            ? 'border-purple-500 bg-purple-900/30'
+                            : 'border-gray-600 bg-gray-800 hover:border-gray-500'
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${sourceType === 'all_sources'
-                            ? 'border-purple-500'
-                            : 'border-gray-500'
-                            }`}>
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                              sourceType === 'all_sources' ? 'border-purple-500' : 'border-gray-500'
+                            }`}
+                          >
                             {sourceType === 'all_sources' && (
-                              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                              <div className="h-3 w-3 rounded-full bg-purple-500"></div>
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="font-semibold text-white">All Sources</div>
-                            <div className="text-sm text-gray-400">Lesson + Documents + General Knowledge</div>
+                            <div className="text-sm text-gray-400">
+                              Lesson + Documents + General Knowledge
+                            </div>
                           </div>
                         </div>
                       </button>
@@ -914,14 +966,20 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
                     {/* Selected Materials Display */}
                     {selectedAssets.length > 0 && (
-                      <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="mt-4 rounded-lg border border-gray-700 bg-gray-800/50 p-3">
+                        <div className="mb-2 flex items-center gap-2">
                           <FileText className="h-4 w-4 text-purple-400" />
-                          <span className="text-sm font-medium text-gray-300">Selected Materials:</span>
+                          <span className="text-sm font-medium text-gray-300">
+                            Selected Materials:
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {selectedAssets.map((asset, idx) => (
-                            <Badge key={idx} variant="outline" className="bg-purple-900/30 text-purple-300 border-purple-700">
+                            <Badge
+                              key={idx}
+                              variant="outline"
+                              className="border-purple-700 bg-purple-900/30 text-purple-300"
+                            >
                               {asset.name || `Asset ${idx + 1}`}
                             </Badge>
                           ))}
@@ -932,9 +990,9 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                 </Card>
 
                 <div className="grid grid-cols-2 gap-6">
-                  <Card className="bg-gray-800 border-gray-700">
+                  <Card className="border-gray-700 bg-gray-800">
                     <CardHeader>
-                      <CardTitle className="text-white text-base flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base text-white">
                         <BookOpen className="h-4 w-4 text-blue-400" />
                         Subject & Topics
                       </CardTitle>
@@ -945,8 +1003,8 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                         <Input
                           placeholder="e.g., Mathematics"
                           value={config.subject}
-                          onChange={(e) => setConfig({ ...config, subject: e.target.value })}
-                          className="bg-gray-700 border-gray-600 text-white"
+                          onChange={e => setConfig({ ...config, subject: e.target.value })}
+                          className="border-gray-600 bg-gray-700 text-white"
                         />
                       </div>
                       <div className="space-y-2">
@@ -954,16 +1012,16 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                         <Textarea
                           placeholder="e.g., Algebra, Linear Equations, Quadratic Functions"
                           value={config.topics}
-                          onChange={(e) => setConfig({ ...config, topics: e.target.value })}
-                          className="bg-gray-700 border-gray-600 text-white min-h-[100px]"
+                          onChange={e => setConfig({ ...config, topics: e.target.value })}
+                          className="min-h-[100px] border-gray-600 bg-gray-700 text-white"
                         />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gray-800 border-gray-700">
+                  <Card className="border-gray-700 bg-gray-800">
                     <CardHeader>
-                      <CardTitle className="text-white text-base flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base text-white">
                         <BarChart3 className="h-4 w-4 text-green-400" />
                         Settings
                       </CardTitle>
@@ -976,17 +1034,17 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                             variant="ghost"
                             size="sm"
                             onClick={autoDetectDifficulty}
-                            className="h-6 text-xs text-blue-400 hover:text-blue-300 px-2"
+                            className="h-6 px-2 text-xs text-blue-400 hover:text-blue-300"
                           >
-                            <Sparkles className="h-3 w-3 mr-1" />
+                            <Sparkles className="mr-1 h-3 w-3" />
                             Auto-detect
                           </Button>
                         </div>
                         <Select
                           value={config.difficulty}
-                          onValueChange={(v) => setConfig({ ...config, difficulty: v })}
+                          onValueChange={v => setConfig({ ...config, difficulty: v })}
                         >
-                          <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                          <SelectTrigger className="border-gray-600 bg-gray-700 text-white">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -1007,10 +1065,11 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                             <button
                               key={key}
                               onClick={() => setConfig({ ...config, distributionMode: key as any })}
-                              className={`p-3 rounded-lg border text-left transition-colors ${config.distributionMode === key
-                                ? 'border-blue-500 bg-blue-500/20'
-                                : 'border-gray-600 bg-gray-700 hover:bg-gray-600'
-                                }`}
+                              className={`rounded-lg border p-3 text-left transition-colors ${
+                                config.distributionMode === key
+                                  ? 'border-blue-500 bg-blue-500/20'
+                                  : 'border-gray-600 bg-gray-700 hover:bg-gray-600'
+                              }`}
                             >
                               <div className="flex items-center gap-2">
                                 {config.distributionMode === key && (
@@ -1029,7 +1088,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           min={1}
                           max={20}
                           value={config.count}
-                          onChange={(e) => setConfig({ ...config, count: parseInt(e.target.value) })}
+                          onChange={e => setConfig({ ...config, count: parseInt(e.target.value) })}
                           className="w-full"
                         />
                       </div>
@@ -1039,28 +1098,34 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
                 {/* Phase 2: Live Preview */}
                 {(config.subject || config.topics) && (
-                  <Card className="bg-gray-800 border-blue-600 border-2">
+                  <Card className="border-2 border-blue-600 bg-gray-800">
                     <CardHeader>
-                      <CardTitle className="text-white text-sm flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-sm text-white">
                         <Eye className="h-4 w-4 text-blue-400" />
                         Live Preview
                       </CardTitle>
-                      <CardDescription className="text-gray-400 text-xs">
+                      <CardDescription className="text-xs text-gray-400">
                         Sample question based on your configuration
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-gray-700 p-4 rounded-lg">
-                        <p className="text-sm text-gray-300 mb-3">
-                          {generatePreview()}
-                        </p>
+                      <div className="rounded-lg bg-gray-700 p-4">
+                        <p className="mb-3 text-sm text-gray-300">{generatePreview()}</p>
                         <div className="space-y-1.5">
-                          <div className="text-xs px-3 py-2 rounded bg-gray-600 text-gray-300">A. x = 3</div>
-                          <div className="text-xs px-3 py-2 rounded bg-green-900/50 border border-green-700 text-green-300">B. x = 4 ✓</div>
-                          <div className="text-xs px-3 py-2 rounded bg-gray-600 text-gray-300">C. x = 8</div>
-                          <div className="text-xs px-3 py-2 rounded bg-gray-600 text-gray-300">D. x = 9</div>
+                          <div className="rounded bg-gray-600 px-3 py-2 text-xs text-gray-300">
+                            A. x = 3
+                          </div>
+                          <div className="rounded border border-green-700 bg-green-900/50 px-3 py-2 text-xs text-green-300">
+                            B. x = 4 ✓
+                          </div>
+                          <div className="rounded bg-gray-600 px-3 py-2 text-xs text-gray-300">
+                            C. x = 8
+                          </div>
+                          <div className="rounded bg-gray-600 px-3 py-2 text-xs text-gray-300">
+                            D. x = 9
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-3">
+                        <p className="mt-3 text-xs text-gray-500">
                           💡 This is a sample. Actual questions will vary.
                         </p>
                       </div>
@@ -1071,16 +1136,16 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating || !config.subject || !config.topics}
-                  className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="h-12 w-full bg-gradient-to-r from-blue-600 to-purple-600 text-lg hover:from-blue-700 hover:to-purple-700"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Generating Tasks...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-5 w-5 mr-2" />
+                      <Sparkles className="mr-2 h-5 w-5" />
                       Generate {config.count} Tasks
                     </>
                   )}
@@ -1095,20 +1160,22 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       disabled={isGenerating || !config.subject || !config.topics}
                       className="h-10 border-blue-600 text-blue-400 hover:bg-blue-600/20"
                     >
-                      <Zap className="h-4 w-4 mr-2" />
+                      <Zap className="mr-2 h-4 w-4" />
                       Quick Assign to All
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => handleQuickAssign('struggling')}
-                      disabled={isGenerating || !config.subject || !config.topics || counts.struggling === 0}
+                      disabled={
+                        isGenerating || !config.subject || !config.topics || counts.struggling === 0
+                      }
                       className="h-10 border-red-600 text-red-400 hover:bg-red-600/20"
                     >
-                      <Heart className="h-4 w-4 mr-2" />
+                      <Heart className="mr-2 h-4 w-4" />
                       Help Struggling {counts.struggling > 0 && `(${counts.struggling})`}
                     </Button>
                   </div>
-                  <p className="text-xs text-center text-gray-500">
+                  <p className="text-center text-xs text-gray-500">
                     ⚡ Quick Assign skips review and assigns tasks immediately
                   </p>
                 </div>
@@ -1117,20 +1184,20 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
             {/* Student Summary Sidebar */}
             <div className="w-72 border-l border-gray-700 bg-gray-800 p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <h3 className="mb-4 flex items-center gap-2 font-semibold">
                 <Users className="h-4 w-4" />
                 Students ({counts.total})
               </h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-green-900/30 rounded-lg">
+                <div className="flex items-center justify-between rounded-lg bg-green-900/30 p-3">
                   <span className="text-green-400">On Track</span>
                   <span className="font-bold text-green-400">{counts.onTrack}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-yellow-900/30 rounded-lg">
+                <div className="flex items-center justify-between rounded-lg bg-yellow-900/30 p-3">
                   <span className="text-yellow-400">Need Help</span>
                   <span className="font-bold text-yellow-400">{counts.needHelp}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-red-900/30 rounded-lg">
+                <div className="flex items-center justify-between rounded-lg bg-red-900/30 p-3">
                   <span className="text-red-400">Struggling</span>
                   <span className="font-bold text-red-400">{counts.struggling}</span>
                 </div>
@@ -1140,16 +1207,13 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
         )}
 
         {step === 'review' && (
-          <div className="h-full flex flex-col">
+          <div className="flex h-full flex-col">
             {/* Toolbar */}
-            <div className="px-6 py-3 border-b border-gray-700 bg-gray-800 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-6 py-3">
               <div className="flex items-center gap-4">
                 {/* Phase 2: Batch Selection */}
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={toggleSelectAll}
-                    className="p-1 hover:bg-gray-700 rounded"
-                  >
+                  <button onClick={toggleSelectAll} className="rounded p-1 hover:bg-gray-700">
                     {selectedTasks.size === generatedTasks.length ? (
                       <CheckSquare className="h-4 w-4 text-blue-400" />
                     ) : (
@@ -1158,7 +1222,9 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                   </button>
                   <h3 className="font-semibold">
                     {selectedTasks.size > 0 ? (
-                      <span>{selectedTasks.size} of {generatedTasks.length} Selected</span>
+                      <span>
+                        {selectedTasks.size} of {generatedTasks.length} Selected
+                      </span>
                     ) : (
                       <span>{generatedTasks.length} Tasks Generated</span>
                     )}
@@ -1174,7 +1240,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       onClick={bulkDelete}
                       className="h-8 border-red-600 text-red-400"
                     >
-                      <Trash2 className="h-3 w-3 mr-1" />
+                      <Trash2 className="mr-1 h-3 w-3" />
                       Delete
                     </Button>
                     <Select onValueChange={bulkSetDifficulty}>
@@ -1195,22 +1261,22 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                   variant="outline"
                   size="sm"
                   onClick={() => setShowLibrary(true)}
-                  className="h-8 border-blue-500 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"
+                  className="h-8 border-blue-500 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
                 >
-                  <Library className="h-4 w-4 mr-2" />
+                  <Library className="mr-2 h-4 w-4" />
                   Library
                 </Button>
 
-                <div className="flex items-center gap-2 bg-gray-700 rounded-lg p-1">
+                <div className="flex items-center gap-2 rounded-lg bg-gray-700 p-1">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-gray-600' : ''}`}
+                    className={`rounded p-1.5 ${viewMode === 'grid' ? 'bg-gray-600' : ''}`}
                   >
                     <LayoutGrid className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-gray-600' : ''}`}
+                    className={`rounded p-1.5 ${viewMode === 'list' ? 'bg-gray-600' : ''}`}
                   >
                     <List className="h-4 w-4" />
                   </button>
@@ -1222,19 +1288,20 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                 </Button>
                 <Button onClick={() => setStep('assign')}>
                   Continue to Assign
-                  <Send className="h-4 w-4 ml-2" />
+                  <Send className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
 
             {/* Tasks Grid */}
             <ScrollArea className="flex-1 p-6">
-              <div className={viewMode === 'grid'
-                ? "grid grid-cols-2 lg:grid-cols-3 gap-4"
-                : "space-y-3"
-              }>
+              <div
+                className={
+                  viewMode === 'grid' ? 'grid grid-cols-2 gap-4 lg:grid-cols-3' : 'space-y-3'
+                }
+              >
                 {generatedTasks.map((task, index) => (
-                  <Card key={task.id} className="bg-gray-800 border-gray-700">
+                  <Card key={task.id} className="border-gray-700 bg-gray-800">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         {/* Phase 2: Checkbox */}
@@ -1257,19 +1324,20 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           )}
                         </button>
                         <div className="flex-1">
-                          <Badge className="mb-2" variant={task.type === 'multiple_choice' ? 'default' : 'secondary'}>
+                          <Badge
+                            className="mb-2"
+                            variant={task.type === 'multiple_choice' ? 'default' : 'secondary'}
+                          >
                             {task.type === 'multiple_choice' ? 'Multiple Choice' : 'Short Answer'}
                           </Badge>
-                          <CardTitle className="text-white text-sm">
-                            Task {index + 1}
-                          </CardTitle>
+                          <CardTitle className="text-sm text-white">Task {index + 1}</CardTitle>
                         </div>
-                        <div className="flex gap-1 shrink-0">
+                        <div className="flex shrink-0 gap-1">
                           {/* Phase 3: Save Button */}
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10"
+                            className="h-8 w-8 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400"
                             onClick={() => saveToLibrary(task)}
                             title="Save to Library"
                           >
@@ -1302,14 +1370,14 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       {editingTaskId === task.id ? (
                         <Input
                           value={task.question}
-                          onChange={(e) => updateTask(task.id, { question: e.target.value })}
+                          onChange={e => updateTask(task.id, { question: e.target.value })}
                           onBlur={() => setEditingTaskId(null)}
                           autoFocus
-                          className="bg-gray-700 border-blue-600 text-white"
+                          className="border-blue-600 bg-gray-700 text-white"
                         />
                       ) : (
                         <p
-                          className="text-sm text-gray-300 cursor-pointer hover:text-blue-400 transition-colors"
+                          className="cursor-pointer text-sm text-gray-300 transition-colors hover:text-blue-400"
                           onClick={() => setEditingTaskId(task.id)}
                           title="Click to edit"
                         >
@@ -1321,10 +1389,11 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           {task.options.map((opt: string, i: number) => (
                             <div
                               key={i}
-                              className={`text-sm px-3 py-1.5 rounded ${opt === task.correctAnswer
-                                ? 'bg-green-900/50 text-green-300 border border-green-700'
-                                : 'bg-gray-700 text-gray-400'
-                                }`}
+                              className={`rounded px-3 py-1.5 text-sm ${
+                                opt === task.correctAnswer
+                                  ? 'border border-green-700 bg-green-900/50 text-green-300'
+                                  : 'bg-gray-700 text-gray-400'
+                              }`}
                             >
                               {String.fromCharCode(65 + i)}. {opt}
                             </div>
@@ -1340,17 +1409,21 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
         )}
 
         {step === 'assign' && (
-          <div className="h-full flex">
+          <div className="flex h-full">
             {/* Assignment Options */}
-            <div className="flex-1 p-6 overflow-auto">
-              <div className="max-w-3xl mx-auto space-y-6">
+            <div className="flex-1 overflow-auto p-6">
+              <div className="mx-auto max-w-3xl space-y-6">
                 <div>
-                  <h2 className="text-2xl font-bold mb-2">Assign Tasks</h2>
+                  <h2 className="mb-2 text-2xl font-bold">Assign Tasks</h2>
                   <p className="text-gray-400">Choose how students will receive this content</p>
                 </div>
 
                 {/* Phase 6: Assignment Mode Toggle */}
-                <Tabs value={assignmentMode} onValueChange={(v) => setAssignmentMode(v as any)} className="w-full">
+                <Tabs
+                  value={assignmentMode}
+                  onValueChange={v => setAssignmentMode(v as any)}
+                  className="w-full"
+                >
                   <TabsList className="grid w-full grid-cols-2 bg-gray-800">
                     <TabsTrigger value="practice">Practice Assignment</TabsTrigger>
                     <TabsTrigger value="exam">Formal Assessment (Exam)</TabsTrigger>
@@ -1358,15 +1431,15 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
                   <TabsContent value="practice" className="mt-6 space-y-6">
                     <div className="grid gap-4">
-                      <Card className="bg-gray-800 border-gray-700 hover:border-blue-500 transition-colors cursor-pointer">
+                      <Card className="cursor-pointer border-gray-700 bg-gray-800 transition-colors hover:border-blue-500">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center">
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600">
                                 <GraduationCap className="h-6 w-6" />
                               </div>
                               <div>
-                                <h3 className="font-semibold text-lg">All Students</h3>
+                                <h3 className="text-lg font-semibold">All Students</h3>
                                 <p className="text-gray-400">Assign to everyone in the session</p>
                               </div>
                             </div>
@@ -1379,10 +1452,10 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                       </Card>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <Card className="bg-gray-800 border-gray-700 hover:border-green-500 transition-colors cursor-pointer">
+                        <Card className="cursor-pointer border-gray-700 bg-gray-800 transition-colors hover:border-green-500">
                           <CardContent className="p-6">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600">
                                 <CheckCircle className="h-5 w-5" />
                               </div>
                               <div>
@@ -1393,10 +1466,10 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           </CardContent>
                         </Card>
 
-                        <Card className="bg-gray-800 border-gray-700 hover:border-yellow-500 transition-colors cursor-pointer">
+                        <Card className="cursor-pointer border-gray-700 bg-gray-800 transition-colors hover:border-yellow-500">
                           <CardContent className="p-6">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-yellow-600 flex items-center justify-center">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-600">
                                 <Clock className="h-5 w-5" />
                               </div>
                               <div>
@@ -1408,15 +1481,17 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                         </Card>
                       </div>
 
-                      <Card className="bg-gray-800 border-gray-700 hover:border-red-500 transition-colors cursor-pointer">
+                      <Card className="cursor-pointer border-gray-700 bg-gray-800 transition-colors hover:border-red-500">
                         <CardContent className="p-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-600">
                               <FileQuestion className="h-5 w-5" />
                             </div>
                             <div>
                               <h3 className="font-semibold">Struggling Students</h3>
-                              <p className="text-sm text-gray-400">{counts.struggling} students need extra support</p>
+                              <p className="text-sm text-gray-400">
+                                {counts.struggling} students need extra support
+                              </p>
                             </div>
                           </div>
                         </CardContent>
@@ -1425,13 +1500,15 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                   </TabsContent>
 
                   <TabsContent value="exam" className="mt-6 space-y-6">
-                    <Card className="bg-gray-800 border-gray-700">
+                    <Card className="border-gray-700 bg-gray-800">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Target className="h-5 w-5 text-red-500" />
                           Exam Configuration
                         </CardTitle>
-                        <CardDescription>Configure settings for this formal assessment</CardDescription>
+                        <CardDescription>
+                          Configure settings for this formal assessment
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="space-y-2">
@@ -1439,8 +1516,8 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           <Input
                             placeholder="e.g., Unit 4 Mid-Term Exam"
                             value={examConfig.title}
-                            onChange={(e) => setExamConfig({ ...examConfig, title: e.target.value })}
-                            className="bg-gray-900 border-gray-600"
+                            onChange={e => setExamConfig({ ...examConfig, title: e.target.value })}
+                            className="border-gray-600 bg-gray-900"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -1449,8 +1526,13 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                             <Input
                               type="number"
                               value={examConfig.timeLimit}
-                              onChange={(e) => setExamConfig({ ...examConfig, timeLimit: parseInt(e.target.value) })}
-                              className="bg-gray-900 border-gray-600"
+                              onChange={e =>
+                                setExamConfig({
+                                  ...examConfig,
+                                  timeLimit: parseInt(e.target.value),
+                                })
+                              }
+                              className="border-gray-600 bg-gray-900"
                             />
                           </div>
                           <div className="space-y-2">
@@ -1462,10 +1544,17 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                                 max="100"
                                 step="5"
                                 value={examConfig.passingScore}
-                                onChange={(e) => setExamConfig({ ...examConfig, passingScore: parseInt(e.target.value) })}
+                                onChange={e =>
+                                  setExamConfig({
+                                    ...examConfig,
+                                    passingScore: parseInt(e.target.value),
+                                  })
+                                }
                                 className="flex-1"
                               />
-                              <span className="font-bold w-12 text-right">{examConfig.passingScore}%</span>
+                              <span className="w-12 text-right font-bold">
+                                {examConfig.passingScore}%
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1473,24 +1562,28 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           <input
                             type="checkbox"
                             checked={examConfig.shuffle}
-                            onChange={(e) => setExamConfig({ ...examConfig, shuffle: e.target.checked })}
+                            onChange={e =>
+                              setExamConfig({ ...examConfig, shuffle: e.target.checked })
+                            }
                             id="shuffle"
-                            className="w-4 h-4 rounded border-gray-600 bg-gray-900 text-blue-600 focus:ring-blue-500"
+                            className="h-4 w-4 rounded border-gray-600 bg-gray-900 text-blue-600 focus:ring-blue-500"
                           />
-                          <Label htmlFor="shuffle" className="cursor-pointer">Randomize question order for each student</Label>
+                          <Label htmlFor="shuffle" className="cursor-pointer">
+                            Randomize question order for each student
+                          </Label>
                         </div>
                       </CardContent>
                     </Card>
 
-                    <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4 flex gap-3">
-                      <div className="p-2 bg-blue-900/50 rounded h-fit">
+                    <div className="flex gap-3 rounded-lg border border-blue-800 bg-blue-900/20 p-4">
+                      <div className="h-fit rounded bg-blue-900/50 p-2">
                         <Target className="h-5 w-5 text-blue-400" />
                       </div>
                       <div>
                         <h4 className="font-medium text-blue-300">Exam Mode Active</h4>
-                        <p className="text-sm text-blue-200/70 mt-1">
-                          Students will see a timer and receive a grade upon completion.
-                          Answers will be hidden until the exam is closed.
+                        <p className="mt-1 text-sm text-blue-200/70">
+                          Students will see a timer and receive a grade upon completion. Answers
+                          will be hidden until the exam is closed.
                         </p>
                       </div>
                     </div>
@@ -1505,28 +1598,32 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                     className={`flex-1 ${assignmentMode === 'exam' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                     onClick={() => {
                       if (assignmentMode === 'exam' && !examConfig.title) {
-                        toast.error('Missing Title', { description: 'Please provide a title for the exam' })
+                        toast.error('Missing Title', {
+                          description: 'Please provide a title for the exam',
+                        })
                         return
                       }
-                      const message = assignmentMode === 'exam'
-                        ? `Exam "${examConfig.title}" Published!`
-                        : 'Practice tasks assigned successfully!'
+                      const message =
+                        assignmentMode === 'exam'
+                          ? `Exam "${examConfig.title}" Published!`
+                          : 'Practice tasks assigned successfully!'
 
-                      const description = assignmentMode === 'exam'
-                        ? `Time limit: ${examConfig.timeLimit} mins • Passing: ${examConfig.passingScore}%`
-                        : `Assigned to ${counts.total} students`
+                      const description =
+                        assignmentMode === 'exam'
+                          ? `Time limit: ${examConfig.timeLimit} mins • Passing: ${examConfig.passingScore}%`
+                          : `Assigned to ${counts.total} students`
 
                       toast.success(message, { description })
                     }}
                   >
                     {assignmentMode === 'exam' ? (
                       <>
-                        <Target className="h-4 w-4 mr-2" />
+                        <Target className="mr-2 h-4 w-4" />
                         Publish Assessment
                       </>
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
+                        <Send className="mr-2 h-4 w-4" />
                         Assign Tasks
                       </>
                     )}
@@ -1537,7 +1634,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
             {/* Summary */}
             <div className="w-72 border-l border-gray-700 bg-gray-800 p-6">
-              <h3 className="font-semibold mb-4">Assignment Summary</h3>
+              <h3 className="mb-4 font-semibold">Assignment Summary</h3>
               <div className="space-y-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Tasks:</span>
@@ -1563,7 +1660,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
 
       {/* Phase 3: Library Dialog */}
       <Dialog open={showLibrary} onOpenChange={setShowLibrary}>
-        <DialogContent className="max-w-4xl h-[600px] bg-gray-900 text-white border-gray-700 flex flex-col">
+        <DialogContent className="flex h-[600px] max-w-4xl flex-col border-gray-700 bg-gray-900 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Library className="h-5 w-5 text-blue-400" />
@@ -1571,53 +1668,65 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex gap-4 py-4 border-b border-gray-800">
+          <div className="flex gap-4 border-b border-gray-800 py-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search saved tasks..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-gray-800 border-gray-700 text-white focus:border-blue-500"
+                onChange={e => setSearchQuery(e.target.value)}
+                className="border-gray-700 bg-gray-800 pl-9 text-white focus:border-blue-500"
               />
             </div>
             <Button
               variant={showFavoritesOnly ? 'default' : 'outline'}
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              className={showFavoritesOnly ? "bg-yellow-600 hover:bg-yellow-700" : "border-gray-700"}
+              className={
+                showFavoritesOnly ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-gray-700'
+              }
             >
-              <Star className={`h-4 w-4 mr-2 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+              <Star className={`mr-2 h-4 w-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
               Favorites
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 -mx-6 px-6">
+          <ScrollArea className="-mx-6 flex-1 px-6">
             <div className="grid gap-3 py-4">
               {getFilteredLibraryTasks().length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <FolderHeart className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                <div className="py-12 text-center text-gray-500">
+                  <FolderHeart className="mx-auto mb-3 h-12 w-12 opacity-20" />
                   <p>No tasks found in library</p>
-                  <p className="text-sm">Save tasks from the Review step to build your collection</p>
+                  <p className="text-sm">
+                    Save tasks from the Review step to build your collection
+                  </p>
                 </div>
               ) : (
                 getFilteredLibraryTasks().map(task => (
-                  <Card key={task.id} className="bg-gray-800 border-gray-700 hover:border-gray-600 transition-colors">
+                  <Card
+                    key={task.id}
+                    className="border-gray-700 bg-gray-800 transition-colors hover:border-gray-600"
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="bg-gray-900 border-gray-700 text-gray-400">
+                            <Badge
+                              variant="outline"
+                              className="border-gray-700 bg-gray-900 text-gray-400"
+                            >
                               {task.subject}
                             </Badge>
                             <Badge variant="secondary">
                               {task.type === 'multiple_choice' ? 'MC' : 'SA'}
                             </Badge>
                             {task.topics.map((t, i) => (
-                              <span key={i} className="text-xs text-gray-500">{t}</span>
+                              <span key={i} className="text-xs text-gray-500">
+                                {t}
+                              </span>
                             ))}
                           </div>
                           <p className="font-medium text-white">{task.question}</p>
-                          <div className="text-xs text-gray-500 flex items-center gap-3">
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
                             <span>Used {task.usedCount} times</span>
                             <span>•</span>
                             <span>Saved {new Date(task.savedAt).toLocaleDateString()}</span>
@@ -1627,14 +1736,16 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                           <Button size="sm" onClick={() => addFromLibrary(task)}>
                             Add to Set
                           </Button>
-                          <div className="flex gap-1 justify-end">
+                          <div className="flex justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
                               onClick={() => toggleFavorite(task.id)}
                             >
-                              <Star className={`h-4 w-4 ${task.isFavorite ? 'text-yellow-400 fill-current' : 'text-gray-500'}`} />
+                              <Star
+                                className={`h-4 w-4 ${task.isFavorite ? 'fill-current text-yellow-400' : 'text-gray-500'}`}
+                              />
                             </Button>
                             <Button
                               variant="ghost"
@@ -1657,16 +1768,19 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
       </Dialog>
 
       {/* Phase 5: Import Dialog */}
-      <Dialog open={showImport} onOpenChange={(open) => {
-        if (!isAnalyzing) {
-          setShowImport(open)
-          if (!open) {
-            setImportedTasks([])
-            setImportFile(null)
+      <Dialog
+        open={showImport}
+        onOpenChange={open => {
+          if (!isAnalyzing) {
+            setShowImport(open)
+            if (!open) {
+              setImportedTasks([])
+              setImportFile(null)
+            }
           }
-        }
-      }}>
-        <DialogContent className="max-w-3xl bg-gray-900 text-white border-gray-700">
+        }}
+      >
+        <DialogContent className="max-w-3xl border-gray-700 bg-gray-900 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileUp className="h-5 w-5 text-blue-400" />
@@ -1674,76 +1788,84 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="min-h-[400px] flex flex-col">
+          <div className="flex min-h-[400px] flex-col">
             {!importFile ? (
-              <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-lg m-4 bg-gray-800/50 hover:bg-gray-800/80 transition-colors relative">
+              <div className="relative m-4 flex flex-1 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-700 bg-gray-800/50 transition-colors hover:bg-gray-800/80">
                 <input
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg"
                   onChange={handleFileUpload}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  className="absolute inset-0 cursor-pointer opacity-0"
                 />
-                <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center mb-4">
+                <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-800">
                   <UploadCloud className="h-10 w-10 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-medium mb-2">Upload Worksheet</h3>
-                <p className="text-gray-400 text-center max-w-sm mb-6">
-                  Drag and drop your PDF or Image file here,<br />or click to browse
+                <h3 className="mb-2 text-xl font-medium">Upload Worksheet</h3>
+                <p className="mb-6 max-w-sm text-center text-gray-400">
+                  Drag and drop your PDF or Image file here,
+                  <br />
+                  or click to browse
                 </p>
                 <div className="flex gap-4 text-sm text-gray-500">
-                  <span className="flex items-center gap-1"><FileText className="h-4 w-4" /> PDF</span>
-                  <span className="flex items-center gap-1"><FileText className="h-4 w-4" /> PNG</span>
-                  <span className="flex items-center gap-1"><FileText className="h-4 w-4" /> JPG</span>
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" /> PDF
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" /> PNG
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" /> JPG
+                  </span>
                 </div>
               </div>
             ) : isAnalyzing ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8">
-                <div className="w-24 h-24 relative mb-6">
+              <div className="flex flex-1 flex-col items-center justify-center p-8">
+                <div className="relative mb-6 h-24 w-24">
                   <div className="absolute inset-0 rounded-full border-4 border-gray-700"></div>
-                  <div
-                    className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"
-                  ></div>
-                  <div className="absolute inset-0 flex items-center justify-center font-bold text-lg">
+                  <div className="absolute inset-0 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+                  <div className="absolute inset-0 flex items-center justify-center text-lg font-bold">
                     {analysisProgress}%
                   </div>
                 </div>
-                <h3 className="text-xl font-medium mb-2">Analyzing Document...</h3>
-                <p className="text-gray-400 animate-pulse">Running OCR and extracting questions</p>
-                <div className="mt-8 text-sm text-gray-500 flex items-center gap-2">
+                <h3 className="mb-2 text-xl font-medium">Analyzing Document...</h3>
+                <p className="animate-pulse text-gray-400">Running OCR and extracting questions</p>
+                <div className="mt-8 flex items-center gap-2 text-sm text-gray-500">
                   <FileText className="h-4 w-4" />
                   {importFile.name}
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <div className="flex flex-1 flex-col">
+                <div className="flex items-center justify-between border-b border-gray-800 px-6 py-4">
                   <div>
                     <h3 className="font-medium">Detected Questions</h3>
-                    <p className="text-sm text-gray-400">{importedTasks.length} items found in {importFile.name}</p>
+                    <p className="text-sm text-gray-400">
+                      {importedTasks.length} items found in {importFile.name}
+                    </p>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => setImportFile(null)}>
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
                 </div>
                 <ScrollArea className="flex-1 px-6">
                   <div className="space-y-4 py-4">
                     {importedTasks.map((task, i) => (
-                      <Card key={i} className="bg-gray-800 border-gray-700">
+                      <Card key={i} className="border-gray-700 bg-gray-800">
                         <CardContent className="p-4">
                           <div className="flex gap-3">
-                            <div className="w-6 h-6 rounded-full bg-blue-900/50 flex items-center justify-center text-xs font-bold text-blue-400 shrink-0">
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-900/50 text-xs font-bold text-blue-400">
                               {i + 1}
                             </div>
                             <div className="flex-1 space-y-2">
                               <Input
                                 value={task.question}
-                                onChange={(e) => {
+                                onChange={e => {
                                   const newTasks = [...importedTasks]
                                   newTasks[i].question = e.target.value
                                   setImportedTasks(newTasks)
                                 }}
-                                className="bg-gray-900 border-gray-600"
+                                className="border-gray-600 bg-gray-900"
                               />
                               <div className="flex gap-2">
                                 <Badge variant="outline">{task.type}</Badge>
@@ -1756,7 +1878,7 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
+                <div className="flex justify-end gap-3 border-t border-gray-800 p-4">
                   <Button variant="outline" onClick={() => setImportFile(null)}>
                     Back
                   </Button>
@@ -1773,14 +1895,18 @@ export function CourseDevPanel({ roomId, students }: CourseDevPanelProps) {
       {/* Phase 14: Assets Panel Side Drawer */}
       {/* Assets Selection Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-[600px] bg-gray-900 border-l border-gray-800 shadow-2xl transform transition-transform duration-300 z-50 ${showAssetsPanel ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed inset-y-0 right-0 z-50 w-[600px] transform border-l border-gray-800 bg-gray-900 shadow-2xl transition-transform duration-300 ${showAssetsPanel ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <AssetsPanel
           roomId={roomId}
           students={students.map(s => ({
             id: s.id,
             name: s.name,
-            status: (s.status === 'on_track' ? 'active' : s.status || 'active') as 'active' | 'struggling' | 'idle' | 'needs_help'
+            status: (s.status === 'on_track' ? 'active' : s.status || 'active') as
+              | 'active'
+              | 'struggling'
+              | 'idle'
+              | 'needs_help',
           }))}
           selectionMode={true}
           onAssetsSelect={handleAssetsSelect}

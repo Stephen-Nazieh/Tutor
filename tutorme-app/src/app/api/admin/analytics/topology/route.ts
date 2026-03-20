@@ -58,12 +58,14 @@ function estimateCoordsFromTimezone(timezone: string | null | undefined, seed: s
   if (exact) return exact
 
   const city = tz.split('/').at(1)?.replace(/_/g, ' ') || 'Unknown'
-  const byCity = Object.entries(TIMEZONE_COORDINATES).find(([key]) => key.includes(city.replace(/\s+/g, '_')))
+  const byCity = Object.entries(TIMEZONE_COORDINATES).find(([key]) =>
+    key.includes(city.replace(/\s+/g, '_'))
+  )
   if (byCity) return byCity[1]
 
   const h = stableHash(`${tz}:${seed}`)
-  const lat = ((h % 12000) / 100) - 60
-  const lon = (((h / 1000) % 36000) / 100) - 180
+  const lat = (h % 12000) / 100 - 60
+  const lon = ((h / 1000) % 36000) / 100 - 180
 
   return {
     lat: Math.max(-70, Math.min(70, lat)),
@@ -71,7 +73,11 @@ function estimateCoordsFromTimezone(timezone: string | null | undefined, seed: s
   }
 }
 
-function isActiveSession(status: string | null, startedAt: Date | null, endedAt: Date | null): boolean {
+function isActiveSession(
+  status: string | null,
+  startedAt: Date | null,
+  endedAt: Date | null
+): boolean {
   if (endedAt) return false
   if (status) {
     const normalized = status.toLowerCase()
@@ -99,10 +105,14 @@ export async function GET(req: NextRequest) {
       .selectDistinct({ sessionId: sessionParticipant.sessionId })
       .from(sessionParticipant)
 
-    const ids = sessionIdsWithParticipants.map((r) => r.sessionId)
+    const ids = sessionIdsWithParticipants.map(r => r.sessionId)
     if (ids.length === 0) {
       return NextResponse.json({
-        topology: { nodes: [], edges: [], stats: { tutors: 0, students: 0, liveConnections: 0, totalConnections: 0 } },
+        topology: {
+          nodes: [],
+          edges: [],
+          stats: { tutors: 0, students: 0, liveConnections: 0, totalConnections: 0 },
+        },
         meta: { days, generatedAt: new Date().toISOString() },
       })
     }
@@ -113,29 +123,34 @@ export async function GET(req: NextRequest) {
       .where(
         and(
           inArray(liveSession.id, ids),
-          or(
-            gte(liveSession.startedAt, startDate),
-            inArray(liveSession.status, ACTIVE_STATUSES)
-          )
+          or(gte(liveSession.startedAt, startDate), inArray(liveSession.status, ACTIVE_STATUSES))
         )
       )
       .orderBy(desc(liveSession.startedAt))
       .limit(600)
 
-    const tutorIds = [...new Set(sessions.map((s) => s.tutorId))]
+    const tutorIds = [...new Set(sessions.map(s => s.tutorId))]
     const participantRows = await drizzleDb
       .select()
       .from(sessionParticipant)
-      .where(inArray(sessionParticipant.sessionId, sessions.map((s) => s.id)))
+      .where(
+        inArray(
+          sessionParticipant.sessionId,
+          sessions.map(s => s.id)
+        )
+      )
 
-    const studentIds = [...new Set(participantRows.map((p) => p.studentId))]
+    const studentIds = [...new Set(participantRows.map(p => p.studentId))]
     const allUserIds = [...new Set([...tutorIds, ...studentIds])]
 
     const users = await drizzleDb.select().from(user).where(inArray(user.id, allUserIds))
-    const profiles = await drizzleDb.select().from(profile).where(inArray(profile.userId, allUserIds))
+    const profiles = await drizzleDb
+      .select()
+      .from(profile)
+      .where(inArray(profile.userId, allUserIds))
 
-    const userById = new Map(users.map((u) => [u.id, u]))
-    const profileByUserId = new Map(profiles.map((p) => [p.userId, p]))
+    const userById = new Map(users.map(u => [u.id, u]))
+    const profileByUserId = new Map(profiles.map(p => [p.userId, p]))
 
     const participantsBySessionId = new Map<string, typeof participantRows>()
     for (const p of participantRows) {
@@ -244,9 +259,9 @@ export async function GET(req: NextRequest) {
         nodes,
         edges,
         stats: {
-          tutors: nodes.filter((n) => n.role === 'TUTOR').length,
-          students: nodes.filter((n) => n.role === 'STUDENT').length,
-          liveConnections: edges.filter((e) => e.isActive).length,
+          tutors: nodes.filter(n => n.role === 'TUTOR').length,
+          students: nodes.filter(n => n.role === 'STUDENT').length,
+          liveConnections: edges.filter(e => e.isActive).length,
           totalConnections: edges.length,
         },
       },
@@ -257,6 +272,10 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to build topology analytics', error)
-    return handleApiError(error, 'Failed to build topology analytics', 'api/admin/analytics/topology/route.ts')
+    return handleApiError(
+      error,
+      'Failed to build topology analytics',
+      'api/admin/analytics/topology/route.ts'
+    )
   }
 }

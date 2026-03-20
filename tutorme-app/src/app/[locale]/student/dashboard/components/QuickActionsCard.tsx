@@ -15,27 +15,27 @@ export function QuickActionsCard() {
         <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" className="w-full justify-center" asChild>
             <Link href="/student/live/join">
-              <Video className="w-4 h-4 mr-2" /> Join Class
+              <Video className="mr-2 h-4 w-4" /> Join Class
             </Link>
           </Button>
           <Button variant="outline" className="w-full justify-center" asChild>
             <Link href="/student/subjects/browse">
-              <BookOpen className="w-4 h-4 mr-2" /> Browse
+              <BookOpen className="mr-2 h-4 w-4" /> Browse
             </Link>
           </Button>
           <Button variant="outline" className="w-full justify-center" asChild>
             <Link href="/student/ai-tutor">
-              <MessageSquare className="w-4 h-4 mr-2" /> AI Tutor
+              <MessageSquare className="mr-2 h-4 w-4" /> AI Tutor
             </Link>
           </Button>
           <Button variant="outline" className="w-full justify-center" asChild>
             <Link href="/student/missions">
-              <Target className="w-4 h-4 mr-2" /> Missions
+              <Target className="mr-2 h-4 w-4" /> Missions
             </Link>
           </Button>
           <Button variant="outline" className="w-full justify-center" asChild>
             <Link href="/student/scores">
-              <ChartLine className="w-4 h-4 mr-2" /> Scores
+              <ChartLine className="mr-2 h-4 w-4" /> Scores
             </Link>
           </Button>
         </div>

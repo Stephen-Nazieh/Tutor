@@ -10,12 +10,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, ValidationError, withRateLimit } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  whiteboard,
-  whiteboardPage,
-  liveSession,
-  sessionParticipant,
-} from '@/lib/db/schema'
+import { whiteboard, whiteboardPage, liveSession, sessionParticipant } from '@/lib/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 import { z } from 'zod'
 import crypto from 'crypto'
@@ -23,7 +18,10 @@ import crypto from 'crypto'
 const WhiteboardCreateSchema = z.object({
   title: z.string().min(1).max(120).optional(),
   description: z.string().max(2000).optional().nullable(),
-  backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  backgroundColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   backgroundStyle: z.enum(['solid', 'grid', 'dots']).optional(),
 })
 
@@ -31,7 +29,10 @@ const WhiteboardPatchSchema = z.object({
   visibility: z.enum(['public', 'private', 'tutor-only']).optional(),
   isBroadcasting: z.boolean().optional(),
   title: z.string().min(1).max(120).optional(),
-  backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  backgroundColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
   backgroundStyle: z.enum(['solid', 'grid', 'dots']).optional(),
 })
 
@@ -58,7 +59,9 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     const [participant] = await drizzleDb
       .select({ id: sessionParticipant.id })
       .from(sessionParticipant)
-      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .where(
+        and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId))
+      )
       .limit(1)
     isStudent = !!participant
   }
@@ -70,12 +73,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
   const [whiteboardRow] = await drizzleDb
     .select()
     .from(whiteboard)
-    .where(
-      and(
-        eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.ownerId, userId)
-      )
-    )
+    .where(and(eq(whiteboard.sessionId, sessionId), eq(whiteboard.ownerId, userId)))
     .limit(1)
 
   if (!whiteboardRow) {
@@ -116,7 +114,9 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     const [participant] = await drizzleDb
       .select({ id: sessionParticipant.id })
       .from(sessionParticipant)
-      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .where(
+        and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId))
+      )
       .limit(1)
     isStudent = !!participant
   }
@@ -128,12 +128,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const [existingWhiteboard] = await drizzleDb
     .select()
     .from(whiteboard)
-    .where(
-      and(
-        eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.ownerId, userId)
-      )
-    )
+    .where(and(eq(whiteboard.sessionId, sessionId), eq(whiteboard.ownerId, userId)))
     .limit(1)
 
   if (existingWhiteboard) {
@@ -153,9 +148,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const rawBody = await req.json().catch(() => ({}))
   const parsedBody = WhiteboardCreateSchema.safeParse(rawBody)
   if (!parsedBody.success) {
-    throw new ValidationError(
-      parsedBody.error.issues[0]?.message || 'Invalid whiteboard payload'
-    )
+    throw new ValidationError(parsedBody.error.issues[0]?.message || 'Invalid whiteboard payload')
   }
   const body = parsedBody.data
 
@@ -206,10 +199,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     .where(eq(whiteboardPage.whiteboardId, whiteboardId))
     .orderBy(asc(whiteboardPage.order))
 
-  return NextResponse.json(
-    { whiteboard: created ? { ...created, pages } : null },
-    { status: 201 }
-  )
+  return NextResponse.json({ whiteboard: created ? { ...created, pages } : null }, { status: 201 })
 })
 
 // PATCH - Update whiteboard settings
@@ -235,7 +225,9 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
     const [participant] = await drizzleDb
       .select({ id: sessionParticipant.id })
       .from(sessionParticipant)
-      .where(and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId)))
+      .where(
+        and(eq(sessionParticipant.sessionId, sessionId), eq(sessionParticipant.studentId, userId))
+      )
       .limit(1)
     isStudent = !!participant
   }
@@ -250,43 +242,28 @@ export const PATCH = withAuth(async (req: NextRequest, session, context) => {
   const body = await req.json().catch(() => null)
   const parsedBody = WhiteboardPatchSchema.safeParse(body)
   if (!parsedBody.success) {
-    throw new ValidationError(
-      parsedBody.error.issues[0]?.message || 'Invalid whiteboard payload'
-    )
+    throw new ValidationError(parsedBody.error.issues[0]?.message || 'Invalid whiteboard payload')
   }
-  const { visibility, isBroadcasting, title, backgroundColor, backgroundStyle } =
-    parsedBody.data
+  const { visibility, isBroadcasting, title, backgroundColor, backgroundStyle } = parsedBody.data
 
   const [whiteboardRow] = await drizzleDb
     .select()
     .from(whiteboard)
-    .where(
-      and(
-        eq(whiteboard.sessionId, sessionId),
-        eq(whiteboard.ownerId, userId)
-      )
-    )
+    .where(and(eq(whiteboard.sessionId, sessionId), eq(whiteboard.ownerId, userId)))
     .limit(1)
 
   if (!whiteboardRow) {
-    return NextResponse.json(
-      { error: 'Whiteboard not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
   }
 
   const updateData: Record<string, unknown> = {}
   if (visibility !== undefined) updateData.visibility = visibility
-  if (isBroadcasting !== undefined)
-    updateData.isBroadcasting = isBroadcasting
+  if (isBroadcasting !== undefined) updateData.isBroadcasting = isBroadcasting
   if (title !== undefined) updateData.title = title
   if (backgroundColor !== undefined) updateData.backgroundColor = backgroundColor
   if (backgroundStyle !== undefined) updateData.backgroundStyle = backgroundStyle
 
-  await drizzleDb
-    .update(whiteboard)
-    .set(updateData)
-    .where(eq(whiteboard.id, whiteboardRow.id))
+  await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.id, whiteboardRow.id))
 
   const [updatedWhiteboard] = await drizzleDb
     .select()

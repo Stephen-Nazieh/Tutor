@@ -24,22 +24,19 @@ export const GET = withAuth(
     if (cached) return NextResponse.json({ success: true, data: cached })
 
     const conversationsResult = await drizzleDb.query.conversation.findMany({
-      where: or(
-        eq(conversation.participant1Id, userId),
-        eq(conversation.participant2Id, userId)
-      ),
+      where: or(eq(conversation.participant1Id, userId), eq(conversation.participant2Id, userId)),
       with: {
         participant1: {
           with: {
-            profile: { columns: { name: true } }
+            profile: { columns: { name: true } },
           },
-          columns: { id: true, email: true }
+          columns: { id: true, email: true },
         },
         participant2: {
           with: {
-            profile: { columns: { name: true } }
+            profile: { columns: { name: true } },
           },
-          columns: { id: true, email: true }
+          columns: { id: true, email: true },
         },
         messages: {
           orderBy: [desc(sql`createdAt`)], // Using sql here because of Drizzle's nested orderBy syntax
@@ -47,11 +44,11 @@ export const GET = withAuth(
           with: {
             sender: {
               with: {
-                profile: { columns: { name: true } }
+                profile: { columns: { name: true } },
               },
-              columns: { id: true }
-            }
-          }
+              columns: { id: true },
+            },
+          },
         },
       },
       orderBy: [desc(conversation.updatedAt)],
@@ -60,8 +57,7 @@ export const GET = withAuth(
 
     const data = {
       conversations: conversationsResult.map((c: any) => {
-        const other =
-          c.participant1Id === userId ? c.participant2 : c.participant1
+        const other = c.participant1Id === userId ? c.participant2 : c.participant1
         return {
           id: c.id,
           otherUser: {
@@ -70,14 +66,16 @@ export const GET = withAuth(
             email: other.email,
           },
           lastUpdated: c.updatedAt,
-          messages: c.messages.map((m: any) => ({
-            id: m.id,
-            content: m.content,
-            senderId: m.senderId,
-            senderName: m.sender.profile?.name ?? null,
-            read: m.read,
-            createdAt: m.createdAt,
-          })).reverse(), // Reversing because we took desc but usually chat shows asc
+          messages: c.messages
+            .map((m: any) => ({
+              id: m.id,
+              content: m.content,
+              senderId: m.senderId,
+              senderName: m.sender.profile?.name ?? null,
+              read: m.read,
+              createdAt: m.createdAt,
+            }))
+            .reverse(), // Reversing because we took desc but usually chat shows asc
         }
       }),
     }

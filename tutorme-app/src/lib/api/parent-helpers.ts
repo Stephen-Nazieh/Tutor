@@ -57,10 +57,7 @@ export async function getFamilyAccountForParent(
     .select()
     .from(familyMember)
     .where(
-      and(
-        eq(familyMember.userId, session.user.id),
-        inArray(familyMember.relation, parentRelations)
-      )
+      and(eq(familyMember.userId, session.user.id), inArray(familyMember.relation, parentRelations))
     )
     .limit(1)
 
@@ -75,24 +72,32 @@ export async function getFamilyAccountForParent(
         .select()
         .from(familyMember)
         .where(eq(familyMember.familyAccountId, fa.id))
-      const userIds = members.map((m) => m.userId).filter(Boolean) as string[]
+      const userIds = members.map(m => m.userId).filter(Boolean) as string[]
       const users =
         userIds.length > 0
-          ? await drizzleDb.select({ id: user.id, email: user.email }).from(user).where(inArray(user.id, userIds))
+          ? await drizzleDb
+              .select({ id: user.id, email: user.email })
+              .from(user)
+              .where(inArray(user.id, userIds))
           : []
       const profiles =
         userIds.length > 0
           ? await drizzleDb
-              .select({ userId: profile.userId, name: profile.name, gradeLevel: profile.gradeLevel, avatarUrl: profile.avatarUrl })
+              .select({
+                userId: profile.userId,
+                name: profile.name,
+                gradeLevel: profile.gradeLevel,
+                avatarUrl: profile.avatarUrl,
+              })
               .from(profile)
               .where(inArray(profile.userId, userIds))
           : []
-      const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
-      const profileByUserId = Object.fromEntries(profiles.map((p) => [p.userId, p]))
+      const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+      const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
 
       const studentIds = members
-        .filter((m) => m.userId && ['child', 'children'].includes(m.relation.toLowerCase()))
-        .map((m) => m.userId!)
+        .filter(m => m.userId && ['child', 'children'].includes(m.relation.toLowerCase()))
+        .map(m => m.userId!)
         .filter(Boolean)
 
       const result: FamilyAccountWithMembers = {
@@ -102,7 +107,7 @@ export async function getFamilyAccountForParent(
         defaultCurrency: fa.defaultCurrency,
         monthlyBudget: fa.monthlyBudget,
         enableBudget: fa.enableBudget,
-        members: members.map((m) => {
+        members: members.map(m => {
           const u = m.userId ? userMap[m.userId] : undefined
           const p = m.userId ? profileByUserId[m.userId] : undefined
           return {
@@ -115,7 +120,9 @@ export async function getFamilyAccountForParent(
               ? {
                   id: u.id,
                   email: u.email ?? '',
-                  profile: p ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl } : null,
+                  profile: p
+                    ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl }
+                    : null,
                 }
               : null,
           }
@@ -135,10 +142,7 @@ export async function getFamilyAccountForParent(
     .select()
     .from(familyAccount)
     .where(
-      and(
-        eq(familyAccount.primaryEmail, email.toLowerCase()),
-        eq(familyAccount.isActive, true)
-      )
+      and(eq(familyAccount.primaryEmail, email.toLowerCase()), eq(familyAccount.isActive, true))
     )
     .limit(1)
 
@@ -148,24 +152,32 @@ export async function getFamilyAccountForParent(
     .select()
     .from(familyMember)
     .where(eq(familyMember.familyAccountId, faByEmail.id))
-  const userIds = members.map((m) => m.userId).filter(Boolean) as string[]
+  const userIds = members.map(m => m.userId).filter(Boolean) as string[]
   const users =
     userIds.length > 0
-      ? await drizzleDb.select({ id: user.id, email: user.email }).from(user).where(inArray(user.id, userIds))
+      ? await drizzleDb
+          .select({ id: user.id, email: user.email })
+          .from(user)
+          .where(inArray(user.id, userIds))
       : []
   const profiles =
     userIds.length > 0
       ? await drizzleDb
-          .select({ userId: profile.userId, name: profile.name, gradeLevel: profile.gradeLevel, avatarUrl: profile.avatarUrl })
+          .select({
+            userId: profile.userId,
+            name: profile.name,
+            gradeLevel: profile.gradeLevel,
+            avatarUrl: profile.avatarUrl,
+          })
           .from(profile)
           .where(inArray(profile.userId, userIds))
       : []
-  const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
-  const profileByUserId = Object.fromEntries(profiles.map((p) => [p.userId, p]))
+  const userMap = Object.fromEntries(users.map(u => [u.id, u]))
+  const profileByUserId = Object.fromEntries(profiles.map(p => [p.userId, p]))
 
   const studentIds = members
-    .filter((m) => m.userId && ['child', 'children'].includes(m.relation.toLowerCase()))
-    .map((m) => m.userId!)
+    .filter(m => m.userId && ['child', 'children'].includes(m.relation.toLowerCase()))
+    .map(m => m.userId!)
     .filter(Boolean)
 
   const result: FamilyAccountWithMembers = {
@@ -175,7 +187,7 @@ export async function getFamilyAccountForParent(
     defaultCurrency: faByEmail.defaultCurrency,
     monthlyBudget: faByEmail.monthlyBudget,
     enableBudget: faByEmail.enableBudget,
-    members: members.map((m) => {
+    members: members.map(m => {
       const u = m.userId ? userMap[m.userId] : undefined
       const p = m.userId ? profileByUserId[m.userId] : undefined
       return {
@@ -188,7 +200,9 @@ export async function getFamilyAccountForParent(
           ? {
               id: u.id,
               email: u.email ?? '',
-              profile: p ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl } : null,
+              profile: p
+                ? { name: p.name, gradeLevel: p.gradeLevel, avatarUrl: p.avatarUrl }
+                : null,
             }
           : null,
       }

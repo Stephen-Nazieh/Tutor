@@ -8,16 +8,23 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { 
-  BookOpen, 
-  Clock, 
-  BarChart3, 
-  ChevronRight, 
+import {
+  BookOpen,
+  Clock,
+  BarChart3,
+  ChevronRight,
   Play,
   Trophy,
   Target,
@@ -26,7 +33,7 @@ import {
   Calculator,
   FlaskConical,
   Globe,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react'
 
 interface Curriculum {
@@ -56,14 +63,14 @@ const SUBJECT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   programming: Code,
   science: FlaskConical,
   language: Globe,
-  default: BookOpen
+  default: BookOpen,
 }
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   beginner: 'bg-green-100 text-green-800 border-green-200',
   intermediate: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   advanced: 'bg-red-100 text-red-800 border-red-200',
-  expert: 'bg-purple-100 text-purple-800 border-purple-200'
+  expert: 'bg-purple-100 text-purple-800 border-purple-200',
 }
 
 export default function CurriculumPage() {
@@ -96,9 +103,9 @@ export default function CurriculumPage() {
     try {
       const res = await fetch(`/api/curriculum/${curriculumId}/enroll`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       })
-      
+
       if (res.ok) {
         // Refresh list
         loadCurriculums()
@@ -117,21 +124,23 @@ export default function CurriculumPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {isTutor && (
             <Link
               href="/tutor/dashboard"
-              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4"
+              className="mb-4 inline-flex items-center text-sm text-gray-500 hover:text-gray-900"
             >
-              <ArrowLeft className="w-4 h-4 mr-1" />
+              <ArrowLeft className="mr-1 h-4 w-4" />
               Back to dashboard
             </Link>
           )}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Course catalog</h1>
-              <p className="text-gray-600 mt-1">Choose a course and start learning with AI tutoring</p>
+              <p className="mt-1 text-gray-600">
+                Choose a course and start learning with AI tutoring
+              </p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
@@ -140,8 +149,8 @@ export default function CurriculumPage() {
                   {curriculums.filter(c => c.progress).length} / {curriculums.length}
                 </p>
               </div>
-              <div className="p-3 bg-indigo-100 rounded-full">
-                <GraduationCap className="w-6 h-6 text-indigo-600" />
+              <div className="rounded-full bg-indigo-100 p-3">
+                <GraduationCap className="h-6 w-6 text-indigo-600" />
               </div>
             </div>
           </div>
@@ -149,8 +158,8 @@ export default function CurriculumPage() {
       </header>
 
       {/* Tabs */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-2 mb-6">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex gap-2">
           <Button
             variant={activeTab === 'all' ? 'default' : 'outline'}
             onClick={() => setActiveTab('all')}
@@ -173,49 +182,51 @@ export default function CurriculumPage() {
 
         {/* Curriculum Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map(i => (
               <Card key={i} className="animate-pulse">
                 <CardHeader className="h-32 bg-gray-200" />
                 <CardContent className="space-y-3 pt-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded w-full" />
-                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  <div className="h-4 w-3/4 rounded bg-gray-200" />
+                  <div className="h-3 w-full rounded bg-gray-200" />
+                  <div className="h-3 w-1/2 rounded bg-gray-200" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : filteredCurriculums.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No courses</h3>
+          <div className="py-12 text-center">
+            <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+            <h3 className="mb-2 text-lg font-medium text-gray-900">No courses</h3>
             <p className="text-gray-600">
-              {activeTab === 'all' 
-                ? 'No courses available yet.' 
+              {activeTab === 'all'
+                ? 'No courses available yet.'
                 : activeTab === 'in-progress'
-                ? "You haven't started any courses."
-                : "You haven't completed any courses."}
+                  ? "You haven't started any courses."
+                  : "You haven't completed any courses."}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCurriculums.map((curriculum) => {
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredCurriculums.map(curriculum => {
               const SubjectIcon = SUBJECT_ICONS[curriculum.subject] || SUBJECT_ICONS.default
               const progress = curriculum.progress
-              const progressPercent = progress 
+              const progressPercent = progress
                 ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
                 : 0
 
               return (
-                <Card key={curriculum.id} className="hover:shadow-lg transition-shadow">
+                <Card key={curriculum.id} className="transition-shadow hover:shadow-lg">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <div className="p-3 bg-indigo-100 rounded-lg">
-                        <SubjectIcon className="w-6 h-6 text-indigo-600" />
+                      <div className="rounded-lg bg-indigo-100 p-3">
+                        <SubjectIcon className="h-6 w-6 text-indigo-600" />
                       </div>
-                      <Badge 
-                        variant="outline" 
-                        className={DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner}
+                      <Badge
+                        variant="outline"
+                        className={
+                          DIFFICULTY_COLORS[curriculum.difficulty] || DIFFICULTY_COLORS.beginner
+                        }
                       >
                         {curriculum.difficulty === 'beginner' && 'Beginner'}
                         {curriculum.difficulty === 'intermediate' && 'Intermediate'}
@@ -224,15 +235,18 @@ export default function CurriculumPage() {
                       </Badge>
                     </div>
                     <CardTitle className="mt-4">{curriculum.name}</CardTitle>
-                    <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-600">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-600">
                       {curriculum.gradeLevel && (
                         <span className="font-medium text-gray-700">{curriculum.gradeLevel}</span>
                       )}
                       {curriculum._count.batches > 0 && (
-                        <span className="text-gray-500">{curriculum._count.batches} group{curriculum._count.batches !== 1 ? 's' : ''}</span>
+                        <span className="text-gray-500">
+                          {curriculum._count.batches} group
+                          {curriculum._count.batches !== 1 ? 's' : ''}
+                        </span>
                       )}
                     </div>
-                    <CardDescription className="line-clamp-2 mt-2">
+                    <CardDescription className="mt-2 line-clamp-2">
                       {curriculum.description || 'No description'}
                     </CardDescription>
                   </CardHeader>
@@ -240,16 +254,16 @@ export default function CurriculumPage() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
+                        <BookOpen className="h-4 w-4" />
                         <span>{curriculum._count.modules} modules</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Target className="w-4 h-4" />
+                        <Target className="h-4 w-4" />
                         <span>{curriculum._count.lessons} lessons</span>
                       </div>
                       {curriculum.hasOutline && curriculum.estimatedHours > 0 && (
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="h-4 w-4" />
                           <span>{curriculum.estimatedHours} hours</span>
                         </div>
                       )}
@@ -277,20 +291,23 @@ export default function CurriculumPage() {
                   <CardFooter>
                     {progress ? (
                       <Link href={`/curriculum/${curriculum.id}`} className="w-full">
-                        <Button className="w-full" variant={progress.isCompleted ? 'outline' : 'default'}>
+                        <Button
+                          className="w-full"
+                          variant={progress.isCompleted ? 'outline' : 'default'}
+                        >
                           {progress.isCompleted ? (
                             <>
-                              <Trophy className="w-4 h-4 mr-2 text-yellow-500" />
+                              <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
                               View results
                             </>
                           ) : progressPercent > 0 ? (
                             <>
-                              <Play className="w-4 h-4 mr-2" />
+                              <Play className="mr-2 h-4 w-4" />
                               Continue
                             </>
                           ) : (
                             <>
-                              <Play className="w-4 h-4 mr-2" />
+                              <Play className="mr-2 h-4 w-4" />
                               Start learning
                             </>
                           )}
@@ -299,13 +316,13 @@ export default function CurriculumPage() {
                     ) : isTutor ? (
                       <Link href={`/tutor/courses/${curriculum.id}/builder`} className="w-full">
                         <Button className="w-full" variant="outline">
-                          <ChevronRight className="w-4 h-4 mr-2" />
+                          <ChevronRight className="mr-2 h-4 w-4" />
                           Manage course
                         </Button>
                       </Link>
                     ) : (
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         variant="outline"
                         onClick={() => enrollInCurriculum(curriculum.id)}
                       >

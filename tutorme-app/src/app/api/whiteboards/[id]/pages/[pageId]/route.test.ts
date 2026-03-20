@@ -40,13 +40,15 @@ vi.mock('@/lib/db/drizzle', () => ({
     delete: vi.fn().mockReturnValue({
       where: mocks.deleteWhere,
     }),
-    transaction: vi.fn().mockImplementation(async (cb: (tx: unknown) => Promise<void>) => cb({
-      update: vi.fn().mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue(undefined),
+    transaction: vi.fn().mockImplementation(async (cb: (tx: unknown) => Promise<void>) =>
+      cb({
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue(undefined),
+          }),
         }),
-      }),
-    })),
+      })
+    ),
   },
 }))
 
@@ -59,10 +61,7 @@ describe('/api/whiteboards/[id]/pages/[pageId] ownership guards', () => {
   })
 
   it('PUT returns 404 when page does not belong to the whiteboard', async () => {
-    mocks.selectResults = [
-      [{ id: 'wb-1', ownerId: 'tutor-1' }],
-      [],
-    ]
+    mocks.selectResults = [[{ id: 'wb-1', ownerId: 'tutor-1' }], []]
     const req = new Request('http://localhost/api/whiteboards/wb-1/pages/page-x', {
       method: 'PUT',
       headers: { 'content-type': 'application/json', 'if-match': 'W/"v1"' },
@@ -79,10 +78,7 @@ describe('/api/whiteboards/[id]/pages/[pageId] ownership guards', () => {
   })
 
   it('DELETE returns 404 when page does not belong to the whiteboard', async () => {
-    mocks.selectResults = [
-      [{ id: 'wb-1', ownerId: 'tutor-1' }],
-      [],
-    ]
+    mocks.selectResults = [[{ id: 'wb-1', ownerId: 'tutor-1' }], []]
     const req = new Request('http://localhost/api/whiteboards/wb-1/pages/page-x', {
       method: 'DELETE',
     })

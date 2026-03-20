@@ -1,6 +1,6 @@
 /**
  * Pronunciation Analyzer Component
- * 
+ *
  * ELITE feature - Speech recognition and pronunciation scoring
  */
 
@@ -65,10 +65,10 @@ export function PronunciationAnalyzer({
 
   const analyzeSpeech = async () => {
     setIsAnalyzing(true)
-    
+
     // Simulate API call - in production, send audio to speech recognition service
     await new Promise(resolve => setTimeout(resolve, 2000))
-    
+
     // Mock result
     const mockResult: PronunciationResult = {
       overallScore: 78,
@@ -88,7 +88,7 @@ export function PronunciationAnalyzer({
         'Work on the "th" sound in "pronunciation"',
       ],
     }
-    
+
     setResult(mockResult)
     setIsAnalyzing(false)
     onAnalysisComplete?.(mockResult)
@@ -97,10 +97,10 @@ export function PronunciationAnalyzer({
   if (isLocked) {
     return (
       <Card className={className}>
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white text-center">
-          <Volume2 className="w-12 h-12 mx-auto mb-3 opacity-80" />
-          <h3 className="text-lg font-semibold mb-2">Pronunciation Analysis</h3>
-          <p className="text-sm text-amber-100 mb-4">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-center text-white">
+          <Volume2 className="mx-auto mb-3 h-12 w-12 opacity-80" />
+          <h3 className="mb-2 text-lg font-semibold">Pronunciation Analysis</h3>
+          <p className="mb-4 text-sm text-amber-100">
             Upgrade to ELITE for AI-powered pronunciation feedback
           </p>
           <Button variant="secondary" size="sm">
@@ -115,14 +115,14 @@ export function PronunciationAnalyzer({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Volume2 className="w-5 h-5 text-amber-500" />
+          <Volume2 className="h-5 w-5 text-amber-500" />
           Pronunciation Practice
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Target Text */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-xs text-gray-500 mb-2">Say this:</p>
+        <div className="rounded-lg bg-gray-50 p-4">
+          <p className="mb-2 text-xs text-gray-500">Say this:</p>
           <p className="text-lg font-medium text-gray-800">&ldquo;{targetText}&rdquo;</p>
         </div>
 
@@ -131,35 +131,36 @@ export function PronunciationAnalyzer({
           {!isRecording ? (
             <Button
               size="lg"
-              className="rounded-full w-16 h-16 bg-red-500 hover:bg-red-600"
+              className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600"
               onClick={startRecording}
               disabled={isAnalyzing}
             >
-              <Mic className="w-6 h-6" />
+              <Mic className="h-6 w-6" />
             </Button>
           ) : (
             <Button
               size="lg"
               variant="outline"
-              className="rounded-full w-16 h-16 border-red-500 text-red-500 animate-pulse"
+              className="h-16 w-16 animate-pulse rounded-full border-red-500 text-red-500"
               onClick={stopRecording}
             >
-              <MicOff className="w-6 h-6" />
+              <MicOff className="h-6 w-6" />
             </Button>
           )}
         </div>
 
         {/* Recording Timer */}
         {isRecording && (
-          <p className="text-center text-red-500 font-mono">
-            Recording: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}
+          <p className="text-center font-mono text-red-500">
+            Recording: {Math.floor(recordingTime / 60)}:
+            {(recordingTime % 60).toString().padStart(2, '0')}
           </p>
         )}
 
         {/* Analyzing */}
         {isAnalyzing && (
-          <div className="text-center py-4">
-            <div className="animate-spin w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full mx-auto mb-2" />
+          <div className="py-4 text-center">
+            <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
             <p className="text-sm text-gray-600">Analyzing your pronunciation...</p>
           </div>
         )}
@@ -169,12 +170,16 @@ export function PronunciationAnalyzer({
           <div className="space-y-4 animate-in fade-in">
             {/* Overall Score */}
             <div className="text-center">
-              <div className={cn(
-                'text-5xl font-bold mb-2',
-                result.overallScore >= 80 ? 'text-green-500' :
-                result.overallScore >= 60 ? 'text-yellow-500' :
-                'text-red-500'
-              )}>
+              <div
+                className={cn(
+                  'mb-2 text-5xl font-bold',
+                  result.overallScore >= 80
+                    ? 'text-green-500'
+                    : result.overallScore >= 60
+                      ? 'text-yellow-500'
+                      : 'text-red-500'
+                )}
+              >
                 {result.overallScore}
               </div>
               <p className="text-sm text-gray-500">Overall Score</p>
@@ -190,16 +195,18 @@ export function PronunciationAnalyzer({
 
             {/* Word Analysis */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Word-by-Word</p>
+              <p className="mb-2 text-sm font-medium text-gray-700">Word-by-Word</p>
               <div className="flex flex-wrap gap-2">
                 {result.wordScores.map((word, idx) => (
                   <span
                     key={idx}
                     className={cn(
-                      'px-2 py-1 rounded text-sm',
-                      word.score >= 80 ? 'bg-green-100 text-green-700' :
-                      word.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
+                      'rounded px-2 py-1 text-sm',
+                      word.score >= 80
+                        ? 'bg-green-100 text-green-700'
+                        : word.score >= 60
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
                     )}
                     title={word.issues?.join(', ')}
                   >
@@ -210,9 +217,9 @@ export function PronunciationAnalyzer({
             </div>
 
             {/* Feedback */}
-            <div className="bg-blue-50 rounded-lg p-3">
-              <p className="text-sm font-medium text-blue-700 mb-2">💡 Feedback</p>
-              <ul className="text-sm text-blue-600 space-y-1">
+            <div className="rounded-lg bg-blue-50 p-3">
+              <p className="mb-2 text-sm font-medium text-blue-700">💡 Feedback</p>
+              <ul className="space-y-1 text-sm text-blue-600">
                 {result.feedback.map((item, idx) => (
                   <li key={idx}>{item}</li>
                 ))}
@@ -239,24 +246,22 @@ export function PronunciationAnalyzer({
 function ScoreBar({ label, score }: { label: string; score: number }) {
   return (
     <div>
-      <div className="flex justify-between text-xs mb-1">
+      <div className="mb-1 flex justify-between text-xs">
         <span className="text-gray-600">{label}</span>
-        <span className={cn(
-          'font-medium',
-          score >= 80 ? 'text-green-600' :
-          score >= 60 ? 'text-yellow-600' :
-          'text-red-600'
-        )}>
+        <span
+          className={cn(
+            'font-medium',
+            score >= 80 ? 'text-green-600' : score >= 60 ? 'text-yellow-600' : 'text-red-600'
+          )}
+        >
           {score}
         </span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
         <div
           className={cn(
             'h-full rounded-full transition-all',
-            score >= 80 ? 'bg-green-500' :
-            score >= 60 ? 'bg-yellow-500' :
-            'bg-red-500'
+            score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
           )}
           style={{ width: `${score}%` }}
         />

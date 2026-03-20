@@ -145,7 +145,11 @@ export function TldrawMathBoard({
       if (payload.actorId && payload.actorId === userId) return
       Y.applyUpdate(yDoc, Uint8Array.from(payload.update || []), 'remote')
     }
-    const onSnapshot = (payload: { sessionId?: string; actorId?: string; snapshot?: Record<string, unknown> | null }) => {
+    const onSnapshot = (payload: {
+      sessionId?: string
+      actorId?: string
+      snapshot?: Record<string, unknown> | null
+    }) => {
       if (payload.sessionId && payload.sessionId !== sessionId) return
       if (payload.actorId && payload.actorId === userId) return
       if (!payload.snapshot || !editorRef.current) return
@@ -188,30 +192,36 @@ export function TldrawMathBoard({
     }
   }, [role, sessionId, socket, userId, userName])
 
-  const onMount = useCallback((editor: Editor) => {
-    editorRef.current = editor
-    applyReadonlyState(editor, !canEdit)
-    // Avoid remote font fetch failures (cdn.tldraw.com) from breaking runtime in restricted networks.
-    const fontManager = (editor as any).fonts
-    if (fontManager && !fontManager.__networkPatched) {
-      fontManager.__networkPatched = true
-      fontManager.requestFonts = () => {}
-      fontManager.ensureFontIsLoaded = async () => undefined
-      fontManager.loadRequiredFontsForCurrentPage = async () => undefined
-    }
-    const existingSnapshot = yMetaRef.current?.get('snapshot')
-    if (existingSnapshot) {
-      editor.loadSnapshot(existingSnapshot as any)
-    }
-    const unlisten = editor.store.listen(() => {
-      if (applyingRemoteRef.current) return
-      queueSnapshotSyncRef.current?.()
-    }, { source: 'user', scope: 'document' })
-    return () => {
-      unlisten()
-      editorRef.current = null
-    }
-  }, [applyReadonlyState, canEdit])
+  const onMount = useCallback(
+    (editor: Editor) => {
+      editorRef.current = editor
+      applyReadonlyState(editor, !canEdit)
+      // Avoid remote font fetch failures (cdn.tldraw.com) from breaking runtime in restricted networks.
+      const fontManager = (editor as any).fonts
+      if (fontManager && !fontManager.__networkPatched) {
+        fontManager.__networkPatched = true
+        fontManager.requestFonts = () => {}
+        fontManager.ensureFontIsLoaded = async () => undefined
+        fontManager.loadRequiredFontsForCurrentPage = async () => undefined
+      }
+      const existingSnapshot = yMetaRef.current?.get('snapshot')
+      if (existingSnapshot) {
+        editor.loadSnapshot(existingSnapshot as any)
+      }
+      const unlisten = editor.store.listen(
+        () => {
+          if (applyingRemoteRef.current) return
+          queueSnapshotSyncRef.current?.()
+        },
+        { source: 'user', scope: 'document' }
+      )
+      return () => {
+        unlisten()
+        editorRef.current = null
+      }
+    },
+    [applyReadonlyState, canEdit]
+  )
 
   useEffect(() => {
     applyReadonlyState(editorRef.current, !canEdit)
@@ -235,7 +245,7 @@ export function TldrawMathBoard({
   }, [isConnected])
 
   return (
-    <div className={`h-full min-h-0 flex flex-col rounded-lg border bg-white ${className}`}>
+    <div className={`flex h-full min-h-0 flex-col rounded-lg border bg-white ${className}`}>
       <div className="flex items-center justify-between border-b px-3 py-2">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold">Math Whiteboard</h3>
@@ -256,7 +266,7 @@ export function TldrawMathBoard({
           </Button>
         )}
       </div>
-      <div className="relative flex-1 min-h-0">
+      <div className="relative min-h-0 flex-1">
         <Tldraw onMount={onMount} />
       </div>
     </div>

@@ -3,7 +3,7 @@
  * Pre-defined poll templates for quick creation
  */
 
-import { PollTemplate } from '../types';
+import { PollTemplate } from '../types'
 
 export const POLL_TEMPLATES: PollTemplate[] = [
   {
@@ -13,7 +13,7 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     description: 'Quick yes/no check for concept understanding',
     defaultQuestion: 'Do you understand this concept?',
     type: 'true_false',
-    options: ['Yes, I understand', 'No, I need clarification']
+    options: ['Yes, I understand', 'No, I need clarification'],
   },
   {
     id: 'confidence-rating',
@@ -22,7 +22,7 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     description: 'Rate confidence level on a scale of 1-5',
     defaultQuestion: 'How confident are you with this topic?',
     type: 'rating',
-    options: ['1 - Not confident', '2', '3', '4', '5 - Very confident']
+    options: ['1 - Not confident', '2', '3', '4', '5 - Very confident'],
   },
   {
     id: 'topic-review',
@@ -31,7 +31,7 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     description: 'Let students vote on what to review next',
     defaultQuestion: 'Which topic should we review next?',
     type: 'multiple_choice',
-    options: ['Topic A', 'Topic B', 'Topic C', 'Topic D']
+    options: ['Topic A', 'Topic B', 'Topic C', 'Topic D'],
   },
   {
     id: 'ready-to-proceed',
@@ -40,7 +40,7 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     description: 'Check if students are ready to continue',
     defaultQuestion: 'Are you ready to move on to the next section?',
     type: 'true_false',
-    options: ['Yes, let\'s continue', 'No, I need more time']
+    options: ["Yes, let's continue", 'No, I need more time'],
   },
   {
     id: 'quick-quiz',
@@ -49,15 +49,15 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     description: 'Multiple choice question with correct answer',
     defaultQuestion: 'What is the correct answer?',
     type: 'multiple_choice',
-    options: ['Option A', 'Option B', 'Option C', 'Option D']
+    options: ['Option A', 'Option B', 'Option C', 'Option D'],
   },
   {
     id: 'word-cloud',
     name: 'Word Cloud',
     icon: 'Cloud',
     description: 'Collect single-word responses from students',
-    defaultQuestion: 'What\'s one word that describes your understanding?',
-    type: 'word_cloud'
+    defaultQuestion: "What's one word that describes your understanding?",
+    type: 'word_cloud',
   },
   {
     id: 'short-answer',
@@ -65,7 +65,7 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     icon: 'MessageSquare',
     description: 'Open-ended question for detailed responses',
     defaultQuestion: 'What questions do you have about this topic?',
-    type: 'short_answer'
+    type: 'short_answer',
   },
   {
     id: 'pace-check',
@@ -74,32 +74,32 @@ export const POLL_TEMPLATES: PollTemplate[] = [
     description: 'Check if the teaching pace is appropriate',
     defaultQuestion: 'How is the pace of the lesson?',
     type: 'multiple_choice',
-    options: ['Too slow', 'Just right', 'Too fast', 'Way too fast']
-  }
-];
+    options: ['Too slow', 'Just right', 'Too fast', 'Way too fast'],
+  },
+]
 
 export const getTemplateById = (id: string): PollTemplate | undefined => {
-  return POLL_TEMPLATES.find(t => t.id === id);
-};
+  return POLL_TEMPLATES.find(t => t.id === id)
+}
 
 export const getDefaultOptions = (type: string): string[] => {
   switch (type) {
     case 'true_false':
-      return ['Yes', 'No'];
+      return ['Yes', 'No']
     case 'rating':
-      return ['1', '2', '3', '4', '5'];
+      return ['1', '2', '3', '4', '5']
     case 'multiple_choice':
-      return ['Option A', 'Option B', 'Option C', 'Option D'];
+      return ['Option A', 'Option B', 'Option C', 'Option D']
     default:
-      return [];
+      return []
   }
-};
+}
 
 /**
  * Generate option labels (A, B, C, D...)
  */
 export function generateOptionLabel(index: number): string {
-  return String.fromCharCode(65 + index); // 65 is 'A' in ASCII
+  return String.fromCharCode(65 + index) // 65 is 'A' in ASCII
 }
 
 export const OPTION_COLORS = [
@@ -111,8 +111,8 @@ export const OPTION_COLORS = [
   '#ec4899', // pink-500
   '#06b6d4', // cyan-500
   '#84cc16', // lime-500
-];
+]
 
 export const getOptionColor = (index: number): string => {
-  return OPTION_COLORS[index % OPTION_COLORS.length];
-};
+  return OPTION_COLORS[index % OPTION_COLORS.length]
+}

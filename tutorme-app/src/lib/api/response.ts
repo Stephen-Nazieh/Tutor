@@ -14,11 +14,7 @@ export function apiSuccess<T>(data: T, status = 200): NextResponse {
 }
 
 /** Create standardized success response with message (e.g. for 201 Created) */
-export function apiSuccessWithMessage<T>(
-  data: T,
-  message: string,
-  status = 200
-): NextResponse {
+export function apiSuccessWithMessage<T>(data: T, message: string, status = 200): NextResponse {
   return NextResponse.json({ success: true, data, message }, { status })
 }
 

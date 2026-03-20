@@ -18,7 +18,9 @@ export function extractWhiteboardItems(content: string): WhiteboardItem[] {
   }
 
   // Look for key definitions (after "Key Concept:" or "Definition:")
-  const definitionMatches = content.match(/(?:Key Concept:|Definition:)[\s\n]+([^\n]+(?:\n(?!(?:Key Concept:|Definition:))[\s\S]+?)?)/gi)
+  const definitionMatches = content.match(
+    /(?:Key Concept:|Definition:)[\s\n]+([^\n]+(?:\n(?!(?:Key Concept:|Definition:))[\s\S]+?)?)/gi
+  )
   if (definitionMatches) {
     definitionMatches.forEach(match => {
       const clean = match.replace(/Key Concept:|Definition:/gi, '').trim()

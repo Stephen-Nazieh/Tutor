@@ -32,10 +32,18 @@ export interface LeaderboardData {
 }
 
 async function enrichEntriesWithUser(
-  entries: { id: string; userId: string; type: string; score: number; periodStart: Date | null; periodEnd: Date | null; rank: number | null }[]
+  entries: {
+    id: string
+    userId: string
+    type: string
+    score: number
+    periodStart: Date | null
+    periodEnd: Date | null
+    rank: number | null
+  }[]
 ): Promise<LeaderboardEntry[]> {
   if (entries.length === 0) return []
-  const userIds = [...new Set(entries.map((e) => e.userId))]
+  const userIds = [...new Set(entries.map(e => e.userId))]
   const [profiles, gamifications, badgeCounts] = await Promise.all([
     drizzleDb.select().from(profile).where(inArray(profile.userId, userIds)),
     drizzleDb.select().from(userGamification).where(inArray(userGamification.userId, userIds)),
@@ -45,9 +53,9 @@ async function enrichEntriesWithUser(
       .where(inArray(userBadge.userId, userIds))
       .groupBy(userBadge.userId),
   ])
-  const profileMap = new Map(profiles.map((p) => [p.userId, p]))
-  const gamificationMap = new Map(gamifications.map((g) => [g.userId, g]))
-  const badgeMap = new Map(badgeCounts.map((b) => [b.userId, b.count]))
+  const profileMap = new Map(profiles.map(p => [p.userId, p]))
+  const gamificationMap = new Map(gamifications.map(g => [g.userId, g]))
+  const badgeMap = new Map(badgeCounts.map(b => [b.userId, b.count]))
   return entries.map((entry, index) => {
     const prof = profileMap.get(entry.userId)
     const gam = gamificationMap.get(entry.userId)
@@ -134,7 +142,7 @@ export async function getLeaderboard(
   const formattedEntries = await enrichEntriesWithUser(entries)
   let userRank: LeaderboardEntry | undefined
   if (userId) {
-    const inTop = formattedEntries.find((e) => e.userId === userId)
+    const inTop = formattedEntries.find(e => e.userId === userId)
     if (inTop) userRank = inTop
     else userRank = await getUserRank(userId, type, periodStart)
   }
@@ -165,7 +173,10 @@ async function getUserRank(
     .where(and(...conditions))
     .limit(1)
   if (!userEntry) return undefined
-  const countConditions = [eq(leaderboardEntry.type, type), gt(leaderboardEntry.score, userEntry.score)]
+  const countConditions = [
+    eq(leaderboardEntry.type, type),
+    gt(leaderboardEntry.score, userEntry.score),
+  ]
   if (periodStart) countConditions.push(gte(leaderboardEntry.periodStart, periodStart))
   const [higher] = await drizzleDb
     .select({ count: sql<number>`count(*)::int` })
@@ -209,7 +220,13 @@ export async function getLeaderboardAroundUser(
     drizzleDb
       .select()
       .from(leaderboardEntry)
-      .where(and(...whereBase, gte(leaderboardEntry.score, userEntry.score), ne(leaderboardEntry.userId, userId)))
+      .where(
+        and(
+          ...whereBase,
+          gte(leaderboardEntry.score, userEntry.score),
+          ne(leaderboardEntry.userId, userId)
+        )
+      )
       .orderBy(asc(leaderboardEntry.score))
       .limit(range),
     drizzleDb
@@ -240,9 +257,21 @@ export async function resetMonthlyLeaderboard() {
 
 export async function getUserLeaderboardStats(userId: string) {
   const [globalEntry, weeklyEntry, monthlyEntry] = await Promise.all([
-    drizzleDb.select().from(leaderboardEntry).where(and(eq(leaderboardEntry.userId, userId), eq(leaderboardEntry.type, 'global'))).limit(1),
-    drizzleDb.select().from(leaderboardEntry).where(and(eq(leaderboardEntry.userId, userId), eq(leaderboardEntry.type, 'weekly'))).limit(1),
-    drizzleDb.select().from(leaderboardEntry).where(and(eq(leaderboardEntry.userId, userId), eq(leaderboardEntry.type, 'monthly'))).limit(1),
+    drizzleDb
+      .select()
+      .from(leaderboardEntry)
+      .where(and(eq(leaderboardEntry.userId, userId), eq(leaderboardEntry.type, 'global')))
+      .limit(1),
+    drizzleDb
+      .select()
+      .from(leaderboardEntry)
+      .where(and(eq(leaderboardEntry.userId, userId), eq(leaderboardEntry.type, 'weekly')))
+      .limit(1),
+    drizzleDb
+      .select()
+      .from(leaderboardEntry)
+      .where(and(eq(leaderboardEntry.userId, userId), eq(leaderboardEntry.type, 'monthly')))
+      .limit(1),
   ])
   const countHigher = async (type: string, score: number) => {
     const [r] = await drizzleDb

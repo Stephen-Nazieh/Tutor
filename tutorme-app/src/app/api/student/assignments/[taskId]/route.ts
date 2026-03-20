@@ -14,7 +14,9 @@ import { eq, and } from 'drizzle-orm'
 
 export async function GET(
   _request: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   try {
     const session = await getServerSession(authOptions, _request)
@@ -39,24 +41,16 @@ export async function GET(
 
     const assignments = task.assignments as Record<string, unknown> | null
     if (!assignments || !Object.keys(assignments).includes(session.user.id)) {
-      return NextResponse.json(
-        { error: 'Not assigned to you' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Not assigned to you' }, { status: 403 })
     }
 
-    const rawQuestions = Array.isArray(task.questions)
-      ? (task.questions as any[])
-      : []
+    const rawQuestions = Array.isArray(task.questions) ? (task.questions as any[]) : []
     const studentQuestions = rawQuestions.map((q: any) => ({
       id: q.id,
       type: q.type,
       question: q.question,
       options: q.options,
-      points:
-        q.points ??
-        q.rubric?.reduce((sum: number, r: any) => sum + (r.points || 0), 0) ??
-        1,
+      points: q.points ?? q.rubric?.reduce((sum: number, r: any) => sum + (r.points || 0), 0) ?? 1,
       rubric: q.rubric ? q.rubric.map((r: any) => r.criteria) : undefined,
       hints: q.hints,
     }))
@@ -64,12 +58,7 @@ export async function GET(
     const [existingSubmission] = await drizzleDb
       .select()
       .from(taskSubmission)
-      .where(
-        and(
-          eq(taskSubmission.taskId, taskId),
-          eq(taskSubmission.studentId, session.user.id)
-        )
-      )
+      .where(and(eq(taskSubmission.taskId, taskId), eq(taskSubmission.studentId, session.user.id)))
       .limit(1)
 
     return NextResponse.json({
@@ -89,6 +78,10 @@ export async function GET(
     })
   } catch (error) {
     console.error('Failed to fetch task:', error)
-    return handleApiError(error, 'Failed to fetch task', 'api/student/assignments/[taskId]/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch task',
+      'api/student/assignments/[taskId]/route.ts'
+    )
   }
 }

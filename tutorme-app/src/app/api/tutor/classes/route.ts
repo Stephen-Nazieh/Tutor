@@ -15,34 +15,37 @@ import { liveSession as liveSessionTable } from '@/lib/db/schema'
 const DEFAULT_DURATION_MINUTES = 60
 
 /** Upcoming = scheduled in the future OR status ACTIVE (no date limit). */
-export const GET = withAuth(async (req, session) => {
-  const tutorId = session.user.id
-  const now = new Date()
+export const GET = withAuth(
+  async (req, session) => {
+    const tutorId = session.user.id
+    const now = new Date()
 
-  const sessions = await drizzleDb.query.liveSession.findMany({
-    where: or(
-      and(eq(liveSessionTable.tutorId, tutorId), gte(liveSessionTable.scheduledAt, now)),
-      and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.status, 'ACTIVE'))
-    ),
-    with: {
-      participants: {
-        columns: { id: true }
+    const sessions = await drizzleDb.query.liveSession.findMany({
+      where: or(
+        and(eq(liveSessionTable.tutorId, tutorId), gte(liveSessionTable.scheduledAt, now)),
+        and(eq(liveSessionTable.tutorId, tutorId), eq(liveSessionTable.status, 'ACTIVE'))
+      ),
+      with: {
+        participants: {
+          columns: { id: true },
+        },
       },
-    },
-    orderBy: [asc(liveSessionTable.scheduledAt)],
-  })
+      orderBy: [asc(liveSessionTable.scheduledAt)],
+    })
 
-  const classes = sessions.map((s) => ({
-    id: s.id,
-    curriculumId: s.curriculumId,
-    title: s.title,
-    subject: s.subject,
-    scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),
-    duration: DEFAULT_DURATION_MINUTES,
-    maxStudents: s.maxStudents,
-    enrolledStudents: s.participants.length,
-    status: s.status === 'ACTIVE' ? 'active' : 'upcoming',
-  }))
+    const classes = sessions.map(s => ({
+      id: s.id,
+      curriculumId: s.curriculumId,
+      title: s.title,
+      subject: s.subject,
+      scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),
+      duration: DEFAULT_DURATION_MINUTES,
+      maxStudents: s.maxStudents,
+      enrolledStudents: s.participants.length,
+      status: s.status === 'ACTIVE' ? 'active' : 'upcoming',
+    }))
 
-  return NextResponse.json({ classes })
-}, { role: 'TUTOR' })
+    return NextResponse.json({ classes })
+  },
+  { role: 'TUTOR' }
+)

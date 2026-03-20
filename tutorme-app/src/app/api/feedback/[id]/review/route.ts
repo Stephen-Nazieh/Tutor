@@ -12,7 +12,9 @@ import { reviewFeedback } from '@/lib/feedback/workflow'
 async function postHandler(
   request: NextRequest,
   session: Session,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   const csrfError = await requireCsrf(request)
   if (csrfError) return csrfError
@@ -37,24 +39,18 @@ async function postHandler(
     }
 
     if (!decision || !['approve', 'reject', 'modify'].includes(decision)) {
-      return NextResponse.json(
-        { error: '无效的审核决定' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: '无效的审核决定' }, { status: 400 })
     }
 
     const result = await reviewFeedback(id, decision, session.user.id, modifications)
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || '审核失败' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: result.error || '审核失败' }, { status: 400 })
     }
 
     return NextResponse.json({
       success: true,
-      message: decision === 'approve' ? '已通过' : decision === 'reject' ? '已拒绝' : '已修改'
+      message: decision === 'approve' ? '已通过' : decision === 'reject' ? '已拒绝' : '已修改',
     })
   } catch (error) {
     console.error('Failed to review feedback:', error)

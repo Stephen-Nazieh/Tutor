@@ -1,6 +1,6 @@
 /**
  * Mission Mode Toggle Component
- * 
+ *
  * Switches between Free Chat and Mission Mode
  */
 
@@ -32,41 +32,39 @@ export function MissionModeToggle({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       {/* Mode selector */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
+      <div className="flex rounded-lg bg-gray-100 p-1">
         <button
           onClick={() => onModeChange('free')}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
             currentMode === 'free'
               ? 'bg-white text-gray-800 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           )}
         >
-          <MessageCircle className="w-4 h-4" />
+          <MessageCircle className="h-4 w-4" />
           Free Chat
         </button>
         <button
           onClick={() => onModeChange('mission')}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all',
+            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
             currentMode === 'mission'
               ? 'bg-white text-blue-600 shadow-sm'
               : 'text-gray-500 hover:text-gray-700'
           )}
         >
-          <Target className="w-4 h-4" />
+          <Target className="h-4 w-4" />
           Mission Mode
         </button>
       </div>
 
       {/* Current mission indicator */}
       {currentMode === 'mission' && currentMission && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm">
+        <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-1.5 text-sm text-blue-700">
           <span>{currentMission.emoji}</span>
-          <span className="font-medium truncate max-w-[150px]">
-            {currentMission.title}
-          </span>
-          <ChevronRight className="w-4 h-4" />
+          <span className="max-w-[150px] truncate font-medium">{currentMission.title}</span>
+          <ChevronRight className="h-4 w-4" />
         </div>
       )}
     </div>

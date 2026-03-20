@@ -36,11 +36,9 @@ export function pointToPx(point: PointPercent, width: number, height: number): P
   }
 }
 
-export function rectToPercent<T extends { left?: number; top?: number; width?: number; height?: number }>(
-  rect: T,
-  width: number,
-  height: number
-): T {
+export function rectToPercent<
+  T extends { left?: number; top?: number; width?: number; height?: number },
+>(rect: T, width: number, height: number): T {
   return {
     ...rect,
     ...(typeof rect.left === 'number' ? { left: pxToPercent(rect.left, width) } : {}),
@@ -50,11 +48,9 @@ export function rectToPercent<T extends { left?: number; top?: number; width?: n
   }
 }
 
-export function rectToPx<T extends { left?: number; top?: number; width?: number; height?: number }>(
-  rect: T,
-  width: number,
-  height: number
-): T {
+export function rectToPx<
+  T extends { left?: number; top?: number; width?: number; height?: number },
+>(rect: T, width: number, height: number): T {
   return {
     ...rect,
     ...(typeof rect.left === 'number' ? { left: percentToPx(rect.left, width) } : {}),

@@ -25,10 +25,7 @@ export const GET = withAuth(
     }
 
     if (!family.studentIds.includes(studentId)) {
-      return NextResponse.json(
-        { error: '无权查看该学生的作业' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: '无权查看该学生的作业' }, { status: 403 })
     }
 
     // 1. Get GeneratedTask assignments where student is included
@@ -43,19 +40,19 @@ export const GET = withAuth(
       with: {
         tutor: {
           with: { profile: { columns: { name: true } } },
-          columns: { id: true }
+          columns: { id: true },
         },
         lesson: {
           with: {
             module: {
               with: {
-                curriculum: { columns: { name: true } }
-              }
-            }
+                curriculum: { columns: { name: true } },
+              },
+            },
           },
-          columns: { id: true, title: true }
-        }
-      }
+          columns: { id: true, title: true },
+        },
+      },
     })
 
     const taskIds = tasksResult.map(t => t.id)
@@ -64,43 +61,38 @@ export const GET = withAuth(
     const [submissions, workflows] = await Promise.all([
       taskIds.length > 0
         ? drizzleDb.query.taskSubmission.findMany({
-          where: and(
-            eq(taskSubmission.studentId, studentId),
-            inArray(taskSubmission.taskId, taskIds)
-          )
-        })
+            where: and(
+              eq(taskSubmission.studentId, studentId),
+              inArray(taskSubmission.taskId, taskIds)
+            ),
+          })
         : Promise.resolve([]),
       taskIds.length > 0
         ? drizzleDb.query.feedbackWorkflow.findMany({
-          where: eq(feedbackWorkflow.studentId, studentId),
-          with: {
-            submission: {
-              columns: { taskId: true }
-            }
-          }
-        })
-        : Promise.resolve([])
+            where: eq(feedbackWorkflow.studentId, studentId),
+            with: {
+              submission: {
+                columns: { taskId: true },
+              },
+            },
+          })
+        : Promise.resolve([]),
     ])
 
     // Filter workflows in JS to those belonging to our taskIds since Drizzle nested where on 'one' relation is limited
-    const relevantWorkflows = workflows.filter(wf => taskIds.includes(wf.submission?.taskId as string))
+    const relevantWorkflows = workflows.filter(wf =>
+      taskIds.includes(wf.submission?.taskId as string)
+    )
 
     const submissionMap = new Map(submissions.map(s => [s.taskId, s]))
     const feedbackBySubmissionId = new Map(relevantWorkflows.map(fw => [fw.submissionId, fw]))
 
     const formattedAssignments = tasksResult.map((task: any) => {
       const submission = submissionMap.get(task.id) as any
-      const isOverdue =
-        task.dueDate && new Date(task.dueDate) < new Date() && !submission
-      const status = submission
-        ? 'submitted'
-        : isOverdue
-          ? 'overdue'
-          : 'pending'
+      const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !submission
+      const status = submission ? 'submitted' : isOverdue ? 'overdue' : 'pending'
 
-      const feedback = submission
-        ? feedbackBySubmissionId.get(submission.id) as any
-        : null
+      const feedback = submission ? (feedbackBySubmissionId.get(submission.id) as any) : null
 
       return {
         id: task.id,
@@ -115,9 +107,7 @@ export const GET = withAuth(
         score: submission?.score ?? null,
         submittedAt: submission?.submittedAt?.toISOString() ?? null,
         gradedAt: submission?.gradedAt?.toISOString() ?? null,
-        questionCount: Array.isArray(task.questions)
-          ? (task.questions as unknown[]).length
-          : 0,
+        questionCount: Array.isArray(task.questions) ? (task.questions as unknown[]).length : 0,
         lessonId: task.lessonId,
         lessonTitle: task.lesson?.title ?? null,
         curriculumName: task.lesson?.module?.curriculum?.name ?? null,

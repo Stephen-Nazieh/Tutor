@@ -13,9 +13,19 @@ interface ElementPropertiesPanelProps {
 }
 
 const COLORS = [
-  '#000000', '#ef4444', '#f97316', '#f59e0b', '#84cc16',
-  '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef',
-  '#f43f5e', '#78716c', '#ffffff',
+  '#000000',
+  '#ef4444',
+  '#f97316',
+  '#f59e0b',
+  '#84cc16',
+  '#22c55e',
+  '#06b6d4',
+  '#3b82f6',
+  '#8b5cf6',
+  '#d946ef',
+  '#f43f5e',
+  '#78716c',
+  '#ffffff',
 ]
 
 export function ElementPropertiesPanel({
@@ -59,7 +69,7 @@ export function ElementPropertiesPanel({
             <PropertyRow label="Stroke Color">
               <ColorPicker
                 value={pathEl.strokeColor}
-                onChange={(color) => onUpdate({ strokeColor: color })}
+                onChange={color => onUpdate({ strokeColor: color })}
               />
             </PropertyRow>
             <PropertyRow label="Stroke Width">
@@ -67,7 +77,7 @@ export function ElementPropertiesPanel({
                 value={pathEl.strokeWidth}
                 min={1}
                 max={20}
-                onChange={(v) => onUpdate({ strokeWidth: v })}
+                onChange={v => onUpdate({ strokeWidth: v })}
               />
             </PropertyRow>
           </>
@@ -79,14 +89,16 @@ export function ElementPropertiesPanel({
             <PropertyRow label="Fill Color">
               <ColorPicker
                 value={rectEl.fillColor || 'transparent'}
-                onChange={(color) => onUpdate({ fillColor: color === 'transparent' ? undefined : color })}
+                onChange={color =>
+                  onUpdate({ fillColor: color === 'transparent' ? undefined : color })
+                }
                 allowTransparent
               />
             </PropertyRow>
             <PropertyRow label="Stroke Color">
               <ColorPicker
                 value={rectEl.strokeColor}
-                onChange={(color) => onUpdate({ strokeColor: color })}
+                onChange={color => onUpdate({ strokeColor: color })}
               />
             </PropertyRow>
             <PropertyRow label="Stroke Width">
@@ -94,20 +106,14 @@ export function ElementPropertiesPanel({
                 value={rectEl.strokeWidth}
                 min={1}
                 max={20}
-                onChange={(v) => onUpdate({ strokeWidth: v })}
+                onChange={v => onUpdate({ strokeWidth: v })}
               />
             </PropertyRow>
             <PropertyRow label="Width">
-              <NumberInput
-                value={rectEl.width}
-                onChange={(v) => onUpdate({ width: v })}
-              />
+              <NumberInput value={rectEl.width} onChange={v => onUpdate({ width: v })} />
             </PropertyRow>
             <PropertyRow label="Height">
-              <NumberInput
-                value={rectEl.height}
-                onChange={(v) => onUpdate({ height: v })}
-              />
+              <NumberInput value={rectEl.height} onChange={v => onUpdate({ height: v })} />
             </PropertyRow>
           </>
         )
@@ -118,14 +124,16 @@ export function ElementPropertiesPanel({
             <PropertyRow label="Fill Color">
               <ColorPicker
                 value={circleEl.fillColor || 'transparent'}
-                onChange={(color) => onUpdate({ fillColor: color === 'transparent' ? undefined : color })}
+                onChange={color =>
+                  onUpdate({ fillColor: color === 'transparent' ? undefined : color })
+                }
                 allowTransparent
               />
             </PropertyRow>
             <PropertyRow label="Stroke Color">
               <ColorPicker
                 value={circleEl.strokeColor}
-                onChange={(color) => onUpdate({ strokeColor: color })}
+                onChange={color => onUpdate({ strokeColor: color })}
               />
             </PropertyRow>
             <PropertyRow label="Radius">
@@ -133,7 +141,7 @@ export function ElementPropertiesPanel({
                 value={circleEl.radius}
                 min={1}
                 max={500}
-                onChange={(v) => onUpdate({ radius: v })}
+                onChange={v => onUpdate({ radius: v })}
               />
             </PropertyRow>
           </>
@@ -145,8 +153,8 @@ export function ElementPropertiesPanel({
             <PropertyRow label="Text">
               <textarea
                 value={textEl.text}
-                onChange={(e) => onUpdate({ text: e.target.value })}
-                className="w-full px-2 py-1 border rounded text-sm"
+                onChange={e => onUpdate({ text: e.target.value })}
+                className="w-full rounded border px-2 py-1 text-sm"
                 rows={2}
               />
             </PropertyRow>
@@ -155,27 +163,24 @@ export function ElementPropertiesPanel({
                 value={textEl.fontSize}
                 min={8}
                 max={72}
-                onChange={(v) => onUpdate({ fontSize: v })}
+                onChange={v => onUpdate({ fontSize: v })}
               />
             </PropertyRow>
             <PropertyRow label="Color">
-              <ColorPicker
-                value={textEl.color}
-                onChange={(color) => onUpdate({ color })}
-              />
+              <ColorPicker value={textEl.color} onChange={color => onUpdate({ color })} />
             </PropertyRow>
             <PropertyRow label="Bold">
               <input
                 type="checkbox"
                 checked={textEl.bold || false}
-                onChange={(e) => onUpdate({ bold: e.target.checked })}
+                onChange={e => onUpdate({ bold: e.target.checked })}
               />
             </PropertyRow>
             <PropertyRow label="Italic">
               <input
                 type="checkbox"
                 checked={textEl.italic || false}
-                onChange={(e) => onUpdate({ italic: e.target.checked })}
+                onChange={e => onUpdate({ italic: e.target.checked })}
               />
             </PropertyRow>
           </>
@@ -187,8 +192,8 @@ export function ElementPropertiesPanel({
             <PropertyRow label="LaTeX">
               <textarea
                 value={eqEl.latex}
-                onChange={(e) => onUpdate({ latex: e.target.value })}
-                className="w-full px-2 py-1 border rounded text-sm font-mono"
+                onChange={e => onUpdate({ latex: e.target.value })}
+                className="w-full rounded border px-2 py-1 font-mono text-sm"
                 rows={3}
               />
             </PropertyRow>
@@ -197,14 +202,11 @@ export function ElementPropertiesPanel({
                 value={eqEl.fontSize}
                 min={12}
                 max={48}
-                onChange={(v) => onUpdate({ fontSize: v })}
+                onChange={v => onUpdate({ fontSize: v })}
               />
             </PropertyRow>
             <PropertyRow label="Color">
-              <ColorPicker
-                value={eqEl.color}
-                onChange={(color) => onUpdate({ color })}
-              />
+              <ColorPicker value={eqEl.color} onChange={color => onUpdate({ color })} />
             </PropertyRow>
           </>
         )
@@ -214,34 +216,28 @@ export function ElementPropertiesPanel({
   }
 
   return (
-    <div className="absolute right-4 top-20 w-64 bg-white rounded-lg shadow-lg border p-4 z-40">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-sm">Properties</h3>
+    <div className="absolute right-4 top-20 z-40 w-64 rounded-lg border bg-white p-4 shadow-lg">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-sm font-semibold">Properties</h3>
         <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" />
         </button>
       </div>
 
       {/* Element Type Badge */}
       <div className="mb-3">
-        <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded capitalize">
+        <span className="inline-block rounded bg-blue-100 px-2 py-0.5 text-xs capitalize text-blue-700">
           {element.type}
         </span>
       </div>
 
       {/* Common Properties */}
-      <div className="space-y-3 mb-4">
+      <div className="mb-4 space-y-3">
         <PropertyRow label="Position X">
-          <NumberInput
-            value={localValues.x}
-            onChange={(v) => handleUpdate('x', v)}
-          />
+          <NumberInput value={localValues.x} onChange={v => handleUpdate('x', v)} />
         </PropertyRow>
         <PropertyRow label="Position Y">
-          <NumberInput
-            value={localValues.y}
-            onChange={(v) => handleUpdate('y', v)}
-          />
+          <NumberInput value={localValues.y} onChange={v => handleUpdate('y', v)} />
         </PropertyRow>
         <PropertyRow label="Rotation">
           <div className="flex items-center gap-2">
@@ -249,9 +245,9 @@ export function ElementPropertiesPanel({
               value={localValues.rotation}
               min={-180}
               max={180}
-              onChange={(v) => handleUpdate('rotation', v)}
+              onChange={v => handleUpdate('rotation', v)}
             />
-            <span className="text-xs text-slate-500 w-10">{localValues.rotation}°</span>
+            <span className="w-10 text-xs text-slate-500">{localValues.rotation}°</span>
           </div>
         </PropertyRow>
         <PropertyRow label="Opacity">
@@ -260,7 +256,7 @@ export function ElementPropertiesPanel({
             min={0}
             max={1}
             step={0.1}
-            onChange={(v) => handleUpdate('opacity', v)}
+            onChange={v => handleUpdate('opacity', v)}
           />
         </PropertyRow>
       </div>
@@ -269,9 +265,7 @@ export function ElementPropertiesPanel({
       <hr className="my-3" />
 
       {/* Type-specific Properties */}
-      <div className="space-y-3">
-        {getElementSpecificProperties()}
-      </div>
+      <div className="space-y-3">{getElementSpecificProperties()}</div>
 
       {/* Divider */}
       <hr className="my-3" />
@@ -280,16 +274,16 @@ export function ElementPropertiesPanel({
       <div className="flex gap-2">
         <button
           onClick={onDuplicate}
-          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm border rounded hover:bg-slate-50"
+          className="flex flex-1 items-center justify-center gap-1 rounded border px-3 py-2 text-sm hover:bg-slate-50"
         >
-          <Copy className="w-4 h-4" />
+          <Copy className="h-4 w-4" />
           Copy
         </button>
         <button
           onClick={onDelete}
-          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm border border-red-200 text-red-600 rounded hover:bg-red-50"
+          className="flex flex-1 items-center justify-center gap-1 rounded border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
           Delete
         </button>
       </div>
@@ -301,7 +295,7 @@ export function ElementPropertiesPanel({
 function PropertyRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <label className="text-xs text-slate-500 min-w-[80px]">{label}</label>
+      <label className="min-w-[80px] text-xs text-slate-500">{label}</label>
       <div className="flex-1">{children}</div>
     </div>
   )
@@ -312,8 +306,8 @@ function NumberInput({ value, onChange }: { value: number; onChange: (v: number)
     <input
       type="number"
       value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className="w-full px-2 py-1 border rounded text-sm"
+      onChange={e => onChange(Number(e.target.value))}
+      className="w-full rounded border px-2 py-1 text-sm"
     />
   )
 }
@@ -338,7 +332,7 @@ function RangeInput({
       max={max}
       step={step}
       value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
+      onChange={e => onChange(Number(e.target.value))}
       className="w-full"
     />
   )
@@ -359,40 +353,42 @@ function ColorPicker({
     <div className="relative">
       <button
         onClick={() => setShowPicker(!showPicker)}
-        className="w-8 h-8 rounded border shadow-sm"
+        className="h-8 w-8 rounded border shadow-sm"
         style={{
           backgroundColor: value === 'transparent' ? '#fff' : value,
-          backgroundImage: value === 'transparent'
-            ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)'
-            : undefined,
+          backgroundImage:
+            value === 'transparent'
+              ? 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)'
+              : undefined,
           backgroundSize: '8px 8px',
           backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
         }}
       />
       {showPicker && (
-        <div className="absolute top-full left-0 mt-1 p-2 bg-white border rounded shadow-lg z-50 grid grid-cols-7 gap-1">
+        <div className="absolute left-0 top-full z-50 mt-1 grid grid-cols-7 gap-1 rounded border bg-white p-2 shadow-lg">
           {allowTransparent && (
             <button
               onClick={() => {
                 onChange('transparent')
                 setShowPicker(false)
               }}
-              className="w-6 h-6 rounded border"
+              className="h-6 w-6 rounded border"
               style={{
-                backgroundImage: 'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
+                backgroundImage:
+                  'linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)',
                 backgroundSize: '4px 4px',
               }}
               title="Transparent"
             />
           )}
-          {COLORS.map((color) => (
+          {COLORS.map(color => (
             <button
               key={color}
               onClick={() => {
                 onChange(color)
                 setShowPicker(false)
               }}
-              className="w-6 h-6 rounded border"
+              className="h-6 w-6 rounded border"
               style={{ backgroundColor: color }}
             />
           ))}

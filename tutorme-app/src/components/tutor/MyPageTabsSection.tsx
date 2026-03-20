@@ -21,7 +21,7 @@ import {
   Pencil,
   Play,
   Search,
-  Sparkles
+  Sparkles,
 } from 'lucide-react'
 
 interface PublicCourse {
@@ -97,14 +97,16 @@ export function MyPageTabsSection() {
         if (classesRes.ok) {
           const classesData = await classesRes.json()
           if (active) {
-            setClasses((classesData.classes || []).map((c: any) => ({
-              id: c.id,
-              title: c.title,
-              subject: c.subject,
-              scheduledAt: c.scheduledAt,
-              duration: c.duration,
-              status: c.status
-            })))
+            setClasses(
+              (classesData.classes || []).map((c: any) => ({
+                id: c.id,
+                title: c.title,
+                subject: c.subject,
+                scheduledAt: c.scheduledAt,
+                duration: c.duration,
+                status: c.status,
+              }))
+            )
           }
         }
 
@@ -121,9 +123,10 @@ export function MyPageTabsSection() {
     }
   }, [activeTab])
 
-  const filteredCourses = allCourses.filter(course =>
-    course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.subject.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCourses = allCourses.filter(
+    course =>
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.subject.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const publishedCourses = filteredCourses.filter(c => c.isPublished)
@@ -139,7 +142,7 @@ export function MyPageTabsSection() {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     })
   }
 
@@ -161,7 +164,7 @@ export function MyPageTabsSection() {
       toast.error('Enter a valid price (0 or more).')
       return
     }
-    setPriceSaving((prev) => ({ ...prev, [course.id]: true }))
+    setPriceSaving(prev => ({ ...prev, [course.id]: true }))
     try {
       const csrfToken = await fetchCsrfToken()
       const res = await fetch(`/api/tutor/courses/${course.id}`, {
@@ -178,10 +181,8 @@ export function MyPageTabsSection() {
         toast.error(data?.error || 'Failed to update price')
         return
       }
-      setAllCourses((prev) =>
-        prev.map((c) => (c.id === course.id ? { ...c, price: priceValue } : c))
-      )
-      setPriceEdits((prev) => {
+      setAllCourses(prev => prev.map(c => (c.id === course.id ? { ...c, price: priceValue } : c)))
+      setPriceEdits(prev => {
         const next = { ...prev }
         delete next[course.id]
         return next
@@ -190,13 +191,13 @@ export function MyPageTabsSection() {
     } catch {
       toast.error('Failed to update price')
     } finally {
-      setPriceSaving((prev) => ({ ...prev, [course.id]: false }))
+      setPriceSaving(prev => ({ ...prev, [course.id]: false }))
     }
   }
 
   const deleteCourse = async (course: PublicCourse) => {
     if (!confirm(`Delete "${course.name}"? This cannot be undone.`)) return
-    setDeleteBusy((prev) => ({ ...prev, [course.id]: true }))
+    setDeleteBusy(prev => ({ ...prev, [course.id]: true }))
     try {
       const csrfToken = await fetchCsrfToken()
       const res = await fetch(`/api/tutor/courses/${course.id}`, {
@@ -211,22 +212,20 @@ export function MyPageTabsSection() {
         toast.error(data?.error || 'Failed to delete course')
         return
       }
-      setAllCourses((prev) => prev.filter((c) => c.id !== course.id))
-      setSelectedCourseId((prev) => (prev === course.id ? null : prev))
+      setAllCourses(prev => prev.filter(c => c.id !== course.id))
+      setSelectedCourseId(prev => (prev === course.id ? null : prev))
       toast.success('Course deleted')
     } catch {
       toast.error('Failed to delete course')
     } finally {
-      setDeleteBusy((prev) => ({ ...prev, [course.id]: false }))
+      setDeleteBusy(prev => ({ ...prev, [course.id]: false }))
     }
   }
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <div className="text-center text-2xl font-semibold text-gray-900">
-        Course Directory
-      </div>
-      <TabsList className="grid w-full grid-cols-4 max-w-2xl">
+      <div className="text-center text-2xl font-semibold text-gray-900">Course Directory</div>
+      <TabsList className="grid w-full max-w-2xl grid-cols-4">
         <TabsTrigger value="courses">
           Courses
           {paidPublishedCourses.length > 0 && (
@@ -238,9 +237,7 @@ export function MyPageTabsSection() {
         <TabsTrigger value="classes">
           Classes
           {classes.length > 0 && (
-            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">
-              {classes.length}
-            </span>
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs">{classes.length}</span>
           )}
         </TabsTrigger>
         <TabsTrigger value="building">
@@ -264,18 +261,18 @@ export function MyPageTabsSection() {
       <TabsContent value="courses" className="space-y-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
                   placeholder="Search courses..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center border rounded-md p-1 bg-muted/50">
+                <div className="flex items-center rounded-md border bg-muted/50 p-1">
                   <Button
                     variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                     size="sm"
@@ -303,49 +300,59 @@ export function MyPageTabsSection() {
         </Card>
 
         {loading ? (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <p className="text-muted-foreground">Loading courses...</p>
           </div>
         ) : paidPublishedCourses.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-12">
-              <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No published paid courses yet</h3>
+            <CardContent className="py-12 text-center">
+              <GraduationCap className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+              <h3 className="mb-2 text-lg font-medium text-gray-700">
+                No published paid courses yet
+              </h3>
             </CardContent>
           </Card>
         ) : viewMode === 'list' ? (
           <div className="space-y-3">
-            {paidPublishedCourses.map((course) => (
+            {paidPublishedCourses.map(course => (
               <Card
                 key={course.id}
-                className={`hover:shadow-md transition-shadow cursor-pointer ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
-                onClick={() => setSelectedCourseId(course.id === selectedCourseId ? null : course.id)}
+                className={`cursor-pointer transition-shadow hover:shadow-md ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
+                onClick={() =>
+                  setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
+                }
               >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="flex min-w-0 flex-1 items-start gap-4">
+                      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
                         <BookOpen className="h-6 w-6 text-blue-600" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-medium truncate">{course.name}</h3>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="truncate font-medium">{course.name}</h3>
                           <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                             {course.isPublished ? 'Published' : 'Draft'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                        <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
                           {course.description || 'No description'}
                         </p>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="mt-2 flex flex-wrap gap-2">
                           <Badge variant="outline">{course.subject}</Badge>
-                          {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
-                          {course.difficulty && <Badge variant="outline" className="capitalize">{course.difficulty}</Badge>}
+                          {course.gradeLevel && (
+                            <Badge variant="outline">{course.gradeLevel}</Badge>
+                          )}
+                          {course.difficulty && (
+                            <Badge variant="outline" className="capitalize">
+                              {course.difficulty}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 ml-4">
-                      <div className="hidden md:flex items-center gap-4 text-sm text-gray-500">
+                    <div className="ml-4 flex items-center gap-4">
+                      <div className="hidden items-center gap-4 text-sm text-gray-500 md:flex">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
                           <span>{course.estimatedHours || 0}h</span>
@@ -359,19 +366,21 @@ export function MyPageTabsSection() {
                           <span>{course._count?.enrollments || 0} students</span>
                         </div>
                       </div>
-                      <div className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <div className="text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
                             min="0"
                             step="1"
                             value={getPriceValue(course)}
-                            onChange={(e) => {
-                              setPriceEdits((prev) => ({ ...prev, [course.id]: e.target.value }))
+                            onChange={e => {
+                              setPriceEdits(prev => ({ ...prev, [course.id]: e.target.value }))
                             }}
                             className="h-8 w-24 text-right"
                           />
-                          <span className="text-xs text-muted-foreground">{course.currency || 'USD'}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {course.currency || 'USD'}
+                          </span>
                           <Button
                             size="sm"
                             variant="outline"
@@ -386,29 +395,29 @@ export function MyPageTabsSection() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation()
                             router.push(`/tutor/courses/${course.id}/builder`)
                           }}
                         >
-                          <Pencil className="h-4 w-4 mr-1" />
+                          <Pencil className="mr-1 h-4 w-4" />
                           Edit
                         </Button>
                         <Button
                           size="sm"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation()
                             router.push(`/tutor/classes?course=${course.id}`)
                           }}
                         >
-                          <Play className="h-4 w-4 mr-1" />
+                          <Play className="mr-1 h-4 w-4" />
                           Go Live
                         </Button>
                         <Button
                           size="sm"
                           variant="destructive"
                           disabled={deleteBusy[course.id]}
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation()
                             deleteCourse(course)
                           }}
@@ -423,35 +432,41 @@ export function MyPageTabsSection() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paidPublishedCourses.map((course) => (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {paidPublishedCourses.map(course => (
               <Card
                 key={course.id}
-                className={`hover:shadow-2xl transition-all border-none neon-border-inner bg-white/60 hover:bg-white backdrop-blur-sm cursor-pointer ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
-                onClick={() => setSelectedCourseId(course.id === selectedCourseId ? null : course.id)}
+                className={`neon-border-inner cursor-pointer border-none bg-white/60 backdrop-blur-sm transition-all hover:bg-white hover:shadow-2xl ${selectedCourseId === course.id ? 'ring-2 ring-blue-500' : ''}`}
+                onClick={() =>
+                  setSelectedCourseId(course.id === selectedCourseId ? null : course.id)
+                }
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
                       <BookOpen className="h-6 w-6 text-blue-600" />
                     </div>
                     <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                       {course.isPublished ? 'Published' : 'Draft'}
                     </Badge>
                   </div>
-                  <CardTitle className="text-lg mt-3">{course.name}</CardTitle>
+                  <CardTitle className="mt-3 text-lg">{course.name}</CardTitle>
                   <CardDescription className="line-clamp-2">
                     {course.description || 'No description'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="mb-4 flex flex-wrap gap-2">
                     <Badge variant="outline">{course.subject}</Badge>
                     {course.gradeLevel && <Badge variant="outline">{course.gradeLevel}</Badge>}
-                    {course.difficulty && <Badge variant="outline" className="capitalize">{course.difficulty}</Badge>}
+                    {course.difficulty && (
+                      <Badge variant="outline" className="capitalize">
+                        {course.difficulty}
+                      </Badge>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                  <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
                       <span>{course.estimatedHours || 0}h</span>
@@ -466,19 +481,21 @@ export function MyPageTabsSection() {
                     </div>
                   </div>
 
-                  <div className="mb-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="mb-4" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
                         min="0"
                         step="1"
                         value={getPriceValue(course)}
-                        onChange={(e) => {
-                          setPriceEdits((prev) => ({ ...prev, [course.id]: e.target.value }))
+                        onChange={e => {
+                          setPriceEdits(prev => ({ ...prev, [course.id]: e.target.value }))
                         }}
                         className="h-8 w-24 text-right"
                       />
-                      <span className="text-xs text-muted-foreground">{course.currency || 'USD'}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {course.currency || 'USD'}
+                      </span>
                       <Button
                         size="sm"
                         variant="outline"
@@ -495,23 +512,23 @@ export function MyPageTabsSection() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         router.push(`/tutor/courses/${course.id}/builder`)
                       }}
                     >
-                      <Pencil className="h-4 w-4 mr-1" />
+                      <Pencil className="mr-1 h-4 w-4" />
                       Edit
                     </Button>
                     <Button
                       size="sm"
                       className="flex-1"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         router.push(`/tutor/classes?course=${course.id}`)
                       }}
                     >
-                      <Play className="h-4 w-4 mr-1" />
+                      <Play className="mr-1 h-4 w-4" />
                       Go Live
                     </Button>
                     <Button
@@ -519,7 +536,7 @@ export function MyPageTabsSection() {
                       variant="destructive"
                       className="flex-1"
                       disabled={deleteBusy[course.id]}
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         deleteCourse(course)
                       }}
@@ -542,35 +559,35 @@ export function MyPageTabsSection() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-500">Date Published</p>
                   <p className="font-medium">{formatDate(selectedCourse.publishedAt || '')}</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-500">No. of Sessions</p>
                   <p className="font-medium">{selectedCourse.sessions}</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-500">Task Completion Rate</p>
                   <p className="font-medium">{selectedCourse.completionRate}%</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-500">Number of Tasks</p>
                   <p className="font-medium">{selectedCourse.tasks}</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-500">Number of Assessments</p>
                   <p className="font-medium">{selectedCourse.assessments}</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="rounded-lg bg-gray-50 p-3">
                   <p className="text-xs text-gray-500">Avg Score on Assessments</p>
                   <p className="font-medium">{selectedCourse.avgScore}%</p>
                 </div>
               </div>
 
               <div className="border-t pt-4">
-                <p className="text-sm font-medium mb-3 flex items-center gap-2">
+                <p className="mb-3 flex items-center gap-2 text-sm font-medium">
                   <MessageSquare className="h-4 w-4" />
                   Ask AI about this course or students
                 </p>
@@ -592,23 +609,19 @@ export function MyPageTabsSection() {
                 <CardTitle>Classes ({classes.length})</CardTitle>
                 <CardDescription>Scheduled individual classes.</CardDescription>
               </div>
-              <Button onClick={() => router.push('/tutor/classes/new')}>
-                Schedule Class
-              </Button>
+              <Button onClick={() => router.push('/tutor/classes/new')}>Schedule Class</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
             {classes.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No scheduled classes yet.
-                </p>
+              <div className="py-8 text-center">
+                <p className="mb-4 text-muted-foreground">No scheduled classes yet.</p>
                 <Button onClick={() => router.push('/tutor/classes/new')}>
                   Schedule Your First Class
                 </Button>
               </div>
             ) : (
-              classes.map((cls) => (
+              classes.map(cls => (
                 <div key={cls.id} className="rounded border p-3 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="font-medium">{cls.title}</div>
@@ -637,50 +650,55 @@ export function MyPageTabsSection() {
                   Draft courses being developed (most recent first).
                 </CardDescription>
               </div>
-              <Button onClick={() => router.push('/tutor/courses/new')}>
-                Create New
-              </Button>
+              <Button onClick={() => router.push('/tutor/courses/new')}>Create New</Button>
             </div>
           </CardHeader>
           <CardContent>
             {draftCourses.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">
-                  No items in progress. Start building!
-                </p>
-                <Button onClick={() => router.push('/tutor/courses/new')}>
-                  Create New Course
-                </Button>
+              <div className="py-8 text-center">
+                <p className="mb-4 text-muted-foreground">No items in progress. Start building!</p>
+                <Button onClick={() => router.push('/tutor/courses/new')}>Create New Course</Button>
               </div>
             ) : (
               <div className="space-y-3">
-                {draftCourses.map((course) => (
+                {draftCourses.map(course => (
                   <div
                     key={course.id}
-                    className="flex items-center justify-between rounded border p-4 hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between rounded border p-4 transition-colors hover:bg-muted/50"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">{course.name}</span>
+                        <span className="truncate font-medium">{course.name}</span>
                         <Badge variant="secondary">{course.subject}</Badge>
-                        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-50 text-amber-600"
+                        >
                           Draft
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="mt-1 text-sm text-muted-foreground">
                         {course.description || 'No description'}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {course._count?.lessons || 0} lessons • Last edited {formatDate(course.updatedAt)}
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {course._count?.lessons || 0} lessons • Last edited{' '}
+                        {formatDate(course.updatedAt)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <Button size="sm" onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}>
-                        <Pencil className="h-4 w-4 mr-1" />
+                    <div className="ml-4 flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => router.push(`/tutor/courses/${course.id}/builder`)}
+                      >
+                        <Pencil className="mr-1 h-4 w-4" />
                         Edit
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/tutor/courses/${course.id}`)}>
-                        <DollarSign className="h-4 w-4 mr-1" />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => router.push(`/tutor/courses/${course.id}`)}
+                      >
+                        <DollarSign className="mr-1 h-4 w-4" />
                         Publish
                       </Button>
                       <Button
@@ -704,15 +722,17 @@ export function MyPageTabsSection() {
         <Card>
           <CardHeader>
             <CardTitle>Completed</CardTitle>
-            <CardDescription>Courses and classes that have closed (most recent first).</CardDescription>
+            <CardDescription>
+              Courses and classes that have closed (most recent first).
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {completedItems.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
+              <p className="py-8 text-center text-sm text-muted-foreground">
                 No completed courses yet.
               </p>
             ) : (
-              completedItems.map((item) => (
+              completedItems.map(item => (
                 <div key={item.id} className="rounded border p-3 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="font-medium">{item.name}</div>

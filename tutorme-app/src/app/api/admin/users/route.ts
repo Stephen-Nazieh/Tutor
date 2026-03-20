@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit
 
     const conditions = []
-    if (role && role !== 'all') conditions.push(eq(user.role, role.toUpperCase() as 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'))
+    if (role && role !== 'all')
+      conditions.push(eq(user.role, role.toUpperCase() as 'STUDENT' | 'TUTOR' | 'PARENT' | 'ADMIN'))
     if (isActive !== null && isActive !== undefined) {
       if (isActive === 'true') conditions.push(isNotNull(user.emailVerified))
       else conditions.push(isNull(user.emailVerified))
@@ -37,10 +38,16 @@ export async function GET(req: NextRequest) {
 
     if (search) {
       const [emailRows, nameRows] = await Promise.all([
-        drizzleDb.select({ id: user.id }).from(user).where(ilike(user.email, `%${search}%`)),
-        drizzleDb.select({ userId: profile.userId }).from(profile).where(ilike(profile.name, `%${search}%`)),
+        drizzleDb
+          .select({ id: user.id })
+          .from(user)
+          .where(ilike(user.email, `%${search}%`)),
+        drizzleDb
+          .select({ userId: profile.userId })
+          .from(profile)
+          .where(ilike(profile.name, `%${search}%`)),
       ])
-      const searchIds = [...new Set([...emailRows.map((r) => r.id), ...nameRows.map((r) => r.userId)])]
+      const searchIds = [...new Set([...emailRows.map(r => r.id), ...nameRows.map(r => r.userId)])]
       if (searchIds.length === 0) {
         return NextResponse.json({
           users: [],
@@ -66,7 +73,7 @@ export async function GET(req: NextRequest) {
       .where(whereClause)
     const total = countRows[0]?.count ?? 0
 
-    const userIds = users.map((u) => u.id)
+    const userIds = users.map(u => u.id)
     const profiles =
       userIds.length > 0
         ? await drizzleDb.select().from(profile).where(inArray(profile.userId, userIds))
@@ -77,13 +84,18 @@ export async function GET(req: NextRequest) {
             .select({ userId: adminAssignment.userId, roleName: adminRole.name })
             .from(adminAssignment)
             .innerJoin(adminRole, eq(adminAssignment.roleId, adminRole.id))
-            .where(and(inArray(adminAssignment.userId, userIds), eq(adminAssignment.isActive, true)))
+            .where(
+              and(inArray(adminAssignment.userId, userIds), eq(adminAssignment.isActive, true))
+            )
         : []
 
     const enrollCounts =
       userIds.length > 0
         ? await drizzleDb
-            .select({ studentId: curriculumEnrollment.studentId, count: sql<number>`count(*)::int` })
+            .select({
+              studentId: curriculumEnrollment.studentId,
+              count: sql<number>`count(*)::int`,
+            })
             .from(curriculumEnrollment)
             .where(inArray(curriculumEnrollment.studentId, userIds))
             .groupBy(curriculumEnrollment.studentId)
@@ -105,18 +117,18 @@ export async function GET(req: NextRequest) {
             .groupBy(quizAttempt.studentId)
         : []
 
-    const profileByUserId = new Map(profiles.map((p) => [p.userId, p]))
+    const profileByUserId = new Map(profiles.map(p => [p.userId, p]))
     const assignmentsByUserId = new Map<string, string[]>()
     for (const a of assignments) {
       const list = assignmentsByUserId.get(a.userId) ?? []
       list.push(a.roleName)
       assignmentsByUserId.set(a.userId, list)
     }
-    const enrollByUserId = new Map(enrollCounts.map((e) => [e.studentId, e.count]))
-    const sessionByUserId = new Map(sessionCounts.map((s) => [s.tutorId, s.count]))
-    const quizByUserId = new Map(quizCounts.map((q) => [q.studentId, q.count]))
+    const enrollByUserId = new Map(enrollCounts.map(e => [e.studentId, e.count]))
+    const sessionByUserId = new Map(sessionCounts.map(s => [s.tutorId, s.count]))
+    const quizByUserId = new Map(quizCounts.map(q => [q.studentId, q.count]))
 
-    const formattedUsers = users.map((u) => {
+    const formattedUsers = users.map(u => {
       const p = profileByUserId.get(u.id)
       const adminRoles = assignmentsByUserId.get(u.id) ?? []
       return {

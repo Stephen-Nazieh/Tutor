@@ -18,19 +18,11 @@ export async function trackPlatformRevenue(
   })
 }
 
-export async function getPlatformRevenue(
-  startDate: Date,
-  endDate: Date
-): Promise<number> {
+export async function getPlatformRevenue(startDate: Date, endDate: Date): Promise<number> {
   const rows = await drizzleDb
     .select({ amount: platformRevenue.amount })
     .from(platformRevenue)
-    .where(
-      and(
-        gte(platformRevenue.createdAt, startDate),
-        lte(platformRevenue.createdAt, endDate)
-      )
-    )
+    .where(and(gte(platformRevenue.createdAt, startDate), lte(platformRevenue.createdAt, endDate)))
   const sum = rows.reduce((acc, r) => acc + (Number(r.amount) || 0), 0)
   return sum
 }

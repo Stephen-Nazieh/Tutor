@@ -21,7 +21,9 @@ import {
 
 export async function GET(
   req: NextRequest,
-  context?: { params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]> }
+  context?: {
+    params?: Promise<Record<string, string | string[]>> | Record<string, string | string[]>
+  }
 ) {
   const curriculumId = await getParamAsync(context?.params, 'curriculumId')
 
@@ -32,12 +34,7 @@ export async function GET(
   const [curriculumRow] = await drizzleDb
     .select()
     .from(curriculum)
-    .where(
-      and(
-        eq(curriculum.id, curriculumId),
-        eq(curriculum.isPublished, true)
-      )
-    )
+    .where(and(eq(curriculum.id, curriculumId), eq(curriculum.isPublished, true)))
     .limit(1)
 
   if (!curriculumRow) {

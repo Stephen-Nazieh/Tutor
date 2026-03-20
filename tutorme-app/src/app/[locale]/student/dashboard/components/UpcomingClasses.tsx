@@ -29,28 +29,35 @@ interface UpcomingClassesProps {
 export function UpcomingClasses({ classes, bookingClassId, onBookClass }: UpcomingClassesProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   return (
     <Card className="mb-8">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-green-500" />
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Calendar className="h-5 w-5 text-green-500" />
             Upcoming Classes
           </CardTitle>
           <Link href="/student/courses">
-            <Button variant="ghost" size="sm">View All</Button>
+            <Button variant="ghost" size="sm">
+              View All
+            </Button>
           </Link>
         </div>
       </CardHeader>
       <CardContent>
         {classes.length === 0 ? (
           <div className="py-8 text-center text-gray-500">
-            <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <Calendar className="mx-auto mb-3 h-12 w-12 text-gray-300" />
             <p className="font-medium text-gray-700">No upcoming classes</p>
-            <p className="text-sm mt-1">View available classes to book.</p>
+            <p className="mt-1 text-sm">View available classes to book.</p>
             <Link href="/student/courses">
               <Button className="mt-4">View classes</Button>
             </Link>
@@ -58,22 +65,20 @@ export function UpcomingClasses({ classes, bookingClassId, onBookClass }: Upcomi
         ) : (
           <div className="space-y-3">
             {classes.map(cls => (
-              <div key={cls.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={cls.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{cls.title}</h4>
-                    {cls.isBooked && (
-                      <Badge className="bg-green-100 text-green-800">Booked</Badge>
-                    )}
+                    {cls.isBooked && <Badge className="bg-green-100 text-green-800">Booked</Badge>}
                   </div>
                   <p className="text-sm text-gray-500">
                     {cls.subject} • {formatDate(cls.startTime)}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
-                    <Users className="w-3 h-3" />
+                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
+                    <Users className="h-3 w-3" />
                     {cls.currentBookings}/{cls.maxStudents} students
                     {cls.price != null && cls.price > 0 && (
-                      <span className="text-green-600 font-medium">SGD {cls.price.toFixed(2)}</span>
+                      <span className="font-medium text-green-600">SGD {cls.price.toFixed(2)}</span>
                     )}
                   </div>
                 </div>

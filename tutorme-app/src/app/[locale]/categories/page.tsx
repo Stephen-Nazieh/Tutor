@@ -10,15 +10,21 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  BookOpen, 
-  ArrowLeft, 
-  Search, 
-  Globe, 
-  MapPin, 
-  GraduationCap, 
+import {
+  BookOpen,
+  ArrowLeft,
+  Search,
+  Globe,
+  MapPin,
+  GraduationCap,
   Check,
   X,
   ChevronRight,
@@ -27,7 +33,7 @@ import {
   Flag,
   Plus,
   Sparkles,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -53,564 +59,1087 @@ interface ExamCategory {
 // National exams data by country - extracted from Categories.docx
 const NATIONAL_EXAMS_DATA: Record<string, ExamCategory[]> = {
   // Asia - Hong Kong
-  'HK': [
-    { 
-      id: 'hkdse-s5', 
-      label: 'HKDSE Preparation (S5)', 
+  HK: [
+    {
+      id: 'hkdse-s5',
+      label: 'HKDSE Preparation (S5)',
       exams: [
-        'S5 HKDSE Chinese Language Preparation', 
-        'S5 HKDSE English Language Preparation', 
-        'S5 HKDSE Mathematics Preparation', 
-        'S5 HKDSE Mathematics M1 Preparation', 
-        'S5 HKDSE Mathematics M2 Preparation', 
-        'S5 HKDSE Physics Preparation', 
-        'S5 HKDSE Chemistry Preparation', 
-        'S5 HKDSE Biology Preparation', 
-        'S5 HKDSE Combined Science Preparation'
-      ] 
+        'S5 HKDSE Chinese Language Preparation',
+        'S5 HKDSE English Language Preparation',
+        'S5 HKDSE Mathematics Preparation',
+        'S5 HKDSE Mathematics M1 Preparation',
+        'S5 HKDSE Mathematics M2 Preparation',
+        'S5 HKDSE Physics Preparation',
+        'S5 HKDSE Chemistry Preparation',
+        'S5 HKDSE Biology Preparation',
+        'S5 HKDSE Combined Science Preparation',
+      ],
     },
-    { 
-      id: 'hkdse-s6', 
-      label: 'HKDSE Preparation (S6)', 
+    {
+      id: 'hkdse-s6',
+      label: 'HKDSE Preparation (S6)',
       exams: [
-        'S6 HKDSE Chinese Language Preparation', 
-        'S6 HKDSE English Language Preparation', 
-        'S6 HKDSE Mathematics Preparation', 
-        'S6 HKDSE Mathematics M1 Preparation', 
-        'S6 HKDSE Mathematics M2 Preparation', 
-        'S6 HKDSE Physics Preparation', 
-        'S6 HKDSE Chemistry Preparation', 
-        'S6 HKDSE Biology Preparation', 
-        'S6 HKDSE Combined Science Preparation'
-      ] 
+        'S6 HKDSE Chinese Language Preparation',
+        'S6 HKDSE English Language Preparation',
+        'S6 HKDSE Mathematics Preparation',
+        'S6 HKDSE Mathematics M1 Preparation',
+        'S6 HKDSE Mathematics M2 Preparation',
+        'S6 HKDSE Physics Preparation',
+        'S6 HKDSE Chemistry Preparation',
+        'S6 HKDSE Biology Preparation',
+        'S6 HKDSE Combined Science Preparation',
+      ],
     },
     {
       id: 'hk-subject-s4',
       label: 'Secondary 4 (S4 / Grade 10)',
-      exams: ['S4 Chinese Language', 'S4 English Language', 'S4 Mathematics', 'S4 Mathematics Extended Module 1 (M1)', 'S4 Mathematics Extended Module 2 (M2)', 'S4 Physics', 'S4 Chemistry', 'S4 Biology', 'S4 Combined Science']
+      exams: [
+        'S4 Chinese Language',
+        'S4 English Language',
+        'S4 Mathematics',
+        'S4 Mathematics Extended Module 1 (M1)',
+        'S4 Mathematics Extended Module 2 (M2)',
+        'S4 Physics',
+        'S4 Chemistry',
+        'S4 Biology',
+        'S4 Combined Science',
+      ],
     },
     {
       id: 'hk-subject-s5',
       label: 'Secondary 5 (S5 / Grade 11)',
-      exams: ['S5 Chinese Language', 'S5 English Language', 'S5 Mathematics', 'S5 Mathematics Extended Module 1 (M1)', 'S5 Mathematics Extended Module 2 (M2)', 'S5 Physics', 'S5 Chemistry', 'S5 Biology', 'S5 Combined Science']
+      exams: [
+        'S5 Chinese Language',
+        'S5 English Language',
+        'S5 Mathematics',
+        'S5 Mathematics Extended Module 1 (M1)',
+        'S5 Mathematics Extended Module 2 (M2)',
+        'S5 Physics',
+        'S5 Chemistry',
+        'S5 Biology',
+        'S5 Combined Science',
+      ],
     },
     {
       id: 'hk-subject-s6',
       label: 'Secondary 6 (S6 / Grade 12)',
-      exams: ['S6 Chinese Language', 'S6 English Language', 'S6 Mathematics', 'S6 Mathematics Extended Module 1 (M1)', 'S6 Mathematics Extended Module 2 (M2)', 'S6 Physics', 'S6 Chemistry', 'S6 Biology', 'S6 Combined Science']
-    }
+      exams: [
+        'S6 Chinese Language',
+        'S6 English Language',
+        'S6 Mathematics',
+        'S6 Mathematics Extended Module 1 (M1)',
+        'S6 Mathematics Extended Module 2 (M2)',
+        'S6 Physics',
+        'S6 Chemistry',
+        'S6 Biology',
+        'S6 Combined Science',
+      ],
+    },
   ],
   // South Korea
-  'KR': [
-    { 
-      id: 'csat', 
-      label: 'CSAT Preparation (수능 Preparation)', 
+  KR: [
+    {
+      id: 'csat',
+      label: 'CSAT Preparation (수능 Preparation)',
       exams: [
-        'CSAT Korean Language Preparation', 
-        'CSAT English Preparation', 
-        'CSAT Mathematics Preparation', 
-        'CSAT Physics Preparation', 
-        'CSAT Chemistry Preparation', 
-        'CSAT Biology Preparation', 
-        'CSAT Earth Science Preparation'
-      ] 
+        'CSAT Korean Language Preparation',
+        'CSAT English Preparation',
+        'CSAT Mathematics Preparation',
+        'CSAT Physics Preparation',
+        'CSAT Chemistry Preparation',
+        'CSAT Biology Preparation',
+        'CSAT Earth Science Preparation',
+      ],
     },
     {
       id: 'kr-year-1',
       label: 'High School Year 1',
-      exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Geometry', 'Probability & Statistics', 'Integrated Science', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+      exams: [
+        'Korean Language',
+        'English Language',
+        'Mathematics',
+        'Algebra',
+        'Geometry',
+        'Probability & Statistics',
+        'Integrated Science',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
     },
     {
       id: 'kr-year-2',
       label: 'High School Year 2',
-      exams: ['Korean Language', 'English Language', 'Mathematics', 'Algebra', 'Calculus Foundations', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+      exams: [
+        'Korean Language',
+        'English Language',
+        'Mathematics',
+        'Algebra',
+        'Calculus Foundations',
+        'Probability & Statistics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
     },
     {
       id: 'kr-year-3',
       label: 'High School Year 3',
-      exams: ['Korean Language', 'English Language', 'Mathematics', 'Calculus', 'Probability & Statistics', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
-    }
+      exams: [
+        'Korean Language',
+        'English Language',
+        'Mathematics',
+        'Calculus',
+        'Probability & Statistics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
   ],
   // Singapore
-  'SG': [
-    { 
-      id: 'gce-o-level', 
-      label: 'GCE O-Level Preparation', 
+  SG: [
+    {
+      id: 'gce-o-level',
+      label: 'GCE O-Level Preparation',
       exams: [
-        'O-Level English Preparation', 
-        'O-Level Elementary Mathematics Preparation', 
-        'O-Level Additional Mathematics Preparation', 
-        'O-Level Physics Preparation', 
-        'O-Level Chemistry Preparation', 
-        'O-Level Biology Preparation', 
-        'O-Level Combined Science Preparation'
-      ] 
+        'O-Level English Preparation',
+        'O-Level Elementary Mathematics Preparation',
+        'O-Level Additional Mathematics Preparation',
+        'O-Level Physics Preparation',
+        'O-Level Chemistry Preparation',
+        'O-Level Biology Preparation',
+        'O-Level Combined Science Preparation',
+      ],
     },
-    { 
-      id: 'gce-a-level', 
-      label: 'GCE A-Level Preparation', 
+    {
+      id: 'gce-a-level',
+      label: 'GCE A-Level Preparation',
       exams: [
-        'A-Level General Paper Preparation', 
-        'A-Level Mathematics Preparation', 
-        'A-Level Physics Preparation', 
-        'A-Level Chemistry Preparation', 
-        'A-Level Biology Preparation'
-      ] 
+        'A-Level General Paper Preparation',
+        'A-Level Mathematics Preparation',
+        'A-Level Physics Preparation',
+        'A-Level Chemistry Preparation',
+        'A-Level Biology Preparation',
+      ],
     },
     {
       id: 'sg-sec-4',
       label: 'Secondary 4 (Sec 4 / Grade 10)',
-      exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science']
+      exams: [
+        'English Language',
+        'Elementary Mathematics',
+        'Additional Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Combined Science',
+      ],
     },
     {
       id: 'sg-sec-5',
       label: 'Secondary 5 (Sec 5 / Grade 11)',
-      exams: ['English Language', 'Elementary Mathematics', 'Additional Mathematics', 'Physics', 'Chemistry', 'Biology', 'Combined Science']
+      exams: [
+        'English Language',
+        'Elementary Mathematics',
+        'Additional Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Combined Science',
+      ],
     },
     {
       id: 'sg-jc1',
       label: 'Junior College Year 1 (JC1 / Grade 11)',
-      exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology']
+      exams: [
+        'General Paper (English Academic Literacy)',
+        'H1 Mathematics',
+        'H2 Mathematics',
+        'H1 Physics',
+        'H2 Physics',
+        'H1 Chemistry',
+        'H2 Chemistry',
+        'H1 Biology',
+        'H2 Biology',
+      ],
     },
     {
       id: 'sg-jc2',
       label: 'Junior College Year 2 (JC2 / Grade 12)',
-      exams: ['General Paper (English Academic Literacy)', 'H1 Mathematics', 'H2 Mathematics', 'H1 Physics', 'H2 Physics', 'H1 Chemistry', 'H2 Chemistry', 'H1 Biology', 'H2 Biology']
-    }
+      exams: [
+        'General Paper (English Academic Literacy)',
+        'H1 Mathematics',
+        'H2 Mathematics',
+        'H1 Physics',
+        'H2 Physics',
+        'H1 Chemistry',
+        'H2 Chemistry',
+        'H1 Biology',
+        'H2 Biology',
+      ],
+    },
   ],
   // Japan
-  'JP': [
-    { 
-      id: 'university-entrance', 
-      label: 'University Entrance Examination Preparation', 
+  JP: [
+    {
+      id: 'university-entrance',
+      label: 'University Entrance Examination Preparation',
       exams: [
-        'Japanese University Entrance Japanese Language', 
-        'Japanese University Entrance English', 
-        'Japanese University Entrance Mathematics', 
-        'Japanese University Entrance Physics', 
-        'Japanese University Entrance Chemistry', 
-        'Japanese University Entrance Biology', 
-        'Japanese University Entrance Earth Science'
-      ] 
+        'Japanese University Entrance Japanese Language',
+        'Japanese University Entrance English',
+        'Japanese University Entrance Mathematics',
+        'Japanese University Entrance Physics',
+        'Japanese University Entrance Chemistry',
+        'Japanese University Entrance Biology',
+        'Japanese University Entrance Earth Science',
+      ],
     },
     {
       id: 'jp-year-1',
       label: 'High School Year 1 (G10 / 高校1年)',
-      exams: ['Japanese Language', 'English Language', 'Mathematics I', 'Mathematics A', 'Basic Physics', 'Basic Chemistry', 'Basic Biology', 'Earth Science Basics']
+      exams: [
+        'Japanese Language',
+        'English Language',
+        'Mathematics I',
+        'Mathematics A',
+        'Basic Physics',
+        'Basic Chemistry',
+        'Basic Biology',
+        'Earth Science Basics',
+      ],
     },
     {
       id: 'jp-year-2',
       label: 'High School Year 2 (G11 / 高校2年)',
-      exams: ['Japanese Language', 'English Language', 'Mathematics II', 'Mathematics B', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
+      exams: [
+        'Japanese Language',
+        'English Language',
+        'Mathematics II',
+        'Mathematics B',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
     },
     {
       id: 'jp-year-3',
       label: 'High School Year 3 (G12 / 高校3年)',
-      exams: ['Japanese Language', 'English Language', 'Mathematics III', 'Advanced Mathematics', 'Physics', 'Chemistry', 'Biology', 'Earth Science']
-    }
+      exams: [
+        'Japanese Language',
+        'English Language',
+        'Mathematics III',
+        'Advanced Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+        'Earth Science',
+      ],
+    },
   ],
   // Thailand
-  'TH': [
-    { 
-      id: 'university-admission', 
-      label: 'University Admission Examination', 
+  TH: [
+    {
+      id: 'university-admission',
+      label: 'University Admission Examination',
       exams: [
-        'Thai University Admission Thai Language', 
-        'Thai University Admission English', 
-        'Thai University Admission Mathematics', 
-        'Thai University Admission Physics', 
-        'Thai University Admission Chemistry', 
-        'Thai University Admission Biology', 
-        'Thai University Admission Earth & Space Science'
-      ] 
+        'Thai University Admission Thai Language',
+        'Thai University Admission English',
+        'Thai University Admission Mathematics',
+        'Thai University Admission Physics',
+        'Thai University Admission Chemistry',
+        'Thai University Admission Biology',
+        'Thai University Admission Earth & Space Science',
+      ],
     },
     {
       id: 'th-grade-10',
       label: 'Grade 10',
-      exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Thai Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'th-grade-11',
       label: 'Grade 11',
-      exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Thai Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'th-grade-12',
       label: 'Grade 12',
-      exams: ['Thai Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Thai Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // India
-  'IN': [
-    { 
-      id: 'jee', 
-      label: 'Engineering Entrance (JEE)', 
+  IN: [
+    {
+      id: 'jee',
+      label: 'Engineering Entrance (JEE)',
       exams: [
-        'JEE Main Preparation — Mathematics', 
-        'JEE Main Preparation — Physics', 
-        'JEE Main Preparation — Chemistry', 
-        'JEE Advanced Preparation — Mathematics', 
-        'JEE Advanced Preparation — Physics', 
-        'JEE Advanced Preparation — Chemistry'
-      ] 
+        'JEE Main Preparation — Mathematics',
+        'JEE Main Preparation — Physics',
+        'JEE Main Preparation — Chemistry',
+        'JEE Advanced Preparation — Mathematics',
+        'JEE Advanced Preparation — Physics',
+        'JEE Advanced Preparation — Chemistry',
+      ],
     },
-    { 
-      id: 'neet', 
-      label: 'Medical Entrance (NEET)', 
+    {
+      id: 'neet',
+      label: 'Medical Entrance (NEET)',
       exams: [
-        'NEET Preparation — Physics', 
-        'NEET Preparation — Chemistry', 
-        'NEET Preparation — Biology'
-      ] 
+        'NEET Preparation — Physics',
+        'NEET Preparation — Chemistry',
+        'NEET Preparation — Biology',
+      ],
     },
     {
       id: 'in-grade-10',
       label: 'Grade 10',
-      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
     },
     {
       id: 'in-grade-11',
       label: 'Grade 11',
-      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
     },
     {
       id: 'in-grade-12',
       label: 'Grade 12',
-      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: ['English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology'],
+    },
   ],
   // Vietnam
-  'VN': [
-    { 
-      id: 'national-exam', 
-      label: 'National Examination Preparation', 
+  VN: [
+    {
+      id: 'national-exam',
+      label: 'National Examination Preparation',
       exams: [
-        'Vietnam National Exam — Vietnamese Language', 
-        'Vietnam National Exam — English', 
-        'Vietnam National Exam — Mathematics', 
-        'Vietnam National Exam — Physics', 
-        'Vietnam National Exam — Chemistry', 
-        'Vietnam National Exam — Biology'
-      ] 
+        'Vietnam National Exam — Vietnamese Language',
+        'Vietnam National Exam — English',
+        'Vietnam National Exam — Mathematics',
+        'Vietnam National Exam — Physics',
+        'Vietnam National Exam — Chemistry',
+        'Vietnam National Exam — Biology',
+      ],
     },
     {
       id: 'vn-grade-10',
       label: 'Grade 10',
-      exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Vietnamese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'vn-grade-11',
       label: 'Grade 11',
-      exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Vietnamese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'vn-grade-12',
       label: 'Grade 12',
-      exams: ['Vietnamese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Vietnamese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // Taiwan
-  'TW': [
-    { 
-      id: 'university-entrance', 
-      label: 'University Entrance Examination', 
+  TW: [
+    {
+      id: 'university-entrance',
+      label: 'University Entrance Examination',
       exams: [
-        'Taiwan University Entrance Chinese', 
-        'Taiwan University Entrance English', 
-        'Taiwan University Entrance Mathematics', 
-        'Taiwan University Entrance Physics', 
-        'Taiwan University Entrance Chemistry', 
-        'Taiwan University Entrance Biology'
-      ] 
+        'Taiwan University Entrance Chinese',
+        'Taiwan University Entrance English',
+        'Taiwan University Entrance Mathematics',
+        'Taiwan University Entrance Physics',
+        'Taiwan University Entrance Chemistry',
+        'Taiwan University Entrance Biology',
+      ],
     },
     {
       id: 'tw-grade-10',
       label: 'Grade 10',
-      exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Chinese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'tw-grade-11',
       label: 'Grade 11',
-      exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Chinese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'tw-grade-12',
       label: 'Grade 12',
-      exams: ['Chinese Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Chinese Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // Malaysia
-  'MY': [
-    { 
-      id: 'spm', 
-      label: 'SPM Examination', 
-      exams: ['SPM Malay', 'SPM English', 'SPM Mathematics', 'SPM Physics', 'SPM Chemistry', 'SPM Biology'] 
+  MY: [
+    {
+      id: 'spm',
+      label: 'SPM Examination',
+      exams: [
+        'SPM Malay',
+        'SPM English',
+        'SPM Mathematics',
+        'SPM Physics',
+        'SPM Chemistry',
+        'SPM Biology',
+      ],
     },
     {
       id: 'my-grade-10',
       label: 'Grade 10',
-      exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Malay Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'my-grade-11',
       label: 'Grade 11',
-      exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Malay Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'my-grade-12',
       label: 'Grade 12',
-      exams: ['Malay Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Malay Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // Indonesia
-  'ID': [
-    { 
-      id: 'university-admission', 
-      label: 'University Admission', 
+  ID: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
       exams: [
-        'University Admission Indonesian', 
-        'University Admission English', 
-        'University Admission Mathematics', 
-        'University Admission Physics', 
-        'University Admission Chemistry', 
-        'University Admission Biology'
-      ] 
+        'University Admission Indonesian',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
     },
     {
       id: 'id-grade-10',
       label: 'Grade 10',
-      exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Indonesian Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'id-grade-11',
       label: 'Grade 11',
-      exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Indonesian Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'id-grade-12',
       label: 'Grade 12',
-      exams: ['Indonesian Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Indonesian Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // Philippines - no national exams listed in Categories.docx
-  'PH': [],
+  PH: [],
   // Israel
-  'IL': [
-    { 
-      id: 'bagrut', 
-      label: 'Bagrut', 
-      exams: ['Bagrut Hebrew', 'Bagrut English', 'Bagrut Mathematics', 'Bagrut Physics', 'Bagrut Chemistry', 'Bagrut Biology'] 
+  IL: [
+    {
+      id: 'bagrut',
+      label: 'Bagrut',
+      exams: [
+        'Bagrut Hebrew',
+        'Bagrut English',
+        'Bagrut Mathematics',
+        'Bagrut Physics',
+        'Bagrut Chemistry',
+        'Bagrut Biology',
+      ],
     },
     {
       id: 'il-grade-10',
       label: 'Grade 10',
-      exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Hebrew Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'il-grade-11',
       label: 'Grade 11',
-      exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Hebrew Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'il-grade-12',
       label: 'Grade 12',
-      exams: ['Hebrew Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Hebrew Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // Middle East
-  'SA': [
-    { 
-      id: 'university-admission', 
-      label: 'University Admission', 
-      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+  SA: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
     },
     {
       id: 'sa-grade-10',
       label: 'Grade 10',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'sa-grade-11',
       label: 'Grade 11',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'sa-grade-12',
       label: 'Grade 12',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'QA': [
-    { 
-      id: 'university-admission', 
-      label: 'University Admission', 
-      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+  QA: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
     },
     {
       id: 'qa-grade-10',
       label: 'Grade 10',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'qa-grade-11',
       label: 'Grade 11',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'qa-grade-12',
       label: 'Grade 12',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'KW': [
-    { 
-      id: 'university-admission', 
-      label: 'University Admission', 
-      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+  KW: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
     },
     {
       id: 'kw-grade-10',
       label: 'Grade 10',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'kw-grade-11',
       label: 'Grade 11',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'kw-grade-12',
       label: 'Grade 12',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
-  'OM': [
-    { 
-      id: 'university-admission', 
-      label: 'University Admission', 
-      exams: ['University Admission Arabic', 'University Admission English', 'University Admission Mathematics', 'University Admission Physics', 'University Admission Chemistry', 'University Admission Biology'] 
+  OM: [
+    {
+      id: 'university-admission',
+      label: 'University Admission',
+      exams: [
+        'University Admission Arabic',
+        'University Admission English',
+        'University Admission Mathematics',
+        'University Admission Physics',
+        'University Admission Chemistry',
+        'University Admission Biology',
+      ],
     },
     {
       id: 'om-grade-10',
       label: 'Grade 10',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'om-grade-11',
       label: 'Grade 11',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
     },
     {
       id: 'om-grade-12',
       label: 'Grade 12',
-      exams: ['Arabic Language', 'English Language', 'Mathematics', 'Physics', 'Chemistry', 'Biology']
-    }
+      exams: [
+        'Arabic Language',
+        'English Language',
+        'Mathematics',
+        'Physics',
+        'Chemistry',
+        'Biology',
+      ],
+    },
   ],
   // Europe
-  'GB': [
-    { 
-      id: 'gcse', 
-      label: 'GCSE', 
-      exams: ['GCSE English Language', 'GCSE English Literature', 'GCSE Mathematics', 'GCSE Biology', 'GCSE Chemistry', 'GCSE Physics', 'GCSE Combined Science'] 
+  GB: [
+    {
+      id: 'gcse',
+      label: 'GCSE',
+      exams: [
+        'GCSE English Language',
+        'GCSE English Literature',
+        'GCSE Mathematics',
+        'GCSE Biology',
+        'GCSE Chemistry',
+        'GCSE Physics',
+        'GCSE Combined Science',
+      ],
     },
-    { 
-      id: 'a-level-uk', 
-      label: 'A Level (UK)', 
-      exams: ['A Level English', 'A Level Mathematics', 'A Level Biology', 'A Level Chemistry', 'A Level Physics'] 
+    {
+      id: 'a-level-uk',
+      label: 'A Level (UK)',
+      exams: [
+        'A Level English',
+        'A Level Mathematics',
+        'A Level Biology',
+        'A Level Chemistry',
+        'A Level Physics',
+      ],
     },
     {
       id: 'gb-grade-10',
       label: 'Grade 10',
-      exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics', 'Combined Science']
+      exams: [
+        'English Language',
+        'English Literature',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+        'Combined Science',
+      ],
     },
     {
       id: 'gb-grade-11',
       label: 'Grade 11',
-      exams: ['English Language', 'English Literature', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+      exams: [
+        'English Language',
+        'English Literature',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'gb-grade-12',
       label: 'Grade 12 (Age 17-18)',
-      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'],
     },
     {
       id: 'gb-grade-13',
       label: 'Grade 13',
-      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
-    }
+      exams: ['English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics'],
+    },
   ],
-  'DE': [
-    { 
-      id: 'abitur', 
-      label: 'Abitur', 
-      exams: ['Abitur German', 'Abitur English', 'Abitur Mathematics', 'Abitur Biology', 'Abitur Chemistry', 'Abitur Physics'] 
+  DE: [
+    {
+      id: 'abitur',
+      label: 'Abitur',
+      exams: [
+        'Abitur German',
+        'Abitur English',
+        'Abitur Mathematics',
+        'Abitur Biology',
+        'Abitur Chemistry',
+        'Abitur Physics',
+      ],
     },
     {
       id: 'de-grade-10',
       label: 'Grade 10',
-      exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+      exams: [
+        'German Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'de-grade-11',
       label: 'Grade 11',
-      exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+      exams: [
+        'German Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'de-grade-12',
       label: 'Grade 12',
-      exams: ['German Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
-    }
+      exams: [
+        'German Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
   ],
-  'FR': [
-    { 
-      id: 'baccalaureat', 
-      label: 'Baccalauréat', 
-      exams: ['Baccalauréat French', 'Baccalauréat English', 'Baccalauréat Mathematics', 'Baccalauréat Biology', 'Baccalauréat Chemistry', 'Baccalauréat Physics'] 
+  FR: [
+    {
+      id: 'baccalaureat',
+      label: 'Baccalauréat',
+      exams: [
+        'Baccalauréat French',
+        'Baccalauréat English',
+        'Baccalauréat Mathematics',
+        'Baccalauréat Biology',
+        'Baccalauréat Chemistry',
+        'Baccalauréat Physics',
+      ],
     },
     {
       id: 'fr-grade-10',
       label: 'Grade 10 (Seconde - Age 16)',
-      exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics']
+      exams: [
+        'French Language',
+        'English Language',
+        'Mathematics',
+        'Biology & Earth Sciences',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'fr-grade-11',
       label: 'Grade 11 (Première - Age 17)',
-      exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics']
+      exams: [
+        'French Language',
+        'English Language',
+        'Mathematics',
+        'Biology & Earth Sciences',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'fr-grade-12',
       label: 'Grade 12 (Terminale - Age 18)',
-      exams: ['French Language', 'English Language', 'Mathematics', 'Biology & Earth Sciences', 'Chemistry', 'Physics']
-    }
+      exams: [
+        'French Language',
+        'English Language',
+        'Mathematics',
+        'Biology & Earth Sciences',
+        'Chemistry',
+        'Physics',
+      ],
+    },
   ],
-  'NL': [
-    { 
-      id: 'dutch-national', 
-      label: 'National Examination', 
-      exams: ['Dutch National Exam — Dutch', 'Dutch National Exam — English', 'Dutch National Exam — Mathematics', 'Dutch National Exam — Biology', 'Dutch National Exam — Chemistry', 'Dutch National Exam — Physics'] 
+  NL: [
+    {
+      id: 'dutch-national',
+      label: 'National Examination',
+      exams: [
+        'Dutch National Exam — Dutch',
+        'Dutch National Exam — English',
+        'Dutch National Exam — Mathematics',
+        'Dutch National Exam — Biology',
+        'Dutch National Exam — Chemistry',
+        'Dutch National Exam — Physics',
+      ],
     },
     {
       id: 'nl-grade-10',
       label: 'Grade 10',
-      exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+      exams: [
+        'Dutch Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'nl-grade-11',
       label: 'Grade 11',
-      exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
+      exams: [
+        'Dutch Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
     },
     {
       id: 'nl-grade-12',
       label: 'Grade 12',
-      exams: ['Dutch Language', 'English Language', 'Mathematics', 'Biology', 'Chemistry', 'Physics']
-    }
+      exams: [
+        'Dutch Language',
+        'English Language',
+        'Mathematics',
+        'Biology',
+        'Chemistry',
+        'Physics',
+      ],
+    },
   ],
   // Countries without specific national exams in Categories.docx
-  'BE': [], 'CH': [], 'IT': [], 'ES': [], 'IE': [], 'PT': [], 'AT': [], 'PL': [], 'CZ': [], 'HU': [], 'RO': [], 'GR': [], 'TR': [],
-  'AU': [], 'NZ': [],
-  'US': [], 'CA': [], 'MX': [], 'CR': [], 'PA': [], 'DO': [],
-  'BR': [], 'CL': [], 'PE': [], 'CO': [], 'AR': [], 'UY': [], 'EC': [],
-  'NG': [], 'KE': [], 'GH': [], 'EG': [], 'MA': [], 'TN': [], 'BW': [], 'NA': [], 'ZA': []
+  BE: [],
+  CH: [],
+  IT: [],
+  ES: [],
+  IE: [],
+  PT: [],
+  AT: [],
+  PL: [],
+  CZ: [],
+  HU: [],
+  RO: [],
+  GR: [],
+  TR: [],
+  AU: [],
+  NZ: [],
+  US: [],
+  CA: [],
+  MX: [],
+  CR: [],
+  PA: [],
+  DO: [],
+  BR: [],
+  CL: [],
+  PE: [],
+  CO: [],
+  AR: [],
+  UY: [],
+  EC: [],
+  NG: [],
+  KE: [],
+  GH: [],
+  EG: [],
+  MA: [],
+  TN: [],
+  BW: [],
+  NA: [],
+  ZA: [],
 }
 
 const REGIONS: Region[] = [
@@ -630,7 +1159,7 @@ const REGIONS: Region[] = [
       { code: 'ID', name: 'Indonesia', nationalExams: NATIONAL_EXAMS_DATA['ID'] || [] },
       { code: 'PH', name: 'Philippines', nationalExams: [] },
       { code: 'IL', name: 'Israel', nationalExams: NATIONAL_EXAMS_DATA['IL'] || [] },
-    ]
+    ],
   },
   {
     id: 'middle-east',
@@ -640,7 +1169,7 @@ const REGIONS: Region[] = [
       { code: 'QA', name: 'Qatar', nationalExams: NATIONAL_EXAMS_DATA['QA'] || [] },
       { code: 'KW', name: 'Kuwait', nationalExams: NATIONAL_EXAMS_DATA['KW'] || [] },
       { code: 'OM', name: 'Oman', nationalExams: NATIONAL_EXAMS_DATA['OM'] || [] },
-    ]
+    ],
   },
   {
     id: 'europe',
@@ -663,7 +1192,7 @@ const REGIONS: Region[] = [
       { code: 'RO', name: 'Romania', nationalExams: [] },
       { code: 'GR', name: 'Greece', nationalExams: [] },
       { code: 'TR', name: 'Turkey', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'oceania',
@@ -671,7 +1200,7 @@ const REGIONS: Region[] = [
     countries: [
       { code: 'AU', name: 'Australia', nationalExams: [] },
       { code: 'NZ', name: 'New Zealand', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'north-america',
@@ -683,7 +1212,7 @@ const REGIONS: Region[] = [
       { code: 'CR', name: 'Costa Rica', nationalExams: [] },
       { code: 'PA', name: 'Panama', nationalExams: [] },
       { code: 'DO', name: 'Dominican Republic', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'south-america',
@@ -696,7 +1225,7 @@ const REGIONS: Region[] = [
       { code: 'AR', name: 'Argentina', nationalExams: [] },
       { code: 'UY', name: 'Uruguay', nationalExams: [] },
       { code: 'EC', name: 'Ecuador', nationalExams: [] },
-    ]
+    ],
   },
   {
     id: 'africa',
@@ -711,45 +1240,260 @@ const REGIONS: Region[] = [
       { code: 'BW', name: 'Botswana', nationalExams: [] },
       { code: 'NA', name: 'Namibia', nationalExams: [] },
       { code: 'ZA', name: 'South Africa', nationalExams: [] },
-    ]
-  }
+    ],
+  },
 ]
 
 // Global Exams Categories
 const GLOBAL_EXAMS_CATEGORIES: ExamCategory[] = [
   { id: 'admission-exams', label: 'Admission Exams', exams: ['SAT', 'ACT'] },
-  { id: 'english-proficiency', label: 'English Proficiency', exams: ['IELTS Academic', 'IELTS General', 'TOEFL iBT', 'PTE Academic', 'Duolingo English Test', 'CPE', 'CAE', 'Cambridge B2', 'International ESOL', 'Oxford Test of English', 'iTEP Academic', 'TOEIC', 'MET', 'EIKEN'] },
-  { id: 'postgraduate-exams', label: 'Postgraduate Exams', exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'] }
+  {
+    id: 'english-proficiency',
+    label: 'English Proficiency',
+    exams: [
+      'IELTS Academic',
+      'IELTS General',
+      'TOEFL iBT',
+      'PTE Academic',
+      'Duolingo English Test',
+      'CPE',
+      'CAE',
+      'Cambridge B2',
+      'International ESOL',
+      'Oxford Test of English',
+      'iTEP Academic',
+      'TOEIC',
+      'MET',
+      'EIKEN',
+    ],
+  },
+  {
+    id: 'postgraduate-exams',
+    label: 'Postgraduate Exams',
+    exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'],
+  },
 ]
 
 // AP Categories
 const AP_CATEGORIES: ExamCategory[] = [
-  { id: 'ap-stem', label: 'AP - STEM', exams: ['AP Calculus AB', 'AP Calculus BC', 'AP Statistics', 'AP Biology', 'AP Chemistry', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: Mechanics', 'AP Physics C: Electricity and Magnetism', 'AP Environmental Science', 'AP Computer Science A', 'AP Computer Science Principles'] },
-  { id: 'ap-humanities', label: 'AP - Humanities', exams: ['AP English & Composition', 'AP Literature & Composition', 'AP Seminar', 'AP Research', 'AP World History: Modern', 'AP United States History', 'AP European History', 'AP Human Geography', 'AP Psychology', 'AP Macroeconomics', 'AP Microeconomics', 'AP Comparative Government and Politics', 'AP United States Government and Politics'] },
-  { id: 'ap-languages', label: 'AP - Languages', exams: ['AP Chinese Language and Culture', 'AP French Language and Culture', 'AP German Language and Culture', 'AP Italian Language and Culture', 'AP Japanese Language and Culture', 'AP Latin', 'AP Spanish Language and Culture', 'AP Spanish Literature and Culture'] },
-  { id: 'ap-art', label: 'AP - Art', exams: ['AP Art History', 'AP Music Theory', 'AP Studio Art: 2-D Art and Design', 'AP Studio Art: 3-D Art and Design', 'AP Drawing'] }
+  {
+    id: 'ap-stem',
+    label: 'AP - STEM',
+    exams: [
+      'AP Calculus AB',
+      'AP Calculus BC',
+      'AP Statistics',
+      'AP Biology',
+      'AP Chemistry',
+      'AP Physics 1',
+      'AP Physics 2',
+      'AP Physics C: Mechanics',
+      'AP Physics C: Electricity and Magnetism',
+      'AP Environmental Science',
+      'AP Computer Science A',
+      'AP Computer Science Principles',
+    ],
+  },
+  {
+    id: 'ap-humanities',
+    label: 'AP - Humanities',
+    exams: [
+      'AP English & Composition',
+      'AP Literature & Composition',
+      'AP Seminar',
+      'AP Research',
+      'AP World History: Modern',
+      'AP United States History',
+      'AP European History',
+      'AP Human Geography',
+      'AP Psychology',
+      'AP Macroeconomics',
+      'AP Microeconomics',
+      'AP Comparative Government and Politics',
+      'AP United States Government and Politics',
+    ],
+  },
+  {
+    id: 'ap-languages',
+    label: 'AP - Languages',
+    exams: [
+      'AP Chinese Language and Culture',
+      'AP French Language and Culture',
+      'AP German Language and Culture',
+      'AP Italian Language and Culture',
+      'AP Japanese Language and Culture',
+      'AP Latin',
+      'AP Spanish Language and Culture',
+      'AP Spanish Literature and Culture',
+    ],
+  },
+  {
+    id: 'ap-art',
+    label: 'AP - Art',
+    exams: [
+      'AP Art History',
+      'AP Music Theory',
+      'AP Studio Art: 2-D Art and Design',
+      'AP Studio Art: 3-D Art and Design',
+      'AP Drawing',
+    ],
+  },
 ]
 
 // A Level Categories
 const A_LEVEL_CATEGORIES: ExamCategory[] = [
-  { id: 'as-courses', label: 'AS Level Courses', exams: ['AS Level Mathematics', 'AS Level Further Mathematics', 'AS Level Physics', 'AS Level Chemistry', 'AS Level Biology', 'AS Level Computer Science', 'AS Level Information Technology', 'AS Level Economics', 'AS Level Business', 'AS Level Accounting', 'AS Level Psychology', 'AS Level Sociology', 'AS Level History', 'AS Level Geography', 'AS Level English Language', 'AS Level English Literature', 'AS Level Global Perspectives & Research', 'AS Level Art and Design', 'AS Level Media Studies'] },
-  { id: 'a-level-courses', label: 'A Level Courses', exams: ['A Level Mathematics', 'A Level Further Mathematics', 'A Level Physics', 'A Level Chemistry', 'A Level Biology', 'A Level Computer Science', 'A Level Information Technology', 'A Level Economics', 'A Level Business', 'A Level Accounting', 'A Level Psychology', 'A Level Sociology', 'A Level History', 'A Level Geography', 'A Level English Language', 'A Level English Literature', 'A Level Global Perspectives & Research', 'A Level Art and Design', 'A Level Media Studies'] }
+  {
+    id: 'as-courses',
+    label: 'AS Level Courses',
+    exams: [
+      'AS Level Mathematics',
+      'AS Level Further Mathematics',
+      'AS Level Physics',
+      'AS Level Chemistry',
+      'AS Level Biology',
+      'AS Level Computer Science',
+      'AS Level Information Technology',
+      'AS Level Economics',
+      'AS Level Business',
+      'AS Level Accounting',
+      'AS Level Psychology',
+      'AS Level Sociology',
+      'AS Level History',
+      'AS Level Geography',
+      'AS Level English Language',
+      'AS Level English Literature',
+      'AS Level Global Perspectives & Research',
+      'AS Level Art and Design',
+      'AS Level Media Studies',
+    ],
+  },
+  {
+    id: 'a-level-courses',
+    label: 'A Level Courses',
+    exams: [
+      'A Level Mathematics',
+      'A Level Further Mathematics',
+      'A Level Physics',
+      'A Level Chemistry',
+      'A Level Biology',
+      'A Level Computer Science',
+      'A Level Information Technology',
+      'A Level Economics',
+      'A Level Business',
+      'A Level Accounting',
+      'A Level Psychology',
+      'A Level Sociology',
+      'A Level History',
+      'A Level Geography',
+      'A Level English Language',
+      'A Level English Literature',
+      'A Level Global Perspectives & Research',
+      'A Level Art and Design',
+      'A Level Media Studies',
+    ],
+  },
 ]
 
 // IB Categories
 const IB_CATEGORIES: ExamCategory[] = [
-  { id: 'ib-courses', label: 'IB Courses', exams: ['IB Mathematics: Analysis and Approaches', 'IB Mathematics: Applications and Interpretation', 'IB Physics', 'IB Chemistry', 'IB Biology', 'IB Computer Science', 'IB Economics', 'IB Business Management', 'IB Psychology', 'IB History', 'IB Geography', 'IB English A: Language and Literature', 'IB English A: Literature', 'IB Language B Courses', 'IB Visual Arts', 'IB Theory of Knowledge (TOK)', 'IB Extended Essay (EE)'] }
+  {
+    id: 'ib-courses',
+    label: 'IB Courses',
+    exams: [
+      'IB Mathematics: Analysis and Approaches',
+      'IB Mathematics: Applications and Interpretation',
+      'IB Physics',
+      'IB Chemistry',
+      'IB Biology',
+      'IB Computer Science',
+      'IB Economics',
+      'IB Business Management',
+      'IB Psychology',
+      'IB History',
+      'IB Geography',
+      'IB English A: Language and Literature',
+      'IB English A: Literature',
+      'IB Language B Courses',
+      'IB Visual Arts',
+      'IB Theory of Knowledge (TOK)',
+      'IB Extended Essay (EE)',
+    ],
+  },
 ]
 
 // IGCSE Categories
 const IGCSE_CATEGORIES: ExamCategory[] = [
-  { id: 'igcse-mathematics', label: 'IGCSE Mathematics', exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'] },
-  { id: 'igcse-sciences', label: 'IGCSE Sciences', exams: ['IGCSE Physics', 'IGCSE Chemistry', 'IGCSE Biology', 'IGCSE Combined Science', 'IGCSE Coordinated Sciences', 'IGCSE Environmental Management'] },
-  { id: 'igcse-english', label: 'IGCSE English', exams: ['IGCSE English Language', 'IGCSE English Literature', 'IGCSE English as a Second Language'] },
-  { id: 'igcse-humanities', label: 'IGCSE Humanities', exams: ['IGCSE History', 'IGCSE Geography', 'IGCSE Economics', 'IGCSE Business Studies', 'IGCSE Accounting', 'IGCSE Sociology', 'IGCSE Global Perspectives'] },
-  { id: 'igcse-languages', label: 'IGCSE Languages', exams: ['IGCSE French', 'IGCSE Spanish', 'IGCSE German', 'IGCSE Chinese', 'IGCSE Arabic', 'IGCSE Hindi'] },
-  { id: 'igcse-arts', label: 'IGCSE Arts', exams: ['IGCSE Art & Design', 'IGCSE Music', 'IGCSE Drama', 'IGCSE Physical Education', 'IGCSE Travel & Tourism'] },
-  { id: 'igcse-technical', label: 'IGCSE Technical', exams: ['IGCSE Computer Science', 'IGCSE Information & Communication Technology', 'IGCSE Design & Technology'] }
+  {
+    id: 'igcse-mathematics',
+    label: 'IGCSE Mathematics',
+    exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'],
+  },
+  {
+    id: 'igcse-sciences',
+    label: 'IGCSE Sciences',
+    exams: [
+      'IGCSE Physics',
+      'IGCSE Chemistry',
+      'IGCSE Biology',
+      'IGCSE Combined Science',
+      'IGCSE Coordinated Sciences',
+      'IGCSE Environmental Management',
+    ],
+  },
+  {
+    id: 'igcse-english',
+    label: 'IGCSE English',
+    exams: [
+      'IGCSE English Language',
+      'IGCSE English Literature',
+      'IGCSE English as a Second Language',
+    ],
+  },
+  {
+    id: 'igcse-humanities',
+    label: 'IGCSE Humanities',
+    exams: [
+      'IGCSE History',
+      'IGCSE Geography',
+      'IGCSE Economics',
+      'IGCSE Business Studies',
+      'IGCSE Accounting',
+      'IGCSE Sociology',
+      'IGCSE Global Perspectives',
+    ],
+  },
+  {
+    id: 'igcse-languages',
+    label: 'IGCSE Languages',
+    exams: [
+      'IGCSE French',
+      'IGCSE Spanish',
+      'IGCSE German',
+      'IGCSE Chinese',
+      'IGCSE Arabic',
+      'IGCSE Hindi',
+    ],
+  },
+  {
+    id: 'igcse-arts',
+    label: 'IGCSE Arts',
+    exams: [
+      'IGCSE Art & Design',
+      'IGCSE Music',
+      'IGCSE Drama',
+      'IGCSE Physical Education',
+      'IGCSE Travel & Tourism',
+    ],
+  },
+  {
+    id: 'igcse-technical',
+    label: 'IGCSE Technical',
+    exams: [
+      'IGCSE Computer Science',
+      'IGCSE Information & Communication Technology',
+      'IGCSE Design & Technology',
+    ],
+  },
 ]
 
 export default function CategoriesPage() {
@@ -781,10 +1525,8 @@ export default function CategoriesPage() {
 
   // Toggle category selection
   const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+    setSelectedCategories(prev =>
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     )
   }
 
@@ -844,7 +1586,7 @@ export default function CategoriesPage() {
             <BookOpen className="h-4 w-4 text-[#1D4ED8]" />
             <h4 className="font-semibold text-gray-900">{category.label}</h4>
             {selectedCount > 0 && (
-              <Badge variant="secondary" className="text-xs bg-[#4FD1C5]/20 text-[#1F2933]">
+              <Badge variant="secondary" className="bg-[#4FD1C5]/20 text-xs text-[#1F2933]">
                 {selectedCount}
               </Badge>
             )}
@@ -868,26 +1610,28 @@ export default function CategoriesPage() {
             </Button>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
           {filteredExams.map(exam => (
             <label
               key={exam}
               className={cn(
-                "flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors",
-                selectedCategories.includes(exam) 
-                  ? "bg-[#4FD1C5]/10 border border-[#4FD1C5]/30" 
-                  : "hover:bg-gray-50 border border-transparent"
+                'flex cursor-pointer items-center gap-2 rounded-md p-2 transition-colors',
+                selectedCategories.includes(exam)
+                  ? 'border border-[#4FD1C5]/30 bg-[#4FD1C5]/10'
+                  : 'border border-transparent hover:bg-gray-50'
               )}
             >
               <Checkbox
                 checked={selectedCategories.includes(exam)}
                 onCheckedChange={() => toggleCategory(exam)}
               />
-              <span className={cn(
-                "text-sm",
-                selectedCategories.includes(exam) ? "text-[#1F2933] font-medium" : "text-gray-700"
-              )}>
+              <span
+                className={cn(
+                  'text-sm',
+                  selectedCategories.includes(exam) ? 'font-medium text-[#1F2933]' : 'text-gray-700'
+                )}
+              >
                 {exam}
               </span>
             </label>
@@ -900,20 +1644,22 @@ export default function CategoriesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - Full Width */}
-      <header className="bg-[#1F2933] text-white py-6">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="bg-[#1F2933] py-6 text-white">
+        <div className="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/">
                 <Button variant="ghost" size="sm" className="text-white hover:text-gray-300">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Home
                 </Button>
               </Link>
             </div>
             <div className="flex items-center gap-2">
               <BookOpen className="h-6 w-6 text-[#4FD1C5]" />
-              <span className="text-xl font-bold text-[#1F2933]">Select your region and exam categories</span>
+              <span className="text-xl font-bold text-[#1F2933]">
+                Select your region and exam categories
+              </span>
             </div>
             <div className="w-32" />
           </div>
@@ -921,37 +1667,43 @@ export default function CategoriesPage() {
       </header>
 
       {/* Main Content - Full Width */}
-      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-full px-4 py-8 sm:px-6 lg:px-8">
         {/* Introduction */}
-        <div className="text-center mb-8">
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Select your region and country to see relevant exams. All categories will be assigned to your selected country.
+        <div className="mb-8 text-center">
+          <p className="mx-auto max-w-2xl text-gray-600">
+            Select your region and country to see relevant exams. All categories will be assigned to
+            your selected country.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           {/* Left Column - Region, Country, Tabs & Custom Category */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="space-y-6 lg:col-span-3">
             {/* Region & Country Dropdowns */}
             <Card>
               <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   {/* Region Dropdown */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
                       <Globe className="h-4 w-4 text-[#4FD1C5]" />
                       Region
                     </Label>
-                    <Select value={selectedRegion} onValueChange={(value) => {
-                      setSelectedRegion(value)
-                      setSelectedCountryCode('')
-                    }}>
+                    <Select
+                      value={selectedRegion}
+                      onValueChange={value => {
+                        setSelectedRegion(value)
+                        setSelectedCountryCode('')
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Region" />
                       </SelectTrigger>
                       <SelectContent>
                         {REGIONS.map(region => (
-                          <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
+                          <SelectItem key={region.id} value={region.id}>
+                            {region.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -959,17 +1711,19 @@ export default function CategoriesPage() {
 
                   {/* Country Dropdown */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium flex items-center gap-2">
+                    <Label className="flex items-center gap-2 text-sm font-medium">
                       <MapPin className="h-4 w-4 text-[#F17623]" />
                       Country
                     </Label>
-                    <Select 
-                      value={selectedCountryCode} 
+                    <Select
+                      value={selectedCountryCode}
                       onValueChange={setSelectedCountryCode}
                       disabled={!selectedRegion}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={selectedRegion ? "Select Country" : "Select Region first"} />
+                        <SelectValue
+                          placeholder={selectedRegion ? 'Select Country' : 'Select Region first'}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {availableCountries.map(country => (
@@ -984,10 +1738,11 @@ export default function CategoriesPage() {
 
                 {/* Selected Count */}
                 {selectedCategories.length > 0 && (
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+                  <div className="mt-4 flex items-center gap-2 border-t pt-4">
                     <Check className="h-4 w-4 text-green-500" />
                     <span className="text-sm text-gray-600">
-                      {selectedCategories.length} categor{selectedCategories.length === 1 ? 'y' : 'ies'} selected
+                      {selectedCategories.length} categor
+                      {selectedCategories.length === 1 ? 'y' : 'ies'} selected
                     </span>
                   </div>
                 )}
@@ -995,36 +1750,35 @@ export default function CategoriesPage() {
             </Card>
 
             {/* Categories Tabs - Fixed Height Container */}
-            <Card className="h-[500px] flex flex-col">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
+            <Card className="flex h-[500px] flex-col">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
                 <CardHeader className="pb-0">
-                  <TabsList className="grid grid-cols-6 w-full">
+                  <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="global" className="text-xs md:text-sm">
-                      <Globe className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <Globe className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       Global
                     </TabsTrigger>
                     <TabsTrigger value="ap" className="text-xs md:text-sm">
-                      <Award className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <Award className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       AP
                     </TabsTrigger>
                     <TabsTrigger value="alevel" className="text-xs md:text-sm">
-                      <GraduationCap className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                      A Level
+                      <GraduationCap className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />A Level
                     </TabsTrigger>
                     <TabsTrigger value="ib" className="text-xs md:text-sm">
-                      <BookOpen className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <BookOpen className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       IB
                     </TabsTrigger>
                     <TabsTrigger value="igcse" className="text-xs md:text-sm">
-                      <School className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <School className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       IGCSE
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="national" 
+                    <TabsTrigger
+                      value="national"
                       className="text-xs md:text-sm"
                       disabled={!selectedCountryCode || nationalExams.length === 0}
                     >
-                      <Flag className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                      <Flag className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       National
                     </TabsTrigger>
                   </TabsList>
@@ -1033,11 +1787,11 @@ export default function CategoriesPage() {
                 <CardContent className="flex-1 overflow-hidden pt-6">
                   {/* Search Bar */}
                   <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                     <Input
                       placeholder="Search categories..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={e => setSearchQuery(e.target.value)}
                       className="pl-9"
                     />
                   </div>
@@ -1045,7 +1799,7 @@ export default function CategoriesPage() {
                   {/* Tab Contents */}
                   <div className="h-[calc(100%-60px)]">
                     {/* Global Exams Tab */}
-                    <TabsContent value="global" className="h-full m-0">
+                    <TabsContent value="global" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
                           {GLOBAL_EXAMS_CATEGORIES.map(renderCategorySection)}
@@ -1054,7 +1808,7 @@ export default function CategoriesPage() {
                     </TabsContent>
 
                     {/* AP Tab */}
-                    <TabsContent value="ap" className="h-full m-0">
+                    <TabsContent value="ap" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
                           {AP_CATEGORIES.map(renderCategorySection)}
@@ -1063,7 +1817,7 @@ export default function CategoriesPage() {
                     </TabsContent>
 
                     {/* A Level Tab */}
-                    <TabsContent value="alevel" className="h-full m-0">
+                    <TabsContent value="alevel" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
                           {A_LEVEL_CATEGORIES.map(renderCategorySection)}
@@ -1072,7 +1826,7 @@ export default function CategoriesPage() {
                     </TabsContent>
 
                     {/* IB Tab */}
-                    <TabsContent value="ib" className="h-full m-0">
+                    <TabsContent value="ib" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
                           {IB_CATEGORIES.map(renderCategorySection)}
@@ -1081,7 +1835,7 @@ export default function CategoriesPage() {
                     </TabsContent>
 
                     {/* IGCSE Tab */}
-                    <TabsContent value="igcse" className="h-full m-0">
+                    <TabsContent value="igcse" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
                           {IGCSE_CATEGORIES.map(renderCategorySection)}
@@ -1090,17 +1844,17 @@ export default function CategoriesPage() {
                     </TabsContent>
 
                     {/* National Tab */}
-                    <TabsContent value="national" className="h-full m-0">
+                    <TabsContent value="national" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
                           {!selectedCountryCode ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                            <div className="py-12 text-center text-gray-500">
+                              <Flag className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                               <p>Please select a country to view national exams.</p>
                             </div>
                           ) : nationalExams.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500">
-                              <Flag className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                            <div className="py-12 text-center text-gray-500">
+                              <Flag className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                               <p>No national exams available for {selectedCountry?.name}.</p>
                             </div>
                           ) : (
@@ -1117,7 +1871,7 @@ export default function CategoriesPage() {
             {/* Your Own Category Section */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Plus className="h-5 w-5 text-[#4FD1C5]" />
                   Your Own Category
                 </CardTitle>
@@ -1130,18 +1884,15 @@ export default function CategoriesPage() {
                   <Input
                     placeholder="Enter your own category..."
                     value={customCategory}
-                    onChange={(e) => setCustomCategory(e.target.value)}
-                    onKeyDown={(e) => {
+                    onChange={e => setCustomCategory(e.target.value)}
+                    onKeyDown={e => {
                       if (e.key === 'Enter') {
                         addCustomCategory()
                       }
                     }}
                   />
-                  <Button 
-                    onClick={addCustomCategory}
-                    disabled={!customCategory.trim()}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
+                  <Button onClick={addCustomCategory} disabled={!customCategory.trim()}>
+                    <Plus className="mr-2 h-4 w-4" />
                     Add
                   </Button>
                 </div>
@@ -1152,34 +1903,33 @@ export default function CategoriesPage() {
           {/* Right Column - Selected Categories Sidebar (Shorter) & CTA */}
           <div className="space-y-6">
             {/* Selected Card - Shorter */}
-            <Card className="h-[300px] flex flex-col">
+            <Card className="flex h-[300px] flex-col">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[#4FD1C5] text-white text-xs flex items-center justify-center">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#4FD1C5] text-xs text-white">
                     {selectedCategories.length}
                   </span>
                   Selected
                 </CardTitle>
                 <CardDescription>
-                  {selectedCategories.length === 0 
-                    ? 'No categories selected' 
-                    : `${selectedCategories.length} selected`
-                  }
+                  {selectedCategories.length === 0
+                    ? 'No categories selected'
+                    : `${selectedCategories.length} selected`}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 overflow-hidden">
                 <ScrollArea className="h-full pr-2">
                   <div className="flex flex-wrap gap-2">
                     {selectedCategories.map(cat => (
-                      <Badge 
+                      <Badge
                         key={cat}
                         variant="secondary"
-                        className="cursor-pointer bg-[#4FD1C5]/20 text-[#1F2933] hover:bg-[#4FD1C5]/30 pr-1"
+                        className="cursor-pointer bg-[#4FD1C5]/20 pr-1 text-[#1F2933] hover:bg-[#4FD1C5]/30"
                       >
                         {cat}
-                        <button 
+                        <button
                           onClick={() => removeCategory(cat)}
-                          className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                          className="ml-1 rounded-full p-0.5 hover:bg-red-100"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -1203,17 +1953,17 @@ export default function CategoriesPage() {
             </Card>
 
             {/* CTA - Now aligned with Your Own Category */}
-            <Card className="bg-gradient-to-br from-[#4FD1C5]/10 to-[#1D4ED8]/10 border-[#4FD1C5]/30">
+            <Card className="border-[#4FD1C5]/30 bg-gradient-to-br from-[#4FD1C5]/10 to-[#1D4ED8]/10">
               <CardContent className="pt-6">
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="mb-4 text-sm text-gray-600">
                   Create an account and start sharing your expertise.
                 </p>
-                <Button 
+                <Button
                   className="w-full bg-[#F17623] hover:bg-[#e06613]"
                   onClick={() => setTutorModalOpen(true)}
                 >
                   Become a Tutor
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
@@ -1222,10 +1972,7 @@ export default function CategoriesPage() {
       </main>
 
       {/* Coming Soon Modal */}
-      <TutorComingSoonModal 
-        isOpen={tutorModalOpen} 
-        onClose={() => setTutorModalOpen(false)} 
-      />
+      <TutorComingSoonModal isOpen={tutorModalOpen} onClose={() => setTutorModalOpen(false)} />
     </div>
   )
 }
@@ -1236,7 +1983,7 @@ const TutorComingSoonModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
     name: '',
     email: '',
     about: '',
-    socialMedia: ''
+    socialMedia: '',
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -1246,19 +1993,19 @@ const TutorComingSoonModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'tutor',
-          ...formData
+          ...formData,
         }),
       })
-      
+
       const data = await response.json()
-      
+
       if (response.ok) {
         setSubmitted(true)
       } else {
@@ -1275,91 +2022,94 @@ const TutorComingSoonModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
 
   return (
     <AnimatePresence>
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        exit={{ opacity: 0 }} 
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       >
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-        <motion.div 
-          initial={{ scale: 0.95, opacity: 0 }} 
-          animate={{ scale: 1, opacity: 1 }} 
-          exit={{ scale: 0.95, opacity: 0 }} 
-          className="relative w-full max-w-md bg-white/90 backdrop-blur-xl border border-black/10 rounded-2xl p-8 shadow-2xl"
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          className="relative w-full max-w-md rounded-2xl border border-black/10 bg-white/90 p-8 shadow-2xl backdrop-blur-xl"
         >
-          <button 
-            onClick={onClose} 
-            className="absolute top-4 right-4 p-2 text-zinc-600 hover:text-black transition-colors"
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 p-2 text-zinc-600 transition-colors hover:text-black"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
-          
+
           {!submitted ? (
             <>
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium mb-4 bg-emerald-100 text-emerald-700 border-emerald-200">
-                  <Sparkles className="w-3 h-3" />
+              <div className="mb-6 text-center">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                  <Sparkles className="h-3 w-3" />
                   Coming Soon
                 </div>
-                <h3 className="text-xl font-bold text-zinc-900 mb-2">Apply to Become a Tutor</h3>
+                <h3 className="mb-2 text-xl font-bold text-zinc-900">Apply to Become a Tutor</h3>
                 <p className="text-sm text-zinc-600">
-                  We&apos;re preparing an amazing platform for tutors. Pre-register now and we&apos;ll notify you when we launch!
+                  We&apos;re preparing an amazing platform for tutors. Pre-register now and
+                  we&apos;ll notify you when we launch!
                 </p>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
-                <Input 
-                  type="text" 
-                  placeholder="Name" 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                  required 
-                  className="w-full border bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                <Input
+                  type="text"
+                  placeholder="Name"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  className="w-full border border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500"
                 />
-                <Input 
-                  type="email" 
-                  placeholder="Email" 
-                  value={formData.email} 
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
-                  required 
-                  className="w-full border bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  required
+                  className="w-full border border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500"
                 />
                 <textarea
                   placeholder="Tell us about your tutoring experience (500 characters max)"
                   value={formData.about}
-                  onChange={(e) => setFormData({ ...formData, about: e.target.value.slice(0, 500) })}
+                  onChange={e => setFormData({ ...formData, about: e.target.value.slice(0, 500) })}
                   required
                   rows={3}
-                  className="w-full border rounded-lg px-3 py-2 resize-none text-sm bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                  className="w-full resize-none rounded-lg border border-black/10 bg-black/5 px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-500"
                 />
-                <Input 
-                  type="text" 
-                  placeholder="Social media (optional)" 
-                  value={formData.socialMedia} 
-                  onChange={(e) => setFormData({ ...formData, socialMedia: e.target.value })} 
-                  className="w-full border bg-black/5 border-black/10 text-zinc-900 placeholder:text-zinc-500"
+                <Input
+                  type="text"
+                  placeholder="Social media (optional)"
+                  value={formData.socialMedia}
+                  onChange={e => setFormData({ ...formData, socialMedia: e.target.value })}
+                  className="w-full border border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500"
                 />
-                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-                <Button 
-                  type="submit" 
-                  disabled={loading} 
-                  className="w-full py-3 text-white font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                {error && <p className="text-center text-sm text-red-500">{error}</p>}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? 'Submitting...' : 'Confirm'}
                 </Button>
               </form>
             </>
           ) : (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-emerald-100">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+            <div className="py-8 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle className="h-8 w-8 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-zinc-900">Thank You!</h3>
-              <p className="text-zinc-600">We&apos;ve received your application. We&apos;ll be in touch soon!</p>
-              <Button 
-                onClick={onClose} 
-                className="mt-6 bg-black/10 hover:bg-black/20 text-zinc-900"
+              <h3 className="mb-2 text-xl font-bold text-zinc-900">Thank You!</h3>
+              <p className="text-zinc-600">
+                We&apos;ve received your application. We&apos;ll be in touch soon!
+              </p>
+              <Button
+                onClick={onClose}
+                className="mt-6 bg-black/10 text-zinc-900 hover:bg-black/20"
               >
                 Close
               </Button>

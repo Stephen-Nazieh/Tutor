@@ -2,8 +2,20 @@ import 'server-only'
 
 import { and, eq, gt, isNull, or, sql } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { profile as profileTable, user as userTable, studentMemoryProfile, studentLearningState, studentAgentSignal } from '@/lib/db/schema'
-import type { AgentSignal, EnglishLevel, LearningState, StudentContext, StudentProfile } from './types/context'
+import {
+  profile as profileTable,
+  user as userTable,
+  studentMemoryProfile,
+  studentLearningState,
+  studentAgentSignal,
+} from '@/lib/db/schema'
+import type {
+  AgentSignal,
+  EnglishLevel,
+  LearningState,
+  StudentContext,
+  StudentProfile,
+} from './types/context'
 
 function initialState(): LearningState {
   return {
@@ -18,7 +30,7 @@ function initialState(): LearningState {
 function coerceEnglishLevel(value: unknown): EnglishLevel {
   const v = typeof value === 'string' ? value.toUpperCase() : ''
   const allowed: EnglishLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-  return (allowed.includes(v as EnglishLevel) ? (v as EnglishLevel) : 'B1')
+  return allowed.includes(v as EnglishLevel) ? (v as EnglishLevel) : 'B1'
 }
 
 async function buildDefaultStudentProfile(studentId: string): Promise<StudentProfile | null> {
@@ -120,7 +132,7 @@ export async function getStudentContextDb(studentId: string): Promise<StudentCon
     .orderBy(studentAgentSignal.createdAt)
     .limit(50)
 
-  const signals: AgentSignal[] = studentSignals.map((s) => ({
+  const signals: AgentSignal[] = studentSignals.map(s => ({
     id: String(s.id),
     source: s.source as AgentSignal['source'],
     type: s.type as AgentSignal['type'],
@@ -161,4 +173,3 @@ export async function recordSignalDb(
     expiresAt: signal.expiresAt ? new Date(signal.expiresAt) : null,
   })
 }
-

@@ -7,13 +7,33 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
-  Plus, Trash2, ChevronLeft, ChevronRight,
-  Type, Hand, MousePointer2, Square, Circle, Triangle, Minus,
-  GripVertical, Volume2, Upload, Image as ImageIcon, FileText, FolderOpen, Bot
+  Plus,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Type,
+  Hand,
+  MousePointer2,
+  Square,
+  Circle,
+  Triangle,
+  Minus,
+  GripVertical,
+  Volume2,
+  Upload,
+  Image as ImageIcon,
+  FileText,
+  FolderOpen,
+  Bot,
 } from 'lucide-react'
 import {
-  useCanvasDrawing, usePanZoom, useWhiteboardPages,
-  useTextEditor, useShapeDrawing, type Point, type Tool
+  useCanvasDrawing,
+  usePanZoom,
+  useWhiteboardPages,
+  useTextEditor,
+  useShapeDrawing,
+  type Point,
+  type Tool,
 } from '../hooks'
 import { DrawingToolbar } from '../toolbar/DrawingToolbar'
 import { ZoomControls } from '../toolbar/ZoomControls'
@@ -67,20 +87,36 @@ const BACKGROUND_COLORS = [
 ]
 
 export function EnhancedWhiteboard({
-  onUpdate, readOnly = false, videoOverlay = true,
-  onToggleVideoFullscreen, isVideoFullscreen = false, videoComponent,
-  pages: externalPages, currentPageIndex: externalPageIndex,
-  onPagesChange, onPageIndexChange, students: externalStudents, onPushHint
+  onUpdate,
+  readOnly = false,
+  videoOverlay = true,
+  onToggleVideoFullscreen,
+  isVideoFullscreen = false,
+  videoComponent,
+  pages: externalPages,
+  currentPageIndex: externalPageIndex,
+  onPagesChange,
+  onPageIndexChange,
+  students: externalStudents,
+  onPushHint,
 }: EnhancedWhiteboardProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
   // Use pages hook
   const {
-    pages, currentPageIndex, currentPage,
-    addPage, deletePage, setCurrentPageIndex,
-    updatePageBackground, setPages
+    pages,
+    currentPageIndex,
+    currentPage,
+    addPage,
+    deletePage,
+    setCurrentPageIndex,
+    updatePageBackground,
+    setPages,
   } = useWhiteboardPages({
-    externalPages, externalPageIndex, onPagesChange, onPageIndexChange
+    externalPages,
+    externalPageIndex,
+    onPagesChange,
+    onPageIndexChange,
   })
 
   // Tool state
@@ -89,17 +125,23 @@ export function EnhancedWhiteboard({
   const [lineWidth, setLineWidth] = useState(3)
 
   // Canvas hooks
-  const { strokes, isDrawing, currentStroke, startDrawing, continueDrawing, endDrawing, undoStroke } = 
-    useCanvasDrawing({ color, lineWidth, tool, onUpdate })
-  
-  const { scale, pan, zoomIn, zoomOut, resetZoom, startPanning, continuePanning, endPanning } = 
+  const {
+    strokes,
+    isDrawing,
+    currentStroke,
+    startDrawing,
+    continueDrawing,
+    endDrawing,
+    undoStroke,
+  } = useCanvasDrawing({ color, lineWidth, tool, onUpdate })
+
+  const { scale, pan, zoomIn, zoomOut, resetZoom, startPanning, continuePanning, endPanning } =
     usePanZoom()
-  
-  const { textOverlays, selectedTextId, startTextEditing, updateText, confirmText, deleteText } = 
+
+  const { textOverlays, selectedTextId, startTextEditing, updateText, confirmText, deleteText } =
     useTextEditor()
-  
-  const { shapes, tempShape, startShape, continueShape, finishShape } = 
-    useShapeDrawing()
+
+  const { shapes, tempShape, startShape, continueShape, finishShape } = useShapeDrawing()
 
   // UI state
   const [showTeachingAssistant, setShowTeachingAssistant] = useState(false)
@@ -109,47 +151,101 @@ export function EnhancedWhiteboard({
 
   // Mock students
   const mockStudents: Student[] = [
-    { id: '1', name: 'Zhang Wei', status: 'active', engagement: 85, understanding: 80, frustration: 10, lastActive: new Date() },
-    { id: '2', name: 'Li Na', status: 'struggling', engagement: 60, understanding: 45, frustration: 40, lastActive: new Date() },
-    { id: '3', name: 'Wang Tao', status: 'active', engagement: 90, understanding: 85, frustration: 5, lastActive: new Date() },
-    { id: '4', name: 'Chen Xi', status: 'needs_help', engagement: 70, understanding: 55, frustration: 30, lastActive: new Date() },
+    {
+      id: '1',
+      name: 'Zhang Wei',
+      status: 'active',
+      engagement: 85,
+      understanding: 80,
+      frustration: 10,
+      lastActive: new Date(),
+    },
+    {
+      id: '2',
+      name: 'Li Na',
+      status: 'struggling',
+      engagement: 60,
+      understanding: 45,
+      frustration: 40,
+      lastActive: new Date(),
+    },
+    {
+      id: '3',
+      name: 'Wang Tao',
+      status: 'active',
+      engagement: 90,
+      understanding: 85,
+      frustration: 5,
+      lastActive: new Date(),
+    },
+    {
+      id: '4',
+      name: 'Chen Xi',
+      status: 'needs_help',
+      engagement: 70,
+      understanding: 55,
+      frustration: 30,
+      lastActive: new Date(),
+    },
   ]
   const students = externalStudents ?? mockStudents
 
   // Sync page data
   useEffect(() => {
     if (!externalPages) {
-      setPages(pages.map((p, i) => i === currentPageIndex ? { ...p, strokes, texts: textOverlays, shapes } : p))
+      setPages(
+        pages.map((p, i) =>
+          i === currentPageIndex ? { ...p, strokes, texts: textOverlays, shapes } : p
+        )
+      )
     }
   }, [strokes, textOverlays, shapes])
 
   // Coordinate conversion
-  const screenToCanvas = useCallback((x: number, y: number): Point => ({
-    x: (x - pan.x) / scale,
-    y: (y - pan.y) / scale
-  }), [pan, scale])
+  const screenToCanvas = useCallback(
+    (x: number, y: number): Point => ({
+      x: (x - pan.x) / scale,
+      y: (y - pan.y) / scale,
+    }),
+    [pan, scale]
+  )
 
   // Event handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (readOnly) return
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const point = screenToCanvas(e.clientX - rect.left, e.clientY - rect.top)
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (readOnly) return
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const point = screenToCanvas(e.clientX - rect.left, e.clientY - rect.top)
 
-    if (tool === 'hand') startPanning(e.clientX, e.clientY)
-    else if (tool === 'pen' || tool === 'eraser') startDrawing(point)
-    else if (tool === 'shape') startShape(point, 'rectangle', color, lineWidth)
-  }, [readOnly, tool, screenToCanvas, startPanning, startDrawing, startShape, color, lineWidth])
+      if (tool === 'hand') startPanning(e.clientX, e.clientY)
+      else if (tool === 'pen' || tool === 'eraser') startDrawing(point)
+      else if (tool === 'shape') startShape(point, 'rectangle', color, lineWidth)
+    },
+    [readOnly, tool, screenToCanvas, startPanning, startDrawing, startShape, color, lineWidth]
+  )
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const point = screenToCanvas(e.clientX - rect.left, e.clientY - rect.top)
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const point = screenToCanvas(e.clientX - rect.left, e.clientY - rect.top)
 
-    if (tool === 'hand' && pan) continuePanning(e.clientX, e.clientY)
-    else if ((tool === 'pen' || tool === 'eraser') && isDrawing) continueDrawing(point)
-    else if (tool === 'shape' && tempShape) continueShape(point)
-  }, [tool, pan, isDrawing, tempShape, screenToCanvas, continuePanning, continueDrawing, continueShape])
+      if (tool === 'hand' && pan) continuePanning(e.clientX, e.clientY)
+      else if ((tool === 'pen' || tool === 'eraser') && isDrawing) continueDrawing(point)
+      else if (tool === 'shape' && tempShape) continueShape(point)
+    },
+    [
+      tool,
+      pan,
+      isDrawing,
+      tempShape,
+      screenToCanvas,
+      continuePanning,
+      continueDrawing,
+      continueShape,
+    ]
+  )
 
   const handleMouseUp = useCallback(() => {
     if (tool === 'hand') endPanning()
@@ -164,16 +260,19 @@ export function EnhancedWhiteboard({
     }
   }, [tool, tempShape, endPanning, endDrawing, finishShape, pages, currentPageIndex, setPages])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedObject) {
-      if (selectedObject.type === 'text') deleteText(selectedObject.id)
-      setSelectedObject(null)
-    }
-    if (e.ctrlKey && e.key === 'z') {
-      e.preventDefault()
-      undoStroke()
-    }
-  }, [selectedObject, deleteText, undoStroke])
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedObject) {
+        if (selectedObject.type === 'text') deleteText(selectedObject.id)
+        setSelectedObject(null)
+      }
+      if (e.ctrlKey && e.key === 'z') {
+        e.preventDefault()
+        undoStroke()
+      }
+    },
+    [selectedObject, deleteText, undoStroke]
+  )
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -181,9 +280,9 @@ export function EnhancedWhiteboard({
   }, [handleKeyDown])
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex h-full flex-col bg-gray-50">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 p-2 bg-white border-b">
+      <div className="flex items-center gap-2 border-b bg-white p-2">
         <DrawingToolbar
           tool={tool}
           onToolChange={setTool}
@@ -192,9 +291,9 @@ export function EnhancedWhiteboard({
           lineWidth={lineWidth}
           onLineWidthChange={setLineWidth}
         />
-        <div className="w-px h-8 bg-gray-200 mx-2" />
+        <div className="mx-2 h-8 w-px bg-gray-200" />
         <ZoomControls scale={scale} onZoomIn={zoomIn} onZoomOut={zoomOut} onReset={resetZoom} />
-        <div className="w-px h-8 bg-gray-200 mx-2" />
+        <div className="mx-2 h-8 w-px bg-gray-200" />
         <PageNavigator
           currentPage={currentPageIndex + 1}
           totalPages={pages.length}
@@ -204,17 +303,27 @@ export function EnhancedWhiteboard({
         />
         <div className="flex-1" />
         <Button variant="outline" size="sm" onClick={() => setShowAssetSidebar(!showAssetSidebar)}>
-          <FolderOpen className="w-4 h-4 mr-1" /> Assets
+          <FolderOpen className="mr-1 h-4 w-4" /> Assets
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setShowTeachingAssistant(!showTeachingAssistant)}>
-          <Bot className="w-4 h-4 mr-1" /> AI Assistant
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowTeachingAssistant(!showTeachingAssistant)}
+        >
+          <Bot className="mr-1 h-4 w-4" /> AI Assistant
         </Button>
       </div>
 
       {/* Main Canvas Area */}
-      <div className="flex-1 flex overflow-hidden">
-        <div ref={containerRef} className="flex-1 relative overflow-hidden bg-gray-100"
-          onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+      <div className="flex flex-1 overflow-hidden">
+        <div
+          ref={containerRef}
+          className="relative flex-1 overflow-hidden bg-gray-100"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
           <CanvasRenderer
             strokes={currentPage.strokes}
             texts={currentPage.texts}
@@ -227,10 +336,10 @@ export function EnhancedWhiteboard({
             pan={pan}
             selectedObject={selectedObject}
           />
-          
+
           {/* Video Overlay */}
           {videoOverlay && videoComponent && !isVideoFullscreen && (
-            <div className="absolute top-4 right-4 w-64 h-48 bg-black rounded-lg overflow-hidden shadow-lg">
+            <div className="absolute right-4 top-4 h-48 w-64 overflow-hidden rounded-lg bg-black shadow-lg">
               {videoComponent}
             </div>
           )}
@@ -249,16 +358,23 @@ export function EnhancedWhiteboard({
         {/* Asset Sidebar */}
         {showAssetSidebar && (
           <div className="w-64 border-l bg-white p-4">
-            <h3 className="font-semibold mb-3">Assets</h3>
+            <h3 className="mb-3 font-semibold">Assets</h3>
             <div className="space-y-2">
               {assets.map(asset => (
-                <div key={asset.id} className="flex items-center gap-2 p-2 border rounded hover:bg-gray-50">
-                  {asset.type === 'image' ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                  <span className="text-sm truncate">{asset.name}</span>
+                <div
+                  key={asset.id}
+                  className="flex items-center gap-2 rounded border p-2 hover:bg-gray-50"
+                >
+                  {asset.type === 'image' ? (
+                    <ImageIcon className="h-4 w-4" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
+                  <span className="truncate text-sm">{asset.name}</span>
                 </div>
               ))}
               <Button variant="outline" size="sm" className="w-full">
-                <Upload className="w-4 h-4 mr-1" /> Upload
+                <Upload className="mr-1 h-4 w-4" /> Upload
               </Button>
             </div>
           </div>

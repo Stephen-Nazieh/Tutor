@@ -1,6 +1,6 @@
 /**
  * Poll Voting API
- * 
+ *
  * POST /api/class/polls/[pollId]/vote - Submit a vote/response
  */
 
@@ -14,7 +14,7 @@ import crypto from 'crypto'
 
 const voteSchema = z.object({
   answer: z.union([z.string(), z.array(z.string())]),
-  anonymousId: z.string().optional()
+  anonymousId: z.string().optional(),
 })
 
 // POST - Submit a vote
@@ -35,19 +35,13 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     }
 
     if (pollRow.status !== 'ACTIVE') {
-      return NextResponse.json(
-        { error: 'Poll is not active' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Poll is not active' }, { status: 400 })
     }
 
     if (pollRow.timeLimit != null && pollRow.startedAt) {
       const elapsedSeconds = (Date.now() - new Date(pollRow.startedAt).getTime()) / 1000
       if (elapsedSeconds > pollRow.timeLimit) {
-        return NextResponse.json(
-          { error: 'Poll has expired' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Poll has expired' }, { status: 400 })
       }
     }
 
@@ -58,21 +52,20 @@ export const POST = withAuth(async (req: NextRequest, session) => {
         .where(and(eq(pollResponse.pollId, pollId), eq(pollResponse.studentId, session.user.id)))
         .limit(1)
       if (existing) {
-        return NextResponse.json(
-          { error: 'You have already voted in this poll' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'You have already voted in this poll' }, { status: 400 })
       }
     }
 
     const optionIds = Array.isArray(data.answer) ? data.answer : [data.answer]
     let respondentHash: string | null = null
     if (pollRow.isAnonymous) {
-      respondentHash = data.anonymousId ?? crypto
-        .createHash('sha256')
-        .update(session.user.id + pollId)
-        .digest('hex')
-        .substring(0, 16)
+      respondentHash =
+        data.anonymousId ??
+        crypto
+          .createHash('sha256')
+          .update(session.user.id + pollId)
+          .digest('hex')
+          .substring(0, 16)
     }
 
     const responseId = crypto.randomUUID()
@@ -95,13 +88,13 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const newTotal = (pollRow.totalResponses ?? 0) + 1
     await drizzleDb.update(poll).set({ totalResponses: newTotal }).where(eq(poll.id, pollId))
 
-    return NextResponse.json({ success: true, response: response ?? { id: responseId, pollId, optionIds, createdAt: new Date() } })
+    return NextResponse.json({
+      success: true,
+      response: response ?? { id: responseId, pollId, optionIds, createdAt: new Date() },
+    })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid data', issues: error.issues },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid data', issues: error.issues }, { status: 400 })
     }
     console.error('Error submitting vote:', error)
     return handleApiError(error, 'Failed to submit vote', 'api/class/polls/[pollId]/vote/route.ts')

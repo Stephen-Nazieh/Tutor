@@ -30,7 +30,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ArrowLeft, BookOpen, FileText, ListOrdered, CheckCircle2, Loader2, Radio, DollarSign, X, Plus, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  ArrowLeft,
+  BookOpen,
+  FileText,
+  ListOrdered,
+  CheckCircle2,
+  Loader2,
+  Radio,
+  DollarSign,
+  X,
+  Plus,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
@@ -44,34 +58,249 @@ interface ExamCategory {
 
 const GLOBAL_EXAMS_CATEGORIES: ExamCategory[] = [
   { id: 'admission-exams', label: 'Admission Exams', exams: ['SAT', 'ACT'] },
-  { id: 'english-proficiency', label: 'English Proficiency', exams: ['IELTS Academic', 'IELTS General', 'TOEFL iBT', 'PTE Academic', 'Duolingo English Test', 'CPE', 'CAE', 'Cambridge B2', 'International ESOL', 'Oxford Test of English', 'iTEP Academic', 'TOEIC', 'MET', 'EIKEN'] },
-  { id: 'postgraduate-exams', label: 'Postgraduate Exams', exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'] }
+  {
+    id: 'english-proficiency',
+    label: 'English Proficiency',
+    exams: [
+      'IELTS Academic',
+      'IELTS General',
+      'TOEFL iBT',
+      'PTE Academic',
+      'Duolingo English Test',
+      'CPE',
+      'CAE',
+      'Cambridge B2',
+      'International ESOL',
+      'Oxford Test of English',
+      'iTEP Academic',
+      'TOEIC',
+      'MET',
+      'EIKEN',
+    ],
+  },
+  {
+    id: 'postgraduate-exams',
+    label: 'Postgraduate Exams',
+    exams: ['GRE', 'GMAT', 'LSAT', 'MCAT', 'UCAT'],
+  },
 ]
 
 const AP_CATEGORIES: ExamCategory[] = [
-  { id: 'ap-stem', label: 'AP - STEM', exams: ['AP Calculus AB', 'AP Calculus BC', 'AP Statistics', 'AP Biology', 'AP Chemistry', 'AP Physics 1', 'AP Physics 2', 'AP Physics C: Mechanics', 'AP Physics C: Electricity and Magnetism', 'AP Environmental Science', 'AP Computer Science A', 'AP Computer Science Principles'] },
-  { id: 'ap-humanities', label: 'AP - Humanities', exams: ['AP English & Composition', 'AP Literature & Composition', 'AP Seminar', 'AP Research', 'AP World History: Modern', 'AP United States History', 'AP European History', 'AP Human Geography', 'AP Psychology', 'AP Macroeconomics', 'AP Microeconomics', 'AP Comparative Government and Politics', 'AP United States Government and Politics'] },
-  { id: 'ap-languages', label: 'AP - Languages', exams: ['AP Chinese Language and Culture', 'AP French Language and Culture', 'AP German Language and Culture', 'AP Italian Language and Culture', 'AP Japanese Language and Culture', 'AP Latin', 'AP Spanish Language and Culture', 'AP Spanish Literature and Culture'] },
-  { id: 'ap-art', label: 'AP - Art', exams: ['AP Art History', 'AP Music Theory', 'AP Studio Art: 2-D Art and Design', 'AP Studio Art: 3-D Art and Design', 'AP Drawing'] }
+  {
+    id: 'ap-stem',
+    label: 'AP - STEM',
+    exams: [
+      'AP Calculus AB',
+      'AP Calculus BC',
+      'AP Statistics',
+      'AP Biology',
+      'AP Chemistry',
+      'AP Physics 1',
+      'AP Physics 2',
+      'AP Physics C: Mechanics',
+      'AP Physics C: Electricity and Magnetism',
+      'AP Environmental Science',
+      'AP Computer Science A',
+      'AP Computer Science Principles',
+    ],
+  },
+  {
+    id: 'ap-humanities',
+    label: 'AP - Humanities',
+    exams: [
+      'AP English & Composition',
+      'AP Literature & Composition',
+      'AP Seminar',
+      'AP Research',
+      'AP World History: Modern',
+      'AP United States History',
+      'AP European History',
+      'AP Human Geography',
+      'AP Psychology',
+      'AP Macroeconomics',
+      'AP Microeconomics',
+      'AP Comparative Government and Politics',
+      'AP United States Government and Politics',
+    ],
+  },
+  {
+    id: 'ap-languages',
+    label: 'AP - Languages',
+    exams: [
+      'AP Chinese Language and Culture',
+      'AP French Language and Culture',
+      'AP German Language and Culture',
+      'AP Italian Language and Culture',
+      'AP Japanese Language and Culture',
+      'AP Latin',
+      'AP Spanish Language and Culture',
+      'AP Spanish Literature and Culture',
+    ],
+  },
+  {
+    id: 'ap-art',
+    label: 'AP - Art',
+    exams: [
+      'AP Art History',
+      'AP Music Theory',
+      'AP Studio Art: 2-D Art and Design',
+      'AP Studio Art: 3-D Art and Design',
+      'AP Drawing',
+    ],
+  },
 ]
 
 const A_LEVEL_CATEGORIES: ExamCategory[] = [
-  { id: 'as-courses', label: 'AS Level Courses', exams: ['AS Level Mathematics', 'AS Level Further Mathematics', 'AS Level Physics', 'AS Level Chemistry', 'AS Level Biology', 'AS Level Computer Science', 'AS Level Information Technology', 'AS Level Economics', 'AS Level Business', 'AS Level Accounting', 'AS Level Psychology', 'AS Level Sociology', 'AS Level History', 'AS Level Geography', 'AS Level English Language', 'AS Level English Literature', 'AS Level Global Perspectives & Research', 'AS Level Art and Design', 'AS Level Media Studies'] },
-  { id: 'a-level-courses', label: 'A Level Courses', exams: ['A Level Mathematics', 'A Level Further Mathematics', 'A Level Physics', 'A Level Chemistry', 'A Level Biology', 'A Level Computer Science', 'A Level Information Technology', 'A Level Economics', 'A Level Business', 'A Level Accounting', 'A Level Psychology', 'A Level Sociology', 'A Level History', 'A Level Geography', 'A Level English Language', 'A Level English Literature', 'A Level Global Perspectives & Research', 'A Level Art and Design', 'A Level Media Studies'] }
+  {
+    id: 'as-courses',
+    label: 'AS Level Courses',
+    exams: [
+      'AS Level Mathematics',
+      'AS Level Further Mathematics',
+      'AS Level Physics',
+      'AS Level Chemistry',
+      'AS Level Biology',
+      'AS Level Computer Science',
+      'AS Level Information Technology',
+      'AS Level Economics',
+      'AS Level Business',
+      'AS Level Accounting',
+      'AS Level Psychology',
+      'AS Level Sociology',
+      'AS Level History',
+      'AS Level Geography',
+      'AS Level English Language',
+      'AS Level English Literature',
+      'AS Level Global Perspectives & Research',
+      'AS Level Art and Design',
+      'AS Level Media Studies',
+    ],
+  },
+  {
+    id: 'a-level-courses',
+    label: 'A Level Courses',
+    exams: [
+      'A Level Mathematics',
+      'A Level Further Mathematics',
+      'A Level Physics',
+      'A Level Chemistry',
+      'A Level Biology',
+      'A Level Computer Science',
+      'A Level Information Technology',
+      'A Level Economics',
+      'A Level Business',
+      'A Level Accounting',
+      'A Level Psychology',
+      'A Level Sociology',
+      'A Level History',
+      'A Level Geography',
+      'A Level English Language',
+      'A Level English Literature',
+      'A Level Global Perspectives & Research',
+      'A Level Art and Design',
+      'A Level Media Studies',
+    ],
+  },
 ]
 
 const IB_CATEGORIES: ExamCategory[] = [
-  { id: 'ib-courses', label: 'IB Courses', exams: ['IB Mathematics: Analysis and Approaches', 'IB Mathematics: Applications and Interpretation', 'IB Physics', 'IB Chemistry', 'IB Biology', 'IB Computer Science', 'IB Economics', 'IB Business Management', 'IB Psychology', 'IB History', 'IB Geography', 'IB English A: Language and Literature', 'IB English A: Literature', 'IB Language B Courses', 'IB Visual Arts', 'IB Theory of Knowledge (TOK)', 'IB Extended Essay (EE)'] }
+  {
+    id: 'ib-courses',
+    label: 'IB Courses',
+    exams: [
+      'IB Mathematics: Analysis and Approaches',
+      'IB Mathematics: Applications and Interpretation',
+      'IB Physics',
+      'IB Chemistry',
+      'IB Biology',
+      'IB Computer Science',
+      'IB Economics',
+      'IB Business Management',
+      'IB Psychology',
+      'IB History',
+      'IB Geography',
+      'IB English A: Language and Literature',
+      'IB English A: Literature',
+      'IB Language B Courses',
+      'IB Visual Arts',
+      'IB Theory of Knowledge (TOK)',
+      'IB Extended Essay (EE)',
+    ],
+  },
 ]
 
 const IGCSE_CATEGORIES: ExamCategory[] = [
-  { id: 'igcse-mathematics', label: 'IGCSE Mathematics', exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'] },
-  { id: 'igcse-sciences', label: 'IGCSE Sciences', exams: ['IGCSE Physics', 'IGCSE Chemistry', 'IGCSE Biology', 'IGCSE Combined Science', 'IGCSE Coordinated Sciences', 'IGCSE Environmental Management'] },
-  { id: 'igcse-english', label: 'IGCSE English', exams: ['IGCSE English Language', 'IGCSE English Literature', 'IGCSE English as a Second Language'] },
-  { id: 'igcse-humanities', label: 'IGCSE Humanities', exams: ['IGCSE History', 'IGCSE Geography', 'IGCSE Economics', 'IGCSE Business Studies', 'IGCSE Accounting', 'IGCSE Sociology', 'IGCSE Global Perspectives'] },
-  { id: 'igcse-languages', label: 'IGCSE Languages', exams: ['IGCSE French', 'IGCSE Spanish', 'IGCSE German', 'IGCSE Chinese', 'IGCSE Arabic', 'IGCSE Hindi'] },
-  { id: 'igcse-arts', label: 'IGCSE Arts', exams: ['IGCSE Art & Design', 'IGCSE Music', 'IGCSE Drama', 'IGCSE Physical Education', 'IGCSE Travel & Tourism'] },
-  { id: 'igcse-technical', label: 'IGCSE Technical', exams: ['IGCSE Computer Science', 'IGCSE Information & Communication Technology', 'IGCSE Design & Technology'] }
+  {
+    id: 'igcse-mathematics',
+    label: 'IGCSE Mathematics',
+    exams: ['IGCSE Mathematics', 'IGCSE Additional Mathematics', 'IGCSE International Mathematics'],
+  },
+  {
+    id: 'igcse-sciences',
+    label: 'IGCSE Sciences',
+    exams: [
+      'IGCSE Physics',
+      'IGCSE Chemistry',
+      'IGCSE Biology',
+      'IGCSE Combined Science',
+      'IGCSE Coordinated Sciences',
+      'IGCSE Environmental Management',
+    ],
+  },
+  {
+    id: 'igcse-english',
+    label: 'IGCSE English',
+    exams: [
+      'IGCSE English Language',
+      'IGCSE English Literature',
+      'IGCSE English as a Second Language',
+    ],
+  },
+  {
+    id: 'igcse-humanities',
+    label: 'IGCSE Humanities',
+    exams: [
+      'IGCSE History',
+      'IGCSE Geography',
+      'IGCSE Economics',
+      'IGCSE Business Studies',
+      'IGCSE Accounting',
+      'IGCSE Sociology',
+      'IGCSE Global Perspectives',
+    ],
+  },
+  {
+    id: 'igcse-languages',
+    label: 'IGCSE Languages',
+    exams: [
+      'IGCSE French',
+      'IGCSE Spanish',
+      'IGCSE German',
+      'IGCSE Chinese',
+      'IGCSE Arabic',
+      'IGCSE Hindi',
+    ],
+  },
+  {
+    id: 'igcse-arts',
+    label: 'IGCSE Arts',
+    exams: [
+      'IGCSE Art & Design',
+      'IGCSE Music',
+      'IGCSE Drama',
+      'IGCSE Physical Education',
+      'IGCSE Travel & Tourism',
+    ],
+  },
+  {
+    id: 'igcse-technical',
+    label: 'IGCSE Technical',
+    exams: [
+      'IGCSE Computer Science',
+      'IGCSE Information & Communication Technology',
+      'IGCSE Design & Technology',
+    ],
+  },
 ]
 
 // Flatten all categories into a single list
@@ -176,7 +405,10 @@ export default function TutorCoursePage() {
   const [outlineModules, setOutlineModules] = useState<OutlineModuleItem[]>([])
   const [outlineModalOpen, setOutlineModalOpen] = useState(false)
   const [typicalLessonMinutes, setTypicalLessonMinutes] = useState(45)
-  const [tutorProfile, setTutorProfile] = useState<{ currency?: string | null; categories?: string[] } | null>(null)
+  const [tutorProfile, setTutorProfile] = useState<{
+    currency?: string | null
+    categories?: string[]
+  } | null>(null)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
@@ -198,7 +430,10 @@ export default function TutorCoursePage() {
     return `${scheduleWeekStart.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`
   })()
 
-  const scheduleMonthLabel = scheduleWeekStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const scheduleMonthLabel = scheduleWeekStart.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  })
 
   /** For the grid: date for each day of the displayed week (Mon = index 0, Sun = index 6) */
   const weekDates = DAYS.map((_, i) => {
@@ -233,8 +468,8 @@ export default function TutorCoursePage() {
 
   useEffect(() => {
     fetch('/api/user/profile', { credentials: 'include' })
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
+      .then(r => (r.ok ? r.json() : null))
+      .then(data => {
         if (data?.profile) {
           setTutorProfile(data.profile)
           // Load tutor's categories from profile if available
@@ -243,7 +478,7 @@ export default function TutorCoursePage() {
           }
         }
       })
-      .catch(() => { })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -281,8 +516,8 @@ export default function TutorCoursePage() {
     }
     setLoadingCatalog(true)
     fetch(`/api/curriculums/catalog?subject=${encodeURIComponent(sub)}`, { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => setCurriculumCatalog(data.curriculums ?? []))
+      .then(res => res.json())
+      .then(data => setCurriculumCatalog(data.curriculums ?? []))
       .catch(() => setCurriculumCatalog([]))
       .finally(() => setLoadingCatalog(false))
   }, [course?.subject])
@@ -295,14 +530,17 @@ export default function TutorCoursePage() {
     }
     if (scheduleRepeatWeekly) {
       const requestedSessions = totalSessionsDesired !== '' ? Number(totalSessionsDesired) : null
-      const weeks = requestedSessions != null
-        ? Math.max(1, Math.ceil(requestedSessions / schedule.length))
-        : numberOfWeeks
+      const weeks =
+        requestedSessions != null
+          ? Math.max(1, Math.ceil(requestedSessions / schedule.length))
+          : numberOfWeeks
       const expanded: ScheduleItem[] = []
       for (let w = 0; w < weeks; w++) {
-        schedule.forEach((slot) => expanded.push({ ...slot }))
+        schedule.forEach(slot => expanded.push({ ...slot }))
       }
-      setScheduleSummary(requestedSessions != null ? expanded.slice(0, requestedSessions) : expanded)
+      setScheduleSummary(
+        requestedSessions != null ? expanded.slice(0, requestedSessions) : expanded
+      )
     } else {
       setScheduleSummary([...schedule])
     }
@@ -324,7 +562,7 @@ export default function TutorCoursePage() {
       )
       const expanded: ScheduleItem[] = []
       for (let w = 0; w < weeks; w++) {
-        schedule.forEach((slot) => expanded.push({ ...slot }))
+        schedule.forEach(slot => expanded.push({ ...slot }))
       }
       setScheduleSummary(expanded)
     } else {
@@ -421,24 +659,27 @@ export default function TutorCoursePage() {
         toast.error(data.error ?? 'Failed to save')
         return
       }
-      setCourse((prev) =>
+      setCourse(prev =>
         prev
           ? {
-            ...prev,
-            name: courseName.trim() || prev.name,
-            description: description.trim() || prev.description,
-            gradeLevel: gradeLevel || prev.gradeLevel,
-            difficulty: difficulty || prev.difficulty,
-            languageOfInstruction: languageOfInstruction || null,
-            price: price === '' ? null : Number(price),
-            currency: 'USD',
-            curriculumSource,
-            outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
-            schedule,
-          }
+              ...prev,
+              name: courseName.trim() || prev.name,
+              description: description.trim() || prev.description,
+              gradeLevel: gradeLevel || prev.gradeLevel,
+              difficulty: difficulty || prev.difficulty,
+              languageOfInstruction: languageOfInstruction || null,
+              price: price === '' ? null : Number(price),
+              currency: 'USD',
+              curriculumSource,
+              outlineSource: curriculumSource === 'UPLOADED' ? outlineSource : null,
+              schedule,
+            }
           : null
       )
-      if (curriculumSource === 'UPLOADED' && (editableCurriculum || editableNotes || editableTopics || outline.length > 0)) {
+      if (
+        curriculumSource === 'UPLOADED' &&
+        (editableCurriculum || editableNotes || editableTopics || outline.length > 0)
+      ) {
         const matRes = await fetch(`/api/tutor/courses/${id}/materials`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
@@ -472,7 +713,7 @@ export default function TutorCoursePage() {
         body: JSON.stringify({ name }),
       })
       if (res.ok) {
-        setCourse((prev) => (prev ? { ...prev, name } : null))
+        setCourse(prev => (prev ? { ...prev, name } : null))
         toast.success('Curriculum name updated')
       } else {
         const data = await res.json().catch(() => ({}))
@@ -491,7 +732,9 @@ export default function TutorCoursePage() {
 
   const handleGenerateOutline = async () => {
     if (!hasAtLeastOneUpload) {
-      toast.error('Upload at least one of curriculum, notes, or topics before generating the outline.')
+      toast.error(
+        'Upload at least one of curriculum, notes, or topics before generating the outline.'
+      )
       return
     }
     setGeneratingOutline(true)
@@ -503,8 +746,13 @@ export default function TutorCoursePage() {
         credentials: 'include',
         body: JSON.stringify({
           typicalLessonMinutes,
-          curriculumText: uploadText.curriculum.trim() || materials.curriculumText || materials.editableCurriculum || undefined,
-          notesText: uploadText.notes.trim() || materials.notesText || materials.editableNotes || undefined,
+          curriculumText:
+            uploadText.curriculum.trim() ||
+            materials.curriculumText ||
+            materials.editableCurriculum ||
+            undefined,
+          notesText:
+            uploadText.notes.trim() || materials.notesText || materials.editableNotes || undefined,
         }),
       })
       const data = await res.json()
@@ -591,7 +839,10 @@ export default function TutorCoursePage() {
   }
 
   const [fileExtracting, setFileExtracting] = useState(false)
-  const handleFileRead = async (type: 'curriculum' | 'notes' | 'topics', e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileRead = async (
+    type: 'curriculum' | 'notes' | 'topics',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
@@ -600,10 +851,14 @@ export default function TutorCoursePage() {
     try {
       const { extractTextFromFile } = await import('@/lib/extract-file-text')
       const t = await extractTextFromFile(file)
-      if (type === 'curriculum') setUploadText((p) => ({ ...p, curriculum: t }))
-      else if (type === 'notes') setUploadText((p) => ({ ...p, notes: t }))
-      else setUploadText((p) => ({ ...p, topics: t }))
-      toast.info(t ? 'File loaded. Generate the course outline in step 4.' : 'File loaded but no text was extracted. Try another file.')
+      if (type === 'curriculum') setUploadText(p => ({ ...p, curriculum: t }))
+      else if (type === 'notes') setUploadText(p => ({ ...p, notes: t }))
+      else setUploadText(p => ({ ...p, topics: t }))
+      toast.info(
+        t
+          ? 'File loaded. Generate the course outline in step 4.'
+          : 'File loaded but no text was extracted. Try another file.'
+      )
     } catch (err) {
       console.error(err)
       toast.error('Could not read file. Try a .txt or .md file, or paste text.')
@@ -614,7 +869,7 @@ export default function TutorCoursePage() {
 
   if (loading || !course) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <p className="text-muted-foreground">Loading course…</p>
       </div>
     )
@@ -623,18 +878,17 @@ export default function TutorCoursePage() {
   // Toggle category selection
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     )
   }
 
   /** Effective number of weeks when "repeat weekly" is on: from numberOfWeeks or derived from totalSessionsDesired */
-  const effectiveWeeks = schedule.length > 0 && scheduleRepeatWeekly
-    ? (totalSessionsDesired !== ''
+  const effectiveWeeks =
+    schedule.length > 0 && scheduleRepeatWeekly
+      ? totalSessionsDesired !== ''
         ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
-        : numberOfWeeks)
-    : 1
+        : numberOfWeeks
+      : 1
 
   const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const formatTime = (time: string) => {
@@ -668,13 +922,16 @@ export default function TutorCoursePage() {
       return 'Local time'
     }
   })()
-  const scheduleByDay = scheduleSummary.reduce((acc, slot) => {
-    const day = slot?.dayOfWeek
-    if (!day) return acc
-    if (!acc[day]) acc[day] = []
-    acc[day].push(slot)
-    return acc
-  }, {} as Record<string, ScheduleItem[]>)
+  const scheduleByDay = scheduleSummary.reduce(
+    (acc, slot) => {
+      const day = slot?.dayOfWeek
+      if (!day) return acc
+      if (!acc[day]) acc[day] = []
+      acc[day].push(slot)
+      return acc
+    },
+    {} as Record<string, ScheduleItem[]>
+  )
   const priceNumber = Number(price)
   const scheduleCost = scheduleSummary.reduce((sum, slot) => {
     if (!priceNumber || Number.isNaN(priceNumber)) return sum
@@ -683,14 +940,17 @@ export default function TutorCoursePage() {
   }, 0)
   const totalRevenue = scheduleCost * 0.7
   const totalSessions = scheduleSummary.length
-  const totalDurationMinutes = scheduleSummary.reduce((sum, slot) => sum + (slot.durationMinutes ?? 0), 0)
+  const totalDurationMinutes = scheduleSummary.reduce(
+    (sum, slot) => sum + (slot.durationMinutes ?? 0),
+    0
+  )
   const totalDurationHours = (totalDurationMinutes / 60).toFixed(1)
 
   if (!id) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin" />
           <p>Loading course…</p>
         </div>
       </div>
@@ -699,7 +959,7 @@ export default function TutorCoursePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="w-full p-4 sm:p-6 space-y-6">
+      <div className="w-full space-y-6 p-4 sm:p-6">
         {/* Back to Course Builder */}
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild className="gap-2">
@@ -715,11 +975,17 @@ export default function TutorCoursePage() {
           <Card className="border-2 border-gray-400 shadow-sm">
             <CardHeader className="py-3">
               <CardTitle className="text-sm font-medium">Quick setup</CardTitle>
-              <CardDescription className="text-xs">Complete this to finish setting up your course.</CardDescription>
+              <CardDescription className="text-xs">
+                Complete this to finish setting up your course.
+              </CardDescription>
             </CardHeader>
             <CardContent className="py-2">
-              <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-                <li><a href="#course-schedule" className="text-primary underline">Add schedule (or populate from content/outline above)</a></li>
+              <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+                <li>
+                  <a href="#course-schedule" className="text-primary underline">
+                    Add schedule (or populate from content/outline above)
+                  </a>
+                </li>
               </ul>
             </CardContent>
           </Card>
@@ -746,10 +1012,10 @@ export default function TutorCoursePage() {
                     <SelectValue placeholder={loadingCatalog ? 'Loading…' : 'Select curriculum'} />
                   </SelectTrigger>
                   <SelectContent>
-                    {courseName && !curriculumCatalog.some((c) => c.name === courseName) && (
+                    {courseName && !curriculumCatalog.some(c => c.name === courseName) && (
                       <SelectItem value={courseName}>Current: {courseName}</SelectItem>
                     )}
-                    {curriculumCatalog.map((c) => (
+                    {curriculumCatalog.map(c => (
                       <SelectItem key={c.id} value={c.name}>
                         {c.name}
                       </SelectItem>
@@ -759,7 +1025,7 @@ export default function TutorCoursePage() {
               ) : (
                 <Input
                   value={courseName}
-                  onChange={(e) => setCourseName(e.target.value)}
+                  onChange={e => setCourseName(e.target.value)}
                   placeholder="Course name"
                 />
               )}
@@ -769,7 +1035,7 @@ export default function TutorCoursePage() {
               <Label>Course Description</Label>
               <Textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={e => setDescription(e.target.value)}
                 placeholder="What will students learn in this course?"
                 rows={3}
                 className="resize-y"
@@ -780,20 +1046,20 @@ export default function TutorCoursePage() {
               <Label>Categories</Label>
               <Card className="border-2 border-gray-400 shadow-sm">
                 <CardContent className="pt-4">
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="mb-4 flex flex-wrap gap-2">
                     {selectedCategories.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No categories selected</p>
                     ) : (
-                      selectedCategories.map((cat) => (
+                      selectedCategories.map(cat => (
                         <Badge
                           key={cat}
                           variant="secondary"
-                          className="cursor-pointer bg-[#4FD1C5]/20 text-[#1F2933] hover:bg-[#4FD1C5]/30 pr-1"
+                          className="cursor-pointer bg-[#4FD1C5]/20 pr-1 text-[#1F2933] hover:bg-[#4FD1C5]/30"
                         >
                           {cat}
                           <button
                             onClick={() => toggleCategory(cat)}
-                            className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                            className="ml-1 rounded-full p-0.5 hover:bg-red-100"
                             type="button"
                           >
                             <X className="h-3 w-3" />
@@ -803,7 +1069,7 @@ export default function TutorCoursePage() {
                     )}
                   </div>
                   <Select
-                    onValueChange={(value) => {
+                    onValueChange={value => {
                       if (!selectedCategories.includes(value)) {
                         setSelectedCategories([...selectedCategories, value])
                       }
@@ -815,55 +1081,65 @@ export default function TutorCoursePage() {
                     <SelectContent className="max-h-80">
                       <ScrollArea className="h-80">
                         <div className="p-2">
-                          <p className="text-xs font-semibold text-muted-foreground mb-2">Global Exams</p>
-                          {GLOBAL_EXAMS_CATEGORIES.map((cat) => (
+                          <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                            Global Exams
+                          </p>
+                          {GLOBAL_EXAMS_CATEGORIES.map(cat => (
                             <div key={cat.id} className="mb-2">
-                              <p className="text-xs text-muted-foreground ml-2">{cat.label}</p>
-                              {cat.exams.map((exam) => (
+                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
+                              {cat.exams.map(exam => (
                                 <SelectItem key={exam} value={exam}>
                                   {exam}
                                 </SelectItem>
                               ))}
                             </div>
                           ))}
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 mt-4">AP</p>
-                          {AP_CATEGORIES.map((cat) => (
+                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
+                            AP
+                          </p>
+                          {AP_CATEGORIES.map(cat => (
                             <div key={cat.id} className="mb-2">
-                              <p className="text-xs text-muted-foreground ml-2">{cat.label}</p>
-                              {cat.exams.map((exam) => (
+                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
+                              {cat.exams.map(exam => (
                                 <SelectItem key={exam} value={exam}>
                                   {exam}
                                 </SelectItem>
                               ))}
                             </div>
                           ))}
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 mt-4">A Level</p>
-                          {A_LEVEL_CATEGORIES.map((cat) => (
+                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
+                            A Level
+                          </p>
+                          {A_LEVEL_CATEGORIES.map(cat => (
                             <div key={cat.id} className="mb-2">
-                              <p className="text-xs text-muted-foreground ml-2">{cat.label}</p>
-                              {cat.exams.map((exam) => (
+                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
+                              {cat.exams.map(exam => (
                                 <SelectItem key={exam} value={exam}>
                                   {exam}
                                 </SelectItem>
                               ))}
                             </div>
                           ))}
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 mt-4">IB</p>
-                          {IB_CATEGORIES.map((cat) => (
+                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
+                            IB
+                          </p>
+                          {IB_CATEGORIES.map(cat => (
                             <div key={cat.id} className="mb-2">
-                              <p className="text-xs text-muted-foreground ml-2">{cat.label}</p>
-                              {cat.exams.map((exam) => (
+                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
+                              {cat.exams.map(exam => (
                                 <SelectItem key={exam} value={exam}>
                                   {exam}
                                 </SelectItem>
                               ))}
                             </div>
                           ))}
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 mt-4">IGCSE</p>
-                          {IGCSE_CATEGORIES.map((cat) => (
+                          <p className="mb-2 mt-4 text-xs font-semibold text-muted-foreground">
+                            IGCSE
+                          </p>
+                          {IGCSE_CATEGORIES.map(cat => (
                             <div key={cat.id} className="mb-2">
-                              <p className="text-xs text-muted-foreground ml-2">{cat.label}</p>
-                              {cat.exams.map((exam) => (
+                              <p className="ml-2 text-xs text-muted-foreground">{cat.label}</p>
+                              {cat.exams.map(exam => (
                                 <SelectItem key={exam} value={exam}>
                                   {exam}
                                 </SelectItem>
@@ -889,7 +1165,7 @@ export default function TutorCoursePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="price">Cost per 1 hour session</Label>
                 <Input
@@ -898,25 +1174,20 @@ export default function TutorCoursePage() {
                   min="0"
                   step="0.01"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={e => setPrice(e.target.value)}
                   placeholder="$"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency">Currency</Label>
-                <Input
-                  id="currency"
-                  value="USD"
-                  disabled
-                  className="bg-muted"
-                />
+                <Input id="currency" value="USD" disabled className="bg-muted" />
               </div>
             </div>
             {price && Number(price) > 0 && (
               <div className="rounded-lg border bg-muted/30 p-3">
                 <p className="text-sm">
-                  <span className="font-medium">Cost per session:</span>{' '}
-                  USD {Number(price).toFixed(2)}
+                  <span className="font-medium">Cost per session:</span> USD{' '}
+                  {Number(price).toFixed(2)}
                 </p>
               </div>
             )}
@@ -930,31 +1201,38 @@ export default function TutorCoursePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Cost vs Revenue - visible when price and schedule are set */}
-            {Number(price) > 0 && schedule.length > 0 && (() => {
-              const p = Number(price)
-              const cost = schedule.reduce((sum, slot) => sum + (slot.durationMinutes / 60) * p, 0)
-              const revenue = cost * 0.7
-              return (
-                <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3 text-sm">
-                  <div>
-                    <div className="text-xs text-muted-foreground">Cost for course</div>
-                    <div className="font-medium">USD {cost.toFixed(2)}</div>
+            {Number(price) > 0 &&
+              schedule.length > 0 &&
+              (() => {
+                const p = Number(price)
+                const cost = schedule.reduce(
+                  (sum, slot) => sum + (slot.durationMinutes / 60) * p,
+                  0
+                )
+                const revenue = cost * 0.7
+                return (
+                  <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3 text-sm">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Cost for course</div>
+                      <div className="font-medium">USD {cost.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">
+                        Revenue (after 30% commission)
+                      </div>
+                      <div className="font-medium">USD {revenue.toFixed(2)}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground">Revenue (after 30% commission)</div>
-                    <div className="font-medium">USD {revenue.toFixed(2)}</div>
-                  </div>
-                </div>
-              )
-            })()}
+                )
+              })()}
 
             {/* Weekly repeat option */}
             <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-muted/30 p-3">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
                   checked={scheduleRepeatWeekly}
-                  onChange={(e) => setScheduleRepeatWeekly(e.target.checked)}
+                  onChange={e => setScheduleRepeatWeekly(e.target.checked)}
                   className="rounded border-gray-300"
                 />
                 <span className="text-sm font-medium">Apply same schedule every week</span>
@@ -968,16 +1246,18 @@ export default function TutorCoursePage() {
                       min={1}
                       max={52}
                       value={totalSessionsDesired !== '' ? effectiveWeeks : numberOfWeeks}
-                      onChange={(e) => {
+                      onChange={e => {
                         const v = Math.max(1, parseInt(e.target.value, 10) || 1)
                         setNumberOfWeeks(v)
                         if (totalSessionsDesired !== '') setTotalSessionsDesired('')
                       }}
                       disabled={totalSessionsDesired !== ''}
-                      className="w-20 h-8 text-sm"
+                      className="h-8 w-20 text-sm"
                     />
                     {totalSessionsDesired !== '' && (
-                      <span className="text-xs text-muted-foreground">= {effectiveWeeks} weeks from {totalSessionsDesired} sessions</span>
+                      <span className="text-xs text-muted-foreground">
+                        = {effectiveWeeks} weeks from {totalSessionsDesired} sessions
+                      </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
@@ -987,47 +1267,93 @@ export default function TutorCoursePage() {
                       min={1}
                       placeholder="e.g. 20"
                       value={totalSessionsDesired}
-                      onChange={(e) => setTotalSessionsDesired(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value, 10) || 0))}
-                      className="w-24 h-8 text-sm"
+                      onChange={e =>
+                        setTotalSessionsDesired(
+                          e.target.value === ''
+                            ? ''
+                            : Math.max(1, parseInt(e.target.value, 10) || 0)
+                        )
+                      }
+                      className="h-8 w-24 text-sm"
                     />
-                    <span className="text-xs text-muted-foreground">sessions (weeks = sessions ÷ slots per week)</span>
+                    <span className="text-xs text-muted-foreground">
+                      sessions (weeks = sessions ÷ slots per week)
+                    </span>
                   </div>
                 </>
               )}
             </div>
 
             {/* Calendar grid: click cells to select 1-hour slots; key by week so header dates update when week/month changes */}
-            <div key={`week-${scheduleWeekStart.getTime()}`} className="border rounded-lg overflow-hidden">
+            <div
+              key={`week-${scheduleWeekStart.getTime()}`}
+              className="overflow-hidden rounded-lg border"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-2 py-2">
                 <div className="flex items-center gap-1">
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 1)} aria-label="Previous week">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setScheduleWeekOffset(o => o - 1)}
+                    aria-label="Previous week"
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-xs font-medium min-w-[140px] text-center">{scheduleWeekLabel}</span>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 1)} aria-label="Next week">
+                  <span className="min-w-[140px] text-center text-xs font-medium">
+                    {scheduleWeekLabel}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setScheduleWeekOffset(o => o + 1)}
+                    aria-label="Next week"
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
                 <span className="text-xs text-muted-foreground">{scheduleMonthLabel}</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-muted-foreground mr-1">Month:</span>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o - 4)} aria-label="Previous month">
+                  <span className="mr-1 text-[10px] text-muted-foreground">Month:</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setScheduleWeekOffset(o => o - 4)}
+                    aria-label="Previous month"
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setScheduleWeekOffset((o) => o + 4)} aria-label="Next month">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setScheduleWeekOffset(o => o + 4)}
+                    aria-label="Next month"
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground px-2 py-1 border-b bg-muted/20">Click a time slot to add or remove a 1-hour session.</p>
+              <p className="border-b bg-muted/20 px-2 py-1 text-xs text-muted-foreground">
+                Click a time slot to add or remove a 1-hour session.
+              </p>
               <div className="grid grid-cols-8 border-b bg-muted/30">
-                <div className="p-2 text-xs font-medium text-center border-r">Time</div>
+                <div className="border-r p-2 text-center text-xs font-medium">Time</div>
                 {DAYS.map((day, i) => {
                   const d = weekDates[i]
                   return (
-                    <div key={`${day}-${d.getTime()}`} className="p-2 text-xs font-medium text-center border-r">
+                    <div
+                      key={`${day}-${d.getTime()}`}
+                      className="border-r p-2 text-center text-xs font-medium"
+                    >
                       <div>{day.slice(0, 3)}</div>
-                      <div className="text-[10px] text-muted-foreground font-normal mt-0.5">
+                      <div className="mt-0.5 text-[10px] font-normal text-muted-foreground">
                         {d.getDate()}
                       </div>
                     </div>
@@ -1036,7 +1362,7 @@ export default function TutorCoursePage() {
               </div>
               <ScrollArea className="h-[320px]">
                 <div className="grid grid-cols-8">
-                  {TIME_SLOT_OPTIONS.map((timeStr) => {
+                  {TIME_SLOT_OPTIONS.map(timeStr => {
                     const hour = parseInt(timeStr.slice(0, 2), 10)
                     const endHour = hour + 1
                     const startLabel = `${hour % 12 || 12}:00 ${hour >= 12 ? 'PM' : 'AM'}`
@@ -1044,23 +1370,25 @@ export default function TutorCoursePage() {
                     const displayTime = `${startLabel}-${endLabel}`
                     return (
                       <div key={timeStr} className="contents">
-                        <div className="p-1 text-[10px] text-muted-foreground text-center border-r border-b border-dashed">
+                        <div className="border-b border-r border-dashed p-1 text-center text-[10px] text-muted-foreground">
                           {displayTime}
                         </div>
-                        {DAYS.map((day) => {
+                        {DAYS.map(day => {
                           const inRange = schedule.some(
-                            (s) => s.dayOfWeek === day && (() => {
-                              const [sh, sm] = s.startTime.split(':').map(Number)
-                              const startM = sh * 60 + sm
-                              const endM = startM + s.durationMinutes
-                              const [th, tm] = timeStr.split(':').map(Number)
-                              const slotM = th * 60 + tm
-                              return slotM >= startM && slotM < endM
-                            })()
+                            s =>
+                              s.dayOfWeek === day &&
+                              (() => {
+                                const [sh, sm] = s.startTime.split(':').map(Number)
+                                const startM = sh * 60 + sm
+                                const endM = startM + s.durationMinutes
+                                const [th, tm] = timeStr.split(':').map(Number)
+                                const slotM = th * 60 + tm
+                                return slotM >= startM && slotM < endM
+                              })()
                           )
                           const toggleSlot = () => {
-                            setSchedule((prev) => {
-                              const idx = prev.findIndex((s) => {
+                            setSchedule(prev => {
+                              const idx = prev.findIndex(s => {
                                 if (s.dayOfWeek !== day) return false
                                 const [sh, sm] = s.startTime.split(':').map(Number)
                                 const startM = sh * 60 + sm
@@ -1074,7 +1402,10 @@ export default function TutorCoursePage() {
                                 return [...prev.slice(0, idx), ...prev.slice(idx + 1)]
                               }
                               // Add a new 1-hour session starting at this time
-                              return [...prev, { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 }]
+                              return [
+                                ...prev,
+                                { dayOfWeek: day, startTime: timeStr, durationMinutes: 60 },
+                              ]
                             })
                           }
                           return (
@@ -1082,7 +1413,7 @@ export default function TutorCoursePage() {
                               type="button"
                               key={`${day}-${timeStr}`}
                               onClick={toggleSlot}
-                              className={`p-1 border-b border-dashed border-r min-h-[28px] w-full text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
+                              className={`min-h-[28px] w-full border-b border-r border-dashed p-1 text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
                               aria-pressed={inRange}
                               aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
                             >
@@ -1092,7 +1423,7 @@ export default function TutorCoursePage() {
                                   <button
                                     type="button"
                                     className="rounded-full p-0.5 hover:bg-blue-100"
-                                    onClick={(e) => {
+                                    onClick={e => {
                                       e.stopPropagation()
                                       toggleSlot()
                                     }}
@@ -1113,48 +1444,62 @@ export default function TutorCoursePage() {
             </div>
 
             {/* Set Schedule Button */}
-            <Button
-              onClick={generateScheduleSummary}
-              variant="outline"
-              className="w-full"
-            >
-              <CalendarIcon className="h-4 w-4 mr-2" />
+            <Button onClick={generateScheduleSummary} variant="outline" className="w-full">
+              <CalendarIcon className="mr-2 h-4 w-4" />
               Set Schedule
             </Button>
 
             {/* Schedule Summary - sessions, duration, cost/revenue, interactive by day */}
             {scheduleSummary.length > 0 && (
-              <Card className="border-2 border-primary/20 shadow-lg overflow-hidden">
-                <CardHeader className="pb-3 bg-gradient-to-r from-slate-50 to-blue-50/50 border-b">
-                  <CardTitle className="text-base flex items-center gap-2">
+              <Card className="overflow-hidden border-2 border-primary/20 shadow-lg">
+                <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-blue-50/50 pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
                     <CalendarIcon className="h-5 w-5 text-primary" />
                     Schedule Summary
                   </CardTitle>
                   <CardDescription className="text-xs">Times in {timezoneLabel}</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-4 space-y-4">
+                <CardContent className="space-y-4 pt-4">
                   {/* Sessions & duration */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="rounded-xl bg-blue-50 border border-blue-100 p-3">
-                      <div className="text-xs font-medium text-blue-700 uppercase tracking-wide">Sessions</div>
-                      <div className="text-2xl font-bold text-blue-900 mt-0.5">{totalSessions}</div>
-                      {scheduleRepeatWeekly && schedule.length > 0 && totalSessions > schedule.length && (
-                        <div className="text-xs text-blue-600 mt-0.5">Over {Math.ceil(totalSessions / schedule.length)} weeks</div>
-                      )}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-blue-700">
+                        Sessions
+                      </div>
+                      <div className="mt-0.5 text-2xl font-bold text-blue-900">{totalSessions}</div>
+                      {scheduleRepeatWeekly &&
+                        schedule.length > 0 &&
+                        totalSessions > schedule.length && (
+                          <div className="mt-0.5 text-xs text-blue-600">
+                            Over {Math.ceil(totalSessions / schedule.length)} weeks
+                          </div>
+                        )}
                     </div>
-                    <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3">
-                      <div className="text-xs font-medium text-emerald-700 uppercase tracking-wide">Total duration</div>
-                      <div className="text-2xl font-bold text-emerald-900 mt-0.5">{totalDurationHours} h</div>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+                        Total duration
+                      </div>
+                      <div className="mt-0.5 text-2xl font-bold text-emerald-900">
+                        {totalDurationHours} h
+                      </div>
                     </div>
                     {priceNumber > 0 && (
                       <>
-                        <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-                          <div className="text-xs font-medium text-slate-600 uppercase tracking-wide">Cost</div>
-                          <div className="text-xl font-bold text-slate-900 mt-0.5">USD {scheduleCost.toFixed(2)}</div>
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="text-xs font-medium uppercase tracking-wide text-slate-600">
+                            Cost
+                          </div>
+                          <div className="mt-0.5 text-xl font-bold text-slate-900">
+                            USD {scheduleCost.toFixed(2)}
+                          </div>
                         </div>
-                        <div className="rounded-xl bg-amber-50 border border-amber-100 p-3">
-                          <div className="text-xs font-medium text-amber-700 uppercase tracking-wide">Revenue (70%)</div>
-                          <div className="text-xl font-bold text-amber-900 mt-0.5">USD {totalRevenue.toFixed(2)}</div>
+                        <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
+                          <div className="text-xs font-medium uppercase tracking-wide text-amber-700">
+                            Revenue (70%)
+                          </div>
+                          <div className="mt-0.5 text-xl font-bold text-amber-900">
+                            USD {totalRevenue.toFixed(2)}
+                          </div>
                         </div>
                       </>
                     )}
@@ -1163,13 +1508,17 @@ export default function TutorCoursePage() {
                   <div className="space-y-2">
                     <div className="text-sm font-semibold text-slate-700">By day</div>
                     {dayOrder
-                      .filter((day) => scheduleByDay[day]?.length)
-                      .map((day) => (
-                        <div key={day} className="rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
-                          <div className="text-sm font-semibold text-slate-800 mb-2 flex items-center justify-between">
+                      .filter(day => scheduleByDay[day]?.length)
+                      .map(day => (
+                        <div
+                          key={day}
+                          className="rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                        >
+                          <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-800">
                             <span>{day}</span>
                             <Badge variant="secondary" className="text-xs">
-                              {scheduleByDay[day].length} session{scheduleByDay[day].length !== 1 ? 's' : ''}
+                              {scheduleByDay[day].length} session
+                              {scheduleByDay[day].length !== 1 ? 's' : ''}
                             </Badge>
                           </div>
                           <div className="flex flex-wrap gap-2">
@@ -1178,11 +1527,15 @@ export default function TutorCoursePage() {
                               .map((slot, idx) => (
                                 <div
                                   key={`${day}-${idx}-${slot.startTime}`}
-                                  className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-800 font-medium inline-flex items-center gap-2"
+                                  className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800"
                                 >
-                                  <span>{formatTimeRange(slot.startTime, slot.durationMinutes)}</span>
-                                  <span className="text-slate-500 text-xs">• {slot.durationMinutes}m</span>
-                                  <span className="text-slate-500 text-xs">• 0 students</span>
+                                  <span>
+                                    {formatTimeRange(slot.startTime, slot.durationMinutes)}
+                                  </span>
+                                  <span className="text-xs text-slate-500">
+                                    • {slot.durationMinutes}m
+                                  </span>
+                                  <span className="text-xs text-slate-500">• 0 students</span>
                                 </div>
                               ))}
                           </div>
@@ -1197,13 +1550,8 @@ export default function TutorCoursePage() {
 
         {/* Bottom Actions */}
         <div className="flex justify-end gap-3">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleSaveAll}
-            disabled={saving}
-          >
-            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+          <Button size="sm" variant="outline" onClick={handleSaveAll} disabled={saving}>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             {saving ? 'Saving…' : 'Save'}
           </Button>
           <Button
@@ -1224,7 +1572,7 @@ export default function TutorCoursePage() {
                 })
                 if (res.ok) {
                   const data = await res.json()
-                  setCourse(prev => prev ? { ...prev, isPublished: true } : (data.course ?? prev))
+                  setCourse(prev => (prev ? { ...prev, isPublished: true } : (data.course ?? prev)))
                   toast.success('Course published successfully!')
                 } else {
                   const data = await res.json().catch(() => null)

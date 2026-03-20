@@ -1,6 +1,6 @@
 /**
  * Achievement Unlock Animation
- * 
+ *
  * Celebratory animation when user unlocks an achievement
  */
 
@@ -110,7 +110,7 @@ export function AchievementUnlock({
               duration: 1 + Math.random(),
               ease: 'easeOut',
             }}
-            className="absolute w-3 h-3 rounded-full"
+            className="absolute h-3 w-3 rounded-full"
             style={{
               backgroundColor: config.particleColor,
               left: '50%',
@@ -124,27 +124,26 @@ export function AchievementUnlock({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.5, opacity: 0, y: 50 }}
           transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-          className="relative max-w-md w-full mx-4"
+          className="relative mx-4 w-full max-w-md"
           onClick={e => e.stopPropagation()}
         >
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="absolute -top-4 -right-4 z-10 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-500 hover:text-gray-700"
+            className="absolute -right-4 -top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-500 shadow-lg hover:text-gray-700"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
 
           {/* Card */}
-          <div className={cn(
-            'rounded-2xl overflow-hidden shadow-2xl',
-            config.bgColor
-          )}>
+          <div className={cn('overflow-hidden rounded-2xl shadow-2xl', config.bgColor)}>
             {/* Header with gradient */}
-            <div className={cn(
-              'bg-gradient-to-r p-8 text-center relative overflow-hidden',
-              config.color
-            )}>
+            <div
+              className={cn(
+                'relative overflow-hidden bg-gradient-to-r p-8 text-center',
+                config.color
+              )}
+            >
               {/* Animated sparkles */}
               {[...Array(5)].map((_, i) => (
                 <motion.div
@@ -165,7 +164,7 @@ export function AchievementUnlock({
                     top: `${20 + (i % 2) * 40}%`,
                   }}
                 >
-                  <Sparkles className="w-6 h-6 text-white/60" />
+                  <Sparkles className="h-6 w-6 text-white/60" />
                 </motion.div>
               ))}
 
@@ -176,7 +175,7 @@ export function AchievementUnlock({
                 transition={{ type: 'spring', damping: 10, delay: 0.2 }}
                 className="relative z-10"
               >
-                <div className="w-24 h-24 mx-auto bg-white rounded-full flex items-center justify-center shadow-xl">
+                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-xl">
                   <span className="text-5xl">{achievement.icon}</span>
                 </div>
               </motion.div>
@@ -188,9 +187,11 @@ export function AchievementUnlock({
                 transition={{ delay: 0.4 }}
                 className="mt-4"
               >
-                <span className={cn(
-                  'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 text-white'
-                )}>
+                <span
+                  className={cn(
+                    'rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white'
+                  )}
+                >
                   {achievement.rarity}
                 </span>
               </motion.div>
@@ -202,7 +203,7 @@ export function AchievementUnlock({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className={cn('text-2xl font-bold mb-2', config.textColor)}
+                className={cn('mb-2 text-2xl font-bold', config.textColor)}
               >
                 Achievement Unlocked!
               </motion.h3>
@@ -211,7 +212,7 @@ export function AchievementUnlock({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6 }}
-                className="text-xl font-semibold text-gray-800 mb-2"
+                className="mb-2 text-xl font-semibold text-gray-800"
               >
                 {achievement.name}
               </motion.h4>
@@ -220,7 +221,7 @@ export function AchievementUnlock({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
-                className="text-gray-600 mb-4"
+                className="mb-4 text-gray-600"
               >
                 {achievement.description}
               </motion.p>
@@ -230,10 +231,9 @@ export function AchievementUnlock({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', damping: 10, delay: 0.8 }}
-                className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full font-semibold"
+                className="inline-flex items-center gap-2 rounded-full bg-yellow-100 px-4 py-2 font-semibold text-yellow-700"
               >
-                <Zap className="w-4 h-4" />
-                +{achievement.xpBonus} XP
+                <Zap className="h-4 w-4" />+{achievement.xpBonus} XP
               </motion.div>
 
               {/* Share button */}
@@ -245,10 +245,7 @@ export function AchievementUnlock({
               >
                 <Button
                   onClick={handleClose}
-                  className={cn(
-                    'w-full bg-gradient-to-r text-white',
-                    config.color
-                  )}
+                  className={cn('w-full bg-gradient-to-r text-white', config.color)}
                 >
                   Awesome!
                 </Button>

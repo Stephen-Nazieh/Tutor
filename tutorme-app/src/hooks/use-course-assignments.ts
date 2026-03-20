@@ -154,7 +154,7 @@ export function useCourseAssignments(courseId: string) {
   const createAssignment = useCallback(async (data: CreateAssignmentRequest) => {
     try {
       const assignment = await assignmentApi.createAssignment(data)
-      setAssignments((prev) => [...prev, assignment])
+      setAssignments(prev => [...prev, assignment])
       toast.success('Course assigned to group successfully')
       return assignment
     } catch {
@@ -166,25 +166,25 @@ export function useCourseAssignments(courseId: string) {
   const deleteAssignment = useCallback(async (assignmentId: string) => {
     try {
       await assignmentApi.deleteAssignment(assignmentId)
-      setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
+      setAssignments(prev => prev.filter(a => a.id !== assignmentId))
       toast.success('Assignment removed')
     } catch {
       toast.error('Failed to remove assignment')
     }
   }, [])
 
-  const updateStatus = useCallback(async (
-    assignmentId: string,
-    status: CourseGroupAssignment['status']
-  ) => {
-    try {
-      await assignmentApi.updateAssignmentStatus(assignmentId, status)
-      setAssignments((prev) => prev.map((a) => (a.id === assignmentId ? { ...a, status } : a)))
-      toast.success(`Assignment ${status}`)
-    } catch {
-      toast.error('Failed to update status')
-    }
-  }, [])
+  const updateStatus = useCallback(
+    async (assignmentId: string, status: CourseGroupAssignment['status']) => {
+      try {
+        await assignmentApi.updateAssignmentStatus(assignmentId, status)
+        setAssignments(prev => prev.map(a => (a.id === assignmentId ? { ...a, status } : a)))
+        toast.success(`Assignment ${status}`)
+      } catch {
+        toast.error('Failed to update status')
+      }
+    },
+    []
+  )
 
   return {
     assignments,

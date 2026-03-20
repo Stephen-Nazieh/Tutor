@@ -36,4 +36,3 @@ describe('course-materials-service', () => {
     expect(res.outline).toHaveLength(1)
   })
 })
-

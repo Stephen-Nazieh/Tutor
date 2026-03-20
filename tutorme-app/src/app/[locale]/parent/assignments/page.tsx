@@ -13,7 +13,7 @@ const assignments = [
     student: 'Emily',
     dueDate: '2026-02-25',
     status: 'pending',
-    priority: 'high'
+    priority: 'high',
   },
   {
     id: '2',
@@ -22,7 +22,7 @@ const assignments = [
     student: 'Michael',
     dueDate: '2026-02-24',
     status: 'submitted',
-    priority: 'medium'
+    priority: 'medium',
   },
   {
     id: '3',
@@ -31,8 +31,8 @@ const assignments = [
     student: 'Emily',
     dueDate: '2026-02-28',
     status: 'pending',
-    priority: 'low'
-  }
+    priority: 'low',
+  },
 ]
 
 export default function ParentAssignmentsPage() {
@@ -40,18 +40,20 @@ export default function ParentAssignmentsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
-        <p className="text-gray-500 mt-1">Track your children&apos;s assignments and due dates</p>
+        <p className="mt-1 text-gray-500">Track your children&apos;s assignments and due dates</p>
       </div>
 
       <div className="grid gap-4">
-        {assignments.map((assignment) => (
+        {assignments.map(assignment => (
           <Card key={assignment.id}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-lg ${
-                    assignment.status === 'submitted' ? 'bg-green-100' : 'bg-yellow-100'
-                  }`}>
+                  <div
+                    className={`rounded-lg p-3 ${
+                      assignment.status === 'submitted' ? 'bg-green-100' : 'bg-yellow-100'
+                    }`}
+                  >
                     {assignment.status === 'submitted' ? (
                       <CheckCircle className="h-5 w-5 text-green-600" />
                     ) : (
@@ -60,8 +62,10 @@ export default function ParentAssignmentsPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold">{assignment.title}</h3>
-                    <p className="text-sm text-gray-500">{assignment.subject} • For: {assignment.student}</p>
-                    <div className="flex items-center gap-2 mt-2">
+                    <p className="text-sm text-gray-500">
+                      {assignment.subject} • For: {assignment.student}
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
                       <Badge variant={assignment.priority === 'high' ? 'destructive' : 'outline'}>
                         {assignment.priority}
                       </Badge>
@@ -78,7 +82,7 @@ export default function ParentAssignmentsPage() {
                   </div>
                   {assignment.status === 'pending' && (
                     <Button variant="outline" size="sm" className="mt-2">
-                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <AlertCircle className="mr-2 h-4 w-4" />
                       Remind
                     </Button>
                   )}

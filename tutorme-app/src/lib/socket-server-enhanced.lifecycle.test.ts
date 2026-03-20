@@ -30,7 +30,7 @@ describe('socket-server-enhanced lifecycle', () => {
 
   afterEach(async () => {
     if (io) {
-      await new Promise<void>((resolve) => io?.close(() => resolve()))
+      await new Promise<void>(resolve => io?.close(() => resolve()))
     }
     vi.restoreAllMocks()
   })
@@ -42,7 +42,7 @@ describe('socket-server-enhanced lifecycle', () => {
     io = await initEnhancedSocketServer(server)
     expect(setIntervalSpy.mock.calls.length).toBeGreaterThanOrEqual(4)
 
-    await new Promise<void>((resolve) => io?.close(() => resolve()))
+    await new Promise<void>(resolve => io?.close(() => resolve()))
     expect(clearIntervalSpy).toHaveBeenCalled()
     io = null
 

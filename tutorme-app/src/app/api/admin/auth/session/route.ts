@@ -7,10 +7,7 @@ export async function GET(req: NextRequest) {
     const session = await getAdminSession(req)
 
     if (!session) {
-      return NextResponse.json(
-        { error: 'No active session' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'No active session' }, { status: 401 })
     }
 
     return NextResponse.json({

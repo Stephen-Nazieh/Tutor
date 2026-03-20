@@ -19,121 +19,129 @@ const CreateSnapshotSchema = z.object({
 })
 
 // GET - List snapshots
-export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const whiteboardId = await getParamAsync(context?.params, 'id')
-  if (!whiteboardId) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
+export const GET = withAuth(
+  async (req: NextRequest, session, context) => {
+    const whiteboardId = await getParamAsync(context?.params, 'id')
+    if (!whiteboardId) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
+    }
+    const userId = session.user.id
 
-  try {
-    const [wb] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(
-        and(
-          eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.ownerId, userId),
-          isNull(whiteboard.deletedAt)
+    try {
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(
+            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
         )
-      )
-      .limit(1)
+        .limit(1)
 
-    if (!wb) {
-      return NextResponse.json(
-        { error: 'Whiteboard not found' },
-        { status: 404 }
+      if (!wb) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      const snapshots = await drizzleDb
+        .select()
+        .from(whiteboardSnapshot)
+        .where(eq(whiteboardSnapshot.whiteboardId, whiteboardId))
+        .orderBy(desc(whiteboardSnapshot.createdAt))
+
+      return NextResponse.json({ snapshots })
+    } catch (error) {
+      console.error('Fetch snapshots error:', error)
+      return handleApiError(
+        error,
+        'Failed to fetch snapshots',
+        'api/whiteboards/[id]/snapshots/route.ts'
       )
     }
-
-    const snapshots = await drizzleDb
-      .select()
-      .from(whiteboardSnapshot)
-      .where(eq(whiteboardSnapshot.whiteboardId, whiteboardId))
-      .orderBy(desc(whiteboardSnapshot.createdAt))
-
-    return NextResponse.json({ snapshots })
-  } catch (error) {
-    console.error('Fetch snapshots error:', error)
-    return handleApiError(error, 'Failed to fetch snapshots', 'api/whiteboards/[id]/snapshots/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)
 
 // POST - Create snapshot
-export const POST = withAuth(async (req: NextRequest, session, context) => {
-  const whiteboardId = await getParamAsync(context?.params, 'id')
-  if (!whiteboardId) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
-
-  try {
-    const body = await req.json()
-    const validation = CreateSnapshotSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
+export const POST = withAuth(
+  async (req: NextRequest, session, context) => {
+    const whiteboardId = await getParamAsync(context?.params, 'id')
+    if (!whiteboardId) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
     }
+    const userId = session.user.id
 
-    const data = validation.data
+    try {
+      const body = await req.json()
+      const validation = CreateSnapshotSchema.safeParse(body)
 
-    const [wb] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(
-        and(
-          eq(whiteboard.id, whiteboardId),
-          eq(whiteboard.ownerId, userId),
-          isNull(whiteboard.deletedAt)
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
         )
-      )
-      .limit(1)
+      }
 
-    if (!wb) {
-      return NextResponse.json(
-        { error: 'Whiteboard not found' },
-        { status: 404 }
+      const data = validation.data
+
+      const [wb] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(
+            eq(whiteboard.id, whiteboardId),
+            eq(whiteboard.ownerId, userId),
+            isNull(whiteboard.deletedAt)
+          )
+        )
+        .limit(1)
+
+      if (!wb) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      const pages = await drizzleDb
+        .select()
+        .from(whiteboardPage)
+        .where(eq(whiteboardPage.whiteboardId, whiteboardId))
+        .orderBy(asc(whiteboardPage.order))
+
+      const snapshotPages = pages.map(p => ({
+        id: p.id,
+        name: p.name,
+        order: p.order,
+        backgroundColor: p.backgroundColor,
+        backgroundStyle: p.backgroundStyle,
+        backgroundImage: p.backgroundImage,
+        strokes: p.strokes,
+        shapes: p.shapes,
+        texts: p.texts,
+        images: p.images,
+        viewState: p.viewState,
+      }))
+
+      const inserted = await drizzleDb
+        .insert(whiteboardSnapshot)
+        .values({
+          id: crypto.randomUUID(),
+          whiteboardId,
+          name: data.name,
+          thumbnailUrl: data.thumbnailUrl ?? null,
+          pages: snapshotPages,
+          createdBy: userId,
+        })
+        .returning()
+
+      return NextResponse.json({ snapshot: inserted[0] }, { status: 201 })
+    } catch (error) {
+      console.error('Create snapshot error:', error)
+      return handleApiError(
+        error,
+        'Failed to create snapshot',
+        'api/whiteboards/[id]/snapshots/route.ts'
       )
     }
-
-    const pages = await drizzleDb
-      .select()
-      .from(whiteboardPage)
-      .where(eq(whiteboardPage.whiteboardId, whiteboardId))
-      .orderBy(asc(whiteboardPage.order))
-
-    const snapshotPages = pages.map((p) => ({
-      id: p.id,
-      name: p.name,
-      order: p.order,
-      backgroundColor: p.backgroundColor,
-      backgroundStyle: p.backgroundStyle,
-      backgroundImage: p.backgroundImage,
-      strokes: p.strokes,
-      shapes: p.shapes,
-      texts: p.texts,
-      images: p.images,
-      viewState: p.viewState,
-    }))
-
-    const inserted = await drizzleDb
-      .insert(whiteboardSnapshot)
-      .values({
-        id: crypto.randomUUID(),
-        whiteboardId,
-        name: data.name,
-        thumbnailUrl: data.thumbnailUrl ?? null,
-        pages: snapshotPages,
-        createdBy: userId,
-      })
-      .returning()
-
-    return NextResponse.json({ snapshot: inserted[0] }, { status: 201 })
-  } catch (error) {
-    console.error('Create snapshot error:', error)
-    return handleApiError(error, 'Failed to create snapshot', 'api/whiteboards/[id]/snapshots/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)

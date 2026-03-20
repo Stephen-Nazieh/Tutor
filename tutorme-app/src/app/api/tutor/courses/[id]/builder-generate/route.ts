@@ -15,7 +15,9 @@ async function fetchWebReference(query: string): Promise<string> {
   if (!query.trim()) return ''
 
   try {
-    const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`)
+    const summaryRes = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`
+    )
     if (summaryRes.ok) {
       const payload = await summaryRes.json().catch(() => ({}))
       if (typeof payload.extract === 'string' && payload.extract.trim()) {
@@ -29,7 +31,12 @@ async function fetchWebReference(query: string): Promise<string> {
   return ''
 }
 
-function buildPrompt(input: { tutorInstruction: string; references: string; subject: string; gradeLevel: string | null }) {
+function buildPrompt(input: {
+  tutorInstruction: string
+  references: string
+  subject: string
+  gradeLevel: string | null
+}) {
   const referenceBlock = input.references.trim()
     ? `Reference material:\n${input.references.slice(0, 18000)}`
     : 'No uploaded references were provided.'
@@ -118,60 +125,70 @@ Rules:
 `.trim()
 }
 
-export const POST = withAuth(async (req: NextRequest, session) => {
-  const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
-  if (rateLimitResponse) return rateLimitResponse
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'aiGenerate')
+    if (rateLimitResponse) return rateLimitResponse
 
-  const courseId = getCourseId(req)
-  const body = await req.json().catch(() => ({}))
-  const tutorInstruction = typeof body?.prompt === 'string' ? body.prompt.trim() : ''
-  const uploadedReferences = Array.isArray(body?.references) ? body.references.filter((x: unknown) => typeof x === 'string') : []
+    const courseId = getCourseId(req)
+    const body = await req.json().catch(() => ({}))
+    const tutorInstruction = typeof body?.prompt === 'string' ? body.prompt.trim() : ''
+    const uploadedReferences = Array.isArray(body?.references)
+      ? body.references.filter((x: unknown) => typeof x === 'string')
+      : []
 
-  if (!tutorInstruction && uploadedReferences.length === 0) {
-    throw new ValidationError('Prompt or references are required')
-  }
+    if (!tutorInstruction && uploadedReferences.length === 0) {
+      throw new ValidationError('Prompt or references are required')
+    }
 
-  const [curriculumRow] = await drizzleDb
-    .select({ id: curriculum.id, subject: curriculum.subject, gradeLevel: curriculum.gradeLevel })
-    .from(curriculum)
-    .where(and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)))
-  if (!curriculumRow) {
-    throw new NotFoundError('Course not found')
-  }
+    const [curriculumRow] = await drizzleDb
+      .select({ id: curriculum.id, subject: curriculum.subject, gradeLevel: curriculum.gradeLevel })
+      .from(curriculum)
+      .where(and(eq(curriculum.id, courseId), eq(curriculum.creatorId, session.user.id)))
+    if (!curriculumRow) {
+      throw new NotFoundError('Course not found')
+    }
 
-  let references = uploadedReferences.join('\n\n').slice(0, 18000)
-  if (!references.trim()) {
-    const webContext = await fetchWebReference(curriculumRow.subject || tutorInstruction.split(/\s+/).slice(0, 4).join(' '))
-    references = webContext
-  }
+    let references = uploadedReferences.join('\n\n').slice(0, 18000)
+    if (!references.trim()) {
+      const webContext = await fetchWebReference(
+        curriculumRow.subject || tutorInstruction.split(/\s+/).slice(0, 4).join(' ')
+      )
+      references = webContext
+    }
 
-  const prompt = buildPrompt({
-    tutorInstruction,
-    references,
-    subject: curriculumRow.subject,
-    gradeLevel: curriculumRow.gradeLevel,
-  })
-
-  const ai = await generateWithFallback(prompt, {
-    temperature: 0.35,
-    maxTokens: 7000,
-    skipCache: true,
-  })
-
-  const jsonMatch = ai.content.match(/\{[\s\S]*\}/)
-  if (!jsonMatch) {
-    return NextResponse.json({ error: 'Failed to parse generated course structure' }, { status: 502 })
-  }
-
-  try {
-    const parsed = JSON.parse(jsonMatch[0])
-    const modules = Array.isArray(parsed?.modules) ? parsed.modules : []
-    return NextResponse.json({
-      success: true,
-      provider: ai.provider,
-      modules,
+    const prompt = buildPrompt({
+      tutorInstruction,
+      references,
+      subject: curriculumRow.subject,
+      gradeLevel: curriculumRow.gradeLevel,
     })
-  } catch {
-    return NextResponse.json({ error: 'Generated output was not valid JSON' }, { status: 502 })
-  }
-}, { role: 'TUTOR' })
+
+    const ai = await generateWithFallback(prompt, {
+      temperature: 0.35,
+      maxTokens: 7000,
+      skipCache: true,
+    })
+
+    const jsonMatch = ai.content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      return NextResponse.json(
+        { error: 'Failed to parse generated course structure' },
+        { status: 502 }
+      )
+    }
+
+    try {
+      const parsed = JSON.parse(jsonMatch[0])
+      const modules = Array.isArray(parsed?.modules) ? parsed.modules : []
+      return NextResponse.json({
+        success: true,
+        provider: ai.provider,
+        modules,
+      })
+    } catch {
+      return NextResponse.json({ error: 'Generated output was not valid JSON' }, { status: 502 })
+    }
+  },
+  { role: 'TUTOR' }
+)

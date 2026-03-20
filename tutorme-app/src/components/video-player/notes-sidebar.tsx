@@ -31,10 +31,12 @@ export function NotesSidebar({ videoId, currentTime, onSeekToTimestamp }: NotesS
     if (savedNotes) {
       try {
         const parsed = JSON.parse(savedNotes)
-        setNotes(parsed.map((n: any) => ({
-          ...n,
-          createdAt: new Date(n.createdAt)
-        })))
+        setNotes(
+          parsed.map((n: any) => ({
+            ...n,
+            createdAt: new Date(n.createdAt),
+          }))
+        )
       } catch {
         console.error('Failed to load notes')
       }
@@ -55,7 +57,7 @@ export function NotesSidebar({ videoId, currentTime, onSeekToTimestamp }: NotesS
       id: Date.now().toString(),
       timestamp: currentTime,
       content: newNote,
-      createdAt: new Date()
+      createdAt: new Date(),
     }
 
     setNotes(prev => [...prev, note].sort((a, b) => a.timestamp - b.timestamp))
@@ -76,11 +78,14 @@ export function NotesSidebar({ videoId, currentTime, onSeekToTimestamp }: NotesS
     return (
       <Button
         variant="outline"
-        className="h-full w-10 flex flex-col items-center py-4"
+        className="flex h-full w-10 flex-col items-center py-4"
         onClick={() => setIsExpanded(true)}
       >
-        <BookOpen className="w-5 h-5 mb-2" />
-        <span className="text-xs writing-mode-vertical rotate-180" style={{ writingMode: 'vertical-rl' }}>
+        <BookOpen className="mb-2 h-5 w-5" />
+        <span
+          className="writing-mode-vertical rotate-180 text-xs"
+          style={{ writingMode: 'vertical-rl' }}
+        >
           Notes
         </span>
       </Button>
@@ -88,11 +93,11 @@ export function NotesSidebar({ videoId, currentTime, onSeekToTimestamp }: NotesS
   }
 
   return (
-    <Card className="w-80 h-full flex flex-col">
+    <Card className="flex h-full w-80 flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BookOpen className="h-5 w-5" />
             Notes
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={() => setIsExpanded(false)}>
@@ -104,47 +109,47 @@ export function NotesSidebar({ videoId, currentTime, onSeekToTimestamp }: NotesS
         </p>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent className="flex flex-1 flex-col">
         {/* Add Note */}
         <div className="mb-4 space-y-2">
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Clock className="w-4 h-4" />
+            <Clock className="h-4 w-4" />
             <span>At {formatTime(currentTime)}</span>
           </div>
           <div className="flex gap-2">
             <Input
               placeholder="Add a note..."
               value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addNote()}
+              onChange={e => setNewNote(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && addNote()}
             />
             <Button size="icon" onClick={addNote} disabled={!newNote.trim()}>
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
         {/* Notes List */}
-        <ScrollArea className="flex-1 -mx-2 px-2">
+        <ScrollArea className="-mx-2 flex-1 px-2">
           <div className="space-y-3">
             {notes.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-30" />
+              <div className="py-8 text-center text-gray-500">
+                <BookOpen className="mx-auto mb-2 h-12 w-12 opacity-30" />
                 <p className="text-sm">No notes yet</p>
                 <p className="text-xs">Click + to add a note at the current timestamp</p>
               </div>
             ) : (
-              notes.map((note) => (
+              notes.map(note => (
                 <div
                   key={note.id}
-                  className="border rounded-lg p-3 group hover:border-blue-300 transition-colors"
+                  className="group rounded-lg border p-3 transition-colors hover:border-blue-300"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <button
                       onClick={() => onSeekToTimestamp(note.timestamp)}
                       className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
                     >
-                      <Clock className="w-3 h-3" />
+                      <Clock className="h-3 w-3" />
                       {formatTime(note.timestamp)}
                     </button>
                     <Button
@@ -153,11 +158,11 @@ export function NotesSidebar({ videoId, currentTime, onSeekToTimestamp }: NotesS
                       className="h-6 w-6 opacity-0 group-hover:opacity-100"
                       onClick={() => deleteNote(note.id)}
                     >
-                      <Trash2 className="w-3 h-3 text-red-500" />
+                      <Trash2 className="h-3 w-3 text-red-500" />
                     </Button>
                   </div>
-                  <p className="text-sm mt-1 whitespace-pre-wrap">{note.content}</p>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="mt-1 whitespace-pre-wrap text-sm">{note.content}</p>
+                  <p className="mt-2 text-xs text-gray-400">
                     {note.createdAt.toLocaleDateString()}
                   </p>
                 </div>

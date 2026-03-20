@@ -57,7 +57,10 @@ export async function GET(req: NextRequest) {
       recentWhiteboardSessions,
     ] = await Promise.all([
       drizzleDb.select({ count: sql<number>`count(*)::int` }).from(user),
-      drizzleDb.select({ count: sql<number>`count(*)::int` }).from(user).where(gte(user.createdAt, startDate)),
+      drizzleDb
+        .select({ count: sql<number>`count(*)::int` })
+        .from(user)
+        .where(gte(user.createdAt, startDate)),
       drizzleDb
         .select({ userId: userActivityLog.userId })
         .from(userActivityLog)
@@ -70,9 +73,16 @@ export async function GET(req: NextRequest) {
         .select({ count: sql<number>`count(*)::int` })
         .from(userActivityLog)
         .where(and(eq(userActivityLog.action, 'login'), gte(userActivityLog.createdAt, startDate))),
-      drizzleDb.select({ role: user.role, count: sql<number>`count(*)::int` }).from(user).groupBy(user.role),
       drizzleDb
-        .select({ userId: userActivityLog.userId, action: userActivityLog.action, createdAt: userActivityLog.createdAt })
+        .select({ role: user.role, count: sql<number>`count(*)::int` })
+        .from(user)
+        .groupBy(user.role),
+      drizzleDb
+        .select({
+          userId: userActivityLog.userId,
+          action: userActivityLog.action,
+          createdAt: userActivityLog.createdAt,
+        })
         .from(userActivityLog)
         .where(gte(userActivityLog.createdAt, startDate))
         .orderBy(desc(userActivityLog.createdAt))
@@ -101,7 +111,12 @@ export async function GET(req: NextRequest) {
         .from(payment)
         .where(gte(payment.createdAt, startDate)),
       drizzleDb
-        .select({ id: refund.id, status: refund.status, amount: refund.amount, createdAt: refund.createdAt })
+        .select({
+          id: refund.id,
+          status: refund.status,
+          amount: refund.amount,
+          createdAt: refund.createdAt,
+        })
         .from(refund)
         .where(gte(refund.createdAt, startDate)),
       drizzleDb
@@ -114,19 +129,37 @@ export async function GET(req: NextRequest) {
         .from(liveSession)
         .where(gte(liveSession.startedAt, startDate)),
       drizzleDb
-        .select({ sessionId: sessionParticipant.sessionId, studentId: sessionParticipant.studentId, joinedAt: sessionParticipant.joinedAt })
+        .select({
+          sessionId: sessionParticipant.sessionId,
+          studentId: sessionParticipant.studentId,
+          joinedAt: sessionParticipant.joinedAt,
+        })
         .from(sessionParticipant)
         .where(gte(sessionParticipant.joinedAt, startDate)),
       drizzleDb
-        .select({ id: taskSubmission.id, studentId: taskSubmission.studentId, submittedAt: taskSubmission.submittedAt, score: taskSubmission.score })
+        .select({
+          id: taskSubmission.id,
+          studentId: taskSubmission.studentId,
+          submittedAt: taskSubmission.submittedAt,
+          score: taskSubmission.score,
+        })
         .from(taskSubmission)
         .where(gte(taskSubmission.submittedAt, startDate)),
       drizzleDb
-        .select({ id: quizAttempt.id, studentId: quizAttempt.studentId, startedAt: quizAttempt.startedAt, score: quizAttempt.score })
+        .select({
+          id: quizAttempt.id,
+          studentId: quizAttempt.studentId,
+          startedAt: quizAttempt.startedAt,
+          score: quizAttempt.score,
+        })
         .from(quizAttempt)
         .where(gte(quizAttempt.startedAt, startDate)),
       drizzleDb
-        .select({ id: videoWatchEvent.id, studentId: videoWatchEvent.studentId, createdAt: videoWatchEvent.createdAt })
+        .select({
+          id: videoWatchEvent.id,
+          studentId: videoWatchEvent.studentId,
+          createdAt: videoWatchEvent.createdAt,
+        })
         .from(videoWatchEvent)
         .where(gte(videoWatchEvent.createdAt, startDate)),
       drizzleDb
@@ -139,11 +172,20 @@ export async function GET(req: NextRequest) {
         .from(curriculumLessonProgress)
         .where(gte(curriculumLessonProgress.updatedAt, startDate)),
       drizzleDb
-        .select({ id: poll.id, status: poll.status, createdAt: poll.createdAt, totalResponses: poll.totalResponses })
+        .select({
+          id: poll.id,
+          status: poll.status,
+          createdAt: poll.createdAt,
+          totalResponses: poll.totalResponses,
+        })
         .from(poll)
         .where(gte(poll.createdAt, startDate)),
       drizzleDb
-        .select({ id: whiteboardSession.id, roomId: whiteboardSession.roomId, startedAt: whiteboardSession.startedAt })
+        .select({
+          id: whiteboardSession.id,
+          roomId: whiteboardSession.roomId,
+          startedAt: whiteboardSession.startedAt,
+        })
         .from(whiteboardSession)
         .where(gte(whiteboardSession.startedAt, startDate)),
     ])
@@ -165,7 +207,8 @@ export async function GET(req: NextRequest) {
       .where(and(gte(user.createdAt, previousPeriodStart), lt(user.createdAt, startDate)))
 
     const previousNewUsers = previousNewUsersRows?.count ?? 0
-    const userGrowthRate = previousNewUsers > 0 ? ((newUsers - previousNewUsers) / previousNewUsers) * 100 : 0
+    const userGrowthRate =
+      previousNewUsers > 0 ? ((newUsers - previousNewUsers) / previousNewUsers) * 100 : 0
 
     const dayBuckets = Array.from({ length: days }, (_, i) => {
       const d = new Date()
@@ -185,7 +228,7 @@ export async function GET(req: NextRequest) {
       const s = bucketMap.get(k)
       if (s) s.add(act.userId)
     }
-    const dauTrend = dayBuckets.map((d) => {
+    const dauTrend = dayBuckets.map(d => {
       const key = d.toISOString().slice(0, 10)
       return { date: key, activeUsers: bucketMap.get(key)?.size ?? 0 }
     })
@@ -199,22 +242,27 @@ export async function GET(req: NextRequest) {
       .slice(0, 10)
       .map(([action, count]) => ({ action, count }))
 
-    const paidPayments = recentPayments.filter((p) => p.status === 'COMPLETED')
-    const pendingPayments = recentPayments.filter((p) => p.status === 'PENDING' || p.status === 'PROCESSING')
-    const refundedPayments = recentPayments.filter((p) => p.status === 'REFUNDED')
+    const paidPayments = recentPayments.filter(p => p.status === 'COMPLETED')
+    const pendingPayments = recentPayments.filter(
+      p => p.status === 'PENDING' || p.status === 'PROCESSING'
+    )
+    const refundedPayments = recentPayments.filter(p => p.status === 'REFUNDED')
     const paymentVolume = recentPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
-    const paymentSuccessRate = recentPayments.length > 0 ? (paidPayments.length / recentPayments.length) * 100 : 0
-    const refundRate = recentPayments.length > 0 ? (refundedPayments.length / recentPayments.length) * 100 : 0
+    const paymentSuccessRate =
+      recentPayments.length > 0 ? (paidPayments.length / recentPayments.length) * 100 : 0
+    const refundRate =
+      recentPayments.length > 0 ? (refundedPayments.length / recentPayments.length) * 100 : 0
 
     const failedLoginEvents = recentSecurityEvents.filter(
-      (e) =>
-        e.eventType?.toLowerCase().includes('auth_failed') || e.action?.toLowerCase().includes('login_failed')
+      e =>
+        e.eventType?.toLowerCase().includes('auth_failed') ||
+        e.action?.toLowerCase().includes('login_failed')
     )
     const criticalSecurityEvents = recentSecurityEvents.filter(
-      (e) => (e.severity || '').toLowerCase() === 'critical'
+      e => (e.severity || '').toLowerCase() === 'critical'
     )
     const suspiciousIps = new Set(
-      failedLoginEvents.map((e) => e.ip).filter((v): v is string => Boolean(v))
+      failedLoginEvents.map(e => e.ip).filter((v): v is string => Boolean(v))
     )
 
     const sessionParticipantCount = new Map<string, Set<string>>()
@@ -251,8 +299,8 @@ export async function GET(req: NextRequest) {
 
     const payingUsers = new Set(
       paidPayments
-        .map((p) => {
-          const maybe = recentUserActivities.find((a) => a.createdAt <= (p.createdAt ?? new Date(0)))
+        .map(p => {
+          const maybe = recentUserActivities.find(a => a.createdAt <= (p.createdAt ?? new Date(0)))
           return maybe?.userId
         })
         .filter((v): v is string => Boolean(v))
@@ -305,11 +353,15 @@ export async function GET(req: NextRequest) {
         totalEnrollments,
         recentLogins,
       },
-      usersByRole: usersByRoleRows.map((r) => ({ role: r.role, count: r.count })),
+      usersByRole: usersByRoleRows.map(r => ({ role: r.role, count: r.count })),
       enterprise,
     })
   } catch (error) {
     console.error('Error fetching analytics:', error)
-    return handleApiError(error, 'Failed to fetch analytics', 'api/admin/analytics/overview/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch analytics',
+      'api/admin/analytics/overview/route.ts'
+    )
   }
 }

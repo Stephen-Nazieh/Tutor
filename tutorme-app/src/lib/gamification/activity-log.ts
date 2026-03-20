@@ -91,11 +91,7 @@ export async function getRecentActivities(
 /**
  * Get activity counts for analytics
  */
-export async function getActivityCounts(
-  userId: string,
-  startDate: Date,
-  endDate: Date
-) {
+export async function getActivityCounts(userId: string, startDate: Date, endDate: Date) {
   const rows = await drizzleDb
     .select({
       action: userActivityLog.action,

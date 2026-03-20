@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { handleApiError } from '@/lib/api/middleware'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, sessionReplayArtifact, sessionParticipant, message, user, profile } from '@/lib/db/schema'
+import {
+  liveSession,
+  sessionReplayArtifact,
+  sessionParticipant,
+  message,
+  user,
+  profile,
+} from '@/lib/db/schema'
 import { eq, and, asc, sql } from 'drizzle-orm'
 import { generateSessionSummary } from '@/lib/chat/summary'
 import { randomUUID } from 'crypto'
@@ -22,7 +29,7 @@ function buildTranscript(
   }>
 ): string {
   return messages
-    .map((m) => {
+    .map(m => {
       const speaker = m.userName?.trim() || m.userEmail?.split('@')[0] || 'Speaker'
       const at = m.timestamp?.toISOString() ?? new Date().toISOString()
       return `[${at}] ${speaker}: ${m.content}`
@@ -171,6 +178,10 @@ export async function POST(req: NextRequest) {
       .where(eq(sessionReplayArtifact.sessionId, liveSessionId))
 
     console.error('Failed to generate replay artifact:', error)
-    return handleApiError(error, 'Failed to generate replay artifact', 'api/tutor/live-sessions/[sessionId]/replay-artifact/generate/route.ts')
+    return handleApiError(
+      error,
+      'Failed to generate replay artifact',
+      'api/tutor/live-sessions/[sessionId]/replay-artifact/generate/route.ts'
+    )
   }
 }

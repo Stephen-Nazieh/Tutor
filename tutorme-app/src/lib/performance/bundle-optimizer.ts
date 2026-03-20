@@ -1,7 +1,7 @@
 // @ts-nocheck
 /**
  * Frontend Bundle Optimizer
- * 
+ *
  * Optimizes frontend bundles for Chinese mobile networks with:
  * - Progressive loading strategies
  * - Component registry with lazy loading
@@ -92,7 +92,7 @@ export function getComponentsByPriority(
   priority: 'critical' | 'high' | 'medium' | 'low'
 ): string[] {
   return Object.keys(componentRegistry).filter(
-    (name) => componentRegistry[name].priority === priority
+    name => componentRegistry[name].priority === priority
   )
 }
 
@@ -105,9 +105,10 @@ export function detectNetwork(): NetworkInfo | null {
     return null
   }
 
-  const connection = (navigator as any).connection || 
-                     (navigator as any).mozConnection || 
-                     (navigator as any).webkitConnection
+  const connection =
+    (navigator as any).connection ||
+    (navigator as any).mozConnection ||
+    (navigator as any).webkitConnection
 
   if (!connection) {
     return null
@@ -124,11 +125,13 @@ export function detectNetwork(): NetworkInfo | null {
 export function isSlowNetwork(threshold: number = 2): boolean {
   const network = detectNetwork()
   if (!network) return false
-  
-  return network.downlink < threshold || 
-         network.effectiveType === 'slow-2g' || 
-         network.effectiveType === '2g' ||
-         network.saveData
+
+  return (
+    network.downlink < threshold ||
+    network.effectiveType === 'slow-2g' ||
+    network.effectiveType === '2g' ||
+    network.saveData
+  )
 }
 
 // ============================================================================
@@ -142,12 +145,12 @@ export function setupProgressiveImageLoading(
   if (typeof window === 'undefined') return null
 
   const imageObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
+    entries => {
+      entries.forEach(entry => {
         if (entry.isIntersecting) {
           const img = entry.target as HTMLImageElement
           const dataSrc = img.getAttribute('data-src')
-          
+
           if (dataSrc) {
             img.src = dataSrc
             img.removeAttribute('data-src')
@@ -159,7 +162,7 @@ export function setupProgressiveImageLoading(
     { threshold, rootMargin: '50px' }
   )
 
-  document.querySelectorAll(selector).forEach((img) => {
+  document.querySelectorAll(selector).forEach(img => {
     imageObserver.observe(img)
   })
 
@@ -178,17 +181,17 @@ export async function loadComponentWhenVisible(
     }
 
     const observer = new IntersectionObserver(
-      async (entries) => {
-        entries.forEach(async (entry) => {
+      async entries => {
+        entries.forEach(async entry => {
           if (entry.isIntersecting) {
             observer.disconnect()
-            
+
             try {
               const loader = getComponentLoader(componentName)
               if (!loader) {
                 throw new Error(`Component ${componentName} not registered`)
               }
-              
+
               const component = await loader()
               resolve(component.default || component)
             } catch (error) {
@@ -215,7 +218,7 @@ export function preloadResource(
   link.rel = 'preload'
   link.href = href
   link.as = as
-  
+
   if (crossorigin) {
     link.setAttribute('crossorigin', 'anonymous')
   }
@@ -238,16 +241,15 @@ export function prefetchResource(href: string): void {
 
 export function getChinaCDNUrl(path: string): string {
   const chinaCDN = process.env.NEXT_PUBLIC_CHINA_CDN_URL
-  
+
   if (chinaCDN && typeof window !== 'undefined') {
-    const isChina = navigator.language === 'zh-CN' || 
-                    navigator.language.startsWith('zh')
-    
+    const isChina = navigator.language === 'zh-CN' || navigator.language.startsWith('zh')
+
     if (isChina) {
       return `${chinaCDN}${path}`
     }
   }
-  
+
   return path
 }
 
@@ -260,19 +262,19 @@ export function optimizeImageForChina(
   }
 ): string {
   const { width, quality = 80, format = 'webp' } = options || {}
-  
+
   if (src.startsWith('/')) {
     const params = new URLSearchParams()
     if (width) params.set('w', width.toString())
     params.set('q', quality.toString())
-    
+
     if (format === 'webp') {
       params.set('format', 'webp')
     }
-    
+
     return `${src}?${params.toString()}`
   }
-  
+
   return src
 }
 
@@ -288,22 +290,22 @@ export async function compressData(
     const stream = new (window as any).CompressionStream(algorithm)
     const writer = stream.writable.getWriter()
     const reader = stream.readable.getReader()
-    
+
     writer.write(new TextEncoder().encode(data))
     writer.close()
-    
+
     const chunks: Uint8Array[] = []
     let done = false
-    
+
     while (!done) {
       const { value, done: readerDone } = await reader.read()
       done = readerDone
       if (value) chunks.push(value)
     }
-    
+
     return new Blob(chunks)
   }
-  
+
   return new Blob([data])
 }
 
@@ -327,7 +329,7 @@ export function measureWebVitals(
 
   if ('PerformanceObserver' in window) {
     try {
-      const observer = new PerformanceObserver((list) => {
+      const observer = new PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
           if (entry.name === 'first-contentful-paint') {
             webVitals.fcp = entry.startTime
@@ -345,7 +347,7 @@ export function measureWebVitals(
     }
 
     try {
-      const lcpObserver = new PerformanceObserver((list) => {
+      const lcpObserver = new PerformanceObserver(list => {
         const entries = list.getEntries()
         const lastEntry = entries[entries.length - 1] as any
         webVitals.lcp = lastEntry.renderTime || lastEntry.loadTime
@@ -362,7 +364,7 @@ export function measureWebVitals(
 
     try {
       let clsValue = 0
-      const clsObserver = new PerformanceObserver((list) => {
+      const clsObserver = new PerformanceObserver(list => {
         for (const entry of list.getEntries() as any[]) {
           if (!entry.hadRecentInput) {
             clsValue += entry.value
@@ -426,7 +428,7 @@ export class BundleOptimizer {
 
     this.networkInfo = detectNetwork()
 
-    measureWebVitals((metric) => {
+    measureWebVitals(metric => {
       this.reportMetric(metric.name, metric.value)
     })
 
@@ -474,7 +476,7 @@ export class BundleOptimizer {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, value, timestamp: Date.now() }),
-      }).catch((err) => {
+      }).catch(err => {
         console.warn('Failed to report metric:', err)
       })
     }

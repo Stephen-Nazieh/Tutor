@@ -17,7 +17,10 @@ export function PDFTutoringWorkbench({ roomId }: PDFTutoringWorkbenchProps) {
   const [preprocessUrl, setPreprocessUrl] = useState('')
   const [status, setStatus] = useState('Idle')
   const [extractParser, setExtractParser] = useState<string>('unknown')
-  const [techCheck, setTechCheck] = useState<{ unpdfAvailable?: boolean; pdfParseAvailable?: boolean } | null>(null)
+  const [techCheck, setTechCheck] = useState<{
+    unpdfAvailable?: boolean
+    pdfParseAvailable?: boolean
+  } | null>(null)
 
   const extractPdfText = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -96,7 +99,9 @@ export function PDFTutoringWorkbench({ roomId }: PDFTutoringWorkbenchProps) {
               {extractResult && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{extractResult.length} chars extracted</span>
+                    <span className="text-xs text-muted-foreground">
+                      {extractResult.length} chars extracted
+                    </span>
                     <Button
                       size="sm"
                       variant="outline"
@@ -108,7 +113,9 @@ export function PDFTutoringWorkbench({ roomId }: PDFTutoringWorkbenchProps) {
                       Copy text
                     </Button>
                   </div>
-                  <pre className="max-h-48 overflow-auto rounded bg-muted p-2 text-xs whitespace-pre-wrap">{extractResult}</pre>
+                  <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">
+                    {extractResult}
+                  </pre>
                 </div>
               )}
               {preprocessUrl && (
@@ -126,9 +133,16 @@ export function PDFTutoringWorkbench({ roomId }: PDFTutoringWorkbenchProps) {
             <div className="space-y-2 rounded-md border p-3">
               <h3 className="font-medium">Live Collaboration + Marking</h3>
               <p className="text-xs text-muted-foreground">
-                Includes lock/unlock, mode toggles, low-latency sync broadcast, and PDF flattening output.
+                Includes lock/unlock, mode toggles, low-latency sync broadcast, and PDF flattening
+                output.
               </p>
-              <Button variant="outline" size="sm" onClick={() => setStatus('Ready for live tutoring')}>Prepare Session</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setStatus('Ready for live tutoring')}
+              >
+                Prepare Session
+              </Button>
             </div>
           </div>
         </CardContent>

@@ -9,7 +9,12 @@ import { subjectPrompts } from './index'
 export interface PromptConfig {
   language: 'en' | 'zh'
   teachingMode: string
-  personality: 'friendly_mentor' | 'strict_coach' | 'corporate_trainer' | 'funny_teacher' | 'calm_professor'
+  personality:
+    | 'friendly_mentor'
+    | 'strict_coach'
+    | 'corporate_trainer'
+    | 'funny_teacher'
+    | 'calm_professor'
   subject?: string
   topic?: string | null
   teachingAge?: number
@@ -62,27 +67,33 @@ Example: "Math is like a puzzle, but instead of losing pieces, you lose... wait,
   calm_professor: `You are a knowledgeable, serene tutor who explains deeply.
 Tone: Calm, thoughtful, philosophical
 Style: Deep explanations, historical context, "big picture" thinking
-Example: "Consider this concept from first principles. What is the fundamental nature of..."`
+Example: "Consider this concept from first principles. What is the fundamental nature of..."`,
 }
 
 export function buildCompletePrompt(config: PromptConfig): string {
   const parts: string[] = []
-  
+
   // 1. Core Identity
   parts.push(`You are an AI tutor helping a student learn.`)
-  
+
   // 2. Teaching Mode
   const mode = commonTeachingModes[config.teachingMode] || commonTeachingModes.socratic
   parts.push(`\n## Teaching Mode: ${mode.name}`)
   parts.push(mode.systemPrompt)
-  
+
   // 3. Personality Layer
   const personality = personalityPrompts[config.personality] || personalityPrompts.friendly_mentor
   parts.push(`\n## Your Personality`)
   parts.push(personality)
 
   // 3b. Subject Context
-  if (config.subject || config.topic || config.teachingAge || config.voiceGender || config.voiceAccent) {
+  if (
+    config.subject ||
+    config.topic ||
+    config.teachingAge ||
+    config.voiceGender ||
+    config.voiceAccent
+  ) {
     parts.push(`\n## Subject Context`)
     if (config.subject) parts.push(`Subject: ${config.subject}`)
     if (config.topic) parts.push(`Topic: ${config.topic}`)
@@ -90,7 +101,7 @@ export function buildCompletePrompt(config: PromptConfig): string {
     if (config.voiceGender) parts.push(`Voice gender: ${config.voiceGender}`)
     if (config.voiceAccent) parts.push(`Voice accent: ${config.voiceAccent}`)
   }
-  
+
   // 4. Gamification Context
   parts.push(`\n## Student Progress`)
   parts.push(`- Level: ${config.gamification.level}`)
@@ -99,7 +110,7 @@ export function buildCompletePrompt(config: PromptConfig): string {
   if (Object.keys(config.gamification.skills).length > 0) {
     parts.push(`- Skills: ${JSON.stringify(config.gamification.skills)}`)
   }
-  
+
   // 5. Mission Context (if provided)
   if (config.mission) {
     parts.push(`\n## Current Mission`)
@@ -115,7 +126,7 @@ export function buildCompletePrompt(config: PromptConfig): string {
       parts.push(`Grammar focus: ${config.mission.grammarFocus}`)
     }
   }
-  
+
   // 6. Tier Controls
   parts.push(`\n## Tier Settings`)
   if (config.tier === 'FREE') {
@@ -128,15 +139,15 @@ export function buildCompletePrompt(config: PromptConfig): string {
     parts.push(`- Response limit: 2048 tokens`)
     parts.push(`- All features enabled`)
   }
-  
+
   // 7. Language
   parts.push(`\n## Language`)
   parts.push(config.language === 'zh' ? 'Respond in Chinese (中文)' : 'Respond in English')
-  
+
   // 8. Response Format
   parts.push(`\n## Response Format`)
   parts.push(mode.responseFormat)
-  
+
   // 9. Chat History
   if (config.chatHistory.length > 0) {
     parts.push(`\n## Conversation History`)
@@ -144,11 +155,11 @@ export function buildCompletePrompt(config: PromptConfig): string {
       parts.push(`${msg.role === 'user' ? 'Student' : 'Tutor'}: ${msg.content}`)
     })
   }
-  
+
   // 10. Current Message
   parts.push(`\n## Current Message`)
   parts.push(`Student: ${config.userMessage}`)
   parts.push(`\nTutor:`)
-  
+
   return parts.join('\n')
 }

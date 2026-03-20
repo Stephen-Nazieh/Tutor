@@ -35,19 +35,22 @@ export function AdminTopologyPanel({ days }: { days: number }) {
 
   const tutorsById = useMemo(() => {
     const map = new Map<string, TopologyNode>()
-    nodes.forEach((n) => {
+    nodes.forEach(n => {
       if (n.role === 'TUTOR') map.set(n.id, n)
     })
     return map
   }, [nodes])
 
   const subjects = useMemo(
-    () => ['ALL', ...Array.from(new Set(edges.map((edge) => edge.subject))).sort((a, b) => a.localeCompare(b))],
+    () => [
+      'ALL',
+      ...Array.from(new Set(edges.map(edge => edge.subject))).sort((a, b) => a.localeCompare(b)),
+    ],
     [edges]
   )
 
   const filteredEdges = useMemo(() => {
-    return edges.filter((edge) => {
+    return edges.filter(edge => {
       if (subjectFilter !== 'ALL' && edge.subject !== subjectFilter) return false
       if (statusFilter !== 'ALL' && edge.status !== statusFilter) return false
       if (focusedTutorId && edge.tutorId !== focusedTutorId) return false
@@ -57,7 +60,7 @@ export function AdminTopologyPanel({ days }: { days: number }) {
 
   const filteredNodeIds = useMemo(() => {
     const ids = new Set<string>()
-    filteredEdges.forEach((edge) => {
+    filteredEdges.forEach(edge => {
       ids.add(edge.tutorId)
       ids.add(edge.studentId)
     })
@@ -65,15 +68,16 @@ export function AdminTopologyPanel({ days }: { days: number }) {
   }, [filteredEdges])
 
   const filteredNodes = useMemo(() => {
-    if (filteredEdges.length === 0) return focusedTutorId ? nodes.filter((n) => n.id === focusedTutorId) : nodes
-    return nodes.filter((node) => filteredNodeIds.has(node.id))
+    if (filteredEdges.length === 0)
+      return focusedTutorId ? nodes.filter(n => n.id === focusedTutorId) : nodes
+    return nodes.filter(node => filteredNodeIds.has(node.id))
   }, [filteredEdges, filteredNodeIds, nodes, focusedTutorId])
 
   const filteredStats = useMemo(() => {
     return {
-      tutors: filteredNodes.filter((node) => node.role === 'TUTOR').length,
-      students: filteredNodes.filter((node) => node.role === 'STUDENT').length,
-      liveConnections: filteredEdges.filter((edge) => edge.isActive).length,
+      tutors: filteredNodes.filter(node => node.role === 'TUTOR').length,
+      students: filteredNodes.filter(node => node.role === 'STUDENT').length,
+      liveConnections: filteredEdges.filter(edge => edge.isActive).length,
       totalConnections: filteredEdges.length,
       liveUsers: users.length,
       liveSessions: sessions.length,
@@ -101,7 +105,7 @@ export function AdminTopologyPanel({ days }: { days: number }) {
           nodes={filteredNodes}
           edges={filteredEdges}
           focusedTutorId={focusedTutorId}
-          onTutorFocus={(tutorId) => setFocusedTutorId((prev) => (prev === tutorId ? null : tutorId))}
+          onTutorFocus={tutorId => setFocusedTutorId(prev => (prev === tutorId ? null : tutorId))}
         />
       )}
 
@@ -109,12 +113,23 @@ export function AdminTopologyPanel({ days }: { days: number }) {
       <div className="pointer-events-none absolute left-6 top-24 z-30 grid w-[420px] grid-cols-2 gap-3">
         <MetricPill title="Tutors" value={filteredStats.tutors || stats?.tutors || 0} />
         <MetricPill title="Students" value={filteredStats.students || stats?.students || 0} />
-        <MetricPill title="Live Links" value={filteredStats.liveConnections || stats?.liveConnections || 0} glow />
-        <MetricPill title="Total Links" value={filteredStats.totalConnections || stats?.totalConnections || 0} />
+        <MetricPill
+          title="Live Links"
+          value={filteredStats.liveConnections || stats?.liveConnections || 0}
+          glow
+        />
+        <MetricPill
+          title="Total Links"
+          value={filteredStats.totalConnections || stats?.totalConnections || 0}
+        />
         {showLiveData && (
           <>
             <MetricPill title="Live Users" value={filteredStats.liveUsers} color="#4FD1C5" />
-            <MetricPill title="Active Sessions" value={filteredStats.liveSessions} color="#3A7CFF" />
+            <MetricPill
+              title="Active Sessions"
+              value={filteredStats.liveSessions}
+              color="#3A7CFF"
+            />
           </>
         )}
       </div>
@@ -128,10 +143,7 @@ export function AdminTopologyPanel({ days }: { days: number }) {
               <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Live Data Mode</p>
               <p className="mt-1 text-xs text-slate-400">Show real-time user locations</p>
             </div>
-            <Switch
-              checked={showLiveData}
-              onCheckedChange={setShowLiveData}
-            />
+            <Switch checked={showLiveData} onCheckedChange={setShowLiveData} />
           </div>
         </div>
 
@@ -139,16 +151,18 @@ export function AdminTopologyPanel({ days }: { days: number }) {
         {!showLiveData && (
           <div className="pointer-events-auto rounded-xl border border-cyan-300/30 bg-slate-950/65 p-4 backdrop-blur-md">
             <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Topology Filters</p>
-            <p className="mt-1 text-sm text-slate-200">Floating overlays for mission-control feel.</p>
+            <p className="mt-1 text-sm text-slate-200">
+              Floating overlays for mission-control feel.
+            </p>
             <div className="mt-3 grid gap-3">
               <label className="space-y-1">
                 <span className="text-xs uppercase tracking-[0.14em] text-slate-400">Subject</span>
                 <select
                   value={subjectFilter}
-                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  onChange={e => setSubjectFilter(e.target.value)}
                   className="w-full rounded-md border border-slate-600 bg-slate-900/90 px-3 py-2 text-sm text-slate-100"
                 >
-                  {subjects.map((subject) => (
+                  {subjects.map(subject => (
                     <option key={subject} value={subject}>
                       {subject === 'ALL' ? 'All subjects' : subject}
                     </option>
@@ -157,10 +171,12 @@ export function AdminTopologyPanel({ days }: { days: number }) {
               </label>
 
               <label className="space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-slate-400">Session Status</span>
+                <span className="text-xs uppercase tracking-[0.14em] text-slate-400">
+                  Session Status
+                </span>
                 <select
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as 'ALL' | 'ACTIVE' | 'RECENT')}
+                  onChange={e => setStatusFilter(e.target.value as 'ALL' | 'ACTIVE' | 'RECENT')}
                   className="w-full rounded-md border border-slate-600 bg-slate-900/90 px-3 py-2 text-sm text-slate-100"
                 >
                   <option value="ALL">All sessions</option>
@@ -170,9 +186,13 @@ export function AdminTopologyPanel({ days }: { days: number }) {
               </label>
 
               <div className="space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-slate-400">Tutor Focus</span>
+                <span className="text-xs uppercase tracking-[0.14em] text-slate-400">
+                  Tutor Focus
+                </span>
                 <div className="flex h-[42px] items-center gap-2 rounded-md border border-slate-600 bg-slate-900/90 px-3">
-                  <span className="truncate text-sm text-slate-100">{focusedTutor ? focusedTutor.name : 'No tutor focused'}</span>
+                  <span className="truncate text-sm text-slate-100">
+                    {focusedTutor ? focusedTutor.name : 'No tutor focused'}
+                  </span>
                   {focusedTutor ? (
                     <Button
                       type="button"
@@ -192,15 +212,17 @@ export function AdminTopologyPanel({ days }: { days: number }) {
         {/* Rotation Control */}
         {showLiveData && (
           <div className="pointer-events-auto flex items-center justify-between rounded-xl border border-cyan-300/30 bg-slate-950/65 p-3 backdrop-blur-md">
-            <span className="text-xs uppercase tracking-[0.16em] text-cyan-300">Globe Rotation</span>
+            <span className="text-xs uppercase tracking-[0.16em] text-cyan-300">
+              Globe Rotation
+            </span>
             <button
               onClick={() => setAutoRotate(prev => !prev)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 transition-colors"
+              className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs text-slate-200 transition-colors hover:bg-slate-700"
               title={autoRotate ? 'Pause rotation' : 'Resume rotation'}
             >
               {autoRotate ? (
                 <>
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                     <rect x="6" y="4" width="4" height="16" rx="1" />
                     <rect x="14" y="4" width="4" height="16" rx="1" />
                   </svg>
@@ -208,7 +230,7 @@ export function AdminTopologyPanel({ days }: { days: number }) {
                 </>
               ) : (
                 <>
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                   Rotate
@@ -223,14 +245,24 @@ export function AdminTopologyPanel({ days }: { days: number }) {
           {showLiveData ? (
             <>
               <Badge className="bg-[#4FD1C5]/20 text-[#4FD1C5] hover:bg-[#4FD1C5]/30">Tutor</Badge>
-              <Badge className="bg-[#3A7CFF]/20 text-[#3A7CFF] hover:bg-[#3A7CFF]/30">Student</Badge>
-              <Badge className="bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20">Active Session</Badge>
+              <Badge className="bg-[#3A7CFF]/20 text-[#3A7CFF] hover:bg-[#3A7CFF]/30">
+                Student
+              </Badge>
+              <Badge className="bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20">
+                Active Session
+              </Badge>
             </>
           ) : (
             <>
-              <Badge className="bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/20">Tutor Node</Badge>
-              <Badge className="bg-indigo-500/15 text-indigo-200 hover:bg-indigo-500/20">Student Node</Badge>
-              <Badge className="bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20">Active Link</Badge>
+              <Badge className="bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/20">
+                Tutor Node
+              </Badge>
+              <Badge className="bg-indigo-500/15 text-indigo-200 hover:bg-indigo-500/20">
+                Student Node
+              </Badge>
+              <Badge className="bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20">
+                Active Link
+              </Badge>
             </>
           )}
         </div>
@@ -239,12 +271,12 @@ export function AdminTopologyPanel({ days }: { days: number }) {
   )
 }
 
-function MetricPill({ 
-  title, 
-  value, 
+function MetricPill({
+  title,
+  value,
   glow = false,
-  color
-}: { 
+  color,
+}: {
   title: string
   value: number
   glow?: boolean
@@ -253,11 +285,11 @@ function MetricPill({
   return (
     <div className="rounded-xl border border-cyan-300/30 bg-slate-950/65 p-3 text-slate-100 backdrop-blur-md">
       <p className="text-[11px] uppercase tracking-[0.16em] text-slate-300">{title}</p>
-      <p 
+      <p
         className="mt-1 text-2xl font-bold"
         style={{
           color: color || (glow ? '#6ee7b7' : undefined),
-          textShadow: glow ? '0 0 18px rgba(16,185,129,0.55)' : undefined
+          textShadow: glow ? '0 0 18px rgba(16,185,129,0.55)' : undefined,
         }}
       >
         {value.toLocaleString()}

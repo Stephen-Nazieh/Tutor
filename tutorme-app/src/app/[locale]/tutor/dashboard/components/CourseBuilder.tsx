@@ -37,9 +37,15 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -98,7 +104,7 @@ import {
   Settings,
   Layers2,
   GripHorizontal,
-  CornerDownLeft
+  CornerDownLeft,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 
@@ -150,7 +156,13 @@ export interface Task extends WithDifficultyVariants {
   shortDescription?: string
   description: string
   instructions: string
-  extensions?: Array<{ id: string; name: string; description?: string; content: string; pci: string }>
+  extensions?: Array<{
+    id: string
+    name: string
+    description?: string
+    content: string
+    pci: string
+  }>
   dmiItems?: DMIQuestion[]
   estimatedMinutes: number
   points: number
@@ -386,7 +398,7 @@ const DEFAULT_CONTENT = (order: number): Content => ({
   title: `Content ${order + 1}`,
   type: 'text',
   body: '',
-  order
+  order,
 })
 
 const DEFAULT_LESSON = (order: number): Lesson => ({
@@ -405,7 +417,7 @@ const DEFAULT_LESSON = (order: number): Lesson => ({
   worksheets: [],
   quizzes: [],
   difficultyMode: 'all',
-  variants: {}
+  variants: {},
 })
 
 const DEFAULT_WORKSHEET = (order: number): Worksheet => ({
@@ -426,7 +438,7 @@ const DEFAULT_WORKSHEET = (order: number): Worksheet => ({
   answerKeyProtected: true,
   difficultyMode: 'all',
   variants: {},
-  isPublished: false
+  isPublished: false,
 })
 
 const DEFAULT_TASK = (order: number): Task => ({
@@ -446,10 +458,13 @@ const DEFAULT_TASK = (order: number): Task => ({
   randomizeQuestions: false,
   difficultyMode: 'all',
   variants: {},
-  isPublished: false
+  isPublished: false,
 })
 
-const DEFAULT_HOMEWORK = (order: number, category: 'assessment' | 'homework' = 'assessment'): Assessment => ({
+const DEFAULT_HOMEWORK = (
+  order: number,
+  category: 'assessment' | 'homework' = 'assessment'
+): Assessment => ({
   id: `homework-${generateId()}`,
   title: category === 'homework' ? `Homework ${order + 1}` : `Assessment ${order + 1}`,
   description: '',
@@ -472,7 +487,7 @@ const DEFAULT_HOMEWORK = (order: number, category: 'assessment' | 'homework' = '
   answerKeyProtected: true,
   difficultyMode: 'all',
   variants: {},
-  isPublished: false
+  isPublished: false,
 })
 
 const DEFAULT_QUIZ = (order: number): Quiz => ({
@@ -491,12 +506,12 @@ const DEFAULT_QUIZ = (order: number): Quiz => ({
   allowLateSubmission: true,
   latePenalty: 0,
   answerKey: '',
-  answerKeyProtected: true
+  answerKeyProtected: true,
 })
 
 const DEFAULT_MODULE_QUIZ = (order: number): ModuleQuiz => ({
   ...DEFAULT_QUIZ(order),
-  coverage: 'all_lessons'
+  coverage: 'all_lessons',
 })
 
 const DEFAULT_MODULE = (order: number): Module => ({
@@ -508,7 +523,7 @@ const DEFAULT_MODULE = (order: number): Module => ({
   lessons: [DEFAULT_LESSON(0)],
   moduleQuizzes: [],
   difficultyMode: 'all',
-  variants: {}
+  variants: {},
 })
 
 function convertQuizToAssessment(quiz: Quiz): Assessment {
@@ -540,9 +555,12 @@ function convertQuizToAssessment(quiz: Quiz): Assessment {
 }
 
 function normalizeModulesForAssessments(rawModules: Module[]): Module[] {
-  return rawModules.map((module) => ({
+  return rawModules.map(module => ({
     ...module,
-    lessons: ((module.lessons && module.lessons.length > 0) ? module.lessons : [DEFAULT_LESSON(0)]).map((lesson) => {
+    lessons: (module.lessons && module.lessons.length > 0
+      ? module.lessons
+      : [DEFAULT_LESSON(0)]
+    ).map(lesson => {
       const existingAssessments = lesson.homework || []
       const migratedAssessments = (lesson.quizzes || []).map(convertQuizToAssessment)
       return {
@@ -583,25 +601,29 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
         const worksheets = Array.isArray(rawLesson.worksheets) ? rawLesson.worksheets : []
 
         const mapQuestions = (rawQuestions: unknown[]): QuizQuestion[] =>
-          (Array.isArray(rawQuestions) ? rawQuestions : []).map((rawQuestion: unknown, questionIdx: number) => {
-            const questionObj = (rawQuestion ?? {}) as Record<string, any>
-            const qType = normalizeGeneratedQuestionType(questionObj.type)
-            return {
-              id: `q-${generateId()}`,
-              type: qType,
-              question: String(questionObj.question || `Question ${questionIdx + 1}`),
-              options: (qType === 'mcq' || qType === 'multiselect')
-                ? (Array.isArray(questionObj.options) && questionObj.options.length > 0
-                  ? questionObj.options.map((opt: unknown) => String(opt))
-                  : ['', '', '', ''])
-                : qType === 'truefalse'
-                  ? ['True', 'False']
-                  : undefined,
-              correctAnswer: questionObj.correctAnswer as string | string[] | undefined,
-              points: Math.max(1, Number(questionObj.points) || 1),
-              explanation: typeof questionObj.explanation === 'string' ? questionObj.explanation : '',
+          (Array.isArray(rawQuestions) ? rawQuestions : []).map(
+            (rawQuestion: unknown, questionIdx: number) => {
+              const questionObj = (rawQuestion ?? {}) as Record<string, any>
+              const qType = normalizeGeneratedQuestionType(questionObj.type)
+              return {
+                id: `q-${generateId()}`,
+                type: qType,
+                question: String(questionObj.question || `Question ${questionIdx + 1}`),
+                options:
+                  qType === 'mcq' || qType === 'multiselect'
+                    ? Array.isArray(questionObj.options) && questionObj.options.length > 0
+                      ? questionObj.options.map((opt: unknown) => String(opt))
+                      : ['', '', '', '']
+                    : qType === 'truefalse'
+                      ? ['True', 'False']
+                      : undefined,
+                correctAnswer: questionObj.correctAnswer as string | string[] | undefined,
+                points: Math.max(1, Number(questionObj.points) || 1),
+                explanation:
+                  typeof questionObj.explanation === 'string' ? questionObj.explanation : '',
+              }
             }
-          })
+          )
 
         return {
           ...DEFAULT_LESSON(lessonIdx),
@@ -615,7 +637,8 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
             instructions: String(task.instructions || ''),
             estimatedMinutes: Math.max(5, Number(task.estimatedMinutes) || 15),
             points: Math.max(1, Number(task.points) || 10),
-            submissionType: Array.isArray(task.questions) && task.questions.length > 0 ? 'questions' : 'text',
+            submissionType:
+              Array.isArray(task.questions) && task.questions.length > 0 ? 'questions' : 'text',
             questions: mapQuestions(Array.isArray(task.questions) ? task.questions : []),
           })),
           homework: assessments.map((assessment: Record<string, any>, assessmentIdx: number) => ({
@@ -625,8 +648,13 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
             instructions: String(assessment.instructions || ''),
             estimatedMinutes: Math.max(10, Number(assessment.estimatedMinutes) || 30),
             points: Math.max(1, Number(assessment.points) || 20),
-            submissionType: Array.isArray(assessment.questions) && assessment.questions.length > 0 ? 'questions' : 'text',
-            questions: mapQuestions(Array.isArray(assessment.questions) ? assessment.questions : []),
+            submissionType:
+              Array.isArray(assessment.questions) && assessment.questions.length > 0
+                ? 'questions'
+                : 'text',
+            questions: mapQuestions(
+              Array.isArray(assessment.questions) ? assessment.questions : []
+            ),
           })),
           worksheets: worksheets.map((worksheet: Record<string, any>, worksheetIdx: number) => ({
             ...DEFAULT_WORKSHEET(worksheetIdx),
@@ -640,30 +668,36 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
         }
       }),
       moduleQuizzes: rawExam
-        ? [{
-          ...DEFAULT_MODULE_QUIZ(0),
-          title: String(rawExam.title || `Lesson ${moduleIdx + 1} Exam`),
-          description: String(rawExam.description || ''),
-          questions: (Array.isArray(rawExam.questions) ? rawExam.questions : []).map((rawQuestion: unknown, questionIdx: number) => {
-            const questionObj = (rawQuestion ?? {}) as Record<string, any>
-            const qType = normalizeGeneratedQuestionType(questionObj.type)
-            return {
-              id: `q-${generateId()}`,
-              type: qType,
-              question: String(questionObj.question || `Question ${questionIdx + 1}`),
-              options: (qType === 'mcq' || qType === 'multiselect')
-                ? (Array.isArray(questionObj.options) && questionObj.options.length > 0
-                  ? questionObj.options.map((opt: unknown) => String(opt))
-                  : ['', '', '', ''])
-                : qType === 'truefalse'
-                  ? ['True', 'False']
-                  : undefined,
-              correctAnswer: questionObj.correctAnswer as string | string[] | undefined,
-              points: Math.max(1, Number(questionObj.points) || 1),
-              explanation: typeof questionObj.explanation === 'string' ? questionObj.explanation : '',
-            }
-          }),
-        }]
+        ? [
+            {
+              ...DEFAULT_MODULE_QUIZ(0),
+              title: String(rawExam.title || `Lesson ${moduleIdx + 1} Exam`),
+              description: String(rawExam.description || ''),
+              questions: (Array.isArray(rawExam.questions) ? rawExam.questions : []).map(
+                (rawQuestion: unknown, questionIdx: number) => {
+                  const questionObj = (rawQuestion ?? {}) as Record<string, any>
+                  const qType = normalizeGeneratedQuestionType(questionObj.type)
+                  return {
+                    id: `q-${generateId()}`,
+                    type: qType,
+                    question: String(questionObj.question || `Question ${questionIdx + 1}`),
+                    options:
+                      qType === 'mcq' || qType === 'multiselect'
+                        ? Array.isArray(questionObj.options) && questionObj.options.length > 0
+                          ? questionObj.options.map((opt: unknown) => String(opt))
+                          : ['', '', '', '']
+                        : qType === 'truefalse'
+                          ? ['True', 'False']
+                          : undefined,
+                    correctAnswer: questionObj.correctAnswer as string | string[] | undefined,
+                    points: Math.max(1, Number(questionObj.points) || 1),
+                    explanation:
+                      typeof questionObj.explanation === 'string' ? questionObj.explanation : '',
+                  }
+                }
+              ),
+            },
+          ]
         : [],
     }
   })
@@ -674,11 +708,41 @@ function mapGeneratedModulesToBuilder(rawModules: unknown[]): Module[] {
 // ============================================
 
 const AI_SUGGESTIONS = [
-  { id: 1, type: 'content', title: 'Add prerequisites section', description: 'Students often struggle without reviewing basics first', icon: Lightbulb },
-  { id: 2, type: 'quiz', title: 'Add checkpoint quiz', description: 'Insert a 5-question quiz after this module', icon: FileQuestion },
-  { id: 3, type: 'video', title: 'Replace with video', description: 'Convert this text section to a 5-min video', icon: Video },
-  { id: 4, type: 'activity', title: 'Add group activity', description: 'Collaborative exercise for peer learning', icon: Users },
-  { id: 5, type: 'assessment', title: 'Add practice problems', description: '3 similar problems with varying difficulty', icon: PenTool }
+  {
+    id: 1,
+    type: 'content',
+    title: 'Add prerequisites section',
+    description: 'Students often struggle without reviewing basics first',
+    icon: Lightbulb,
+  },
+  {
+    id: 2,
+    type: 'quiz',
+    title: 'Add checkpoint quiz',
+    description: 'Insert a 5-question quiz after this module',
+    icon: FileQuestion,
+  },
+  {
+    id: 3,
+    type: 'video',
+    title: 'Replace with video',
+    description: 'Convert this text section to a 5-min video',
+    icon: Video,
+  },
+  {
+    id: 4,
+    type: 'activity',
+    title: 'Add group activity',
+    description: 'Collaborative exercise for peer learning',
+    icon: Users,
+  },
+  {
+    id: 5,
+    type: 'assessment',
+    title: 'Add practice problems',
+    description: '3 similar problems with varying difficulty',
+    icon: PenTool,
+  },
 ]
 
 const CONTENT_TEMPLATES = [
@@ -687,43 +751,43 @@ const CONTENT_TEMPLATES = [
     name: 'Standard Lesson',
     category: 'lesson',
     description: 'Title, content, and summary format',
-    icon: BookOpen
+    icon: BookOpen,
   },
   {
     id: 'lesson-video',
     name: 'Video Lesson',
     category: 'lesson',
     description: 'Video-based lesson with discussion questions',
-    icon: Video
+    icon: Video,
   },
   {
     id: 'quiz-mcq',
     name: 'Multiple Choice Quiz',
     category: 'quiz',
     description: 'Standard multiple choice assessment',
-    icon: FileQuestion
+    icon: FileQuestion,
   },
   {
     id: 'activity-interactive',
     name: 'Interactive Activity',
     category: 'activity',
     description: 'Drag-drop or interactive exercise',
-    icon: Gamepad2
+    icon: Gamepad2,
   },
   {
     id: 'assessment-project',
     name: 'Project Assignment',
     category: 'assessment',
     description: 'Long-form project with rubric',
-    icon: PenTool
+    icon: PenTool,
   },
   {
     id: 'lesson-flipped',
     name: 'Flipped Classroom',
     category: 'lesson',
     description: 'Pre-work video + in-class activity',
-    icon: MonitorPlay
-  }
+    icon: MonitorPlay,
+  },
 ]
 
 // ============================================
@@ -739,7 +803,13 @@ interface BuilderModalProps {
 
 type ResourceTargetField = 'instructions' | 'body' | 'description'
 
-interface ResourceImportPanelProps<T extends { sourceDocument?: ImportedLearningResource; questions?: QuizQuestion[]; submissionType?: string }> {
+interface ResourceImportPanelProps<
+  T extends {
+    sourceDocument?: ImportedLearningResource
+    questions?: QuizQuestion[]
+    submissionType?: string
+  },
+> {
   data: T
   setData: (next: T) => void
   targetField: ResourceTargetField
@@ -778,9 +848,14 @@ function mapQuestionBankToBuilderQuestion(item: QuestionBankItemLite): QuizQuest
     id: `q-${generateId()}`,
     type: builderType,
     question: item.question || '',
-    options: builderType === 'mcq' || builderType === 'multiselect'
-      ? (options && options.length > 0 ? options : ['', '', '', ''])
-      : (builderType === 'truefalse' ? ['True', 'False'] : undefined),
+    options:
+      builderType === 'mcq' || builderType === 'multiselect'
+        ? options && options.length > 0
+          ? options
+          : ['', '', '', '']
+        : builderType === 'truefalse'
+          ? ['True', 'False']
+          : undefined,
     correctAnswer: normalizedCorrect as string | string[] | undefined,
     points: Math.max(1, item.points ?? 1),
   }
@@ -789,14 +864,18 @@ function mapQuestionBankToBuilderQuestion(item: QuestionBankItemLite): QuizQuest
 /**
  * Generate a PDF question paper from questions using jsPDF
  */
-function generateQuestionPaperPDF(title: string, description: string, questions: QuizQuestion[]): { blob: Blob; url: string; fileName: string } {
+function generateQuestionPaperPDF(
+  title: string,
+  description: string,
+  questions: QuizQuestion[]
+): { blob: Blob; url: string; fileName: string } {
   // Dynamic import jsPDF to avoid SSR issues
   const jsPDF = require('jspdf')
   const doc = new jsPDF()
 
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 15
-  const contentWidth = pageWidth - (margin * 2)
+  const contentWidth = pageWidth - margin * 2
   let y = 20
 
   // Title
@@ -820,7 +899,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
     doc.setFont('helvetica', 'normal')
     const descLines = doc.splitTextToSize(description, contentWidth)
     doc.text(descLines, margin, y)
-    y += (descLines.length * 5) + 8
+    y += descLines.length * 5 + 8
   }
 
   // Summary box
@@ -829,7 +908,11 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   const totalPoints = questions.reduce((sum, q) => sum + (q.points || 1), 0)
-  doc.text(`Total Questions: ${questions.length}    |    Total Points: ${totalPoints}`, margin + 5, y + 5)
+  doc.text(
+    `Total Questions: ${questions.length}    |    Total Points: ${totalPoints}`,
+    margin + 5,
+    y + 5
+  )
   y += 20
 
   // Questions
@@ -849,7 +932,9 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
     doc.setFillColor(230, 230, 230)
     doc.rect(pageWidth - margin - 30, y - 5, 30, 8, 'F')
     doc.setFontSize(9)
-    doc.text(`${q.points || 1} pt${q.points !== 1 ? 's' : ''}`, pageWidth - margin - 15, y, { align: 'center' })
+    doc.text(`${q.points || 1} pt${q.points !== 1 ? 's' : ''}`, pageWidth - margin - 15, y, {
+      align: 'center',
+    })
     y += 8
 
     // Question text
@@ -857,7 +942,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
     doc.setFontSize(10)
     const questionLines = doc.splitTextToSize(q.question, contentWidth)
     doc.text(questionLines, margin, y)
-    y += (questionLines.length * 5) + 6
+    y += questionLines.length * 5 + 6
 
     // Options for MCQ/Multi-select
     if (q.options && q.options.length > 0) {
@@ -900,7 +985,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
     if (q.type === 'essay') {
       doc.setDrawColor(180)
       for (let i = 0; i < 4; i++) {
-        doc.line(margin + 5, y + (i * 8), pageWidth - margin, y + (i * 8))
+        doc.line(margin + 5, y + i * 8, pageWidth - margin, y + i * 8)
       }
       y += 40
     }
@@ -926,7 +1011,7 @@ function generateQuestionPaperPDF(title: string, description: string, questions:
 
 function formatMatchingExplanation(pairs: Array<{ left: string; right: string }>) {
   if (pairs.length === 0) return ''
-  return ['Column A | Column B', ...pairs.map((pair) => `${pair.left} | ${pair.right}`)].join('\n')
+  return ['Column A | Column B', ...pairs.map(pair => `${pair.left} | ${pair.right}`)].join('\n')
 }
 
 function MatchingPairsEditor({
@@ -952,7 +1037,10 @@ function MatchingPairsEditor({
       </div>
       <div className="space-y-2">
         {pairs.map((pair, idx) => (
-          <div key={`pair-${idx}`} className="grid grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
+          <div
+            key={`pair-${idx}`}
+            className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2"
+          >
             <Input
               value={pair.left}
               onChange={(e: any) => updatePair(idx, 'left', e.target.value)}
@@ -977,7 +1065,7 @@ function MatchingPairsEditor({
         ))}
       </div>
       <Button type="button" variant="outline" size="sm" onClick={addPair}>
-        <Plus className="h-3 w-3 mr-1" /> Add pair
+        <Plus className="mr-1 h-3 w-3" /> Add pair
       </Button>
       <div className="text-xs text-muted-foreground">
         Use the arrow as a visual cue for linking pairs. Students will match Column A to Column B.
@@ -1025,7 +1113,7 @@ function QuestionBankQuickImport({
 
   const handleSelect = (value: string) => {
     setSelectedId(value)
-    const selected = items.find((item) => item.id === value)
+    const selected = items.find(item => item.id === value)
     if (!selected) return
     onImport([mapQuestionBankToBuilderQuestion(selected)])
     toast.success('Question imported from question bank')
@@ -1033,14 +1121,16 @@ function QuestionBankQuickImport({
   }
 
   return (
-    <div className={cn("rounded border border-dashed p-2.5 bg-background/80", className)}>
-      <div className="flex flex-wrap gap-2 items-center">
+    <div className={cn('rounded border border-dashed bg-background/80 p-2.5', className)}>
+      <div className="flex flex-wrap items-center gap-2">
         <Select value={selectedId} onValueChange={handleSelect}>
-          <SelectTrigger className={cn("min-w-[260px] h-8", triggerClassName)}>
-            <SelectValue placeholder={loading ? 'Loading question bank...' : 'Import from question bank'} />
+          <SelectTrigger className={cn('h-8 min-w-[260px]', triggerClassName)}>
+            <SelectValue
+              placeholder={loading ? 'Loading question bank...' : 'Import from question bank'}
+            />
           </SelectTrigger>
           <SelectContent>
-            {items.map((item) => (
+            {items.map(item => (
               <SelectItem key={item.id} value={item.id}>
                 {item.question.slice(0, 70)}
               </SelectItem>
@@ -1059,11 +1149,7 @@ function QuestionBankQuickImport({
   )
 }
 
-function ManualQuestionComposer({
-  onImport,
-}: {
-  onImport: (questions: QuizQuestion[]) => void
-}) {
+function ManualQuestionComposer({ onImport }: { onImport: (questions: QuizQuestion[]) => void }) {
   const [questionText, setQuestionText] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -1119,7 +1205,7 @@ function ManualQuestionComposer({
   }
 
   return (
-    <div className="rounded border p-2.5 bg-muted/20 space-y-2">
+    <div className="space-y-2 rounded border bg-muted/20 p-2.5">
       <Label className="text-xs font-medium">Write a new question</Label>
       <Textarea
         value={questionText}
@@ -1128,7 +1214,13 @@ function ManualQuestionComposer({
         rows={2}
       />
       <div className="flex justify-end">
-        <Button type="button" size="sm" variant="outline" disabled={!questionText.trim() || saving} onClick={handleAdd}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={!questionText.trim() || saving}
+          onClick={handleAdd}
+        >
           {saving ? 'Saving...' : 'Add Question'}
         </Button>
       </div>
@@ -1136,13 +1228,17 @@ function ManualQuestionComposer({
   )
 }
 
-function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResource; questions?: QuizQuestion[]; submissionType?: string }>({
-  data,
-  setData,
-  targetField,
-}: ResourceImportPanelProps<T>) {
+function ResourceImportPanel<
+  T extends {
+    sourceDocument?: ImportedLearningResource
+    questions?: QuizQuestion[]
+    submissionType?: string
+  },
+>({ data, setData, targetField }: ResourceImportPanelProps<T>) {
   const [extracting, setExtracting] = useState(false)
-  const [resources, setResources] = useState<Array<{ id: string; name: string; url: string; mimeType: string | null }>>([])
+  const [resources, setResources] = useState<
+    Array<{ id: string; name: string; url: string; mimeType: string | null }>
+  >([])
   const [resourceId, setResourceId] = useState('')
   const previousBlobUrlRef = useRef<string | null>(null)
 
@@ -1234,7 +1330,7 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
 
   const handlePickExistingResource = async (selected: string) => {
     setResourceId(selected)
-    const resource = resources.find((item) => item.id === selected)
+    const resource = resources.find(item => item.id === selected)
     if (!resource) return
 
     setExtracting(true)
@@ -1244,7 +1340,9 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
         const response = await fetch(resource.url)
         if (response.ok) {
           const blob = await response.blob()
-          const file = new File([blob], resource.name, { type: resource.mimeType || blob.type || 'application/octet-stream' })
+          const file = new File([blob], resource.name, {
+            type: resource.mimeType || blob.type || 'application/octet-stream',
+          })
           extractedText = await extractTextFromFile(file)
         }
       } catch {
@@ -1281,7 +1379,11 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" size="sm" disabled={extracting} asChild>
           <label className="cursor-pointer">
-            {extracting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Upload className="mr-1 h-3 w-3" />}
+            {extracting ? (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+            ) : (
+              <Upload className="mr-1 h-3 w-3" />
+            )}
             Upload file
             <input
               type="file"
@@ -1325,12 +1427,22 @@ function ResourceImportPanel<T extends { sourceDocument?: ImportedLearningResour
             placeholder="Imported content text (editable)"
           />
           {source.mimeType.startsWith('image/') && (
-            <a href={source.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 underline">
+            <a
+              href={source.fileUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-blue-600 underline"
+            >
               Open image preview
             </a>
           )}
           {source.mimeType === 'application/pdf' && (
-            <a href={source.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 underline">
+            <a
+              href={source.fileUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-blue-600 underline"
+            >
               Open PDF preview
             </a>
           )}
@@ -1346,7 +1458,7 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -1364,7 +1476,8 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <AutoTextarea value={data.description}
+            <AutoTextarea
+              value={data.description}
               onChange={(e: any) => setData({ ...data, description: e.target.value })}
               placeholder="What will students learn in this module?"
               rows={3}
@@ -1373,13 +1486,15 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
           <div className="flex items-center gap-2">
             <Switch
               checked={data.isPublished}
-              onCheckedChange={(checked) => setData({ ...data, isPublished: checked })}
+              onCheckedChange={checked => setData({ ...data, isPublished: checked })}
             />
             <Label>Published (visible to students)</Label>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={() => onSave(data)}>Save Lesson</Button>
         </DialogFooter>
       </DialogContent>
@@ -1388,7 +1503,13 @@ function ModuleBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMod
 }
 
 // Lesson Builder Modal
-function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons = [] }: BuilderModalProps & { allLessons?: Lesson[] }) {
+function LessonBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  allLessons = [],
+}: BuilderModalProps & { allLessons?: Lesson[] }) {
   const [data, setData] = useState<Lesson>(initialData || DEFAULT_LESSON(0))
   const [activeVariant, setActiveVariant] = useState<DifficultyLevel>('beginner')
 
@@ -1397,14 +1518,14 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
       ...data,
       variants: {
         ...data.variants,
-        [level]: { ...data.variants?.[level], ...updates }
-      }
+        [level]: { ...data.variants?.[level], ...updates },
+      },
     })
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-500" />
@@ -1413,8 +1534,8 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
         </DialogHeader>
         <div className="space-y-4 py-4">
           {/* Difficulty Mode Section */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-400 space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
+          <div className="space-y-3 rounded-lg border border-blue-400 bg-blue-50 p-4">
+            <Label className="flex items-center gap-2 text-sm font-medium">
               <BarChart3 className="h-4 w-4 text-blue-500" />
               Difficulty Settings
             </Label>
@@ -1438,24 +1559,24 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
               <div className="space-y-2">
                 <Label className="text-xs">Select Fixed Level</Label>
                 <div className="flex gap-2">
-                  {(['beginner', 'intermediate', 'advanced'] as const).map((level) => (
+                  {(['beginner', 'intermediate', 'advanced'] as const).map(level => (
                     <button
                       key={level}
                       onClick={() => setData({ ...data, fixedDifficulty: level })}
                       className={cn(
-                        "flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all",
+                        'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
                         data.fixedDifficulty === level
                           ? level === 'beginner'
-                            ? "bg-green-500 text-white border-green-500"
+                            ? 'border-green-500 bg-green-500 text-white'
                             : level === 'intermediate'
-                              ? "bg-blue-500 text-white border-blue-500"
-                              : "bg-purple-500 text-white border-purple-500"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
+                              ? 'border-blue-500 bg-blue-500 text-white'
+                              : 'border-purple-500 bg-purple-500 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50'
                       )}
                     >
-                      {level === 'beginner' && <SignalLow className="h-4 w-4 inline mr-1" />}
-                      {level === 'intermediate' && <Signal className="h-4 w-4 inline mr-1" />}
-                      {level === 'advanced' && <SignalHigh className="h-4 w-4 inline mr-1" />}
+                      {level === 'beginner' && <SignalLow className="mr-1 inline h-4 w-4" />}
+                      {level === 'intermediate' && <Signal className="mr-1 inline h-4 w-4" />}
+                      {level === 'advanced' && <SignalHigh className="mr-1 inline h-4 w-4" />}
                       {level.charAt(0).toUpperCase() + level.slice(1)}
                     </button>
                   ))}
@@ -1468,41 +1589,48 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
               <div className="space-y-3 pt-2">
                 <Label className="text-xs">Customize for each level:</Label>
                 <div className="flex gap-2">
-                  {(['beginner', 'intermediate', 'advanced'] as const).map((level) => (
+                  {(['beginner', 'intermediate', 'advanced'] as const).map(level => (
                     <button
                       key={level}
                       onClick={() => setActiveVariant(level)}
                       className={cn(
-                        "flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all border",
+                        'flex-1 rounded border px-2 py-1.5 text-xs font-medium transition-all',
                         activeVariant === level
                           ? level === 'beginner'
-                            ? "bg-green-100 border-green-300 text-green-700"
+                            ? 'border-green-300 bg-green-100 text-green-700'
                             : level === 'intermediate'
-                              ? "bg-blue-100 border-blue-300 text-blue-700"
-                              : "bg-purple-100 border-purple-300 text-purple-700"
-                          : "bg-white border-gray-400 text-gray-600"
+                              ? 'border-blue-300 bg-blue-100 text-blue-700'
+                              : 'border-purple-300 bg-purple-100 text-purple-700'
+                          : 'border-gray-400 bg-white text-gray-600'
                       )}
                     >
                       {level.charAt(0).toUpperCase() + level.slice(1)}
-                      {data.variants?.[level]?.enabled && <Check className="h-3 w-3 inline ml-1" />}
+                      {data.variants?.[level]?.enabled && <Check className="ml-1 inline h-3 w-3" />}
                     </button>
                   ))}
                 </div>
 
                 {/* Variant Editor for Active Level */}
-                <div className="bg-white rounded-lg p-3 border space-y-3">
+                <div className="space-y-3 rounded-lg border bg-white p-3">
                   <div className="flex items-center justify-between">
-                    <span className={cn(
-                      "text-sm font-medium capitalize",
-                      activeVariant === 'beginner' ? "text-green-700" :
-                        activeVariant === 'intermediate' ? "text-blue-700" : "text-purple-700"
-                    )}>
+                    <span
+                      className={cn(
+                        'text-sm font-medium capitalize',
+                        activeVariant === 'beginner'
+                          ? 'text-green-700'
+                          : activeVariant === 'intermediate'
+                            ? 'text-blue-700'
+                            : 'text-purple-700'
+                      )}
+                    >
                       {activeVariant} Version
                     </span>
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={data.variants?.[activeVariant]?.enabled ?? false}
-                        onCheckedChange={(checked) => updateVariant(activeVariant, { enabled: checked })}
+                        onCheckedChange={checked =>
+                          updateVariant(activeVariant, { enabled: checked })
+                        }
                       />
                       <Label className="text-xs">Enable variant</Label>
                     </div>
@@ -1513,19 +1641,27 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
                       <Input
                         placeholder={`${activeVariant} title (optional)`}
                         value={data.variants?.[activeVariant]?.title || ''}
-                        onChange={(e: any) => updateVariant(activeVariant, { title: e.target.value })}
+                        onChange={(e: any) =>
+                          updateVariant(activeVariant, { title: e.target.value })
+                        }
                       />
                       <Textarea
                         placeholder={`${activeVariant} description (optional)`}
                         value={data.variants?.[activeVariant]?.description || ''}
-                        onChange={(e: any) => updateVariant(activeVariant, { description: e.target.value })}
+                        onChange={(e: any) =>
+                          updateVariant(activeVariant, { description: e.target.value })
+                        }
                         rows={2}
                       />
                       <Input
                         type="number"
                         placeholder={`${activeVariant} duration in minutes`}
                         value={data.variants?.[activeVariant]?.duration || ''}
-                        onChange={(e: any) => updateVariant(activeVariant, { duration: parseInt(e.target.value) || undefined })}
+                        onChange={(e: any) =>
+                          updateVariant(activeVariant, {
+                            duration: parseInt(e.target.value) || undefined,
+                          })
+                        }
                       />
                     </div>
                   )}
@@ -1544,19 +1680,22 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <AutoTextarea value={data.description}
+            <AutoTextarea
+              value={data.description}
               onChange={(e: any) => setData({ ...data, description: e.target.value })}
               placeholder="Brief overview of this lesson (base version)"
               rows={2}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
+          <div className="grid grid-cols-2 gap-4 rounded-xl bg-white/30 p-4 shadow-sm backdrop-blur-sm">
             <div className="space-y-2">
               <Label>Duration (minutes)</Label>
               <Input
                 type="number"
                 value={data.duration}
-                onChange={(e: any) => setData({ ...data, duration: parseInt(e.target.value) || 45 })}
+                onChange={(e: any) =>
+                  setData({ ...data, duration: parseInt(e.target.value) || 45 })
+                }
               />
             </div>
             <div className="space-y-2">
@@ -1564,7 +1703,7 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
               <div className="flex items-center gap-2 pt-2">
                 <Switch
                   checked={data.isPublished}
-                  onCheckedChange={(checked) => setData({ ...data, isPublished: checked })}
+                  onCheckedChange={checked => setData({ ...data, isPublished: checked })}
                 />
                 <Label className="text-sm">Published</Label>
               </div>
@@ -1573,10 +1712,12 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
           {allLessons.length > 0 && (
             <div className="space-y-2">
               <Label>Prerequisites (optional)</Label>
-              <p className="text-xs text-muted-foreground">Students must complete selected lessons before accessing this one</p>
-              <div className="border rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-                {allLessons.map((lesson) => (
-                  <label key={lesson.id} className="flex items-center gap-2 cursor-pointer">
+              <p className="text-xs text-muted-foreground">
+                Students must complete selected lessons before accessing this one
+              </p>
+              <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border p-3">
+                {allLessons.map(lesson => (
+                  <label key={lesson.id} className="flex cursor-pointer items-center gap-2">
                     <input
                       type="checkbox"
                       checked={data.prerequisites?.includes(lesson.id)}
@@ -1585,7 +1726,10 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
                         if (e.target.checked) {
                           setData({ ...data, prerequisites: [...prereqs, lesson.id] })
                         } else {
-                          setData({ ...data, prerequisites: prereqs.filter((id: string) => id !== lesson.id) })
+                          setData({
+                            ...data,
+                            prerequisites: prereqs.filter((id: string) => id !== lesson.id),
+                          })
                         }
                       }}
                       className="rounded"
@@ -1598,7 +1742,9 @@ function LessonBuilderModal({ isOpen, onClose, onSave, initialData, allLessons =
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={() => onSave(data)}>Save Lesson</Button>
         </DialogFooter>
       </DialogContent>
@@ -1615,12 +1761,25 @@ interface AIAssistAgentProps {
   pci: string
   title: string
   messages: { role: 'user' | 'assistant'; content: string }[]
-  setMessages: React.Dispatch<React.SetStateAction<{ role: 'user' | 'assistant'; content: string }[]>>
+  setMessages: React.Dispatch<
+    React.SetStateAction<{ role: 'user' | 'assistant'; content: string }[]>
+  >
   onApplyContent: (content: string) => void
   onApplyPci: (pci: string) => void
 }
 
-function AIAssistAgent({ isOpen, onClose, context, content, pci, title, messages, setMessages, onApplyContent, onApplyPci }: AIAssistAgentProps) {
+function AIAssistAgent({
+  isOpen,
+  onClose,
+  context,
+  content,
+  pci,
+  title,
+  messages,
+  setMessages,
+  onApplyContent,
+  onApplyPci,
+}: AIAssistAgentProps) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -1628,10 +1787,12 @@ function AIAssistAgent({ isOpen, onClose, context, content, pci, title, messages
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       // Initial system message
-      setMessages([{
-        role: 'assistant',
-        content: `Hello! I'm your AI Course Builder Assistant. I can help you with this ${context === 'task' ? 'Task' : 'Assessment'}: "${title}".\n\nI have access to:\n📄 **Content Tab**: The questions/content${content ? ' (currently has content)' : ' (currently empty)'}\n⚙️ **PCI Tab**: Instructions on how to process the content${pci ? ' (currently has instructions)' : ' (currently empty)'}\n\nHow can I help you today?`
-      }])
+      setMessages([
+        {
+          role: 'assistant',
+          content: `Hello! I'm your AI Course Builder Assistant. I can help you with this ${context === 'task' ? 'Task' : 'Assessment'}: "${title}".\n\nI have access to:\n📄 **Content Tab**: The questions/content${content ? ' (currently has content)' : ' (currently empty)'}\n⚙️ **PCI Tab**: Instructions on how to process the content${pci ? ' (currently has instructions)' : ' (currently empty)'}\n\nHow can I help you today?`,
+        },
+      ])
     }
   }, [isOpen, context, title, content, pci, messages.length, setMessages])
 
@@ -1681,16 +1842,28 @@ Format your response clearly and concisely.`
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7
-        })
+          temperature: 0.7,
+        }),
       })
 
       if (!response.ok) throw new Error('Failed to get AI response')
 
       const data = await response.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.content || 'I apologize, but I was unable to process your request.' }])
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: data.content || 'I apologize, but I was unable to process your request.',
+        },
+      ])
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, there was an error processing your request. Please try again.' }])
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Sorry, there was an error processing your request. Please try again.',
+        },
+      ])
     } finally {
       setLoading(false)
     }
@@ -1712,7 +1885,7 @@ Format your response clearly and concisely.`
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
@@ -1720,20 +1893,24 @@ Format your response clearly and concisely.`
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 py-4 min-h-[300px] max-h-[400px]">
+        <div className="max-h-[400px] min-h-[300px] flex-1 space-y-4 overflow-y-auto py-4">
           {messages.map((msg, idx) => (
-            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-lg p-3 text-sm ${msg.role === 'user'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-100 text-gray-800'
-                }`}>
+            <div
+              key={idx}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-lg p-3 text-sm ${
+                  msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'
+                }`}
+              >
                 <div className="whitespace-pre-wrap">{msg.content}</div>
               </div>
             </div>
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-lg p-3 flex items-center gap-2">
+              <div className="flex items-center gap-2 rounded-lg bg-gray-100 p-3">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="text-sm text-gray-600">Thinking...</span>
               </div>
@@ -1748,7 +1925,7 @@ Format your response clearly and concisely.`
               value={input}
               onChange={(e: any) => setInput(e.target.value)}
               placeholder="Ask me anything about your content or PCI instructions..."
-              className="flex-1 min-h-[80px] pr-12"
+              className="min-h-[80px] flex-1 pr-12"
               onKeyDown={(e: any) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -1759,12 +1936,16 @@ Format your response clearly and concisely.`
             <Button
               type="button"
               size="icon"
-              className="absolute right-2 bottom-2 h-9 w-9 rounded-full shrink-0"
+              className="absolute bottom-2 right-2 h-9 w-9 shrink-0 rounded-full"
               onClick={handleSend}
               disabled={!input.trim() || loading}
               aria-label="Send"
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
@@ -1793,26 +1974,30 @@ function DMIPanel({ items, onItemsChange }: DMIPanelProps) {
 
   if (items.length === 0) {
     return (
-      <div className="p-3 bg-slate-50 rounded-lg min-h-[150px]">
-        <h4 className="text-sm font-medium mb-2">Digital Marking Interface</h4>
-        <p className="text-xs text-muted-foreground">Click "Generate DMI" to create a student answer form from the Slide tab.</p>
+      <div className="min-h-[150px] rounded-lg bg-slate-50 p-3">
+        <h4 className="mb-2 text-sm font-medium">Digital Marking Interface</h4>
+        <p className="text-xs text-muted-foreground">
+          Click "Generate DMI" to create a student answer form from the Slide tab.
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="p-3 bg-slate-50 rounded-lg min-h-[150px] flex flex-col">
-      <div className="flex items-center justify-between mb-3">
+    <div className="flex min-h-[150px] flex-col rounded-lg bg-slate-50 p-3">
+      <div className="mb-3 flex items-center justify-between">
         <h4 className="text-sm font-medium">Digital Marking Interface</h4>
       </div>
 
-      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+      <div className="max-h-[300px] space-y-2 overflow-y-auto">
         {items.map((item, idx) => (
-          <div key={item.id} className="bg-white rounded border p-2">
+          <div key={item.id} className="rounded border bg-white p-2">
             <div className="flex items-start gap-2">
-              <span className="text-xs font-medium text-blue-600 mt-0.5">Q{item.questionNumber}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-700 mb-2">{item.questionText}</p>
+              <span className="mt-0.5 text-xs font-medium text-blue-600">
+                Q{item.questionNumber}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="mb-2 text-xs text-slate-700">{item.questionText}</p>
                 <textarea
                   value={item.answer}
                   onChange={(e: any) => {
@@ -1821,7 +2006,7 @@ function DMIPanel({ items, onItemsChange }: DMIPanelProps) {
                     )
                     onItemsChange(next)
                   }}
-                  className="w-full text-xs border rounded p-2 resize-y min-h-[60px]"
+                  className="min-h-[60px] w-full resize-y rounded border p-2 text-xs"
                   placeholder="Student answer..."
                 />
               </div>
@@ -1844,21 +2029,21 @@ function DMIPanel({ items, onItemsChange }: DMIPanelProps) {
           <DialogHeader>
             <DialogTitle>DMI Preview</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-            {items.map((item) => (
-              <div key={item.id} className="rounded border p-3 bg-white">
-                <p className="text-sm font-medium mb-2">Q{item.questionNumber}. {item.questionText}</p>
+          <div className="max-h-[60vh] space-y-3 overflow-y-auto">
+            {items.map(item => (
+              <div key={item.id} className="rounded border bg-white p-3">
+                <p className="mb-2 text-sm font-medium">
+                  Q{item.questionNumber}. {item.questionText}
+                </p>
                 <textarea
-                  className="w-full text-sm border rounded p-2 resize-y min-h-[80px]"
+                  className="min-h-[80px] w-full resize-y rounded border p-2 text-sm"
                   placeholder="Student answer..."
                 />
               </div>
             ))}
           </div>
           <div className="mt-4 flex justify-end">
-            <Button onClick={() => toast.success('DMI deployed')}>
-              Deploy
-            </Button>
+            <Button onClick={() => toast.success('DMI deployed')}>Deploy</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1892,14 +2077,14 @@ const SAMPLE_QUESTIONS: Question[] = [
     options: ['London', 'Berlin', 'Paris', 'Madrid'],
     correctAnswer: 'Paris',
     difficulty: 'easy',
-    subject: 'Geography'
+    subject: 'Geography',
   },
   {
     id: 'q2',
     type: 'short_answer',
     question: 'Explain the process of photosynthesis in your own words.',
     difficulty: 'medium',
-    subject: 'Biology'
+    subject: 'Biology',
   },
   {
     id: 'q3',
@@ -1908,14 +2093,14 @@ const SAMPLE_QUESTIONS: Question[] = [
     options: ['2', '3', '4', '5'],
     correctAnswer: '4',
     difficulty: 'easy',
-    subject: 'Mathematics'
+    subject: 'Mathematics',
   },
   {
     id: 'q4',
     type: 'essay',
     question: 'Discuss the causes and effects of climate change on global ecosystems.',
     difficulty: 'hard',
-    subject: 'Environmental Science'
+    subject: 'Environmental Science',
   },
   {
     id: 'q5',
@@ -1924,8 +2109,8 @@ const SAMPLE_QUESTIONS: Question[] = [
     options: ['1943', '1944', '1945', '1946'],
     correctAnswer: '1945',
     difficulty: 'medium',
-    subject: 'History'
-  }
+    subject: 'History',
+  },
 ]
 
 function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps) {
@@ -1964,7 +2149,8 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
   const filteredQuestions = questions.filter(q => {
     const matchesSubject = filterSubject === 'all' || q.subject === filterSubject
     const matchesDifficulty = filterDifficulty === 'all' || q.difficulty === filterDifficulty
-    const matchesSearch = searchQuery === '' ||
+    const matchesSearch =
+      searchQuery === '' ||
       (q.question && q.question.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (q.subject && q.subject.toLowerCase().includes(searchQuery.toLowerCase()))
     return matchesSubject && matchesDifficulty && matchesSearch
@@ -2011,7 +2197,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="flex h-[90vh] max-w-4xl flex-col rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2020,7 +2206,7 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
         </DialogHeader>
 
         {/* Filters */}
-        <div className="flex gap-3 mb-4">
+        <div className="mb-4 flex gap-3">
           <Input
             placeholder="Search questions..."
             value={searchQuery}
@@ -2030,15 +2216,19 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
           <select
             value={filterSubject}
             onChange={(e: any) => setFilterSubject(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm"
+            className="rounded-md border px-3 py-2 text-sm"
           >
             <option value="all">All Subjects</option>
-            {subjects.map(s => <option key={s as string} value={s as string}>{s as string}</option>)}
+            {subjects.map(s => (
+              <option key={s as string} value={s as string}>
+                {s as string}
+              </option>
+            ))}
           </select>
           <select
             value={filterDifficulty}
             onChange={(e: any) => setFilterDifficulty(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm"
+            className="rounded-md border px-3 py-2 text-sm"
           >
             <option value="all">All Difficulties</option>
             <option value="easy">Easy</option>
@@ -2048,35 +2238,45 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
         </div>
 
         {/* Two-column layout */}
-        <div className="flex-1 flex gap-4 overflow-hidden">
+        <div className="flex flex-1 gap-4 overflow-hidden">
           {/* Left: Question List */}
-          <div className="flex-1 border rounded-lg overflow-y-auto">
+          <div className="flex-1 overflow-y-auto rounded-lg border">
             {loading ? (
               <div className="p-8 text-center text-muted-foreground">Loading bank...</div>
             ) : filteredQuestions.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground">No matched items</div>
             ) : (
-              filteredQuestions.map((question) => (
+              filteredQuestions.map(question => (
                 <div
                   key={question.id}
                   onClick={() => toggleQuestion(question.id)}
-                  className={`p-3 border-b cursor-pointer transition-colors ${selectedQuestions.has(question.id)
-                    ? 'bg-blue-50 border-blue-400'
-                    : 'hover:bg-gray-50'
-                    }`}
+                  className={`cursor-pointer border-b p-3 transition-colors ${
+                    selectedQuestions.has(question.id)
+                      ? 'border-blue-400 bg-blue-50'
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center ${selectedQuestions.has(question.id)
-                      ? 'bg-blue-500 border-blue-500'
-                      : 'border-gray-500'
-                      }`}>
-                      {selectedQuestions.has(question.id) && <CheckCircle className="w-3 h-3 text-white" />}
+                    <div
+                      className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border ${
+                        selectedQuestions.has(question.id)
+                          ? 'border-blue-500 bg-blue-500'
+                          : 'border-gray-500'
+                      }`}
+                    >
+                      {selectedQuestions.has(question.id) && (
+                        <CheckCircle className="h-3 w-3 text-white" />
+                      )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium line-clamp-2">{question.question}</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="secondary" className="text-[10px]">{question.type?.toUpperCase() || 'UNKNOWN'}</Badge>
-                        <Badge variant="outline" className="text-[10px]">{question.difficulty || 'medium'}</Badge>
+                      <p className="line-clamp-2 text-sm font-medium">{question.question}</p>
+                      <div className="mt-1 flex gap-2">
+                        <Badge variant="secondary" className="text-[10px]">
+                          {question.type?.toUpperCase() || 'UNKNOWN'}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {question.difficulty || 'medium'}
+                        </Badge>
                       </div>
                     </div>
                   </div>
@@ -2086,57 +2286,62 @@ function QuestionBankModal({ isOpen, onClose, onImport }: QuestionBankModalProps
           </div>
 
           {/* Right: Preview Area */}
-          <div className="w-[400px] border rounded-lg flex flex-col bg-gray-50">
+          <div className="flex w-[400px] flex-col rounded-lg border bg-gray-50">
             {previewQuestion ? (
-              <div className="p-4 flex-1 overflow-y-auto">
-                <div className="flex items-center gap-2 mb-4">
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="mb-4 flex items-center gap-2">
                   <Badge>{previewQuestion.subject || 'No Subject'}</Badge>
                   <Badge variant="outline">{previewQuestion.difficulty || 'medium'}</Badge>
                   <Badge variant="secondary">{previewQuestion.points || 1} pts</Badge>
                 </div>
-                <h3 className="font-medium text-lg mb-4">{previewQuestion.question}</h3>
+                <h3 className="mb-4 text-lg font-medium">{previewQuestion.question}</h3>
 
-                {previewQuestion.options && Array.isArray(previewQuestion.options) && previewQuestion.options.length > 0 && (
-                  <div className="space-y-2 mb-6">
-                    <p className="text-sm font-medium text-gray-500">Options:</p>
-                    {previewQuestion.options.map((opt: string, i: number) => (
-                      <div key={i} className="flex items-center gap-2 p-2 rounded-md bg-white border text-sm">
-                        <span className="font-medium text-gray-400 w-6">
-                          {String.fromCharCode(65 + i)}.
-                        </span>
-                        {opt}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {previewQuestion.options &&
+                  Array.isArray(previewQuestion.options) &&
+                  previewQuestion.options.length > 0 && (
+                    <div className="mb-6 space-y-2">
+                      <p className="text-sm font-medium text-gray-500">Options:</p>
+                      {previewQuestion.options.map((opt: string, i: number) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 rounded-md border bg-white p-2 text-sm"
+                        >
+                          <span className="w-6 font-medium text-gray-400">
+                            {String.fromCharCode(65 + i)}.
+                          </span>
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">Correct Answer:</p>
-                  <div className="p-3 bg-green-50 text-green-700 rounded-md text-sm border border-green-400">
-                    {Array.isArray(previewQuestion.correctAnswer) ? previewQuestion.correctAnswer.join(', ') : (previewQuestion.correctAnswer || 'Not specified')}
+                  <p className="mb-2 text-sm font-medium text-gray-500">Correct Answer:</p>
+                  <div className="rounded-md border border-green-400 bg-green-50 p-3 text-sm text-green-700">
+                    {Array.isArray(previewQuestion.correctAnswer)
+                      ? previewQuestion.correctAnswer.join(', ')
+                      : previewQuestion.correctAnswer || 'Not specified'}
                   </div>
                 </div>
 
                 {previewQuestion.explanation && (
                   <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500 mb-2">Explanation:</p>
-                    <p className="text-sm text-gray-700 bg-white p-3 rounded-md border">
+                    <p className="mb-2 text-sm font-medium text-gray-500">Explanation:</p>
+                    <p className="rounded-md border bg-white p-3 text-sm text-gray-700">
                       {previewQuestion.explanation}
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
-                <BookOpen className="w-12 h-12 mb-4 opacity-20" />
+              <div className="flex flex-1 flex-col items-center justify-center p-8 text-center text-gray-400">
+                <BookOpen className="mb-4 h-12 w-12 opacity-20" />
                 <p>Select a question from the list to preview its details</p>
               </div>
             )}
 
-            <div className="p-4 border-t bg-white flex justify-between items-center">
-              <span className="text-sm font-medium">
-                {selectedQuestions.size} selected
-              </span>
+            <div className="flex items-center justify-between border-t bg-white p-4">
+              <span className="text-sm font-medium">{selectedQuestions.size} selected</span>
               <Button
                 onClick={handleImport}
                 disabled={selectedQuestions.size === 0}
@@ -2157,7 +2362,7 @@ function LessonSelectorDialog({
   onClose,
   onConfirm,
   modules,
-  itemType = 'item'
+  itemType = 'item',
 }: {
   isOpen: boolean
   onClose: () => void
@@ -2192,7 +2397,7 @@ function LessonSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-w-md rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
@@ -2206,18 +2411,21 @@ function LessonSelectorDialog({
 
           <div className="space-y-2">
             <Label>Lesson</Label>
-            <Select value={selectedModuleId} onValueChange={(value) => {
-              setSelectedModuleId(value)
-              const selectedMod = modules.find(m => m.id === value)
-              if (selectedMod && selectedMod.lessons.length > 0) {
-                setSelectedLessonId(selectedMod.lessons[0].id)
-              }
-            }}>
+            <Select
+              value={selectedModuleId}
+              onValueChange={value => {
+                setSelectedModuleId(value)
+                const selectedMod = modules.find(m => m.id === value)
+                if (selectedMod && selectedMod.lessons.length > 0) {
+                  setSelectedLessonId(selectedMod.lessons[0].id)
+                }
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a lesson" />
               </SelectTrigger>
               <SelectContent>
-                {modules.map((module) => (
+                {modules.map(module => (
                   <SelectItem key={module.id} value={module.id}>
                     {module.title}
                   </SelectItem>
@@ -2234,7 +2442,7 @@ function LessonSelectorDialog({
                   <SelectValue placeholder="Select a topic" />
                 </SelectTrigger>
                 <SelectContent>
-                  {lessons.map((lesson) => (
+                  {lessons.map(lesson => (
                     <SelectItem key={lesson.id} value={lesson.id}>
                       {lesson.title}
                     </SelectItem>
@@ -2245,11 +2453,10 @@ function LessonSelectorDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!selectedModuleId || !selectedLessonId}
-          >
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm} disabled={!selectedModuleId || !selectedLessonId}>
             Save to Selected Lesson
           </Button>
         </DialogFooter>
@@ -2268,7 +2475,13 @@ interface BuilderModalWithModulesProps {
 }
 
 // Task Builder Modal (now uses Assessment Builder layout)
-function TaskBuilderModal({ isOpen, onClose, onSave, initialData, modules }: BuilderModalWithModulesProps) {
+function TaskBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  modules,
+}: BuilderModalWithModulesProps) {
   const [showLessonSelector, setShowLessonSelector] = useState(false)
   const [pendingData, setPendingData] = useState<any>(null)
 
@@ -2314,9 +2527,9 @@ function AssessmentBuilderModal({
 }: BuilderModalProps & { builderType?: 'task' | 'assessment' | 'homework' }) {
   const [data, setData] = useState<Task | Assessment>(
     initialData ||
-    (builderType === 'task'
-      ? DEFAULT_TASK(0)
-      : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
+      (builderType === 'task'
+        ? DEFAULT_TASK(0)
+        : DEFAULT_HOMEWORK(0, builderType === 'homework' ? 'homework' : 'assessment'))
   )
   const [showAnswerKey, setShowAnswerKey] = useState(false)
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
@@ -2326,20 +2539,26 @@ function AssessmentBuilderModal({
   const assessmentData = data as Assessment
 
   const addQuestion = (type: QuizQuestion['type']) => {
-    const matchingPairs = type === 'matching'
-      ? [
-        { left: '', right: '' },
-        { left: '', right: '' },
-      ]
-      : undefined
+    const matchingPairs =
+      type === 'matching'
+        ? [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ]
+        : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
       type,
       question: '',
       points: 1,
-      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      options:
+        type === 'mcq' || type === 'multiselect'
+          ? ['', '', '', '']
+          : type === 'truefalse'
+            ? ['True', 'False']
+            : undefined,
       matchingPairs,
-      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
+      correctAnswer: matchingPairs ? matchingPairs.map(pair => pair.right) : undefined,
     }
     setData({ ...data, questions: [...(data.questions || []), newQuestion] })
   }
@@ -2357,7 +2576,7 @@ function AssessmentBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
@@ -2371,11 +2590,24 @@ function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
-              <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+              <TabsTrigger
+                value="edit"
+                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+              >
+                Edit
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+              >
+                Preview (student view)
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+            <TabsContent
+              value="edit"
+              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+            >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{titleLabel} Title *</Label>
@@ -2387,7 +2619,8 @@ function AssessmentBuilderModal({
                 </div>
                 <div className="space-y-2">
                   <Label>Instructions</Label>
-                  <AutoTextarea value={data.description}
+                  <AutoTextarea
+                    value={data.description}
                     onChange={(e: any) => setData({ ...data, description: e.target.value })}
                     placeholder="What should students know before starting this assessment?"
                     rows={2}
@@ -2395,19 +2628,22 @@ function AssessmentBuilderModal({
                 </div>
                 <div className="space-y-2">
                   <Label>{isTask ? 'Instructions *' : 'Question *'}</Label>
-                  <AutoTextarea value={data.instructions}
+                  <AutoTextarea
+                    value={data.instructions}
                     onChange={(e: any) => setData({ ...data, instructions: e.target.value })}
-                    placeholder={isTask ? 'Enter the task instructions here' : 'Enter the question here'}
+                    placeholder={
+                      isTask ? 'Enter the task instructions here' : 'Enter the question here'
+                    }
                     rows={4}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-white/30 backdrop-blur-sm shadow-sm">
+                <div className="grid grid-cols-2 gap-4 rounded-xl bg-white/30 p-4 shadow-sm backdrop-blur-sm">
                   <div className="space-y-2">
                     <Label>Submission</Label>
                     {isTask ? (
                       <Select
                         value={data.submissionType as Task['submissionType']}
-                        onValueChange={(v) =>
+                        onValueChange={v =>
                           setData({
                             ...(data as Task),
                             submissionType: v as Task['submissionType'],
@@ -2428,7 +2664,7 @@ function AssessmentBuilderModal({
                     ) : (
                       <Select
                         value={data.submissionType as Assessment['submissionType']}
-                        onValueChange={(v) =>
+                        onValueChange={v =>
                           setData({
                             ...(data as Assessment),
                             submissionType: v as Assessment['submissionType'],
@@ -2452,57 +2688,83 @@ function AssessmentBuilderModal({
 
                 {/* Questions Section - Only when submissionType is 'questions' */}
                 {data.submissionType === 'questions' && (
-                  <div className="border rounded-lg p-4 space-y-4 bg-purple-50/30">
+                  <div className="space-y-4 rounded-lg border bg-purple-50/30 p-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium flex items-center gap-2">
+                      <h3 className="flex items-center gap-2 font-medium">
                         <FileQuestion className="h-4 w-4 text-purple-500" />
                         Questions ({data.questions?.length || 0})
                       </h3>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
-                          <Plus className="h-4 w-4 mr-1" /> MCQ
+                          <Plus className="mr-1 h-4 w-4" /> MCQ
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
-                          <Plus className="h-4 w-4 mr-1" /> T/F
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('truefalse')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> T/F
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
-                          <Plus className="h-4 w-4 mr-1" /> Short
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('shortanswer')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Short
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
-                          <Plus className="h-4 w-4 mr-1" /> Essay
+                          <Plus className="mr-1 h-4 w-4" /> Essay
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
-                          <Plus className="h-4 w-4 mr-1" /> Multi-select
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('multiselect')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Multi-select
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
-                          <Plus className="h-4 w-4 mr-1" /> Matching
+                          <Plus className="mr-1 h-4 w-4" /> Matching
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
-                          <Plus className="h-4 w-4 mr-1" /> Fill Blank
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addQuestion('fillblank')}
+                        >
+                          <Plus className="mr-1 h-4 w-4" /> Fill Blank
                         </Button>
                       </div>
                     </div>
                     <QuestionBankQuickImport
-                      onImport={(incomingQuestions) =>
-                        setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
+                      onImport={incomingQuestions =>
+                        setData({
+                          ...data,
+                          questions: [...(data.questions || []), ...incomingQuestions],
+                        })
                       }
                     />
                     <ManualQuestionComposer
-                      onImport={(incomingQuestions) =>
-                        setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
+                      onImport={incomingQuestions =>
+                        setData({
+                          ...data,
+                          questions: [...(data.questions || []), ...incomingQuestions],
+                        })
                       }
                     />
                     <div className="space-y-3">
                       {(data.questions || []).map((q, idx) => (
-                        <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
+                        <div key={q.id} className="space-y-3 rounded-lg border bg-white p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                              <Badge variant="secondary">
+                                Q{idx + 1} - {q.type.toUpperCase()}
+                              </Badge>
                               <label className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <input
                                   type="checkbox"
                                   checked={q.extendEnabled ?? false}
-                                  onChange={(e: any) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                                  onChange={(e: any) =>
+                                    updateQuestion(idx, { extendEnabled: e.target.checked })
+                                  }
                                 />
                                 Extend
                               </label>
@@ -2510,17 +2772,25 @@ function AssessmentBuilderModal({
                             <div className="flex items-center gap-2">
                               <Input
                                 type="number"
-                                className="w-20 h-8"
+                                className="h-8 w-20"
                                 value={q.points}
-                                onChange={(e: any) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                                onChange={(e: any) =>
+                                  updateQuestion(idx, { points: parseInt(e.target.value) || 1 })
+                                }
                               />
                               <span className="text-sm text-muted-foreground">pts</span>
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => removeQuestion(idx)}
+                              >
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>
-                          <AutoTextarea value={q.question}
+                          <AutoTextarea
+                            value={q.question}
                             onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
                             placeholder="Enter question"
                             rows={2}
@@ -2552,7 +2822,9 @@ function AssessmentBuilderModal({
                           {q.type === 'multiselect' && q.options && (
                             <div className="space-y-2 pl-4">
                               {q.options.map((opt, optIdx) => {
-                                const selectedAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : []
+                                const selectedAnswers = Array.isArray(q.correctAnswer)
+                                  ? q.correctAnswer
+                                  : []
                                 const checked = selectedAnswers.includes(opt)
                                 return (
                                   <div key={optIdx} className="flex items-center gap-2">
@@ -2605,11 +2877,16 @@ function AssessmentBuilderModal({
                           )}
                           {q.type === 'matching' && (
                             <MatchingPairsEditor
-                              pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
-                              onChange={(nextPairs) =>
+                              pairs={
+                                q.matchingPairs ?? [
+                                  { left: '', right: '' },
+                                  { left: '', right: '' },
+                                ]
+                              }
+                              onChange={nextPairs =>
                                 updateQuestion(idx, {
                                   matchingPairs: nextPairs,
-                                  correctAnswer: nextPairs.map((pair) => pair.right),
+                                  correctAnswer: nextPairs.map(pair => pair.right),
                                   explanation: formatMatchingExplanation(nextPairs),
                                 })
                               }
@@ -2617,7 +2894,9 @@ function AssessmentBuilderModal({
                           )}
                           <Textarea
                             value={q.explanation || ''}
-                            onChange={(e: any) => updateQuestion(idx, { explanation: e.target.value })}
+                            onChange={(e: any) =>
+                              updateQuestion(idx, { explanation: e.target.value })
+                            }
                             placeholder="Explanation (shown after answering)"
                             rows={2}
                             className="text-sm"
@@ -2629,11 +2908,17 @@ function AssessmentBuilderModal({
                 )}
 
                 {!isTask && (
-                  <div className="space-y-3 border rounded-lg p-4">
+                  <div className="space-y-3 rounded-lg border p-4">
                     <div className="flex items-center gap-2">
                       <Switch
-                        checked={'allowLateSubmission' in data ? (data as Assessment).allowLateSubmission : false}
-                        onCheckedChange={(checked) => setData({ ...(data as Assessment), allowLateSubmission: checked })}
+                        checked={
+                          'allowLateSubmission' in data
+                            ? (data as Assessment).allowLateSubmission
+                            : false
+                        }
+                        onCheckedChange={checked =>
+                          setData({ ...(data as Assessment), allowLateSubmission: checked })
+                        }
                       />
                       <Label>Allow late submission</Label>
                     </div>
@@ -2645,29 +2930,42 @@ function AssessmentBuilderModal({
                           min={0}
                           max={100}
                           value={(data as Assessment).latePenalty}
-                          onChange={(e: any) => setData({ ...(data as Assessment), latePenalty: parseInt(e.target.value) || 0 })}
+                          onChange={(e: any) =>
+                            setData({
+                              ...(data as Assessment),
+                              latePenalty: parseInt(e.target.value) || 0,
+                            })
+                          }
                         />
-                        <p className="text-xs text-muted-foreground">Percentage deducted for late submissions</p>
+                        <p className="text-xs text-muted-foreground">
+                          Percentage deducted for late submissions
+                        </p>
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* Answer Key Section - Protected */}
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="mt-4 border-t pt-4">
+                  <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-amber-500" />
-                      <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
+                      <Label className="font-medium text-amber-700">
+                        Instructor Answer Key (Protected)
+                      </Label>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 text-xs gap-1"
+                        className="h-7 gap-1 text-xs"
                         onClick={() => setShowAnswerKey(!showAnswerKey)}
                       >
-                        {showAnswerKey ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                        {showAnswerKey ? (
+                          <Unlock className="h-3 w-3" />
+                        ) : (
+                          <Lock className="h-3 w-3" />
+                        )}
                         {showAnswerKey ? 'Hide' : 'Show'}
                       </Button>
                     </div>
@@ -2684,29 +2982,41 @@ function AssessmentBuilderModal({
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={data.answerKeyProtected !== false}
-                          onCheckedChange={(checked) => setData({ ...data, answerKeyProtected: checked })}
+                          onCheckedChange={checked =>
+                            setData({ ...data, answerKeyProtected: checked })
+                          }
                         />
                         <Label className="text-xs text-muted-foreground">
-                          <Lock className="h-3 w-3 inline mr-1" />
+                          <Lock className="mr-1 inline h-3 w-3" />
                           Protect answer key (never visible to students)
                         </Label>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-400 text-center">
-                      <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
-                      <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
+                    <div className="rounded border border-dashed border-gray-400 bg-gray-50 p-3 text-center">
+                      <Lock className="mx-auto mb-1 h-4 w-4 text-gray-400" />
+                      <span className="text-xs text-muted-foreground">
+                        Answer key is hidden. Click "Show" to view/edit.
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
-              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+            <TabsContent
+              value="preview"
+              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+            >
+              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
                 <h3 className="font-semibold">{data.title}</h3>
-                {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
+                {data.description && (
+                  <p className="text-sm text-muted-foreground">{data.description}</p>
+                )}
                 {data.instructions && (
-                  <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
+                  <div className="text-sm">
+                    <span className="font-medium text-muted-foreground">Instructions: </span>
+                    {data.instructions}
+                  </div>
                 )}
                 {!isTask && (
                   <div className="space-y-3">
@@ -2715,13 +3025,20 @@ function AssessmentBuilderModal({
                 )}
                 {!isTask && data.sourceDocument && (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Imported material (editable)
+                    </p>
                     <Textarea
                       value={data.sourceDocument.extractedText}
-                      onChange={(e: any) => setData({
-                        ...data,
-                        sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
-                      })}
+                      onChange={(e: any) =>
+                        setData({
+                          ...data,
+                          sourceDocument: {
+                            ...data.sourceDocument!,
+                            extractedText: e.target.value,
+                          },
+                        })
+                      }
                       rows={6}
                     />
                   </div>
@@ -2733,7 +3050,9 @@ function AssessmentBuilderModal({
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={assessmentData.showCorrectAnswers ?? true}
-                          onCheckedChange={(checked) => setData({ ...assessmentData, showCorrectAnswers: checked })}
+                          onCheckedChange={checked =>
+                            setData({ ...assessmentData, showCorrectAnswers: checked })
+                          }
                           disabled={assessmentData.answersNeverVisible}
                         />
                         <Label className="text-sm">Show correct answers</Label>
@@ -2741,27 +3060,39 @@ function AssessmentBuilderModal({
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={assessmentData.answersNeverVisible ?? false}
-                          onCheckedChange={(checked) => setData({ ...assessmentData, answersNeverVisible: checked, showCorrectAnswers: checked ? false : assessmentData.showCorrectAnswers })}
+                          onCheckedChange={checked =>
+                            setData({
+                              ...assessmentData,
+                              answersNeverVisible: checked,
+                              showCorrectAnswers: checked
+                                ? false
+                                : assessmentData.showCorrectAnswers,
+                            })
+                          }
                         />
                         <Label className="text-sm">Never show answers</Label>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={assessmentData.randomizeQuestions}
-                          onCheckedChange={(checked) => setData({ ...assessmentData, randomizeQuestions: checked })}
+                          onCheckedChange={checked =>
+                            setData({ ...assessmentData, randomizeQuestions: checked })
+                          }
                         />
                         <Label className="text-sm">Randomize question order</Label>
                       </div>
                     </div>
                   </div>
                 )}
-                <h4 className="text-sm font-medium mt-4">Questions</h4>
+                <h4 className="mt-4 text-sm font-medium">Questions</h4>
                 <QuestionsPreview questions={data.questions ?? []} />
               </div>
             </TabsContent>
           </Tabs>
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
             <Button onClick={() => onSave({ ...data })}>Save</Button>
           </DialogFooter>
         </DialogContent>
@@ -2769,7 +3100,7 @@ function AssessmentBuilderModal({
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -2777,8 +3108,12 @@ function AssessmentBuilderModal({
             </DialogTitle>
           </DialogHeader>
           <QuestionBankSelector
-            onSelect={(questions) => {
-              setData({ ...(data as Task | Assessment), questions: [...(data.questions || []), ...questions], submissionType: 'questions' })
+            onSelect={questions => {
+              setData({
+                ...(data as Task | Assessment),
+                questions: [...(data.questions || []), ...questions],
+                submissionType: 'questions',
+              })
               setShowQuestionBankModal(false)
               toast.success(`${questions.length} question(s) added`)
             }}
@@ -2790,7 +3125,13 @@ function AssessmentBuilderModal({
 }
 
 // Homework Builder Modal (wraps AssessmentBuilderModal with lesson selector)
-function HomeworkBuilderModal({ isOpen, onClose, onSave, initialData, modules }: BuilderModalWithModulesProps) {
+function HomeworkBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  modules,
+}: BuilderModalWithModulesProps) {
   const [showLessonSelector, setShowLessonSelector] = useState(false)
   const [pendingData, setPendingData] = useState<any>(null)
 
@@ -2827,7 +3168,13 @@ function HomeworkBuilderModal({ isOpen, onClose, onSave, initialData, modules }:
 }
 
 // Assessment Builder Modal with lesson selector
-function AssessmentBuilderModalWithSelector({ isOpen, onClose, onSave, initialData, modules }: BuilderModalWithModulesProps) {
+function AssessmentBuilderModalWithSelector({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  modules,
+}: BuilderModalWithModulesProps) {
   const [showLessonSelector, setShowLessonSelector] = useState(false)
   const [pendingData, setPendingData] = useState<any>(null)
 
@@ -2869,20 +3216,22 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
   const [showAnswerKey, setShowAnswerKey] = useState(false)
 
   const addQuestion = (type: QuizQuestion['type']) => {
-    const matchingPairs = type === 'matching'
-      ? [
-        { left: '', right: '' },
-        { left: '', right: '' },
-      ]
-      : undefined
+    const matchingPairs =
+      type === 'matching'
+        ? [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ]
+        : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
       type,
       question: '',
       points: 1,
-      options: type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      options:
+        type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
       matchingPairs,
-      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
+      correctAnswer: matchingPairs ? matchingPairs.map(pair => pair.right) : undefined,
     }
     setData({ ...data, questions: [...data.questions, newQuestion] })
   }
@@ -2899,7 +3248,7 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-cyan-500" />
@@ -2907,11 +3256,24 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
           </DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="edit" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
-            <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
-            <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
+          <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+            <TabsTrigger
+              value="edit"
+              className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+            >
+              Edit
+            </TabsTrigger>
+            <TabsTrigger
+              value="preview"
+              className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+            >
+              Preview (student view)
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+          <TabsContent
+            value="edit"
+            className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+          >
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Worksheet Title *</Label>
@@ -2923,7 +3285,8 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               </div>
               <div className="space-y-2">
                 <Label>Instructions</Label>
-                <AutoTextarea value={data.description}
+                <AutoTextarea
+                  value={data.description}
                   onChange={(e: any) => setData({ ...data, description: e.target.value })}
                   placeholder="What should students know before starting this worksheet?"
                   rows={2}
@@ -2932,7 +3295,8 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
               <div className="space-y-2">
                 <Label>Instructions *</Label>
-                <AutoTextarea value={data.instructions}
+                <AutoTextarea
+                  value={data.instructions}
                   onChange={(e: any) => setData({ ...data, instructions: e.target.value })}
                   placeholder="Detailed instructions for students"
                   rows={3}
@@ -2944,7 +3308,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <Input
                     type="number"
                     value={data.estimatedMinutes}
-                    onChange={(e: any) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 20 })}
+                    onChange={(e: any) =>
+                      setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 20 })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -2952,7 +3318,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <Input
                     type="number"
                     value={data.points}
-                    onChange={(e: any) => setData({ ...data, points: parseInt(e.target.value) || 15 })}
+                    onChange={(e: any) =>
+                      setData({ ...data, points: parseInt(e.target.value) || 15 })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -2962,7 +3330,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     min={0}
                     max={100}
                     value={data.passingScore}
-                    onChange={(e: any) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
+                    onChange={(e: any) =>
+                      setData({ ...data, passingScore: parseInt(e.target.value) || 70 })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -2971,7 +3341,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     type="number"
                     min={1}
                     value={data.maxAttempts}
-                    onChange={(e: any) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
+                    onChange={(e: any) =>
+                      setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })
+                    }
                     disabled={!data.allowMultipleAttempts}
                   />
                 </div>
@@ -2981,69 +3353,81 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={data.allowMultipleAttempts}
-                    onCheckedChange={(checked) => setData({ ...data, allowMultipleAttempts: checked })}
+                    onCheckedChange={checked =>
+                      setData({ ...data, allowMultipleAttempts: checked })
+                    }
                   />
                   <Label className="text-sm">Allow multiple attempts</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={data.showCorrectAnswers}
-                    onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
+                    onCheckedChange={checked => setData({ ...data, showCorrectAnswers: checked })}
                   />
                   <Label className="text-sm">Show correct answers after submission</Label>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={data.randomizeQuestions}
-                    onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
+                    onCheckedChange={checked => setData({ ...data, randomizeQuestions: checked })}
                   />
                   <Label className="text-sm">Randomize questions</Label>
                 </div>
               </div>
 
               {/* Questions Section */}
-              <div className="border rounded-lg p-4 space-y-4 bg-cyan-50/30">
+              <div className="space-y-4 rounded-lg border bg-cyan-50/30 p-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium flex items-center gap-2">
+                  <h3 className="flex items-center gap-2 font-medium">
                     <FileQuestion className="h-4 w-4 text-cyan-500" />
                     Questions ({data.questions?.length || 0})
                   </h3>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
-                      <Plus className="h-4 w-4 mr-1" /> MCQ
+                      <Plus className="mr-1 h-4 w-4" /> MCQ
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
-                      <Plus className="h-4 w-4 mr-1" /> T/F
+                      <Plus className="mr-1 h-4 w-4" /> T/F
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
-                      <Plus className="h-4 w-4 mr-1" /> Short
+                      <Plus className="mr-1 h-4 w-4" /> Short
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
-                      <Plus className="h-4 w-4 mr-1" /> Essay
+                      <Plus className="mr-1 h-4 w-4" /> Essay
                     </Button>
                   </div>
                 </div>
                 <QuestionBankQuickImport
-                  onImport={(incomingQuestions) =>
-                    setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
+                  onImport={incomingQuestions =>
+                    setData({
+                      ...data,
+                      questions: [...(data.questions || []), ...incomingQuestions],
+                    })
                   }
                 />
                 <ManualQuestionComposer
-                  onImport={(incomingQuestions) =>
-                    setData({ ...data, questions: [...(data.questions || []), ...incomingQuestions] })
+                  onImport={incomingQuestions =>
+                    setData({
+                      ...data,
+                      questions: [...(data.questions || []), ...incomingQuestions],
+                    })
                   }
                 />
                 <div className="space-y-3">
                   {(data.questions || []).map((q, idx) => (
-                    <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
+                    <div key={q.id} className="space-y-3 rounded-lg border bg-white p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                          <Badge variant="secondary">
+                            Q{idx + 1} - {q.type.toUpperCase()}
+                          </Badge>
                           <label className="flex items-center gap-1 text-xs text-muted-foreground">
                             <input
                               type="checkbox"
                               checked={q.extendEnabled ?? false}
-                              onChange={(e: any) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                              onChange={(e: any) =>
+                                updateQuestion(idx, { extendEnabled: e.target.checked })
+                              }
                             />
                             Extend
                           </label>
@@ -3051,17 +3435,25 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
-                            className="w-20 h-8"
+                            className="h-8 w-20"
                             value={q.points}
-                            onChange={(e: any) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                            onChange={(e: any) =>
+                              updateQuestion(idx, { points: parseInt(e.target.value) || 1 })
+                            }
                           />
                           <span className="text-sm text-muted-foreground">pts</span>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => removeQuestion(idx)}
+                          >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
-                      <AutoTextarea value={q.question}
+                      <AutoTextarea
+                        value={q.question}
                         onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
                         placeholder="Enter question"
                         rows={2}
@@ -3114,11 +3506,16 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       )}
                       {q.type === 'matching' && (
                         <MatchingPairsEditor
-                          pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
-                          onChange={(nextPairs) =>
+                          pairs={
+                            q.matchingPairs ?? [
+                              { left: '', right: '' },
+                              { left: '', right: '' },
+                            ]
+                          }
+                          onChange={nextPairs =>
                             updateQuestion(idx, {
                               matchingPairs: nextPairs,
-                              correctAnswer: nextPairs.map((pair) => pair.right),
+                              correctAnswer: nextPairs.map(pair => pair.right),
                               explanation: formatMatchingExplanation(nextPairs),
                             })
                           }
@@ -3137,20 +3534,26 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
               </div>
 
               {/* Answer Key Section - Protected */}
-              <div className="border-t pt-4 mt-4">
-                <div className="flex items-center justify-between mb-3">
+              <div className="mt-4 border-t pt-4">
+                <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-amber-500" />
-                    <Label className="text-amber-700 font-medium">Instructor Answer Key (Protected)</Label>
+                    <Label className="font-medium text-amber-700">
+                      Instructor Answer Key (Protected)
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-xs gap-1"
+                      className="h-7 gap-1 text-xs"
                       onClick={() => setShowAnswerKey(!showAnswerKey)}
                     >
-                      {showAnswerKey ? <Unlock className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                      {showAnswerKey ? (
+                        <Unlock className="h-3 w-3" />
+                      ) : (
+                        <Lock className="h-3 w-3" />
+                      )}
                       {showAnswerKey ? 'Hide' : 'Show'}
                     </Button>
                   </div>
@@ -3167,39 +3570,55 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={data.answerKeyProtected !== false}
-                        onCheckedChange={(checked) => setData({ ...data, answerKeyProtected: checked })}
+                        onCheckedChange={checked =>
+                          setData({ ...data, answerKeyProtected: checked })
+                        }
                       />
                       <Label className="text-xs text-muted-foreground">
-                        <Lock className="h-3 w-3 inline mr-1" />
+                        <Lock className="mr-1 inline h-3 w-3" />
                         Protect answer key (never visible to students)
                       </Label>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-gray-50 rounded border border-dashed border-gray-400 text-center">
-                    <Lock className="h-4 w-4 mx-auto mb-1 text-gray-400" />
-                    <span className="text-xs text-muted-foreground">Answer key is hidden. Click "Show" to view/edit.</span>
+                  <div className="rounded border border-dashed border-gray-400 bg-gray-50 p-3 text-center">
+                    <Lock className="mx-auto mb-1 h-4 w-4 text-gray-400" />
+                    <span className="text-xs text-muted-foreground">
+                      Answer key is hidden. Click "Show" to view/edit.
+                    </span>
                   </div>
                 )}
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="preview" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
-            <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+          <TabsContent
+            value="preview"
+            className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+          >
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
               <h3 className="font-semibold">{data.title}</h3>
-              {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
+              {data.description && (
+                <p className="text-sm text-muted-foreground">{data.description}</p>
+              )}
               {data.instructions && (
-                <div className="text-sm"><span className="font-medium text-muted-foreground">Instructions: </span>{data.instructions}</div>
+                <div className="text-sm">
+                  <span className="font-medium text-muted-foreground">Instructions: </span>
+                  {data.instructions}
+                </div>
               )}
               {data.sourceDocument && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Imported material (editable)
+                  </p>
                   <Textarea
                     value={data.sourceDocument.extractedText}
-                    onChange={(e: any) => setData({
-                      ...data,
-                      sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
-                    })}
+                    onChange={(e: any) =>
+                      setData({
+                        ...data,
+                        sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value },
+                      })
+                    }
                     rows={6}
                   />
                 </div>
@@ -3212,7 +3631,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     <Input
                       type="number"
                       value={data.estimatedMinutes}
-                      onChange={(e: any) => setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 30 })}
+                      onChange={(e: any) =>
+                        setData({ ...data, estimatedMinutes: parseInt(e.target.value) || 30 })
+                      }
                     />
                   </div>
                   <div className="space-y-1">
@@ -3220,7 +3641,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                     <Input
                       type="number"
                       value={data.points}
-                      onChange={(e: any) => setData({ ...data, points: parseInt(e.target.value) || 20 })}
+                      onChange={(e: any) =>
+                        setData({ ...data, points: parseInt(e.target.value) || 20 })
+                      }
                     />
                   </div>
                   <div className="space-y-1">
@@ -3230,7 +3653,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       min={0}
                       max={100}
                       value={data.passingScore}
-                      onChange={(e: any) => setData({ ...data, passingScore: parseInt(e.target.value) || 70 })}
+                      onChange={(e: any) =>
+                        setData({ ...data, passingScore: parseInt(e.target.value) || 70 })
+                      }
                     />
                   </div>
                   <div className="space-y-1">
@@ -3239,7 +3664,9 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                       type="number"
                       min={1}
                       value={data.maxAttempts}
-                      onChange={(e: any) => setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })}
+                      onChange={(e: any) =>
+                        setData({ ...data, maxAttempts: parseInt(e.target.value) || 3 })
+                      }
                       disabled={!data.allowMultipleAttempts}
                     />
                   </div>
@@ -3248,33 +3675,37 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={data.allowMultipleAttempts}
-                      onCheckedChange={(checked) => setData({ ...data, allowMultipleAttempts: checked })}
+                      onCheckedChange={checked =>
+                        setData({ ...data, allowMultipleAttempts: checked })
+                      }
                     />
                     <Label className="text-sm">Allow multiple attempts</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={data.showCorrectAnswers}
-                      onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
+                      onCheckedChange={checked => setData({ ...data, showCorrectAnswers: checked })}
                     />
                     <Label className="text-sm">Show correct answers after submission</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={data.randomizeQuestions}
-                      onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
+                      onCheckedChange={checked => setData({ ...data, randomizeQuestions: checked })}
                     />
                     <Label className="text-sm">Randomize question order</Label>
                   </div>
                 </div>
               </div>
-              <h4 className="text-sm font-medium mt-4">Questions</h4>
+              <h4 className="mt-4 text-sm font-medium">Questions</h4>
               <QuestionsPreview questions={data.questions ?? []} />
             </div>
           </TabsContent>
         </Tabs>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={() => onSave({ ...data })}>Save</Button>
         </DialogFooter>
       </DialogContent>
@@ -3283,26 +3714,36 @@ function WorksheetBuilderModal({ isOpen, onClose, onSave, initialData }: Builder
 }
 
 // Exam Builder Modal
-function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz = false }: BuilderModalProps & { isModuleQuiz?: boolean }) {
-  const [data, setData] = useState<Quiz | ModuleQuiz>(initialData || (isModuleQuiz ? DEFAULT_MODULE_QUIZ(0) : DEFAULT_QUIZ(0)))
+function QuizBuilderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  isModuleQuiz = false,
+}: BuilderModalProps & { isModuleQuiz?: boolean }) {
+  const [data, setData] = useState<Quiz | ModuleQuiz>(
+    initialData || (isModuleQuiz ? DEFAULT_MODULE_QUIZ(0) : DEFAULT_QUIZ(0))
+  )
   const [showAnswerKey, setShowAnswerKey] = useState(false)
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false)
 
   const addQuestion = async (type: QuizQuestion['type']) => {
-    const matchingPairs = type === 'matching'
-      ? [
-        { left: '', right: '' },
-        { left: '', right: '' },
-      ]
-      : undefined
+    const matchingPairs =
+      type === 'matching'
+        ? [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ]
+        : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${Date.now()}`,
       type,
       question: '',
       points: 1,
-      options: type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      options:
+        type === 'mcq' ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
       matchingPairs,
-      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
+      correctAnswer: matchingPairs ? matchingPairs.map(pair => pair.right) : undefined,
     }
     setData({ ...data, questions: [...data.questions, newQuestion] })
 
@@ -3345,7 +3786,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />
@@ -3353,33 +3794,51 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             </DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="edit" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
-              <TabsTrigger value="edit" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Edit</TabsTrigger>
-              <TabsTrigger value="preview" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 transition-all duration-200">Preview (student view)</TabsTrigger>
+            <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+              <TabsTrigger
+                value="edit"
+                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+              >
+                Edit
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+              >
+                Preview (student view)
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="edit" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
+            <TabsContent
+              value="edit"
+              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+            >
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>{isModuleQuiz ? 'Exam Title *' : 'Assessment Title *'}</Label>
                   <Input
                     value={data.title}
                     onChange={(e: any) => setData({ ...data, title: e.target.value })}
-                    placeholder={isModuleQuiz ? "e.g., Lesson 1 Comprehensive Exam" : "e.g., Lesson 1 Assessment"}
+                    placeholder={
+                      isModuleQuiz
+                        ? 'e.g., Lesson 1 Comprehensive Exam'
+                        : 'e.g., Lesson 1 Assessment'
+                    }
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Instructions</Label>
-                  <AutoTextarea value={data.description}
+                  <AutoTextarea
+                    value={data.description}
                     onChange={(e: any) => setData({ ...data, description: e.target.value })}
                     placeholder="What should students know before starting this exam?"
                     rows={2}
                   />
                 </div>
-                <div className="flex gap-4 flex-wrap">
+                <div className="flex flex-wrap gap-4">
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={data.showCorrectAnswers}
-                      onCheckedChange={(checked) => setData({ ...data, showCorrectAnswers: checked })}
+                      onCheckedChange={checked => setData({ ...data, showCorrectAnswers: checked })}
                       disabled={data.answersNeverVisible}
                     />
                     <Label className="text-sm">Show correct answers</Label>
@@ -3387,16 +3846,22 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={data.randomizeQuestions}
-                      onCheckedChange={(checked) => setData({ ...data, randomizeQuestions: checked })}
+                      onCheckedChange={checked => setData({ ...data, randomizeQuestions: checked })}
                     />
                     <Label className="text-sm">Randomize questions</Label>
                   </div>
-                  <div className="flex items-center gap-2 border-l pl-4 border-amber-400">
+                  <div className="flex items-center gap-2 border-l border-amber-400 pl-4">
                     <Switch
                       checked={data.answersNeverVisible}
-                      onCheckedChange={(checked) => setData({ ...data, answersNeverVisible: checked, showCorrectAnswers: checked ? false : data.showCorrectAnswers })}
+                      onCheckedChange={checked =>
+                        setData({
+                          ...data,
+                          answersNeverVisible: checked,
+                          showCorrectAnswers: checked ? false : data.showCorrectAnswers,
+                        })
+                      }
                     />
-                    <Label className="text-sm text-amber-700 font-medium flex items-center gap-1">
+                    <Label className="flex items-center gap-1 text-sm font-medium text-amber-700">
                       <Shield className="h-3 w-3" />
                       Never show answers to students
                     </Label>
@@ -3404,11 +3869,13 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                 </div>
 
                 {isModuleQuiz && (
-                  <div className="space-y-2 border rounded-lg p-4 bg-blue-50">
+                  <div className="space-y-2 rounded-lg border bg-blue-50 p-4">
                     <Label>Coverage</Label>
                     <Select
                       value={(data as ModuleQuiz).coverage}
-                      onValueChange={(v) => setData({ ...data, coverage: v as 'all_lessons' | 'selected_lessons' })}
+                      onValueChange={v =>
+                        setData({ ...data, coverage: v as 'all_lessons' | 'selected_lessons' })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -3434,15 +3901,19 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
                   <div className="space-y-3">
                     {data.questions.map((q, idx) => (
-                      <div key={q.id} className="border rounded-lg p-4 space-y-3">
+                      <div key={q.id} className="space-y-3 rounded-lg border p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                            <Badge variant="secondary">
+                              Q{idx + 1} - {q.type.toUpperCase()}
+                            </Badge>
                             <label className="flex items-center gap-1 text-xs text-muted-foreground">
                               <input
                                 type="checkbox"
                                 checked={q.extendEnabled ?? false}
-                                onChange={(e: any) => updateQuestion(idx, { extendEnabled: e.target.checked })}
+                                onChange={(e: any) =>
+                                  updateQuestion(idx, { extendEnabled: e.target.checked })
+                                }
                               />
                               Extend
                             </label>
@@ -3450,17 +3921,25 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                           <div className="flex items-center gap-2">
                             <Input
                               type="number"
-                              className="w-20 h-8"
+                              className="h-8 w-20"
                               value={q.points}
-                              onChange={(e: any) => updateQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                              onChange={(e: any) =>
+                                updateQuestion(idx, { points: parseInt(e.target.value) || 1 })
+                              }
                             />
                             <span className="text-sm text-muted-foreground">pts</span>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeQuestion(idx)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => removeQuestion(idx)}
+                            >
                               <X className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
-                        <AutoTextarea value={q.question}
+                        <AutoTextarea
+                          value={q.question}
                           onChange={(e: any) => updateQuestion(idx, { question: e.target.value })}
                           placeholder="Enter question"
                           rows={2}
@@ -3513,11 +3992,16 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                         )}
                         {q.type === 'matching' && (
                           <MatchingPairsEditor
-                            pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
-                            onChange={(nextPairs) =>
+                            pairs={
+                              q.matchingPairs ?? [
+                                { left: '', right: '' },
+                                { left: '', right: '' },
+                              ]
+                            }
+                            onChange={nextPairs =>
                               updateQuestion(idx, {
                                 matchingPairs: nextPairs,
-                                correctAnswer: nextPairs.map((pair) => pair.right),
+                                correctAnswer: nextPairs.map(pair => pair.right),
                                 explanation: formatMatchingExplanation(nextPairs),
                               })
                             }
@@ -3525,7 +4009,9 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                         )}
                         <Textarea
                           value={q.explanation || ''}
-                          onChange={(e: any) => updateQuestion(idx, { explanation: e.target.value })}
+                          onChange={(e: any) =>
+                            updateQuestion(idx, { explanation: e.target.value })
+                          }
                           placeholder="Explanation (shown after answering)"
                           rows={2}
                           className="text-sm"
@@ -3535,49 +4021,65 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                   </div>
 
                   {/* Add Questions Bar */}
-                  <div className="flex items-center gap-2 pt-4 border-t flex-wrap">
-                    <Button variant="secondary" size="sm" onClick={() => setShowQuestionBankModal(true)}>
-                      <BookOpen className="h-4 w-4 mr-1" /> Add from question bank
+                  <div className="flex flex-wrap items-center gap-2 border-t pt-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setShowQuestionBankModal(true)}
+                    >
+                      <BookOpen className="mr-1 h-4 w-4" /> Add from question bank
                     </Button>
-                    <div className="h-6 w-px bg-border mx-1" />
+                    <div className="mx-1 h-6 w-px bg-border" />
                     <Button variant="outline" size="sm" onClick={() => addQuestion('mcq')}>
-                      <Plus className="h-4 w-4 mr-1" /> MCQ
+                      <Plus className="mr-1 h-4 w-4" /> MCQ
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('truefalse')}>
-                      <Plus className="h-4 w-4 mr-1" /> T/F
+                      <Plus className="mr-1 h-4 w-4" /> T/F
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('shortanswer')}>
-                      <Plus className="h-4 w-4 mr-1" /> Short
+                      <Plus className="mr-1 h-4 w-4" /> Short
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('essay')}>
-                      <Plus className="h-4 w-4 mr-1" /> Essay
+                      <Plus className="mr-1 h-4 w-4" /> Essay
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('multiselect')}>
-                      <Plus className="h-4 w-4 mr-1" /> Multi
+                      <Plus className="mr-1 h-4 w-4" /> Multi
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('matching')}>
-                      <Plus className="h-4 w-4 mr-1" /> Match
+                      <Plus className="mr-1 h-4 w-4" /> Match
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => addQuestion('fillblank')}>
-                      <Plus className="h-4 w-4 mr-1" /> Fill
+                      <Plus className="mr-1 h-4 w-4" /> Fill
                     </Button>
                   </div>
                 </div>
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="space-y-4 py-4 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md p-6 mt-4">
-              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+            <TabsContent
+              value="preview"
+              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+            >
+              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
                 <h3 className="font-semibold">{data.title}</h3>
-                {data.description && <p className="text-sm text-muted-foreground">{data.description}</p>}
+                {data.description && (
+                  <p className="text-sm text-muted-foreground">{data.description}</p>
+                )}
                 {data.sourceDocument && (
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">Imported material (editable)</p>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Imported material (editable)
+                    </p>
                     <Textarea
                       value={data.sourceDocument.extractedText}
-                      onChange={(e: any) => setData({
-                        ...data,
-                        sourceDocument: { ...data.sourceDocument!, extractedText: e.target.value }
-                      })}
+                      onChange={(e: any) =>
+                        setData({
+                          ...data,
+                          sourceDocument: {
+                            ...data.sourceDocument!,
+                            extractedText: e.target.value,
+                          },
+                        })
+                      }
                       rows={6}
                     />
                   </div>
@@ -3586,13 +4088,15 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
                   {data.timeLimit != null ? `${data.timeLimit} min limit · ` : ''}
                   {data.attemptsAllowed} attempt(s) · {data.questions.length} questions
                 </p>
-                <h4 className="text-sm font-medium mt-4">Questions</h4>
+                <h4 className="mt-4 text-sm font-medium">Questions</h4>
                 <QuestionsPreview questions={data.questions ?? []} />
               </div>
             </TabsContent>
           </Tabs>
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
             <Button onClick={() => onSave({ ...data })} disabled={data.questions.length === 0}>
               Save ({data.questions.length} questions)
             </Button>
@@ -3602,7 +4106,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
 
       {/* Question Bank Modal */}
       <Dialog open={showQuestionBankModal} onOpenChange={setShowQuestionBankModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -3610,7 +4114,7 @@ function QuizBuilderModal({ isOpen, onClose, onSave, initialData, isModuleQuiz =
             </DialogTitle>
           </DialogHeader>
           <QuestionBankSelector
-            onSelect={(questions) => {
+            onSelect={questions => {
               setData({ ...data, questions: [...data.questions, ...questions] })
               setShowQuestionBankModal(false)
               toast.success(`${questions.length} question(s) added`)
@@ -3658,9 +4162,10 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
     setSelectedIds(next)
   }
 
-  const filteredItems = items.filter((item) =>
-    item.question.toLowerCase().includes(filter.toLowerCase()) ||
-    item.type.toLowerCase().includes(filter.toLowerCase())
+  const filteredItems = items.filter(
+    item =>
+      item.question.toLowerCase().includes(filter.toLowerCase()) ||
+      item.type.toLowerCase().includes(filter.toLowerCase())
   )
 
   return (
@@ -3671,33 +4176,39 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
         onChange={(e: any) => setFilter(e.target.value)}
         className="w-full"
       />
-      <div className="border rounded-lg max-h-[400px] overflow-y-auto">
+      <div className="max-h-[400px] overflow-y-auto rounded-lg border">
         {loading ? (
           <div className="p-8 text-center text-muted-foreground">Loading...</div>
         ) : filteredItems.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">No questions found</div>
         ) : (
           <div className="divide-y">
-            {filteredItems.map((item) => (
+            {filteredItems.map(item => (
               <div
                 key={item.id}
-                className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${selectedIds.has(item.id) ? 'bg-blue-50 hover:bg-blue-100' : ''
-                  }`}
+                className={`cursor-pointer p-3 transition-colors hover:bg-muted/50 ${
+                  selectedIds.has(item.id) ? 'bg-blue-50 hover:bg-blue-100' : ''
+                }`}
                 onClick={() => toggleSelection(item.id)}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center ${selectedIds.has(item.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-500'
-                    }`}>
+                  <div
+                    className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded border ${
+                      selectedIds.has(item.id) ? 'border-blue-500 bg-blue-500' : 'border-gray-500'
+                    }`}
+                  >
                     {selectedIds.has(item.id) && <CheckCircle className="h-3 w-3 text-white" />}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="secondary" className="text-xs">{item.type.toUpperCase()}</Badge>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {item.type.toUpperCase()}
+                      </Badge>
                       <span className="text-xs text-muted-foreground">
                         {item.options?.length || 0} options
                       </span>
                     </div>
-                    <p className="text-sm line-clamp-2">{item.question}</p>
+                    <p className="line-clamp-2 text-sm">{item.question}</p>
                   </div>
                 </div>
               </div>
@@ -3706,9 +4217,7 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
         )}
       </div>
       <div className="flex items-center justify-between pt-2">
-        <span className="text-sm text-muted-foreground">
-          {selectedIds.size} selected
-        </span>
+        <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setSelectedIds(new Set())}>
             Clear
@@ -3716,7 +4225,7 @@ function QuestionBankSelector({ onSelect }: { onSelect: (questions: QuizQuestion
           <Button
             disabled={selectedIds.size === 0}
             onClick={() => {
-              const selected = items.filter((item) => selectedIds.has(item.id))
+              const selected = items.filter(item => selectedIds.has(item.id))
               onSelect(selected.map(mapQuestionBankToBuilderQuestion))
             }}
           >
@@ -3734,7 +4243,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-teal-500" />
@@ -3752,7 +4261,10 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
           </div>
           <div className="space-y-2">
             <Label>Content Type</Label>
-            <Select value={data.type} onValueChange={(value: Content['type']) => setData({ ...data, type: value })}>
+            <Select
+              value={data.type}
+              onValueChange={(value: Content['type']) => setData({ ...data, type: value })}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -3785,7 +4297,7 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
               <Input
                 value={data.url || ''}
                 onChange={(e: any) => setData({ ...data, url: e.target.value })}
-                placeholder={data.type === 'embed' ? "Paste iframe or embed code" : "https://..."}
+                placeholder={data.type === 'embed' ? 'Paste iframe or embed code' : 'https://...'}
               />
             </div>
           )}
@@ -3794,7 +4306,9 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
             <Input
               type="number"
               value={data.duration || ''}
-              onChange={(e: any) => setData({ ...data, duration: parseInt(e.target.value) || undefined })}
+              onChange={(e: any) =>
+                setData({ ...data, duration: parseInt(e.target.value) || undefined })
+              }
               placeholder="e.g., 15"
             />
           </div>
@@ -3809,7 +4323,9 @@ function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: BuilderMo
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={() => onSave(data)} disabled={!data.title.trim()}>
             Save Content
           </Button>
@@ -3842,11 +4358,19 @@ function DroppableHomeworkZone({
   lessonId,
   children,
   className,
-}: { moduleId: string; lessonId: string; children: React.ReactNode; className?: string }) {
+}: {
+  moduleId: string
+  lessonId: string
+  children: React.ReactNode
+  className?: string
+}) {
   const id = `drop-hw-${moduleId}::${lessonId}`
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div ref={setNodeRef} className={cn(className, isOver && 'ring-1 ring-emerald-400 bg-emerald-100')}>
+    <div
+      ref={setNodeRef}
+      className={cn(className, isOver && 'bg-emerald-100 ring-1 ring-emerald-400')}
+    >
       {children}
     </div>
   )
@@ -3857,11 +4381,19 @@ function DroppableTaskZone({
   lessonId,
   children,
   className,
-}: { moduleId: string; lessonId: string; children: React.ReactNode; className?: string }) {
+}: {
+  moduleId: string
+  lessonId: string
+  children: React.ReactNode
+  className?: string
+}) {
   const id = `drop-task-${moduleId}::${lessonId}`
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div ref={setNodeRef} className={cn(className, isOver && 'ring-1 ring-orange-400 bg-orange-100')}>
+    <div
+      ref={setNodeRef}
+      className={cn(className, isOver && 'bg-orange-100 ring-1 ring-orange-400')}
+    >
       {children}
     </div>
   )
@@ -3872,11 +4404,19 @@ function DroppableAssessmentZone({
   lessonId,
   children,
   className,
-}: { moduleId: string; lessonId: string; children: React.ReactNode; className?: string }) {
+}: {
+  moduleId: string
+  lessonId: string
+  children: React.ReactNode
+  className?: string
+}) {
   const id = `drop-assessment-${moduleId}::${lessonId}`
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div ref={setNodeRef} className={cn(className, isOver && 'ring-1 ring-purple-400 bg-purple-100')}>
+    <div
+      ref={setNodeRef}
+      className={cn(className, isOver && 'bg-purple-100 ring-1 ring-purple-400')}
+    >
       {children}
     </div>
   )
@@ -3894,7 +4434,13 @@ interface ResizablePanelProps {
   actionButton?: React.ReactNode
 }
 
-function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth = 400, actionButton }: ResizablePanelProps) {
+function ResizablePanel({
+  children,
+  defaultWidth = 192,
+  minWidth = 150,
+  maxWidth = 400,
+  actionButton,
+}: ResizablePanelProps) {
   const [width, setWidth] = useState(defaultWidth)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | null>(null)
@@ -3906,9 +4452,8 @@ function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !panelRef.current) return
       const deltaX = e.clientX - startXRef.current
-      const newWidth = resizeDirection === 'left'
-        ? startWidthRef.current - deltaX
-        : startWidthRef.current + deltaX
+      const newWidth =
+        resizeDirection === 'left' ? startWidthRef.current - deltaX : startWidthRef.current + deltaX
       setWidth(Math.max(minWidth, Math.min(maxWidth, newWidth)))
     }
 
@@ -3939,17 +4484,17 @@ function ResizablePanel({ children, defaultWidth = 192, minWidth = 150, maxWidth
     <div className="flex flex-col gap-2">
       <div
         ref={panelRef}
-        className="relative border-l pl-4 flex-shrink-0"
+        className="relative flex-shrink-0 border-l pl-4"
         style={{ width: `${width}px` }}
       >
         {children}
         {/* Left resize handle */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-blue-200/50 transition-colors flex items-center justify-center z-10"
+          className="absolute bottom-0 left-0 top-0 z-10 flex w-2 cursor-col-resize items-center justify-center transition-colors hover:bg-blue-200/50"
           onMouseDown={handleResizeStart('left')}
           title="Drag left to shrink, right to expand"
         >
-          <GripHorizontal className="h-3 w-3 text-gray-400 rotate-90" />
+          <GripHorizontal className="h-3 w-3 rotate-90 text-gray-400" />
         </div>
       </div>
       {/* Action button directly under the panel */}
@@ -3970,15 +4515,22 @@ interface DifficultyBadgeProps {
   size?: 'sm' | 'xs'
 }
 
-function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' }: DifficultyBadgeProps) {
+function DifficultyBadge({
+  mode,
+  fixedDifficulty,
+  showLabel = true,
+  size = 'xs',
+}: DifficultyBadgeProps) {
   if (mode === 'all') {
     return (
-      <span className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 border border-gray-400",
-        size === 'xs' ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs"
-      )}>
-        <Layers2 className={cn(size === 'xs' ? "h-3 w-3" : "h-3.5 w-3.5")} />
-        {showLabel && "All Levels"}
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded-full border border-gray-400 bg-gray-100 text-gray-700',
+          size === 'xs' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
+        )}
+      >
+        <Layers2 className={cn(size === 'xs' ? 'h-3 w-3' : 'h-3.5 w-3.5')} />
+        {showLabel && 'All Levels'}
       </span>
     )
   }
@@ -3987,22 +4539,25 @@ function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' 
     const colors = {
       beginner: 'bg-green-100 text-green-700 border-green-400',
       intermediate: 'bg-blue-100 text-blue-700 border-blue-400',
-      advanced: 'bg-purple-100 text-purple-700 border-purple-400'
+      advanced: 'bg-purple-100 text-purple-700 border-purple-400',
     }
     const icons = {
       beginner: SignalLow,
       intermediate: Signal,
-      advanced: SignalHigh
+      advanced: SignalHigh,
     }
     const Icon = icons[fixedDifficulty]
 
     return (
-      <span className={cn(
-        "inline-flex items-center gap-1 rounded-full border",
-        colors[fixedDifficulty],
-        size === 'xs' ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs"
-      )} title={`Fixed: ${fixedDifficulty}`}>
-        <Icon className={cn(size === 'xs' ? "h-3 w-3" : "h-3.5 w-3.5")} />
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded-full border',
+          colors[fixedDifficulty],
+          size === 'xs' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
+        )}
+        title={`Fixed: ${fixedDifficulty}`}
+      >
+        <Icon className={cn(size === 'xs' ? 'h-3 w-3' : 'h-3.5 w-3.5')} />
         {showLabel && (
           <>
             <span className="opacity-70">🎯</span>
@@ -4015,13 +4570,16 @@ function DifficultyBadge({ mode, fixedDifficulty, showLabel = true, size = 'xs' 
 
   // Adaptive mode
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 border border-amber-400",
-      size === 'xs' ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-xs"
-    )} title="Adaptive - adjusts to group difficulty">
-      <BarChart3 className={cn(size === 'xs' ? "h-3 w-3" : "h-3.5 w-3.5")} />
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border border-amber-400 bg-amber-100 text-amber-700',
+        size === 'xs' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
+      )}
+      title="Adaptive - adjusts to group difficulty"
+    >
+      <BarChart3 className={cn(size === 'xs' ? 'h-3 w-3' : 'h-3.5 w-3.5')} />
       {showLabel && <span className="opacity-70">🔄</span>}
-      {showLabel && "Adaptive"}
+      {showLabel && 'Adaptive'}
     </span>
   )
 }
@@ -4034,15 +4592,17 @@ interface SortableTreeItemProps extends TreeItemProps {
   onDragStart?: () => void
 }
 
-function SortableTreeItem({ id, children, depth, isLast, dragHandle = true, inlineDragHandle = false }: SortableTreeItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id })
+function SortableTreeItem({
+  id,
+  children,
+  depth,
+  isLast,
+  dragHandle = true,
+  inlineDragHandle = false,
+}: SortableTreeItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -4054,7 +4614,7 @@ function SortableTreeItem({ id, children, depth, isLast, dragHandle = true, inli
     <div ref={setNodeRef} style={style} className="group relative">
       {dragHandle && !inlineDragHandle && (
         <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded opacity-100"
+          className="absolute left-0 top-1/2 -translate-x-6 -translate-y-1/2 cursor-grab rounded p-1 opacity-100 hover:bg-gray-200 active:cursor-grabbing"
           {...attributes}
           {...listeners}
           title="Drag to reorder"
@@ -4066,16 +4626,14 @@ function SortableTreeItem({ id, children, depth, isLast, dragHandle = true, inli
         {inlineDragHandle ? (
           <div className="flex items-center gap-1">
             <button
-              className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-blue-200 rounded flex-shrink-0"
+              className="flex-shrink-0 cursor-grab rounded p-0.5 hover:bg-blue-200 active:cursor-grabbing"
               {...attributes}
               {...listeners}
               title="Drag to reorder"
             >
               <GripVertical className="h-4 w-4 text-blue-400" />
             </button>
-            <div className="flex-1 min-w-0">
-              {children}
-            </div>
+            <div className="min-w-0 flex-1">{children}</div>
           </div>
         ) : (
           children
@@ -4092,7 +4650,11 @@ function SortableTreeItem({ id, children, depth, isLast, dragHandle = true, inli
 function resolveSelectedItem(
   selectedItem: { type: string; id: string } | null,
   modules: Module[]
-): { item: Task | Assessment | Worksheet | ModuleQuiz | Lesson | Module; moduleId: string; lessonId?: string } | null {
+): {
+  item: Task | Assessment | Worksheet | ModuleQuiz | Lesson | Module
+  moduleId: string
+  lessonId?: string
+} | null {
   if (!selectedItem) return null
   for (const mod of modules) {
     if (selectedItem.type === 'module' && mod.id === selectedItem.id) {
@@ -4126,16 +4688,18 @@ function resolveSelectedItem(
 function QuestionsPreview({ questions }: { questions: QuizQuestion[] }) {
   if (!questions?.length) return <p className="text-sm text-muted-foreground">No questions yet.</p>
   return (
-    <div className="space-y-3 mt-2">
+    <div className="mt-2 space-y-3">
       {questions.map((q, idx) => (
-        <div key={q.id} className="border rounded-lg p-3 bg-muted/30 space-y-2">
+        <div key={q.id} className="space-y-2 rounded-lg border bg-muted/30 p-3">
           <div className="flex items-center justify-between">
-            <Badge variant="secondary" className="text-xs">Q{idx + 1} · {q.type.toUpperCase()}</Badge>
+            <Badge variant="secondary" className="text-xs">
+              Q{idx + 1} · {q.type.toUpperCase()}
+            </Badge>
             <span className="text-xs text-muted-foreground">{q.points} pts</span>
           </div>
           <p className="text-sm font-medium">{q.question || '(No question text)'}</p>
           {q.type === 'mcq' && q.options?.length && (
-            <ul className="list-disc list-inside text-sm text-muted-foreground">
+            <ul className="list-inside list-disc text-sm text-muted-foreground">
               {q.options.map((opt, i) => (
                 <li key={i}>{opt || `Option ${i + 1}`}</li>
               ))}
@@ -4145,7 +4709,9 @@ function QuestionsPreview({ questions }: { questions: QuizQuestion[] }) {
             <p className="text-sm text-muted-foreground">Options: True / False</p>
           )}
           {q.explanation && (
-            <p className="text-xs text-muted-foreground border-t pt-2 mt-2">Explanation: {q.explanation}</p>
+            <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">
+              Explanation: {q.explanation}
+            </p>
           )}
           <p className="text-xs text-amber-600">Answer key hidden (instructor only)</p>
         </div>
@@ -4155,7 +4721,13 @@ function QuestionsPreview({ questions }: { questions: QuizQuestion[] }) {
 }
 
 /** Student-like question preview (one at a time) */
-function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]; onClose: () => void }) {
+function StudentPreviewModal({
+  questions,
+  onClose,
+}: {
+  questions: QuizQuestion[]
+  onClose: () => void
+}) {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [showResults, setShowResults] = useState(false)
@@ -4166,46 +4738,67 @@ function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]
   if (showResults) {
     const correct = questions.filter(qq => {
       const a = answers[qq.id]?.toLowerCase()
-      const ca = Array.isArray(qq.correctAnswer) ? qq.correctAnswer[0]?.toLowerCase() : (typeof qq.correctAnswer === 'string' ? qq.correctAnswer.toLowerCase() : '')
+      const ca = Array.isArray(qq.correctAnswer)
+        ? qq.correctAnswer[0]?.toLowerCase()
+        : typeof qq.correctAnswer === 'string'
+          ? qq.correctAnswer.toLowerCase()
+          : ''
       return a && ca && a === ca
     }).length
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
-          <h3 className="text-xl font-bold mb-4">Preview Results</h3>
-          <p className="text-3xl font-bold text-center mb-2">{correct}/{questions.length}</p>
-          <p className="text-center text-muted-foreground mb-6">This is how a student would see their results</p>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl">
+          <h3 className="mb-4 text-xl font-bold">Preview Results</h3>
+          <p className="mb-2 text-center text-3xl font-bold">
+            {correct}/{questions.length}
+          </p>
+          <p className="mb-6 text-center text-muted-foreground">
+            This is how a student would see their results
+          </p>
+          <div className="max-h-60 space-y-2 overflow-y-auto">
             {questions.map((qq, i) => {
               const a = answers[qq.id]?.toLowerCase()
-              const ca = Array.isArray(qq.correctAnswer) ? qq.correctAnswer[0]?.toLowerCase() : (typeof qq.correctAnswer === 'string' ? qq.correctAnswer.toLowerCase() : '')
+              const ca = Array.isArray(qq.correctAnswer)
+                ? qq.correctAnswer[0]?.toLowerCase()
+                : typeof qq.correctAnswer === 'string'
+                  ? qq.correctAnswer.toLowerCase()
+                  : ''
               const isCorrect = !!(a && ca && a === ca)
               return (
-                <div key={qq.id} className={`p-3 rounded-lg border text-sm ${isCorrect ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-400'}`}>
+                <div
+                  key={qq.id}
+                  className={`rounded-lg border p-3 text-sm ${isCorrect ? 'border-green-400 bg-green-50' : 'border-red-400 bg-red-50'}`}
+                >
                   <span className="font-medium">Q{i + 1}:</span> {qq.question.slice(0, 80)}
-                  <span className={`ml-2 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                  <span
+                    className={`ml-2 font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}
+                  >
                     {isCorrect ? '\u2713' : '\u2717'}
                   </span>
                 </div>
               )
             })}
           </div>
-          <Button onClick={onClose} className="w-full mt-4">Close Preview</Button>
+          <Button onClick={onClose} className="mt-4 w-full">
+            Close Preview
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
-        <div className="flex items-center justify-between mb-4">
-          <Badge variant="secondary">Question {currentIdx + 1} of {questions.length}</Badge>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <Badge variant="secondary">
+            Question {currentIdx + 1} of {questions.length}
+          </Badge>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <h3 className="text-lg font-semibold mb-4">{q.question}</h3>
+        <h3 className="mb-4 text-lg font-semibold">{q.question}</h3>
         {q.type === 'mcq' && q.options && (
           <div className="space-y-2">
             {q.options.map((opt, i) => (
@@ -4213,8 +4806,8 @@ function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]
                 key={i}
                 onClick={() => setAnswers({ ...answers, [q.id]: opt })}
                 className={cn(
-                  "w-full text-left p-3 rounded-lg border transition-all text-sm",
-                  answers[q.id] === opt ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                  'w-full rounded-lg border p-3 text-left text-sm transition-all',
+                  answers[q.id] === opt ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
                 )}
               >
                 {String.fromCharCode(65 + i)}. {opt}
@@ -4229,8 +4822,8 @@ function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]
                 key={opt}
                 onClick={() => setAnswers({ ...answers, [q.id]: opt })}
                 className={cn(
-                  "flex-1 p-3 rounded-lg border transition-all font-medium",
-                  answers[q.id] === opt ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                  'flex-1 rounded-lg border p-3 font-medium transition-all',
+                  answers[q.id] === opt ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
                 )}
               >
                 {opt}
@@ -4241,12 +4834,14 @@ function StudentPreviewModal({ questions, onClose }: { questions: QuizQuestion[]
         {(q.type === 'shortanswer' || q.type === 'essay') && (
           <Textarea
             value={answers[q.id] || ''}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAnswers({ ...answers, [q.id]: e.target.value })}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setAnswers({ ...answers, [q.id]: e.target.value })
+            }
             placeholder="Type your answer..."
             rows={q.type === 'essay' ? 5 : 2}
           />
         )}
-        <div className="flex justify-between mt-6">
+        <div className="mt-6 flex justify-between">
           <Button
             variant="outline"
             disabled={currentIdx === 0}
@@ -4281,16 +4876,40 @@ interface PreviewCardProps {
   onSaveAll?: () => void
 }
 
-function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, courseId, lessonId, showLiveShareAction, onMakeVisibleToStudents, onSaveAll }: PreviewCardProps) {
+function PreviewCard({
+  type,
+  item,
+  onEdit,
+  onDuplicate,
+  onRemove,
+  onUpdateItem,
+  courseId,
+  lessonId,
+  showLiveShareAction,
+  onMakeVisibleToStudents,
+  onSaveAll,
+}: PreviewCardProps) {
   const [studentPreviewOpen, setStudentPreviewOpen] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [resourceText, setResourceText] = useState('')
   const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false)
-  const [generatedPdf, setGeneratedPdf] = useState<{ url: string; fileName: string; blob: Blob } | null>(null)
+  const [generatedPdf, setGeneratedPdf] = useState<{
+    url: string
+    fileName: string
+    blob: Blob
+  } | null>(null)
   const [questionBankOpen, setQuestionBankOpen] = useState(false)
   const [showPreviewAnswerKey, setShowPreviewAnswerKey] = useState(false)
   const [isAssigned, setIsAssigned] = useState(false)
-  const normalizedItem = item as (Task | Assessment | Worksheet | Quiz | ModuleQuiz | Lesson | Module) & {
+  const normalizedItem = item as (
+    | Task
+    | Assessment
+    | Worksheet
+    | Quiz
+    | ModuleQuiz
+    | Lesson
+    | Module
+  ) & {
     description?: string
     instructions?: string
     points?: number
@@ -4307,24 +4926,30 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
   const totalQuestionPoints = questions.reduce((sum, question) => sum + (question.points || 0), 0)
   const showPreviewBadges = !showLiveShareAction
   const isDraft = normalizedItem.isPublished === false
-  const allExtendEnabled = questions.length > 0 && questions.every((q) => q.extendEnabled)
+  const allExtendEnabled = questions.length > 0 && questions.every(q => q.extendEnabled)
 
   const addPreviewQuestion = (type: QuizQuestion['type']) => {
     if (!onUpdateItem) return
-    const matchingPairs = type === 'matching'
-      ? [
-        { left: '', right: '' },
-        { left: '', right: '' },
-      ]
-      : undefined
+    const matchingPairs =
+      type === 'matching'
+        ? [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ]
+        : undefined
     const newQuestion: QuizQuestion = {
       id: `q-${generateId()}`,
       type,
       question: '',
       points: 1,
-      options: (type === 'mcq' || type === 'multiselect') ? ['', '', '', ''] : type === 'truefalse' ? ['True', 'False'] : undefined,
+      options:
+        type === 'mcq' || type === 'multiselect'
+          ? ['', '', '', '']
+          : type === 'truefalse'
+            ? ['True', 'False']
+            : undefined,
       matchingPairs,
-      correctAnswer: matchingPairs ? matchingPairs.map((pair) => pair.right) : undefined,
+      correctAnswer: matchingPairs ? matchingPairs.map(pair => pair.right) : undefined,
     }
     onUpdateItem({
       questions: [...(normalizedItem.questions || []), newQuestion],
@@ -4341,7 +4966,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
   const deletePreviewQuestion = (questionId: string) => {
     if (!onUpdateItem) return
-    const next = (normalizedItem.questions || []).filter((q) => q.id !== questionId)
+    const next = (normalizedItem.questions || []).filter(q => q.id !== questionId)
     onUpdateItem({ questions: next } as PreviewUpdatePayload)
   }
 
@@ -4361,33 +4986,47 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
     const lesson = item as Lesson
     return (
       <div className="space-y-4 text-left">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-green-500" />
             <div>
-              <Badge variant="outline" className="text-xs">Lesson</Badge>
+              <Badge variant="outline" className="text-xs">
+                Lesson
+              </Badge>
               {/* Draft badge removed */}
-              <h3 className="font-semibold text-lg mt-1">{lesson.title}</h3>
+              <h3 className="mt-1 text-lg font-semibold">{lesson.title}</h3>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={onEdit} className="gap-1">
             <PenTool className="h-3 w-3" /> Edit
           </Button>
         </div>
-        {lesson.description && <p className="text-sm text-muted-foreground">{lesson.description}</p>}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
-          <div><span className="text-muted-foreground">Duration:</span> {lesson.duration} min</div>
-          <div><span className="text-muted-foreground">Tasks:</span> {lesson.tasks.length}</div>
-          <div><span className="text-muted-foreground">Assessment:</span> {lesson.homework.length}</div>
-          <div><span className="text-muted-foreground">Exams:</span> 0</div>
+        {lesson.description && (
+          <p className="text-sm text-muted-foreground">{lesson.description}</p>
+        )}
+        <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+          <div>
+            <span className="text-muted-foreground">Duration:</span> {lesson.duration} min
+          </div>
+          <div>
+            <span className="text-muted-foreground">Tasks:</span> {lesson.tasks.length}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Assessment:</span> {lesson.homework.length}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Exams:</span> 0
+          </div>
         </div>
         {lesson.content.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-2">Content ({lesson.content.length})</h4>
+            <h4 className="mb-2 text-sm font-medium">Content ({lesson.content.length})</h4>
             <div className="space-y-1">
               {lesson.content.map(c => (
-                <div key={c.id} className="flex items-center gap-2 text-sm border rounded p-2">
-                  <Badge variant="secondary" className="text-xs capitalize">{c.type}</Badge>
+                <div key={c.id} className="flex items-center gap-2 rounded border p-2 text-sm">
+                  <Badge variant="secondary" className="text-xs capitalize">
+                    {c.type}
+                  </Badge>
                   <span>{c.title}</span>
                 </div>
               ))}
@@ -4410,12 +5049,14 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
     const totalAssessments = mod.lessons.reduce((sum, l) => sum + l.homework.length, 0)
     return (
       <div className="space-y-4 text-left">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />
             <div>
-              <Badge variant="outline" className="text-xs">Lesson</Badge>
-              <h3 className="font-semibold text-lg mt-1">{mod.title}</h3>
+              <Badge variant="outline" className="text-xs">
+                Lesson
+              </Badge>
+              <h3 className="mt-1 text-lg font-semibold">{mod.title}</h3>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={onEdit} className="gap-1">
@@ -4424,17 +5065,33 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
         </div>
         {mod.description && <p className="text-sm text-muted-foreground">{mod.description}</p>}
         <div className="grid grid-cols-3 gap-2 text-sm">
-          <div><span className="text-muted-foreground">Tasks:</span> {totalTasks}</div>
-          <div><span className="text-muted-foreground">Assessments:</span> {totalAssessments}</div>
-          <div><span className="text-muted-foreground">Exams:</span> {mod.moduleQuizzes.length}</div>
+          <div>
+            <span className="text-muted-foreground">Tasks:</span> {totalTasks}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Assessments:</span> {totalAssessments}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Exams:</span> {mod.moduleQuizzes.length}
+          </div>
         </div>
       </div>
     )
   }
 
   const isQuiz = type === 'moduleQuiz'
-  const homeworkLabel = type === 'homework' && (item as Assessment).category === 'homework' ? 'Homework' : 'Assessment'
-  const label = type === 'moduleQuiz' ? 'Exam' : type === 'task' ? 'Task' : type === 'homework' ? homeworkLabel : type === 'worksheet' ? 'Worksheet' : 'Assessment'
+  const homeworkLabel =
+    type === 'homework' && (item as Assessment).category === 'homework' ? 'Homework' : 'Assessment'
+  const label =
+    type === 'moduleQuiz'
+      ? 'Exam'
+      : type === 'task'
+        ? 'Task'
+        : type === 'homework'
+          ? homeworkLabel
+          : type === 'worksheet'
+            ? 'Worksheet'
+            : 'Assessment'
   const isActivity = type === 'task' || type === 'homework'
   const activityLabel = type === 'task' ? 'Task' : homeworkLabel
 
@@ -4473,12 +5130,15 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
   const toggleAllExtend = (checked: boolean) => {
     if (!onUpdateItem) return
-    const nextQuestions = questions.map((q) => ({ ...q, extendEnabled: checked }))
+    const nextQuestions = questions.map(q => ({ ...q, extendEnabled: checked }))
     onUpdateItem({ questions: nextQuestions } as PreviewUpdatePayload)
   }
 
   const handleConfirmPublish = async () => {
-    if (!courseId) { toast.error('Course ID not available'); return }
+    if (!courseId) {
+      toast.error('Course ID not available')
+      return
+    }
     if (!generatedPdf) return
 
     setPublishing(true)
@@ -4514,11 +5174,11 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
         estimatedMinutes: normalizedItem.estimatedMinutes,
         documentSource: generatedDocument
           ? JSON.stringify({
-            fileName: generatedDocument.fileName,
-            mimeType: generatedDocument.mimeType,
-            fileUrl: generatedDocument.fileUrl,
-            extractedText: generatedDocument.extractedText,
-          })
+              fileName: generatedDocument.fileName,
+              mimeType: generatedDocument.mimeType,
+              fileUrl: generatedDocument.fileUrl,
+              extractedText: generatedDocument.extractedText,
+            })
           : null,
       }
       const res = await fetch(`/api/tutor/courses/${courseId}/tasks/publish-from-builder`, {
@@ -4551,7 +5211,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
   return (
     <div className="space-y-4 text-left">
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {type === 'task' && <ListTodo className="h-5 w-5 text-orange-500" />}
           {type === 'homework' && <Home className="h-5 w-5 text-purple-500" />}
@@ -4559,15 +5219,17 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {type === 'moduleQuiz' && <FileQuestion className="h-5 w-5 text-red-500" />}
           <div>
             {showPreviewBadges && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline" className="text-xs">{label}</Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {label}
+                </Badge>
                 {/* Draft badge removed */}
               </div>
             )}
-            <h3 className="font-semibold text-lg mt-1">{item.title}</h3>
+            <h3 className="mt-1 text-lg font-semibold">{item.title}</h3>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={onEdit} className="gap-1">
             <PenTool className="h-3 w-3" />
             Edit
@@ -4583,7 +5245,12 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
             Duplicate
           </Button>
           {questions.length > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setStudentPreviewOpen(true)} className="gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setStudentPreviewOpen(true)}
+              className="gap-1"
+            >
               <Unlock className="h-3 w-3" />
               Student View
             </Button>
@@ -4591,15 +5258,32 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {courseId && (
             <Button
               size="sm"
-              onClick={isAssigned ? () => setStudentPreviewOpen(true) : (showLiveShareAction ? handleAssignToLiveClass : handleGenerateAndPreviewPDF)}
+              onClick={
+                isAssigned
+                  ? () => setStudentPreviewOpen(true)
+                  : showLiveShareAction
+                    ? handleAssignToLiveClass
+                    : handleGenerateAndPreviewPDF
+              }
               disabled={publishing || questions.length === 0}
               className="gap-1"
             >
-              {publishing ? <Loader2 className="h-3 w-3 animate-spin" /> : (isAssigned ? <Unlock className="h-3 w-3" /> : <Send className="h-3 w-3" />)}
-              {isAssigned ? 'View' : (showLiveShareAction ? 'Assign' : 'Publish & Assign')}
+              {publishing ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : isAssigned ? (
+                <Unlock className="h-3 w-3" />
+              ) : (
+                <Send className="h-3 w-3" />
+              )}
+              {isAssigned ? 'View' : showLiveShareAction ? 'Assign' : 'Publish & Assign'}
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={onRemove} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRemove}
+            className="gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
             <Trash2 className="h-3 w-3" />
             Remove
           </Button>
@@ -4607,14 +5291,14 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
       </div>
       {normalizedItem.description && (
         <div className="rounded-lg bg-muted/40 p-3">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Instructions</p>
-          <p className="text-sm whitespace-pre-wrap">{normalizedItem.description}</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">Instructions</p>
+          <p className="whitespace-pre-wrap text-sm">{normalizedItem.description}</p>
         </div>
       )}
       {'instructions' in normalizedItem && normalizedItem.instructions && (
         <div className="rounded-lg bg-muted/40 p-3">
-          <p className="text-xs font-medium text-muted-foreground mb-1">Instructions</p>
-          <p className="text-sm whitespace-pre-wrap">{normalizedItem.instructions}</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">Instructions</p>
+          <p className="whitespace-pre-wrap text-sm">{normalizedItem.instructions}</p>
         </div>
       )}
       {isActivity && (
@@ -4623,45 +5307,51 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           {onUpdateItem && (
             <ResourceImportPanel
               data={item as Task}
-              setData={(next) => onUpdateItem(next as PreviewUpdatePayload)}
+              setData={next => onUpdateItem(next as PreviewUpdatePayload)}
               targetField="instructions"
             />
           )}
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex items-center gap-2">
-              <Label className="text-xs whitespace-nowrap">Points:</Label>
-              <Input
-                type="number"
-                className="w-24 h-8"
-                value={totalQuestionPoints}
-                readOnly
-              />
+              <Label className="whitespace-nowrap text-xs">Points:</Label>
+              <Input type="number" className="h-8 w-24" value={totalQuestionPoints} readOnly />
             </div>
           </div>
         </div>
       )}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+      <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
         {'timeLimit' in normalizedItem && normalizedItem.timeLimit != null && (
-          <div><span className="text-muted-foreground">Time limit:</span> {normalizedItem.timeLimit} min</div>
+          <div>
+            <span className="text-muted-foreground">Time limit:</span> {normalizedItem.timeLimit}{' '}
+            min
+          </div>
         )}
-        {'attemptsAllowed' in normalizedItem && typeof normalizedItem.attemptsAllowed === 'number' && (
-          <div><span className="text-muted-foreground">Attempts:</span> {normalizedItem.attemptsAllowed}</div>
-        )}
+        {'attemptsAllowed' in normalizedItem &&
+          typeof normalizedItem.attemptsAllowed === 'number' && (
+            <div>
+              <span className="text-muted-foreground">Attempts:</span>{' '}
+              {normalizedItem.attemptsAllowed}
+            </div>
+          )}
       </div>
       <div>
-        <h4 className="text-sm font-medium mb-2">Questions ({questions?.length ?? 0})</h4>
+        <h4 className="mb-2 text-sm font-medium">Questions ({questions?.length ?? 0})</h4>
         {isActivity ? (
           <div className="space-y-3">
             {(questions || []).map((q, idx) => (
-              <div key={q.id} className="border rounded-lg p-4 space-y-3 bg-white">
+              <div key={q.id} className="space-y-3 rounded-lg border bg-white p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Badge variant="secondary">Q{idx + 1} - {q.type.toUpperCase()}</Badge>
+                    <Badge variant="secondary">
+                      Q{idx + 1} - {q.type.toUpperCase()}
+                    </Badge>
                     <label className="flex items-center gap-1 text-xs text-muted-foreground">
                       <input
                         type="checkbox"
                         checked={q.extendEnabled ?? false}
-                        onChange={(e: any) => updatePreviewQuestion(idx, { extendEnabled: e.target.checked })}
+                        onChange={(e: any) =>
+                          updatePreviewQuestion(idx, { extendEnabled: e.target.checked })
+                        }
                       />
                       Extend
                     </label>
@@ -4669,9 +5359,11 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
-                      className="w-20 h-8"
+                      className="h-8 w-20"
                       value={q.points}
-                      onChange={(e: any) => updatePreviewQuestion(idx, { points: parseInt(e.target.value) || 1 })}
+                      onChange={(e: any) =>
+                        updatePreviewQuestion(idx, { points: parseInt(e.target.value) || 1 })
+                      }
                     />
                     <span className="text-sm text-muted-foreground">pts</span>
                     <Button
@@ -4687,51 +5379,60 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                     </Button>
                   </div>
                 </div>
-                <AutoTextarea value={q.question}
+                <AutoTextarea
+                  value={q.question}
                   onChange={(e: any) => updatePreviewQuestion(idx, { question: e.target.value })}
                   placeholder="Enter question"
                   rows={2}
                 />
                 {(q.type === 'mcq' || q.type === 'multiselect') && (
                   <div className="space-y-2 pl-4">
-                    {(q.options && q.options.length > 0 ? q.options : ['', '', '', '']).map((opt, optIdx) => {
-                      const options = q.options && q.options.length > 0 ? q.options : ['', '', '', '']
-                      const selectedAnswers = Array.isArray(q.correctAnswer) ? q.correctAnswer : []
-                      const checked = q.type === 'multiselect' ? selectedAnswers.includes(opt) : q.correctAnswer === opt
-                      return (
-                        <div key={optIdx} className="flex items-center gap-2">
-                          {q.type === 'multiselect' ? (
-                            <input
-                              type="checkbox"
-                              checked={checked}
+                    {(q.options && q.options.length > 0 ? q.options : ['', '', '', '']).map(
+                      (opt, optIdx) => {
+                        const options =
+                          q.options && q.options.length > 0 ? q.options : ['', '', '', '']
+                        const selectedAnswers = Array.isArray(q.correctAnswer)
+                          ? q.correctAnswer
+                          : []
+                        const checked =
+                          q.type === 'multiselect'
+                            ? selectedAnswers.includes(opt)
+                            : q.correctAnswer === opt
+                        return (
+                          <div key={optIdx} className="flex items-center gap-2">
+                            {q.type === 'multiselect' ? (
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(e: any) => {
+                                  const next = new Set(selectedAnswers)
+                                  if (e.target.checked) next.add(opt)
+                                  else next.delete(opt)
+                                  updatePreviewQuestion(idx, { correctAnswer: Array.from(next) })
+                                }}
+                              />
+                            ) : (
+                              <input
+                                type="radio"
+                                name={`correct-${q.id}`}
+                                checked={checked}
+                                onChange={() => updatePreviewQuestion(idx, { correctAnswer: opt })}
+                              />
+                            )}
+                            <Input
+                              value={options[optIdx]}
                               onChange={(e: any) => {
-                                const next = new Set(selectedAnswers)
-                                if (e.target.checked) next.add(opt)
-                                else next.delete(opt)
-                                updatePreviewQuestion(idx, { correctAnswer: Array.from(next) })
+                                const nextOptions = [...options]
+                                nextOptions[optIdx] = e.target.value
+                                updatePreviewQuestion(idx, { options: nextOptions })
                               }}
+                              placeholder={`Option ${optIdx + 1}`}
+                              className="flex-1"
                             />
-                          ) : (
-                            <input
-                              type="radio"
-                              name={`correct-${q.id}`}
-                              checked={checked}
-                              onChange={() => updatePreviewQuestion(idx, { correctAnswer: opt })}
-                            />
-                          )}
-                          <Input
-                            value={options[optIdx]}
-                            onChange={(e: any) => {
-                              const nextOptions = [...options]
-                              nextOptions[optIdx] = e.target.value
-                              updatePreviewQuestion(idx, { options: nextOptions })
-                            }}
-                            placeholder={`Option ${optIdx + 1}`}
-                            className="flex-1"
-                          />
-                        </div>
-                      )
-                    })}
+                          </div>
+                        )
+                      }
+                    )}
                   </div>
                 )}
                 {q.type === 'truefalse' && (
@@ -4758,11 +5459,16 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                 )}
                 {q.type === 'matching' && (
                   <MatchingPairsEditor
-                    pairs={q.matchingPairs ?? [{ left: '', right: '' }, { left: '', right: '' }]}
-                    onChange={(nextPairs) =>
+                    pairs={
+                      q.matchingPairs ?? [
+                        { left: '', right: '' },
+                        { left: '', right: '' },
+                      ]
+                    }
+                    onChange={nextPairs =>
                       updatePreviewQuestion(idx, {
                         matchingPairs: nextPairs,
-                        correctAnswer: nextPairs.map((pair) => pair.right),
+                        correctAnswer: nextPairs.map(pair => pair.right),
                         explanation: formatMatchingExplanation(nextPairs),
                       })
                     }
@@ -4783,38 +5489,39 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
         )}
       </div>
       {isActivity && (
-        <div className="flex items-center gap-2 pt-4 border-t flex-wrap">
+        <div className="flex flex-wrap items-center gap-2 border-t pt-4">
           <Button variant="secondary" size="sm" onClick={() => setQuestionBankOpen(true)}>
-            <BookOpen className="h-4 w-4 mr-1" /> Add from question bank
+            <BookOpen className="mr-1 h-4 w-4" /> Add from question bank
           </Button>
-          <div className="h-6 w-px bg-border mx-1" />
+          <div className="mx-1 h-6 w-px bg-border" />
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('mcq')}>
-            <Plus className="h-4 w-4 mr-1" /> MCQ
+            <Plus className="mr-1 h-4 w-4" /> MCQ
           </Button>
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('truefalse')}>
-            <Plus className="h-4 w-4 mr-1" /> T/F
+            <Plus className="mr-1 h-4 w-4" /> T/F
           </Button>
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('shortanswer')}>
-            <Plus className="h-4 w-4 mr-1" /> Short
+            <Plus className="mr-1 h-4 w-4" /> Short
           </Button>
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('essay')}>
-            <Plus className="h-4 w-4 mr-1" /> Essay
+            <Plus className="mr-1 h-4 w-4" /> Essay
           </Button>
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('multiselect')}>
-            <Plus className="h-4 w-4 mr-1" /> Multi
+            <Plus className="mr-1 h-4 w-4" /> Multi
           </Button>
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('matching')}>
-            <Plus className="h-4 w-4 mr-1" /> Match
+            <Plus className="mr-1 h-4 w-4" /> Match
           </Button>
           <Button variant="outline" size="sm" onClick={() => addPreviewQuestion('fillblank')}>
-            <Plus className="h-4 w-4 mr-1" /> Fill
+            <Plus className="mr-1 h-4 w-4" /> Fill
           </Button>
         </div>
       )}
       {sourceDocument && (
         <div className="space-y-2 rounded-lg border p-3">
           <div className="text-xs text-muted-foreground">
-            Imported file: <span className="font-medium text-foreground">{sourceDocument.fileName}</span>
+            Imported file:{' '}
+            <span className="font-medium text-foreground">{sourceDocument.fileName}</span>
           </div>
           <Textarea
             value={resourceText}
@@ -4829,7 +5536,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               onClick={() => {
                 if (!onUpdateItem) return
                 onUpdateItem({
-                  sourceDocument: { ...sourceDocument, extractedText: resourceText }
+                  sourceDocument: { ...sourceDocument, extractedText: resourceText },
                 })
                 toast.success('Imported content updated')
               }}
@@ -4841,15 +5548,12 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
       )}
 
       {studentPreviewOpen && questions.length > 0 && (
-        <StudentPreviewModal
-          questions={questions}
-          onClose={() => setStudentPreviewOpen(false)}
-        />
+        <StudentPreviewModal questions={questions} onClose={() => setStudentPreviewOpen(false)} />
       )}
 
       {isActivity && (
         <Dialog open={questionBankOpen} onOpenChange={setQuestionBankOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
@@ -4857,7 +5561,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
               </DialogTitle>
             </DialogHeader>
             <QuestionBankSelector
-              onSelect={(incomingQuestions) => {
+              onSelect={incomingQuestions => {
                 if (!onUpdateItem) return
                 onUpdateItem({
                   questions: [...(normalizedItem.questions || []), ...incomingQuestions],
@@ -4873,7 +5577,7 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 
       {/* PDF Preview Modal */}
       <Dialog open={pdfPreviewOpen} onOpenChange={setPdfPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-500" />
@@ -4882,18 +5586,19 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Review the generated question paper before assigning to students. Each student will receive their own copy.
+              Review the generated question paper before assigning to students. Each student will
+              receive their own copy.
             </p>
             {generatedPdf && (
-              <div className="border rounded-lg overflow-hidden bg-gray-100">
+              <div className="overflow-hidden rounded-lg border bg-gray-100">
                 <iframe
                   src={generatedPdf.url}
-                  className="w-full h-[500px]"
+                  className="h-[500px] w-full"
                   title="Question Paper Preview"
                 />
               </div>
             )}
-            <div className="flex items-center justify-between pt-4 border-t">
+            <div className="flex items-center justify-between border-t pt-4">
               <div className="text-sm text-muted-foreground">
                 {questions.length} questions •
                 {questions.reduce((sum, q) => sum + (q.points || 1), 0)} total points
@@ -4902,12 +5607,12 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
                 <Button variant="outline" onClick={() => setPdfPreviewOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  onClick={handleConfirmPublish}
-                  disabled={publishing}
-                  className="gap-1"
-                >
-                  {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                <Button onClick={handleConfirmPublish} disabled={publishing} className="gap-1">
+                  {publishing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                   Assign to Students
                 </Button>
               </div>
@@ -4923,654 +5628,806 @@ function PreviewCard({ type, item, onEdit, onDuplicate, onRemove, onUpdateItem, 
 // MAIN COURSE BUILDER COMPONENT
 // ============================================
 
-export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(function CourseBuilder(
-  { courseId, courseName, panelMode = 'default', initialModules = [], lessonBankMode = false, onSave, onMakeVisibleToStudents },
-  ref
-) {
-  const [modules, setModules] = useState<Module[]>([])
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
-  const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
-  const [outlineModalOpen, setOutlineModalOpen] = useState(false)
-  const [aiPanelOpen, setAiPanelOpen] = useState(false)
-  const [importTarget, setImportTarget] = useState<{ moduleId: string, lessonId: string } | null>(null)
-  const [lessonBankImportOpen, setLessonBankImportOpen] = useState(false)
-  const [importLessonSelectorOpen, setImportLessonSelectorOpen] = useState(false)
-  const [lessonBankModules, setLessonBankModules] = useState<Module[]>([])
-  const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
-  const [courseAssets, setCourseAssets] = useState<{ id: string, name: string, content?: string }[]>([])
-  const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-  const [assetToLoad, setAssetToLoad] = useState<{name: string, content?: string} | null>(null)
-  const [leftPanelHidden, setLeftPanelHidden] = useState(false)
-  const [leftPanelWidth, setLeftPanelWidth] = useState(280)
-  const [leftPanelResizing, setLeftPanelResizing] = useState(false)
-  const leftPanelRef = useRef<HTMLDivElement>(null)
-  const [assetsOpen, setAssetsOpen] = useState(true)
-  const [mediaOpen, setMediaOpen] = useState(true)
-  const [docsOpen, setDocsOpen] = useState(true)
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
-  const [collapsedTaskExtensions, setCollapsedTaskExtensions] = useState<Set<string>>(new Set())
-
-  const objectUrlsRef = useRef<string[]>([])
-
-  // State for lesson selection dialog
-  const [lessonSelectDialog, setLessonSelectDialog] = useState<{
-    isOpen: boolean
-    type: 'task' | 'assessment' | null
-    title: string
-  }>({ isOpen: false, type: null, title: '' })
-
-  // State for editable PCI tabs
-  const [testPciTabs, setTestPciTabs] = useState([
-    { id: 'classroom', label: 'Classroom' },
-    { id: 'student1', label: 'Test Student 1' },
-    { id: 'student2', label: 'Test Student 2' }
-  ])
-  const [editingTabId, setEditingTabId] = useState<string | null>(null)
-
-  // Builder state for Task and Assessment
-  // Task content is always preserved. Extensions have their own content.
-  // When activeExtensionId is null, we show/edit taskContent/taskPci
-  // When activeExtensionId is set, we show/edit that extension's content
-  const [taskBuilder, setTaskBuilder] = useState({
-    title: '',
-    taskContent: '', // Base task content (never overwritten by extensions)
-    taskPci: '', // Base task PCI (never overwritten by extensions)
-    details: '',
-    // Extensions have their own content stored separately
-    extensions: [] as { id: string; name: string; description?: string; content: string; pci: string }[],
-    activeExtensionId: null as string | null, // null = viewing task, string = viewing extension
-  })
-
-  const [assessmentBuilder, setAssessmentBuilder] = useState({
-    title: '',
-    taskContent: '',
-    taskPci: '',
-    details: '',
-    extensions: [] as { id: string; name: string; description?: string; content: string; pci: string }[],
-    activeExtensionId: null as string | null,
-  })
-
-  const [taskPciMessages, setTaskPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
-  const [taskExtensionPciMessages, setTaskExtensionPciMessages] = useState<Record<string, { role: 'user' | 'assistant'; content: string }[]>>({})
-  const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
-  const [assessmentPciMessages, setAssessmentPciMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
-  const [taskPciInput, setTaskPciInput] = useState('')
-  const [assessmentPciInput, setAssessmentPciInput] = useState('')
-  const [taskPciLoading, setTaskPciLoading] = useState(false)
-  const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
-  const [taskPciErrorHint, setTaskPciErrorHint] = useState('')
-  const [assessmentPciErrorHint, setAssessmentPciErrorHint] = useState('')
-
-  // AI Assist Agent state - separate for task and assessment
-  const [aiAssistOpen, setAiAssistOpen] = useState(false)
-  const [aiAssistContext, setAiAssistContext] = useState<'task' | 'assessment'>('task')
-  const [taskAiMessages, setTaskAiMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
-  const [assessmentAiMessages, setAssessmentAiMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
-
-  // Uploaded files tracking
-  const [taskUploadedFiles, setTaskUploadedFiles] = useState<{ id: string; name: string }[]>([])
-  const [assessmentUploadedFiles, setAssessmentUploadedFiles] = useState<{ id: string; name: string }[]>([])
-
-  // Test PCI state
-  const [testPciInput, setTestPciInput] = useState('')
-  const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
-    classroom: '',
-    student1: '',
-    student2: ''
-  })
-  // AI scoring results for Test PCI
-  const [testPciScores, setTestPciScores] = useState<Record<string, { score: number; feedback: string }[]>>({
-    classroom: [],
-    student1: [],
-    student2: []
-  })
-  const [testPciLoading, setTestPciLoading] = useState(false)
-  const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
-  const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
-  const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
-  const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
-
-  // Active tab tracking for Enter button
-  const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
-  const [assessmentBuilderActiveTab, setAssessmentBuilderActiveTab] = useState<'content' | 'pci'>('content')
-
-  // Main builder tab (task vs assessment)
-  const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
-
-  // Question Bank modal state
-  const [questionBankOpen, setQuestionBankOpen] = useState(false)
-  const [questionBankTarget, setQuestionBankTarget] = useState<string | null>(null)
-  const [importTypeModalData, setImportTypeModalData] = useState<{ target: { moduleId: string, lessonId: string }, items: { questionText: string, pciText: string }[] } | null>(null)
-
-  // Track currently loaded item for saving back
-  const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
-  const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
-
-  // Load task data into taskBuilder
-  const parsePciTranscript = (text: string) => {
-    if (!text?.trim()) return [] as { role: 'user' | 'assistant'; content: string }[]
-    const lines = text.split('\n')
-    const messages: { role: 'user' | 'assistant'; content: string }[] = []
-    let current: { role: 'user' | 'assistant'; content: string } | null = null
-    for (const line of lines) {
-      const trimmed = line.trim()
-      const userMatch = trimmed.match(/^User:\s*(.*)$/i)
-      const assistantMatch = trimmed.match(/^Assistant:\s*(.*)$/i)
-      if (userMatch) {
-        if (current) messages.push(current)
-        current = { role: 'user', content: userMatch[1] }
-        continue
-      }
-      if (assistantMatch) {
-        if (current) messages.push(current)
-        current = { role: 'assistant', content: assistantMatch[1] }
-        continue
-      }
-      if (current) {
-        current.content = `${current.content}\n${line}`
-      } else if (trimmed) {
-        current = { role: 'assistant', content: trimmed }
-      }
-    }
-    if (current) messages.push(current)
-    return messages
-  }
-
-  const loadTaskIntoBuilder = useCallback((task: Task, activeExtensionId: string | null = null) => {
-    // Prioritize description over sourceDocument - description holds edited content
-    const content = task.description || task.sourceDocument?.extractedText || ''
-    setTaskBuilder({
-      title: task.title || '',
-      taskContent: content,
-      taskPci: task.instructions || '',
-      details: task.shortDescription || '',
-      extensions: (task.extensions || []).map(ext => ({ ...ext, description: ext.description || '' })),
-      activeExtensionId,
-    })
-    setTaskDmiItems(task.dmiItems || [])
-    setTaskPciMessages(parsePciTranscript(task.instructions || ''))
-    setTaskExtensionPciMessages(
-      (task.extensions || []).reduce<Record<string, { role: 'user' | 'assistant'; content: string }[]>>((acc, ext) => {
-        acc[ext.id] = parsePciTranscript(ext.pci || '')
-        return acc
-      }, {})
+export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
+  function CourseBuilder(
+    {
+      courseId,
+      courseName,
+      panelMode = 'default',
+      initialModules = [],
+      lessonBankMode = false,
+      onSave,
+      onMakeVisibleToStudents,
+    },
+    ref
+  ) {
+    const [modules, setModules] = useState<Module[]>([])
+    const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+    const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
+    const [outlineModalOpen, setOutlineModalOpen] = useState(false)
+    const [aiPanelOpen, setAiPanelOpen] = useState(false)
+    const [importTarget, setImportTarget] = useState<{ moduleId: string; lessonId: string } | null>(
+      null
     )
-    setTaskExtensionPciInputs(prev => {
-      const next = { ...prev }
-      for (const ext of task.extensions || []) {
-        if (next[ext.id] === undefined) next[ext.id] = ''
-      }
-      return next
-    })
-    setLoadedTaskId(task.id)
-    setTaskUploadedFiles(task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : [])
-  }, [])
+    const [lessonBankImportOpen, setLessonBankImportOpen] = useState(false)
+    const [importLessonSelectorOpen, setImportLessonSelectorOpen] = useState(false)
+    const [lessonBankModules, setLessonBankModules] = useState<Module[]>([])
+    const [lessonBankLessonKey, setLessonBankLessonKey] = useState<string>('')
+    const [courseAssets, setCourseAssets] = useState<
+      { id: string; name: string; content?: string }[]
+    >([])
+    const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
+    const [assetToLoad, setAssetToLoad] = useState<{ name: string; content?: string } | null>(null)
+    const [leftPanelHidden, setLeftPanelHidden] = useState(false)
+    const [leftPanelWidth, setLeftPanelWidth] = useState(280)
+    const [leftPanelResizing, setLeftPanelResizing] = useState(false)
+    const leftPanelRef = useRef<HTMLDivElement>(null)
+    const [assetsOpen, setAssetsOpen] = useState(true)
+    const [mediaOpen, setMediaOpen] = useState(true)
+    const [docsOpen, setDocsOpen] = useState(true)
+    const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+    const [collapsedTaskExtensions, setCollapsedTaskExtensions] = useState<Set<string>>(new Set())
 
-  // Load assessment data into assessmentBuilder
-  const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
-    // Prioritize description over sourceDocument - description holds edited content
-    const content = assessment.description || assessment.sourceDocument?.extractedText || ''
-    setAssessmentBuilder({
-      title: assessment.title || '',
-      taskContent: content,
-      taskPci: assessment.instructions || '',
+    const objectUrlsRef = useRef<string[]>([])
+
+    // State for lesson selection dialog
+    const [lessonSelectDialog, setLessonSelectDialog] = useState<{
+      isOpen: boolean
+      type: 'task' | 'assessment' | null
+      title: string
+    }>({ isOpen: false, type: null, title: '' })
+
+    // State for editable PCI tabs
+    const [testPciTabs, setTestPciTabs] = useState([
+      { id: 'classroom', label: 'Classroom' },
+      { id: 'student1', label: 'Test Student 1' },
+      { id: 'student2', label: 'Test Student 2' },
+    ])
+    const [editingTabId, setEditingTabId] = useState<string | null>(null)
+
+    // Builder state for Task and Assessment
+    // Task content is always preserved. Extensions have their own content.
+    // When activeExtensionId is null, we show/edit taskContent/taskPci
+    // When activeExtensionId is set, we show/edit that extension's content
+    const [taskBuilder, setTaskBuilder] = useState({
+      title: '',
+      taskContent: '', // Base task content (never overwritten by extensions)
+      taskPci: '', // Base task PCI (never overwritten by extensions)
       details: '',
-      extensions: [],
-      activeExtensionId: null,
+      // Extensions have their own content stored separately
+      extensions: [] as {
+        id: string
+        name: string
+        description?: string
+        content: string
+        pci: string
+      }[],
+      activeExtensionId: null as string | null, // null = viewing task, string = viewing extension
     })
-    setAssessmentDmiItems(assessment.dmiItems || [])
-    setLoadedAssessmentId(assessment.id)
-    setAssessmentUploadedFiles(assessment.sourceDocument ? [{ id: 'source', name: assessment.sourceDocument.fileName }] : [])
-  }, [])
 
-  // Load tutor assets from API on mount
-  useEffect(() => {
-    const loadAssets = async () => {
-      try {
-        const res = await fetch('/api/tutor/assets', { credentials: 'include' })
-        if (res.ok) {
-          const data = await res.json()
-          if (data.assets && Array.isArray(data.assets)) {
-            setCourseAssets(data.assets)
+    const [assessmentBuilder, setAssessmentBuilder] = useState({
+      title: '',
+      taskContent: '',
+      taskPci: '',
+      details: '',
+      extensions: [] as {
+        id: string
+        name: string
+        description?: string
+        content: string
+        pci: string
+      }[],
+      activeExtensionId: null as string | null,
+    })
+
+    const [taskPciMessages, setTaskPciMessages] = useState<
+      { role: 'user' | 'assistant'; content: string }[]
+    >([])
+    const [taskExtensionPciMessages, setTaskExtensionPciMessages] = useState<
+      Record<string, { role: 'user' | 'assistant'; content: string }[]>
+    >({})
+    const [taskExtensionPciInputs, setTaskExtensionPciInputs] = useState<Record<string, string>>({})
+    const [assessmentPciMessages, setAssessmentPciMessages] = useState<
+      { role: 'user' | 'assistant'; content: string }[]
+    >([])
+    const [taskPciInput, setTaskPciInput] = useState('')
+    const [assessmentPciInput, setAssessmentPciInput] = useState('')
+    const [taskPciLoading, setTaskPciLoading] = useState(false)
+    const [assessmentPciLoading, setAssessmentPciLoading] = useState(false)
+    const [taskPciErrorHint, setTaskPciErrorHint] = useState('')
+    const [assessmentPciErrorHint, setAssessmentPciErrorHint] = useState('')
+
+    // AI Assist Agent state - separate for task and assessment
+    const [aiAssistOpen, setAiAssistOpen] = useState(false)
+    const [aiAssistContext, setAiAssistContext] = useState<'task' | 'assessment'>('task')
+    const [taskAiMessages, setTaskAiMessages] = useState<
+      { role: 'user' | 'assistant'; content: string }[]
+    >([])
+    const [assessmentAiMessages, setAssessmentAiMessages] = useState<
+      { role: 'user' | 'assistant'; content: string }[]
+    >([])
+
+    // Uploaded files tracking
+    const [taskUploadedFiles, setTaskUploadedFiles] = useState<{ id: string; name: string }[]>([])
+    const [assessmentUploadedFiles, setAssessmentUploadedFiles] = useState<
+      { id: string; name: string }[]
+    >([])
+
+    // Test PCI state
+    const [testPciInput, setTestPciInput] = useState('')
+    const [testPciContent, setTestPciContent] = useState<Record<string, string>>({
+      classroom: '',
+      student1: '',
+      student2: '',
+    })
+    // AI scoring results for Test PCI
+    const [testPciScores, setTestPciScores] = useState<
+      Record<string, { score: number; feedback: string }[]>
+    >({
+      classroom: [],
+      student1: [],
+      student2: [],
+    })
+    const [testPciLoading, setTestPciLoading] = useState(false)
+    const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
+    const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
+    const [taskDmiItems, setTaskDmiItems] = useState<DMIQuestion[]>([])
+    const [assessmentDmiItems, setAssessmentDmiItems] = useState<DMIQuestion[]>([])
+
+    // Active tab tracking for Enter button
+    const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
+    const [assessmentBuilderActiveTab, setAssessmentBuilderActiveTab] = useState<'content' | 'pci'>(
+      'content'
+    )
+
+    // Main builder tab (task vs assessment)
+    const [mainBuilderTab, setMainBuilderTab] = useState<'task' | 'assessment'>('task')
+
+    // Question Bank modal state
+    const [questionBankOpen, setQuestionBankOpen] = useState(false)
+    const [questionBankTarget, setQuestionBankTarget] = useState<string | null>(null)
+    const [importTypeModalData, setImportTypeModalData] = useState<{
+      target: { moduleId: string; lessonId: string }
+      items: { questionText: string; pciText: string }[]
+    } | null>(null)
+
+    // Track currently loaded item for saving back
+    const [loadedTaskId, setLoadedTaskId] = useState<string | null>(null)
+    const [loadedAssessmentId, setLoadedAssessmentId] = useState<string | null>(null)
+
+    // Load task data into taskBuilder
+    const parsePciTranscript = (text: string) => {
+      if (!text?.trim()) return [] as { role: 'user' | 'assistant'; content: string }[]
+      const lines = text.split('\n')
+      const messages: { role: 'user' | 'assistant'; content: string }[] = []
+      let current: { role: 'user' | 'assistant'; content: string } | null = null
+      for (const line of lines) {
+        const trimmed = line.trim()
+        const userMatch = trimmed.match(/^User:\s*(.*)$/i)
+        const assistantMatch = trimmed.match(/^Assistant:\s*(.*)$/i)
+        if (userMatch) {
+          if (current) messages.push(current)
+          current = { role: 'user', content: userMatch[1] }
+          continue
+        }
+        if (assistantMatch) {
+          if (current) messages.push(current)
+          current = { role: 'assistant', content: assistantMatch[1] }
+          continue
+        }
+        if (current) {
+          current.content = `${current.content}\n${line}`
+        } else if (trimmed) {
+          current = { role: 'assistant', content: trimmed }
+        }
+      }
+      if (current) messages.push(current)
+      return messages
+    }
+
+    const loadTaskIntoBuilder = useCallback(
+      (task: Task, activeExtensionId: string | null = null) => {
+        // Prioritize description over sourceDocument - description holds edited content
+        const content = task.description || task.sourceDocument?.extractedText || ''
+        setTaskBuilder({
+          title: task.title || '',
+          taskContent: content,
+          taskPci: task.instructions || '',
+          details: task.shortDescription || '',
+          extensions: (task.extensions || []).map(ext => ({
+            ...ext,
+            description: ext.description || '',
+          })),
+          activeExtensionId,
+        })
+        setTaskDmiItems(task.dmiItems || [])
+        setTaskPciMessages(parsePciTranscript(task.instructions || ''))
+        setTaskExtensionPciMessages(
+          (task.extensions || []).reduce<
+            Record<string, { role: 'user' | 'assistant'; content: string }[]>
+          >((acc, ext) => {
+            acc[ext.id] = parsePciTranscript(ext.pci || '')
+            return acc
+          }, {})
+        )
+        setTaskExtensionPciInputs(prev => {
+          const next = { ...prev }
+          for (const ext of task.extensions || []) {
+            if (next[ext.id] === undefined) next[ext.id] = ''
           }
+          return next
+        })
+        setLoadedTaskId(task.id)
+        setTaskUploadedFiles(
+          task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : []
+        )
+      },
+      []
+    )
+
+    // Load assessment data into assessmentBuilder
+    const loadAssessmentIntoBuilder = useCallback((assessment: Assessment) => {
+      // Prioritize description over sourceDocument - description holds edited content
+      const content = assessment.description || assessment.sourceDocument?.extractedText || ''
+      setAssessmentBuilder({
+        title: assessment.title || '',
+        taskContent: content,
+        taskPci: assessment.instructions || '',
+        details: '',
+        extensions: [],
+        activeExtensionId: null,
+      })
+      setAssessmentDmiItems(assessment.dmiItems || [])
+      setLoadedAssessmentId(assessment.id)
+      setAssessmentUploadedFiles(
+        assessment.sourceDocument
+          ? [{ id: 'source', name: assessment.sourceDocument.fileName }]
+          : []
+      )
+    }, [])
+
+    // Load tutor assets from API on mount
+    useEffect(() => {
+      const loadAssets = async () => {
+        try {
+          const res = await fetch('/api/tutor/assets', { credentials: 'include' })
+          if (res.ok) {
+            const data = await res.json()
+            if (data.assets && Array.isArray(data.assets)) {
+              setCourseAssets(data.assets)
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load tutor assets:', error)
+        }
+      }
+      loadAssets()
+    }, [])
+
+    // Save tutor assets to API when they change (debounced)
+    const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const saveAssetsToApi = useCallback(async (assets: typeof courseAssets) => {
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+
+        const res = await fetch('/api/tutor/assets', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ assets }),
+        })
+
+        if (!res.ok) {
+          console.error('Failed to save tutor assets')
         }
       } catch (error) {
-        console.error('Failed to load tutor assets:', error)
+        console.error('Error saving tutor assets:', error)
       }
-    }
-    loadAssets()
-  }, [])
+    }, [])
 
-  // Save tutor assets to API when they change (debounced)
-  const saveAssetsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const saveAssetsToApi = useCallback(async (assets: typeof courseAssets) => {
-    try {
-      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-      const csrfData = await csrfRes.json().catch(() => ({}))
-      const csrfToken = csrfData?.token ?? null
-
-      const res = await fetch('/api/tutor/assets', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-        },
-        credentials: 'include',
-        body: JSON.stringify({ assets }),
-      })
-
-      if (!res.ok) {
-        console.error('Failed to save tutor assets')
-      }
-    } catch (error) {
-      console.error('Error saving tutor assets:', error)
-    }
-  }, [])
-
-  // Debounced assets save
-  useEffect(() => {
-    if (saveAssetsTimeoutRef.current) {
-      clearTimeout(saveAssetsTimeoutRef.current)
-    }
-    saveAssetsTimeoutRef.current = setTimeout(() => {
-      saveAssetsToApi(courseAssets)
-    }, 2000) // Save after 2 seconds of inactivity
-
-    return () => {
+    // Debounced assets save
+    useEffect(() => {
       if (saveAssetsTimeoutRef.current) {
         clearTimeout(saveAssetsTimeoutRef.current)
       }
-    }
-  }, [courseAssets, saveAssetsToApi])
+      saveAssetsTimeoutRef.current = setTimeout(() => {
+        saveAssetsToApi(courseAssets)
+      }, 2000) // Save after 2 seconds of inactivity
 
-  // Auto-save task on the fly (debounced)
-  useEffect(() => {
-    if (!loadedTaskId) return
-
-    const timeoutId = setTimeout(() => {
-      setModules(prev => prev.map(mod => ({
-        ...mod,
-        lessons: mod.lessons.map(lesson => ({
-          ...lesson,
-          tasks: lesson.tasks.map(task =>
-            task.id === loadedTaskId
-              ? {
-                ...task,
-                title: taskBuilder.title,
-                shortDescription: taskBuilder.details,
-                description: taskBuilder.taskContent,
-                instructions: taskBuilder.taskPci,
-                extensions: taskBuilder.extensions,
-                dmiItems: taskDmiItems,
-                sourceDocument: undefined
-              }
-              : task
-          )
-        }))
-      })))
-    }, 1000) // Auto-save after 1 second of inactivity
-
-    return () => clearTimeout(timeoutId)
-  }, [taskBuilder.title, taskBuilder.details, taskBuilder.taskContent, taskBuilder.taskPci, taskBuilder.extensions, taskDmiItems, loadedTaskId])
-
-  // Auto-save assessment on the fly (debounced)
-  useEffect(() => {
-    if (!loadedAssessmentId) return
-
-    const timeoutId = setTimeout(() => {
-      setModules(prev => prev.map(mod => ({
-        ...mod,
-        lessons: mod.lessons.map(lesson => ({
-          ...lesson,
-          homework: lesson.homework.map(hw =>
-            hw.id === loadedAssessmentId
-              ? {
-                ...hw,
-                title: assessmentBuilder.title,
-                description: assessmentBuilder.taskContent,
-                instructions: assessmentBuilder.taskPci,
-                dmiItems: assessmentDmiItems,
-                sourceDocument: undefined
-              }
-              : hw
-          )
-        }))
-      })))
-    }, 1000) // Auto-save after 1 second of inactivity
-
-    return () => clearTimeout(timeoutId)
-  }, [assessmentBuilder.title, assessmentBuilder.taskContent, assessmentBuilder.taskPci, assessmentDmiItems, loadedAssessmentId])
-
-  // Dev mode state for saving (declared early for ref access)
-  const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
-  const [previewDifficulty, setPreviewDifficulty] = useState<'all' | 'beginner' | 'intermediate' | 'advanced'>('all')
-
-  // Expose save method via ref
-  useImperativeHandle(ref, () => ({
-    save: () => {
-      if (onSave) {
-        onSave(modules, { developmentMode: devMode, previewDifficulty })
+      return () => {
+        if (saveAssetsTimeoutRef.current) {
+          clearTimeout(saveAssetsTimeoutRef.current)
+        }
       }
-    }
-  }))
+    }, [courseAssets, saveAssetsToApi])
 
-  const trackObjectUrl = useCallback((url: string) => {
-    if (url.startsWith('blob:')) {
-      objectUrlsRef.current.push(url)
-    }
-    return url
-  }, [])
+    // Auto-save task on the fly (debounced)
+    useEffect(() => {
+      if (!loadedTaskId) return
 
-  const formatPciTranscript = (messages: { role: 'user' | 'assistant'; content: string }[]) =>
-    messages.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')
+      const timeoutId = setTimeout(() => {
+        setModules(prev =>
+          prev.map(mod => ({
+            ...mod,
+            lessons: mod.lessons.map(lesson => ({
+              ...lesson,
+              tasks: lesson.tasks.map(task =>
+                task.id === loadedTaskId
+                  ? {
+                      ...task,
+                      title: taskBuilder.title,
+                      shortDescription: taskBuilder.details,
+                      description: taskBuilder.taskContent,
+                      instructions: taskBuilder.taskPci,
+                      extensions: taskBuilder.extensions,
+                      dmiItems: taskDmiItems,
+                      sourceDocument: undefined,
+                    }
+                  : task
+              ),
+            })),
+          }))
+        )
+      }, 1000) // Auto-save after 1 second of inactivity
 
-  const loadLessonBankModules = useCallback(() => {
-    try {
-      const raw = localStorage.getItem('lesson-bank-modules-v1')
-      if (!raw) return []
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return []
-      return parsed as Module[]
-    } catch {
-      return []
-    }
-  }, [])
+      return () => clearTimeout(timeoutId)
+    }, [
+      taskBuilder.title,
+      taskBuilder.details,
+      taskBuilder.taskContent,
+      taskBuilder.taskPci,
+      taskBuilder.extensions,
+      taskDmiItems,
+      loadedTaskId,
+    ])
 
-  const openLessonBankImport = useCallback((target: { moduleId: string; lessonId: string }) => {
-    const bankModules = loadLessonBankModules()
-    setLessonBankModules(bankModules)
-    const firstLesson = bankModules[0]?.lessons?.[0]
-    if (firstLesson) {
-      setLessonBankLessonKey(`${bankModules[0].id}:${firstLesson.id}`)
-    } else {
-      setLessonBankLessonKey('')
-    }
-    setImportTarget(target)
-    setLessonBankImportOpen(true)
-  }, [loadLessonBankModules])
+    // Auto-save assessment on the fly (debounced)
+    useEffect(() => {
+      if (!loadedAssessmentId) return
 
-  const cloneTask = (task: Task): Task => ({
-    ...task,
-    id: `task-${generateId()}`,
-    extensions: (task.extensions || []).map(ext => ({
-      ...ext,
-      id: `ext-${generateId()}`,
-    })),
-  })
+      const timeoutId = setTimeout(() => {
+        setModules(prev =>
+          prev.map(mod => ({
+            ...mod,
+            lessons: mod.lessons.map(lesson => ({
+              ...lesson,
+              homework: lesson.homework.map(hw =>
+                hw.id === loadedAssessmentId
+                  ? {
+                      ...hw,
+                      title: assessmentBuilder.title,
+                      description: assessmentBuilder.taskContent,
+                      instructions: assessmentBuilder.taskPci,
+                      dmiItems: assessmentDmiItems,
+                      sourceDocument: undefined,
+                    }
+                  : hw
+              ),
+            })),
+          }))
+        )
+      }, 1000) // Auto-save after 1 second of inactivity
 
-  const cloneAssessment = (assessment: Assessment): Assessment => ({
-    ...assessment,
-    id: `homework-${generateId()}`,
-  })
+      return () => clearTimeout(timeoutId)
+    }, [
+      assessmentBuilder.title,
+      assessmentBuilder.taskContent,
+      assessmentBuilder.taskPci,
+      assessmentDmiItems,
+      loadedAssessmentId,
+    ])
 
-  const findTaskById = useCallback((id: string): Task | null => {
-    for (const mod of modules) {
-      for (const lesson of mod.lessons) {
-        const task = lesson.tasks?.find(t => t.id === id)
-        if (task) return task
-      }
-    }
-    return null
-  }, [modules])
+    // Dev mode state for saving (declared early for ref access)
+    const [devMode, setDevMode] = useState<'single' | 'multi'>('single')
+    const [previewDifficulty, setPreviewDifficulty] = useState<
+      'all' | 'beginner' | 'intermediate' | 'advanced'
+    >('all')
 
-  const findAssessmentById = useCallback((id: string): Assessment | null => {
-    for (const mod of modules) {
-      for (const lesson of mod.lessons) {
-        const assessment = lesson.homework?.find(h => h.id === id)
-        if (assessment) return assessment
-      }
-    }
-    return null
-  }, [modules])
-
-  const moveToHomework = useCallback((moduleId: string, lessonId: string, type: 'task' | 'assessment', item: Task | Assessment) => {
-    const base = DEFAULT_HOMEWORK((modules.flatMap(m => m.lessons.flatMap(l => l.homework || [])).length), 'homework')
-    const homeworkItem: Assessment = type === 'task'
-      ? { ...base, id: `hw-${generateId()}`, title: item.title || 'Task', description: (item as Task).description || '', instructions: (item as Task).instructions || '', dmiItems: (item as Task).dmiItems || [] }
-      : { ...cloneAssessment(item as Assessment), id: `hw-${generateId()}`, category: 'homework' as const }
-    setModules(prev => prev.map(mod => {
-      if (mod.id !== moduleId) return mod
-      return {
-        ...mod,
-        lessons: mod.lessons.map(les => {
-          if (les.id !== lessonId) return les
-          if (type === 'task') {
-            const newTasks = (les.tasks || []).filter(t => t.id !== item.id)
-            return { ...les, tasks: newTasks, homework: [...(les.homework || []), homeworkItem] }
-          }
-          const newHwList = (les.homework || []).filter(h => h.id !== item.id).concat([homeworkItem])
-          return { ...les, homework: newHwList }
-        }),
-      }
+    // Expose save method via ref
+    useImperativeHandle(ref, () => ({
+      save: () => {
+        if (onSave) {
+          onSave(modules, { developmentMode: devMode, previewDifficulty })
+        }
+      },
     }))
-    if (type === 'task') {
-      if (loadedTaskId === item.id) {
-        setSelectedItem({ type: 'homework', id: homeworkItem.id })
-        loadAssessmentIntoBuilder(homeworkItem)
-        setMainBuilderTab('assessment')
+
+    const trackObjectUrl = useCallback((url: string) => {
+      if (url.startsWith('blob:')) {
+        objectUrlsRef.current.push(url)
       }
-      setLoadedTaskId(null)
-      setTaskBuilder({ title: '', taskContent: '', taskPci: '', details: '', extensions: [], activeExtensionId: null })
-    } else {
-      if (loadedAssessmentId === item.id) {
-        setSelectedItem({ type: 'homework', id: homeworkItem.id })
-        loadAssessmentIntoBuilder(homeworkItem)
+      return url
+    }, [])
+
+    const formatPciTranscript = (messages: { role: 'user' | 'assistant'; content: string }[]) =>
+      messages
+        .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+        .join('\n')
+
+    const loadLessonBankModules = useCallback(() => {
+      try {
+        const raw = localStorage.getItem('lesson-bank-modules-v1')
+        if (!raw) return []
+        const parsed = JSON.parse(raw)
+        if (!Array.isArray(parsed)) return []
+        return parsed as Module[]
+      } catch {
+        return []
       }
-      setLoadedAssessmentId(null)
-      setAssessmentBuilder({ title: '', taskContent: '', taskPci: '', details: '', extensions: [], activeExtensionId: null })
-    }
-    toast.success('Moved to homework')
-  }, [cloneAssessment, loadAssessmentIntoBuilder, modules])
+    }, [])
 
-  const cloneLesson = (lesson: Lesson, order: number): Lesson => ({
-    ...lesson,
-    id: `lesson-${generateId()}`,
-    order,
-    tasks: (lesson.tasks || []).map(cloneTask),
-    homework: (lesson.homework || []).map(cloneAssessment),
-    worksheets: (lesson.worksheets || []).map(w => ({ ...w, id: `worksheet-${generateId()}` })),
-    quizzes: (lesson.quizzes || []).map(q => ({ ...q, id: `quiz-${generateId()}` })),
-  })
-
-  const handlePciSend = async (type: 'task' | 'assessment') => {
-    const isTask = type === 'task'
-    const activeTaskInput = taskBuilder.activeExtensionId
-      ? (taskExtensionPciInputs[taskBuilder.activeExtensionId] || '')
-      : taskPciInput
-    const input = isTask ? activeTaskInput : assessmentPciInput
-    const loading = isTask ? taskPciLoading : assessmentPciLoading
-    if (!input.trim() || loading) return
-
-    if (isTask && !loadedTaskId) autoCreateTask()
-    if (!isTask && !loadedAssessmentId) autoCreateAssessment()
-
-    const userMessage = input.trim()
-    if (isTask) {
-      if (taskBuilder.activeExtensionId) {
-        setTaskExtensionPciInputs(prev => ({
-          ...prev,
-          [taskBuilder.activeExtensionId as string]: '',
-        }))
-      } else {
-        setTaskPciInput('')
-      }
-    }
-    else {
-      setAssessmentPciInput('')
-    }
-
-    const currentTaskMessages = taskBuilder.activeExtensionId
-      ? (taskExtensionPciMessages[taskBuilder.activeExtensionId] || [])
-      : taskPciMessages
-    const nextMessages = (isTask ? currentTaskMessages : assessmentPciMessages).concat({ role: 'user', content: userMessage })
-    const updateTaskPciFromMessages = (messages: { role: 'user' | 'assistant'; content: string }[]) => {
-      setTaskBuilder(prev => {
-        if (prev.activeExtensionId) {
-          return {
-            ...prev,
-            extensions: prev.extensions.map(ext =>
-              ext.id === prev.activeExtensionId ? { ...ext, pci: formatPciTranscript(messages) } : ext
-            )
-          }
-        }
-        return { ...prev, taskPci: formatPciTranscript(messages) }
-      })
-    }
-
-    if (isTask) {
-      if (taskBuilder.activeExtensionId) {
-        setTaskExtensionPciMessages(prev => ({
-          ...prev,
-          [taskBuilder.activeExtensionId as string]: nextMessages,
-        }))
-      } else {
-        setTaskPciMessages(nextMessages)
-      }
-      updateTaskPciFromMessages(nextMessages)
-      setTaskPciLoading(true)
-    } else {
-      setAssessmentPciMessages(nextMessages)
-      setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(nextMessages) }))
-      setAssessmentPciLoading(true)
-    }
-
-    try {
-      const slideContent = isTask
-        ? taskBuilder.taskContent
-        : assessmentBuilder.taskContent
-      const pci = isTask
-        ? (taskBuilder.activeExtensionId
-          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
-          : taskBuilder.taskPci)
-        : assessmentBuilder.taskPci
-      const sessionId = isTask
-        ? (loadedTaskId ? `pci-task:${loadedTaskId}` : undefined)
-        : (loadedAssessmentId ? `pci-assessment:${loadedAssessmentId}` : undefined)
-      const extensionName = isTask && taskBuilder.activeExtensionId
-        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
-        : undefined
-
-      const response = await fetch('/api/ai/pci-master', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage,
-          sessionId,
-          context: {
-            type,
-            title: isTask ? taskBuilder.title : assessmentBuilder.title,
-            content: slideContent,
-            pci,
-            extensionName,
-          },
-        })
-      })
-      if (!response.ok) {
-        let errorMessage = `Failed to get AI response (${response.status})`
-        try {
-          const errorBody = await response.json()
-          if (errorBody?.error) {
-            errorMessage = errorBody.errorId
-              ? `${errorBody.error} (Error ID: ${errorBody.errorId})`
-              : errorBody.error
-          }
-        } catch {
-          // ignore JSON parse failures
-        }
-        throw new Error(errorMessage)
-      }
-      const data = await response.json()
-      const assistantMessage = { role: 'assistant' as const, content: data.response || 'Unable to respond.' }
-      if (isTask) {
-        const updated = nextMessages.concat(assistantMessage)
-        if (taskBuilder.activeExtensionId) {
-          setTaskExtensionPciMessages(prev => ({
-            ...prev,
-            [taskBuilder.activeExtensionId as string]: updated,
-          }))
+    const openLessonBankImport = useCallback(
+      (target: { moduleId: string; lessonId: string }) => {
+        const bankModules = loadLessonBankModules()
+        setLessonBankModules(bankModules)
+        const firstLesson = bankModules[0]?.lessons?.[0]
+        if (firstLesson) {
+          setLessonBankLessonKey(`${bankModules[0].id}:${firstLesson.id}`)
         } else {
-          setTaskPciMessages(updated)
+          setLessonBankLessonKey('')
         }
-        updateTaskPciFromMessages(updated)
-        setTaskPciErrorHint('')
-      } else {
-        const updated = nextMessages.concat(assistantMessage)
-        setAssessmentPciMessages(updated)
-        setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
-        setAssessmentPciErrorHint('')
-      }
-    } catch (error) {
-      const message =
-        error instanceof Error && error.message
-          ? `PCI Assistant error: ${error.message}`
-          : 'PCI Assistant error. Please try again.'
-      toast.error(message)
-      const hint =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Unable to reach the PCI assistant. Please try again.'
-      if (isTask) setTaskPciErrorHint(hint)
-      else setAssessmentPciErrorHint(hint)
-      const errorMessage = { role: 'assistant' as const, content: 'Sorry, there was an error processing your request. Please try again.' }
-      if (isTask) {
-        const updated = nextMessages.concat(errorMessage)
-        if (taskBuilder.activeExtensionId) {
-          setTaskExtensionPciMessages(prev => ({
-            ...prev,
-            [taskBuilder.activeExtensionId as string]: updated,
-          }))
-        } else {
-          setTaskPciMessages(updated)
-        }
-        updateTaskPciFromMessages(updated)
-      } else {
-        const updated = nextMessages.concat(errorMessage)
-        setAssessmentPciMessages(updated)
-        setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
-      }
-    } finally {
-      if (isTask) setTaskPciLoading(false)
-      else setAssessmentPciLoading(false)
-    }
-  }
+        setImportTarget(target)
+        setLessonBankImportOpen(true)
+      },
+      [loadLessonBankModules]
+    )
 
-  // Handle Test PCI answer submission with AI scoring
-  const handleTestPciSubmit = async () => {
-    if (!testPciInput.trim() || testPciLoading) return
-
-    const answer = testPciInput.trim()
-    setTestPciInput('')
-    setTestPciLoading(true)
-
-    // Get PCI content from active task/assessment
-    const pciContent = testPciSource === 'task'
-      ? (taskBuilder.activeExtensionId
-        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || taskBuilder.taskPci
-        : taskBuilder.taskPci)
-      : assessmentBuilder.taskPci
-
-    // Determine which tabs to update
-    const tabsToUpdate: string[] = []
-    if (testPciActiveTab === 'classroom') {
-      // Classroom goes to both students
-      tabsToUpdate.push('classroom', 'student1', 'student2')
-    } else {
-      // Individual student tab
-      tabsToUpdate.push(testPciActiveTab)
-    }
-
-    // Update content for all affected tabs
-    setTestPciContent(prev => {
-      const newContent = { ...prev }
-      tabsToUpdate.forEach(tab => {
-        newContent[tab] = (newContent[tab] ? newContent[tab] + '\n' : '') + `Tutor: ${answer}`
-      })
-      return newContent
+    const cloneTask = (task: Task): Task => ({
+      ...task,
+      id: `task-${generateId()}`,
+      extensions: (task.extensions || []).map(ext => ({
+        ...ext,
+        id: `ext-${generateId()}`,
+      })),
     })
 
-    try {
-      // Call AI to score the answer
-      const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
+    const cloneAssessment = (assessment: Assessment): Assessment => ({
+      ...assessment,
+      id: `homework-${generateId()}`,
+    })
+
+    const findTaskById = useCallback(
+      (id: string): Task | null => {
+        for (const mod of modules) {
+          for (const lesson of mod.lessons) {
+            const task = lesson.tasks?.find(t => t.id === id)
+            if (task) return task
+          }
+        }
+        return null
+      },
+      [modules]
+    )
+
+    const findAssessmentById = useCallback(
+      (id: string): Assessment | null => {
+        for (const mod of modules) {
+          for (const lesson of mod.lessons) {
+            const assessment = lesson.homework?.find(h => h.id === id)
+            if (assessment) return assessment
+          }
+        }
+        return null
+      },
+      [modules]
+    )
+
+    const moveToHomework = useCallback(
+      (
+        moduleId: string,
+        lessonId: string,
+        type: 'task' | 'assessment',
+        item: Task | Assessment
+      ) => {
+        const base = DEFAULT_HOMEWORK(
+          modules.flatMap(m => m.lessons.flatMap(l => l.homework || [])).length,
+          'homework'
+        )
+        const homeworkItem: Assessment =
+          type === 'task'
+            ? {
+                ...base,
+                id: `hw-${generateId()}`,
+                title: item.title || 'Task',
+                description: (item as Task).description || '',
+                instructions: (item as Task).instructions || '',
+                dmiItems: (item as Task).dmiItems || [],
+              }
+            : {
+                ...cloneAssessment(item as Assessment),
+                id: `hw-${generateId()}`,
+                category: 'homework' as const,
+              }
+        setModules(prev =>
+          prev.map(mod => {
+            if (mod.id !== moduleId) return mod
+            return {
+              ...mod,
+              lessons: mod.lessons.map(les => {
+                if (les.id !== lessonId) return les
+                if (type === 'task') {
+                  const newTasks = (les.tasks || []).filter(t => t.id !== item.id)
+                  return {
+                    ...les,
+                    tasks: newTasks,
+                    homework: [...(les.homework || []), homeworkItem],
+                  }
+                }
+                const newHwList = (les.homework || [])
+                  .filter(h => h.id !== item.id)
+                  .concat([homeworkItem])
+                return { ...les, homework: newHwList }
+              }),
+            }
+          })
+        )
+        if (type === 'task') {
+          if (loadedTaskId === item.id) {
+            setSelectedItem({ type: 'homework', id: homeworkItem.id })
+            loadAssessmentIntoBuilder(homeworkItem)
+            setMainBuilderTab('assessment')
+          }
+          setLoadedTaskId(null)
+          setTaskBuilder({
+            title: '',
+            taskContent: '',
+            taskPci: '',
+            details: '',
+            extensions: [],
+            activeExtensionId: null,
+          })
+        } else {
+          if (loadedAssessmentId === item.id) {
+            setSelectedItem({ type: 'homework', id: homeworkItem.id })
+            loadAssessmentIntoBuilder(homeworkItem)
+          }
+          setLoadedAssessmentId(null)
+          setAssessmentBuilder({
+            title: '',
+            taskContent: '',
+            taskPci: '',
+            details: '',
+            extensions: [],
+            activeExtensionId: null,
+          })
+        }
+        toast.success('Moved to homework')
+      },
+      [cloneAssessment, loadAssessmentIntoBuilder, modules]
+    )
+
+    const cloneLesson = (lesson: Lesson, order: number): Lesson => ({
+      ...lesson,
+      id: `lesson-${generateId()}`,
+      order,
+      tasks: (lesson.tasks || []).map(cloneTask),
+      homework: (lesson.homework || []).map(cloneAssessment),
+      worksheets: (lesson.worksheets || []).map(w => ({ ...w, id: `worksheet-${generateId()}` })),
+      quizzes: (lesson.quizzes || []).map(q => ({ ...q, id: `quiz-${generateId()}` })),
+    })
+
+    const handlePciSend = async (type: 'task' | 'assessment') => {
+      const isTask = type === 'task'
+      const activeTaskInput = taskBuilder.activeExtensionId
+        ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
+        : taskPciInput
+      const input = isTask ? activeTaskInput : assessmentPciInput
+      const loading = isTask ? taskPciLoading : assessmentPciLoading
+      if (!input.trim() || loading) return
+
+      if (isTask && !loadedTaskId) autoCreateTask()
+      if (!isTask && !loadedAssessmentId) autoCreateAssessment()
+
+      const userMessage = input.trim()
+      if (isTask) {
+        if (taskBuilder.activeExtensionId) {
+          setTaskExtensionPciInputs(prev => ({
+            ...prev,
+            [taskBuilder.activeExtensionId as string]: '',
+          }))
+        } else {
+          setTaskPciInput('')
+        }
+      } else {
+        setAssessmentPciInput('')
+      }
+
+      const currentTaskMessages = taskBuilder.activeExtensionId
+        ? taskExtensionPciMessages[taskBuilder.activeExtensionId] || []
+        : taskPciMessages
+      const nextMessages = (isTask ? currentTaskMessages : assessmentPciMessages).concat({
+        role: 'user',
+        content: userMessage,
+      })
+      const updateTaskPciFromMessages = (
+        messages: { role: 'user' | 'assistant'; content: string }[]
+      ) => {
+        setTaskBuilder(prev => {
+          if (prev.activeExtensionId) {
+            return {
+              ...prev,
+              extensions: prev.extensions.map(ext =>
+                ext.id === prev.activeExtensionId
+                  ? { ...ext, pci: formatPciTranscript(messages) }
+                  : ext
+              ),
+            }
+          }
+          return { ...prev, taskPci: formatPciTranscript(messages) }
+        })
+      }
+
+      if (isTask) {
+        if (taskBuilder.activeExtensionId) {
+          setTaskExtensionPciMessages(prev => ({
+            ...prev,
+            [taskBuilder.activeExtensionId as string]: nextMessages,
+          }))
+        } else {
+          setTaskPciMessages(nextMessages)
+        }
+        updateTaskPciFromMessages(nextMessages)
+        setTaskPciLoading(true)
+      } else {
+        setAssessmentPciMessages(nextMessages)
+        setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(nextMessages) }))
+        setAssessmentPciLoading(true)
+      }
+
+      try {
+        const slideContent = isTask ? taskBuilder.taskContent : assessmentBuilder.taskContent
+        const pci = isTask
+          ? taskBuilder.activeExtensionId
+            ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci ||
+              taskBuilder.taskPci
+            : taskBuilder.taskPci
+          : assessmentBuilder.taskPci
+        const sessionId = isTask
+          ? loadedTaskId
+            ? `pci-task:${loadedTaskId}`
+            : undefined
+          : loadedAssessmentId
+            ? `pci-assessment:${loadedAssessmentId}`
+            : undefined
+        const extensionName =
+          isTask && taskBuilder.activeExtensionId
+            ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
+            : undefined
+
+        const response = await fetch('/api/ai/pci-master', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage,
+            sessionId,
+            context: {
+              type,
+              title: isTask ? taskBuilder.title : assessmentBuilder.title,
+              content: slideContent,
+              pci,
+              extensionName,
+            },
+          }),
+        })
+        if (!response.ok) {
+          let errorMessage = `Failed to get AI response (${response.status})`
+          try {
+            const errorBody = await response.json()
+            if (errorBody?.error) {
+              errorMessage = errorBody.errorId
+                ? `${errorBody.error} (Error ID: ${errorBody.errorId})`
+                : errorBody.error
+            }
+          } catch {
+            // ignore JSON parse failures
+          }
+          throw new Error(errorMessage)
+        }
+        const data = await response.json()
+        const assistantMessage = {
+          role: 'assistant' as const,
+          content: data.response || 'Unable to respond.',
+        }
+        if (isTask) {
+          const updated = nextMessages.concat(assistantMessage)
+          if (taskBuilder.activeExtensionId) {
+            setTaskExtensionPciMessages(prev => ({
+              ...prev,
+              [taskBuilder.activeExtensionId as string]: updated,
+            }))
+          } else {
+            setTaskPciMessages(updated)
+          }
+          updateTaskPciFromMessages(updated)
+          setTaskPciErrorHint('')
+        } else {
+          const updated = nextMessages.concat(assistantMessage)
+          setAssessmentPciMessages(updated)
+          setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+          setAssessmentPciErrorHint('')
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? `PCI Assistant error: ${error.message}`
+            : 'PCI Assistant error. Please try again.'
+        toast.error(message)
+        const hint =
+          error instanceof Error && error.message
+            ? error.message
+            : 'Unable to reach the PCI assistant. Please try again.'
+        if (isTask) setTaskPciErrorHint(hint)
+        else setAssessmentPciErrorHint(hint)
+        const errorMessage = {
+          role: 'assistant' as const,
+          content: 'Sorry, there was an error processing your request. Please try again.',
+        }
+        if (isTask) {
+          const updated = nextMessages.concat(errorMessage)
+          if (taskBuilder.activeExtensionId) {
+            setTaskExtensionPciMessages(prev => ({
+              ...prev,
+              [taskBuilder.activeExtensionId as string]: updated,
+            }))
+          } else {
+            setTaskPciMessages(updated)
+          }
+          updateTaskPciFromMessages(updated)
+        } else {
+          const updated = nextMessages.concat(errorMessage)
+          setAssessmentPciMessages(updated)
+          setAssessmentBuilder(prev => ({ ...prev, taskPci: formatPciTranscript(updated) }))
+        }
+      } finally {
+        if (isTask) setTaskPciLoading(false)
+        else setAssessmentPciLoading(false)
+      }
+    }
+
+    // Handle Test PCI answer submission with AI scoring
+    const handleTestPciSubmit = async () => {
+      if (!testPciInput.trim() || testPciLoading) return
+
+      const answer = testPciInput.trim()
+      setTestPciInput('')
+      setTestPciLoading(true)
+
+      // Get PCI content from active task/assessment
+      const pciContent =
+        testPciSource === 'task'
+          ? taskBuilder.activeExtensionId
+            ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci ||
+              taskBuilder.taskPci
+            : taskBuilder.taskPci
+          : assessmentBuilder.taskPci
+
+      // Determine which tabs to update
+      const tabsToUpdate: string[] = []
+      if (testPciActiveTab === 'classroom') {
+        // Classroom goes to both students
+        tabsToUpdate.push('classroom', 'student1', 'student2')
+      } else {
+        // Individual student tab
+        tabsToUpdate.push(testPciActiveTab)
+      }
+
+      // Update content for all affected tabs
+      setTestPciContent(prev => {
+        const newContent = { ...prev }
+        tabsToUpdate.forEach(tab => {
+          newContent[tab] = (newContent[tab] ? newContent[tab] + '\n' : '') + `Tutor: ${answer}`
+        })
+        return newContent
+      })
+
+      try {
+        // Call AI to score the answer
+        const prompt = `You are an AI grading assistant. Please evaluate the following student answer.
 
 Question/Task Content:
 ${testPciContent.classroom || 'No content provided'}
@@ -5589,2214 +6446,2711 @@ Respond in this exact format:
 SCORE: [number]
 FEEDBACK: [your explanation]`
 
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3
+        const response = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.3,
+          }),
         })
-      })
 
-      if (!response.ok) throw new Error('Failed to get AI response')
+        if (!response.ok) throw new Error('Failed to get AI response')
 
-      const data = await response.json()
-      const aiResponse = data.content || ''
+        const data = await response.json()
+        const aiResponse = data.content || ''
 
-      // Parse AI response
-      const scoreMatch = aiResponse.match(/SCORE:\s*(\d+)/i)
-      const feedbackMatch = aiResponse.match(/FEEDBACK:\s*([\s\S]+)/i)
+        // Parse AI response
+        const scoreMatch = aiResponse.match(/SCORE:\s*(\d+)/i)
+        const feedbackMatch = aiResponse.match(/FEEDBACK:\s*([\s\S]+)/i)
 
-      const score = scoreMatch ? parseInt(scoreMatch[1]) : 50
-      const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback provided'
+        const score = scoreMatch ? parseInt(scoreMatch[1]) : 50
+        const feedback = feedbackMatch ? feedbackMatch[1].trim() : 'No feedback provided'
 
-      // Update scores for all affected tabs
-      setTestPciScores(prev => {
-        const newScores = { ...prev }
-        tabsToUpdate.forEach(tab => {
-          newScores[tab] = [...(newScores[tab] || []), { score, feedback: `Answer: ${answer}\n${feedback}` }]
+        // Update scores for all affected tabs
+        setTestPciScores(prev => {
+          const newScores = { ...prev }
+          tabsToUpdate.forEach(tab => {
+            newScores[tab] = [
+              ...(newScores[tab] || []),
+              { score, feedback: `Answer: ${answer}\n${feedback}` },
+            ]
+          })
+          return newScores
         })
-        return newScores
-      })
 
-      toast.success(`Answer scored: ${score}%`)
-    } catch (error) {
-      toast.error('Failed to score answer')
-      // Still add the answer without scoring
-      setTestPciScores(prev => {
-        const newScores = { ...prev }
-        tabsToUpdate.forEach(tab => {
-          newScores[tab] = [...(newScores[tab] || []), { score: 0, feedback: `Answer: ${answer}\nError: Could not score - ${error instanceof Error ? error.message : 'Unknown error'}` }]
+        toast.success(`Answer scored: ${score}%`)
+      } catch (error) {
+        toast.error('Failed to score answer')
+        // Still add the answer without scoring
+        setTestPciScores(prev => {
+          const newScores = { ...prev }
+          tabsToUpdate.forEach(tab => {
+            newScores[tab] = [
+              ...(newScores[tab] || []),
+              {
+                score: 0,
+                feedback: `Answer: ${answer}\nError: Could not score - ${error instanceof Error ? error.message : 'Unknown error'}`,
+              },
+            ]
+          })
+          return newScores
         })
-        return newScores
-      })
-    } finally {
-      setTestPciLoading(false)
-    }
-  }
-
-
-  // Generate DMI using Slide content
-  const handleGenerateDMI = async (type: 'task' | 'assessment') => {
-    const isTask = type === 'task'
-    const builder = isTask ? taskBuilder : assessmentBuilder
-    const content = builder.taskContent
-
-    if (!content.trim()) {
-      toast.error('Please add slide content first')
-      return
-    }
-
-    const lines = content.split('\n').filter(line => line.trim())
-    const questionLines: { number: number; text: string }[] = []
-
-    lines.forEach((line) => {
-      const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
-      if (match) {
-        questionLines.push({
-          number: parseInt(match[1]),
-          text: match[2].trim()
-        })
+      } finally {
+        setTestPciLoading(false)
       }
-    })
+    }
 
-    if (questionLines.length === 0) {
-      const chunks = content.split(/\n\n+/).filter(c => c.trim().length > 10)
-      chunks.forEach((chunk, idx) => {
-        const firstLine = chunk.split('\n')[0].trim()
-        if (firstLine.length > 5) {
+    // Generate DMI using Slide content
+    const handleGenerateDMI = async (type: 'task' | 'assessment') => {
+      const isTask = type === 'task'
+      const builder = isTask ? taskBuilder : assessmentBuilder
+      const content = builder.taskContent
+
+      if (!content.trim()) {
+        toast.error('Please add slide content first')
+        return
+      }
+
+      const lines = content.split('\n').filter(line => line.trim())
+      const questionLines: { number: number; text: string }[] = []
+
+      lines.forEach(line => {
+        const match = line.match(/^(?:Q(?:uestion)?\s*)?(\d+)[:.)\s]+(.+)$/i)
+        if (match) {
           questionLines.push({
-            number: idx + 1,
-            text: firstLine
+            number: parseInt(match[1]),
+            text: match[2].trim(),
           })
         }
       })
-    }
 
-    const items: DMIQuestion[] = questionLines.map(q => ({
-      id: `dmi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      questionNumber: q.number,
-      questionText: q.text,
-      answer: ''
-    }))
-
-    if (isTask) {
-      setTaskDmiItems(items)
-    } else {
-      setAssessmentDmiItems(items)
-    }
-
-    toast.success('DMI form created from Slide content')
-  }
-
-  useEffect(() => {
-    return () => {
-      for (const url of objectUrlsRef.current) {
-        try {
-          URL.revokeObjectURL(url)
-        } catch {
-          // ignore
-        }
+      if (questionLines.length === 0) {
+        const chunks = content.split(/\n\n+/).filter(c => c.trim().length > 10)
+        chunks.forEach((chunk, idx) => {
+          const firstLine = chunk.split('\n')[0].trim()
+          if (firstLine.length > 5) {
+            questionLines.push({
+              number: idx + 1,
+              text: firstLine,
+            })
+          }
+        })
       }
-      objectUrlsRef.current = []
-    }
-  }, [])
 
+      const items: DMIQuestion[] = questionLines.map(q => ({
+        id: `dmi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        questionNumber: q.number,
+        questionText: q.text,
+        answer: '',
+      }))
 
-  // Modal states
-  const [activeModal, setActiveModal] = useState<{
-    type: 'module' | 'lesson' | 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'content'
-    isOpen: boolean
-    moduleId?: string
-    lessonId?: string
-    itemId?: string
-  }>({ type: 'module', isOpen: false })
-
-  const [editingData, setEditingData] = useState<any>(null)
-  const [activeDragId, setActiveDragId] = useState<string | null>(null)
-
-  useEffect(() => {
-    setModules(normalizeModulesForAssessments(initialModules))
-  }, [initialModules])
-
-  // Helper to get effective value based on difficulty mode and preview
-  const getEffectiveValue = <T extends WithDifficultyVariants>(
-    item: T,
-    field: keyof DifficultyVariant
-  ): any => {
-    if (devMode === 'single' || previewDifficulty === 'all' || item.difficultyMode === 'all') {
-      return item[field as keyof T]
-    }
-
-    if (item.difficultyMode === 'fixed' && item.fixedDifficulty) {
-      // If previewing a different difficulty than fixed, show base with warning indicator
-      return item[field as keyof T]
-    }
-
-    // Adaptive mode - show variant for previewed difficulty
-    const variant = item.variants?.[previewDifficulty]
-    return variant?.[field] ?? item[field as keyof T]
-  }
-
-  // Dnd-kit sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
-
-  const toggleModule = (moduleId: string) => {
-    const newSet = new Set(expandedModules)
-    if (newSet.has(moduleId)) {
-      newSet.delete(moduleId)
-    } else {
-      newSet.add(moduleId)
-    }
-    setExpandedModules(newSet)
-  }
-
-  const toggleSection = (moduleId: string, section: 'task' | 'assessment' | 'homework') => {
-    const key = `${moduleId}:${section}`
-    setCollapsedSections((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) {
-        next.delete(key)
+      if (isTask) {
+        setTaskDmiItems(items)
       } else {
-        next.add(key)
+        setAssessmentDmiItems(items)
       }
-      return next
-    })
-  }
 
-  const isSectionCollapsed = (moduleId: string, section: 'task' | 'assessment' | 'homework') =>
-    collapsedSections.has(`${moduleId}:${section}`)
-
-  const ensureSectionExpanded = (moduleId: string, section: 'task' | 'assessment' | 'homework') => {
-    setExpandedModules(prev => {
-      const next = new Set(prev)
-      next.add(moduleId)
-      return next
-    })
-    setCollapsedSections(prev => {
-      const next = new Set(prev)
-      next.delete(`${moduleId}:${section}`)
-      return next
-    })
-  }
-
-  // Add handlers
-  const addModule = () => {
-    // Create a new module (lesson) directly without opening modal
-    const newOrder = modules.length
-    const newModule = DEFAULT_MODULE(newOrder)
-    // Ensure the title follows "Lesson N" format
-    newModule.title = `Lesson ${newOrder + 1}`
-    newModule.lessons[0].title = `Lesson ${newOrder + 1}`
-
-    setModules([...modules, newModule])
-    setExpandedModules(new Set([...expandedModules, newModule.id]))
-    // Do NOT open modal - just create directly
-  }
-
-
-  const addTask = (moduleId: string, lessonId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) {
-      const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
-      const newModules = [...modules]
-      newModules[moduleIndex].lessons.push(fallbackLesson)
-      setModules(newModules)
-      lessonIndex = newModules[moduleIndex].lessons.length - 1
+      toast.success('DMI form created from Slide content')
     }
 
-    const isFirstTask = modules[moduleIndex].lessons[lessonIndex].tasks.length === 0
-    const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
-    setModules(newModules)
-    if (isFirstTask) ensureSectionExpanded(moduleId, 'task')
-    setEditingData(newTask)
-    setActiveModal({ type: 'task', isOpen: true, moduleId, lessonId })
-  }
-
-  const addContent = (moduleId: string, lessonId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
-
-    const newContent = DEFAULT_CONTENT(modules[moduleIndex].lessons[lessonIndex].content?.length || 0)
-    const newModules = [...modules]
-    if (!newModules[moduleIndex].lessons[lessonIndex].content) {
-      newModules[moduleIndex].lessons[lessonIndex].content = []
-    }
-    newModules[moduleIndex].lessons[lessonIndex].content.push(newContent)
-    setModules(newModules)
-    setEditingData(newContent)
-    setActiveModal({ type: 'content', isOpen: true, moduleId, lessonId })
-  }
-
-  const addAssessment = (moduleId: string, lessonId: string) => {
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) {
-      const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
-      const newModules = [...modules]
-      newModules[moduleIndex].lessons.push(fallbackLesson)
-      setModules(newModules)
-      lessonIndex = newModules[moduleIndex].lessons.length - 1
-    }
-
-    const isFirstAssessment = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
-    const newAssessment = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
-    setModules(newModules)
-    if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
-    // Just add to list without opening modal - same as addTask behavior
-    toast.success('Assessment added')
-  }
-
-  const addCourseExam = () => {
-    const workingModules = modules.length > 0 ? [...modules] : [DEFAULT_MODULE(0)]
-    const lastModuleIndex = workingModules.length - 1
-    const lastModule = workingModules[lastModuleIndex]
-    const newExam = {
-      ...DEFAULT_MODULE_QUIZ(lastModule.moduleQuizzes.length),
-      title: 'Final Exam',
-      description: 'Comprehensive course-end assessment.',
-    }
-    workingModules[lastModuleIndex] = {
-      ...lastModule,
-      moduleQuizzes: [...(lastModule.moduleQuizzes || []), newExam],
-    }
-    setModules(workingModules)
-    setExpandedModules(new Set([...expandedModules, workingModules[lastModuleIndex].id]))
-    setEditingData(newExam)
-    setActiveModal({ type: 'moduleQuiz', isOpen: true, moduleId: workingModules[lastModuleIndex].id })
-    toast.success('Final exam added to end of course')
-  }
-
-  const ensureFirstLessonContext = useCallback(() => {
-    let nextModules = [...modules]
-    if (nextModules.length === 0) {
-      nextModules = [DEFAULT_MODULE(0)]
-    }
-    if (nextModules[0].lessons.length === 0) {
-      nextModules[0] = {
-        ...nextModules[0],
-        lessons: [DEFAULT_LESSON(0)],
+    useEffect(() => {
+      return () => {
+        for (const url of objectUrlsRef.current) {
+          try {
+            URL.revokeObjectURL(url)
+          } catch {
+            // ignore
+          }
+        }
+        objectUrlsRef.current = []
       }
+    }, [])
+
+    // Modal states
+    const [activeModal, setActiveModal] = useState<{
+      type: 'module' | 'lesson' | 'task' | 'homework' | 'worksheet' | 'moduleQuiz' | 'content'
+      isOpen: boolean
+      moduleId?: string
+      lessonId?: string
+      itemId?: string
+    }>({ type: 'module', isOpen: false })
+
+    const [editingData, setEditingData] = useState<any>(null)
+    const [activeDragId, setActiveDragId] = useState<string | null>(null)
+
+    useEffect(() => {
+      setModules(normalizeModulesForAssessments(initialModules))
+    }, [initialModules])
+
+    // Helper to get effective value based on difficulty mode and preview
+    const getEffectiveValue = <T extends WithDifficultyVariants>(
+      item: T,
+      field: keyof DifficultyVariant
+    ): any => {
+      if (devMode === 'single' || previewDifficulty === 'all' || item.difficultyMode === 'all') {
+        return item[field as keyof T]
+      }
+
+      if (item.difficultyMode === 'fixed' && item.fixedDifficulty) {
+        // If previewing a different difficulty than fixed, show base with warning indicator
+        return item[field as keyof T]
+      }
+
+      // Adaptive mode - show variant for previewed difficulty
+      const variant = item.variants?.[previewDifficulty]
+      return variant?.[field] ?? item[field as keyof T]
     }
-    setModules(nextModules)
-    setExpandedModules(new Set([...expandedModules, nextModules[0].id]))
-    return {
-      moduleId: nextModules[0].id,
-      lessonId: nextModules[0].lessons[0].id,
+
+    // Dnd-kit sensors
+    const sensors = useSensors(
+      useSensor(PointerSensor, {
+        activationConstraint: {
+          distance: 8,
+        },
+      }),
+      useSensor(KeyboardSensor, {
+        coordinateGetter: sortableKeyboardCoordinates,
+      })
+    )
+
+    const toggleModule = (moduleId: string) => {
+      const newSet = new Set(expandedModules)
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId)
+      } else {
+        newSet.add(moduleId)
+      }
+      setExpandedModules(newSet)
     }
-  }, [expandedModules, modules])
 
-  // Auto-create task when typing in Task Builder without loaded task
-  const autoCreateTask = useCallback(() => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return null
-
-    const isFirstTask = modules[moduleIndex].lessons[lessonIndex].tasks.length === 0
-    const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
-    setModules(newModules)
-    if (isFirstTask) ensureSectionExpanded(moduleId, 'task')
-    setLoadedTaskId(newTask.id)
-    setTaskBuilder({
-      title: newTask.title,
-      taskContent: '',
-      taskPci: '',
-      details: newTask.shortDescription || '',
-      extensions: [],
-      activeExtensionId: null,
-    })
-    toast.success('New task created')
-    return newTask
-  }, [modules, ensureFirstLessonContext])
-
-  // Auto-create assessment when typing in Assessment Builder without loaded assessment
-  const autoCreateAssessment = useCallback(() => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return null
-
-    const isFirstAssessment = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
-    const newAssessment = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
-    setModules(newModules)
-    if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
-    setLoadedAssessmentId(newAssessment.id)
-    setAssessmentBuilder({
-      title: newAssessment.title,
-      taskContent: '',
-      taskPci: '',
-      details: '',
-      extensions: [],
-      activeExtensionId: null,
-    })
-    toast.success('New assessment created')
-    return newAssessment
-  }, [modules, ensureFirstLessonContext])
-
-  const assetsLesson = modules[0]?.lessons?.[0] ?? null
-
-  const applyTemplate = useCallback((template: (typeof CONTENT_TEMPLATES)[number]) => {
-    if (template.category === 'lesson') {
-      addModule()
-      toast.success(`Template applied: ${template.name}`)
-      return
+    const toggleSection = (moduleId: string, section: 'task' | 'assessment' | 'homework') => {
+      const key = `${moduleId}:${section}`
+      setCollapsedSections(prev => {
+        const next = new Set(prev)
+        if (next.has(key)) {
+          next.delete(key)
+        } else {
+          next.add(key)
+        }
+        return next
+      })
     }
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    if (template.category === 'quiz') {
-      addAssessment(moduleId, lessonId)
-      toast.success(`Template applied: ${template.name}`)
-      return
+
+    const isSectionCollapsed = (moduleId: string, section: 'task' | 'assessment' | 'homework') =>
+      collapsedSections.has(`${moduleId}:${section}`)
+
+    const ensureSectionExpanded = (
+      moduleId: string,
+      section: 'task' | 'assessment' | 'homework'
+    ) => {
+      setExpandedModules(prev => {
+        const next = new Set(prev)
+        next.add(moduleId)
+        return next
+      })
+      setCollapsedSections(prev => {
+        const next = new Set(prev)
+        next.delete(`${moduleId}:${section}`)
+        return next
+      })
     }
-    if (template.category === 'assessment' || template.category === 'activity') {
-      addTask(moduleId, lessonId)
-      toast.success(`Template applied: ${template.name}`)
-      return
+
+    // Add handlers
+    const addModule = () => {
+      // Create a new module (lesson) directly without opening modal
+      const newOrder = modules.length
+      const newModule = DEFAULT_MODULE(newOrder)
+      // Ensure the title follows "Lesson N" format
+      newModule.title = `Lesson ${newOrder + 1}`
+      newModule.lessons[0].title = `Lesson ${newOrder + 1}`
+
+      setModules([...modules, newModule])
+      setExpandedModules(new Set([...expandedModules, newModule.id]))
+      // Do NOT open modal - just create directly
     }
-    toast.success(`Template selected: ${template.name}`)
-  }, [addAssessment, addModule, addTask, ensureFirstLessonContext])
 
-  // Drag & Drop handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(event.active.id as string)
-  }
+    const addTask = (moduleId: string, lessonId: string) => {
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+      if (lessonIndex === -1) {
+        const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
+        const newModules = [...modules]
+        newModules[moduleIndex].lessons.push(fallbackLesson)
+        setModules(newModules)
+        lessonIndex = newModules[moduleIndex].lessons.length - 1
+      }
 
-  // Helper function to renumber module titles after reordering
-  const renumberModules = (mods: Module[]): Module[] => {
-    return mods.map((mod, idx) => ({
-      ...mod,
-      order: idx,
-      title: mod.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`)
-    }))
-  }
+      const isFirstTask = modules[moduleIndex].lessons[lessonIndex].tasks.length === 0
+      const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
+      setModules(newModules)
+      if (isFirstTask) ensureSectionExpanded(moduleId, 'task')
+      setEditingData(newTask)
+      setActiveModal({ type: 'task', isOpen: true, moduleId, lessonId })
+    }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    setActiveDragId(null)
+    const addContent = (moduleId: string, lessonId: string) => {
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+      if (lessonIndex === -1) return
 
-    if (!over || active.id === over.id) return
+      const newContent = DEFAULT_CONTENT(
+        modules[moduleIndex].lessons[lessonIndex].content?.length || 0
+      )
+      const newModules = [...modules]
+      if (!newModules[moduleIndex].lessons[lessonIndex].content) {
+        newModules[moduleIndex].lessons[lessonIndex].content = []
+      }
+      newModules[moduleIndex].lessons[lessonIndex].content.push(newContent)
+      setModules(newModules)
+      setEditingData(newContent)
+      setActiveModal({ type: 'content', isOpen: true, moduleId, lessonId })
+    }
 
-    const activeId = active.id as string
-    const overId = over.id as string
+    const addAssessment = (moduleId: string, lessonId: string) => {
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      let lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+      if (lessonIndex === -1) {
+        const fallbackLesson = DEFAULT_LESSON(modules[moduleIndex].lessons.length)
+        const newModules = [...modules]
+        newModules[moduleIndex].lessons.push(fallbackLesson)
+        setModules(newModules)
+        lessonIndex = newModules[moduleIndex].lessons.length - 1
+      }
 
-    const findTaskLocation = (id: string) => {
-      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
-        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
-          const taskIndex = modules[mIdx].lessons[lIdx].tasks.findIndex(t => t.id === id)
-          if (taskIndex !== -1) return { mIdx, lIdx, taskIndex }
+      const isFirstAssessment = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
+      const newAssessment = DEFAULT_HOMEWORK(
+        modules[moduleIndex].lessons[lessonIndex].homework.length,
+        'assessment'
+      )
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
+      setModules(newModules)
+      if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
+      // Just add to list without opening modal - same as addTask behavior
+      toast.success('Assessment added')
+    }
+
+    const addCourseExam = () => {
+      const workingModules = modules.length > 0 ? [...modules] : [DEFAULT_MODULE(0)]
+      const lastModuleIndex = workingModules.length - 1
+      const lastModule = workingModules[lastModuleIndex]
+      const newExam = {
+        ...DEFAULT_MODULE_QUIZ(lastModule.moduleQuizzes.length),
+        title: 'Final Exam',
+        description: 'Comprehensive course-end assessment.',
+      }
+      workingModules[lastModuleIndex] = {
+        ...lastModule,
+        moduleQuizzes: [...(lastModule.moduleQuizzes || []), newExam],
+      }
+      setModules(workingModules)
+      setExpandedModules(new Set([...expandedModules, workingModules[lastModuleIndex].id]))
+      setEditingData(newExam)
+      setActiveModal({
+        type: 'moduleQuiz',
+        isOpen: true,
+        moduleId: workingModules[lastModuleIndex].id,
+      })
+      toast.success('Final exam added to end of course')
+    }
+
+    const ensureFirstLessonContext = useCallback(() => {
+      let nextModules = [...modules]
+      if (nextModules.length === 0) {
+        nextModules = [DEFAULT_MODULE(0)]
+      }
+      if (nextModules[0].lessons.length === 0) {
+        nextModules[0] = {
+          ...nextModules[0],
+          lessons: [DEFAULT_LESSON(0)],
         }
       }
-      return null
+      setModules(nextModules)
+      setExpandedModules(new Set([...expandedModules, nextModules[0].id]))
+      return {
+        moduleId: nextModules[0].id,
+        lessonId: nextModules[0].lessons[0].id,
+      }
+    }, [expandedModules, modules])
+
+    // Auto-create task when typing in Task Builder without loaded task
+    const autoCreateTask = useCallback(() => {
+      const { moduleId, lessonId } = ensureFirstLessonContext()
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+      if (moduleIndex === -1 || lessonIndex === -1) return null
+
+      const isFirstTask = modules[moduleIndex].lessons[lessonIndex].tasks.length === 0
+      const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
+      setModules(newModules)
+      if (isFirstTask) ensureSectionExpanded(moduleId, 'task')
+      setLoadedTaskId(newTask.id)
+      setTaskBuilder({
+        title: newTask.title,
+        taskContent: '',
+        taskPci: '',
+        details: newTask.shortDescription || '',
+        extensions: [],
+        activeExtensionId: null,
+      })
+      toast.success('New task created')
+      return newTask
+    }, [modules, ensureFirstLessonContext])
+
+    // Auto-create assessment when typing in Assessment Builder without loaded assessment
+    const autoCreateAssessment = useCallback(() => {
+      const { moduleId, lessonId } = ensureFirstLessonContext()
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+      if (moduleIndex === -1 || lessonIndex === -1) return null
+
+      const isFirstAssessment = modules[moduleIndex].lessons[lessonIndex].homework.length === 0
+      const newAssessment = DEFAULT_HOMEWORK(
+        modules[moduleIndex].lessons[lessonIndex].homework.length,
+        'assessment'
+      )
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssessment)
+      setModules(newModules)
+      if (isFirstAssessment) ensureSectionExpanded(moduleId, 'assessment')
+      setLoadedAssessmentId(newAssessment.id)
+      setAssessmentBuilder({
+        title: newAssessment.title,
+        taskContent: '',
+        taskPci: '',
+        details: '',
+        extensions: [],
+        activeExtensionId: null,
+      })
+      toast.success('New assessment created')
+      return newAssessment
+    }, [modules, ensureFirstLessonContext])
+
+    const assetsLesson = modules[0]?.lessons?.[0] ?? null
+
+    const applyTemplate = useCallback(
+      (template: (typeof CONTENT_TEMPLATES)[number]) => {
+        if (template.category === 'lesson') {
+          addModule()
+          toast.success(`Template applied: ${template.name}`)
+          return
+        }
+        const { moduleId, lessonId } = ensureFirstLessonContext()
+        if (template.category === 'quiz') {
+          addAssessment(moduleId, lessonId)
+          toast.success(`Template applied: ${template.name}`)
+          return
+        }
+        if (template.category === 'assessment' || template.category === 'activity') {
+          addTask(moduleId, lessonId)
+          toast.success(`Template applied: ${template.name}`)
+          return
+        }
+        toast.success(`Template selected: ${template.name}`)
+      },
+      [addAssessment, addModule, addTask, ensureFirstLessonContext]
+    )
+
+    // Drag & Drop handlers
+    const handleDragStart = (event: DragStartEvent) => {
+      setActiveDragId(event.active.id as string)
     }
 
-    const findHomeworkLocation = (id: string) => {
-      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
-        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
-          const hwIndex = modules[mIdx].lessons[lIdx].homework.findIndex(h => h.id === id)
-          if (hwIndex !== -1) return { mIdx, lIdx, hwIndex }
+    // Helper function to renumber module titles after reordering
+    const renumberModules = (mods: Module[]): Module[] => {
+      return mods.map((mod, idx) => ({
+        ...mod,
+        order: idx,
+        title: mod.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`),
+      }))
+    }
+
+    const handleDragEnd = (event: DragEndEvent) => {
+      const { active, over } = event
+      setActiveDragId(null)
+
+      if (!over || active.id === over.id) return
+
+      const activeId = active.id as string
+      const overId = over.id as string
+
+      const findTaskLocation = (id: string) => {
+        for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+          for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+            const taskIndex = modules[mIdx].lessons[lIdx].tasks.findIndex(t => t.id === id)
+            if (taskIndex !== -1) return { mIdx, lIdx, taskIndex }
+          }
+        }
+        return null
+      }
+
+      const findHomeworkLocation = (id: string) => {
+        for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+          for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+            const hwIndex = modules[mIdx].lessons[lIdx].homework.findIndex(h => h.id === id)
+            if (hwIndex !== -1) return { mIdx, lIdx, hwIndex }
+          }
+        }
+        return null
+      }
+
+      const findLessonByModuleId = (id: string) => {
+        const moduleIndex = modules.findIndex(m => m.id === id)
+        if (moduleIndex === -1) return null
+        return { mIdx: moduleIndex, lIdx: 0 }
+      }
+
+      // Drop onto Homework folder (move task/assessment to that lesson's homework)
+      if (typeof overId === 'string' && overId.startsWith('drop-hw-')) {
+        const rest = overId.slice('drop-hw-'.length)
+        const sep = rest.indexOf('::')
+        const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
+        const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
+        if (targetModuleId && targetLessonId) {
+          const taskLoc = findTaskLocation(activeId)
+          const hwLoc = findHomeworkLocation(activeId)
+          if (taskLoc) {
+            const task = modules[taskLoc.mIdx].lessons[taskLoc.lIdx].tasks[taskLoc.taskIndex]
+            moveToHomework(targetModuleId, targetLessonId, 'task', task)
+            setModules(prev =>
+              prev.map((mod, mIdx) => {
+                if (mIdx !== taskLoc.mIdx) return mod
+                return {
+                  ...mod,
+                  lessons: mod.lessons.map((les, lIdx) => {
+                    if (lIdx !== taskLoc.lIdx) return les
+                    return { ...les, tasks: les.tasks.filter(t => t.id !== activeId) }
+                  }),
+                }
+              })
+            )
+            return
+          }
+          if (hwLoc) {
+            const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
+            moveToHomework(targetModuleId, targetLessonId, 'assessment', hw)
+            setModules(prev =>
+              prev.map((mod, mIdx) => {
+                if (mIdx !== hwLoc.mIdx) return mod
+                return {
+                  ...mod,
+                  lessons: mod.lessons.map((les, lIdx) => {
+                    if (lIdx !== hwLoc.lIdx) return les
+                    return { ...les, homework: les.homework.filter(h => h.id !== activeId) }
+                  }),
+                }
+              })
+            )
+            return
+          }
         }
       }
-      return null
-    }
 
-    const findLessonByModuleId = (id: string) => {
-      const moduleIndex = modules.findIndex(m => m.id === id)
-      if (moduleIndex === -1) return null
-      return { mIdx: moduleIndex, lIdx: 0 }
-    }
-
-    // Drop onto Homework folder (move task/assessment to that lesson's homework)
-    if (typeof overId === 'string' && overId.startsWith('drop-hw-')) {
-      const rest = overId.slice('drop-hw-'.length)
-      const sep = rest.indexOf('::')
-      const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
-      const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
-      if (targetModuleId && targetLessonId) {
-        const taskLoc = findTaskLocation(activeId)
+      // Drag from Homework to Tasks: convert homework (assessment) to task and add to target lesson's tasks
+      if (typeof overId === 'string' && overId.startsWith('drop-task-')) {
+        const rest = overId.slice('drop-task-'.length)
+        const sep = rest.indexOf('::')
+        const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
+        const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
         const hwLoc = findHomeworkLocation(activeId)
-        if (taskLoc) {
-          const task = modules[taskLoc.mIdx].lessons[taskLoc.lIdx].tasks[taskLoc.taskIndex]
-          moveToHomework(targetModuleId, targetLessonId, 'task', task)
-          setModules(prev => prev.map((mod, mIdx) => {
-            if (mIdx !== taskLoc.mIdx) return mod
-            return {
-              ...mod,
-              lessons: mod.lessons.map((les, lIdx) => {
-                if (lIdx !== taskLoc.lIdx) return les
-                return { ...les, tasks: les.tasks.filter(t => t.id !== activeId) }
-              }),
-            }
-          }))
-          return
-        }
-        if (hwLoc) {
+        if (hwLoc && targetModuleId && targetLessonId) {
           const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
-          moveToHomework(targetModuleId, targetLessonId, 'assessment', hw)
-          setModules(prev => prev.map((mod, mIdx) => {
-            if (mIdx !== hwLoc.mIdx) return mod
-            return {
-              ...mod,
-              lessons: mod.lessons.map((les, lIdx) => {
-                if (lIdx !== hwLoc.lIdx) return les
-                return { ...les, homework: les.homework.filter(h => h.id !== activeId) }
-              }),
-            }
+          const newTask: Task = {
+            id: `task-${generateId()}`,
+            title: hw.title || 'Task',
+            description: hw.description || '',
+            instructions: hw.instructions || '',
+            dmiItems: hw.dmiItems || [],
+            estimatedMinutes: hw.estimatedMinutes ?? 15,
+            points: hw.points ?? 10,
+            submissionType: 'text',
+            isAiGraded: false,
+            difficultyMode: 'all',
+          }
+          const srcModId = modules[hwLoc.mIdx].id
+          const srcLesId = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].id
+          setModules(prev =>
+            prev.map(mod => {
+              if (mod.id !== targetModuleId) {
+                if (mod.id !== srcModId) return mod
+                return {
+                  ...mod,
+                  lessons: mod.lessons.map(les =>
+                    les.id === srcLesId
+                      ? { ...les, homework: les.homework.filter(h => h.id !== activeId) }
+                      : les
+                  ),
+                }
+              }
+              return {
+                ...mod,
+                lessons: mod.lessons.map(les => {
+                  let next = les
+                  if (les.id === srcLesId)
+                    next = { ...next, homework: next.homework.filter(h => h.id !== activeId) }
+                  if (les.id === targetLessonId)
+                    next = { ...next, tasks: [...(next.tasks || []), newTask] }
+                  return next
+                }),
+              }
+            })
+          )
+          if (loadedAssessmentId === activeId) {
+            setLoadedAssessmentId(null)
+            setSelectedItem({ type: 'task', id: newTask.id })
+            loadTaskIntoBuilder(newTask, null)
+            setMainBuilderTab('task')
+          }
+          toast.success('Moved to tasks')
+          return
+        }
+      }
+
+      // Drag from Homework to Assessments: move homework item to target lesson as assessment (category !== homework)
+      if (typeof overId === 'string' && overId.startsWith('drop-assessment-')) {
+        const rest = overId.slice('drop-assessment-'.length)
+        const sep = rest.indexOf('::')
+        const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
+        const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
+        const hwLoc = findHomeworkLocation(activeId)
+        if (hwLoc && targetModuleId && targetLessonId) {
+          const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
+          const asAssessment = {
+            ...cloneAssessment(hw),
+            category: 'assessment' as const,
+            id: `a-${generateId()}`,
+          }
+          setModules(prev =>
+            prev.map(mod => {
+              if (mod.id === modules[hwLoc.mIdx].id) {
+                return {
+                  ...mod,
+                  lessons: mod.lessons.map((les, lIdx) =>
+                    lIdx === hwLoc.lIdx
+                      ? { ...les, homework: les.homework.filter(h => h.id !== activeId) }
+                      : les
+                  ),
+                }
+              }
+              if (mod.id !== targetModuleId) return mod
+              return {
+                ...mod,
+                lessons: mod.lessons.map(les =>
+                  les.id !== targetLessonId
+                    ? les
+                    : { ...les, homework: [...(les.homework || []), asAssessment] }
+                ),
+              }
+            })
+          )
+          if (loadedAssessmentId === activeId) {
+            setSelectedItem({ type: 'homework', id: asAssessment.id })
+            loadAssessmentIntoBuilder(asAssessment)
+          }
+          toast.success('Moved to assessments')
+          return
+        }
+      }
+
+      // Check if dragging a module
+      const activeModuleIndex = modules.findIndex(m => m.id === activeId)
+      const overModuleIndex = modules.findIndex(m => m.id === overId)
+
+      if (activeModuleIndex !== -1 && overModuleIndex !== -1) {
+        const movedModules = arrayMove(modules, activeModuleIndex, overModuleIndex)
+        setModules(renumberModules(movedModules))
+        return
+      }
+
+      // Check if dragging a lesson
+      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+        const activeLessonIndex = modules[mIdx].lessons.findIndex(l => l.id === activeId)
+        const overLessonIndex = modules[mIdx].lessons.findIndex(l => l.id === overId)
+
+        if (activeLessonIndex !== -1 && overLessonIndex !== -1) {
+          const newModules = [...modules]
+          const movedLessons = arrayMove(
+            newModules[mIdx].lessons,
+            activeLessonIndex,
+            overLessonIndex
+          )
+          // Renumber lessons after reordering
+          newModules[mIdx].lessons = movedLessons.map((lesson, idx) => ({
+            ...lesson,
+            order: idx,
+            title: lesson.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`),
           }))
+          setModules(newModules)
+          return
+        }
+      }
+
+      // Check if dragging content within a lesson
+      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+          const lesson = modules[mIdx].lessons[lIdx]
+          const activeContentIndex = lesson.content?.findIndex(c => c.id === activeId) ?? -1
+          const overContentIndex = lesson.content?.findIndex(c => c.id === overId) ?? -1
+
+          if (activeContentIndex !== -1 && overContentIndex !== -1) {
+            const newModules = [...modules]
+            newModules[mIdx].lessons[lIdx].content = arrayMove(
+              newModules[mIdx].lessons[lIdx].content,
+              activeContentIndex,
+              overContentIndex
+            ).map((content, idx) => ({ ...content, order: idx }))
+            setModules(newModules)
+            return
+          }
+        }
+      }
+
+      // Check if dragging a task within a lesson
+      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+          const lesson = modules[mIdx].lessons[lIdx]
+          const activeTaskIndex = lesson.tasks?.findIndex(t => t.id === activeId) ?? -1
+          const overTaskIndex = lesson.tasks?.findIndex(t => t.id === overId) ?? -1
+
+          if (activeTaskIndex !== -1 && overTaskIndex !== -1) {
+            const newModules = [...modules]
+            newModules[mIdx].lessons[lIdx].tasks = arrayMove(
+              newModules[mIdx].lessons[lIdx].tasks,
+              activeTaskIndex,
+              overTaskIndex
+            )
+            setModules(newModules)
+            return
+          }
+        }
+      }
+
+      // Move task across lessons
+      const taskSource = findTaskLocation(activeId)
+      if (taskSource) {
+        const targetTaskLocation = findTaskLocation(overId)
+        const targetLesson = targetTaskLocation
+          ? { mIdx: targetTaskLocation.mIdx, lIdx: targetTaskLocation.lIdx }
+          : findLessonByModuleId(overId)
+        if (
+          targetLesson &&
+          (taskSource.mIdx !== targetLesson.mIdx || taskSource.lIdx !== targetLesson.lIdx)
+        ) {
+          const newModules = [...modules]
+          const sourceTasks = newModules[taskSource.mIdx].lessons[taskSource.lIdx].tasks
+          const [movedTask] = sourceTasks.splice(taskSource.taskIndex, 1)
+          const targetTasks = newModules[targetLesson.mIdx].lessons[targetLesson.lIdx].tasks
+          const insertIndex = targetTaskLocation
+            ? targetTasks.findIndex(t => t.id === overId)
+            : targetTasks.length
+          targetTasks.splice(insertIndex === -1 ? targetTasks.length : insertIndex, 0, movedTask)
+          setModules(newModules)
+          return
+        }
+      }
+
+      // Check if dragging homework within a lesson
+      for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+        for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
+          const lesson = modules[mIdx].lessons[lIdx]
+          const activeHwIndex = lesson.homework?.findIndex(h => h.id === activeId) ?? -1
+          const overHwIndex = lesson.homework?.findIndex(h => h.id === overId) ?? -1
+
+          if (activeHwIndex !== -1 && overHwIndex !== -1) {
+            const newModules = [...modules]
+            newModules[mIdx].lessons[lIdx].homework = arrayMove(
+              newModules[mIdx].lessons[lIdx].homework,
+              activeHwIndex,
+              overHwIndex
+            )
+            setModules(newModules)
+            return
+          }
+        }
+      }
+
+      // Move homework/assessment across lessons
+      const hwSource = findHomeworkLocation(activeId)
+      if (hwSource) {
+        const targetHwLocation = findHomeworkLocation(overId)
+        const targetLesson = targetHwLocation
+          ? { mIdx: targetHwLocation.mIdx, lIdx: targetHwLocation.lIdx }
+          : findLessonByModuleId(overId)
+        if (
+          targetLesson &&
+          (hwSource.mIdx !== targetLesson.mIdx || hwSource.lIdx !== targetLesson.lIdx)
+        ) {
+          const newModules = [...modules]
+          const sourceHomework = newModules[hwSource.mIdx].lessons[hwSource.lIdx].homework
+          const [movedHw] = sourceHomework.splice(hwSource.hwIndex, 1)
+          const targetHomework = newModules[targetLesson.mIdx].lessons[targetLesson.lIdx].homework
+          const insertIndex = targetHwLocation
+            ? targetHomework.findIndex(h => h.id === overId)
+            : targetHomework.length
+          targetHomework.splice(
+            insertIndex === -1 ? targetHomework.length : insertIndex,
+            0,
+            movedHw
+          )
+          setModules(newModules)
           return
         }
       }
     }
 
-    // Drag from Homework to Tasks: convert homework (assessment) to task and add to target lesson's tasks
-    if (typeof overId === 'string' && overId.startsWith('drop-task-')) {
-      const rest = overId.slice('drop-task-'.length)
-      const sep = rest.indexOf('::')
-      const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
-      const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
-      const hwLoc = findHomeworkLocation(activeId)
-      if (hwLoc && targetModuleId && targetLessonId) {
-        const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
-        const newTask: Task = {
-          id: `task-${generateId()}`,
-          title: hw.title || 'Task',
-          description: hw.description || '',
-          instructions: hw.instructions || '',
-          dmiItems: hw.dmiItems || [],
-          estimatedMinutes: hw.estimatedMinutes ?? 15,
-          points: hw.points ?? 10,
-          submissionType: 'text',
-          isAiGraded: false,
-          difficultyMode: 'all',
-        }
-        const srcModId = modules[hwLoc.mIdx].id
-        const srcLesId = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].id
-        setModules(prev => prev.map(mod => {
-          if (mod.id !== targetModuleId) {
-            if (mod.id !== srcModId) return mod
-            return { ...mod, lessons: mod.lessons.map(les => les.id === srcLesId ? { ...les, homework: les.homework.filter(h => h.id !== activeId) } : les) }
-          }
-          return {
-            ...mod,
-            lessons: mod.lessons.map(les => {
-              let next = les
-              if (les.id === srcLesId) next = { ...next, homework: next.homework.filter(h => h.id !== activeId) }
-              if (les.id === targetLessonId) next = { ...next, tasks: [...(next.tasks || []), newTask] }
-              return next
-            }),
-          }
-        }))
-        if (loadedAssessmentId === activeId) {
-          setLoadedAssessmentId(null)
-          setSelectedItem({ type: 'task', id: newTask.id })
-          loadTaskIntoBuilder(newTask, null)
-          setMainBuilderTab('task')
-        }
-        toast.success('Moved to tasks')
-        return
+    // Save handlers
+    const handleSaveModule = (data: any) => {
+      if (activeModal.itemId) {
+        setModules(modules.map(m => (m.id === activeModal.itemId ? { ...m, ...data } : m)))
+      } else {
+        setModules(modules.map(m => (m.id === editingData.id ? { ...m, ...data } : m)))
       }
+      setActiveModal({ type: 'module', isOpen: false })
+      toast.success('Lesson saved')
     }
 
-    // Drag from Homework to Assessments: move homework item to target lesson as assessment (category !== homework)
-    if (typeof overId === 'string' && overId.startsWith('drop-assessment-')) {
-      const rest = overId.slice('drop-assessment-'.length)
-      const sep = rest.indexOf('::')
-      const targetModuleId = sep >= 0 ? rest.slice(0, sep) : rest
-      const targetLessonId = sep >= 0 ? rest.slice(sep + 2) : ''
-      const hwLoc = findHomeworkLocation(activeId)
-      if (hwLoc && targetModuleId && targetLessonId) {
-        const hw = modules[hwLoc.mIdx].lessons[hwLoc.lIdx].homework[hwLoc.hwIndex]
-        const asAssessment = { ...cloneAssessment(hw), category: 'assessment' as const, id: `a-${generateId()}` }
-        setModules(prev => prev.map(mod => {
-          if (mod.id === modules[hwLoc.mIdx].id) {
-            return {
-              ...mod,
-              lessons: mod.lessons.map((les, lIdx) => lIdx === hwLoc.lIdx ? { ...les, homework: les.homework.filter(h => h.id !== activeId) } : les),
-            }
-          }
-          if (mod.id !== targetModuleId) return mod
-          return {
-            ...mod,
-            lessons: mod.lessons.map(les => les.id !== targetLessonId ? les : { ...les, homework: [...(les.homework || []), asAssessment] }),
-          }
-        }))
-        if (loadedAssessmentId === activeId) {
-          setSelectedItem({ type: 'homework', id: asAssessment.id })
-          loadAssessmentIntoBuilder(asAssessment)
+    const handleSaveLesson = (data: any) => {
+      const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
+      if (moduleIndex === -1) return
+
+      const newModules = [...modules]
+      const lessonIndex = newModules[moduleIndex].lessons.findIndex(l => l.id === editingData.id)
+      if (lessonIndex !== -1) {
+        newModules[moduleIndex].lessons[lessonIndex] = {
+          ...newModules[moduleIndex].lessons[lessonIndex],
+          ...data,
         }
-        toast.success('Moved to assessments')
-        return
       }
+      setModules(newModules)
+      setActiveModal({ type: 'lesson', isOpen: false })
+      toast.success('Lesson saved')
     }
 
-    // Check if dragging a module
-    const activeModuleIndex = modules.findIndex(m => m.id === activeId)
-    const overModuleIndex = modules.findIndex(m => m.id === overId)
+    const handleSaveTask = (data: any, targetModuleId?: string, targetLessonId?: string) => {
+      const moduleId = targetModuleId || activeModal.moduleId
+      const lessonId = targetLessonId || activeModal.lessonId
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+      if (moduleIndex === -1 || lessonIndex === -1) return
 
-    if (activeModuleIndex !== -1 && overModuleIndex !== -1) {
-      const movedModules = arrayMove(modules, activeModuleIndex, overModuleIndex)
-      setModules(renumberModules(movedModules))
-      return
+      const newModules = [...modules]
+      const taskIndex = newModules[moduleIndex].lessons[lessonIndex].tasks.findIndex(
+        t => t.id === editingData?.id
+      )
+      if (taskIndex !== -1) {
+        newModules[moduleIndex].lessons[lessonIndex].tasks[taskIndex] = data
+      } else {
+        // Add new task if not found
+        newModules[moduleIndex].lessons[lessonIndex].tasks.push(data)
+      }
+      setModules(newModules)
+      setActiveModal({ type: 'task', isOpen: false })
+      toast.success('Task saved')
     }
 
-    // Check if dragging a lesson
-    for (let mIdx = 0; mIdx < modules.length; mIdx++) {
-      const activeLessonIndex = modules[mIdx].lessons.findIndex(l => l.id === activeId)
-      const overLessonIndex = modules[mIdx].lessons.findIndex(l => l.id === overId)
+    const handleSaveContent = (data: Content) => {
+      const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(
+        l => l.id === activeModal.lessonId
+      )
+      if (moduleIndex === -1 || lessonIndex === -1) return
 
-      if (activeLessonIndex !== -1 && overLessonIndex !== -1) {
-        const newModules = [...modules]
-        const movedLessons = arrayMove(
-          newModules[mIdx].lessons,
-          activeLessonIndex,
-          overLessonIndex
+      const newModules = [...modules]
+      const contentIndex = newModules[moduleIndex].lessons[lessonIndex].content?.findIndex(
+        c => c.id === editingData?.id
+      )
+      if (contentIndex !== undefined && contentIndex !== -1) {
+        newModules[moduleIndex].lessons[lessonIndex].content[contentIndex] = data
+      } else {
+        newModules[moduleIndex].lessons[lessonIndex].content.push(data)
+      }
+      setModules(newModules)
+      setActiveModal({ type: 'content', isOpen: false })
+      toast.success('Content saved')
+    }
+
+    const handleSaveAssessment = (data: any, targetModuleId?: string, targetLessonId?: string) => {
+      const moduleId = targetModuleId || activeModal.moduleId
+      const lessonId = targetLessonId || activeModal.lessonId
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+      if (moduleIndex === -1 || lessonIndex === -1) return
+
+      const newModules = [...modules]
+      const hwIndex = newModules[moduleIndex].lessons[lessonIndex].homework.findIndex(
+        h => h.id === editingData?.id
+      )
+      if (hwIndex !== -1) {
+        newModules[moduleIndex].lessons[lessonIndex].homework[hwIndex] = data
+      } else {
+        // Add new homework/assessment if not found
+        newModules[moduleIndex].lessons[lessonIndex].homework.push(data)
+      }
+      setModules(newModules)
+      setActiveModal({ type: 'homework', isOpen: false })
+      toast.success(data.category === 'homework' ? 'Homework saved' : 'Assessment saved')
+    }
+
+    const handleSaveWorksheet = (data: Worksheet) => {
+      const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(
+        l => l.id === activeModal.lessonId
+      )
+      if (moduleIndex === -1 || lessonIndex === -1) return
+
+      const newModules = [...modules]
+      if (!newModules[moduleIndex].lessons[lessonIndex].worksheets) {
+        newModules[moduleIndex].lessons[lessonIndex].worksheets = []
+      }
+      const worksheetIndex = newModules[moduleIndex].lessons[lessonIndex].worksheets.findIndex(
+        w => w.id === editingData.id
+      )
+      if (worksheetIndex !== -1) {
+        newModules[moduleIndex].lessons[lessonIndex].worksheets[worksheetIndex] = data
+      } else {
+        newModules[moduleIndex].lessons[lessonIndex].worksheets.push(data)
+      }
+      setModules(newModules)
+      setActiveModal({ type: 'worksheet', isOpen: false })
+      toast.success('Worksheet saved')
+    }
+
+    const handleSaveModuleQuiz = (data: any) => {
+      const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
+      if (moduleIndex === -1) return
+
+      const newModules = [...modules]
+      const quizIndex = newModules[moduleIndex].moduleQuizzes.findIndex(
+        q => q.id === editingData.id
+      )
+      if (quizIndex !== -1) {
+        newModules[moduleIndex].moduleQuizzes[quizIndex] = data
+      }
+      setModules(newModules)
+      setActiveModal({ type: 'moduleQuiz', isOpen: false })
+      toast.success('Exam saved')
+    }
+
+    const deleteModule = (moduleId: string) => {
+      setModules(modules.filter(m => m.id !== moduleId))
+      toast.success('Lesson deleted')
+    }
+
+    const deleteLesson = (moduleId: string, lessonId: string) => {
+      setModules(
+        modules.map(m =>
+          m.id === moduleId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
         )
-        // Renumber lessons after reordering
-        newModules[mIdx].lessons = movedLessons.map((lesson, idx) => ({
-          ...lesson,
-          order: idx,
-          title: lesson.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`)
-        }))
-        setModules(newModules)
-        return
-      }
+      )
+      toast.success('Lesson deleted')
     }
 
-    // Check if dragging content within a lesson
-    for (let mIdx = 0; mIdx < modules.length; mIdx++) {
-      for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
-        const lesson = modules[mIdx].lessons[lIdx]
-        const activeContentIndex = lesson.content?.findIndex(c => c.id === activeId) ?? -1
-        const overContentIndex = lesson.content?.findIndex(c => c.id === overId) ?? -1
+    const deleteTask = (moduleId: string, lessonId: string, taskId: string) => {
+      setModules(
+        modules.map(m =>
+          m.id === moduleId
+            ? {
+                ...m,
+                lessons: m.lessons.map(l =>
+                  l.id === lessonId
+                    ? { ...l, tasks: (l.tasks || []).filter(t => t.id !== taskId) }
+                    : l
+                ),
+              }
+            : m
+        )
+      )
+      setSelectedItem(null)
+      toast.success('Task removed')
+    }
 
-        if (activeContentIndex !== -1 && overContentIndex !== -1) {
-          const newModules = [...modules]
-          newModules[mIdx].lessons[lIdx].content = arrayMove(
-            newModules[mIdx].lessons[lIdx].content,
-            activeContentIndex,
-            overContentIndex
-          ).map((content, idx) => ({ ...content, order: idx }))
-          setModules(newModules)
-          return
+    const deleteAssessment = (moduleId: string, lessonId: string, hwId: string) => {
+      setModules(
+        modules.map(m =>
+          m.id === moduleId
+            ? {
+                ...m,
+                lessons: m.lessons.map(l =>
+                  l.id === lessonId
+                    ? { ...l, homework: (l.homework || []).filter(h => h.id !== hwId) }
+                    : l
+                ),
+              }
+            : m
+        )
+      )
+      setSelectedItem(null)
+      toast.success('Assessment removed')
+    }
+
+    const deleteModuleQuiz = (moduleId: string, quizId: string) => {
+      setModules(
+        modules.map(m =>
+          m.id === moduleId
+            ? { ...m, moduleQuizzes: (m.moduleQuizzes || []).filter(q => q.id !== quizId) }
+            : m
+        )
+      )
+      setSelectedItem(null)
+      toast.success('Exam removed')
+    }
+
+    const duplicateTask = (moduleId: string, lessonId: string, task: Task) => {
+      const copy: Task = {
+        ...task,
+        id: `task-${generateId()}`,
+        title: `${task.title} (copy)`,
+        questions: task.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
+      }
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+      if (lessonIndex === -1) return
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons[lessonIndex].tasks = [
+        ...(newModules[moduleIndex].lessons[lessonIndex].tasks || []),
+        copy,
+      ]
+      setModules(newModules)
+      setSelectedItem({ type: 'task', id: copy.id })
+      toast.success('Task duplicated')
+    }
+
+    const duplicateAssessment = (moduleId: string, lessonId: string, hw: Assessment) => {
+      const copy: Assessment = {
+        ...hw,
+        id: `homework-${generateId()}`,
+        title: `${hw.title} (copy)`,
+        questions: hw.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
+      }
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+      if (lessonIndex === -1) return
+      const newModules = [...modules]
+      newModules[moduleIndex].lessons[lessonIndex].homework = [
+        ...(newModules[moduleIndex].lessons[lessonIndex].homework || []),
+        copy,
+      ]
+      setModules(newModules)
+      setSelectedItem({ type: 'homework', id: copy.id })
+      toast.success('Assessment duplicated')
+    }
+
+    const duplicateModuleQuiz = (moduleId: string, quiz: ModuleQuiz) => {
+      const copy: ModuleQuiz = {
+        ...quiz,
+        id: `quiz-${generateId()}`,
+        title: `${quiz.title} (copy)`,
+        questions: quiz.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
+      }
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      const newModules = [...modules]
+      newModules[moduleIndex].moduleQuizzes = [
+        ...(newModules[moduleIndex].moduleQuizzes || []),
+        copy,
+      ]
+      setModules(newModules)
+      setSelectedItem({ type: 'moduleQuiz', id: copy.id })
+      toast.success('Exam duplicated')
+    }
+
+    const deleteWorksheet = (moduleId: string, lessonId: string, worksheetId: string) => {
+      setModules(
+        modules.map(m =>
+          m.id === moduleId
+            ? {
+                ...m,
+                lessons: m.lessons.map(l =>
+                  l.id === lessonId
+                    ? { ...l, worksheets: (l.worksheets || []).filter(w => w.id !== worksheetId) }
+                    : l
+                ),
+              }
+            : m
+        )
+      )
+      setSelectedItem(null)
+      toast.success('Worksheet removed')
+    }
+
+    const duplicateWorksheet = (moduleId: string, lessonId: string, worksheet: Worksheet) => {
+      const copy: Worksheet = {
+        ...worksheet,
+        id: `worksheet-${generateId()}`,
+        title: `${worksheet.title} (copy)`,
+        questions: worksheet.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
+      }
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      if (moduleIndex === -1) return
+      const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+      if (lessonIndex === -1) return
+      const newModules = [...modules]
+      if (!newModules[moduleIndex].lessons[lessonIndex].worksheets) {
+        newModules[moduleIndex].lessons[lessonIndex].worksheets = []
+      }
+      newModules[moduleIndex].lessons[lessonIndex].worksheets = [
+        ...newModules[moduleIndex].lessons[lessonIndex].worksheets,
+        copy,
+      ]
+      setModules(newModules)
+      setSelectedItem({ type: 'worksheet', id: copy.id })
+      toast.success('Worksheet duplicated')
+    }
+
+    const getAllLessons = () => {
+      return modules.flatMap(m => m.lessons)
+    }
+
+    // File upload handlers for Media and Docs
+    const handleMediaUpload = (
+      moduleId: string,
+      lessonId: string,
+      files: FileList | null,
+      type: 'video' | 'image'
+    ) => {
+      if (!files || files.length === 0) return
+
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+      if (moduleIndex === -1 || lessonIndex === -1) return
+
+      const newModules = [...modules]
+
+      Array.from(files).forEach(file => {
+        if (type === 'video') {
+          newModules[moduleIndex].lessons[lessonIndex].media.videos.push({
+            id: `video-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+            title: file.name,
+            url: trackObjectUrl(URL.createObjectURL(file)),
+            duration: 0,
+          })
+        } else {
+          newModules[moduleIndex].lessons[lessonIndex].media.images.push({
+            id: `image-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+            title: file.name,
+            url: trackObjectUrl(URL.createObjectURL(file)),
+          })
         }
-      }
+      })
+
+      setModules(newModules)
+      toast.success(`${files.length} ${type}(s) uploaded`)
     }
 
-    // Check if dragging a task within a lesson
-    for (let mIdx = 0; mIdx < modules.length; mIdx++) {
-      for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
-        const lesson = modules[mIdx].lessons[lIdx]
-        const activeTaskIndex = lesson.tasks?.findIndex(t => t.id === activeId) ?? -1
-        const overTaskIndex = lesson.tasks?.findIndex(t => t.id === overId) ?? -1
+    const handleDocUpload = (moduleId: string, lessonId: string, files: FileList | null) => {
+      if (!files || files.length === 0) return
 
-        if (activeTaskIndex !== -1 && overTaskIndex !== -1) {
-          const newModules = [...modules]
-          newModules[mIdx].lessons[lIdx].tasks = arrayMove(
-            newModules[mIdx].lessons[lIdx].tasks,
-            activeTaskIndex,
-            overTaskIndex
-          )
-          setModules(newModules)
-          return
-        }
-      }
-    }
+      const moduleIndex = modules.findIndex(m => m.id === moduleId)
+      const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
+      if (moduleIndex === -1 || lessonIndex === -1) return
 
-    // Move task across lessons
-    const taskSource = findTaskLocation(activeId)
-    if (taskSource) {
-      const targetTaskLocation = findTaskLocation(overId)
-      const targetLesson = targetTaskLocation
-        ? { mIdx: targetTaskLocation.mIdx, lIdx: targetTaskLocation.lIdx }
-        : findLessonByModuleId(overId)
-      if (targetLesson && (taskSource.mIdx !== targetLesson.mIdx || taskSource.lIdx !== targetLesson.lIdx)) {
-        const newModules = [...modules]
-        const sourceTasks = newModules[taskSource.mIdx].lessons[taskSource.lIdx].tasks
-        const [movedTask] = sourceTasks.splice(taskSource.taskIndex, 1)
-        const targetTasks = newModules[targetLesson.mIdx].lessons[targetLesson.lIdx].tasks
-        const insertIndex = targetTaskLocation ? targetTasks.findIndex(t => t.id === overId) : targetTasks.length
-        targetTasks.splice(insertIndex === -1 ? targetTasks.length : insertIndex, 0, movedTask)
-        setModules(newModules)
-        return
-      }
-    }
+      const newModules = [...modules]
 
-    // Check if dragging homework within a lesson
-    for (let mIdx = 0; mIdx < modules.length; mIdx++) {
-      for (let lIdx = 0; lIdx < modules[mIdx].lessons.length; lIdx++) {
-        const lesson = modules[mIdx].lessons[lIdx]
-        const activeHwIndex = lesson.homework?.findIndex(h => h.id === activeId) ?? -1
-        const overHwIndex = lesson.homework?.findIndex(h => h.id === overId) ?? -1
+      Array.from(files).forEach(file => {
+        const ext = file.name.split('.').pop()?.toLowerCase()
+        const docType =
+          ext === 'pdf'
+            ? 'pdf'
+            : ext === 'doc' || ext === 'docx'
+              ? 'doc'
+              : ext === 'ppt' || ext === 'pptx'
+                ? 'ppt'
+                : 'other'
 
-        if (activeHwIndex !== -1 && overHwIndex !== -1) {
-          const newModules = [...modules]
-          newModules[mIdx].lessons[lIdx].homework = arrayMove(
-            newModules[mIdx].lessons[lIdx].homework,
-            activeHwIndex,
-            overHwIndex
-          )
-          setModules(newModules)
-          return
-        }
-      }
-    }
-
-    // Move homework/assessment across lessons
-    const hwSource = findHomeworkLocation(activeId)
-    if (hwSource) {
-      const targetHwLocation = findHomeworkLocation(overId)
-      const targetLesson = targetHwLocation
-        ? { mIdx: targetHwLocation.mIdx, lIdx: targetHwLocation.lIdx }
-        : findLessonByModuleId(overId)
-      if (targetLesson && (hwSource.mIdx !== targetLesson.mIdx || hwSource.lIdx !== targetLesson.lIdx)) {
-        const newModules = [...modules]
-        const sourceHomework = newModules[hwSource.mIdx].lessons[hwSource.lIdx].homework
-        const [movedHw] = sourceHomework.splice(hwSource.hwIndex, 1)
-        const targetHomework = newModules[targetLesson.mIdx].lessons[targetLesson.lIdx].homework
-        const insertIndex = targetHwLocation ? targetHomework.findIndex(h => h.id === overId) : targetHomework.length
-        targetHomework.splice(insertIndex === -1 ? targetHomework.length : insertIndex, 0, movedHw)
-        setModules(newModules)
-        return
-      }
-    }
-
-  }
-
-  // Save handlers
-  const handleSaveModule = (data: any) => {
-    if (activeModal.itemId) {
-      setModules(modules.map(m => m.id === activeModal.itemId ? { ...m, ...data } : m))
-    } else {
-      setModules(modules.map(m =>
-        m.id === editingData.id ? { ...m, ...data } : m
-      ))
-    }
-    setActiveModal({ type: 'module', isOpen: false })
-    toast.success('Lesson saved')
-  }
-
-  const handleSaveLesson = (data: any) => {
-    const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
-    if (moduleIndex === -1) return
-
-    const newModules = [...modules]
-    const lessonIndex = newModules[moduleIndex].lessons.findIndex(l => l.id === editingData.id)
-    if (lessonIndex !== -1) {
-      newModules[moduleIndex].lessons[lessonIndex] = {
-        ...newModules[moduleIndex].lessons[lessonIndex],
-        ...data
-      }
-    }
-    setModules(newModules)
-    setActiveModal({ type: 'lesson', isOpen: false })
-    toast.success('Lesson saved')
-  }
-
-  const handleSaveTask = (data: any, targetModuleId?: string, targetLessonId?: string) => {
-    const moduleId = targetModuleId || activeModal.moduleId
-    const lessonId = targetLessonId || activeModal.lessonId
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return
-
-    const newModules = [...modules]
-    const taskIndex = newModules[moduleIndex].lessons[lessonIndex].tasks.findIndex(t => t.id === editingData?.id)
-    if (taskIndex !== -1) {
-      newModules[moduleIndex].lessons[lessonIndex].tasks[taskIndex] = data
-    } else {
-      // Add new task if not found
-      newModules[moduleIndex].lessons[lessonIndex].tasks.push(data)
-    }
-    setModules(newModules)
-    setActiveModal({ type: 'task', isOpen: false })
-    toast.success('Task saved')
-  }
-
-  const handleSaveContent = (data: Content) => {
-    const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === activeModal.lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return
-
-    const newModules = [...modules]
-    const contentIndex = newModules[moduleIndex].lessons[lessonIndex].content?.findIndex(c => c.id === editingData?.id)
-    if (contentIndex !== undefined && contentIndex !== -1) {
-      newModules[moduleIndex].lessons[lessonIndex].content[contentIndex] = data
-    } else {
-      newModules[moduleIndex].lessons[lessonIndex].content.push(data)
-    }
-    setModules(newModules)
-    setActiveModal({ type: 'content', isOpen: false })
-    toast.success('Content saved')
-  }
-
-  const handleSaveAssessment = (data: any, targetModuleId?: string, targetLessonId?: string) => {
-    const moduleId = targetModuleId || activeModal.moduleId
-    const lessonId = targetLessonId || activeModal.lessonId
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return
-
-    const newModules = [...modules]
-    const hwIndex = newModules[moduleIndex].lessons[lessonIndex].homework.findIndex(h => h.id === editingData?.id)
-    if (hwIndex !== -1) {
-      newModules[moduleIndex].lessons[lessonIndex].homework[hwIndex] = data
-    } else {
-      // Add new homework/assessment if not found
-      newModules[moduleIndex].lessons[lessonIndex].homework.push(data)
-    }
-    setModules(newModules)
-    setActiveModal({ type: 'homework', isOpen: false })
-    toast.success(data.category === 'homework' ? 'Homework saved' : 'Assessment saved')
-  }
-
-  const handleSaveWorksheet = (data: Worksheet) => {
-    const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === activeModal.lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return
-
-    const newModules = [...modules]
-    if (!newModules[moduleIndex].lessons[lessonIndex].worksheets) {
-      newModules[moduleIndex].lessons[lessonIndex].worksheets = []
-    }
-    const worksheetIndex = newModules[moduleIndex].lessons[lessonIndex].worksheets.findIndex(w => w.id === editingData.id)
-    if (worksheetIndex !== -1) {
-      newModules[moduleIndex].lessons[lessonIndex].worksheets[worksheetIndex] = data
-    } else {
-      newModules[moduleIndex].lessons[lessonIndex].worksheets.push(data)
-    }
-    setModules(newModules)
-    setActiveModal({ type: 'worksheet', isOpen: false })
-    toast.success('Worksheet saved')
-  }
-
-  const handleSaveModuleQuiz = (data: any) => {
-    const moduleIndex = modules.findIndex(m => m.id === activeModal.moduleId)
-    if (moduleIndex === -1) return
-
-    const newModules = [...modules]
-    const quizIndex = newModules[moduleIndex].moduleQuizzes.findIndex(q => q.id === editingData.id)
-    if (quizIndex !== -1) {
-      newModules[moduleIndex].moduleQuizzes[quizIndex] = data
-    }
-    setModules(newModules)
-    setActiveModal({ type: 'moduleQuiz', isOpen: false })
-    toast.success('Exam saved')
-  }
-
-  const deleteModule = (moduleId: string) => {
-    setModules(modules.filter(m => m.id !== moduleId))
-    toast.success('Lesson deleted')
-  }
-
-  const deleteLesson = (moduleId: string, lessonId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId
-        ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) }
-        : m
-    ))
-    toast.success('Lesson deleted')
-  }
-
-  const deleteTask = (moduleId: string, lessonId: string, taskId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId
-        ? {
-          ...m,
-          lessons: m.lessons.map(l =>
-            l.id === lessonId
-              ? { ...l, tasks: (l.tasks || []).filter(t => t.id !== taskId) }
-              : l
-          )
-        }
-        : m
-    ))
-    setSelectedItem(null)
-    toast.success('Task removed')
-  }
-
-  const deleteAssessment = (moduleId: string, lessonId: string, hwId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId
-        ? {
-          ...m,
-          lessons: m.lessons.map(l =>
-            l.id === lessonId
-              ? { ...l, homework: (l.homework || []).filter(h => h.id !== hwId) }
-              : l
-          )
-        }
-        : m
-    ))
-    setSelectedItem(null)
-    toast.success('Assessment removed')
-  }
-
-  const deleteModuleQuiz = (moduleId: string, quizId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId
-        ? { ...m, moduleQuizzes: (m.moduleQuizzes || []).filter(q => q.id !== quizId) }
-        : m
-    ))
-    setSelectedItem(null)
-    toast.success('Exam removed')
-  }
-
-  const duplicateTask = (moduleId: string, lessonId: string, task: Task) => {
-    const copy: Task = {
-      ...task,
-      id: `task-${generateId()}`,
-      title: `${task.title} (copy)`,
-      questions: task.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
-    }
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].tasks = [
-      ...(newModules[moduleIndex].lessons[lessonIndex].tasks || []),
-      copy
-    ]
-    setModules(newModules)
-    setSelectedItem({ type: 'task', id: copy.id })
-    toast.success('Task duplicated')
-  }
-
-  const duplicateAssessment = (moduleId: string, lessonId: string, hw: Assessment) => {
-    const copy: Assessment = {
-      ...hw,
-      id: `homework-${generateId()}`,
-      title: `${hw.title} (copy)`,
-      questions: hw.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
-    }
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
-    const newModules = [...modules]
-    newModules[moduleIndex].lessons[lessonIndex].homework = [
-      ...(newModules[moduleIndex].lessons[lessonIndex].homework || []),
-      copy
-    ]
-    setModules(newModules)
-    setSelectedItem({ type: 'homework', id: copy.id })
-    toast.success('Assessment duplicated')
-  }
-
-  const duplicateModuleQuiz = (moduleId: string, quiz: ModuleQuiz) => {
-    const copy: ModuleQuiz = {
-      ...quiz,
-      id: `quiz-${generateId()}`,
-      title: `${quiz.title} (copy)`,
-      questions: quiz.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
-    }
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    const newModules = [...modules]
-    newModules[moduleIndex].moduleQuizzes = [
-      ...(newModules[moduleIndex].moduleQuizzes || []),
-      copy
-    ]
-    setModules(newModules)
-    setSelectedItem({ type: 'moduleQuiz', id: copy.id })
-    toast.success('Exam duplicated')
-  }
-
-  const deleteWorksheet = (moduleId: string, lessonId: string, worksheetId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId
-        ? {
-          ...m,
-          lessons: m.lessons.map(l =>
-            l.id === lessonId
-              ? { ...l, worksheets: (l.worksheets || []).filter(w => w.id !== worksheetId) }
-              : l
-          )
-        }
-        : m
-    ))
-    setSelectedItem(null)
-    toast.success('Worksheet removed')
-  }
-
-  const duplicateWorksheet = (moduleId: string, lessonId: string, worksheet: Worksheet) => {
-    const copy: Worksheet = {
-      ...worksheet,
-      id: `worksheet-${generateId()}`,
-      title: `${worksheet.title} (copy)`,
-      questions: worksheet.questions?.map(q => ({ ...q, id: `q-${generateId()}` }))
-    }
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    if (moduleIndex === -1) return
-    const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-    if (lessonIndex === -1) return
-    const newModules = [...modules]
-    if (!newModules[moduleIndex].lessons[lessonIndex].worksheets) {
-      newModules[moduleIndex].lessons[lessonIndex].worksheets = []
-    }
-    newModules[moduleIndex].lessons[lessonIndex].worksheets = [
-      ...newModules[moduleIndex].lessons[lessonIndex].worksheets,
-      copy
-    ]
-    setModules(newModules)
-    setSelectedItem({ type: 'worksheet', id: copy.id })
-    toast.success('Worksheet duplicated')
-  }
-
-  const getAllLessons = () => {
-    return modules.flatMap(m => m.lessons)
-  }
-
-  // File upload handlers for Media and Docs
-  const handleMediaUpload = (moduleId: string, lessonId: string, files: FileList | null, type: 'video' | 'image') => {
-    if (!files || files.length === 0) return
-
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return
-
-    const newModules = [...modules]
-
-    Array.from(files).forEach(file => {
-      if (type === 'video') {
-        newModules[moduleIndex].lessons[lessonIndex].media.videos.push({
-          id: `video-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+        newModules[moduleIndex].lessons[lessonIndex].docs.push({
+          id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
           title: file.name,
           url: trackObjectUrl(URL.createObjectURL(file)),
-          duration: 0
+          type: docType,
         })
-      } else {
-        newModules[moduleIndex].lessons[lessonIndex].media.images.push({
-          id: `image-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-          title: file.name,
-          url: trackObjectUrl(URL.createObjectURL(file))
-        })
-      }
-    })
-
-    setModules(newModules)
-    toast.success(`${files.length} ${type}(s) uploaded`)
-  }
-
-  const handleDocUpload = (moduleId: string, lessonId: string, files: FileList | null) => {
-    if (!files || files.length === 0) return
-
-    const moduleIndex = modules.findIndex(m => m.id === moduleId)
-    const lessonIndex = modules[moduleIndex]?.lessons.findIndex(l => l.id === lessonId)
-    if (moduleIndex === -1 || lessonIndex === -1) return
-
-    const newModules = [...modules]
-
-    Array.from(files).forEach(file => {
-      const ext = file.name.split('.').pop()?.toLowerCase()
-      const docType = ext === 'pdf' ? 'pdf' : ext === 'doc' || ext === 'docx' ? 'doc' : ext === 'ppt' || ext === 'pptx' ? 'ppt' : 'other'
-
-      newModules[moduleIndex].lessons[lessonIndex].docs.push({
-        id: `doc-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
-        title: file.name,
-        url: trackObjectUrl(URL.createObjectURL(file)),
-        type: docType
       })
-    })
 
-    setModules(newModules)
-    toast.success(`${files.length} document(s) uploaded`)
-  }
+      setModules(newModules)
+      toast.success(`${files.length} document(s) uploaded`)
+    }
 
-  const handleAssetsMediaUpload = (files: FileList | null, type: 'video' | 'image') => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    handleMediaUpload(moduleId, lessonId, files, type)
-  }
+    const handleAssetsMediaUpload = (files: FileList | null, type: 'video' | 'image') => {
+      const { moduleId, lessonId } = ensureFirstLessonContext()
+      handleMediaUpload(moduleId, lessonId, files, type)
+    }
 
-  const handleAssetsDocUpload = (files: FileList | null) => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    handleDocUpload(moduleId, lessonId, files)
-  }
+    const handleAssetsDocUpload = (files: FileList | null) => {
+      const { moduleId, lessonId } = ensureFirstLessonContext()
+      handleDocUpload(moduleId, lessonId, files)
+    }
 
-  const handleDeleteAssetMedia = (mediaType: 'video' | 'image', mediaId: string) => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    setModules((prev) =>
-      prev.map((module) => {
-        if (module.id !== moduleId) return module
-        return {
-          ...module,
-          lessons: module.lessons.map((lesson) => {
-            if (lesson.id !== lessonId) return lesson
-            return {
-              ...lesson,
-              media: {
-                ...lesson.media,
-                videos: mediaType === 'video' ? (lesson.media?.videos || []).filter((v) => v.id !== mediaId) : (lesson.media?.videos || []),
-                images: mediaType === 'image' ? (lesson.media?.images || []).filter((i) => i.id !== mediaId) : (lesson.media?.images || []),
-              },
-            }
-          }),
-        }
-      })
-    )
-  }
-
-  const handleDeleteAssetDoc = (docId: string) => {
-    const { moduleId, lessonId } = ensureFirstLessonContext()
-    setModules((prev) =>
-      prev.map((module) => {
-        if (module.id !== moduleId) return module
-        return {
-          ...module,
-          lessons: module.lessons.map((lesson) => {
-            if (lesson.id !== lessonId) return lesson
-            return {
-              ...lesson,
-              docs: (lesson.docs || []).filter((doc) => doc.id !== docId),
-            }
-          }),
-        }
-      })
-    )
-  }
-
-  
-  const getAssetIcon = (name: string) => {
-    const ext = name.split('.').pop()?.toLowerCase() || ''
-    if (['doc', 'docx'].includes(ext)) return <FileText className="w-4 h-4 text-blue-600" />
-    if (['pdf'].includes(ext)) return <FileText className="w-4 h-4 text-red-600" />
-    if (['xls', 'xlsx', 'csv'].includes(ext)) return <FileText className="w-4 h-4 text-green-600" />
-    if (['ppt', 'pptx'].includes(ext)) return <FileText className="w-4 h-4 text-orange-600" />
-    if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) return <FileText className="w-4 h-4 text-purple-600" />
-    if (['mp4', 'mov', 'webm'].includes(ext)) return <FileText className="w-4 h-4 text-pink-600" />
-    return <FileText className="w-4 h-4 text-slate-500" />
-  }
-
-  const handleDragFiles = async (e: React.DragEvent<HTMLTextAreaElement>, onText: (t: string) => void) => {
-    const files = Array.from(e.dataTransfer.files || [])
-    if (files.length > 0) {
-      e.preventDefault()
-      let combined = ''
-      for (const f of files) {
-        try {
-          // If it's a lightweight text file, parse as text directly. For PDF, DOCX, PPTX parse via extractTextFromFile
-          const extracted = await extractTextFromFile(f)
-          if (extracted) {
-             combined += extracted + '\n\n'
-          } else {
-             combined += `[Imported ${f.name}]\n\n`
+    const handleDeleteAssetMedia = (mediaType: 'video' | 'image', mediaId: string) => {
+      const { moduleId, lessonId } = ensureFirstLessonContext()
+      setModules(prev =>
+        prev.map(module => {
+          if (module.id !== moduleId) return module
+          return {
+            ...module,
+            lessons: module.lessons.map(lesson => {
+              if (lesson.id !== lessonId) return lesson
+              return {
+                ...lesson,
+                media: {
+                  ...lesson.media,
+                  videos:
+                    mediaType === 'video'
+                      ? (lesson.media?.videos || []).filter(v => v.id !== mediaId)
+                      : lesson.media?.videos || [],
+                  images:
+                    mediaType === 'image'
+                      ? (lesson.media?.images || []).filter(i => i.id !== mediaId)
+                      : lesson.media?.images || [],
+                },
+              }
+            }),
           }
-        } catch {
-          combined += `[Imported ${f.name}]\n\n`
+        })
+      )
+    }
+
+    const handleDeleteAssetDoc = (docId: string) => {
+      const { moduleId, lessonId } = ensureFirstLessonContext()
+      setModules(prev =>
+        prev.map(module => {
+          if (module.id !== moduleId) return module
+          return {
+            ...module,
+            lessons: module.lessons.map(lesson => {
+              if (lesson.id !== lessonId) return lesson
+              return {
+                ...lesson,
+                docs: (lesson.docs || []).filter(doc => doc.id !== docId),
+              }
+            }),
+          }
+        })
+      )
+    }
+
+    const getAssetIcon = (name: string) => {
+      const ext = name.split('.').pop()?.toLowerCase() || ''
+      if (['doc', 'docx'].includes(ext)) return <FileText className="h-4 w-4 text-blue-600" />
+      if (['pdf'].includes(ext)) return <FileText className="h-4 w-4 text-red-600" />
+      if (['xls', 'xlsx', 'csv'].includes(ext))
+        return <FileText className="h-4 w-4 text-green-600" />
+      if (['ppt', 'pptx'].includes(ext)) return <FileText className="h-4 w-4 text-orange-600" />
+      if (['png', 'jpg', 'jpeg', 'gif'].includes(ext))
+        return <FileText className="h-4 w-4 text-purple-600" />
+      if (['mp4', 'mov', 'webm'].includes(ext))
+        return <FileText className="h-4 w-4 text-pink-600" />
+      return <FileText className="h-4 w-4 text-slate-500" />
+    }
+
+    const handleDragFiles = async (
+      e: React.DragEvent<HTMLTextAreaElement>,
+      onText: (t: string) => void
+    ) => {
+      const files = Array.from(e.dataTransfer.files || [])
+      if (files.length > 0) {
+        e.preventDefault()
+        let combined = ''
+        for (const f of files) {
+          try {
+            // If it's a lightweight text file, parse as text directly. For PDF, DOCX, PPTX parse via extractTextFromFile
+            const extracted = await extractTextFromFile(f)
+            if (extracted) {
+              combined += extracted + '\n\n'
+            } else {
+              combined += `[Imported ${f.name}]\n\n`
+            }
+          } catch {
+            combined += `[Imported ${f.name}]\n\n`
+          }
         }
+        onText(combined.trim())
+        toast.success('File(s) parsed and loaded')
       }
-      onText(combined.trim())
-      toast.success('File(s) parsed and loaded')
     }
-  }
 
-  const handleLoadAsset = (asset: { name: string; content?: string }) => {
-    // Always open the "Load as..." modal so the user can choose where to load
-    setAssetToLoad(asset)
-    setLoadAsModalOpen(true)
-  }
+    const handleLoadAsset = (asset: { name: string; content?: string }) => {
+      // Always open the "Load as..." modal so the user can choose where to load
+      setAssetToLoad(asset)
+      setLoadAsModalOpen(true)
+    }
 
-  const renderAssetsFolder = () => (
-    <div className="mt-4 border rounded-md">
-      <div
-        className="flex items-center justify-between p-2 bg-slate-100 cursor-pointer border-b"
-        onClick={() => setAssetsOpen(!assetsOpen)}
-      >
-        <span className="text-xs font-semibold flex items-center gap-1">
-          <FolderOpen className="w-3 h-3" /> Assets
-        </span>
-        <div className="flex items-center gap-3" onClick={(e: any) => e.stopPropagation()}>
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              multiple
-              className="hidden"
-              onChange={async (e: any) => {
-                const files = Array.from(e.target.files || [])
-                const newAssets = await Promise.all(
-                  files.map(async (f: any) => {
-                    let textContent = ''
-                    try {
-                      const extracted = await extractTextFromFile(f)
-                      textContent = extracted || `[Imported ${f.name}]`
-                    } catch {
-                      textContent = `[Imported ${f.name}]`
-                    }
-                    return {
-                      id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                      name: f.name,
-                      content: textContent
-                    }
-                  })
-                )
-                setCourseAssets((prev) => [...prev, ...newAssets])
-                if (files.length > 0) toast.success(`${files.length} asset(s) imported`)
-                e.target.value = ''
-              }}
-            />
-            <span className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-medium">
-              <Upload className="w-3 h-3" /> Import Asset
-            </span>
-          </label>
-        </div>
-      </div>
-      {assetsOpen && (
-        <div className="p-2 flex flex-col gap-2 min-h-[50px] bg-white rounded-b-md">
-          {courseAssets.length === 0 ? (
-            <p className="text-xs text-muted-foreground w-full py-2 text-center">No assets imported.</p>
-          ) : (
-            courseAssets.map(asset => (
-              <div
-                key={asset.id}
-                draggable
-                onDragStart={(e: any) => {
-                  e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
-                  e.dataTransfer.effectAllowed = 'copy'
+    const renderAssetsFolder = () => (
+      <div className="mt-4 rounded-md border">
+        <div
+          className="flex cursor-pointer items-center justify-between border-b bg-slate-100 p-2"
+          onClick={() => setAssetsOpen(!assetsOpen)}
+        >
+          <span className="flex items-center gap-1 text-xs font-semibold">
+            <FolderOpen className="h-3 w-3" /> Assets
+          </span>
+          <div className="flex items-center gap-3" onClick={(e: any) => e.stopPropagation()}>
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                multiple
+                className="hidden"
+                onChange={async (e: any) => {
+                  const files = Array.from(e.target.files || [])
+                  const newAssets = await Promise.all(
+                    files.map(async (f: any) => {
+                      let textContent = ''
+                      try {
+                        const extracted = await extractTextFromFile(f)
+                        textContent = extracted || `[Imported ${f.name}]`
+                      } catch {
+                        textContent = `[Imported ${f.name}]`
+                      }
+                      return {
+                        id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        name: f.name,
+                        content: textContent,
+                      }
+                    })
+                  )
+                  setCourseAssets(prev => [...prev, ...newAssets])
+                  if (files.length > 0) toast.success(`${files.length} asset(s) imported`)
+                  e.target.value = ''
                 }}
-                className="text-xs bg-white border border-slate-400 rounded px-2 py-2 cursor-grab shadow-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
-                title="Drag or load into editor"
-              >
-                <div className="flex items-center gap-2 overflow-hidden mr-2 flex-1">
-                   {getAssetIcon(asset.name)}
-                   <span 
-                     className="truncate font-medium cursor-text flex-1" 
-                     onDoubleClick={() => {
-                       const newName = prompt('Rename asset:', asset.name);
-                       if (newName && newName.trim() !== '') {
-                         setCourseAssets(prev => prev.map(a => a.id === asset.id ? { ...a, name: newName.trim() } : a));
-                       }
-                     }} 
-                     title="Double click to rename"
-                   >
-                     {asset.name}
-                   </span>
-                </div>
-                <div className="flex gap-1 items-center shrink-0">
-                  <Button variant="outline" size="sm" className="h-6 px-2 text-[10px]" onClick={() => handleLoadAsset(asset)} title="Load into builder text area">
-                     Load
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600" onClick={() => {
-                     setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
-                  }} title="Delete asset">
-                     <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-    
-      <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
-        <DialogContent className="sm:max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Load as...</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-4">
-            <p className="text-sm text-gray-500">
-              Select how you would like to load "{assetToLoad?.name}":
-            </p>
-            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              const { moduleId, lessonId } = ensureFirstLessonContext()
-              const moduleIndex = modules.findIndex(m => m.id === moduleId)
-              const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-              const newTask = DEFAULT_TASK(modules[moduleIndex].lessons[lessonIndex].tasks.length)
-              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              
-              newTask.description = textToInsert
-              
-              const newModules = [...modules]
-              newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
-              setModules(newModules)
-              setMainBuilderTab('task')
-              setSelectedItem({ type: 'task', id: newTask.id })
-              loadTaskIntoBuilder(newTask)
-              
-              toast.success(`Created new Task and loaded '${assetToLoad?.name}'`)
-              setLoadAsModalOpen(false)
-              setAssetToLoad(null)
-            }}>
-              <ListTodo className="h-4 w-4 text-orange-500" />
-              Task
-            </Button>
-            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              if (taskBuilder.activeExtensionId) {
-                setTaskBuilder(prev => ({
-                  ...prev,
-                  extensions: prev.extensions.map(ext =>
-                    ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
-                  )
-                }))
-                if (loadedTaskId) {
-                  setModules(prev => prev.map(mod => ({
-                    ...mod,
-                    lessons: mod.lessons.map(lesson => ({
-                      ...lesson,
-                      tasks: lesson.tasks.map(t =>
-                        t.id === loadedTaskId
-                          ? {
-                            ...t,
-                            extensions: (t.extensions || []).map(ext =>
-                              ext.id === taskBuilder.activeExtensionId ? { ...ext, content: textToInsert } : ext
-                            )
-                          }
-                          : t
-                      )
-                    }))
-                  })))
-                }
-                setMainBuilderTab('task')
-                toast.success(`Loaded '${assetToLoad?.name}' into extension`)
-                setLoadAsModalOpen(false)
-                setAssetToLoad(null)
-                return
-              }
-              if (!loadedTaskId) {
-                toast.error('Select a task to add an extension')
-                return
-              }
-              const extNumber = taskBuilder.extensions.length + 1
-              const newExtension = {
-                id: `ext-${Date.now()}`,
-                name: `Extension ${extNumber}`,
-                description: '',
-                content: textToInsert,
-                pci: ''
-              }
-              setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
-              setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
-              setTaskBuilder(prev => ({
-                ...prev,
-                extensions: [...prev.extensions, newExtension],
-                activeExtensionId: newExtension.id
-              }))
-              setModules(prev => prev.map(mod => ({
-                ...mod,
-                lessons: mod.lessons.map(lesson => ({
-                  ...lesson,
-                  tasks: lesson.tasks.map(t =>
-                    t.id === loadedTaskId
-                      ? { ...t, extensions: [...(t.extensions || []), newExtension] }
-                      : t
-                  )
-                }))
-              })))
-              setMainBuilderTab('task')
-              toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
-              setLoadAsModalOpen(false)
-              setAssetToLoad(null)
-            }}>
-              <Layers2 className="h-4 w-4 text-orange-500" />
-              Extensions
-            </Button>
-            <Button className="w-full justify-start gap-2" variant="outline" onClick={() => {
-              const { moduleId, lessonId } = ensureFirstLessonContext()
-              const moduleIndex = modules.findIndex(m => m.id === moduleId)
-              const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
-              const newAssess = DEFAULT_HOMEWORK(modules[moduleIndex].lessons[lessonIndex].homework.length, 'assessment')
-              const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
-              
-              newAssess.description = textToInsert
-              
-              const newModules = [...modules]
-              newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssess)
-              setModules(newModules)
-              setMainBuilderTab('assessment')
-              setSelectedItem({ type: 'assessment', id: newAssess.id })
-              loadAssessmentIntoBuilder(newAssess)
-              
-              toast.success(`Created new Assessment and loaded '${assetToLoad?.name}'`)
-              setLoadAsModalOpen(false)
-              setAssetToLoad(null)
-            }}>
-              <FileQuestion className="h-4 w-4 text-purple-500" />
-              Assessment
-            </Button>
+              />
+              <span className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700">
+                <Upload className="h-3 w-3" /> Import Asset
+              </span>
+            </label>
           </div>
-        </DialogContent>
-      </Dialog>
-</div>
-  )
-
-  const updateSelectedItem = (updates: PreviewUpdatePayload) => {
-    if (!selectedItem) return
-    const target = resolveSelectedItem(selectedItem, modules)
-    if (!target?.lessonId) return
-
-    setModules((prev) =>
-      prev.map((mod) => {
-        if (mod.id !== target.moduleId) return mod
-        return {
-          ...mod,
-          lessons: mod.lessons.map((lesson) => {
-            if (lesson.id !== target.lessonId) return lesson
-            if (selectedItem.type === 'task') {
-              const taskUpdates = updates as Partial<Task>
-              return {
-                ...lesson,
-                tasks: lesson.tasks.map((task) => task.id === selectedItem.id ? { ...task, ...taskUpdates } : task),
-              }
-            }
-            if (selectedItem.type === 'homework') {
-              const homeworkUpdates = updates as Partial<Assessment>
-              return {
-                ...lesson,
-                homework: lesson.homework.map((hw) => hw.id === selectedItem.id ? { ...hw, ...homeworkUpdates } : hw),
-              }
-            }
-            if (selectedItem.type === 'worksheet') {
-              const worksheetUpdates = updates as Partial<Worksheet>
-              return {
-                ...lesson,
-                worksheets: (lesson.worksheets || []).map((ws) => ws.id === selectedItem.id ? { ...ws, ...worksheetUpdates } : ws),
-              }
-            }
-            return lesson
-          }),
-        }
-      })
-    )
-  }
-
-  const activeTaskExtension = taskBuilder.activeExtensionId
-    ? taskBuilder.extensions.find(ext => ext.id === taskBuilder.activeExtensionId)
-    : null
-  const activeTaskPciMessages = taskBuilder.activeExtensionId
-    ? (taskExtensionPciMessages[taskBuilder.activeExtensionId] || [])
-    : taskPciMessages
-  const activeTaskPciInput = taskBuilder.activeExtensionId
-    ? (taskExtensionPciInputs[taskBuilder.activeExtensionId] || '')
-    : taskPciInput
-  const taskHeaderTitle = activeTaskExtension
-    ? `${taskBuilder.title || 'Task'} ${activeTaskExtension.name}`
-    : (taskBuilder.title || 'Task')
-  const taskHeaderDescription = activeTaskExtension
-    ? (activeTaskExtension.description || 'Add a short description')
-    : (taskBuilder.details || 'Add a short description')
-
-  const handleSaveAll = () => {
-    if (!onSave) return
-    onSave(modules, { developmentMode: devMode, previewDifficulty })
-  }
-
-  const isExtensionsCollapsed = (taskId: string) => collapsedTaskExtensions.has(taskId)
-
-  const toggleExtensions = (taskId: string) => {
-    setCollapsedTaskExtensions(prev => {
-      const next = new Set(prev)
-      if (next.has(taskId)) next.delete(taskId)
-      else next.add(taskId)
-      return next
-    })
-  }
-
-  const leftResizeStartX = useRef(0)
-  const leftResizeStartW = useRef(280)
-  useEffect(() => {
-    if (!leftPanelResizing) return
-    const onMove = (e: MouseEvent) => {
-      const delta = e.clientX - leftResizeStartX.current
-      const newW = Math.max(200, Math.min(500, leftResizeStartW.current + delta))
-      setLeftPanelWidth(newW)
-    }
-    const onUp = () => setLeftPanelResizing(false)
-    document.addEventListener('mousemove', onMove)
-    document.addEventListener('mouseup', onUp)
-    return () => {
-      document.removeEventListener('mousemove', onMove)
-      document.removeEventListener('mouseup', onUp)
-    }
-  }, [leftPanelResizing])
-
-  return (
-    <div className={cn("space-y-4 flex-1 flex flex-col min-h-0", panelMode === 'live-class' && "pt-3")}>
-      <div className="flex flex-1 min-h-0 gap-0">
-        {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
-        {!leftPanelHidden && (
-          <>
-            <div ref={leftPanelRef} style={{ width: leftPanelWidth }} className="flex flex-col min-h-0 shrink-0">
-              <Card className="flex-1 flex flex-col min-h-0 border-2 border-border h-full bg-card rounded-2xl shadow-xl ring-1 ring-black/5">
-              {!lessonBankMode && (
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-end">
+        </div>
+        {assetsOpen && (
+          <div className="flex min-h-[50px] flex-col gap-2 rounded-b-md bg-white p-2">
+            {courseAssets.length === 0 ? (
+              <p className="w-full py-2 text-center text-xs text-muted-foreground">
+                No assets imported.
+              </p>
+            ) : (
+              courseAssets.map(asset => (
+                <div
+                  key={asset.id}
+                  draggable
+                  onDragStart={(e: any) => {
+                    e.dataTransfer.setData('text/plain', `[Asset: ${asset.name}]`)
+                    e.dataTransfer.effectAllowed = 'copy'
+                  }}
+                  className="flex cursor-grab items-center justify-between rounded border border-slate-400 bg-white px-2 py-2 text-xs shadow-sm transition-colors hover:bg-slate-50"
+                  title="Drag or load into editor"
+                >
+                  <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
+                    {getAssetIcon(asset.name)}
+                    <span
+                      className="flex-1 cursor-text truncate font-medium"
+                      onDoubleClick={() => {
+                        const newName = prompt('Rename asset:', asset.name)
+                        if (newName && newName.trim() !== '') {
+                          setCourseAssets(prev =>
+                            prev.map(a => (a.id === asset.id ? { ...a, name: newName.trim() } : a))
+                          )
+                        }
+                      }}
+                      title="Double click to rename"
+                    >
+                      {asset.name}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 px-2 text-[10px]"
+                      onClick={() => handleLoadAsset(asset)}
+                      title="Load into builder text area"
+                    >
+                      Load
+                    </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="h-8 gap-2 text-xs"
-                      onClick={() => setLeftPanelHidden(true)}
-                      title="Hide course panel"
+                      size="icon"
+                      className="h-6 w-6 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600"
+                      onClick={() => {
+                        setCourseAssets(prev => prev.filter(a => a.id !== asset.id))
+                      }}
+                      title="Delete asset"
                     >
-                      <LayoutTemplate className="h-4 w-4" />
-                      Hide Panel
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                </CardHeader>
-              )}
-            <CardContent className="pt-0 flex-1 flex flex-col">
-              <ScrollArea className="flex-1">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                >
-                  <div className="space-y-1">
-                    {/* Course Root */}
-                    <div className="flex items-center justify-between py-2 font-semibold text-sm border-b mb-2">
-                      <div className="flex items-center gap-2">
-                        {!lessonBankMode && <GraduationCap className="h-4 w-4 text-blue-600" />}
-                        {!lessonBankMode && <span className="truncate">{courseName || 'Course'}</span>}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {!lessonBankMode && (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => {
-                              // Open lesson bank import
-                              const bankModules = loadLessonBankModules()
-                              if (bankModules.length === 0) {
-                                toast.error('No lesson bank content found. Build lessons in the Lesson Bank first.')
-                                return
-                              }
-                              setLessonBankModules(bankModules)
-                              const firstLesson = bankModules[0]?.lessons?.[0]
-                              if (firstLesson) {
-                                setLessonBankLessonKey(`${bankModules[0].id}:${firstLesson.id}`)
-                              } else {
-                                setLessonBankLessonKey('')
-                              }
-                              
-                              // If no lessons exist, skip the lesson selector and open import modal directly
-                              // The import modal will handle auto-creating a lesson for task/assessment/homework imports
-                              if (modules.length === 0) {
-                                setImportTarget(null) // No specific target, will auto-create
-                                setLessonBankImportOpen(true)
-                              } else {
-                                setImportLessonSelectorOpen(true)
-                              }
-                            }}
-                            className="gap-1 h-6 text-xs"
-                          >
-                            <FolderOpen className="h-3 w-3" />
-                            Import
-                          </Button>
-                        )}
-                        <Button size="sm" onClick={addModule} className="gap-1 h-6 text-xs">
-                          <Plus className="h-3 w-3" />
-                          Lesson
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        <Dialog open={loadAsModalOpen} onOpenChange={setLoadAsModalOpen}>
+          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Load as...</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-4">
+              <p className="text-sm text-gray-500">
+                Select how you would like to load "{assetToLoad?.name}":
+              </p>
+              <Button
+                className="w-full justify-start gap-2"
+                variant="outline"
+                onClick={() => {
+                  const { moduleId, lessonId } = ensureFirstLessonContext()
+                  const moduleIndex = modules.findIndex(m => m.id === moduleId)
+                  const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+                  const newTask = DEFAULT_TASK(
+                    modules[moduleIndex].lessons[lessonIndex].tasks.length
+                  )
+                  const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+
+                  newTask.description = textToInsert
+
+                  const newModules = [...modules]
+                  newModules[moduleIndex].lessons[lessonIndex].tasks.push(newTask)
+                  setModules(newModules)
+                  setMainBuilderTab('task')
+                  setSelectedItem({ type: 'task', id: newTask.id })
+                  loadTaskIntoBuilder(newTask)
+
+                  toast.success(`Created new Task and loaded '${assetToLoad?.name}'`)
+                  setLoadAsModalOpen(false)
+                  setAssetToLoad(null)
+                }}
+              >
+                <ListTodo className="h-4 w-4 text-orange-500" />
+                Task
+              </Button>
+              <Button
+                className="w-full justify-start gap-2"
+                variant="outline"
+                onClick={() => {
+                  const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+                  if (taskBuilder.activeExtensionId) {
+                    setTaskBuilder(prev => ({
+                      ...prev,
+                      extensions: prev.extensions.map(ext =>
+                        ext.id === prev.activeExtensionId ? { ...ext, content: textToInsert } : ext
+                      ),
+                    }))
+                    if (loadedTaskId) {
+                      setModules(prev =>
+                        prev.map(mod => ({
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => ({
+                            ...lesson,
+                            tasks: lesson.tasks.map(t =>
+                              t.id === loadedTaskId
+                                ? {
+                                    ...t,
+                                    extensions: (t.extensions || []).map(ext =>
+                                      ext.id === taskBuilder.activeExtensionId
+                                        ? { ...ext, content: textToInsert }
+                                        : ext
+                                    ),
+                                  }
+                                : t
+                            ),
+                          })),
+                        }))
+                      )
+                    }
+                    setMainBuilderTab('task')
+                    toast.success(`Loaded '${assetToLoad?.name}' into extension`)
+                    setLoadAsModalOpen(false)
+                    setAssetToLoad(null)
+                    return
+                  }
+                  if (!loadedTaskId) {
+                    toast.error('Select a task to add an extension')
+                    return
+                  }
+                  const extNumber = taskBuilder.extensions.length + 1
+                  const newExtension = {
+                    id: `ext-${Date.now()}`,
+                    name: `Extension ${extNumber}`,
+                    description: '',
+                    content: textToInsert,
+                    pci: '',
+                  }
+                  setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
+                  setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
+                  setTaskBuilder(prev => ({
+                    ...prev,
+                    extensions: [...prev.extensions, newExtension],
+                    activeExtensionId: newExtension.id,
+                  }))
+                  setModules(prev =>
+                    prev.map(mod => ({
+                      ...mod,
+                      lessons: mod.lessons.map(lesson => ({
+                        ...lesson,
+                        tasks: lesson.tasks.map(t =>
+                          t.id === loadedTaskId
+                            ? { ...t, extensions: [...(t.extensions || []), newExtension] }
+                            : t
+                        ),
+                      })),
+                    }))
+                  )
+                  setMainBuilderTab('task')
+                  toast.success(`Created extension and loaded '${assetToLoad?.name}'`)
+                  setLoadAsModalOpen(false)
+                  setAssetToLoad(null)
+                }}
+              >
+                <Layers2 className="h-4 w-4 text-orange-500" />
+                Extensions
+              </Button>
+              <Button
+                className="w-full justify-start gap-2"
+                variant="outline"
+                onClick={() => {
+                  const { moduleId, lessonId } = ensureFirstLessonContext()
+                  const moduleIndex = modules.findIndex(m => m.id === moduleId)
+                  const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === lessonId)
+                  const newAssess = DEFAULT_HOMEWORK(
+                    modules[moduleIndex].lessons[lessonIndex].homework.length,
+                    'assessment'
+                  )
+                  const textToInsert = assetToLoad?.content || `[Asset: ${assetToLoad?.name}]`
+
+                  newAssess.description = textToInsert
+
+                  const newModules = [...modules]
+                  newModules[moduleIndex].lessons[lessonIndex].homework.push(newAssess)
+                  setModules(newModules)
+                  setMainBuilderTab('assessment')
+                  setSelectedItem({ type: 'assessment', id: newAssess.id })
+                  loadAssessmentIntoBuilder(newAssess)
+
+                  toast.success(`Created new Assessment and loaded '${assetToLoad?.name}'`)
+                  setLoadAsModalOpen(false)
+                  setAssetToLoad(null)
+                }}
+              >
+                <FileQuestion className="h-4 w-4 text-purple-500" />
+                Assessment
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+
+    const updateSelectedItem = (updates: PreviewUpdatePayload) => {
+      if (!selectedItem) return
+      const target = resolveSelectedItem(selectedItem, modules)
+      if (!target?.lessonId) return
+
+      setModules(prev =>
+        prev.map(mod => {
+          if (mod.id !== target.moduleId) return mod
+          return {
+            ...mod,
+            lessons: mod.lessons.map(lesson => {
+              if (lesson.id !== target.lessonId) return lesson
+              if (selectedItem.type === 'task') {
+                const taskUpdates = updates as Partial<Task>
+                return {
+                  ...lesson,
+                  tasks: lesson.tasks.map(task =>
+                    task.id === selectedItem.id ? { ...task, ...taskUpdates } : task
+                  ),
+                }
+              }
+              if (selectedItem.type === 'homework') {
+                const homeworkUpdates = updates as Partial<Assessment>
+                return {
+                  ...lesson,
+                  homework: lesson.homework.map(hw =>
+                    hw.id === selectedItem.id ? { ...hw, ...homeworkUpdates } : hw
+                  ),
+                }
+              }
+              if (selectedItem.type === 'worksheet') {
+                const worksheetUpdates = updates as Partial<Worksheet>
+                return {
+                  ...lesson,
+                  worksheets: (lesson.worksheets || []).map(ws =>
+                    ws.id === selectedItem.id ? { ...ws, ...worksheetUpdates } : ws
+                  ),
+                }
+              }
+              return lesson
+            }),
+          }
+        })
+      )
+    }
+
+    const activeTaskExtension = taskBuilder.activeExtensionId
+      ? taskBuilder.extensions.find(ext => ext.id === taskBuilder.activeExtensionId)
+      : null
+    const activeTaskPciMessages = taskBuilder.activeExtensionId
+      ? taskExtensionPciMessages[taskBuilder.activeExtensionId] || []
+      : taskPciMessages
+    const activeTaskPciInput = taskBuilder.activeExtensionId
+      ? taskExtensionPciInputs[taskBuilder.activeExtensionId] || ''
+      : taskPciInput
+    const taskHeaderTitle = activeTaskExtension
+      ? `${taskBuilder.title || 'Task'} ${activeTaskExtension.name}`
+      : taskBuilder.title || 'Task'
+    const taskHeaderDescription = activeTaskExtension
+      ? activeTaskExtension.description || 'Add a short description'
+      : taskBuilder.details || 'Add a short description'
+
+    const handleSaveAll = () => {
+      if (!onSave) return
+      onSave(modules, { developmentMode: devMode, previewDifficulty })
+    }
+
+    const isExtensionsCollapsed = (taskId: string) => collapsedTaskExtensions.has(taskId)
+
+    const toggleExtensions = (taskId: string) => {
+      setCollapsedTaskExtensions(prev => {
+        const next = new Set(prev)
+        if (next.has(taskId)) next.delete(taskId)
+        else next.add(taskId)
+        return next
+      })
+    }
+
+    const leftResizeStartX = useRef(0)
+    const leftResizeStartW = useRef(280)
+    useEffect(() => {
+      if (!leftPanelResizing) return
+      const onMove = (e: MouseEvent) => {
+        const delta = e.clientX - leftResizeStartX.current
+        const newW = Math.max(200, Math.min(500, leftResizeStartW.current + delta))
+        setLeftPanelWidth(newW)
+      }
+      const onUp = () => setLeftPanelResizing(false)
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+      return () => {
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+      }
+    }, [leftPanelResizing])
+
+    return (
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col space-y-4',
+          panelMode === 'live-class' && 'pt-3'
+        )}
+      >
+        <div className="flex min-h-0 flex-1 gap-0">
+          {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
+          {!leftPanelHidden && (
+            <>
+              <div
+                ref={leftPanelRef}
+                style={{ width: leftPanelWidth }}
+                className="flex min-h-0 shrink-0 flex-col"
+              >
+                <Card className="flex h-full min-h-0 flex-1 flex-col rounded-2xl border-2 border-border bg-card shadow-xl ring-1 ring-black/5">
+                  {!lessonBankMode && (
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-2 text-xs"
+                          onClick={() => setLeftPanelHidden(true)}
+                          title="Hide course panel"
+                        >
+                          <LayoutTemplate className="h-4 w-4" />
+                          Hide Panel
                         </Button>
-                        {lessonBankMode && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => setLeftPanelHidden(true)}
-                            title="Hide panel"
-                            aria-label="Hide panel"
-                          >
-                            <ChevronLeftIcon className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
-                    </div>
+                    </CardHeader>
+                  )}
+                  <CardContent className="flex flex-1 flex-col pt-0">
+                    <ScrollArea className="flex-1">
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <div className="space-y-1">
+                          {/* Course Root */}
+                          <div className="mb-2 flex items-center justify-between border-b py-2 text-sm font-semibold">
+                            <div className="flex items-center gap-2">
+                              {!lessonBankMode && (
+                                <GraduationCap className="h-4 w-4 text-blue-600" />
+                              )}
+                              {!lessonBankMode && (
+                                <span className="truncate">{courseName || 'Course'}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {!lessonBankMode && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    // Open lesson bank import
+                                    const bankModules = loadLessonBankModules()
+                                    if (bankModules.length === 0) {
+                                      toast.error(
+                                        'No lesson bank content found. Build lessons in the Lesson Bank first.'
+                                      )
+                                      return
+                                    }
+                                    setLessonBankModules(bankModules)
+                                    const firstLesson = bankModules[0]?.lessons?.[0]
+                                    if (firstLesson) {
+                                      setLessonBankLessonKey(
+                                        `${bankModules[0].id}:${firstLesson.id}`
+                                      )
+                                    } else {
+                                      setLessonBankLessonKey('')
+                                    }
 
-
-                    {/* Lessons (formerly modules) - with drag sorting */}
-                    <SortableContext
-                      items={modules.map(m => m.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {modules.map((module, moduleIdx) => {
-                        const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
-                        const taskCount = primaryLesson.tasks?.length || 0
-                        const assessments = (primaryLesson.homework || []).filter((h) => h.category !== 'homework')
-                        const totalItems = taskCount + assessments.length
-                        return (
-                          <SortableTreeItem key={module.id} id={module.id} depth={1} isLast={moduleIdx === modules.length - 1} inlineDragHandle>
-                            <div className="group">
-                              <div
-                                className={cn(
-                                  "flex flex-wrap items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-colors",
-                                  "bg-blue-50 hover:bg-blue-100 border border-blue-400"
-                                )}
-                                onClick={() => toggleModule(module.id)}
-                              >
-                                {expandedModules.has(module.id) ? (
-                                  <ChevronDown className="h-3 w-3 text-blue-600" />
-                                ) : (
-                                  <ChevronRight className="h-3 w-3 text-blue-600" />
-                                )}
-                                <Layers className="h-3 w-3 text-blue-600" />
-                                <span className="text-sm font-medium truncate max-w-[120px] relative group/tooltip" title={module.title}>
-                                  {module.title}
-                                  {/* Custom Tooltip */}
-                                  <span className="absolute left-0 -top-8 hidden group-hover/tooltip:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50">
-                                    {module.title}
-                                    <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                  </span>
-                                </span>
-                                <span className="text-blue-400">:</span>
-                                <div className="flex-1 min-w-0 relative group/tooltip-desc">
-                                  <Input
-                                    placeholder="Add description..."
-                                    value={module.description ?? ''}
-                                    onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, description: e.target.value }))}
-                                    className="h-6 text-xs border-blue-200 bg-white/50 w-full"
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                  {/* Custom Tooltip for Description */}
-                                  {module.description && (
-                                    <span className="absolute left-0 -top-8 hidden group-hover/tooltip-desc:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
-                                      {module.description}
-                                      <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                    </span>
-                                  )}
-                                </div>
-                                <Badge variant="secondary" className="text-[10px] h-4 shrink-0">
-                                  {totalItems}
-                                </Badge>
-
+                                    // If no lessons exist, skip the lesson selector and open import modal directly
+                                    // The import modal will handle auto-creating a lesson for task/assessment/homework imports
+                                    if (modules.length === 0) {
+                                      setImportTarget(null) // No specific target, will auto-create
+                                      setLessonBankImportOpen(true)
+                                    } else {
+                                      setImportLessonSelectorOpen(true)
+                                    }
+                                  }}
+                                  className="h-6 gap-1 text-xs"
+                                >
+                                  <FolderOpen className="h-3 w-3" />
+                                  Import
+                                </Button>
+                              )}
+                              <Button size="sm" onClick={addModule} className="h-6 gap-1 text-xs">
+                                <Plus className="h-3 w-3" />
+                                Lesson
+                              </Button>
+                              {lessonBankMode && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation()
-                                    deleteModule(module.id)
-                                  }}
+                                  className="h-6 w-6"
+                                  onClick={() => setLeftPanelHidden(true)}
+                                  title="Hide panel"
+                                  aria-label="Hide panel"
                                 >
-                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                  <ChevronLeftIcon className="h-4 w-4" />
                                 </Button>
-                              </div>
+                              )}
+                            </div>
+                          </div>
 
-                              {expandedModules.has(module.id) && (
-                                <div className="mt-1 space-y-1">
-                                  {/* Tasks - droppable so homework can be moved here */}
-                                  <TreeItem depth={2} isLast={false}>
-                                    <DroppableTaskZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-orange-300 bg-orange-50/50">
+                          {/* Lessons (formerly modules) - with drag sorting */}
+                          <SortableContext
+                            items={modules.map(m => m.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {modules.map((module, moduleIdx) => {
+                              const primaryLesson = module.lessons[0] ?? DEFAULT_LESSON(0)
+                              const taskCount = primaryLesson.tasks?.length || 0
+                              const assessments = (primaryLesson.homework || []).filter(
+                                h => h.category !== 'homework'
+                              )
+                              const totalItems = taskCount + assessments.length
+                              return (
+                                <SortableTreeItem
+                                  key={module.id}
+                                  id={module.id}
+                                  depth={1}
+                                  isLast={moduleIdx === modules.length - 1}
+                                  inlineDragHandle
+                                >
+                                  <div className="group">
+                                    <div
+                                      className={cn(
+                                        'flex cursor-pointer flex-wrap items-center gap-1.5 rounded px-2 py-1.5 transition-colors',
+                                        'border border-blue-400 bg-blue-50 hover:bg-blue-100'
+                                      )}
+                                      onClick={() => toggleModule(module.id)}
+                                    >
+                                      {expandedModules.has(module.id) ? (
+                                        <ChevronDown className="h-3 w-3 text-blue-600" />
+                                      ) : (
+                                        <ChevronRight className="h-3 w-3 text-blue-600" />
+                                      )}
+                                      <Layers className="h-3 w-3 text-blue-600" />
+                                      <span
+                                        className="group/tooltip relative max-w-[120px] truncate text-sm font-medium"
+                                        title={module.title}
+                                      >
+                                        {module.title}
+                                        {/* Custom Tooltip */}
+                                        <span className="absolute -top-8 left-0 z-50 hidden whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip:block">
+                                          {module.title}
+                                          <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                        </span>
+                                      </span>
+                                      <span className="text-blue-400">:</span>
+                                      <div className="group/tooltip-desc relative min-w-0 flex-1">
+                                        <Input
+                                          placeholder="Add description..."
+                                          value={module.description ?? ''}
+                                          onChange={e =>
+                                            setModules(prev =>
+                                              prev.map(m =>
+                                                m.id !== module.id
+                                                  ? m
+                                                  : { ...m, description: e.target.value }
+                                              )
+                                            )
+                                          }
+                                          className="h-6 w-full border-blue-200 bg-white/50 text-xs"
+                                          onClick={e => e.stopPropagation()}
+                                        />
+                                        {/* Custom Tooltip for Description */}
+                                        {module.description && (
+                                          <span className="absolute -top-8 left-0 z-50 hidden max-w-xs truncate whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip-desc:block">
+                                            {module.description}
+                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                          </span>
+                                        )}
+                                      </div>
+                                      <Badge
+                                        variant="secondary"
+                                        className="h-4 shrink-0 text-[10px]"
+                                      >
+                                        {totalItems}
+                                      </Badge>
+
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-5 w-5"
-                                        onClick={() => toggleSection(module.id, 'task')}
-                                        aria-label={isSectionCollapsed(module.id, 'task') ? 'Expand tasks' : 'Collapse tasks'}
+                                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                        onClick={(e: any) => {
+                                          e.stopPropagation()
+                                          deleteModule(module.id)
+                                        }}
                                       >
-                                        {isSectionCollapsed(module.id, 'task') ? (
-                                          <ChevronRight className="h-3 w-3 text-orange-600" />
-                                        ) : (
-                                          <ChevronDown className="h-3 w-3 text-orange-600" />
-                                        )}
+                                        <Trash2 className="h-3 w-3 text-red-500" />
                                       </Button>
-                                      <span className="text-[10px] font-semibold text-orange-700">Tasks</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 text-[10px] gap-1 px-2 text-orange-600 hover:bg-orange-100 ml-auto"
-                                        onClick={() => addTask(module.id, primaryLesson.id)}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                        Task
-                                      </Button>
-                                    </DroppableTaskZone>
-                                  </TreeItem>
-                                  {!isSectionCollapsed(module.id, 'task') && (
-                                    <>
-                                    <SortableContext
-                                      items={primaryLesson.tasks?.map(t => t.id) || []}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {(primaryLesson.tasks || []).map((task, idx) => (
-                                        <div key={task.id} className="contents">
-                                          <SortableTreeItem id={task.id} depth={2} isLast={idx === (primaryLesson.tasks?.length || 0) - 1}>
-                                          <div
-                                            className={cn(
-                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
-                                              selectedItem?.type === 'task' && selectedItem?.id === task.id
-                                                ? "bg-orange-200 border-orange-400 ring-1 ring-orange-400"
-                                                : "bg-orange-50 border-orange-400 hover:bg-orange-100"
-                                            )}
-                                            onClick={(e) => {
-                                              if ((e.target as HTMLElement).closest('input')) return
-                                              // Auto-save current assessment if switching from one
-                                              if (loadedAssessmentId) {
-                                                setModules(prev => prev.map(mod => ({
-                                                  ...mod,
-                                                  lessons: mod.lessons.map(lesson => ({
-                                                    ...lesson,
-                                                    homework: lesson.homework.map(hw =>
-                                                      hw.id === loadedAssessmentId
-                                                        ? {
-                                                          ...hw,
-                                                          title: assessmentBuilder.title,
-                                                          description: assessmentBuilder.taskContent,
-                                                          instructions: assessmentBuilder.taskPci,
-                                                          dmiItems: assessmentDmiItems,
-                                                          sourceDocument: undefined
-                                                        }
-                                                        : hw
-                                                    )
-                                                  }))
-                                                })))
-                                              }
-                                              // Auto-save current task if switching from another task
-                                              if (loadedTaskId && loadedTaskId !== task.id) {
-                                                setModules(prev => prev.map(mod => ({
-                                                  ...mod,
-                                                  lessons: mod.lessons.map(lesson => ({
-                                                    ...lesson,
-                                                    tasks: lesson.tasks.map(t =>
-                                                      t.id === loadedTaskId
-        ? {
-          ...t,
-          title: taskBuilder.title,
-          description: taskBuilder.taskContent,
-          instructions: taskBuilder.taskPci,
-          extensions: taskBuilder.extensions,
-          dmiItems: taskDmiItems,
-          sourceDocument: undefined
-        }
-        : t
-                                                    )
-                                                  }))
-                                                })))
-                                              }
-                                              setSelectedItem({ type: 'task', id: task.id })
-                                              loadTaskIntoBuilder(task)
-                                              setMainBuilderTab('task')
-                                            }}
+                                    </div>
+
+                                    {expandedModules.has(module.id) && (
+                                      <div className="mt-1 space-y-1">
+                                        {/* Tasks - droppable so homework can be moved here */}
+                                        <TreeItem depth={2} isLast={false}>
+                                          <DroppableTaskZone
+                                            moduleId={module.id}
+                                            lessonId={primaryLesson.id}
+                                            className="flex items-center gap-1.5 rounded border border-dashed border-orange-300 bg-orange-50/50 px-2 py-1"
                                           >
-                                            <ListTodo className="h-3 w-3 text-orange-500 shrink-0" />
-                                            <span className="text-[10px] font-semibold text-orange-700 shrink-0">{idx + 1}. {task.title}:</span>
-                                            <div className="flex-1 min-w-0 relative group/tooltip-desc">
-                                              <Input
-                                                placeholder="Description"
-                                                value={task.shortDescription ?? ''}
-                                                onChange={(e) => {
-                                                  e.stopPropagation()
-                                                  setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, tasks: les.tasks.map(t => t.id !== task.id ? t : { ...t, shortDescription: e.target.value }) }) }))
-                                                }}
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="h-6 text-[10px] border-orange-200 w-full"
-                                              />
-                                              {/* Tooltip for Description */}
-                                              {task.shortDescription && (
-                                                <span className="absolute left-0 -top-8 hidden group-hover/tooltip-desc:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
-                                                  {task.shortDescription}
-                                                  <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                                </span>
-                                              )}
-                                            </div>
-                                            {!lessonBankMode && (
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700 shrink-0"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  moveToHomework(module.id, primaryLesson.id, 'task', task)
-                                                }}
-                                              >
-                                                Move to homework
-                                              </Button>
-                                            )}
-                                            {!lessonBankMode && (
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  setEditingData(task)
-                                                  setActiveModal({ type: 'task', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: task.id })
-                                                }}
-                                              >
-                                                Edit
-                                              </Button>
-                                            )}
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                if (!confirm(`Delete "${task.title}"?`)) return
-                                                deleteTask(module.id, primaryLesson.id, task.id)
-                                              }}
+                                              className="h-5 w-5"
+                                              onClick={() => toggleSection(module.id, 'task')}
+                                              aria-label={
+                                                isSectionCollapsed(module.id, 'task')
+                                                  ? 'Expand tasks'
+                                                  : 'Collapse tasks'
+                                              }
                                             >
-                                              <Trash2 className="h-3 w-3 text-red-500" />
-                                            </Button>
-                                          </div>
-                                          </SortableTreeItem>
-                                        {loadedTaskId === task.id && taskBuilder.extensions.length > 0 && (
-                                          <div className="ml-8 mt-1 space-y-1 border-l border-orange-400 pl-3">
-                                            <div
-                                              className="flex items-center gap-2 rounded px-2 py-1 text-[10px] border bg-white cursor-pointer"
-                                              onClick={() => toggleExtensions(task.id)}
-                                            >
-                                              {isExtensionsCollapsed(task.id) ? (
+                                              {isSectionCollapsed(module.id, 'task') ? (
                                                 <ChevronRight className="h-3 w-3 text-orange-600" />
                                               ) : (
                                                 <ChevronDown className="h-3 w-3 text-orange-600" />
                                               )}
-                                              <FolderOpen className="h-3 w-3 text-orange-600" />
-                                              <span className="font-semibold text-orange-700">Extensions</span>
-                                              <span className="text-muted-foreground">({taskBuilder.extensions.length})</span>
-                                            </div>
-                                            {!isExtensionsCollapsed(task.id) && (
-                                              <div className="ml-3 space-y-1">
-                                                {taskBuilder.extensions.map((ext, extIdx) => (
-                                                  <div
-                                                    key={ext.id}
-                                                    className={cn(
-                                                      "flex items-center gap-2 rounded px-2 py-1 text-[10px] cursor-pointer border group/extension",
-                                                      taskBuilder.activeExtensionId === ext.id
-                                                        ? "bg-orange-100 border-orange-300"
-                                                        : "bg-white border-orange-100 hover:bg-orange-50"
-                                                    )}
-                                                    onClick={() => {
-                                                      setSelectedItem({ type: 'task', id: task.id })
-                                                      loadTaskIntoBuilder(task, ext.id)
-                                                      setMainBuilderTab('task')
-                                                    }}
+                                            </Button>
+                                            <span className="text-[10px] font-semibold text-orange-700">
+                                              Tasks
+                                            </span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="ml-auto h-6 gap-1 px-2 text-[10px] text-orange-600 hover:bg-orange-100"
+                                              onClick={() => addTask(module.id, primaryLesson.id)}
+                                            >
+                                              <Plus className="h-3 w-3" />
+                                              Task
+                                            </Button>
+                                          </DroppableTaskZone>
+                                        </TreeItem>
+                                        {!isSectionCollapsed(module.id, 'task') && (
+                                          <>
+                                            <SortableContext
+                                              items={primaryLesson.tasks?.map(t => t.id) || []}
+                                              strategy={verticalListSortingStrategy}
+                                            >
+                                              {(primaryLesson.tasks || []).map((task, idx) => (
+                                                <div key={task.id} className="contents">
+                                                  <SortableTreeItem
+                                                    id={task.id}
+                                                    depth={2}
+                                                    isLast={
+                                                      idx === (primaryLesson.tasks?.length || 0) - 1
+                                                    }
                                                   >
-                                                    <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-                                                    <span className="font-semibold text-orange-700">{idx + 1}.{extIdx + 1}</span>
-                                                    <span className="flex-1 truncate text-muted-foreground">{ext.name}</span>
-                                                    {!lessonBankMode && (
+                                                    <div
+                                                      className={cn(
+                                                        'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
+                                                        selectedItem?.type === 'task' &&
+                                                          selectedItem?.id === task.id
+                                                          ? 'border-orange-400 bg-orange-200 ring-1 ring-orange-400'
+                                                          : 'border-orange-400 bg-orange-50 hover:bg-orange-100'
+                                                      )}
+                                                      onClick={e => {
+                                                        if (
+                                                          (e.target as HTMLElement).closest('input')
+                                                        )
+                                                          return
+                                                        // Auto-save current assessment if switching from one
+                                                        if (loadedAssessmentId) {
+                                                          setModules(prev =>
+                                                            prev.map(mod => ({
+                                                              ...mod,
+                                                              lessons: mod.lessons.map(lesson => ({
+                                                                ...lesson,
+                                                                homework: lesson.homework.map(hw =>
+                                                                  hw.id === loadedAssessmentId
+                                                                    ? {
+                                                                        ...hw,
+                                                                        title:
+                                                                          assessmentBuilder.title,
+                                                                        description:
+                                                                          assessmentBuilder.taskContent,
+                                                                        instructions:
+                                                                          assessmentBuilder.taskPci,
+                                                                        dmiItems:
+                                                                          assessmentDmiItems,
+                                                                        sourceDocument: undefined,
+                                                                      }
+                                                                    : hw
+                                                                ),
+                                                              })),
+                                                            }))
+                                                          )
+                                                        }
+                                                        // Auto-save current task if switching from another task
+                                                        if (
+                                                          loadedTaskId &&
+                                                          loadedTaskId !== task.id
+                                                        ) {
+                                                          setModules(prev =>
+                                                            prev.map(mod => ({
+                                                              ...mod,
+                                                              lessons: mod.lessons.map(lesson => ({
+                                                                ...lesson,
+                                                                tasks: lesson.tasks.map(t =>
+                                                                  t.id === loadedTaskId
+                                                                    ? {
+                                                                        ...t,
+                                                                        title: taskBuilder.title,
+                                                                        description:
+                                                                          taskBuilder.taskContent,
+                                                                        instructions:
+                                                                          taskBuilder.taskPci,
+                                                                        extensions:
+                                                                          taskBuilder.extensions,
+                                                                        dmiItems: taskDmiItems,
+                                                                        sourceDocument: undefined,
+                                                                      }
+                                                                    : t
+                                                                ),
+                                                              })),
+                                                            }))
+                                                          )
+                                                        }
+                                                        setSelectedItem({
+                                                          type: 'task',
+                                                          id: task.id,
+                                                        })
+                                                        loadTaskIntoBuilder(task)
+                                                        setMainBuilderTab('task')
+                                                      }}
+                                                    >
+                                                      <ListTodo className="h-3 w-3 shrink-0 text-orange-500" />
+                                                      <span className="shrink-0 text-[10px] font-semibold text-orange-700">
+                                                        {idx + 1}. {task.title}:
+                                                      </span>
+                                                      <div className="group/tooltip-desc relative min-w-0 flex-1">
+                                                        <Input
+                                                          placeholder="Description"
+                                                          value={task.shortDescription ?? ''}
+                                                          onChange={e => {
+                                                            e.stopPropagation()
+                                                            setModules(prev =>
+                                                              prev.map(m =>
+                                                                m.id !== module.id
+                                                                  ? m
+                                                                  : {
+                                                                      ...m,
+                                                                      lessons: m.lessons.map(les =>
+                                                                        les.id !== primaryLesson.id
+                                                                          ? les
+                                                                          : {
+                                                                              ...les,
+                                                                              tasks: les.tasks.map(
+                                                                                t =>
+                                                                                  t.id !== task.id
+                                                                                    ? t
+                                                                                    : {
+                                                                                        ...t,
+                                                                                        shortDescription:
+                                                                                          e.target
+                                                                                            .value,
+                                                                                      }
+                                                                              ),
+                                                                            }
+                                                                      ),
+                                                                    }
+                                                              )
+                                                            )
+                                                          }}
+                                                          onClick={e => e.stopPropagation()}
+                                                          className="h-6 w-full border-orange-200 text-[10px]"
+                                                        />
+                                                        {/* Tooltip for Description */}
+                                                        {task.shortDescription && (
+                                                          <span className="absolute -top-8 left-0 z-50 hidden max-w-xs truncate whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip-desc:block">
+                                                            {task.shortDescription}
+                                                            <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                      {!lessonBankMode && (
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="sm"
+                                                          className="h-5 shrink-0 gap-1 px-1 text-[10px] text-emerald-700 opacity-0 group-hover/item:opacity-100"
+                                                          onClick={(e: any) => {
+                                                            e.stopPropagation()
+                                                            moveToHomework(
+                                                              module.id,
+                                                              primaryLesson.id,
+                                                              'task',
+                                                              task
+                                                            )
+                                                          }}
+                                                        >
+                                                          Move to homework
+                                                        </Button>
+                                                      )}
+                                                      {!lessonBankMode && (
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="sm"
+                                                          className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/item:opacity-100"
+                                                          onClick={(e: any) => {
+                                                            e.stopPropagation()
+                                                            setEditingData(task)
+                                                            setActiveModal({
+                                                              type: 'task',
+                                                              isOpen: true,
+                                                              moduleId: module.id,
+                                                              lessonId: primaryLesson.id,
+                                                              itemId: task.id,
+                                                            })
+                                                          }}
+                                                        >
+                                                          Edit
+                                                        </Button>
+                                                      )}
                                                       <Button
                                                         variant="ghost"
-                                                        size="sm"
-                                                        className="h-5 text-[10px] gap-1 opacity-0 group-hover/extension:opacity-100 px-1"
+                                                        size="icon"
+                                                        className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
                                                         onClick={(e: any) => {
                                                           e.stopPropagation()
-                                                          setQuestionBankTarget(`extension-${ext.id}`)
-                                                          setQuestionBankOpen(true)
+                                                          if (!confirm(`Delete "${task.title}"?`))
+                                                            return
+                                                          deleteTask(
+                                                            module.id,
+                                                            primaryLesson.id,
+                                                            task.id
+                                                          )
                                                         }}
                                                       >
-                                                        Import
+                                                        <Trash2 className="h-3 w-3 text-red-500" />
                                                       </Button>
+                                                    </div>
+                                                  </SortableTreeItem>
+                                                  {loadedTaskId === task.id &&
+                                                    taskBuilder.extensions.length > 0 && (
+                                                      <div className="ml-8 mt-1 space-y-1 border-l border-orange-400 pl-3">
+                                                        <div
+                                                          className="flex cursor-pointer items-center gap-2 rounded border bg-white px-2 py-1 text-[10px]"
+                                                          onClick={() => toggleExtensions(task.id)}
+                                                        >
+                                                          {isExtensionsCollapsed(task.id) ? (
+                                                            <ChevronRight className="h-3 w-3 text-orange-600" />
+                                                          ) : (
+                                                            <ChevronDown className="h-3 w-3 text-orange-600" />
+                                                          )}
+                                                          <FolderOpen className="h-3 w-3 text-orange-600" />
+                                                          <span className="font-semibold text-orange-700">
+                                                            Extensions
+                                                          </span>
+                                                          <span className="text-muted-foreground">
+                                                            ({taskBuilder.extensions.length})
+                                                          </span>
+                                                        </div>
+                                                        {!isExtensionsCollapsed(task.id) && (
+                                                          <div className="ml-3 space-y-1">
+                                                            {taskBuilder.extensions.map(
+                                                              (ext, extIdx) => (
+                                                                <div
+                                                                  key={ext.id}
+                                                                  className={cn(
+                                                                    'group/extension flex cursor-pointer items-center gap-2 rounded border px-2 py-1 text-[10px]',
+                                                                    taskBuilder.activeExtensionId ===
+                                                                      ext.id
+                                                                      ? 'border-orange-300 bg-orange-100'
+                                                                      : 'border-orange-100 bg-white hover:bg-orange-50'
+                                                                  )}
+                                                                  onClick={() => {
+                                                                    setSelectedItem({
+                                                                      type: 'task',
+                                                                      id: task.id,
+                                                                    })
+                                                                    loadTaskIntoBuilder(
+                                                                      task,
+                                                                      ext.id
+                                                                    )
+                                                                    setMainBuilderTab('task')
+                                                                  }}
+                                                                >
+                                                                  <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                                                                  <span className="font-semibold text-orange-700">
+                                                                    {idx + 1}.{extIdx + 1}
+                                                                  </span>
+                                                                  <span className="flex-1 truncate text-muted-foreground">
+                                                                    {ext.name}
+                                                                  </span>
+                                                                  {!lessonBankMode && (
+                                                                    <Button
+                                                                      variant="ghost"
+                                                                      size="sm"
+                                                                      className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/extension:opacity-100"
+                                                                      onClick={(e: any) => {
+                                                                        e.stopPropagation()
+                                                                        setQuestionBankTarget(
+                                                                          `extension-${ext.id}`
+                                                                        )
+                                                                        setQuestionBankOpen(true)
+                                                                      }}
+                                                                    >
+                                                                      Import
+                                                                    </Button>
+                                                                  )}
+                                                                  <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
+                                                                    onClick={(e: any) => {
+                                                                      e.stopPropagation()
+                                                                      if (
+                                                                        !confirm(
+                                                                          `Delete "${ext.name}"?`
+                                                                        )
+                                                                      )
+                                                                        return
+                                                                      setTaskExtensionPciMessages(
+                                                                        prev => {
+                                                                          const next = { ...prev }
+                                                                          delete next[ext.id]
+                                                                          return next
+                                                                        }
+                                                                      )
+                                                                      setTaskExtensionPciInputs(
+                                                                        prev => {
+                                                                          const next = { ...prev }
+                                                                          delete next[ext.id]
+                                                                          return next
+                                                                        }
+                                                                      )
+                                                                      setTaskBuilder(prev => ({
+                                                                        ...prev,
+                                                                        extensions:
+                                                                          prev.extensions.filter(
+                                                                            e => e.id !== ext.id
+                                                                          ),
+                                                                        activeExtensionId:
+                                                                          prev.activeExtensionId ===
+                                                                          ext.id
+                                                                            ? null
+                                                                            : prev.activeExtensionId,
+                                                                      }))
+                                                                      if (loadedTaskId) {
+                                                                        setModules(prev =>
+                                                                          prev.map(mod => ({
+                                                                            ...mod,
+                                                                            lessons:
+                                                                              mod.lessons.map(
+                                                                                lesson => ({
+                                                                                  ...lesson,
+                                                                                  tasks:
+                                                                                    lesson.tasks.map(
+                                                                                      t =>
+                                                                                        t.id ===
+                                                                                        loadedTaskId
+                                                                                          ? {
+                                                                                              ...t,
+                                                                                              extensions:
+                                                                                                (
+                                                                                                  t.extensions ||
+                                                                                                  []
+                                                                                                ).filter(
+                                                                                                  e =>
+                                                                                                    e.id !==
+                                                                                                    ext.id
+                                                                                                ),
+                                                                                            }
+                                                                                          : t
+                                                                                    ),
+                                                                                })
+                                                                              ),
+                                                                          }))
+                                                                        )
+                                                                      }
+                                                                    }}
+                                                                  >
+                                                                    <Trash2 className="h-3 w-3 text-red-500" />
+                                                                  </Button>
+                                                                </div>
+                                                              )
+                                                            )}
+                                                          </div>
+                                                        )}
+                                                      </div>
                                                     )}
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-5 w-5 opacity-0 group-hover/extension:opacity-100"
-                                                      onClick={(e: any) => {
-                                                        e.stopPropagation()
-                                                        if (!confirm(`Delete "${ext.name}"?`)) return
-                                                        setTaskExtensionPciMessages(prev => {
-                                                          const next = { ...prev }
-                                                          delete next[ext.id]
-                                                          return next
-                                                        })
-                                                        setTaskExtensionPciInputs(prev => {
-                                                          const next = { ...prev }
-                                                          delete next[ext.id]
-                                                          return next
-                                                        })
-                                                        setTaskBuilder(prev => ({
-                                                          ...prev,
-                                                          extensions: prev.extensions.filter(e => e.id !== ext.id),
-                                                          activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
-                                                        }))
-                                                        if (loadedTaskId) {
-                                                          setModules(prev => prev.map(mod => ({
+                                                </div>
+                                              ))}
+                                            </SortableContext>
+                                          </>
+                                        )}
+
+                                        {/* Assessments - droppable so homework can be moved here */}
+                                        <TreeItem depth={2} isLast={false}>
+                                          <DroppableAssessmentZone
+                                            moduleId={module.id}
+                                            lessonId={primaryLesson.id}
+                                            className="flex items-center gap-1.5 rounded border border-dashed border-purple-300 bg-purple-50/50 px-2 py-1"
+                                          >
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-5 w-5"
+                                              onClick={() => toggleSection(module.id, 'assessment')}
+                                              aria-label={
+                                                isSectionCollapsed(module.id, 'assessment')
+                                                  ? 'Expand assessments'
+                                                  : 'Collapse assessments'
+                                              }
+                                            >
+                                              {isSectionCollapsed(module.id, 'assessment') ? (
+                                                <ChevronRight className="h-3 w-3 text-purple-600" />
+                                              ) : (
+                                                <ChevronDown className="h-3 w-3 text-purple-600" />
+                                              )}
+                                            </Button>
+                                            <span className="text-[10px] font-semibold text-purple-700">
+                                              Assessments
+                                            </span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="ml-auto h-6 gap-1 px-2 text-[10px] text-purple-600 hover:bg-purple-100"
+                                              onClick={() =>
+                                                addAssessment(module.id, primaryLesson.id)
+                                              }
+                                            >
+                                              <Plus className="h-3 w-3" />
+                                              Assessment
+                                            </Button>
+                                          </DroppableAssessmentZone>
+                                        </TreeItem>
+                                        {!isSectionCollapsed(module.id, 'assessment') && (
+                                          <>
+                                            <SortableContext
+                                              items={assessments.map(h => h.id)}
+                                              strategy={verticalListSortingStrategy}
+                                            >
+                                              {assessments.map((hw, idx) => (
+                                                <SortableTreeItem
+                                                  key={hw.id}
+                                                  id={hw.id}
+                                                  depth={2}
+                                                  isLast={idx === assessments.length - 1}
+                                                >
+                                                  <div
+                                                    className={cn(
+                                                      'group/item flex cursor-pointer items-center gap-1.5 rounded border px-2 py-1 transition-colors',
+                                                      selectedItem?.type === 'homework' &&
+                                                        selectedItem?.id === hw.id
+                                                        ? 'border-purple-400 bg-purple-200 ring-1 ring-purple-400'
+                                                        : 'border-purple-400 bg-purple-50 hover:bg-purple-100'
+                                                    )}
+                                                    onClick={e => {
+                                                      if (
+                                                        (e.target as HTMLElement).closest('input')
+                                                      )
+                                                        return
+                                                      // Auto-save current task if switching from one
+                                                      if (loadedTaskId) {
+                                                        setModules(prev =>
+                                                          prev.map(mod => ({
                                                             ...mod,
                                                             lessons: mod.lessons.map(lesson => ({
                                                               ...lesson,
                                                               tasks: lesson.tasks.map(t =>
                                                                 t.id === loadedTaskId
-                                                                  ? { ...t, extensions: (t.extensions || []).filter(e => e.id !== ext.id) }
+                                                                  ? {
+                                                                      ...t,
+                                                                      title: taskBuilder.title,
+                                                                      shortDescription:
+                                                                        taskBuilder.details,
+                                                                      description:
+                                                                        taskBuilder.taskContent,
+                                                                      instructions:
+                                                                        taskBuilder.taskPci,
+                                                                      extensions:
+                                                                        taskBuilder.extensions,
+                                                                      sourceDocument: undefined,
+                                                                    }
                                                                   : t
-                                                              )
-                                                            }))
-                                                          })))
-                                                        }
+                                                              ),
+                                                            })),
+                                                          }))
+                                                        )
+                                                      }
+                                                      // Auto-save current assessment if switching from another assessment
+                                                      if (
+                                                        loadedAssessmentId &&
+                                                        loadedAssessmentId !== hw.id
+                                                      ) {
+                                                        setModules(prev =>
+                                                          prev.map(mod => ({
+                                                            ...mod,
+                                                            lessons: mod.lessons.map(lesson => ({
+                                                              ...lesson,
+                                                              homework: lesson.homework.map(h =>
+                                                                h.id === loadedAssessmentId
+                                                                  ? {
+                                                                      ...h,
+                                                                      title:
+                                                                        assessmentBuilder.title,
+                                                                      description:
+                                                                        assessmentBuilder.taskContent,
+                                                                      instructions:
+                                                                        assessmentBuilder.taskPci,
+                                                                      sourceDocument: undefined,
+                                                                    }
+                                                                  : h
+                                                              ),
+                                                            })),
+                                                          }))
+                                                        )
+                                                      }
+                                                      setSelectedItem({
+                                                        type: 'homework',
+                                                        id: hw.id,
+                                                      })
+                                                      loadAssessmentIntoBuilder(hw)
+                                                      setMainBuilderTab('assessment')
+                                                    }}
+                                                  >
+                                                    <FileQuestion className="h-3 w-3 shrink-0 text-purple-500" />
+                                                    <span className="shrink-0 text-[10px] font-semibold text-purple-700">
+                                                      {idx + 1}. {hw.title}:
+                                                    </span>
+                                                    <div className="group/tooltip-desc relative min-w-0 flex-1">
+                                                      <Input
+                                                        placeholder="Description"
+                                                        value={hw.description ?? ''}
+                                                        onChange={e => {
+                                                          e.stopPropagation()
+                                                          setModules(prev =>
+                                                            prev.map(m =>
+                                                              m.id !== module.id
+                                                                ? m
+                                                                : {
+                                                                    ...m,
+                                                                    lessons: m.lessons.map(les =>
+                                                                      les.id !== primaryLesson.id
+                                                                        ? les
+                                                                        : {
+                                                                            ...les,
+                                                                            homework:
+                                                                              les.homework.map(h =>
+                                                                                h.id !== hw.id
+                                                                                  ? h
+                                                                                  : {
+                                                                                      ...h,
+                                                                                      description:
+                                                                                        e.target
+                                                                                          .value,
+                                                                                    }
+                                                                              ),
+                                                                          }
+                                                                    ),
+                                                                  }
+                                                            )
+                                                          )
+                                                        }}
+                                                        onClick={e => e.stopPropagation()}
+                                                        className="h-6 w-full border-purple-200 text-[10px]"
+                                                      />
+                                                      {/* Tooltip for Description */}
+                                                      {hw.description && (
+                                                        <span className="absolute -top-8 left-0 z-50 hidden max-w-xs truncate whitespace-nowrap rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover/tooltip-desc:block">
+                                                          {hw.description}
+                                                          <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
+                                                        </span>
+                                                      )}
+                                                    </div>
+
+                                                    {!lessonBankMode && (
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-5 shrink-0 gap-1 px-1 text-[10px] text-emerald-700 opacity-0 group-hover/item:opacity-100"
+                                                        onClick={(e: any) => {
+                                                          e.stopPropagation()
+                                                          moveToHomework(
+                                                            module.id,
+                                                            primaryLesson.id,
+                                                            'assessment',
+                                                            hw
+                                                          )
+                                                        }}
+                                                      >
+                                                        Move to homework
+                                                      </Button>
+                                                    )}
+                                                    {!lessonBankMode && (
+                                                      <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover/item:opacity-100"
+                                                        onClick={(e: any) => {
+                                                          e.stopPropagation()
+                                                          setEditingData(hw)
+                                                          setActiveModal({
+                                                            type: 'homework',
+                                                            isOpen: true,
+                                                            moduleId: module.id,
+                                                            lessonId: primaryLesson.id,
+                                                            itemId: hw.id,
+                                                          })
+                                                        }}
+                                                      >
+                                                        Edit
+                                                      </Button>
+                                                    )}
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="icon"
+                                                      className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
+                                                      onClick={(e: any) => {
+                                                        e.stopPropagation()
+                                                        if (!confirm(`Delete "${hw.title}"?`))
+                                                          return
+                                                        deleteAssessment(
+                                                          module.id,
+                                                          primaryLesson.id,
+                                                          hw.id
+                                                        )
                                                       }}
                                                     >
                                                       <Trash2 className="h-3 w-3 text-red-500" />
                                                     </Button>
                                                   </div>
-                                                ))}
-                                              </div>
-                                            )}
-                                          </div>
+                                                </SortableTreeItem>
+                                              ))}
+                                            </SortableContext>
+                                          </>
                                         )}
-                                        </div>
-                                      ))}
-                                    </SortableContext>
-                                    </>
-                                  )}
 
-                                  {/* Assessments - droppable so homework can be moved here */}
-                                  <TreeItem depth={2} isLast={false}>
-                                    <DroppableAssessmentZone moduleId={module.id} lessonId={primaryLesson.id} className="flex items-center gap-1.5 py-1 px-2 rounded border border-dashed border-purple-300 bg-purple-50/50">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-5 w-5"
-                                        onClick={() => toggleSection(module.id, 'assessment')}
-                                        aria-label={isSectionCollapsed(module.id, 'assessment') ? 'Expand assessments' : 'Collapse assessments'}
-                                      >
-                                        {isSectionCollapsed(module.id, 'assessment') ? (
-                                          <ChevronRight className="h-3 w-3 text-purple-600" />
-                                        ) : (
-                                          <ChevronDown className="h-3 w-3 text-purple-600" />
-                                        )}
-                                      </Button>
-                                      <span className="text-[10px] font-semibold text-purple-700">Assessments</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 text-[10px] gap-1 px-2 text-purple-600 hover:bg-purple-100 ml-auto"
-                                        onClick={() => addAssessment(module.id, primaryLesson.id)}
-                                      >
-                                        <Plus className="h-3 w-3" />
-                                        Assessment
-                                      </Button>
-                                    </DroppableAssessmentZone>
-                                  </TreeItem>
-                                  {!isSectionCollapsed(module.id, 'assessment') && (
-                                    <>
-                                    <SortableContext
-                                      items={assessments.map(h => h.id)}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {assessments.map((hw, idx) => (
-                                        <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={idx === assessments.length - 1}>
-                                          <div
-                                            className={cn(
-                                              "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors",
-                                              selectedItem?.type === 'homework' && selectedItem?.id === hw.id
-                                                ? "bg-purple-200 border-purple-400 ring-1 ring-purple-400"
-                                                : "bg-purple-50 border-purple-400 hover:bg-purple-100"
-                                            )}
-                                            onClick={(e) => {
-                                              if ((e.target as HTMLElement).closest('input')) return
-                                              // Auto-save current task if switching from one
-                                              if (loadedTaskId) {
-                                                setModules(prev => prev.map(mod => ({
-                                                  ...mod,
-                                                  lessons: mod.lessons.map(lesson => ({
-                                                    ...lesson,
-                                                    tasks: lesson.tasks.map(t =>
-                                                      t.id === loadedTaskId
-                                                        ? {
-                                                          ...t,
-                                                          title: taskBuilder.title,
-                                                          shortDescription: taskBuilder.details,
-                                                          description: taskBuilder.taskContent,
-                                                          instructions: taskBuilder.taskPci,
-                                                          extensions: taskBuilder.extensions,
-                                                          sourceDocument: undefined
-                                                        }
-                                                        : t
-                                                    )
-                                                  }))
-                                                })))
-                                              }
-                                              // Auto-save current assessment if switching from another assessment
-                                              if (loadedAssessmentId && loadedAssessmentId !== hw.id) {
-                                                setModules(prev => prev.map(mod => ({
-                                                  ...mod,
-                                                  lessons: mod.lessons.map(lesson => ({
-                                                    ...lesson,
-                                                    homework: lesson.homework.map(h =>
-                                                      h.id === loadedAssessmentId
-                                                        ? {
-                                                          ...h,
-                                                          title: assessmentBuilder.title,
-                                                          description: assessmentBuilder.taskContent,
-                                                          instructions: assessmentBuilder.taskPci,
-                                                          sourceDocument: undefined
-                                                        }
-                                                        : h
-                                                    )
-                                                  }))
-                                                })))
-                                              }
-                                              setSelectedItem({ type: 'homework', id: hw.id })
-                                              loadAssessmentIntoBuilder(hw)
-                                              setMainBuilderTab('assessment')
-                                            }}
+                                        {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
+                                        {!lessonBankMode &&
+                                          (() => {
+                                            const hwItems = (primaryLesson.homework || []).filter(
+                                              h => h.category === 'homework'
+                                            )
+                                            return (
+                                              <>
+                                                <TreeItem depth={2} isLast={false}>
+                                                  <DroppableHomeworkZone
+                                                    moduleId={module.id}
+                                                    lessonId={primaryLesson.id}
+                                                    className="flex flex-col gap-1 rounded border border-dashed border-emerald-400 bg-emerald-50/50 px-2 py-1.5"
+                                                  >
+                                                    <div className="flex items-center gap-1.5">
+                                                      <FolderOpen className="h-3 w-3 text-emerald-600" />
+                                                      <span className="text-[10px] font-semibold text-emerald-700">
+                                                        Homework {hwItems.length}:
+                                                      </span>
+                                                    </div>
+                                                    <Input
+                                                      placeholder="Description..."
+                                                      value={
+                                                        primaryLesson.homeworkSectionDescription ??
+                                                        ''
+                                                      }
+                                                      onChange={e =>
+                                                        setModules(prev =>
+                                                          prev.map(m =>
+                                                            m.id !== module.id
+                                                              ? m
+                                                              : {
+                                                                  ...m,
+                                                                  lessons: m.lessons.map(les =>
+                                                                    les.id !== primaryLesson.id
+                                                                      ? les
+                                                                      : {
+                                                                          ...les,
+                                                                          homeworkSectionDescription:
+                                                                            e.target.value,
+                                                                        }
+                                                                  ),
+                                                                }
+                                                          )
+                                                        )
+                                                      }
+                                                      className="h-7 border-emerald-200 bg-white text-xs"
+                                                    />
+                                                  </DroppableHomeworkZone>
+                                                </TreeItem>
+                                                <SortableContext
+                                                  items={hwItems.map(h => h.id)}
+                                                  strategy={verticalListSortingStrategy}
+                                                >
+                                                  {hwItems.map((hw, hwIdx) => (
+                                                    <SortableTreeItem
+                                                      key={hw.id}
+                                                      id={hw.id}
+                                                      depth={2}
+                                                      isLast={hwIdx === hwItems.length - 1}
+                                                    >
+                                                      <div
+                                                        className={cn(
+                                                          'group/item flex cursor-pointer items-center gap-1.5 rounded border border-emerald-400 bg-emerald-50 px-2 py-1 transition-colors hover:bg-emerald-100',
+                                                          selectedItem?.type === 'homework' &&
+                                                            selectedItem?.id === hw.id &&
+                                                            'ring-1 ring-emerald-400'
+                                                        )}
+                                                        onClick={() => {
+                                                          setSelectedItem({
+                                                            type: 'homework',
+                                                            id: hw.id,
+                                                          })
+                                                          loadAssessmentIntoBuilder(hw)
+                                                          setMainBuilderTab('assessment')
+                                                        }}
+                                                      >
+                                                        <FileQuestion className="h-3 w-3 shrink-0 text-emerald-600" />
+                                                        <span className="flex-1 truncate text-[10px] text-emerald-700">
+                                                          {hw.title}
+                                                        </span>
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100"
+                                                          onClick={(e: any) => {
+                                                            e.stopPropagation()
+                                                            if (!confirm(`Delete "${hw.title}"?`))
+                                                              return
+                                                            setModules(prev =>
+                                                              prev.map(mod =>
+                                                                mod.id !== module.id
+                                                                  ? mod
+                                                                  : {
+                                                                      ...mod,
+                                                                      lessons: mod.lessons.map(
+                                                                        les =>
+                                                                          les.id !==
+                                                                          primaryLesson.id
+                                                                            ? les
+                                                                            : {
+                                                                                ...les,
+                                                                                homework: (
+                                                                                  les.homework || []
+                                                                                ).filter(
+                                                                                  x =>
+                                                                                    x.id !== hw.id
+                                                                                ),
+                                                                              }
+                                                                      ),
+                                                                    }
+                                                              )
+                                                            )
+                                                          }}
+                                                        >
+                                                          <Trash2 className="h-3 w-3 text-red-500" />
+                                                        </Button>
+                                                      </div>
+                                                    </SortableTreeItem>
+                                                  ))}
+                                                </SortableContext>
+                                              </>
+                                            )
+                                          })()}
+
+                                        {/* End of Module Quizzes */}
+                                        {(module.moduleQuizzes || []).map((quiz, quizIdx) => (
+                                          <TreeItem
+                                            key={quiz.id}
+                                            depth={2}
+                                            isLast={
+                                              quizIdx === (module.moduleQuizzes?.length || 0) - 1
+                                            }
                                           >
-                                            <FileQuestion className="h-3 w-3 text-purple-500 shrink-0" />
-                                            <span className="text-[10px] font-semibold text-purple-700 shrink-0">{idx + 1}. {hw.title}:</span>
-                                            <div className="flex-1 min-w-0 relative group/tooltip-desc">
-                                              <Input
-                                                placeholder="Description"
-                                                value={hw.description ?? ''}
-                                                onChange={(e) => {
-                                                  e.stopPropagation()
-                                                  setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homework: les.homework.map(h => h.id !== hw.id ? h : { ...h, description: e.target.value }) }) }))
-                                                }}
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="h-6 text-[10px] border-purple-200 w-full"
-                                              />
-                                              {/* Tooltip for Description */}
-                                              {hw.description && (
-                                                <span className="absolute left-0 -top-8 hidden group-hover/tooltip-desc:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-50 max-w-xs truncate">
-                                                  {hw.description}
-                                                  <span className="absolute left-4 top-full border-4 border-transparent border-t-gray-900"></span>
-                                                </span>
-                                              )}
-                                            </div>
-
-                                            {!lessonBankMode && (
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1 text-emerald-700 shrink-0"
-                                                onClick={(e: any) => {
-                                                  e.stopPropagation()
-                                                  moveToHomework(module.id, primaryLesson.id, 'assessment', hw)
-                                                }}
+                                            <div
+                                              className="group flex cursor-pointer items-center gap-1.5 rounded border border-red-300 bg-red-100 px-2 py-1 hover:bg-red-200"
+                                              onClick={() =>
+                                                setSelectedItem({ type: 'moduleQuiz', id: quiz.id })
+                                              }
+                                            >
+                                              <FileQuestion className="h-3 w-3 text-red-600" />
+                                              <span className="flex-1 truncate text-xs font-medium">
+                                                {quiz.title}
+                                              </span>
+                                              <Badge
+                                                variant="default"
+                                                className="h-4 bg-red-600 px-1 text-[8px]"
                                               >
-                                                Move to homework
-                                              </Button>
-                                            )}
-                                            {!lessonBankMode && (
+                                                Summative
+                                              </Badge>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-5 text-[10px] gap-1 opacity-0 group-hover/item:opacity-100 px-1"
+                                                className="h-5 gap-1 px-1 text-[10px] opacity-0 group-hover:opacity-100"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
-                                                  setEditingData(hw)
-                                                  setActiveModal({ type: 'homework', isOpen: true, moduleId: module.id, lessonId: primaryLesson.id, itemId: hw.id })
+                                                  setEditingData(quiz)
+                                                  setActiveModal({
+                                                    type: 'moduleQuiz',
+                                                    isOpen: true,
+                                                    moduleId: module.id,
+                                                    itemId: quiz.id,
+                                                  })
                                                 }}
                                               >
                                                 Edit
                                               </Button>
-                                            )}
-                                            <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-5 w-5 opacity-0 group-hover/item:opacity-100"
-                                              onClick={(e: any) => {
-                                                e.stopPropagation()
-                                                if (!confirm(`Delete "${hw.title}"?`)) return
-                                                deleteAssessment(module.id, primaryLesson.id, hw.id)
-                                              }}
-                                            >
-                                              <Trash2 className="h-3 w-3 text-red-500" />
-                                            </Button>
-                                          </div>
-                                        </SortableTreeItem>
-                                      ))}
-                                    </SortableContext>
-                                    </>
-                                  )}
-
-                                  {/* Homework (per-lesson) - drop zone; header + description in one box; sortable items with drag handle */}
-                                  {!lessonBankMode && (() => {
-                                    const hwItems = (primaryLesson.homework || []).filter(h => h.category === 'homework')
-                                    return (
-                                    <>
-                                      <TreeItem depth={2} isLast={false}>
-                                        <DroppableHomeworkZone moduleId={module.id} lessonId={primaryLesson.id} className="flex flex-col gap-1 py-1.5 px-2 rounded border border-dashed border-emerald-400 bg-emerald-50/50">
-                                          <div className="flex items-center gap-1.5">
-                                            <FolderOpen className="h-3 w-3 text-emerald-600" />
-                                            <span className="text-[10px] font-semibold text-emerald-700">Homework {hwItems.length}:</span>
-                                          </div>
-                                          <Input
-                                            placeholder="Description..."
-                                            value={primaryLesson.homeworkSectionDescription ?? ''}
-                                            onChange={(e) => setModules(prev => prev.map(m => m.id !== module.id ? m : { ...m, lessons: m.lessons.map(les => les.id !== primaryLesson.id ? les : { ...les, homeworkSectionDescription: e.target.value }) }))}
-                                            className="h-7 text-xs border-emerald-200 bg-white"
-                                          />
-                                        </DroppableHomeworkZone>
-                                      </TreeItem>
-                                      <SortableContext items={hwItems.map(h => h.id)} strategy={verticalListSortingStrategy}>
-                                        {hwItems.map((hw, hwIdx) => (
-                                          <SortableTreeItem key={hw.id} id={hw.id} depth={2} isLast={hwIdx === hwItems.length - 1}>
-                                            <div
-                                              className={cn(
-                                                "flex items-center gap-1.5 py-1 px-2 rounded border group/item cursor-pointer transition-colors bg-emerald-50 border-emerald-400 hover:bg-emerald-100",
-                                                selectedItem?.type === 'homework' && selectedItem?.id === hw.id && "ring-1 ring-emerald-400"
-                                              )}
-                                              onClick={() => {
-                                                setSelectedItem({ type: 'homework', id: hw.id })
-                                                loadAssessmentIntoBuilder(hw)
-                                                setMainBuilderTab('assessment')
-                                              }}
-                                            >
-                                              <FileQuestion className="h-3 w-3 text-emerald-600 shrink-0" />
-                                              <span className="text-[10px] flex-1 truncate text-emerald-700">{hw.title}</span>
                                               <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-5 w-5 opacity-0 group-hover/item:opacity-100 shrink-0"
+                                                className="h-5 w-5 opacity-0 group-hover:opacity-100"
                                                 onClick={(e: any) => {
                                                   e.stopPropagation()
-                                                  if (!confirm(`Delete "${hw.title}"?`)) return
-                                                  setModules(prev => prev.map(mod =>
-                                                    mod.id !== module.id ? mod : {
-                                                      ...mod,
-                                                      lessons: mod.lessons.map(les =>
-                                                        les.id !== primaryLesson.id ? les : { ...les, homework: (les.homework || []).filter(x => x.id !== hw.id) }
-                                                      )
-                                                    }
-                                                  ))
+                                                  deleteModuleQuiz(module.id, quiz.id)
                                                 }}
                                               >
                                                 <Trash2 className="h-3 w-3 text-red-500" />
                                               </Button>
                                             </div>
-                                          </SortableTreeItem>
+                                          </TreeItem>
                                         ))}
-                                      </SortableContext>
-                                    </>
-                                    )
-                                  })()}
-
-                                  {/* End of Module Quizzes */}
-                                  {(module.moduleQuizzes || []).map((quiz, quizIdx) => (
-                                    <TreeItem key={quiz.id} depth={2} isLast={quizIdx === (module.moduleQuizzes?.length || 0) - 1}>
-                                      <div
-                                        className="flex items-center gap-1.5 py-1 px-2 rounded bg-red-100 border border-red-300 group cursor-pointer hover:bg-red-200"
-                                        onClick={() => setSelectedItem({ type: 'moduleQuiz', id: quiz.id })}
-                                      >
-                                        <FileQuestion className="h-3 w-3 text-red-600" />
-                                        <span className="text-xs font-medium flex-1 truncate">{quiz.title}</span>
-                                        <Badge variant="default" className="text-[8px] h-4 px-1 bg-red-600">Summative</Badge>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-5 text-[10px] gap-1 opacity-0 group-hover:opacity-100 px-1"
-                                          onClick={(e: any) => {
-                                            e.stopPropagation()
-                                            setEditingData(quiz)
-                                            setActiveModal({ type: 'moduleQuiz', isOpen: true, moduleId: module.id, itemId: quiz.id })
-                                          }}
-                                        >
-                                          Edit
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-5 w-5 opacity-0 group-hover:opacity-100"
-                                          onClick={(e: any) => {
-                                            e.stopPropagation()
-                                            deleteModuleQuiz(module.id, quiz.id)
-                                          }}
-                                        >
-                                          <Trash2 className="h-3 w-3 text-red-500" />
-                                        </Button>
                                       </div>
-                                    </TreeItem>
-                                  ))}
-                                </div>
-                              )}
+                                    )}
+                                  </div>
+                                </SortableTreeItem>
+                              )
+                            })}
+                          </SortableContext>
+
+                          {modules.length === 0 && (
+                            <div className="py-8 text-center text-muted-foreground">
+                              <Layers className="mx-auto mb-2 h-8 w-8 opacity-30" />
+                              <p className="text-sm">No lessons yet. Click "Lesson" to add one.</p>
                             </div>
-                          </SortableTreeItem>
-                        )
-                      })}
-                    </SortableContext>
-
-                    {modules.length === 0 && (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Layers className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                        <p className="text-sm">No lessons yet. Click "Lesson" to add one.</p>
-                      </div>
-                    )}
-                  </div>
-                </DndContext>
-              </ScrollArea>
-              {/* Assets Folder added to the bottom of the left panel */}
-              <div className="mt-4 pt-4 border-t">
-                {renderAssetsFolder()}
+                          )}
+                        </div>
+                      </DndContext>
+                    </ScrollArea>
+                    {/* Assets Folder added to the bottom of the left panel */}
+                    <div className="mt-4 border-t pt-4">{renderAssetsFolder()}</div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-            </div>
-            <div
-              className="w-2 shrink-0 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 transition-colors flex items-center justify-center group"
-              onMouseDown={(e) => {
-                e.preventDefault()
-                leftResizeStartX.current = e.clientX
-                leftResizeStartW.current = leftPanelWidth
-                setLeftPanelResizing(true)
-              }}
-              title="Drag to resize"
-            >
-              <GripHorizontal className="h-3 w-3 text-muted-foreground group-hover:text-primary rotate-90" />
-            </div>
-          </>
-        )}
-
-        {/* CENTER PANEL - New Three-Section Design */}
-        <div className={cn("flex flex-col min-h-0 flex-1", leftPanelHidden && "w-full")}>
-          <div className="flex-1 flex flex-col space-y-4 overflow-auto">
-            {leftPanelHidden && (
-              <div className="flex justify-start">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setLeftPanelHidden(false)}
-                >
-                  <LayoutTemplate className="h-4 w-4" />
-                  Show Course Panel
-                </Button>
+              <div
+                className="group flex w-2 shrink-0 cursor-col-resize items-center justify-center transition-colors hover:bg-primary/20 active:bg-primary/30"
+                onMouseDown={e => {
+                  e.preventDefault()
+                  leftResizeStartX.current = e.clientX
+                  leftResizeStartW.current = leftPanelWidth
+                  setLeftPanelResizing(true)
+                }}
+                title="Drag to resize"
+              >
+                <GripHorizontal className="h-3 w-3 rotate-90 text-muted-foreground group-hover:text-primary" />
               </div>
-            )}
+            </>
+          )}
 
-            {/* Test PCI Section - Moved above Task/Assessment Builder */}
-            <Card className="flex-shrink-0 border-2 border-border rounded-2xl overflow-hidden shadow-xl bg-card ring-1 ring-black/5">
-              <CardContent className="pt-4">
-                <CardTitle className="text-base font-semibold mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  Test PCI
-                </CardTitle>
+          {/* CENTER PANEL - New Three-Section Design */}
+          <div className={cn('flex min-h-0 flex-1 flex-col', leftPanelHidden && 'w-full')}>
+            <div className="flex flex-1 flex-col space-y-4 overflow-auto">
+              {leftPanelHidden && (
+                <div className="flex justify-start">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setLeftPanelHidden(false)}
+                  >
+                    <LayoutTemplate className="h-4 w-4" />
+                    Show Course Panel
+                  </Button>
+                </div>
+              )}
+
+              {/* Test PCI Section - Moved above Task/Assessment Builder */}
+              <Card className="flex-shrink-0 overflow-hidden rounded-2xl border-2 border-border bg-card shadow-xl ring-1 ring-black/5">
+                <CardContent className="pt-4">
+                  <CardTitle className="mb-3 flex items-center gap-2 text-base font-semibold">
+                    <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                    Test PCI
+                  </CardTitle>
                   <div className="flex gap-4">
                     {/* Main content with tabs */}
                     <div className="flex-1">
-                      <Tabs value={testPciActiveTab} onValueChange={setTestPciActiveTab} className="w-full">
-                        <TabsList className="grid w-full grid-cols-3 gap-1 p-1 rounded-xl border bg-muted">
-                          {testPciTabs.map((tab) => (
+                      <Tabs
+                        value={testPciActiveTab}
+                        onValueChange={setTestPciActiveTab}
+                        className="w-full"
+                      >
+                        <TabsList className="grid w-full grid-cols-3 gap-1 rounded-xl border bg-muted p-1">
+                          {testPciTabs.map(tab => (
                             <div key={tab.id} className="relative flex-1">
                               {editingTabId === tab.id ? (
                                 <Input
                                   value={tab.label}
                                   onChange={(e: any) => {
-                                    setTestPciTabs(prev => prev.map(t =>
-                                      t.id === tab.id ? { ...t, label: e.target.value } : t
-                                    ))
+                                    setTestPciTabs(prev =>
+                                      prev.map(t =>
+                                        t.id === tab.id ? { ...t, label: e.target.value } : t
+                                      )
+                                    )
                                   }}
                                   onBlur={() => setEditingTabId(null)}
                                   onKeyDown={(e: any) => {
                                     if (e.key === 'Enter') setEditingTabId(null)
                                   }}
-                                  className="h-8 text-xs font-medium text-center"
+                                  className="h-8 text-center text-xs font-medium"
                                   autoFocus
                                 />
                               ) : (
                                 <TabsTrigger
                                   value={tab.id}
-                                  className="w-full border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                                  className="w-full rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
                                   onDoubleClick={() => setEditingTabId(tab.id)}
                                 >
                                   {tab.label}
@@ -7805,22 +9159,38 @@ FEEDBACK: [your explanation]`
                             </div>
                           ))}
                         </TabsList>
-                        {testPciTabs.map((tab) => (
+                        {testPciTabs.map(tab => (
                           <TabsContent key={tab.id} value={tab.id} className="mt-2">
-                            <div className="p-4 bg-muted rounded-lg min-h-[480px] max-h-[800px] overflow-y-auto">
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{testPciContent[tab.id] || `${tab.label} view content`}</p>
+                            <div className="max-h-[800px] min-h-[480px] overflow-y-auto rounded-lg bg-muted p-4">
+                              <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                                {testPciContent[tab.id] || `${tab.label} view content`}
+                              </p>
                               {/* Show AI scores if any */}
                               {testPciScores[tab.id]?.length > 0 && (
-                                <div className="mt-3 pt-3 border-t border-gray-400">
-                                  <p className="text-xs font-medium text-gray-600 mb-2">AI Feedback:</p>
+                                <div className="mt-3 border-t border-gray-400 pt-3">
+                                  <p className="mb-2 text-xs font-medium text-gray-600">
+                                    AI Feedback:
+                                  </p>
                                   {testPciScores[tab.id].map((score, idx) => (
-                                    <div key={idx} className="mb-2 p-2 bg-white rounded border border-gray-400">
+                                    <div
+                                      key={idx}
+                                      className="mb-2 rounded border border-gray-400 bg-white p-2"
+                                    >
                                       <div className="flex items-center gap-2">
-                                        <Badge variant={score.score >= 80 ? "default" : score.score >= 50 ? "secondary" : "destructive"} className="text-[10px]">
+                                        <Badge
+                                          variant={
+                                            score.score >= 80
+                                              ? 'default'
+                                              : score.score >= 50
+                                                ? 'secondary'
+                                                : 'destructive'
+                                          }
+                                          className="text-[10px]"
+                                        >
                                           {score.score}%
                                         </Badge>
                                       </div>
-                                      <p className="text-xs text-gray-600 mt-1">{score.feedback}</p>
+                                      <p className="mt-1 text-xs text-gray-600">{score.feedback}</p>
                                     </div>
                                   ))}
                                 </div>
@@ -7833,7 +9203,11 @@ FEEDBACK: [your explanation]`
                       <div className="mt-3">
                         <div className="flex gap-2">
                           <Input
-                            placeholder={testPciActiveTab === 'classroom' ? "Enter answer (goes to both students)..." : "Enter answer..."}
+                            placeholder={
+                              testPciActiveTab === 'classroom'
+                                ? 'Enter answer (goes to both students)...'
+                                : 'Enter answer...'
+                            }
                             className="flex-1"
                             value={testPciInput}
                             onChange={(e: any) => setTestPciInput(e.target.value)}
@@ -7850,1022 +9224,1270 @@ FEEDBACK: [your explanation]`
                             disabled={testPciLoading || !testPciInput.trim()}
                             onClick={handleTestPciSubmit}
                           >
-                            {testPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CornerDownLeft className="h-4 w-4 mr-1" />}
+                            {testPciLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CornerDownLeft className="mr-1 h-4 w-4" />
+                            )}
                             Enter
                           </Button>
                         </div>
                       </div>
                     </div>
                   </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* COMBINED BUILDER: Task & Assessment Tabs */}
-            <Card className="flex-shrink-0 border-2 border-gray-400 rounded-2xl overflow-hidden mt-6 shadow-xl ring-1 ring-black/5">
-              <CardContent className="pt-4">
-                <Tabs value={mainBuilderTab} onValueChange={(v) => setMainBuilderTab(v as 'task' | 'assessment')} className="w-full">
-                  {/* Main Builder Tabs */}
-                  <TabsList className="grid w-full grid-cols-2 gap-1 mb-4 p-1 rounded-xl border bg-muted">
-                    <TabsTrigger value="task" className="gap-2 border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
-                      <ListTodo className="h-4 w-4 text-orange-500" />
-                      Task Builder
-                    </TabsTrigger>
-                    <TabsTrigger value="assessment" className="gap-2 border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
-                      <FileQuestion className="h-4 w-4 text-purple-500" />
-                      Assessment Builder
-                    </TabsTrigger>
-                  </TabsList>
+              {/* COMBINED BUILDER: Task & Assessment Tabs */}
+              <Card className="mt-6 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-gray-400 shadow-xl ring-1 ring-black/5">
+                <CardContent className="pt-4">
+                  <Tabs
+                    value={mainBuilderTab}
+                    onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
+                    className="w-full"
+                  >
+                    {/* Main Builder Tabs */}
+                    <TabsList className="mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                      <TabsTrigger
+                        value="task"
+                        className="gap-2 rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                      >
+                        <ListTodo className="h-4 w-4 text-orange-500" />
+                        Task Builder
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="assessment"
+                        className="gap-2 rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                      >
+                        <FileQuestion className="h-4 w-4 text-purple-500" />
+                        Assessment Builder
+                      </TabsTrigger>
+                    </TabsList>
 
-                  {/* Task Builder Tab */}
-                  <TabsContent value="task" className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="grid grid-cols-2 gap-3">
-                          <Input
-                            placeholder={loadedTaskId ? "Task Title" : "Select a task from the left sidebar to edit"}
-                            className="font-semibold"
-                            value={taskBuilder.activeExtensionId ? taskHeaderTitle : taskBuilder.title}
-                            onChange={(e: any) => setTaskBuilder(prev => ({ ...prev, title: e.target.value }))}
-                            disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
-                          />
-                          <Input
-                            placeholder={loadedTaskId ? (taskBuilder.activeExtensionId ? "Extension Description" : "Description") : "Select a task to edit description"}
-                            value={taskBuilder.activeExtensionId ? (activeTaskExtension?.description || '') : taskBuilder.details}
-                            onChange={(e: any) => {
-                              const value = e.target.value
-                              if (taskBuilder.activeExtensionId) {
-                                setTaskBuilder(prev => ({
-                                  ...prev,
-                                  extensions: prev.extensions.map(ext =>
-                                    ext.id === prev.activeExtensionId ? { ...ext, description: value } : ext
-                                  )
-                                }))
-                              } else {
-                                setTaskBuilder(prev => ({ ...prev, details: value }))
+                    {/* Task Builder Tab */}
+                    <TabsContent value="task" className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <div className="grid grid-cols-2 gap-3">
+                            <Input
+                              placeholder={
+                                loadedTaskId
+                                  ? 'Task Title'
+                                  : 'Select a task from the left sidebar to edit'
                               }
-                            }}
-                            disabled={!loadedTaskId}
-                          />
-                        </div>
-                        {loadedTaskId && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Editing: {taskHeaderTitle}: {taskHeaderDescription}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      {/* Main content with tabs */}
-                      <div className="flex-1">
-                        <Tabs
-                          value={taskBuilderActiveTab}
-                          onValueChange={(v) => {
-                            setTaskBuilderActiveTab(v as 'content' | 'pci')
-                          }}
-                          className="w-full"
-                        >
-                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-muted">
-                            <TabsTrigger value="content" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
-                            <TabsTrigger value="pci" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="content" className="mt-2 space-y-2">
-                            <AutoTextarea
-                              placeholder={taskBuilder.activeExtensionId ? "Extension content..." : "Enter task content or drop files here..."}
-                              className="w-full min-h-[300px]"
-                              onDrop={(e: any) => handleDragFiles(e, (text) => {
-                                setTaskBuilder(prev => {
-                                  if (prev.activeExtensionId) {
-                                    const ext = prev.extensions.find(x => x.id === prev.activeExtensionId)
-                                    const combined = ext ? ext.content + (ext.content ? '\n\n' : '') + text : text
-                                    return {
-                                      ...prev,
-                                      extensions: prev.extensions.map(x =>
-                                        x.id === prev.activeExtensionId
-                                          ? { ...x, content: combined }
-                                          : x
-                                      )
-                                    }
-                                  } else {
-                                    const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
-                                    return {
-                                      ...prev,
-                                      taskContent: combined
-                                    }
-                                  }
-                                })
-                              })}
-                              // Show task content if no extension active, otherwise show active extension's content
-                              value={taskBuilder.activeExtensionId
-                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
-                                : taskBuilder.taskContent
+                              className="font-semibold"
+                              value={
+                                taskBuilder.activeExtensionId ? taskHeaderTitle : taskBuilder.title
+                              }
+                              onChange={(e: any) =>
+                                setTaskBuilder(prev => ({ ...prev, title: e.target.value }))
+                              }
+                              disabled={!loadedTaskId || !!taskBuilder.activeExtensionId}
+                            />
+                            <Input
+                              placeholder={
+                                loadedTaskId
+                                  ? taskBuilder.activeExtensionId
+                                    ? 'Extension Description'
+                                    : 'Description'
+                                  : 'Select a task to edit description'
+                              }
+                              value={
+                                taskBuilder.activeExtensionId
+                                  ? activeTaskExtension?.description || ''
+                                  : taskBuilder.details
                               }
                               onChange={(e: any) => {
-                                const newContent = e.target.value
-                                // Auto-create task if none loaded
-                                if (!loadedTaskId && !taskBuilder.activeExtensionId) {
-                                  autoCreateTask()
-                                }
+                                const value = e.target.value
                                 if (taskBuilder.activeExtensionId) {
-                                  // Update extension content
-                                  setTaskBuilder(prev => {
-                                    return {
-                                      ...prev,
-                                      extensions: prev.extensions.map(ext =>
-                                        ext.id === prev.activeExtensionId
-                                          ? { ...ext, content: newContent }
-                                          : ext
-                                      )
-                                    }
-                                  })
-                                } else {
-                                  // Update task content
                                   setTaskBuilder(prev => ({
                                     ...prev,
-                                    taskContent: newContent
+                                    extensions: prev.extensions.map(ext =>
+                                      ext.id === prev.activeExtensionId
+                                        ? { ...ext, description: value }
+                                        : ext
+                                    ),
                                   }))
+                                } else {
+                                  setTaskBuilder(prev => ({ ...prev, details: value }))
                                 }
                               }}
+                              disabled={!loadedTaskId}
                             />
-                            {/* Uploaded Files List - only show for task (not extensions) */}
-                            {/* Upload button - only for task (not extensions) */}
-                            {/* Assets Folder added to Slide Tab removed from here */}
-                          </TabsContent>
-                          <TabsContent value="pci" className="mt-2">
-                            <div className="rounded-lg border bg-white">
-                              <div className="max-h-[300px] min-h-[300px] overflow-y-auto p-3 space-y-3">
-                                {activeTaskPciMessages.length === 0 && (
-                                  <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
-                                )}
-                                {activeTaskPciMessages.map((msg, idx) => (
-                                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user'
-                                      ? 'bg-blue-50 text-gray-900'
-                                      : 'bg-gray-100 text-gray-800'
-                                      }`}>
-                                      <div className="whitespace-pre-wrap">{msg.content}</div>
-                                    </div>
-                                  </div>
-                                ))}
-                                {taskPciLoading && (
-                                  <div className="flex justify-start">
-                                    <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                      <span className="text-xs text-gray-600">Thinking...</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="border-t p-2">
-                                {taskPciErrorHint && (
-                                  <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                    PCI assistant error: {taskPciErrorHint}
-                                  </div>
-                                )}
-                                <div className="relative flex gap-2 items-end">
-                                  <AutoTextarea
-                                    placeholder="Ask the PCI assistant..."
-                                    className="w-full min-h-[44px] pr-11"
-                                    value={activeTaskPciInput}
-                                    onChange={(e: any) => {
-                                      const value = e.target.value
-                                      if (taskBuilder.activeExtensionId) {
-                                        setTaskExtensionPciInputs(prev => ({
+                          </div>
+                          {loadedTaskId && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Editing: {taskHeaderTitle}: {taskHeaderDescription}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-4">
+                        {/* Main content with tabs */}
+                        <div className="flex-1">
+                          <Tabs
+                            value={taskBuilderActiveTab}
+                            onValueChange={v => {
+                              setTaskBuilderActiveTab(v as 'content' | 'pci')
+                            }}
+                            className="w-full"
+                          >
+                            <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                              <TabsTrigger
+                                value="content"
+                                className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                              >
+                                Slide
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="pci"
+                                className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                              >
+                                PCI
+                              </TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="content" className="mt-2 space-y-2">
+                              <AutoTextarea
+                                placeholder={
+                                  taskBuilder.activeExtensionId
+                                    ? 'Extension content...'
+                                    : 'Enter task content or drop files here...'
+                                }
+                                className="min-h-[300px] w-full"
+                                onDrop={(e: any) =>
+                                  handleDragFiles(e, text => {
+                                    setTaskBuilder(prev => {
+                                      if (prev.activeExtensionId) {
+                                        const ext = prev.extensions.find(
+                                          x => x.id === prev.activeExtensionId
+                                        )
+                                        const combined = ext
+                                          ? ext.content + (ext.content ? '\n\n' : '') + text
+                                          : text
+                                        return {
                                           ...prev,
-                                          [taskBuilder.activeExtensionId as string]: value,
-                                        }))
+                                          extensions: prev.extensions.map(x =>
+                                            x.id === prev.activeExtensionId
+                                              ? { ...x, content: combined }
+                                              : x
+                                          ),
+                                        }
                                       } else {
-                                        setTaskPciInput(value)
+                                        const combined =
+                                          prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
+                                        return {
+                                          ...prev,
+                                          taskContent: combined,
+                                        }
                                       }
-                                    }}
-                                    onKeyDown={(e: any) => {
-                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault()
-                                        handlePciSend('task')
+                                    })
+                                  })
+                                }
+                                // Show task content if no extension active, otherwise show active extension's content
+                                value={
+                                  taskBuilder.activeExtensionId
+                                    ? taskBuilder.extensions.find(
+                                        e => e.id === taskBuilder.activeExtensionId
+                                      )?.content || ''
+                                    : taskBuilder.taskContent
+                                }
+                                onChange={(e: any) => {
+                                  const newContent = e.target.value
+                                  // Auto-create task if none loaded
+                                  if (!loadedTaskId && !taskBuilder.activeExtensionId) {
+                                    autoCreateTask()
+                                  }
+                                  if (taskBuilder.activeExtensionId) {
+                                    // Update extension content
+                                    setTaskBuilder(prev => {
+                                      return {
+                                        ...prev,
+                                        extensions: prev.extensions.map(ext =>
+                                          ext.id === prev.activeExtensionId
+                                            ? { ...ext, content: newContent }
+                                            : ext
+                                        ),
                                       }
-                                    }}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    className="absolute right-1 bottom-1 h-8 w-8 shrink-0 rounded-full"
-                                    disabled={taskPciLoading || !activeTaskPciInput.trim()}
-                                    onClick={() => handlePciSend('task')}
-                                    aria-label="Send"
-                                  >
-                                    {taskPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                                  </Button>
+                                    })
+                                  } else {
+                                    // Update task content
+                                    setTaskBuilder(prev => ({
+                                      ...prev,
+                                      taskContent: newContent,
+                                    }))
+                                  }
+                                }}
+                              />
+                              {/* Uploaded Files List - only show for task (not extensions) */}
+                              {/* Upload button - only for task (not extensions) */}
+                              {/* Assets Folder added to Slide Tab removed from here */}
+                            </TabsContent>
+                            <TabsContent value="pci" className="mt-2">
+                              <div className="rounded-lg border bg-white">
+                                <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
+                                  {activeTaskPciMessages.length === 0 && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Start a PCI chat to build instructions with the assistant.
+                                    </p>
+                                  )}
+                                  {activeTaskPciMessages.map((msg, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                      <div
+                                        className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                          msg.role === 'user'
+                                            ? 'bg-blue-50 text-gray-900'
+                                            : 'bg-gray-100 text-gray-800'
+                                        }`}
+                                      >
+                                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {taskPciLoading && (
+                                    <div className="flex justify-start">
+                                      <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <span className="text-xs text-gray-600">Thinking...</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="border-t p-2">
+                                  {taskPciErrorHint && (
+                                    <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                      PCI assistant error: {taskPciErrorHint}
+                                    </div>
+                                  )}
+                                  <div className="relative flex items-end gap-2">
+                                    <AutoTextarea
+                                      placeholder="Ask the PCI assistant..."
+                                      className="min-h-[44px] w-full pr-11"
+                                      value={activeTaskPciInput}
+                                      onChange={(e: any) => {
+                                        const value = e.target.value
+                                        if (taskBuilder.activeExtensionId) {
+                                          setTaskExtensionPciInputs(prev => ({
+                                            ...prev,
+                                            [taskBuilder.activeExtensionId as string]: value,
+                                          }))
+                                        } else {
+                                          setTaskPciInput(value)
+                                        }
+                                      }}
+                                      onKeyDown={(e: any) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          e.preventDefault()
+                                          handlePciSend('task')
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                      disabled={taskPciLoading || !activeTaskPciInput.trim()}
+                                      onClick={() => handlePciSend('task')}
+                                      aria-label="Send"
+                                    >
+                                      {taskPciLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Send className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </TabsContent>
-                        </Tabs>
-                        {/* Buttons row with Test and Save */}
-                        <div className="flex gap-2 mt-3">
+                            </TabsContent>
+                          </Tabs>
+                          {/* Buttons row with Test and Save */}
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Prefill Test PCI with content from Task Builder
+                                const content = taskBuilder.activeExtensionId
+                                  ? taskBuilder.extensions.find(
+                                      e => e.id === taskBuilder.activeExtensionId
+                                    )?.content || taskBuilder.taskContent
+                                  : taskBuilder.taskContent
+
+                                setTestPciScores({})
+                                setTestPciInput('')
+
+                                setTestPciContent({
+                                  classroom: content,
+                                  student1: content,
+                                  student2: content,
+                                })
+                                setTestPciSource('task')
+                                toast.success('Test PCI prefilled with task content')
+                              }}
+                            >
+                              Test
+                            </Button>
+                          </div>
+                        </div>
+                        {/* Right panel: Extensions - resizable */}
+                        <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={600}>
                           <Button
                             variant="outline"
                             size="sm"
+                            className="mb-2 w-full"
+                            disabled={!loadedTaskId}
                             onClick={() => {
-                              // Prefill Test PCI with content from Task Builder
-                              const content = taskBuilder.activeExtensionId
-                                ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || taskBuilder.taskContent
-                                : taskBuilder.taskContent
-
-                              setTestPciScores({})
-                              setTestPciInput('')
-
-                              setTestPciContent({
-                                classroom: content,
-                                student1: content,
-                                student2: content
-                              })
-                              setTestPciSource('task')
-                              toast.success('Test PCI prefilled with task content')
-                            }}
-                          >
-                            Test
-                          </Button>
-                        </div>
-                      </div>
-                      {/* Right panel: Extensions - resizable */}
-                      <ResizablePanel
-                        defaultWidth={192}
-                        minWidth={150}
-                        maxWidth={600}
-                      >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full mb-2"
-                          disabled={!loadedTaskId}
-                          onClick={() => {
-                            if (!loadedTaskId) return
-                            const extNumber = taskBuilder.extensions.length + 1
+                              if (!loadedTaskId) return
+                              const extNumber = taskBuilder.extensions.length + 1
                               const newExtension = {
                                 id: `ext-${Date.now()}`,
                                 name: `Extension ${extNumber}`,
                                 description: '',
                                 content: '',
-                                pci: ''
+                                pci: '',
                               }
-                              setTaskExtensionPciMessages(prev => ({ ...prev, [newExtension.id]: [] }))
-                              setTaskExtensionPciInputs(prev => ({ ...prev, [newExtension.id]: '' }))
-                            setTaskBuilder(prev => ({
-                              ...prev,
-                              extensions: [...prev.extensions, newExtension],
-                              activeExtensionId: newExtension.id
-                            }))
-                            setModules(prev => prev.map(mod => ({
-                              ...mod,
-                              lessons: mod.lessons.map(lesson => ({
-                                ...lesson,
-                                tasks: lesson.tasks.map(t =>
-                                  t.id === loadedTaskId
-                                    ? { ...t, extensions: [...(t.extensions || []), newExtension] }
-                                    : t
-                                )
+                              setTaskExtensionPciMessages(prev => ({
+                                ...prev,
+                                [newExtension.id]: [],
                               }))
-                            })))
-                          }}
-                        >
-                          Extensions
-                        </Button>
-                        <div className="mb-2">
-                          <p className="text-xs text-muted-foreground truncate">{taskBuilder.title || 'Task'}</p>
-                        </div>
-                        <div className="p-3 bg-slate-50 rounded-lg min-h-[100px] space-y-2">
-                          {taskBuilder.extensions.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">No extensions added</p>
-                          ) : (
-                            taskBuilder.extensions.map((ext) => (
-                              <div key={ext.id} className="flex items-center gap-1 group">
-                                <Button
-                                  variant={taskBuilder.activeExtensionId === ext.id ? "default" : "ghost"}
-                                  size="sm"
-                                  className="flex-1 justify-start text-xs"
-                                  onClick={() => {
-                                    if (taskBuilder.activeExtensionId === ext.id) {
-                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: null }))
-                                    } else {
-                                      setTaskBuilder(prev => ({ ...prev, activeExtensionId: ext.id }))
-                                    }
-                                  }}
-                                >
-                                  <FileText className="h-3 w-3 mr-1" />
-                                  {ext.name}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                  onClick={(e: any) => {
-                                    e.stopPropagation()
-                                    if (confirm(`Delete "${ext.name}"?`)) {
-                                      setTaskBuilder(prev => ({
-                                        ...prev,
-                                        extensions: prev.extensions.filter(e => e.id !== ext.id),
-                                        activeExtensionId: prev.activeExtensionId === ext.id ? null : prev.activeExtensionId
-                                      }))
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="h-3 w-3 text-red-500" />
-                                </Button>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </ResizablePanel>
-                    </div>
-                  </TabsContent>
-
-                  {/* Assessment Builder Tab */}
-                  <TabsContent value="assessment" className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <Input
-                          placeholder={loadedAssessmentId ? "Assessment Title" : "Select an assessment from the left sidebar to edit"}
-                          className="font-semibold"
-                          value={assessmentBuilder.title}
-                          onChange={(e: any) => setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))}
-                          disabled={!loadedAssessmentId}
-                        />
-                        {loadedAssessmentId && (
-                          <p className="text-xs text-muted-foreground mt-1">Editing: {assessmentBuilder.title || 'Untitled Assessment'}</p>
-                        )}
-                      </div>
-
-                    </div>
-                    <div className="flex gap-4">
-                      {/* Main content with tabs */}
-                      <div className="flex-1">
-                        <Tabs
-                          value={assessmentBuilderActiveTab}
-                          onValueChange={(v) => {
-                            setAssessmentBuilderActiveTab(v as 'content' | 'pci')
-                          }}
-                          className="w-full"
-                        >
-                          <TabsList className="grid w-full grid-cols-2 gap-1 p-1 rounded-xl border bg-muted">
-                            <TabsTrigger value="content" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">Slide</TabsTrigger>
-                            <TabsTrigger value="pci" className="border border-gray-400 rounded-lg bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">PCI</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="content" className="mt-2 space-y-2">
-                            <AutoTextarea
-                              placeholder="Enter assessment content or drop files here..."
-                              className="w-full min-h-[300px]"
-                              onDrop={(e: any) => handleDragFiles(e, (text) => {
-                                setAssessmentBuilder(prev => {
-                                  const combined = prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
-                                  return {
-                                    ...prev,
-                                    taskContent: combined
-                                  }
-                                })
-                              })}
-                              value={assessmentBuilder.taskContent}
-                              onChange={(e: any) => {
-                                const newContent = e.target.value
-                                // Auto-create assessment if none loaded
-                                if (!loadedAssessmentId) {
-                                  autoCreateAssessment()
-                                }
-                                setAssessmentBuilder(prev => ({
-                                  ...prev,
-                                  taskContent: newContent
+                              setTaskExtensionPciInputs(prev => ({
+                                ...prev,
+                                [newExtension.id]: '',
+                              }))
+                              setTaskBuilder(prev => ({
+                                ...prev,
+                                extensions: [...prev.extensions, newExtension],
+                                activeExtensionId: newExtension.id,
+                              }))
+                              setModules(prev =>
+                                prev.map(mod => ({
+                                  ...mod,
+                                  lessons: mod.lessons.map(lesson => ({
+                                    ...lesson,
+                                    tasks: lesson.tasks.map(t =>
+                                      t.id === loadedTaskId
+                                        ? {
+                                            ...t,
+                                            extensions: [...(t.extensions || []), newExtension],
+                                          }
+                                        : t
+                                    ),
+                                  })),
                                 }))
-                              }}
-                            />
-                            {/* Uploaded Files List - only for assessment (not extensions) */}
-                            {/* Upload button - only for assessment (not extensions) */}
-                            {/* Assets Folder added to Slide Tab removed from here */}
-                          </TabsContent>
-                          <TabsContent value="pci" className="mt-2">
-                            <div className="rounded-lg border bg-white">
-                              <div className="max-h-[300px] min-h-[300px] overflow-y-auto p-3 space-y-3">
-                                {assessmentPciMessages.length === 0 && (
-                                  <p className="text-xs text-muted-foreground">Start a PCI chat to build instructions with the assistant.</p>
-                                )}
-                                {assessmentPciMessages.map((msg, idx) => (
-                                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user'
-                                      ? 'bg-blue-50 text-gray-900'
-                                      : 'bg-gray-100 text-gray-800'
-                                      }`}>
-                                      <div className="whitespace-pre-wrap">{msg.content}</div>
-                                    </div>
-                                  </div>
-                                ))}
-                                {assessmentPciLoading && (
-                                  <div className="flex justify-start">
-                                    <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm flex items-center gap-2">
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                      <span className="text-xs text-gray-600">Thinking...</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="border-t p-2">
-                                {assessmentPciErrorHint && (
-                                  <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                                    PCI assistant error: {assessmentPciErrorHint}
-                                  </div>
-                                )}
-                                <div className="relative flex gap-2 items-end">
-                                  <AutoTextarea
-                                    placeholder="Ask the PCI assistant..."
-                                    className="w-full min-h-[44px] pr-11"
-                                    value={assessmentPciInput}
-                                    onChange={(e: any) => setAssessmentPciInput(e.target.value)}
-                                    onKeyDown={(e: any) => {
-                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault()
-                                        handlePciSend('assessment')
+                              )
+                            }}
+                          >
+                            Extensions
+                          </Button>
+                          <div className="mb-2">
+                            <p className="truncate text-xs text-muted-foreground">
+                              {taskBuilder.title || 'Task'}
+                            </p>
+                          </div>
+                          <div className="min-h-[100px] space-y-2 rounded-lg bg-slate-50 p-3">
+                            {taskBuilder.extensions.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">No extensions added</p>
+                            ) : (
+                              taskBuilder.extensions.map(ext => (
+                                <div key={ext.id} className="group flex items-center gap-1">
+                                  <Button
+                                    variant={
+                                      taskBuilder.activeExtensionId === ext.id ? 'default' : 'ghost'
+                                    }
+                                    size="sm"
+                                    className="flex-1 justify-start text-xs"
+                                    onClick={() => {
+                                      if (taskBuilder.activeExtensionId === ext.id) {
+                                        setTaskBuilder(prev => ({
+                                          ...prev,
+                                          activeExtensionId: null,
+                                        }))
+                                      } else {
+                                        setTaskBuilder(prev => ({
+                                          ...prev,
+                                          activeExtensionId: ext.id,
+                                        }))
                                       }
                                     }}
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    className="absolute right-1 bottom-1 h-8 w-8 shrink-0 rounded-full"
-                                    disabled={assessmentPciLoading || !assessmentPciInput.trim()}
-                                    onClick={() => handlePciSend('assessment')}
-                                    aria-label="Send"
                                   >
-                                    {assessmentPciLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                                    <FileText className="mr-1 h-3 w-3" />
+                                    {ext.name}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                    onClick={(e: any) => {
+                                      e.stopPropagation()
+                                      if (confirm(`Delete "${ext.name}"?`)) {
+                                        setTaskBuilder(prev => ({
+                                          ...prev,
+                                          extensions: prev.extensions.filter(e => e.id !== ext.id),
+                                          activeExtensionId:
+                                            prev.activeExtensionId === ext.id
+                                              ? null
+                                              : prev.activeExtensionId,
+                                        }))
+                                      }
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3 text-red-500" />
                                   </Button>
                                 </div>
-                              </div>
-                            </div>
-                          </TabsContent>
-                        </Tabs>
-                        {/* Buttons row with Test and Save */}
-                        <div className="flex gap-2 mt-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              // Prefill Test PCI with content from Assessment Builder
-                              const content = assessmentBuilder.taskContent
+                              ))
+                            )}
+                          </div>
+                        </ResizablePanel>
+                      </div>
+                    </TabsContent>
 
-                              setTestPciScores({})
-                              setTestPciInput('')
-
-                              setTestPciContent({
-                                classroom: content,
-                                student1: content,
-                                student2: content
-                              })
-                              setTestPciSource('assessment')
-                              toast.success('Test PCI prefilled with assessment content')
-                            }}
-                          >
-                            Test
-                          </Button>
+                    {/* Assessment Builder Tab */}
+                    <TabsContent value="assessment" className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <Input
+                            placeholder={
+                              loadedAssessmentId
+                                ? 'Assessment Title'
+                                : 'Select an assessment from the left sidebar to edit'
+                            }
+                            className="font-semibold"
+                            value={assessmentBuilder.title}
+                            onChange={(e: any) =>
+                              setAssessmentBuilder(prev => ({ ...prev, title: e.target.value }))
+                            }
+                            disabled={!loadedAssessmentId}
+                          />
+                          {loadedAssessmentId && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Editing: {assessmentBuilder.title || 'Untitled Assessment'}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      {/* Right panel: DMI - resizable */}
-                      <ResizablePanel
-                        defaultWidth={192}
-                        minWidth={150}
-                        maxWidth={600}
-                      >
-                        <div className="mb-2">
-                          <Button variant="outline" size="sm" className="w-full" onClick={() => handleGenerateDMI('assessment')}>
-                            <Sparkles className="h-3 w-3 mr-2" />
-                            Generate DMI
-                          </Button>
+                      <div className="flex gap-4">
+                        {/* Main content with tabs */}
+                        <div className="flex-1">
+                          <Tabs
+                            value={assessmentBuilderActiveTab}
+                            onValueChange={v => {
+                              setAssessmentBuilderActiveTab(v as 'content' | 'pci')
+                            }}
+                            className="w-full"
+                          >
+                            <TabsList className="grid w-full grid-cols-2 gap-1 rounded-xl border bg-muted p-1">
+                              <TabsTrigger
+                                value="content"
+                                className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                              >
+                                Slide
+                              </TabsTrigger>
+                              <TabsTrigger
+                                value="pci"
+                                className="rounded-lg border border-gray-400 bg-white data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                              >
+                                PCI
+                              </TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="content" className="mt-2 space-y-2">
+                              <AutoTextarea
+                                placeholder="Enter assessment content or drop files here..."
+                                className="min-h-[300px] w-full"
+                                onDrop={(e: any) =>
+                                  handleDragFiles(e, text => {
+                                    setAssessmentBuilder(prev => {
+                                      const combined =
+                                        prev.taskContent + (prev.taskContent ? '\n\n' : '') + text
+                                      return {
+                                        ...prev,
+                                        taskContent: combined,
+                                      }
+                                    })
+                                  })
+                                }
+                                value={assessmentBuilder.taskContent}
+                                onChange={(e: any) => {
+                                  const newContent = e.target.value
+                                  // Auto-create assessment if none loaded
+                                  if (!loadedAssessmentId) {
+                                    autoCreateAssessment()
+                                  }
+                                  setAssessmentBuilder(prev => ({
+                                    ...prev,
+                                    taskContent: newContent,
+                                  }))
+                                }}
+                              />
+                              {/* Uploaded Files List - only for assessment (not extensions) */}
+                              {/* Upload button - only for assessment (not extensions) */}
+                              {/* Assets Folder added to Slide Tab removed from here */}
+                            </TabsContent>
+                            <TabsContent value="pci" className="mt-2">
+                              <div className="rounded-lg border bg-white">
+                                <div className="max-h-[300px] min-h-[300px] space-y-3 overflow-y-auto p-3">
+                                  {assessmentPciMessages.length === 0 && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Start a PCI chat to build instructions with the assistant.
+                                    </p>
+                                  )}
+                                  {assessmentPciMessages.map((msg, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                      <div
+                                        className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                                          msg.role === 'user'
+                                            ? 'bg-blue-50 text-gray-900'
+                                            : 'bg-gray-100 text-gray-800'
+                                        }`}
+                                      >
+                                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {assessmentPciLoading && (
+                                    <div className="flex justify-start">
+                                      <div className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        <span className="text-xs text-gray-600">Thinking...</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="border-t p-2">
+                                  {assessmentPciErrorHint && (
+                                    <div className="mb-2 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-xs text-rose-700">
+                                      PCI assistant error: {assessmentPciErrorHint}
+                                    </div>
+                                  )}
+                                  <div className="relative flex items-end gap-2">
+                                    <AutoTextarea
+                                      placeholder="Ask the PCI assistant..."
+                                      className="min-h-[44px] w-full pr-11"
+                                      value={assessmentPciInput}
+                                      onChange={(e: any) => setAssessmentPciInput(e.target.value)}
+                                      onKeyDown={(e: any) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          e.preventDefault()
+                                          handlePciSend('assessment')
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      className="absolute bottom-1 right-1 h-8 w-8 shrink-0 rounded-full"
+                                      disabled={assessmentPciLoading || !assessmentPciInput.trim()}
+                                      onClick={() => handlePciSend('assessment')}
+                                      aria-label="Send"
+                                    >
+                                      {assessmentPciLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Send className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </TabsContent>
+                          </Tabs>
+                          {/* Buttons row with Test and Save */}
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                // Prefill Test PCI with content from Assessment Builder
+                                const content = assessmentBuilder.taskContent
+
+                                setTestPciScores({})
+                                setTestPciInput('')
+
+                                setTestPciContent({
+                                  classroom: content,
+                                  student1: content,
+                                  student2: content,
+                                })
+                                setTestPciSource('assessment')
+                                toast.success('Test PCI prefilled with assessment content')
+                              }}
+                            >
+                              Test
+                            </Button>
+                          </div>
                         </div>
-                        <DMIPanel
-                          items={assessmentDmiItems}
-                          onItemsChange={setAssessmentDmiItems}
-                        />
-                      </ResizablePanel>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-
+                        {/* Right panel: DMI - resizable */}
+                        <ResizablePanel defaultWidth={192} minWidth={150} maxWidth={600}>
+                          <div className="mb-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => handleGenerateDMI('assessment')}
+                            >
+                              <Sparkles className="mr-2 h-3 w-3" />
+                              Generate DMI
+                            </Button>
+                          </div>
+                          <DMIPanel
+                            items={assessmentDmiItems}
+                            onItemsChange={setAssessmentDmiItems}
+                          />
+                        </ResizablePanel>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
 
-        {/* Modals */}
-        <ModuleBuilderModal
-          isOpen={activeModal.type === 'module' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'module', isOpen: false })}
-          onSave={handleSaveModule}
-          initialData={editingData}
-        />
+          {/* Modals */}
+          <ModuleBuilderModal
+            isOpen={activeModal.type === 'module' && activeModal.isOpen}
+            onClose={() => setActiveModal({ type: 'module', isOpen: false })}
+            onSave={handleSaveModule}
+            initialData={editingData}
+          />
 
+          <HomeworkBuilderModal
+            isOpen={activeModal.type === 'homework' && activeModal.isOpen}
+            onClose={() => setActiveModal({ type: 'homework', isOpen: false })}
+            onSave={handleSaveAssessment}
+            initialData={editingData}
+            modules={modules}
+          />
 
-        <HomeworkBuilderModal
-          isOpen={activeModal.type === 'homework' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'homework', isOpen: false })}
-          onSave={handleSaveAssessment}
-          initialData={editingData}
-          modules={modules}
-        />
+          <WorksheetBuilderModal
+            isOpen={activeModal.type === 'worksheet' && activeModal.isOpen}
+            onClose={() => setActiveModal({ type: 'worksheet', isOpen: false })}
+            onSave={handleSaveWorksheet}
+            initialData={editingData}
+          />
 
-        <WorksheetBuilderModal
-          isOpen={activeModal.type === 'worksheet' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'worksheet', isOpen: false })}
-          onSave={handleSaveWorksheet}
-          initialData={editingData}
-        />
+          <QuizBuilderModal
+            isOpen={activeModal.type === 'moduleQuiz' && activeModal.isOpen}
+            onClose={() => setActiveModal({ type: 'moduleQuiz', isOpen: false })}
+            onSave={handleSaveModuleQuiz}
+            initialData={editingData}
+            isModuleQuiz={true}
+          />
 
-        <QuizBuilderModal
-          isOpen={activeModal.type === 'moduleQuiz' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'moduleQuiz', isOpen: false })}
-          onSave={handleSaveModuleQuiz}
-          initialData={editingData}
-          isModuleQuiz={true}
-        />
+          <ContentBuilderModal
+            isOpen={activeModal.type === 'content' && activeModal.isOpen}
+            onClose={() => setActiveModal({ type: 'content', isOpen: false })}
+            onSave={handleSaveContent}
+            initialData={editingData}
+          />
 
-        <ContentBuilderModal
-          isOpen={activeModal.type === 'content' && activeModal.isOpen}
-          onClose={() => setActiveModal({ type: 'content', isOpen: false })}
-          onSave={handleSaveContent}
-          initialData={editingData}
-        />
-
-        {/* Lesson Selection Dialog for Preview Pane Save */}
-        <LessonSelectorDialog
-          isOpen={lessonSelectDialog.isOpen}
-          onClose={() => setLessonSelectDialog({ isOpen: false, type: null, title: '' })}
-          onConfirm={(moduleId, lessonId) => {
-            const title = lessonSelectDialog.title
-            if (lessonSelectDialog.type === 'task') {
-              const newTask = DEFAULT_TASK(0)
-              newTask.title = title
-              handleSaveTask(newTask, moduleId, lessonId)
-            } else if (lessonSelectDialog.type === 'assessment') {
-              const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
-              newAssessment.title = title
-              handleSaveAssessment(newAssessment, moduleId, lessonId)
-            }
-            setLessonSelectDialog({ isOpen: false, type: null, title: '' })
-          }}
-          modules={modules}
-          itemType={lessonSelectDialog.type || 'item'}
-        />
-
-        {/* AI Assist Agent Modal */}
-        <AIAssistAgent
-          isOpen={aiAssistOpen}
-          onClose={() => setAiAssistOpen(false)}
-          context={aiAssistContext}
-          content={aiAssistContext === 'task'
-            ? (taskBuilder.activeExtensionId
-              ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.content || ''
-              : taskBuilder.taskContent)
-            : assessmentBuilder.taskContent
-          }
-          pci={aiAssistContext === 'task'
-            ? (taskBuilder.activeExtensionId
-              ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci || ''
-              : taskBuilder.taskPci)
-            : assessmentBuilder.taskPci
-          }
-          title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
-          messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
-          setMessages={aiAssistContext === 'task' ? setTaskAiMessages : setAssessmentAiMessages}
-          onApplyContent={(content) => {
-            if (aiAssistContext === 'task') {
-              if (taskBuilder.activeExtensionId) {
-                // Apply to active extension
-                setTaskBuilder(prev => ({
-                  ...prev,
-                  extensions: prev.extensions.map(ext =>
-                    ext.id === prev.activeExtensionId ? { ...ext, content } : ext
-                  )
-                }))
-              } else {
-                // Apply to task
-                setTaskBuilder(prev => ({ ...prev, taskContent: content }))
+          {/* Lesson Selection Dialog for Preview Pane Save */}
+          <LessonSelectorDialog
+            isOpen={lessonSelectDialog.isOpen}
+            onClose={() => setLessonSelectDialog({ isOpen: false, type: null, title: '' })}
+            onConfirm={(moduleId, lessonId) => {
+              const title = lessonSelectDialog.title
+              if (lessonSelectDialog.type === 'task') {
+                const newTask = DEFAULT_TASK(0)
+                newTask.title = title
+                handleSaveTask(newTask, moduleId, lessonId)
+              } else if (lessonSelectDialog.type === 'assessment') {
+                const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+                newAssessment.title = title
+                handleSaveAssessment(newAssessment, moduleId, lessonId)
               }
-            } else {
-              setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
+              setLessonSelectDialog({ isOpen: false, type: null, title: '' })
+            }}
+            modules={modules}
+            itemType={lessonSelectDialog.type || 'item'}
+          />
+
+          {/* AI Assist Agent Modal */}
+          <AIAssistAgent
+            isOpen={aiAssistOpen}
+            onClose={() => setAiAssistOpen(false)}
+            context={aiAssistContext}
+            content={
+              aiAssistContext === 'task'
+                ? taskBuilder.activeExtensionId
+                  ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
+                      ?.content || ''
+                  : taskBuilder.taskContent
+                : assessmentBuilder.taskContent
             }
-          }}
-          onApplyPci={(pci) => {
-            if (aiAssistContext === 'task') {
-              if (taskBuilder.activeExtensionId) {
-                setTaskBuilder(prev => ({
-                  ...prev,
-                  extensions: prev.extensions.map(ext =>
-                    ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
-                  )
-                }))
+            pci={
+              aiAssistContext === 'task'
+                ? taskBuilder.activeExtensionId
+                  ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.pci ||
+                    ''
+                  : taskBuilder.taskPci
+                : assessmentBuilder.taskPci
+            }
+            title={aiAssistContext === 'task' ? taskBuilder.title : assessmentBuilder.title}
+            messages={aiAssistContext === 'task' ? taskAiMessages : assessmentAiMessages}
+            setMessages={aiAssistContext === 'task' ? setTaskAiMessages : setAssessmentAiMessages}
+            onApplyContent={content => {
+              if (aiAssistContext === 'task') {
+                if (taskBuilder.activeExtensionId) {
+                  // Apply to active extension
+                  setTaskBuilder(prev => ({
+                    ...prev,
+                    extensions: prev.extensions.map(ext =>
+                      ext.id === prev.activeExtensionId ? { ...ext, content } : ext
+                    ),
+                  }))
+                } else {
+                  // Apply to task
+                  setTaskBuilder(prev => ({ ...prev, taskContent: content }))
+                }
               } else {
-                setTaskBuilder(prev => ({ ...prev, taskPci: pci }))
+                setAssessmentBuilder(prev => ({ ...prev, taskContent: content }))
               }
-            } else {
-              setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
-            }
-          }}
-        />
+            }}
+            onApplyPci={pci => {
+              if (aiAssistContext === 'task') {
+                if (taskBuilder.activeExtensionId) {
+                  setTaskBuilder(prev => ({
+                    ...prev,
+                    extensions: prev.extensions.map(ext =>
+                      ext.id === prev.activeExtensionId ? { ...ext, pci } : ext
+                    ),
+                  }))
+                } else {
+                  setTaskBuilder(prev => ({ ...prev, taskPci: pci }))
+                }
+              } else {
+                setAssessmentBuilder(prev => ({ ...prev, taskPci: pci }))
+              }
+            }}
+          />
 
-        {/* Question Bank Modal */}
-        <QuestionBankModal
-          isOpen={questionBankOpen}
-          onClose={() => {
-            setQuestionBankOpen(false)
-            setImportTarget(null)
-          }}
-          onImport={(items) => {
-            const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-            const joinedPci = items.map(i => i.pciText).join('\n\n')
-
-            if (importTarget) {
-              setImportTypeModalData({ target: importTarget, items })
+          {/* Question Bank Modal */}
+          <QuestionBankModal
+            isOpen={questionBankOpen}
+            onClose={() => {
               setQuestionBankOpen(false)
               setImportTarget(null)
-            } else if (questionBankTarget) {
-              const [targetType, targetId] = questionBankTarget.split('-')
+            }}
+            onImport={items => {
+              const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+              const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-              setModules(prev => prev.map(mod => ({
-                ...mod,
-                lessons: mod.lessons.map(lesson => ({
-                  ...lesson,
-                  tasks: lesson.tasks.map(t => {
-                    if (targetType === 'task' && t.id === targetId) {
-                      return {
-                        ...t,
-                        description: (t.description || '') + ((t.description) ? '\n\n' : '') + joinedQuestions,
-                        instructions: (t.instructions || '') + ((t.instructions) ? '\n\n' : '') + joinedPci
-                      }
-                    }
-                    return t
-                  }),
-                  homework: lesson.homework.map(h => {
-                    if ((targetType === 'assessment' || targetType === 'homework') && h.id === targetId) {
-                      return {
-                        ...h,
-                        description: (h.description || '') + ((h.description) ? '\n\n' : '') + joinedQuestions,
-                        instructions: (h.instructions || '') + ((h.instructions) ? '\n\n' : '') + joinedPci
-                      }
-                    }
-                    return h
-                  })
-                }))
-              })))
+              if (importTarget) {
+                setImportTypeModalData({ target: importTarget, items })
+                setQuestionBankOpen(false)
+                setImportTarget(null)
+              } else if (questionBankTarget) {
+                const [targetType, targetId] = questionBankTarget.split('-')
 
-              // ALSO update task/assessmentBuilder if it's currently loaded
-              if (targetType === 'task' && loadedTaskId === targetId) {
-                setTaskBuilder(prev => ({
-                  ...prev,
-                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
-                  taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
-                }))
-              } else if (targetType === 'extension') {
-                setTaskBuilder(prev => ({
-                  ...prev,
-                  extensions: prev.extensions.map(ext =>
-                    ext.id === targetId
-                      ? {
-                        ...ext,
-                        content: (ext.content || '') + (ext.content ? '\n\n' : '') + joinedQuestions,
-                        pci: (ext.pci || '') + (ext.pci ? '\n\n' : '') + joinedPci
-                      }
-                      : ext
-                  )
-                }))
-              } else if ((targetType === 'assessment' || targetType === 'homework') && loadedAssessmentId === targetId) {
-                setAssessmentBuilder(prev => ({
-                  ...prev,
-                  taskContent: prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
-                  taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci
-                }))
+                setModules(prev =>
+                  prev.map(mod => ({
+                    ...mod,
+                    lessons: mod.lessons.map(lesson => ({
+                      ...lesson,
+                      tasks: lesson.tasks.map(t => {
+                        if (targetType === 'task' && t.id === targetId) {
+                          return {
+                            ...t,
+                            description:
+                              (t.description || '') +
+                              (t.description ? '\n\n' : '') +
+                              joinedQuestions,
+                            instructions:
+                              (t.instructions || '') + (t.instructions ? '\n\n' : '') + joinedPci,
+                          }
+                        }
+                        return t
+                      }),
+                      homework: lesson.homework.map(h => {
+                        if (
+                          (targetType === 'assessment' || targetType === 'homework') &&
+                          h.id === targetId
+                        ) {
+                          return {
+                            ...h,
+                            description:
+                              (h.description || '') +
+                              (h.description ? '\n\n' : '') +
+                              joinedQuestions,
+                            instructions:
+                              (h.instructions || '') + (h.instructions ? '\n\n' : '') + joinedPci,
+                          }
+                        }
+                        return h
+                      }),
+                    })),
+                  }))
+                )
+
+                // ALSO update task/assessmentBuilder if it's currently loaded
+                if (targetType === 'task' && loadedTaskId === targetId) {
+                  setTaskBuilder(prev => ({
+                    ...prev,
+                    taskContent:
+                      prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
+                    taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci,
+                  }))
+                } else if (targetType === 'extension') {
+                  setTaskBuilder(prev => ({
+                    ...prev,
+                    extensions: prev.extensions.map(ext =>
+                      ext.id === targetId
+                        ? {
+                            ...ext,
+                            content:
+                              (ext.content || '') + (ext.content ? '\n\n' : '') + joinedQuestions,
+                            pci: (ext.pci || '') + (ext.pci ? '\n\n' : '') + joinedPci,
+                          }
+                        : ext
+                    ),
+                  }))
+                } else if (
+                  (targetType === 'assessment' || targetType === 'homework') &&
+                  loadedAssessmentId === targetId
+                ) {
+                  setAssessmentBuilder(prev => ({
+                    ...prev,
+                    taskContent:
+                      prev.taskContent + (prev.taskContent ? '\n\n' : '') + joinedQuestions,
+                    taskPci: prev.taskPci + (prev.taskPci ? '\n\n' : '') + joinedPci,
+                  }))
+                }
+
+                toast.success('Questions imported from Assessment Bank')
               }
+            }}
+          />
 
-              toast.success('Questions imported from Assessment Bank')
-            }
-          }}
-        />
+          {/* Import Type Selector Modal */}
+          <Dialog
+            open={!!importTypeModalData}
+            onOpenChange={open => !open && setImportTypeModalData(null)}
+          >
+            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Import as...</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-3 py-4">
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    if (!importTypeModalData) return
+                    const { target, items } = importTypeModalData
+                    const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                    const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-        {/* Import Type Selector Modal */}
-        <Dialog open={!!importTypeModalData} onOpenChange={(open) => !open && setImportTypeModalData(null)}>
-          <DialogContent className="sm:max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
-            <DialogHeader>
-              <DialogTitle>Import as...</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col gap-3 py-4">
-              <Button variant="outline" className="justify-start gap-2" onClick={() => {
-                if (!importTypeModalData) return
-                const { target, items } = importTypeModalData
-                const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-                const joinedPci = items.map(i => i.pciText).join('\n\n')
+                    setModules(prev =>
+                      prev.map(mod => {
+                        if (mod.id !== target.moduleId) return mod
+                        return {
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => {
+                            if (lesson.id !== target.lessonId) return lesson
+                            const newTask = DEFAULT_LESSON(0).tasks[0]
+                            return {
+                              ...lesson,
+                              tasks: [
+                                ...lesson.tasks,
+                                {
+                                  ...newTask,
+                                  id: `task-${Date.now()}`,
+                                  title: 'Imported Task',
+                                  description: joinedQuestions,
+                                  instructions: joinedPci,
+                                },
+                              ],
+                            }
+                          }),
+                        }
+                      })
+                    )
+                    toast.success('Items imported as Task')
+                    setImportTypeModalData(null)
+                  }}
+                >
+                  <ListTodo className="h-4 w-4 text-orange-500" />
+                  Task
+                </Button>
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    if (!importTypeModalData) return
+                    const { target, items } = importTypeModalData
+                    const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                    const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-                setModules(prev => prev.map(mod => {
-                  if (mod.id !== target.moduleId) return mod
-                  return {
-                    ...mod,
-                    lessons: mod.lessons.map(lesson => {
-                      if (lesson.id !== target.lessonId) return lesson
-                      const newTask = DEFAULT_LESSON(0).tasks[0]
-                      return {
-                        ...lesson,
-                        tasks: [...lesson.tasks, { ...newTask, id: `task-${Date.now()}`, title: 'Imported Task', description: joinedQuestions, instructions: joinedPci }]
-                      }
-                    })
-                  }
-                }))
-                toast.success('Items imported as Task')
-                setImportTypeModalData(null)
-              }}>
-                <ListTodo className="h-4 w-4 text-orange-500" />
-                Task
-              </Button>
-              <Button variant="outline" className="justify-start gap-2" onClick={() => {
-                if (!importTypeModalData) return
-                const { target, items } = importTypeModalData
-                const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-                const joinedPci = items.map(i => i.pciText).join('\n\n')
+                    setModules(prev =>
+                      prev.map(mod => {
+                        if (mod.id !== target.moduleId) return mod
+                        return {
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => {
+                            if (lesson.id !== target.lessonId) return lesson
+                            const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
+                            return {
+                              ...lesson,
+                              homework: [
+                                ...lesson.homework,
+                                {
+                                  ...newAssessment,
+                                  id: `hw-${Date.now()}`,
+                                  title: 'Imported Assessment',
+                                  description: joinedQuestions,
+                                  instructions: joinedPci,
+                                },
+                              ],
+                            }
+                          }),
+                        }
+                      })
+                    )
+                    toast.success('Items imported as Assessment')
+                    setImportTypeModalData(null)
+                  }}
+                >
+                  <FileQuestion className="h-4 w-4 text-purple-500" />
+                  Assessment
+                </Button>
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    if (!importTypeModalData) return
+                    const { target, items } = importTypeModalData
+                    const joinedQuestions = items.map(i => i.questionText).join('\n\n')
+                    const joinedPci = items.map(i => i.pciText).join('\n\n')
 
-                setModules(prev => prev.map(mod => {
-                  if (mod.id !== target.moduleId) return mod
-                  return {
-                    ...mod,
-                    lessons: mod.lessons.map(lesson => {
-                      if (lesson.id !== target.lessonId) return lesson
-                      const newAssessment = DEFAULT_HOMEWORK(0, 'assessment')
-                      return {
-                        ...lesson,
-                        homework: [...lesson.homework, { ...newAssessment, id: `hw-${Date.now()}`, title: 'Imported Assessment', description: joinedQuestions, instructions: joinedPci }]
-                      }
-                    })
-                  }
-                }))
-                toast.success('Items imported as Assessment')
-                setImportTypeModalData(null)
-              }}>
-                <FileQuestion className="h-4 w-4 text-purple-500" />
-                Assessment
-              </Button>
-              <Button variant="outline" className="justify-start gap-2" onClick={() => {
-                if (!importTypeModalData) return
-                const { target, items } = importTypeModalData
-                const joinedQuestions = items.map(i => i.questionText).join('\n\n')
-                const joinedPci = items.map(i => i.pciText).join('\n\n')
+                    setModules(prev =>
+                      prev.map(mod => {
+                        if (mod.id !== target.moduleId) return mod
+                        return {
+                          ...mod,
+                          lessons: mod.lessons.map(lesson => {
+                            if (lesson.id !== target.lessonId) return lesson
+                            const newHomework = DEFAULT_HOMEWORK(0, 'homework')
+                            return {
+                              ...lesson,
+                              homework: [
+                                ...lesson.homework,
+                                {
+                                  ...newHomework,
+                                  id: `hw-${Date.now()}`,
+                                  title: 'Imported Homework',
+                                  description: joinedQuestions,
+                                  instructions: joinedPci,
+                                },
+                              ],
+                            }
+                          }),
+                        }
+                      })
+                    )
+                    toast.success('Items imported as Homework')
+                    setImportTypeModalData(null)
+                  }}
+                >
+                  <Home className="h-4 w-4 text-emerald-500" />
+                  Homework
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
-                setModules(prev => prev.map(mod => {
-                  if (mod.id !== target.moduleId) return mod
-                  return {
-                    ...mod,
-                    lessons: mod.lessons.map(lesson => {
-                      if (lesson.id !== target.lessonId) return lesson
-                      const newHomework = DEFAULT_HOMEWORK(0, 'homework')
-                      return {
-                        ...lesson,
-                        homework: [...lesson.homework, { ...newHomework, id: `hw-${Date.now()}`, title: 'Imported Homework', description: joinedQuestions, instructions: joinedPci }]
-                      }
-                    })
-                  }
-                }))
-                toast.success('Items imported as Homework')
-                setImportTypeModalData(null)
-              }}>
-                <Home className="h-4 w-4 text-emerald-500" />
-                Homework
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Import Lesson Selector Modal - Step 1: Choose which lesson to import into */}
-        <Dialog open={importLessonSelectorOpen} onOpenChange={(open) => { if (!open) { setImportLessonSelectorOpen(false); setImportTarget(null) } }}>
-          <DialogContent className="sm:max-w-md border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
-            <DialogHeader>
-              <DialogTitle>Import into which lesson?</DialogTitle>
-              <DialogDescription>Select a lesson to import content into, or create a new one.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {modules.length === 0 || modules.every(m => m.lessons.length === 0) ? (
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground mb-4">No lessons available. A new lesson will be created automatically.</p>
-                  <Button onClick={() => {
-                    // Auto-create a lesson and proceed
-                    const newModule = DEFAULT_MODULE(modules.length)
-                    setModules(prev => [...prev, newModule])
-                    setImportTarget({ moduleId: newModule.id, lessonId: newModule.lessons[0].id })
-                    setImportLessonSelectorOpen(false)
-                    setLessonBankImportOpen(true)
-                  }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Lesson & Continue
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                    <Label>Select Target Lesson</Label>
-                    {modules.map((mod) => (
-                      <div key={mod.id} className="space-y-1">
-                        <p className="text-xs font-medium text-muted-foreground px-2">{mod.title}</p>
-                        {mod.lessons.map((lesson) => (
-                          <Button
-                            key={lesson.id}
-                            variant="outline"
-                            className="w-full justify-start text-sm"
-                            onClick={() => {
-                              setImportTarget({ moduleId: mod.id, lessonId: lesson.id })
-                              setImportLessonSelectorOpen(false)
-                              setLessonBankImportOpen(true)
-                            }}
-                          >
-                            <GraduationCap className="h-4 w-4 mr-2 text-blue-500" />
-                            {lesson.title}
-                          </Button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="pt-4 border-t">
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
+          {/* Import Lesson Selector Modal - Step 1: Choose which lesson to import into */}
+          <Dialog
+            open={importLessonSelectorOpen}
+            onOpenChange={open => {
+              if (!open) {
+                setImportLessonSelectorOpen(false)
+                setImportTarget(null)
+              }
+            }}
+          >
+            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Import into which lesson?</DialogTitle>
+                <DialogDescription>
+                  Select a lesson to import content into, or create a new one.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {modules.length === 0 || modules.every(m => m.lessons.length === 0) ? (
+                  <div className="py-4 text-center">
+                    <p className="mb-4 text-sm text-muted-foreground">
+                      No lessons available. A new lesson will be created automatically.
+                    </p>
+                    <Button
                       onClick={() => {
-                        // Create new lesson and proceed
+                        // Auto-create a lesson and proceed
                         const newModule = DEFAULT_MODULE(modules.length)
                         setModules(prev => [...prev, newModule])
-                        setImportTarget({ moduleId: newModule.id, lessonId: newModule.lessons[0].id })
+                        setImportTarget({
+                          moduleId: newModule.id,
+                          lessonId: newModule.lessons[0].id,
+                        })
                         setImportLessonSelectorOpen(false)
                         setLessonBankImportOpen(true)
                       }}
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Lesson
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Lesson & Continue
                     </Button>
                   </div>
-                </>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setImportLessonSelectorOpen(false); setImportTarget(null) }}>
-                Cancel
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                ) : (
+                  <>
+                    <div className="max-h-[300px] space-y-2 overflow-y-auto">
+                      <Label>Select Target Lesson</Label>
+                      {modules.map(mod => (
+                        <div key={mod.id} className="space-y-1">
+                          <p className="px-2 text-xs font-medium text-muted-foreground">
+                            {mod.title}
+                          </p>
+                          {mod.lessons.map(lesson => (
+                            <Button
+                              key={lesson.id}
+                              variant="outline"
+                              className="w-full justify-start text-sm"
+                              onClick={() => {
+                                setImportTarget({ moduleId: mod.id, lessonId: lesson.id })
+                                setImportLessonSelectorOpen(false)
+                                setLessonBankImportOpen(true)
+                              }}
+                            >
+                              <GraduationCap className="mr-2 h-4 w-4 text-blue-500" />
+                              {lesson.title}
+                            </Button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t pt-4">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          // Create new lesson and proceed
+                          const newModule = DEFAULT_MODULE(modules.length)
+                          setModules(prev => [...prev, newModule])
+                          setImportTarget({
+                            moduleId: newModule.id,
+                            lessonId: newModule.lessons[0].id,
+                          })
+                          setImportLessonSelectorOpen(false)
+                          setLessonBankImportOpen(true)
+                        }}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create New Lesson
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setImportLessonSelectorOpen(false)
+                    setImportTarget(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-        {/* Lesson Bank Import Modal - Step 2: Choose what to import from lesson bank */}
-        <Dialog open={lessonBankImportOpen} onOpenChange={(open) => { if (!open) { setLessonBankImportOpen(false); setImportTarget(null) } }}>
-          <DialogContent className="sm:max-w-lg border border-slate-400 shadow-2xl bg-white/95 backdrop-blur-md rounded-2xl">
-            <DialogHeader>
-              <DialogTitle>Import from Lesson Bank</DialogTitle>
-              <DialogDescription>Select a lesson to import into this course.</DialogDescription>
-            </DialogHeader>
-            {lessonBankModules.length === 0 ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                No lesson bank content found. Build lessons in the Lesson Bank first.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Lesson</Label>
-                  <Select
-                    value={lessonBankLessonKey}
-                    onValueChange={setLessonBankLessonKey}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a lesson" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {lessonBankModules.flatMap((mod) =>
-                        mod.lessons.map((lesson) => (
-                          <SelectItem key={`${mod.id}:${lesson.id}`} value={`${mod.id}:${lesson.id}`}>
-                            {mod.title} • {lesson.title}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+          {/* Lesson Bank Import Modal - Step 2: Choose what to import from lesson bank */}
+          <Dialog
+            open={lessonBankImportOpen}
+            onOpenChange={open => {
+              if (!open) {
+                setLessonBankImportOpen(false)
+                setImportTarget(null)
+              }
+            }}
+          >
+            <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Import from Lesson Bank</DialogTitle>
+                <DialogDescription>Select a lesson to import into this course.</DialogDescription>
+              </DialogHeader>
+              {lessonBankModules.length === 0 ? (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  No lesson bank content found. Build lessons in the Lesson Bank first.
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <Button
-                    variant="outline"
-                    disabled={!lessonBankLessonKey}
-                    onClick={() => {
-                      if (!lessonBankLessonKey) return
-                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
-                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
-                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
-                      if (!bankLesson) return
-                      
-                      // If no importTarget (no existing lessons), create a new module with the lesson
-                      if (!importTarget) {
-                        const newModule = DEFAULT_MODULE(modules.length)
-                        const clonedLesson = cloneLesson(bankLesson, 0)
-                        newModule.lessons = [clonedLesson]
-                        setModules(prev => [...prev, newModule])
-                      } else {
-                        // Import into existing module
-                        setModules(prev => prev.map(mod => {
-                          if (mod.id !== importTarget.moduleId) return mod
-                          const nextLesson = cloneLesson(bankLesson, mod.lessons.length)
-                          return {
-                            ...mod,
-                            lessons: [...mod.lessons, nextLesson]
-                          }
-                        }))
-                      }
-                      toast.success('Lesson imported')
-                      setLessonBankImportOpen(false)
-                      setImportTarget(null)
-                    }}
-                  >
-                    Import Lesson
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={!lessonBankLessonKey}
-                    onClick={() => {
-                      if (!lessonBankLessonKey) return
-                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
-                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
-                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
-                      if (!bankLesson) return
-                      
-                      // If no importTarget (no existing lessons), auto-create a lesson first
-                      if (!importTarget) {
-                        const newModule = DEFAULT_MODULE(modules.length)
-                        newModule.lessons[0].tasks = bankLesson.tasks.map(cloneTask)
-                        setModules(prev => [...prev, newModule])
-                      } else {
-                        // Import into existing lesson
-                        setModules(prev => prev.map(mod => {
-                          if (mod.id !== importTarget.moduleId) return mod
-                          return {
-                            ...mod,
-                            lessons: mod.lessons.map(lesson => {
-                              if (lesson.id !== importTarget.lessonId) return lesson
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Lesson</Label>
+                    <Select value={lessonBankLessonKey} onValueChange={setLessonBankLessonKey}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a lesson" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {lessonBankModules.flatMap(mod =>
+                          mod.lessons.map(lesson => (
+                            <SelectItem
+                              key={`${mod.id}:${lesson.id}`}
+                              value={`${mod.id}:${lesson.id}`}
+                            >
+                              {mod.title} • {lesson.title}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Button
+                      variant="outline"
+                      disabled={!lessonBankLessonKey}
+                      onClick={() => {
+                        if (!lessonBankLessonKey) return
+                        const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                        const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                        const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                        if (!bankLesson) return
+
+                        // If no importTarget (no existing lessons), create a new module with the lesson
+                        if (!importTarget) {
+                          const newModule = DEFAULT_MODULE(modules.length)
+                          const clonedLesson = cloneLesson(bankLesson, 0)
+                          newModule.lessons = [clonedLesson]
+                          setModules(prev => [...prev, newModule])
+                        } else {
+                          // Import into existing module
+                          setModules(prev =>
+                            prev.map(mod => {
+                              if (mod.id !== importTarget.moduleId) return mod
+                              const nextLesson = cloneLesson(bankLesson, mod.lessons.length)
                               return {
-                                ...lesson,
-                                tasks: [...lesson.tasks, ...bankLesson.tasks.map(cloneTask)]
+                                ...mod,
+                                lessons: [...mod.lessons, nextLesson],
                               }
                             })
-                          }
-                        }))
-                      }
-                      toast.success('Tasks imported')
-                      setLessonBankImportOpen(false)
-                      setImportTarget(null)
-                    }}
-                  >
-                    Import Tasks
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={!lessonBankLessonKey}
-                    onClick={() => {
-                      if (!lessonBankLessonKey) return
-                      const [moduleId, lessonId] = lessonBankLessonKey.split(':')
-                      const bankModule = lessonBankModules.find(m => m.id === moduleId)
-                      const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
-                      if (!bankLesson) return
-                      const assessments = (bankLesson.homework || []).filter(h => h.category !== 'homework')
-                      
-                      // If no importTarget (no existing lessons), auto-create a lesson first
-                      if (!importTarget) {
-                        const newModule = DEFAULT_MODULE(modules.length)
-                        newModule.lessons[0].homework = assessments.map(cloneAssessment)
-                        setModules(prev => [...prev, newModule])
-                      } else {
-                        // Import into existing lesson
-                        setModules(prev => prev.map(mod => {
-                          if (mod.id !== importTarget.moduleId) return mod
-                          return {
-                            ...mod,
-                            lessons: mod.lessons.map(lesson => {
-                              if (lesson.id !== importTarget.lessonId) return lesson
+                          )
+                        }
+                        toast.success('Lesson imported')
+                        setLessonBankImportOpen(false)
+                        setImportTarget(null)
+                      }}
+                    >
+                      Import Lesson
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={!lessonBankLessonKey}
+                      onClick={() => {
+                        if (!lessonBankLessonKey) return
+                        const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                        const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                        const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                        if (!bankLesson) return
+
+                        // If no importTarget (no existing lessons), auto-create a lesson first
+                        if (!importTarget) {
+                          const newModule = DEFAULT_MODULE(modules.length)
+                          newModule.lessons[0].tasks = bankLesson.tasks.map(cloneTask)
+                          setModules(prev => [...prev, newModule])
+                        } else {
+                          // Import into existing lesson
+                          setModules(prev =>
+                            prev.map(mod => {
+                              if (mod.id !== importTarget.moduleId) return mod
                               return {
-                                ...lesson,
-                                homework: [...lesson.homework, ...assessments.map(cloneAssessment)]
+                                ...mod,
+                                lessons: mod.lessons.map(lesson => {
+                                  if (lesson.id !== importTarget.lessonId) return lesson
+                                  return {
+                                    ...lesson,
+                                    tasks: [...lesson.tasks, ...bankLesson.tasks.map(cloneTask)],
+                                  }
+                                }),
                               }
                             })
-                          }
-                        }))
-                      }
-                      toast.success('Assessments imported')
-                      setLessonBankImportOpen(false)
-                      setImportTarget(null)
-                    }}
-                  >
-                    Import Assessments
-                  </Button>
+                          )
+                        }
+                        toast.success('Tasks imported')
+                        setLessonBankImportOpen(false)
+                        setImportTarget(null)
+                      }}
+                    >
+                      Import Tasks
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={!lessonBankLessonKey}
+                      onClick={() => {
+                        if (!lessonBankLessonKey) return
+                        const [moduleId, lessonId] = lessonBankLessonKey.split(':')
+                        const bankModule = lessonBankModules.find(m => m.id === moduleId)
+                        const bankLesson = bankModule?.lessons.find(l => l.id === lessonId)
+                        if (!bankLesson) return
+                        const assessments = (bankLesson.homework || []).filter(
+                          h => h.category !== 'homework'
+                        )
+
+                        // If no importTarget (no existing lessons), auto-create a lesson first
+                        if (!importTarget) {
+                          const newModule = DEFAULT_MODULE(modules.length)
+                          newModule.lessons[0].homework = assessments.map(cloneAssessment)
+                          setModules(prev => [...prev, newModule])
+                        } else {
+                          // Import into existing lesson
+                          setModules(prev =>
+                            prev.map(mod => {
+                              if (mod.id !== importTarget.moduleId) return mod
+                              return {
+                                ...mod,
+                                lessons: mod.lessons.map(lesson => {
+                                  if (lesson.id !== importTarget.lessonId) return lesson
+                                  return {
+                                    ...lesson,
+                                    homework: [
+                                      ...lesson.homework,
+                                      ...assessments.map(cloneAssessment),
+                                    ],
+                                  }
+                                }),
+                              }
+                            })
+                          )
+                        }
+                        toast.success('Assessments imported')
+                        setLessonBankImportOpen(false)
+                        setImportTarget(null)
+                      }}
+                    >
+                      Import Assessments
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setLessonBankImportOpen(false); setImportTarget(null) }}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              )}
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setLessonBankImportOpen(false)
+                    setImportTarget(null)
+                  }}
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-    </div>
-  )
-})
+    )
+  }
+)

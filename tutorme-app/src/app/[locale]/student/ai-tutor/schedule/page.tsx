@@ -44,7 +44,7 @@ export default function ScheduleSessionPage() {
     }
 
     setLoading(true)
-    
+
     try {
       // Combine date and time
       const scheduledDateTime = new Date(date)
@@ -53,7 +53,7 @@ export default function ScheduleSessionPage() {
 
       // For now, just show success (actual Daily.co integration would go here)
       toast.success('Live session scheduled!')
-      
+
       // Redirect back to tutor hub
       router.push('/student/ai-tutor')
     } catch (error) {
@@ -64,9 +64,24 @@ export default function ScheduleSessionPage() {
   }
 
   const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'
+    '09:00',
+    '09:30',
+    '10:00',
+    '10:30',
+    '11:00',
+    '11:30',
+    '13:00',
+    '13:30',
+    '14:00',
+    '14:30',
+    '15:00',
+    '15:30',
+    '16:00',
+    '16:30',
+    '17:00',
+    '17:30',
+    '18:00',
+    '18:30',
   ]
 
   const focusAreas = [
@@ -83,12 +98,14 @@ export default function ScheduleSessionPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
+      <header className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">Schedule Live Session</h1>
-              <p className="text-gray-600">Book a real-time tutoring session with your English AI Tutor</p>
+              <p className="text-gray-600">
+                Book a real-time tutoring session with your English AI Tutor
+              </p>
             </div>
             <Button variant="outline" onClick={() => router.push('/student/ai-tutor')}>
               ← Back
@@ -97,17 +114,17 @@ export default function ScheduleSessionPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto max-w-4xl px-4 py-8">
         {!canScheduleLive && (
           <Card className="mb-6 border-orange-200 bg-orange-50">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5" />
+                <AlertCircle className="mt-0.5 h-5 w-5 text-orange-600" />
                 <div>
                   <h3 className="font-semibold text-orange-900">Live Sessions Not Available</h3>
-                  <p className="text-sm text-orange-700 mt-1">
-                    Your current plan doesn't include live sessions. 
-                    Upgrade to Basic or Premium to schedule real-time tutoring.
+                  <p className="mt-1 text-sm text-orange-700">
+                    Your current plan doesn't include live sessions. Upgrade to Basic or Premium to
+                    schedule real-time tutoring.
                   </p>
                   <Button className="mt-3" variant="outline">
                     View Plans
@@ -118,12 +135,12 @@ export default function ScheduleSessionPage() {
           </Card>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid gap-6 md:grid-cols-2">
           {/* Date Selection */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5" />
+                <CalendarIcon className="h-5 w-5" />
                 Select Date
               </CardTitle>
             </CardHeader>
@@ -132,7 +149,9 @@ export default function ScheduleSessionPage() {
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                disabled={(date) => date < new Date() || date > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
+                disabled={date =>
+                  date < new Date() || date > new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                }
                 className="rounded-md border"
               />
             </CardContent>
@@ -143,20 +162,18 @@ export default function ScheduleSessionPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
+                  <Clock className="h-5 w-5" />
                   Select Time
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-2">
-                  {timeSlots.map((slot) => (
+                  {timeSlots.map(slot => (
                     <button
                       key={slot}
                       onClick={() => setTime(slot)}
-                      className={`p-2 rounded text-sm transition-colors ${
-                        time === slot
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 hover:bg-gray-200'
+                      className={`rounded p-2 text-sm transition-colors ${
+                        time === slot ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200'
                       }`}
                     >
                       {slot}
@@ -172,11 +189,11 @@ export default function ScheduleSessionPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex gap-2">
-                  {[30, 45, 60].map((mins) => (
+                  {[30, 45, 60].map(mins => (
                     <button
                       key={mins}
                       onClick={() => setDuration(mins)}
-                      className={`flex-1 p-3 rounded text-center transition-colors ${
+                      className={`flex-1 rounded p-3 text-center transition-colors ${
                         duration === mins
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-100 hover:bg-gray-200'
@@ -198,18 +215,18 @@ export default function ScheduleSessionPage() {
             <CardDescription>What would you like to focus on during this session?</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {focusAreas.map((area) => (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              {focusAreas.map(area => (
                 <button
                   key={area.id}
                   onClick={() => setFocus(area.id)}
-                  className={`p-4 rounded-lg border text-left transition-all ${
+                  className={`rounded-lg border p-4 text-left transition-all ${
                     focus === area.id
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <span className="text-2xl mb-2 block">{area.icon}</span>
+                  <span className="mb-2 block text-2xl">{area.icon}</span>
                   <span className="text-sm font-medium">{area.label}</span>
                 </button>
               ))}
@@ -251,23 +268,22 @@ export default function ScheduleSessionPage() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <Button 
-                className="flex-1" 
+              <Button
+                className="flex-1"
                 size="lg"
                 onClick={handleSchedule}
                 disabled={!date || !canScheduleLive || loading}
               >
-                {loading ? 'Scheduling...' : (
+                {loading ? (
+                  'Scheduling...'
+                ) : (
                   <>
-                    <Video className="w-4 h-4 mr-2" />
+                    <Video className="mr-2 h-4 w-4" />
                     Schedule Session
                   </>
                 )}
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => router.push('/student/ai-tutor')}
-              >
+              <Button variant="outline" onClick={() => router.push('/student/ai-tutor')}>
                 Cancel
               </Button>
             </div>

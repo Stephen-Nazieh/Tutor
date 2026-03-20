@@ -52,7 +52,7 @@ import {
   Sparkles,
   Zap,
   Layout,
-  X
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { MemoryService } from '@/lib/ai/memory-service'
@@ -132,7 +132,7 @@ const mockAssets: Asset[] = [
     createdAt: new Date('2026-01-15'),
     updatedAt: new Date('2026-02-10'),
     description: 'Mathematics curriculum materials',
-    metadata: { topic: 'math' }
+    metadata: { topic: 'math' },
   },
   {
     id: 'les-1',
@@ -142,7 +142,7 @@ const mockAssets: Asset[] = [
     createdAt: new Date('2026-01-16'),
     updatedAt: new Date('2026-01-20'),
     description: 'Introduction to algebra',
-    metadata: { topic: 'algebra', tags: ['variables', 'equations'] }
+    metadata: { topic: 'algebra', tags: ['variables', 'equations'] },
   },
   {
     id: 'les-2',
@@ -151,7 +151,7 @@ const mockAssets: Asset[] = [
     parentId: 'sub-1',
     createdAt: new Date('2026-01-18'),
     updatedAt: new Date('2026-01-25'),
-    metadata: { topic: 'algebra', tags: ['linear_equations'] }
+    metadata: { topic: 'algebra', tags: ['linear_equations'] },
   },
   // Adding specific assets for recommendation demo
   {
@@ -162,7 +162,7 @@ const mockAssets: Asset[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
     description: 'Targeted practice for finding roots.',
-    metadata: { topic: 'quadratic_equations', tags: ['finding_roots'], difficulty: 'hard' }
+    metadata: { topic: 'quadratic_equations', tags: ['finding_roots'], difficulty: 'hard' },
   },
   {
     id: 'task-1',
@@ -216,7 +216,7 @@ const mockAssets: Asset[] = [
     parentId: 'sub-2',
     createdAt: new Date('2026-01-12'),
     updatedAt: new Date('2026-01-15'),
-    metadata: { tags: ['force', 'motion'] }
+    metadata: { tags: ['force', 'motion'] },
   },
   {
     id: 'task-3',
@@ -225,11 +225,20 @@ const mockAssets: Asset[] = [
     parentId: 'les-3',
     createdAt: new Date('2026-01-13'),
     updatedAt: new Date('2026-01-14'),
-    metadata: { difficulty: 'intermediate' }
+    metadata: { difficulty: 'intermediate' },
   },
 ]
 
-export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreate, onAssetDelete, selectionMode, onAssetsSelect, onClose }: AssetsPanelProps) {
+export function AssetsPanel({
+  roomId,
+  students = [],
+  onAssetSelect,
+  onAssetCreate,
+  onAssetDelete,
+  selectionMode,
+  onAssetsSelect,
+  onClose,
+}: AssetsPanelProps) {
   const [assets, setAssets] = useState<Asset[]>(mockAssets)
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['sub-1', 'sub-2']))
   const [searchQuery, setSearchQuery] = useState('')
@@ -270,7 +279,8 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
 
     // 2. Find matching assets
     return assets.filter(asset => {
-      const topicMatch = asset.metadata?.topic && struggleTopics.has(asset.metadata.topic.toLowerCase())
+      const topicMatch =
+        asset.metadata?.topic && struggleTopics.has(asset.metadata.topic.toLowerCase())
       const tagMatch = asset.metadata?.tags?.some(tag => struggleTopics.has(tag.toLowerCase()))
       const textMatch = struggleTopics.has(asset.name.toLowerCase())
       return topicMatch || tagMatch || textMatch
@@ -297,9 +307,10 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
   // Filtered assets for search
   const filteredAssets = useMemo(() => {
     if (!searchQuery) return null
-    return assets.filter(a =>
-      a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    return assets.filter(
+      a =>
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.description?.toLowerCase().includes(searchQuery.toLowerCase())
     )
   }, [assets, searchQuery])
 
@@ -316,9 +327,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
   }
 
   const getChildAssets = (parentId: string) => {
-    return assets
-      .filter(a => a.parentId === parentId)
-      .sort((a, b) => a.name.localeCompare(b.name))
+    return assets.filter(a => a.parentId === parentId).sort((a, b) => a.name.localeCompare(b.name))
   }
 
   const handleCreateAsset = (type: AssetType, parentId: string | null = null) => {
@@ -352,9 +361,8 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
   }
 
   const AssetIcon = ({ type, isOpen }: { type: AssetType; isOpen?: boolean }) => {
-    const Icon = type === 'subject' || type === 'lesson'
-      ? (isOpen ? FolderOpen : Folder)
-      : typeIcons[type]
+    const Icon =
+      type === 'subject' || type === 'lesson' ? (isOpen ? FolderOpen : Folder) : typeIcons[type]
     return <Icon className="h-4 w-4" />
   }
 
@@ -368,11 +376,11 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
     return (
       <div key={asset.id} className="select-none">
         <div
-          className={`group flex items-center gap-2 px-3 py-2 my-0.5 rounded-lg cursor-pointer transition-all duration-200 border border-transparent
-            ${isSelected
-              ? 'bg-blue-600/20 border-blue-500/30 text-white shadow-sm backdrop-blur-sm'
-              : 'hover:bg-white/5 hover:border-white/10 text-gray-300'
-            }`}
+          className={`group my-0.5 flex cursor-pointer items-center gap-2 rounded-lg border border-transparent px-3 py-2 transition-all duration-200 ${
+            isSelected
+              ? 'border-blue-500/30 bg-blue-600/20 text-white shadow-sm backdrop-blur-sm'
+              : 'text-gray-300 hover:border-white/10 hover:bg-white/5'
+          }`}
           style={{ paddingLeft: `${12 + depth * 16}px` }}
           onClick={() => {
             if (isFolder) {
@@ -397,53 +405,65 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
               type="checkbox"
               className="mr-2"
               checked={selectedAssets.has(asset.id)}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => handleCheckboxChange(asset.id, e.target.checked)}
+              onClick={e => e.stopPropagation()}
+              onChange={e => handleCheckboxChange(asset.id, e.target.checked)}
             />
           )}
 
-          <span className={`p-1.5 rounded-md border ${typeColors[asset.type]}`}>
+          <span className={`rounded-md border p-1.5 ${typeColors[asset.type]}`}>
             <AssetIcon type={asset.type} isOpen={isExpanded} />
           </span>
 
           <span className="flex-1 truncate text-sm font-medium">{asset.name}</span>
 
           {asset.metadata?.difficulty && (
-            <Badge variant="outline" className={`text-[10px] px-1 h-5 ${asset.metadata.difficulty === 'hard' ? 'border-red-500/50 text-red-400' :
-              asset.metadata.difficulty === 'intermediate' ? 'border-yellow-500/50 text-yellow-400' :
-                'border-green-500/50 text-green-400'
-              }`}>
+            <Badge
+              variant="outline"
+              className={`h-5 px-1 text-[10px] ${
+                asset.metadata.difficulty === 'hard'
+                  ? 'border-red-500/50 text-red-400'
+                  : asset.metadata.difficulty === 'intermediate'
+                    ? 'border-yellow-500/50 text-yellow-400'
+                    : 'border-green-500/50 text-green-400'
+              }`}
+            >
               {asset.metadata.difficulty}
             </Badge>
           )}
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+            <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+              >
                 <MoreVertical className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-gray-800 border-gray-700 text-gray-200">
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
-                setSelectedAsset(asset)
-              }}>
-                <Eye className="h-4 w-4 mr-2" />
+            <DropdownMenuContent align="end" className="border-gray-700 bg-gray-800 text-gray-200">
+              <DropdownMenuItem
+                onClick={e => {
+                  e.stopPropagation()
+                  setSelectedAsset(asset)
+                }}
+              >
+                <Eye className="mr-2 h-4 w-4" />
                 Preview
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                <Edit className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={e => e.stopPropagation()}>
+                <Edit className="mr-2 h-4 w-4" />
                 Rename
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
-                <Download className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={e => e.stopPropagation()}>
+                <Download className="mr-2 h-4 w-4" />
                 Download
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-red-400 focus:text-red-400 focus:bg-red-900/20"
-                onClick={(e) => handleDeleteAsset(asset, e)}
+                className="text-red-400 focus:bg-red-900/20 focus:text-red-400"
+                onClick={e => handleDeleteAsset(asset, e)}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -452,7 +472,10 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
 
         {isFolder && isExpanded && hasChildren && (
           <div className="relative">
-            <div className="absolute left-[20px] top-0 bottom-0 w-px bg-gray-800" style={{ left: `${19 + depth * 16}px` }} />
+            <div
+              className="absolute bottom-0 left-[20px] top-0 w-px bg-gray-800"
+              style={{ left: `${19 + depth * 16}px` }}
+            />
             {children.map(child => renderAssetItem(child, depth + 1))}
           </div>
         )}
@@ -461,43 +484,48 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
   }
 
   return (
-    <div className="h-full flex flex-col bg-black/40 backdrop-blur-xl border-l border-white/10 text-white shadow-2xl">
+    <div className="flex h-full flex-col border-l border-white/10 bg-black/40 text-white shadow-2xl backdrop-blur-xl">
       {/* Header */}
-      <div className="p-4 border-b border-white/10 shrink-0 bg-white/5">
-        <div className="flex items-center justify-between mb-4">
+      <div className="shrink-0 border-b border-white/10 bg-white/5 p-4">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2.5 rounded-xl shadow-lg shadow-orange-900/20 shrink-0">
+            <div className="shrink-0 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-2.5 shadow-lg shadow-orange-900/20">
               <Layers className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Smart Assets</h2>
+              <h2 className="bg-gradient-to-r from-white to-gray-400 bg-clip-text text-lg font-bold text-transparent">
+                Smart Assets
+              </h2>
               <p className="text-xs text-gray-400">AI-Curated Materials</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-full hover:bg-white/10"
+              className="h-8 w-8 rounded-full p-0 hover:bg-white/10"
               onClick={() => setViewMode(viewMode === 'tree' ? 'list' : 'tree')}
             >
               <Layout className="h-4 w-4" />
             </Button>
             <Dialog>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20 border border-blue-400/20">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button
+                  size="sm"
+                  className="border border-blue-400/20 bg-blue-600 text-white shadow-lg shadow-blue-900/20 hover:bg-blue-500"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
                   New
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900/95 border-gray-700 text-white backdrop-blur-xl">
+              <DialogContent className="border-gray-700 bg-gray-900/95 text-white backdrop-blur-xl">
                 <DialogHeader>
                   <DialogTitle>Create New Asset</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-2 gap-3 mt-4">
+                <div className="mt-4 grid grid-cols-2 gap-3">
                   <Button
                     variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-white/5 border-gray-700"
+                    className="flex h-auto flex-col items-center gap-2 border-gray-700 py-4 hover:bg-white/5"
                     onClick={() => handleCreateAsset('subject')}
                   >
                     <GraduationCap className="h-6 w-6 text-blue-400" />
@@ -505,7 +533,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-white/5 border-gray-700"
+                    className="flex h-auto flex-col items-center gap-2 border-gray-700 py-4 hover:bg-white/5"
                     onClick={() => handleCreateAsset('lesson')}
                   >
                     <BookOpen className="h-6 w-6 text-green-400" />
@@ -513,7 +541,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-white/5 border-gray-700"
+                    className="flex h-auto flex-col items-center gap-2 border-gray-700 py-4 hover:bg-white/5"
                     onClick={() => handleCreateAsset('task')}
                   >
                     <FileQuestion className="h-6 w-6 text-orange-400" />
@@ -521,7 +549,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-white/5 border-gray-700"
+                    className="flex h-auto flex-col items-center gap-2 border-gray-700 py-4 hover:bg-white/5"
                     onClick={() => handleCreateAsset('assessment')}
                   >
                     <ClipboardCheck className="h-6 w-6 text-purple-400" />
@@ -529,7 +557,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                   </Button>
                   <Button
                     variant="outline"
-                    className="h-auto py-4 flex flex-col items-center gap-2 col-span-2 hover:bg-white/5 border-gray-700"
+                    className="col-span-2 flex h-auto flex-col items-center gap-2 border-gray-700 py-4 hover:bg-white/5"
                     onClick={() => handleCreateAsset('note')}
                   >
                     <StickyNote className="h-6 w-6 text-yellow-400" />
@@ -539,7 +567,12 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
               </DialogContent>
             </Dialog>
             {selectionMode && onClose && (
-              <Button variant="ghost" size="sm" onClick={onClose} className="text-gray-400 hover:text-white">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-gray-400 hover:text-white"
+              >
                 <X className="h-4 w-4" />
               </Button>
             )}
@@ -547,29 +580,30 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
         </div>
 
         {/* Search */}
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+        <div className="group relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-500 transition-colors group-focus-within:text-blue-400" />
           <Input
             placeholder="Search assets..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-black/20 border-white/10 text-white focus:bg-black/40 focus:border-blue-500/50 transition-all rounded-xl"
+            onChange={e => setSearchQuery(e.target.value)}
+            className="rounded-xl border-white/10 bg-black/20 pl-10 text-white transition-all focus:border-blue-500/50 focus:bg-black/40"
           />
         </div>
       </div>
 
       {/* Content Area with Resizable Panels */}
-      <PanelGroup orientation="horizontal" className="flex-1 min-h-0">
-
+      <PanelGroup orientation="horizontal" className="min-h-0 flex-1">
         {/* Left Panel: Asset List */}
         <Panel defaultSize={60} minSize={30}>
           <ScrollArea className="h-full">
             {/* Smart Recommendations Section */}
             {recommendedAssets.length > 0 && !searchQuery && (
-              <div className="p-4 pb-2 border-b border-white/5 bg-gradient-to-b from-blue-900/10 to-transparent">
-                <div className="flex items-center gap-2 mb-3 text-blue-300">
+              <div className="border-b border-white/5 bg-gradient-to-b from-blue-900/10 to-transparent p-4 pb-2">
+                <div className="mb-3 flex items-center gap-2 text-blue-300">
                   <Sparkles className="h-4 w-4" />
-                  <span className="text-xs font-bold uppercase tracking-wider">Recommended for Class</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Recommended for Class
+                  </span>
                 </div>
                 <div className="space-y-1">
                   {recommendedAssets.map(asset => renderAssetItem(asset))}
@@ -578,7 +612,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
             )}
 
             <div className="p-4">
-              <div className="flex items-center gap-2 mb-3 text-gray-500">
+              <div className="mb-3 flex items-center gap-2 text-gray-500">
                 <Folder className="h-4 w-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">All Library</span>
               </div>
@@ -590,8 +624,8 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                     {filteredAssets.map(asset => renderAssetItem(asset, 0))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <Search className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <div className="py-12 text-center text-gray-500">
+                    <Search className="mx-auto mb-3 h-12 w-12 opacity-20" />
                     <p>No assets found</p>
                   </div>
                 )
@@ -605,10 +639,12 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <Folder className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                    <div className="py-12 text-center text-gray-500">
+                      <Folder className="mx-auto mb-3 h-12 w-12 opacity-20" />
                       <p>No assets yet</p>
-                      <Button variant="link" onClick={() => handleCreateAsset('subject')}>Create Subject</Button>
+                      <Button variant="link" onClick={() => handleCreateAsset('subject')}>
+                        Create Subject
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -618,28 +654,34 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
         </Panel>
 
         {/* Resizer Handle */}
-        <PanelResizeHandle className="w-1 bg-white/5 hover:bg-blue-500/50 transition-colors cursor-col-resize active:bg-blue-600" />
+        <PanelResizeHandle className="w-1 cursor-col-resize bg-white/5 transition-colors hover:bg-blue-500/50 active:bg-blue-600" />
 
         {/* Right Panel: Preview (Collapsible?) */}
         {selectedAsset && (
           <Panel defaultSize={40} minSize={20}>
-            <div className="h-full flex flex-col bg-black/20 backdrop-blur-md border-l border-white/5">
+            <div className="flex h-full flex-col border-l border-white/5 bg-black/20 backdrop-blur-md">
               <ScrollArea className="flex-1 p-5">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className={`p-3 rounded-xl shadow-lg ${typeColors[selectedAsset.type]}`}>
+                <div className="mb-6 flex items-start gap-4">
+                  <div className={`rounded-xl p-3 shadow-lg ${typeColors[selectedAsset.type]}`}>
                     <AssetIcon type={selectedAsset.type} />
                   </div>
-                  <div className="flex-1 min-w-0 pt-1">
-                    <h3 className="font-bold text-lg leading-tight truncate text-white">{selectedAsset.name}</h3>
-                    <p className="text-xs text-blue-300/80 mt-1 uppercase tracking-wide font-medium">{typeLabels[selectedAsset.type]}</p>
+                  <div className="min-w-0 flex-1 pt-1">
+                    <h3 className="truncate text-lg font-bold leading-tight text-white">
+                      {selectedAsset.name}
+                    </h3>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-blue-300/80">
+                      {typeLabels[selectedAsset.type]}
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   {selectedAsset.description && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Description</h4>
-                      <p className="text-sm text-gray-300 leading-relaxed bg-white/5 p-3 rounded-lg border border-white/5">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                        Description
+                      </h4>
+                      <p className="rounded-lg border border-white/5 bg-white/5 p-3 text-sm leading-relaxed text-gray-300">
                         {selectedAsset.description}
                       </p>
                     </div>
@@ -647,35 +689,50 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
 
                   {selectedAsset.metadata && (
                     <div className="space-y-3">
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Details</h4>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                        Details
+                      </h4>
                       <div className="grid grid-cols-2 gap-3">
                         {selectedAsset.metadata.taskType && (
-                          <div className="bg-white/5 p-2 rounded border border-white/5">
-                            <span className="block text-[10px] text-gray-500 uppercase">Type</span>
-                            <span className="text-sm capitalize">{selectedAsset.metadata.taskType.replace('_', ' ')}</span>
+                          <div className="rounded border border-white/5 bg-white/5 p-2">
+                            <span className="block text-[10px] uppercase text-gray-500">Type</span>
+                            <span className="text-sm capitalize">
+                              {selectedAsset.metadata.taskType.replace('_', ' ')}
+                            </span>
                           </div>
                         )}
                         {selectedAsset.metadata.difficulty && (
-                          <div className="bg-white/5 p-2 rounded border border-white/5">
-                            <span className="block text-[10px] text-gray-500 uppercase">Difficulty</span>
-                            <span className={`text-sm capitalize font-medium ${selectedAsset.metadata.difficulty === 'hard' ? 'text-red-400' :
-                              selectedAsset.metadata.difficulty === 'intermediate' ? 'text-yellow-400' :
-                                'text-green-400'
-                              }`}>
+                          <div className="rounded border border-white/5 bg-white/5 p-2">
+                            <span className="block text-[10px] uppercase text-gray-500">
+                              Difficulty
+                            </span>
+                            <span
+                              className={`text-sm font-medium capitalize ${
+                                selectedAsset.metadata.difficulty === 'hard'
+                                  ? 'text-red-400'
+                                  : selectedAsset.metadata.difficulty === 'intermediate'
+                                    ? 'text-yellow-400'
+                                    : 'text-green-400'
+                              }`}
+                            >
                               {selectedAsset.metadata.difficulty}
                             </span>
                           </div>
                         )}
                         {selectedAsset.metadata.duration && (
-                          <div className="bg-white/5 p-2 rounded border border-white/5">
-                            <span className="block text-[10px] text-gray-500 uppercase">Duration</span>
+                          <div className="rounded border border-white/5 bg-white/5 p-2">
+                            <span className="block text-[10px] uppercase text-gray-500">
+                              Duration
+                            </span>
                             <span className="text-sm">{selectedAsset.metadata.duration} min</span>
                           </div>
                         )}
                         {selectedAsset.metadata.topic && (
-                          <div className="bg-white/5 p-2 rounded border border-white/5">
-                            <span className="block text-[10px] text-gray-500 uppercase">Topic</span>
-                            <span className="text-sm capitalize">{selectedAsset.metadata.topic}</span>
+                          <div className="rounded border border-white/5 bg-white/5 p-2">
+                            <span className="block text-[10px] uppercase text-gray-500">Topic</span>
+                            <span className="text-sm capitalize">
+                              {selectedAsset.metadata.topic}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -684,8 +741,10 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
 
                   {selectedAsset.content && (
                     <div className="space-y-2">
-                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Preview</h4>
-                      <div className="bg-black/40 p-4 rounded-lg text-sm font-mono text-gray-300 max-h-60 overflow-y-auto border border-white/10 shadow-inner">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                        Preview
+                      </h4>
+                      <div className="max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-black/40 p-4 font-mono text-sm text-gray-300 shadow-inner">
                         {selectedAsset.content}
                       </div>
                     </div>
@@ -693,17 +752,20 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
                 </div>
               </ScrollArea>
 
-              <div className="p-4 border-t border-white/10 bg-black/20 backdrop-blur-sm space-y-3">
-                <div className="flex justify-between text-[10px] text-gray-500 font-medium uppercase tracking-wider">
+              <div className="space-y-3 border-t border-white/10 bg-black/20 p-4 backdrop-blur-sm">
+                <div className="flex justify-between text-[10px] font-medium uppercase tracking-wider text-gray-500">
                   <span>Created {selectedAsset.createdAt.toLocaleDateString()}</span>
                   <span>Updated {selectedAsset.updatedAt.toLocaleDateString()}</span>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 border-white/10 hover:bg-white/5 text-gray-300">
-                    <Edit className="h-4 w-4 mr-2" /> Edit
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/10 text-gray-300 hover:bg-white/5"
+                  >
+                    <Edit className="mr-2 h-4 w-4" /> Edit
                   </Button>
-                  <Button className="flex-1 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20">
-                    <Zap className="h-4 w-4 mr-2" /> Open
+                  <Button className="flex-1 bg-blue-600 text-white shadow-lg shadow-blue-900/20 hover:bg-blue-500">
+                    <Zap className="mr-2 h-4 w-4" /> Open
                   </Button>
                 </div>
               </div>
@@ -713,7 +775,7 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
       </PanelGroup>
 
       {/* Footer Stats */}
-      <div className="p-2 border-t border-white/10 bg-black/30 backdrop-blur-sm shrink-0 flex justify-between items-center text-[10px] text-gray-500 uppercase tracking-wider font-medium px-4">
+      <div className="flex shrink-0 items-center justify-between border-t border-white/10 bg-black/30 p-2 px-4 text-[10px] font-medium uppercase tracking-wider text-gray-500 backdrop-blur-sm">
         <div className="flex gap-4">
           <span>{assets.filter(a => a.type === 'subject').length} Subjects</span>
           <span>{assets.filter(a => a.type === 'lesson').length} Lessons</span>
@@ -724,9 +786,14 @@ export function AssetsPanel({ roomId, students = [], onAssetSelect, onAssetCreat
 
       {/* Selection Mode Footer */}
       {selectionMode && (
-        <div className="p-4 border-t border-white/10 bg-black/40 backdrop-blur-sm flex justify-between items-center">
+        <div className="flex items-center justify-between border-t border-white/10 bg-black/40 p-4 backdrop-blur-sm">
           <span className="text-sm text-gray-400">{selectedAssets.size} selected</span>
-          <Button onClick={handleConfirmSelection} disabled={selectedAssets.size === 0} size="sm" className="bg-purple-600 hover:bg-purple-500">
+          <Button
+            onClick={handleConfirmSelection}
+            disabled={selectedAssets.size === 0}
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-500"
+          >
             Select {selectedAssets.size > 0 ? `(${selectedAssets.size})` : ''}
           </Button>
         </div>

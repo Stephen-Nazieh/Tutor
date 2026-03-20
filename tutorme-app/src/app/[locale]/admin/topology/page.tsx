@@ -17,16 +17,13 @@ export default function AdminTopologyPage() {
     <div className="relative h-full w-full bg-slate-950">
       {/* Topology panel fills the entire container */}
       <AdminTopologyPanel days={days} />
-      
+
       {/* Time range selector - positioned at bottom left */}
-      <div 
-        className="absolute left-6 z-50"
-        style={{ bottom: '24px' }}
-      >
-        <div className="rounded-xl border border-cyan-300/30 bg-slate-950/80 p-2 backdrop-blur-md shadow-lg">
-          <Tabs value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+      <div className="absolute left-6 z-50" style={{ bottom: '24px' }}>
+        <div className="rounded-xl border border-cyan-300/30 bg-slate-950/80 p-2 shadow-lg backdrop-blur-md">
+          <Tabs value={String(days)} onValueChange={v => setDays(Number(v))}>
             <TabsList className="bg-slate-900/90">
-              {timeRanges.map((range) => (
+              {timeRanges.map(range => (
                 <TabsTrigger key={range.value} value={range.value}>
                   {range.label}
                 </TabsTrigger>

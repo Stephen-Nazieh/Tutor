@@ -159,4 +159,3 @@ describe('GET /api/curriculums/list', () => {
     expect(mocks.selectCall).toBe(1)
   })
 })
-

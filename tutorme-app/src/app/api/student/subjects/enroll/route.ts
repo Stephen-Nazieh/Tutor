@@ -66,113 +66,118 @@ const subjectCurriculumMap: Record<string, { name: string; description: string }
   },
 }
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session) => {
-  const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
-  if (rateLimitResponse) return rateLimitResponse
+export const POST = withCsrf(
+  withAuth(
+    async (req: NextRequest, session) => {
+      const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
+      if (rateLimitResponse) return rateLimitResponse
 
-  const { subjectCode } = await req.json()
+      const { subjectCode } = await req.json()
 
-  if (!subjectCode) {
-    throw new ValidationError('Subject code required')
-  }
+      if (!subjectCode) {
+        throw new ValidationError('Subject code required')
+      }
 
-  const subjectKey = subjectCode.toLowerCase()
-  const subjectInfo = subjectCurriculumMap[subjectKey]
-  if (!subjectInfo) {
-    throw new ValidationError('Invalid subject code')
-  }
+      const subjectKey = subjectCode.toLowerCase()
+      const subjectInfo = subjectCurriculumMap[subjectKey]
+      if (!subjectInfo) {
+        throw new ValidationError('Invalid subject code')
+      }
 
-  const [curriculumBySubject] = await drizzleDb
-    .select()
-    .from(curriculum)
-    .where(eq(curriculum.subject, subjectKey))
-    .limit(1)
+      const [curriculumBySubject] = await drizzleDb
+        .select()
+        .from(curriculum)
+        .where(eq(curriculum.subject, subjectKey))
+        .limit(1)
 
-  if (curriculumBySubject) {
-    const [existingEnrollment] = await drizzleDb
-      .select()
-      .from(curriculumEnrollment)
-      .where(
-        and(
-          eq(curriculumEnrollment.studentId, session.user.id),
-          eq(curriculumEnrollment.curriculumId, curriculumBySubject.id)
-        )
-      )
-      .limit(1)
-    if (existingEnrollment) {
-      throw new ValidationError('Already enrolled in this subject')
-    }
-  }
+      if (curriculumBySubject) {
+        const [existingEnrollment] = await drizzleDb
+          .select()
+          .from(curriculumEnrollment)
+          .where(
+            and(
+              eq(curriculumEnrollment.studentId, session.user.id),
+              eq(curriculumEnrollment.curriculumId, curriculumBySubject.id)
+            )
+          )
+          .limit(1)
+        if (existingEnrollment) {
+          throw new ValidationError('Already enrolled in this subject')
+        }
+      }
 
-  let curriculumId: string
-  if (curriculumBySubject) {
-    curriculumId = curriculumBySubject.id
-  } else {
-    curriculumId = crypto.randomUUID()
-    await drizzleDb.insert(curriculum).values({
-      id: curriculumId,
-      name: subjectInfo.name,
-      subject: subjectKey,
-      description: subjectInfo.description,
-      difficulty: 'intermediate',
-      estimatedHours: 40,
-      isPublished: true,
-      isLiveOnline: true,
-    })
-    await createDefaultModules(curriculumId, subjectCode)
-  }
+      let curriculumId: string
+      if (curriculumBySubject) {
+        curriculumId = curriculumBySubject.id
+      } else {
+        curriculumId = crypto.randomUUID()
+        await drizzleDb.insert(curriculum).values({
+          id: curriculumId,
+          name: subjectInfo.name,
+          subject: subjectKey,
+          description: subjectInfo.description,
+          difficulty: 'intermediate',
+          estimatedHours: 40,
+          isPublished: true,
+          isLiveOnline: true,
+        })
+        await createDefaultModules(curriculumId, subjectCode)
+      }
 
-  const enrollmentId = crypto.randomUUID()
-  await drizzleDb.insert(curriculumEnrollment).values({
-    id: enrollmentId,
-    studentId: session.user.id,
-    curriculumId,
-    lessonsCompleted: 0,
-    enrollmentSource: 'browse',
-  })
+      const enrollmentId = crypto.randomUUID()
+      await drizzleDb.insert(curriculumEnrollment).values({
+        id: enrollmentId,
+        studentId: session.user.id,
+        curriculumId,
+        lessonsCompleted: 0,
+        enrollmentSource: 'browse',
+      })
 
-  const [existingGamification] = await drizzleDb
-    .select()
-    .from(userGamification)
-    .where(eq(userGamification.userId, session.user.id))
-    .limit(1)
+      const [existingGamification] = await drizzleDb
+        .select()
+        .from(userGamification)
+        .where(eq(userGamification.userId, session.user.id))
+        .limit(1)
 
-  if (existingGamification) {
-    await drizzleDb
-      .update(userGamification)
-      .set({ xp: existingGamification.xp + 50 })
-      .where(eq(userGamification.userId, session.user.id))
-  } else {
-    await drizzleDb.insert(userGamification).values({
-      id: crypto.randomUUID(),
-      userId: session.user.id,
-      level: 1,
-      xp: 50,
-      streakDays: 0,
-      longestStreak: 0,
-      totalStudyMinutes: 0,
-      grammarScore: 0,
-      vocabularyScore: 0,
-      speakingScore: 0,
-      listeningScore: 0,
-      confidenceScore: 0,
-      fluencyScore: 0,
-      unlockedWorlds: [],
-    })
-  }
+      if (existingGamification) {
+        await drizzleDb
+          .update(userGamification)
+          .set({ xp: existingGamification.xp + 50 })
+          .where(eq(userGamification.userId, session.user.id))
+      } else {
+        await drizzleDb.insert(userGamification).values({
+          id: crypto.randomUUID(),
+          userId: session.user.id,
+          level: 1,
+          xp: 50,
+          streakDays: 0,
+          longestStreak: 0,
+          totalStudyMinutes: 0,
+          grammarScore: 0,
+          vocabularyScore: 0,
+          speakingScore: 0,
+          listeningScore: 0,
+          confidenceScore: 0,
+          fluencyScore: 0,
+          unlockedWorlds: [],
+        })
+      }
 
-  const [enrollment] = await drizzleDb
-    .select()
-    .from(curriculumEnrollment)
-    .where(eq(curriculumEnrollment.id, enrollmentId))
-    .limit(1)
+      const [enrollment] = await drizzleDb
+        .select()
+        .from(curriculumEnrollment)
+        .where(eq(curriculumEnrollment.id, enrollmentId))
+        .limit(1)
 
-  return NextResponse.json({
-    success: true,
-    enrollment: enrollment!,
-    message: `Enrolled in ${subjectInfo.name}`,
-  })
-}, { role: 'STUDENT' }))
+      return NextResponse.json({
+        success: true,
+        enrollment: enrollment!,
+        message: `Enrolled in ${subjectInfo.name}`,
+      })
+    },
+    { role: 'STUDENT' }
+  )
+)
 
 async function createDefaultModules(curriculumId: string, subjectCode: string) {
   const moduleData = getDefaultModules(subjectCode)
@@ -296,21 +301,23 @@ function getDefaultModules(subjectCode: string) {
     ],
   }
 
-  return modules[subjectCode.toLowerCase()] || [
-    {
-      title: 'Introduction',
-      description: 'Getting started with the subject',
-      lessons: ['Welcome', 'Basics', 'Getting Started'],
-    },
-    {
-      title: 'Core Concepts',
-      description: 'Fundamental principles',
-      lessons: ['Concept 1', 'Concept 2', 'Concept 3'],
-    },
-    {
-      title: 'Advanced Topics',
-      description: 'Deeper exploration',
-      lessons: ['Advanced 1', 'Advanced 2'],
-    },
-  ]
+  return (
+    modules[subjectCode.toLowerCase()] || [
+      {
+        title: 'Introduction',
+        description: 'Getting started with the subject',
+        lessons: ['Welcome', 'Basics', 'Getting Started'],
+      },
+      {
+        title: 'Core Concepts',
+        description: 'Fundamental principles',
+        lessons: ['Concept 1', 'Concept 2', 'Concept 3'],
+      },
+      {
+        title: 'Advanced Topics',
+        description: 'Deeper exploration',
+        lessons: ['Advanced 1', 'Advanced 2'],
+      },
+    ]
+  )
 }

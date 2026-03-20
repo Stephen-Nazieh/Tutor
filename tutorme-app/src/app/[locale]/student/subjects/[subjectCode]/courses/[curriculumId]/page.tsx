@@ -46,7 +46,7 @@ export default function CourseEnrollPage() {
     setLoading(true)
     setError(null)
     fetch(`/api/curriculums/${encodeURIComponent(curriculumId)}`, { credentials: 'include' })
-      .then((res) => {
+      .then(res => {
         if (res.status === 404) throw new Error('Course not found')
         if (!res.ok) throw new Error('Failed to load course')
         return res.json()
@@ -54,13 +54,15 @@ export default function CourseEnrollPage() {
       .then((data: CurriculumDetail) => {
         if (!cancelled) setCurriculum(data)
       })
-      .catch((e) => {
+      .catch(e => {
         if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load course')
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [curriculumId])
 
   const getCsrf = async () => {
@@ -78,7 +80,7 @@ export default function CourseEnrollPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',
-        body: JSON.stringify(batchId ? { batchId } : {})
+        body: JSON.stringify(batchId ? { batchId } : {}),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -103,7 +105,7 @@ export default function CourseEnrollPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',
-        body: JSON.stringify({ curriculumId })
+        body: JSON.stringify({ curriculumId }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -131,8 +133,8 @@ export default function CourseEnrollPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     )
   }
@@ -140,12 +142,12 @@ export default function CourseEnrollPage() {
   if (error || !curriculum) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-xl mx-auto p-4 sm:p-6">
+        <div className="mx-auto max-w-xl p-4 sm:p-6">
           <Link
             href={coursesUrl}
-            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
+            className="mb-6 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to courses
           </Link>
           <Card className="border-destructive/50">
@@ -163,19 +165,19 @@ export default function CourseEnrollPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-xl mx-auto p-4 sm:p-6">
+      <div className="mx-auto max-w-xl p-4 sm:p-6">
         <Link
           href={coursesUrl}
-          className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-6"
+          className="mb-6 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to courses
         </Link>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
+              <BookOpen className="h-5 w-5" />
               {curriculum.name}
             </CardTitle>
             {(curriculum.gradeLevel || curriculum.difficulty) && (
@@ -191,16 +193,18 @@ export default function CourseEnrollPage() {
             {curriculum.description && (
               <p className="text-sm text-muted-foreground">{curriculum.description}</p>
             )}
-            <ul className="text-sm text-muted-foreground space-y-1">
+            <ul className="space-y-1 text-sm text-muted-foreground">
               <li>{curriculum.estimatedHours}h estimated</li>
-              <li>{curriculum.modulesCount} modules · {curriculum.lessonsCount} lessons</li>
+              <li>
+                {curriculum.modulesCount} modules · {curriculum.lessonsCount} lessons
+              </li>
               <li className="font-medium text-foreground">
                 Price: {formatPrice(curriculum.price, curriculum.currency)}
               </li>
             </ul>
 
             {curriculum.enrolled ? (
-              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+              <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
                 <p className="text-sm font-medium">You&apos;re already enrolled in this course.</p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild>
@@ -210,21 +214,19 @@ export default function CourseEnrollPage() {
                     <Link href="/student/scores">My scores</Link>
                   </Button>
                   <Button variant="outline" asChild>
-                    <Link href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(curriculumId)}/details`}>
+                    <Link
+                      href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(curriculumId)}/details`}
+                    >
                       View course details
                     </Link>
                   </Button>
                 </div>
               </div>
             ) : isFree ? (
-              <Button
-                className="w-full sm:w-auto"
-                onClick={handleEnroll}
-                disabled={enrolling}
-              >
+              <Button className="w-full sm:w-auto" onClick={handleEnroll} disabled={enrolling}>
                 {enrolling ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Enrolling…
                   </>
                 ) : (
@@ -232,22 +234,19 @@ export default function CourseEnrollPage() {
                 )}
               </Button>
             ) : (
-              <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-                <p className="text-sm font-medium flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" />
+              <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <CreditCard className="h-4 w-4" />
                   Pay & Enroll
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  You will be redirected to our secure payment page. After payment, you will be enrolled automatically.
+                  You will be redirected to our secure payment page. After payment, you will be
+                  enrolled automatically.
                 </p>
-                <Button
-                  className="w-full sm:w-auto"
-                  onClick={handlePayAndEnroll}
-                  disabled={paying}
-                >
+                <Button className="w-full sm:w-auto" onClick={handlePayAndEnroll} disabled={paying}>
                   {paying ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Redirecting…
                     </>
                   ) : (

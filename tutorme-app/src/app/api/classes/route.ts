@@ -24,10 +24,7 @@ async function getHandler(req: NextRequest, session: Session) {
 
     if (myBookings) {
       const bookingsWhere = subjectParam
-        ? and(
-            eq(clinicBooking.studentId, studentId),
-            ilike(clinic.subject, subjectParam)
-          )
+        ? and(eq(clinicBooking.studentId, studentId), ilike(clinic.subject, subjectParam))
         : eq(clinicBooking.studentId, studentId)
 
       const bookings = await drizzleDb
@@ -65,11 +62,11 @@ async function getHandler(req: NextRequest, session: Session) {
         .orderBy(asc(clinic.startTime))
         .limit(limit)
 
-      const clinicIds = [...new Set(bookings.map((b) => b.clinicId))]
+      const clinicIds = [...new Set(bookings.map(b => b.clinicId))]
       const bookingCounts =
         clinicIds.length > 0
           ? await Promise.all(
-              clinicIds.map(async (cId) => {
+              clinicIds.map(async cId => {
                 const [row] = await drizzleDb
                   .select({ count: sql<number>`count(*)::int` })
                   .from(clinicBooking)
@@ -78,9 +75,9 @@ async function getHandler(req: NextRequest, session: Session) {
               })
             )
           : []
-      const countMap = new Map(bookingCounts.map((r) => [r.clinicId, r.count]))
+      const countMap = new Map(bookingCounts.map(r => [r.clinicId, r.count]))
 
-      const classes = bookings.map((booking) => {
+      const classes = bookings.map(booking => {
         const hourlyRate = booking.hourlyRate ?? 0
         const price =
           booking.clinicRequiresPayment && hourlyRate > 0
@@ -126,10 +123,7 @@ async function getHandler(req: NextRequest, session: Session) {
           inArray(clinic.status, ['scheduled', 'live']),
           ilike(clinic.subject, subjectParam)
         )
-      : and(
-          gte(clinic.startTime, now),
-          inArray(clinic.status, ['scheduled', 'live'])
-        )
+      : and(gte(clinic.startTime, now), inArray(clinic.status, ['scheduled', 'live']))
 
     const clinics = await drizzleDb
       .select({
@@ -156,11 +150,11 @@ async function getHandler(req: NextRequest, session: Session) {
       .orderBy(asc(clinic.startTime))
       .limit(limit)
 
-    const clinicIds = clinics.map((c) => c.id)
+    const clinicIds = clinics.map(c => c.id)
     const bookingCounts =
       clinicIds.length > 0
         ? await Promise.all(
-            clinicIds.map(async (cId) => {
+            clinicIds.map(async cId => {
               const [row] = await drizzleDb
                 .select({ count: sql<number>`count(*)::int` })
                 .from(clinicBooking)
@@ -169,7 +163,7 @@ async function getHandler(req: NextRequest, session: Session) {
             })
           )
         : []
-    const countMap = new Map(bookingCounts.map((r) => [r.clinicId, r.count]))
+    const countMap = new Map(bookingCounts.map(r => [r.clinicId, r.count]))
 
     const myBookingClinicIds =
       clinicIds.length > 0
@@ -183,11 +177,11 @@ async function getHandler(req: NextRequest, session: Session) {
                   inArray(clinicBooking.clinicId, clinicIds)
                 )
               )
-          ).map((r) => r.clinicId)
+          ).map(r => r.clinicId)
         : []
     const myBookingSet = new Set(myBookingClinicIds)
 
-    const classes = clinics.map((cls) => {
+    const classes = clinics.map(cls => {
       const hourlyRate = cls.hourlyRate ?? 0
       const price =
         cls.requiresPayment && hourlyRate > 0
@@ -231,11 +225,7 @@ async function postHandler(req: NextRequest, session: Session) {
       return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
     }
 
-    const [classRow] = await drizzleDb
-      .select()
-      .from(clinic)
-      .where(eq(clinic.id, classId))
-      .limit(1)
+    const [classRow] = await drizzleDb.select().from(clinic).where(eq(clinic.id, classId)).limit(1)
 
     if (!classRow) {
       return NextResponse.json({ error: 'Class not found' }, { status: 404 })
@@ -259,12 +249,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const [existingBooking] = await drizzleDb
       .select()
       .from(clinicBooking)
-      .where(
-        and(
-          eq(clinicBooking.clinicId, classId),
-          eq(clinicBooking.studentId, session.user.id)
-        )
-      )
+      .where(and(eq(clinicBooking.clinicId, classId), eq(clinicBooking.studentId, session.user.id)))
       .limit(1)
 
     if (existingBooking) {
@@ -327,7 +312,7 @@ async function postHandler(req: NextRequest, session: Session) {
     const gatewayName = (
       preferredGateway === 'AIRWALLEX' || preferredGateway === 'HITPAY'
         ? preferredGateway
-        : (process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY')
+        : process.env.PAYMENT_DEFAULT_GATEWAY || 'HITPAY'
     ) as GatewayName
     const gateway = getPaymentGateway(gatewayName)
     const studentEmail = (session.user as { email?: string }).email ?? ''
@@ -386,12 +371,7 @@ async function deleteHandler(req: NextRequest, session: Session) {
       })
       .from(clinicBooking)
       .innerJoin(clinic, eq(clinicBooking.clinicId, clinic.id))
-      .where(
-        and(
-          eq(clinicBooking.id, bookingId),
-          eq(clinicBooking.studentId, session.user.id)
-        )
-      )
+      .where(and(eq(clinicBooking.id, bookingId), eq(clinicBooking.studentId, session.user.id)))
       .limit(1)
 
     if (!booking) {

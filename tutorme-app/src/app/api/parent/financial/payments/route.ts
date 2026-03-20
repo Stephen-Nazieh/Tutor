@@ -17,10 +17,7 @@ export const GET = withAuth(
     try {
       const family = await getFamilyAccountForParent(session)
       if (!family) {
-        return NextResponse.json(
-          { error: '未找到家庭账户' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
       }
 
       const { searchParams } = new URL(req.url)
@@ -39,16 +36,14 @@ export const GET = withAuth(
       let payments = await fetchFamilyPayments(family, { studentId })
 
       if (status) {
-        payments = payments.filter((p) =>
-          p.status.toLowerCase().includes(status.toLowerCase())
-        )
+        payments = payments.filter(p => p.status.toLowerCase().includes(status.toLowerCase()))
       }
       if (type) {
-        payments = payments.filter((p) => p.type === type)
+        payments = payments.filter(p => p.type === type)
       }
 
       const paginated = payments.slice(0, limit)
-      const formatted = paginated.map((p) => ({
+      const formatted = paginated.map(p => ({
         id: p.id,
         type: p.type,
         amount: p.amount,
@@ -61,7 +56,7 @@ export const GET = withAuth(
       }))
 
       const totalSpent = payments
-        .filter((p) => ['COMPLETED', 'completed', 'paid'].includes(p.status))
+        .filter(p => ['COMPLETED', 'completed', 'paid'].includes(p.status))
         .reduce((s, p) => s + p.amount, 0)
 
       const data = {

@@ -32,7 +32,9 @@ vi.mock('@/lib/db/drizzle', () => {
     if (mocks.drizzleSelectIndex === 2) {
       return {
         from: () => ({
-          where: () => ({ limit: () => Promise.resolve(mocks.profileByUserId ? [mocks.profileByUserId] : []) }),
+          where: () => ({
+            limit: () => Promise.resolve(mocks.profileByUserId ? [mocks.profileByUserId] : []),
+          }),
         }),
       }
     }

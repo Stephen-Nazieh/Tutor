@@ -1,7 +1,16 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Sparkles, Wand2, Calculator, CheckCircle, AlertCircle, X, MessageSquare, Lightbulb } from 'lucide-react'
+import {
+  Sparkles,
+  Wand2,
+  Calculator,
+  CheckCircle,
+  AlertCircle,
+  X,
+  MessageSquare,
+  Lightbulb,
+} from 'lucide-react'
 import type { AnyMathElement } from '@/types/math-whiteboard'
 
 interface AIMathAssistantProps {
@@ -26,82 +35,80 @@ export function AIMathAssistant({ elements, onAddElement, selectedElement }: AIM
   const [response, setResponse] = useState<AIResponse | null>(null)
   const [activeAction, setActiveAction] = useState<AIAction | null>(null)
 
-  const handleAIAction = useCallback(async (action: AIAction) => {
-    setIsLoading(true)
-    setActiveAction(action)
-    setResponse(null)
+  const handleAIAction = useCallback(
+    async (action: AIAction) => {
+      setIsLoading(true)
+      setActiveAction(action)
+      setResponse(null)
 
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
+      // Simulate AI processing delay
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
-    let aiResponse: AIResponse
+      let aiResponse: AIResponse
 
-    switch (action) {
-      case 'solve':
-        aiResponse = await mockSolveEquation(selectedElement)
-        break
-      case 'check':
-        aiResponse = await mockCheckWork(elements)
-        break
-      case 'explain':
-        aiResponse = await mockExplainConcept(selectedElement)
-        break
-      case 'generate':
-        aiResponse = await mockGenerateProblem()
-        break
-      default:
-        aiResponse = { action, result: 'Unknown action', error: 'Invalid action' }
-    }
+      switch (action) {
+        case 'solve':
+          aiResponse = await mockSolveEquation(selectedElement)
+          break
+        case 'check':
+          aiResponse = await mockCheckWork(elements)
+          break
+        case 'explain':
+          aiResponse = await mockExplainConcept(selectedElement)
+          break
+        case 'generate':
+          aiResponse = await mockGenerateProblem()
+          break
+        default:
+          aiResponse = { action, result: 'Unknown action', error: 'Invalid action' }
+      }
 
-    setResponse(aiResponse)
-    setIsLoading(false)
+      setResponse(aiResponse)
+      setIsLoading(false)
 
-    // If there's an element to add, add it
-    if (aiResponse.element) {
-      onAddElement(aiResponse.element)
-    }
-  }, [elements, selectedElement, onAddElement])
+      // If there's an element to add, add it
+      if (aiResponse.element) {
+        onAddElement(aiResponse.element)
+      }
+    },
+    [elements, selectedElement, onAddElement]
+  )
 
   return (
     <>
       {/* AI Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`
-          flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all
-          ${isOpen 
-            ? 'bg-purple-600 text-white shadow-lg' 
+        className={`flex items-center gap-2 rounded-lg px-3 py-2 font-medium transition-all ${
+          isOpen
+            ? 'bg-purple-600 text-white shadow-lg'
             : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:shadow-lg'
-          }
-        `}
+        } `}
       >
-        <Sparkles className="w-4 h-4" />
+        <Sparkles className="h-4 w-4" />
         <span className="text-sm">AI Assist</span>
       </button>
 
       {/* AI Panel */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border z-50 overflow-hidden">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-lg border bg-white shadow-xl">
           <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-white">
-                <Sparkles className="w-5 h-5" />
+                <Sparkles className="h-5 w-5" />
                 <span className="font-semibold">Math AI Assistant</span>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-white/80 hover:text-white"
-              >
-                <X className="w-4 h-4" />
+              <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white">
+                <X className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          <div className="p-4 space-y-3">
+          <div className="space-y-3 p-4">
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2">
               <AIActionButton
-                icon={<Calculator className="w-4 h-4" />}
+                icon={<Calculator className="h-4 w-4" />}
                 label="Solve"
                 description="Solve selected equation"
                 onClick={() => handleAIAction('solve')}
@@ -109,7 +116,7 @@ export function AIMathAssistant({ elements, onAddElement, selectedElement }: AIM
                 isLoading={isLoading && activeAction === 'solve'}
               />
               <AIActionButton
-                icon={<CheckCircle className="w-4 h-4" />}
+                icon={<CheckCircle className="h-4 w-4" />}
                 label="Check Work"
                 description="Verify solution"
                 onClick={() => handleAIAction('check')}
@@ -117,7 +124,7 @@ export function AIMathAssistant({ elements, onAddElement, selectedElement }: AIM
                 isLoading={isLoading && activeAction === 'check'}
               />
               <AIActionButton
-                icon={<Lightbulb className="w-4 h-4" />}
+                icon={<Lightbulb className="h-4 w-4" />}
                 label="Explain"
                 description="Explain concept"
                 onClick={() => handleAIAction('explain')}
@@ -125,7 +132,7 @@ export function AIMathAssistant({ elements, onAddElement, selectedElement }: AIM
                 isLoading={isLoading && activeAction === 'explain'}
               />
               <AIActionButton
-                icon={<Wand2 className="w-4 h-4" />}
+                icon={<Wand2 className="h-4 w-4" />}
                 label="Generate"
                 description="New practice problem"
                 onClick={() => handleAIAction('generate')}
@@ -135,28 +142,28 @@ export function AIMathAssistant({ elements, onAddElement, selectedElement }: AIM
 
             {/* Response Area */}
             {(response || isLoading) && (
-              <div className="border rounded-lg p-3 bg-slate-50">
+              <div className="rounded-lg border bg-slate-50 p-3">
                 {isLoading ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600" />
+                    <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-purple-600" />
                     <span className="ml-2 text-sm text-slate-600">AI is thinking...</span>
                   </div>
                 ) : response?.error ? (
                   <div className="flex items-center gap-2 text-red-600">
-                    <AlertCircle className="w-4 h-4" />
+                    <AlertCircle className="h-4 w-4" />
                     <span className="text-sm">{response.error}</span>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-green-600">
-                      <CheckCircle className="w-4 h-4" />
+                      <CheckCircle className="h-4 w-4" />
                       <span className="text-sm font-medium">Complete</span>
                     </div>
                     <p className="text-sm text-slate-700">{response?.result}</p>
                     {response?.steps && response.steps.length > 0 && (
                       <div className="mt-2">
-                        <p className="text-xs text-slate-500 font-medium mb-1">Steps:</p>
-                        <ol className="text-xs text-slate-600 space-y-1 list-decimal list-inside">
+                        <p className="mb-1 text-xs font-medium text-slate-500">Steps:</p>
+                        <ol className="list-inside list-decimal space-y-1 text-xs text-slate-600">
                           {response.steps.map((step, i) => (
                             <li key={i}>{step}</li>
                           ))}
@@ -169,9 +176,11 @@ export function AIMathAssistant({ elements, onAddElement, selectedElement }: AIM
             )}
 
             {/* Context Info */}
-            <div className="text-xs text-slate-400 pt-2 border-t">
+            <div className="border-t pt-2 text-xs text-slate-400">
               {selectedElement ? (
-                <p>Selected: <span className="capitalize">{selectedElement.type}</span></p>
+                <p>
+                  Selected: <span className="capitalize">{selectedElement.type}</span>
+                </p>
               ) : (
                 <p>Select an element to use AI features</p>
               )}
@@ -193,20 +202,25 @@ interface AIActionButtonProps {
   isLoading?: boolean
 }
 
-function AIActionButton({ icon, label, description, onClick, disabled, isLoading }: AIActionButtonProps) {
+function AIActionButton({
+  icon,
+  label,
+  description,
+  onClick,
+  disabled,
+  isLoading,
+}: AIActionButtonProps) {
   return (
     <button
       onClick={onClick}
       disabled={disabled || isLoading}
-      className={`
-        flex flex-col items-center p-3 rounded-lg border transition-all
-        ${disabled 
-          ? 'opacity-50 cursor-not-allowed bg-slate-50' 
-          : 'hover:bg-purple-50 hover:border-purple-200'
-        }
-      `}
+      className={`flex flex-col items-center rounded-lg border p-3 transition-all ${
+        disabled
+          ? 'cursor-not-allowed bg-slate-50 opacity-50'
+          : 'hover:border-purple-200 hover:bg-purple-50'
+      } `}
     >
-      <div className="text-purple-600 mb-1">{icon}</div>
+      <div className="mb-1 text-purple-600">{icon}</div>
       <span className="text-sm font-medium">{label}</span>
       <span className="text-[10px] text-slate-500">{description}</span>
     </button>
@@ -246,7 +260,7 @@ async function mockSolveEquation(element: AnyMathElement | null): Promise<AIResp
 
 async function mockCheckWork(elements: AnyMathElement[]): Promise<AIResponse> {
   const hasEquation = elements.some(e => e.type === 'equation')
-  
+
   if (!hasEquation) {
     return { action: 'check', result: '', error: 'No equations to check' }
   }
@@ -268,17 +282,21 @@ async function mockExplainConcept(element: AnyMathElement | null): Promise<AIRes
   }
 
   const explanations: Record<string, string> = {
-    equation: 'This equation represents a mathematical statement showing equality between two expressions. The variable x represents an unknown value we need to find.',
-    graph: 'This graph visually represents a function, showing how the output (y) changes with different input values (x).',
+    equation:
+      'This equation represents a mathematical statement showing equality between two expressions. The variable x represents an unknown value we need to find.',
+    graph:
+      'This graph visually represents a function, showing how the output (y) changes with different input values (x).',
     path: 'This freehand drawing can represent a concept, graph, or annotation on the whiteboard.',
     text: 'Text annotations help label and explain mathematical concepts.',
     rectangle: 'Geometric shapes help visualize mathematical concepts and relationships.',
-    circle: 'Circles represent constant distance from a center point, useful in geometry and trigonometry.',
+    circle:
+      'Circles represent constant distance from a center point, useful in geometry and trigonometry.',
   }
 
   return {
     action: 'explain',
-    result: explanations[element.type] || 'This element represents a mathematical concept or annotation.',
+    result:
+      explanations[element.type] || 'This element represents a mathematical concept or annotation.',
   }
 }
 

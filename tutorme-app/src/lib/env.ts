@@ -3,10 +3,7 @@
  * Call validateEnv() at app startup to fail fast when required vars are missing.
  */
 
-const REQUIRED = [
-  'DATABASE_URL',
-  'NEXTAUTH_SECRET',
-] as const
+const REQUIRED = ['DATABASE_URL', 'NEXTAUTH_SECRET'] as const
 
 const REQUIRED_MESSAGES: Record<string, string> = {
   DATABASE_URL: 'DATABASE_URL is required for database connection',
@@ -30,7 +27,7 @@ export function validateEnv(): void {
     }
   }
   if (missing.length > 0) {
-    const messages = missing.map((k) => REQUIRED_MESSAGES[k] ?? `Missing: ${k}`)
+    const messages = missing.map(k => REQUIRED_MESSAGES[k] ?? `Missing: ${k}`)
     throw new Error(`Environment validation failed:\n${messages.join('\n')}`)
   }
 }

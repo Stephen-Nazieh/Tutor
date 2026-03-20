@@ -2,18 +2,18 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Clock, 
-  BookOpen, 
-  Plus, 
-  Users, 
+import {
+  Clock,
+  BookOpen,
+  Plus,
+  Users,
   Loader2,
   User as UserIcon,
   ExternalLink,
   Share2,
   Copy,
   Video,
-  Sparkles
+  Sparkles,
 } from 'lucide-react'
 import {
   Dialog,
@@ -52,7 +52,8 @@ interface UpcomingClassesCardProps {
 }
 
 function copyJoinLink(classId: string) {
-  const url = typeof window !== 'undefined' ? `${window.location.origin}/student/live-class/${classId}` : ''
+  const url =
+    typeof window !== 'undefined' ? `${window.location.origin}/student/live-class/${classId}` : ''
   if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(() => toast.success('Join link copied to clipboard'))
   }
@@ -79,14 +80,14 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
     try {
       const [studentsRes, coursesRes] = await Promise.all([
         fetch('/api/tutor/students'),
-        fetch('/api/tutor/courses')
+        fetch('/api/tutor/courses'),
       ])
-      
+
       if (studentsRes.ok) {
         const data = await studentsRes.json()
         setStudents(data.students || [])
       }
-      
+
       if (coursesRes.ok) {
         const data = await coursesRes.json()
         const allGroups: any[] = []
@@ -94,7 +95,7 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
           course.variants?.forEach((v: any) => {
             allGroups.push({
               id: v.batchId,
-              name: `${course.name} - ${v.name}`
+              name: `${course.name} - ${v.name}`,
             })
           })
         })
@@ -130,8 +131,8 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
         body: JSON.stringify({
           classId,
           studentIds: selectedStudents,
-          groupIds: selectedGroups
-        })
+          groupIds: selectedGroups,
+        }),
       })
 
       if (res.ok) {
@@ -149,21 +150,22 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
     }
   }
 
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    s.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredStudents = students.filter(
+    s =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const filteredGroups = groups.filter(g => 
+  const filteredGroups = groups.filter(g =>
     g.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 overflow-hidden border border-slate-200">
+      <DialogContent className="flex h-[600px] flex-col overflow-hidden border border-slate-200 p-0 sm:max-w-[500px]">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="flex items-center gap-2">
-            <Share2 className="w-5 h-5 text-blue-500" />
+            <Share2 className="h-5 w-5 text-blue-500" />
             Share Class
           </DialogTitle>
           <DialogDescription>
@@ -171,47 +173,53 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-4 flex flex-col gap-4 flex-1 min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 py-4">
           <div className="relative">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search students or groups..."
-              className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchQuery}
               onChange={(e: any) => setSearchQuery(e.target.value)}
             />
           </div>
 
           {loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            <div className="flex flex-1 flex-col items-center justify-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
               <p className="text-sm text-gray-500">Loading recipients...</p>
             </div>
           ) : (
-            <ScrollArea className="flex-1 -mx-2 px-2">
+            <ScrollArea className="-mx-2 flex-1 px-2">
               <div className="space-y-6 pb-4">
                 {filteredGroups.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">Groups</h4>
+                    <h4 className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Groups
+                    </h4>
                     <div className="grid gap-1">
                       {filteredGroups.map(group => (
-                        <div 
-                          key={group.id} 
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        <div
+                          key={group.id}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50"
                           onClick={() => {
-                            setSelectedGroups(prev => 
-                              prev.includes(group.id) ? prev.filter(id => id !== group.id) : [...prev, group.id]
+                            setSelectedGroups(prev =>
+                              prev.includes(group.id)
+                                ? prev.filter(id => id !== group.id)
+                                : [...prev, group.id]
                             )
                           }}
                         >
-                          <Checkbox 
+                          <Checkbox
                             id={`group-${group.id}`}
                             checked={selectedGroups.includes(group.id)}
-                            onCheckedChange={() => {}} 
+                            onCheckedChange={() => {}}
                           />
                           <div className="flex-1">
-                            <Label className="text-sm font-medium cursor-pointer">{group.name}</Label>
+                            <Label className="cursor-pointer text-sm font-medium">
+                              {group.name}
+                            </Label>
                           </div>
                         </div>
                       ))}
@@ -221,29 +229,35 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
 
                 {filteredStudents.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">Students</h4>
+                    <h4 className="px-1 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                      Students
+                    </h4>
                     <div className="grid gap-1">
                       {filteredStudents.map(student => (
-                        <div 
-                          key={student.id} 
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        <div
+                          key={student.id}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50"
                           onClick={() => {
-                            setSelectedStudents(prev => 
-                              prev.includes(student.id) ? prev.filter(id => id !== student.id) : [...prev, student.id]
+                            setSelectedStudents(prev =>
+                              prev.includes(student.id)
+                                ? prev.filter(id => id !== student.id)
+                                : [...prev, student.id]
                             )
                           }}
                         >
-                          <Checkbox 
+                          <Checkbox
                             id={`student-${student.id}`}
                             checked={selectedStudents.includes(student.id)}
                             onCheckedChange={() => {}}
                           />
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                            <UserIcon className="w-4 h-4 text-blue-600" />
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                            <UserIcon className="h-4 w-4 text-blue-600" />
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <Label className="text-sm font-medium block truncate cursor-pointer">{student.name}</Label>
-                            <p className="text-xs text-gray-500 truncate">{student.email}</p>
+                          <div className="min-w-0 flex-1">
+                            <Label className="block cursor-pointer truncate text-sm font-medium">
+                              {student.name}
+                            </Label>
+                            <p className="truncate text-xs text-gray-500">{student.email}</p>
                           </div>
                         </div>
                       ))}
@@ -253,7 +267,7 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
 
                 {!loading && filteredStudents.length === 0 && filteredGroups.length === 0 && (
                   <div className="py-12 text-center">
-                    <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                    <Users className="mx-auto mb-3 h-12 w-12 text-gray-200" />
                     <p className="text-sm text-gray-500">No students or groups found</p>
                   </div>
                 )}
@@ -262,19 +276,25 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
           )}
         </div>
 
-        <div className="p-6 border-t bg-gray-50/50 flex items-center justify-between">
+        <div className="flex items-center justify-between border-t bg-gray-50/50 p-6">
           <p className="text-xs text-gray-500">
             {selectedStudents.length + selectedGroups.length} selected
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button 
-              size="sm" 
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
               onClick={handleShare}
               disabled={sharing || (selectedStudents.length === 0 && selectedGroups.length === 0)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {sharing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Share2 className="w-4 h-4 mr-2" />}
+              {sharing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Share2 className="mr-2 h-4 w-4" />
+              )}
               Share Link
             </Button>
           </div>
@@ -284,7 +304,13 @@ function ShareDialog({ open, onOpenChange, classId, classTitle }: ShareDialogPro
   )
 }
 
-export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClassClick, onRemoveClass }: UpcomingClassesCardProps) {
+export function UpcomingClassesCard({
+  classes,
+  formatDate,
+  loading,
+  onCreateClassClick,
+  onRemoveClass,
+}: UpcomingClassesCardProps) {
   const [selectedClass, setSelectedClass] = useState<UpcomingClass | null>(null)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
@@ -292,43 +318,45 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
   const classesWithSessions = classes.map((cls, index) => ({
     ...cls,
     sessionNo: cls.sessionNo || (index % 4) + 1,
-    totalSessions: cls.totalSessions || 12
+    totalSessions: cls.totalSessions || 12,
   }))
 
   return (
-    <Card className="border border-slate-200 overflow-hidden shadow-2xl bg-white/95 backdrop-blur-md">
+    <Card className="overflow-hidden border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2" title="Scheduled and active classes">
-          <Clock className="w-5 h-5 text-blue-500" />
+          <Clock className="h-5 w-5 text-blue-500" />
           My Classes
         </CardTitle>
         <Link href="/tutor/classes">
-          <Button variant="ghost" size="sm">View All</Button>
+          <Button variant="ghost" size="sm">
+            View All
+          </Button>
         </Link>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="space-y-4" aria-busy="true">
-            {[1, 2].map((i) => (
-              <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
+            {[1, 2].map(i => (
+              <div key={i} className="flex items-center justify-between rounded-lg border p-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg animate-pulse" />
+                  <div className="h-12 w-12 animate-pulse rounded-lg bg-gray-200" />
                   <div className="space-y-2">
-                    <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-3 w-36 bg-gray-200 rounded animate-pulse" />
-                    <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
+                    <div className="h-3 w-36 animate-pulse rounded bg-gray-200" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
                   </div>
                 </div>
-                <div className="h-9 w-24 bg-gray-200 rounded animate-pulse" />
+                <div className="h-9 w-24 animate-pulse rounded bg-gray-200" />
               </div>
             ))}
           </div>
         ) : classes.length === 0 ? (
-          <div className="text-center py-8 px-4 border rounded-lg border-dashed border-gray-300 bg-gray-50/50">
-            <p className="text-gray-600 mb-3">No upcoming classes</p>
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50/50 px-4 py-8 text-center">
+            <p className="mb-3 text-gray-600">No upcoming classes</p>
             {onCreateClassClick && (
               <Button onClick={onCreateClassClick}>
-                <Plus className="w-4 h-4 mr-2" /> Schedule a class
+                <Plus className="mr-2 h-4 w-4" /> Schedule a class
               </Button>
             )}
           </div>
@@ -337,56 +365,66 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Session No.</th>
-                  <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Time
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Session No.
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Total
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {classesWithSessions.map((cls) => {
+                {classesWithSessions.map(cls => {
                   const time = formatClassTime(cls.scheduledAt, cls.duration)
                   return (
-                    <tr 
-                      key={cls.id} 
-                      className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors"
+                    <tr
+                      key={cls.id}
+                      className="border-b border-gray-100 transition-colors hover:bg-gray-50/80"
                     >
-                      <td className="py-4 px-4">
+                      <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-blue-100 flex items-center justify-center shrink-0">
-                            <BookOpen className="w-4 h-4 text-blue-600" />
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100">
+                            <BookOpen className="h-4 w-4 text-blue-600" />
                           </div>
                           <div>
-                            <p className="font-medium text-sm text-gray-900">{cls.title}</p>
+                            <p className="text-sm font-medium text-gray-900">{cls.title}</p>
                             <p className="text-xs text-gray-500">{cls.subject}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-700">
+                      <td className="px-4 py-4 text-sm text-gray-700">
                         {formatDate(cls.scheduledAt)}
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-700">
-                        {time.timeRange}
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium">
+                      <td className="px-4 py-4 text-sm text-gray-700">{time.timeRange}</td>
+                      <td className="px-4 py-4 text-center">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-sm font-medium text-indigo-700">
                           {cls.sessionNo}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-center text-sm text-gray-700">
+                      <td className="px-4 py-4 text-center text-sm text-gray-700">
                         {cls.totalSessions}
                       </td>
-                      <td className="py-4 px-4 text-right">
-                        <Button 
-                          size="sm" 
+                      <td className="px-4 py-4 text-right">
+                        <Button
+                          size="sm"
                           variant="outline"
-                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
                           onClick={() => setSelectedClass(cls)}
                         >
                           Open
-                          <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                          <ExternalLink className="ml-1 h-3.5 w-3.5" />
                         </Button>
                       </td>
                     </tr>
@@ -399,30 +437,29 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
 
         {/* Class Detail Modal */}
         <Dialog open={!!selectedClass} onOpenChange={() => setSelectedClass(null)}>
-          <DialogContent className="sm:max-w-md border border-slate-200">
+          <DialogContent className="border border-slate-200 sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{selectedClass?.title}</DialogTitle>
-              <DialogDescription>
-                {selectedClass?.subject}
-              </DialogDescription>
+              <DialogDescription>{selectedClass?.subject}</DialogDescription>
             </DialogHeader>
-            
+
             {selectedClass && (
               <div className="space-y-4 py-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Clock className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                  <Clock className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="font-medium text-gray-900">
                       {formatDate(selectedClass.scheduledAt)}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {formatClassTime(selectedClass.scheduledAt).formatted} • {selectedClass.duration} min
+                      {formatClassTime(selectedClass.scheduledAt).formatted} •{' '}
+                      {selectedClass.duration} min
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Users className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                  <Users className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="font-medium text-gray-900">
                       {selectedClass.enrolledStudents}/{selectedClass.maxStudents} students
@@ -433,8 +470,8 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <BookOpen className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                  <BookOpen className="h-5 w-5 text-gray-500" />
                   <div>
                     <p className="font-medium text-gray-900">
                       Session {selectedClass.sessionNo || 1} of {selectedClass.totalSessions || 12}
@@ -447,42 +484,42 @@ export function UpcomingClassesCard({ classes, formatDate, loading, onCreateClas
 
                 <div className="flex flex-col gap-2 pt-2">
                   <Link href={`/tutor/live-class/${selectedClass.id}`}>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                      <Video className="w-4 h-4 mr-2" />
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
+                      <Video className="mr-2 h-4 w-4" />
                       Enter Live Room
                     </Button>
                   </Link>
-                  
+
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="flex-1"
                       onClick={() => copyJoinLink(selectedClass.id)}
                     >
-                      <Copy className="w-4 h-4 mr-2" />
+                      <Copy className="mr-2 h-4 w-4" />
                       Copy Link
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="flex-1"
                       onClick={() => setIsShareModalOpen(true)}
                     >
-                      <Share2 className="w-4 h-4 mr-2" />
+                      <Share2 className="mr-2 h-4 w-4" />
                       Share
                     </Button>
                   </div>
-                  
+
                   {selectedClass.curriculumId ? (
                     <Link href={`/tutor/courses/${selectedClass.curriculumId}`}>
                       <Button variant="outline" className="w-full">
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="mr-2 h-4 w-4" />
                         View Course Details
                       </Button>
                     </Link>
                   ) : (
                     <Link href="/tutor/classes">
                       <Button variant="outline" className="w-full">
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="mr-2 h-4 w-4" />
                         View Class Details
                       </Button>
                     </Link>

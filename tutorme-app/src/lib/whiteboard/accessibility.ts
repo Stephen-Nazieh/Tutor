@@ -1,6 +1,6 @@
 /**
  * Accessibility System
- * 
+ *
  * Features:
  * - Keyboard drawing flows
  * - High-contrast mode
@@ -52,9 +52,7 @@ export class AccessibilityManager {
   private currentFocus: string | null = null
   private onAnnouncement?: (announcement: ScreenReaderAnnouncement) => void
 
-  constructor(
-    onAnnouncement?: (announcement: ScreenReaderAnnouncement) => void
-  ) {
+  constructor(onAnnouncement?: (announcement: ScreenReaderAnnouncement) => void) {
     this.onAnnouncement = onAnnouncement
   }
 
@@ -144,10 +142,7 @@ export class AccessibilityManager {
    * Announce canvas state
    */
   announceCanvasState(strokeCount: number, selectedTool: string): void {
-    this.announce(
-      `Canvas has ${strokeCount} strokes. Current tool: ${selectedTool}`,
-      'polite'
-    )
+    this.announce(`Canvas has ${strokeCount} strokes. Current tool: ${selectedTool}`, 'polite')
   }
 
   /**
@@ -434,7 +429,7 @@ export class AccessibilityManager {
    */
   toHighContrast(color: string): string {
     const highContrast = this.getHighContrastColors()
-    
+
     // Map common colors to high contrast equivalents
     const colorMap: Record<string, string> = {
       '#000000': highContrast.black,

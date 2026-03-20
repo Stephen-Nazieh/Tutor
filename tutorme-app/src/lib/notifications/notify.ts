@@ -93,7 +93,10 @@ async function getChannelDecision(
     push: prefs.pushEnabled,
   }
 
-  const overrides = prefs.channelOverrides as Record<string, { inApp?: boolean; email?: boolean; push?: boolean }> | null
+  const overrides = prefs.channelOverrides as Record<
+    string,
+    { inApp?: boolean; email?: boolean; push?: boolean }
+  > | null
   if (overrides?.[type]) {
     const o = overrides[type]
     if (typeof o.inApp === 'boolean') decision.inApp = o.inApp
@@ -205,7 +208,14 @@ export async function notify(params: NotifyParams) {
 
   const channels = await getChannelDecision(userId, type, force)
 
-  let inAppRecord: { id: string; userId: string; type: string; title: string; message: string; createdAt: Date } | null = null
+  let inAppRecord: {
+    id: string
+    userId: string
+    type: string
+    title: string
+    message: string
+    createdAt: Date
+  } | null = null
 
   if (channels.inApp) {
     const [row] = await drizzleDb
@@ -225,11 +235,14 @@ export async function notify(params: NotifyParams) {
   }
 
   if (channels.push) {
-    broadcastToUser(userId, inAppRecord ?? { type, title, message, actionUrl, createdAt: new Date() })
+    broadcastToUser(
+      userId,
+      inAppRecord ?? { type, title, message, actionUrl, createdAt: new Date() }
+    )
   }
 
   if (channels.email) {
-    sendNotificationEmail(userId, type, title, message, actionUrl).catch((e) =>
+    sendNotificationEmail(userId, type, title, message, actionUrl).catch(e =>
       console.error('[notify] Email send error:', e)
     )
   }
@@ -241,11 +254,11 @@ export async function notifyMany(params: NotifyManyParams) {
   const { userIds, type, title, message, data, actionUrl, force = false } = params
 
   const results = await Promise.allSettled(
-    userIds.map((userId) => notify({ userId, type, title, message, data, actionUrl, force }))
+    userIds.map(userId => notify({ userId, type, title, message, data, actionUrl, force }))
   )
 
-  const succeeded = results.filter((r) => r.status === 'fulfilled').length
-  const failed = results.filter((r) => r.status === 'rejected').length
+  const succeeded = results.filter(r => r.status === 'fulfilled').length
+  const failed = results.filter(r => r.status === 'rejected').length
 
   return { sent: succeeded, failed, total: userIds.length }
 }

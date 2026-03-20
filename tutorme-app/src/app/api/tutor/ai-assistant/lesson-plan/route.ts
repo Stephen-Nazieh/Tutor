@@ -21,7 +21,9 @@ const LessonPlanRequestSchema = z.object({
   duration: z.number().min(15).max(180).default(60),
   classSize: z.number().min(1).max(100).optional(),
   objectives: z.array(z.string()).optional(),
-  teachingStyle: z.enum(['interactive', 'lecture', 'discussion', 'hands-on', 'mixed']).default('mixed'),
+  teachingStyle: z
+    .enum(['interactive', 'lecture', 'discussion', 'hands-on', 'mixed'])
+    .default('mixed'),
   resources: z.array(z.string()).optional(),
   priorKnowledge: z.string().optional(),
   differentiation: z.enum(['none', 'mild', 'moderate', 'extensive']).default('mild'),
@@ -48,23 +50,24 @@ interface LessonPlan {
   reflection: string[]
 }
 
-export const POST = withAuth(async (req: NextRequest, session) => {
-  const tutorId = session.user.id
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    const tutorId = session.user.id
 
-  try {
-    const body = await req.json()
-    const validation = LessonPlanRequestSchema.safeParse(body)
+    try {
+      const body = await req.json()
+      const validation = LessonPlanRequestSchema.safeParse(body)
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
-    }
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
 
-    const params = validation.data
+      const params = validation.data
 
-    const prompt = `
+      const prompt = `
 Create a detailed lesson plan for the following:
 
 TOPIC: ${params.topic}
@@ -110,86 +113,99 @@ Please provide a comprehensive lesson plan in the following JSON format:
 Make the lesson engaging, practical, and aligned with best teaching practices. Include specific timing for each phase.
 `
 
-    const result = await generateWithFallback(prompt, {
-      temperature: 0.7,
-      maxTokens: 3000,
-    })
+      const result = await generateWithFallback(prompt, {
+        temperature: 0.7,
+        maxTokens: 3000,
+      })
 
-    let lessonPlan: LessonPlan
-    try {
-      const jsonMatch = result.content.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        lessonPlan = JSON.parse(jsonMatch[0])
-      } else {
-        throw new Error('No JSON found in response')
-      }
-    } catch {
-      lessonPlan = {
-        title: `${params.topic} - Lesson Plan`,
-        overview: result.content.slice(0, 200),
-        learningObjectives: params.objectives || ['Understand key concepts', 'Apply knowledge', 'Analyze and evaluate'],
-        materials: params.resources || ['Whiteboard', 'Textbook'],
-        duration: params.duration,
-        structure: [
-          {
-            phase: 'Introduction',
-            duration: Math.floor(params.duration * 0.15),
-            activity: 'Warm-up',
-            description: result.content.slice(0, 300),
-            materials: [],
-          },
-        ],
-        assessment: {
-          formative: ['Class discussion', 'Quick checks'],
-          summative: ['End of lesson quiz'],
-        },
-        differentiation: {
-          struggling: ['Peer support', 'Simplified worksheets'],
-          advanced: ['Extension problems', 'Teaching others'],
-        },
-        reflection: ['What worked well?', 'What would you change?'],
-      }
-    }
-
-    let savedPlan: unknown = null
-    // LessonPlan table not in Drizzle schema; skip save
-
-    if (body.sessionId && body.sessionId !== 'temp') {
+      let lessonPlan: LessonPlan
       try {
-        await drizzleDb.insert(aIAssistantInsight).values({
-          id: randomUUID(),
-          sessionId: body.sessionId,
-          type: 'lesson_idea',
-          title: `Lesson Plan: ${lessonPlan.title}`,
-          content: lessonPlan.overview,
-          relatedData: {
-            topic: params.topic,
-            subject: params.subject,
-            duration: params.duration,
-          },
-          applied: false,
-        })
+        const jsonMatch = result.content.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          lessonPlan = JSON.parse(jsonMatch[0])
+        } else {
+          throw new Error('No JSON found in response')
+        }
       } catch {
-        // continue
+        lessonPlan = {
+          title: `${params.topic} - Lesson Plan`,
+          overview: result.content.slice(0, 200),
+          learningObjectives: params.objectives || [
+            'Understand key concepts',
+            'Apply knowledge',
+            'Analyze and evaluate',
+          ],
+          materials: params.resources || ['Whiteboard', 'Textbook'],
+          duration: params.duration,
+          structure: [
+            {
+              phase: 'Introduction',
+              duration: Math.floor(params.duration * 0.15),
+              activity: 'Warm-up',
+              description: result.content.slice(0, 300),
+              materials: [],
+            },
+          ],
+          assessment: {
+            formative: ['Class discussion', 'Quick checks'],
+            summative: ['End of lesson quiz'],
+          },
+          differentiation: {
+            struggling: ['Peer support', 'Simplified worksheets'],
+            advanced: ['Extension problems', 'Teaching others'],
+          },
+          reflection: ['What worked well?', 'What would you change?'],
+        }
       }
-    }
 
-    return NextResponse.json({
-      lessonPlan,
-      saved: !!savedPlan,
-      metadata: {
-        provider: result.provider,
-        latencyMs: result.latencyMs,
-        generatedAt: new Date().toISOString(),
-      },
-    })
-  } catch (error) {
-    console.error('Lesson plan generation error:', error)
-    return handleApiError(error, 'Failed to generate lesson plan', 'api/tutor/ai-assistant/lesson-plan/route.ts')
-  }
-}, { role: 'TUTOR' })
+      let savedPlan: unknown = null
+      // LessonPlan table not in Drizzle schema; skip save
+
+      if (body.sessionId && body.sessionId !== 'temp') {
+        try {
+          await drizzleDb.insert(aIAssistantInsight).values({
+            id: randomUUID(),
+            sessionId: body.sessionId,
+            type: 'lesson_idea',
+            title: `Lesson Plan: ${lessonPlan.title}`,
+            content: lessonPlan.overview,
+            relatedData: {
+              topic: params.topic,
+              subject: params.subject,
+              duration: params.duration,
+            },
+            applied: false,
+          })
+        } catch {
+          // continue
+        }
+      }
+
+      return NextResponse.json({
+        lessonPlan,
+        saved: !!savedPlan,
+        metadata: {
+          provider: result.provider,
+          latencyMs: result.latencyMs,
+          generatedAt: new Date().toISOString(),
+        },
+      })
+    } catch (error) {
+      console.error('Lesson plan generation error:', error)
+      return handleApiError(
+        error,
+        'Failed to generate lesson plan',
+        'api/tutor/ai-assistant/lesson-plan/route.ts'
+      )
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // GET - List saved lesson plans (no LessonPlan table in Drizzle schema)
-export const GET = withAuth(async (_req: NextRequest, _session) => {
-  return NextResponse.json({ plans: [] })
-}, { role: 'TUTOR' })
+export const GET = withAuth(
+  async (_req: NextRequest, _session) => {
+    return NextResponse.json({ plans: [] })
+  },
+  { role: 'TUTOR' }
+)

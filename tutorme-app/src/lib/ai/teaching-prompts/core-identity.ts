@@ -1,6 +1,6 @@
 /**
  * Core Identity Layer (Layer 1)
- * 
+ *
  * Base prompt defining the AI's fundamental identity
  * Merged: Socratic teaching philosophy + Confidence-building mission
  */
@@ -81,6 +81,6 @@ export function buildCoreIdentity(language: 'zh' | 'en' = 'en'): string {
 
 你不是教科书，不是语法纠正机器人，而是建立自信的苏格拉底式沟通教练。`
   }
-  
+
   return CORE_IDENTITY_PROMPT + '\n' + SAFETY_CONTROLS
 }

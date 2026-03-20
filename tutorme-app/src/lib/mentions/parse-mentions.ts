@@ -40,11 +40,11 @@ export async function recordMentions(params: {
   const parsed = parseMentions(text)
   if (parsed.length === 0) return []
 
-  const uniqueIds = Array.from(new Set(parsed.map((m) => m.userId))).filter((id) => id !== mentionerId)
+  const uniqueIds = Array.from(new Set(parsed.map(m => m.userId))).filter(id => id !== mentionerId)
   if (uniqueIds.length === 0) return []
 
   await drizzleDb.insert(mention).values(
-    uniqueIds.map((mentioneeId) => ({
+    uniqueIds.map(mentioneeId => ({
       messageId,
       mentionerId,
       mentioneeId,
@@ -52,7 +52,7 @@ export async function recordMentions(params: {
   )
 
   await Promise.all(
-    uniqueIds.map((mentioneeId) =>
+    uniqueIds.map(mentioneeId =>
       sendMentionNotification({
         mentioneeId,
         mentionerId,

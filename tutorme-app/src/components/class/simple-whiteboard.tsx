@@ -7,9 +7,9 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { 
-  Pencil, 
-  Eraser, 
+import {
+  Pencil,
+  Eraser,
   Square,
   Circle,
   Triangle,
@@ -27,7 +27,7 @@ import {
   AlignCenter,
   AlignRight,
   X,
-  Check
+  Check,
 } from 'lucide-react'
 
 type Tool = 'pen' | 'eraser' | 'rectangle' | 'circle' | 'triangle' | 'text' | 'select'
@@ -84,15 +84,15 @@ interface SimpleWhiteboardProps {
 
 const COLORS = ['#000000', '#ef4444', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b']
 
-export function SimpleWhiteboard({ 
-  onUpdate, 
+export function SimpleWhiteboard({
+  onUpdate,
   readOnly = false,
-  className = ''
+  className = '',
 }: SimpleWhiteboardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  
+
   const [isDrawing, setIsDrawing] = useState(false)
   const [tool, setTool] = useState<Tool>('pen')
   const [color, setColor] = useState('#000000')
@@ -103,7 +103,7 @@ export function SimpleWhiteboard({
   const [currentStroke, setCurrentStroke] = useState<Point[]>([])
   const [shapeStart, setShapeStart] = useState<Point | null>(null)
   const [tempShape, setTempShape] = useState<Shape | null>(null)
-  
+
   // Text editing state
   const [editingText, setEditingText] = useState<TextElement | null>(null)
   const [editTextValue, setEditTextValue] = useState('')
@@ -111,7 +111,7 @@ export function SimpleWhiteboard({
     bold: false,
     italic: false,
     underline: false,
-    align: 'left' as AlignType
+    align: 'left' as AlignType,
   })
   const [textEditPosition, setTextEditPosition] = useState({ x: 0, y: 0 })
 
@@ -191,9 +191,9 @@ export function SimpleWhiteboard({
   }, [strokes, shapes, texts, currentStroke, tempShape, color, lineWidth, tool])
 
   const drawStroke = (
-    ctx: CanvasRenderingContext2D, 
-    points: Point[], 
-    strokeColor: string, 
+    ctx: CanvasRenderingContext2D,
+    points: Point[],
+    strokeColor: string,
     width: number,
     isEraser: boolean
   ) => {
@@ -207,16 +207,16 @@ export function SimpleWhiteboard({
       ctx.strokeStyle = strokeColor
       ctx.lineWidth = width
     }
-    
+
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.beginPath()
     ctx.moveTo(points[0].x, points[0].y)
-    
+
     for (let i = 1; i < points.length; i++) {
       ctx.lineTo(points[i].x, points[i].y)
     }
-    
+
     ctx.stroke()
     ctx.restore()
   }
@@ -235,11 +235,13 @@ export function SimpleWhiteboard({
     } else if (shape.type === 'circle') {
       ctx.beginPath()
       ctx.ellipse(
-        shape.x + shape.width / 2, 
-        shape.y + shape.height / 2, 
-        Math.abs(shape.width) / 2, 
-        Math.abs(shape.height) / 2, 
-        0, 0, Math.PI * 2
+        shape.x + shape.width / 2,
+        shape.y + shape.height / 2,
+        Math.abs(shape.width) / 2,
+        Math.abs(shape.height) / 2,
+        0,
+        0,
+        Math.PI * 2
       )
       ctx.stroke()
     } else if (shape.type === 'triangle') {
@@ -299,15 +301,15 @@ export function SimpleWhiteboard({
     const rect = canvas.getBoundingClientRect()
     return {
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     }
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (readOnly || editingText) return
-    
+
     const point = getCanvasPoint(e)
-    
+
     if (tool === 'pen' || tool === 'eraser') {
       setIsDrawing(true)
       setCurrentStroke([point])
@@ -325,7 +327,7 @@ export function SimpleWhiteboard({
         bold: false,
         italic: false,
         underline: false,
-        align: 'left'
+        align: 'left',
       })
       setEditTextValue('')
       setEditTextFormat({ bold: false, italic: false, underline: false, align: 'left' })
@@ -337,7 +339,7 @@ export function SimpleWhiteboard({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (readOnly || editingText) return
-    
+
     const point = getCanvasPoint(e)
 
     if (isDrawing && (tool === 'pen' || tool === 'eraser')) {
@@ -351,7 +353,7 @@ export function SimpleWhiteboard({
         width: point.x - shapeStart.x,
         height: point.y - shapeStart.y,
         color,
-        lineWidth
+        lineWidth,
       })
     }
   }
@@ -365,7 +367,7 @@ export function SimpleWhiteboard({
         points: currentStroke,
         color,
         width: lineWidth,
-        type: tool === 'eraser' ? 'eraser' : 'pen'
+        type: tool === 'eraser' ? 'eraser' : 'pen',
       }
       setStrokes(prev => [...prev, newStroke])
       setCurrentStroke([])
@@ -381,7 +383,7 @@ export function SimpleWhiteboard({
         width: tempShape.width,
         height: tempShape.height,
         color,
-        lineWidth
+        lineWidth,
       }
       setShapes(prev => [...prev, newShape])
       setShapeStart(null)
@@ -405,7 +407,7 @@ export function SimpleWhiteboard({
         ...editingText,
         id: Date.now().toString(),
         text: editTextValue,
-        ...editTextFormat
+        ...editTextFormat,
       }
       setTexts(prev => [...prev, newText])
     }
@@ -430,7 +432,7 @@ export function SimpleWhiteboard({
   const downloadCanvas = () => {
     const canvas = canvasRef.current
     if (!canvas) return
-    
+
     const link = document.createElement('a')
     link.download = `whiteboard-${Date.now()}.png`
     link.href = canvas.toDataURL()
@@ -438,9 +440,9 @@ export function SimpleWhiteboard({
   }
 
   return (
-    <div className={`flex flex-col h-full bg-white rounded-lg overflow-hidden ${className}`}>
+    <div className={`flex h-full flex-col overflow-hidden rounded-lg bg-white ${className}`}>
       {/* Toolbar */}
-      <div className="flex items-center gap-2 p-3 border-b border-gray-200 bg-gray-50 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2 border-b border-gray-200 bg-gray-50 p-3">
         {/* Drawing Tools */}
         <div className="flex items-center gap-1">
           <Button
@@ -450,7 +452,7 @@ export function SimpleWhiteboard({
             className="h-9 w-9"
             title="Pen"
           >
-            <Pencil className="w-4 h-4" />
+            <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant={tool === 'eraser' ? 'default' : 'ghost'}
@@ -459,11 +461,11 @@ export function SimpleWhiteboard({
             className="h-9 w-9"
             title="Eraser"
           >
-            <Eraser className="w-4 h-4" />
+            <Eraser className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="h-6 w-px bg-gray-300" />
 
         {/* Shapes */}
         <div className="flex items-center gap-1">
@@ -474,7 +476,7 @@ export function SimpleWhiteboard({
             className="h-9 w-9"
             title="Rectangle"
           >
-            <Square className="w-4 h-4" />
+            <Square className="h-4 w-4" />
           </Button>
           <Button
             variant={tool === 'circle' ? 'default' : 'ghost'}
@@ -483,7 +485,7 @@ export function SimpleWhiteboard({
             className="h-9 w-9"
             title="Circle"
           >
-            <Circle className="w-4 h-4" />
+            <Circle className="h-4 w-4" />
           </Button>
           <Button
             variant={tool === 'triangle' ? 'default' : 'ghost'}
@@ -492,11 +494,11 @@ export function SimpleWhiteboard({
             className="h-9 w-9"
             title="Triangle"
           >
-            <Triangle className="w-4 h-4" />
+            <Triangle className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="h-6 w-px bg-gray-300" />
 
         {/* Text Tool */}
         <Button
@@ -506,10 +508,10 @@ export function SimpleWhiteboard({
           className="h-9 w-9"
           title="Text"
         >
-          <Type className="w-4 h-4" />
+          <Type className="h-4 w-4" />
         </Button>
 
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="h-6 w-px bg-gray-300" />
 
         {/* Color picker */}
         <div className="flex items-center gap-1">
@@ -517,15 +519,15 @@ export function SimpleWhiteboard({
             <button
               key={c}
               onClick={() => setColor(c)}
-              className={`w-6 h-6 rounded-full border-2 transition-all ${
-                color === c ? 'border-gray-800 scale-110' : 'border-transparent'
+              className={`h-6 w-6 rounded-full border-2 transition-all ${
+                color === c ? 'scale-110 border-gray-800' : 'border-transparent'
               }`}
               style={{ backgroundColor: c }}
             />
           ))}
         </div>
 
-        <div className="w-px h-6 bg-gray-300" />
+        <div className="h-6 w-px bg-gray-300" />
 
         {/* Line width */}
         <div className="flex items-center gap-2">
@@ -535,7 +537,7 @@ export function SimpleWhiteboard({
             min="1"
             max="10"
             value={lineWidth}
-            onChange={(e) => setLineWidth(Number(e.target.value))}
+            onChange={e => setLineWidth(Number(e.target.value))}
             className="w-20"
           />
         </div>
@@ -544,28 +546,36 @@ export function SimpleWhiteboard({
 
         {/* Undo, Clear, Download */}
         <Button variant="outline" size="sm" onClick={handleUndo} title="Undo">
-          <Undo className="w-4 h-4 mr-1" />
+          <Undo className="mr-1 h-4 w-4" />
           Undo
         </Button>
         <Button variant="outline" size="sm" onClick={clearCanvas}>
-          <Trash2 className="w-4 h-4 mr-1" />
+          <Trash2 className="mr-1 h-4 w-4" />
           Clear
         </Button>
         <Button variant="outline" size="sm" onClick={downloadCanvas}>
-          <Download className="w-4 h-4 mr-1" />
+          <Download className="mr-1 h-4 w-4" />
           Save
         </Button>
       </div>
 
       {/* Canvas Container */}
-      <div 
+      <div
         ref={containerRef}
-        className="flex-1 relative overflow-hidden cursor-crosshair"
-        style={{ cursor: editingText ? 'default' : tool === 'eraser' ? 'cell' : tool === 'text' ? 'text' : 'crosshair' }}
+        className="relative flex-1 cursor-crosshair overflow-hidden"
+        style={{
+          cursor: editingText
+            ? 'default'
+            : tool === 'eraser'
+              ? 'cell'
+              : tool === 'text'
+                ? 'text'
+                : 'crosshair',
+        }}
       >
         <canvas
           ref={canvasRef}
-          className="absolute top-0 left-0 touch-none"
+          className="absolute left-0 top-0 touch-none"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -574,24 +584,24 @@ export function SimpleWhiteboard({
 
         {/* Text Input Overlay */}
         {editingText && (
-          <div 
-            className="absolute bg-white border-2 border-blue-500 rounded-lg shadow-lg p-2 z-50"
-            style={{ 
-              left: editingText.x, 
-              top: editingText.y, 
+          <div
+            className="absolute z-50 rounded-lg border-2 border-blue-500 bg-white p-2 shadow-lg"
+            style={{
+              left: editingText.x,
+              top: editingText.y,
               minWidth: '300px',
-              maxWidth: '500px'
+              maxWidth: '500px',
             }}
           >
             {/* Formatting Toolbar */}
-            <div className="flex items-center gap-1 mb-2 pb-2 border-b border-gray-200">
+            <div className="mb-2 flex items-center gap-1 border-b border-gray-200 pb-2">
               <Button
                 variant={editTextFormat.bold ? 'default' : 'ghost'}
                 size="icon"
                 onClick={() => setEditTextFormat(prev => ({ ...prev, bold: !prev.bold }))}
                 className="h-7 w-7"
               >
-                <Bold className="w-3 h-3" />
+                <Bold className="h-3 w-3" />
               </Button>
               <Button
                 variant={editTextFormat.italic ? 'default' : 'ghost'}
@@ -599,7 +609,7 @@ export function SimpleWhiteboard({
                 onClick={() => setEditTextFormat(prev => ({ ...prev, italic: !prev.italic }))}
                 className="h-7 w-7"
               >
-                <Italic className="w-3 h-3" />
+                <Italic className="h-3 w-3" />
               </Button>
               <Button
                 variant={editTextFormat.underline ? 'default' : 'ghost'}
@@ -607,16 +617,16 @@ export function SimpleWhiteboard({
                 onClick={() => setEditTextFormat(prev => ({ ...prev, underline: !prev.underline }))}
                 className="h-7 w-7"
               >
-                <Underline className="w-3 h-3" />
+                <Underline className="h-3 w-3" />
               </Button>
-              <div className="w-px h-4 bg-gray-300 mx-1" />
+              <div className="mx-1 h-4 w-px bg-gray-300" />
               <Button
                 variant={editTextFormat.align === 'left' ? 'default' : 'ghost'}
                 size="icon"
                 onClick={() => setEditTextFormat(prev => ({ ...prev, align: 'left' }))}
                 className="h-7 w-7"
               >
-                <AlignLeft className="w-3 h-3" />
+                <AlignLeft className="h-3 w-3" />
               </Button>
               <Button
                 variant={editTextFormat.align === 'center' ? 'default' : 'ghost'}
@@ -624,7 +634,7 @@ export function SimpleWhiteboard({
                 onClick={() => setEditTextFormat(prev => ({ ...prev, align: 'center' }))}
                 className="h-7 w-7"
               >
-                <AlignCenter className="w-3 h-3" />
+                <AlignCenter className="h-3 w-3" />
               </Button>
               <Button
                 variant={editTextFormat.align === 'right' ? 'default' : 'ghost'}
@@ -632,11 +642,11 @@ export function SimpleWhiteboard({
                 onClick={() => setEditTextFormat(prev => ({ ...prev, align: 'right' }))}
                 className="h-7 w-7"
               >
-                <AlignRight className="w-3 h-3" />
+                <AlignRight className="h-3 w-3" />
               </Button>
               <div className="flex-1" />
               <Button variant="ghost" size="icon" onClick={cancelTextEdit} className="h-7 w-7">
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
 
@@ -644,17 +654,17 @@ export function SimpleWhiteboard({
             <textarea
               ref={textareaRef}
               value={editTextValue}
-              onChange={(e) => setEditTextValue(e.target.value)}
+              onChange={e => setEditTextValue(e.target.value)}
               placeholder="Type your text here..."
-              className="w-full min-h-[80px] p-2 border border-gray-200 rounded resize-none focus:outline-none focus:border-blue-500"
+              className="min-h-[80px] w-full resize-none rounded border border-gray-200 p-2 focus:border-blue-500 focus:outline-none"
               style={{
                 fontSize: '16px',
                 fontWeight: editTextFormat.bold ? 'bold' : 'normal',
                 fontStyle: editTextFormat.italic ? 'italic' : 'normal',
                 textDecoration: editTextFormat.underline ? 'underline' : 'none',
-                textAlign: editTextFormat.align
+                textAlign: editTextFormat.align,
               }}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter' && e.metaKey) {
                   confirmTextEdit()
                 }
@@ -665,12 +675,12 @@ export function SimpleWhiteboard({
             />
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-200">
+            <div className="mt-2 flex items-center justify-end gap-2 border-t border-gray-200 pt-2">
               <Button size="sm" variant="outline" onClick={cancelTextEdit}>
                 Cancel
               </Button>
               <Button size="sm" onClick={confirmTextEdit}>
-                <Check className="w-4 h-4 mr-1" />
+                <Check className="mr-1 h-4 w-4" />
                 Add Text
               </Button>
             </div>
@@ -679,7 +689,7 @@ export function SimpleWhiteboard({
       </div>
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-t border-gray-200 bg-gray-50 text-xs text-gray-500">
+      <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
         <span>
           {tool === 'pen' && 'Drawing mode - Click and drag to draw'}
           {tool === 'eraser' && 'Eraser mode - Click and drag to erase'}
@@ -688,7 +698,9 @@ export function SimpleWhiteboard({
           {tool === 'triangle' && 'Triangle mode - Click and drag to draw'}
           {tool === 'text' && 'Text mode - Click to place text'}
         </span>
-        <span>{strokes.length} strokes, {shapes.length} shapes, {texts.length} texts</span>
+        <span>
+          {strokes.length} strokes, {shapes.length} shapes, {texts.length} texts
+        </span>
       </div>
     </div>
   )

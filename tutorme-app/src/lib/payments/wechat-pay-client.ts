@@ -58,12 +58,7 @@ function getApiV3Key(): string {
 /**
  * Build WeChat Pay v3 Authorization header (WECHATPAY2-SHA256-RSA2048)
  */
-function buildAuthorization(
-  method: string,
-  url: string,
-  body: string,
-  privateKey: string
-): string {
+function buildAuthorization(method: string, url: string, body: string, privateKey: string): string {
   const timestamp = Math.floor(Date.now() / 1000).toString()
   const nonce = crypto.randomBytes(16).toString('hex')
   const message = `${method}\n${url}\n${timestamp}\n${nonce}\n${body}\n`
@@ -186,20 +181,24 @@ export class WeChatPayClient implements PaymentGateway {
   }
 
   verifyWebhook(payload: unknown, signature: string): boolean {
-    const headers = typeof payload === 'object' && payload !== null && 'headers' in payload
-      ? (payload as { headers: Record<string, string> }).headers
-      : null
-    const rawBody = typeof payload === 'object' && payload !== null && 'rawBody' in payload
-      ? (payload as { rawBody: string }).rawBody
-      : typeof payload === 'string'
-        ? payload
-        : JSON.stringify(payload)
+    const headers =
+      typeof payload === 'object' && payload !== null && 'headers' in payload
+        ? (payload as { headers: Record<string, string> }).headers
+        : null
+    const rawBody =
+      typeof payload === 'object' && payload !== null && 'rawBody' in payload
+        ? (payload as { rawBody: string }).rawBody
+        : typeof payload === 'string'
+          ? payload
+          : JSON.stringify(payload)
 
     const wechatSignature = headers?.['wechatpay-signature'] ?? signature
     const timestamp = headers?.['wechatpay-timestamp'] ?? ''
     const nonce = headers?.['wechatpay-nonce'] ?? ''
 
-    const sigMatch = wechatSignature.match(/timestamp="([^"]+)",nonce="([^"]+)",signature="([^"]+)"/)
+    const sigMatch = wechatSignature.match(
+      /timestamp="([^"]+)",nonce="([^"]+)",signature="([^"]+)"/
+    )
     if (!sigMatch) return false
 
     const [, ts, n, sig] = sigMatch

@@ -1,6 +1,6 @@
 /**
  * XP Animation Component
- * 
+ *
  * Shows animated XP gain popup
  */
 
@@ -18,12 +18,7 @@ interface XpAnimationProps {
   className?: string
 }
 
-export function XpAnimation({
-  amount,
-  reason,
-  onComplete,
-  className,
-}: XpAnimationProps) {
+export function XpAnimation({ amount, reason, onComplete, className }: XpAnimationProps) {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
@@ -43,11 +38,7 @@ export function XpAnimation({
         initial={{ opacity: 0, y: 20, scale: 0.8 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -20, scale: 0.8 }}
-        className={cn(
-          'fixed z-50 pointer-events-none',
-          'flex flex-col items-center',
-          className
-        )}
+        className={cn('pointer-events-none fixed z-50', 'flex flex-col items-center', className)}
         style={{
           left: '50%',
           top: '30%',
@@ -65,11 +56,11 @@ export function XpAnimation({
           className="relative"
         >
           {/* Background glow */}
-          <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-50" />
-          
+          <div className="absolute inset-0 bg-yellow-400 opacity-50 blur-xl" />
+
           {/* Main badge */}
-          <div className="relative bg-gradient-to-br from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
+          <div className="relative flex items-center gap-2 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 px-6 py-3 text-white shadow-xl">
+            <Sparkles className="h-5 w-5" />
             <span className="text-2xl font-bold">+{amount}</span>
             <span className="text-sm font-medium opacity-90">XP</span>
           </div>
@@ -79,7 +70,7 @@ export function XpAnimation({
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ 
+              animate={{
                 opacity: [0, 1, 0],
                 scale: [0, 1, 0],
                 x: [0, (i - 1) * 40],
@@ -90,9 +81,9 @@ export function XpAnimation({
                 delay: i * 0.2,
                 repeat: 1,
               }}
-              className="absolute top-1/2 left-1/2"
+              className="absolute left-1/2 top-1/2"
             >
-              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             </motion.div>
           ))}
         </motion.div>
@@ -102,7 +93,7 @@ export function XpAnimation({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-2 text-sm font-medium text-gray-700 bg-white/80 px-3 py-1 rounded-full shadow-sm"
+            className="mt-2 rounded-full bg-white/80 px-3 py-1 text-sm font-medium text-gray-700 shadow-sm"
           >
             {reason}
           </motion.p>
@@ -151,20 +142,20 @@ export function LevelUpAnimation({ level, onComplete }: LevelUpAnimationProps) {
         >
           {/* Level badge */}
           <motion.div
-            animate={{ 
+            animate={{
               rotate: [0, -5, 5, 0],
               scale: [1, 1.1, 1],
             }}
             transition={{ duration: 0.5, repeat: 2 }}
             className="relative inline-block"
           >
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-2xl">
-              <div className="text-white text-center">
+            <div className="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-600 shadow-2xl">
+              <div className="text-center text-white">
                 <p className="text-sm font-medium opacity-80">LEVEL</p>
                 <p className="text-5xl font-bold">{level}</p>
               </div>
             </div>
-            
+
             {/* Orbiting sparkles */}
             {[...Array(6)].map((_, i) => (
               <motion.div
@@ -178,7 +169,7 @@ export function LevelUpAnimation({ level, onComplete }: LevelUpAnimationProps) {
                   ease: 'linear',
                   delay: i * 0.1,
                 }}
-                className="absolute top-1/2 left-1/2"
+                className="absolute left-1/2 top-1/2"
                 style={{
                   transformOrigin: '0 0',
                 }}
@@ -188,7 +179,7 @@ export function LevelUpAnimation({ level, onComplete }: LevelUpAnimationProps) {
                     transform: `translateX(${60}px)`,
                   }}
                 >
-                  <Zap className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                  <Zap className="h-6 w-6 fill-yellow-400 text-yellow-400" />
                 </div>
               </motion.div>
             ))}
@@ -198,16 +189,16 @@ export function LevelUpAnimation({ level, onComplete }: LevelUpAnimationProps) {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-3xl font-bold text-white mt-6"
+            className="mt-6 text-3xl font-bold text-white"
           >
             Level Up!
           </motion.h2>
-          
+
           <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-white/80 mt-2"
+            className="mt-2 text-white/80"
           >
             You've reached Level {level}!
           </motion.p>
@@ -220,7 +211,7 @@ export function LevelUpAnimation({ level, onComplete }: LevelUpAnimationProps) {
           >
             <button
               onClick={() => setIsVisible(false)}
-              className="px-6 py-2 bg-white text-purple-600 font-semibold rounded-full hover:bg-gray-100 transition-colors"
+              className="rounded-full bg-white px-6 py-2 font-semibold text-purple-600 transition-colors hover:bg-gray-100"
             >
               Continue
             </button>

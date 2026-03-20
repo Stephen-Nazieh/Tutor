@@ -79,7 +79,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json()
     const assets: Asset[] = body.assets || []
 
-    await drizzleDb.transaction(async (tx) => {
+    await drizzleDb.transaction(async tx => {
       // Get existing asset IDs for this tutor
       const existingAssets = await tx
         .select({ id: tutorAsset.id })
@@ -93,7 +93,9 @@ export async function PUT(req: NextRequest) {
       const idsToDelete = [...existingIds].filter(id => !incomingIds.has(id))
       if (idsToDelete.length > 0) {
         for (const id of idsToDelete) {
-          await tx.delete(tutorAsset).where(and(eq(tutorAsset.id, id), eq(tutorAsset.tutorId, tutorId)))
+          await tx
+            .delete(tutorAsset)
+            .where(and(eq(tutorAsset.id, id), eq(tutorAsset.tutorId, tutorId)))
         }
       }
 
@@ -124,9 +126,9 @@ export async function PUT(req: NextRequest) {
       }
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: 'Assets saved successfully',
-      count: assets.length 
+      count: assets.length,
     })
   } catch (error) {
     console.error('Error saving tutor assets:', error)

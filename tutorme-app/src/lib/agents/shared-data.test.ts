@@ -51,15 +51,16 @@ describe('shared-data', () => {
       from: () => ({
         where: () => ({
           orderBy: () => ({
-            limit: () => Promise.resolve([
-              {
-                learningStyle: 'visual',
-                completionRate: 0.5,
-                strengths: ['fractions'],
-                weaknesses: ['algebra'],
-                updatedAt: now,
-              },
-            ]),
+            limit: () =>
+              Promise.resolve([
+                {
+                  learningStyle: 'visual',
+                  completionRate: 0.5,
+                  strengths: ['fractions'],
+                  weaknesses: ['algebra'],
+                  updatedAt: now,
+                },
+              ]),
           }),
         }),
       }),

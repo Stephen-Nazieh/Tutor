@@ -20,40 +20,44 @@ function buildPublicUrl(key: string): string {
   return `https://${bucket}.s3.${region}.amazonaws.com/${key}`
 }
 
-export const POST = withCsrf(withAuth(async (req: NextRequest, session, context) => {
-  const contentId = await getParamAsync(context?.params, 'contentId')
-  if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
+export const POST = withCsrf(
+  withAuth(
+    async (req: NextRequest, session, context) => {
+      const contentId = await getParamAsync(context?.params, 'contentId')
+      if (!contentId) return NextResponse.json({ error: 'Content ID required' }, { status: 400 })
 
-  const body = await req.json().catch(() => ({}))
-  let url: string | null = typeof body.url === 'string' ? body.url : null
-  const key = typeof body.key === 'string' ? body.key : null
-  if (!url && key) url = buildPublicUrl(key)
-  if (!url) {
-    return NextResponse.json(
-      { error: 'url or key required' },
-      { status: 400 }
-    )
-  }
+      const body = await req.json().catch(() => ({}))
+      let url: string | null = typeof body.url === 'string' ? body.url : null
+      const key = typeof body.key === 'string' ? body.key : null
+      if (!url && key) url = buildPublicUrl(key)
+      if (!url) {
+        return NextResponse.json({ error: 'url or key required' }, { status: 400 })
+      }
 
-  const durationSeconds = typeof body.durationSeconds === 'number' && body.durationSeconds >= 0
-    ? body.durationSeconds
-    : undefined
-  const transcript = typeof body.transcript === 'string' ? body.transcript.slice(0, 100_000) : undefined
+      const durationSeconds =
+        typeof body.durationSeconds === 'number' && body.durationSeconds >= 0
+          ? body.durationSeconds
+          : undefined
+      const transcript =
+        typeof body.transcript === 'string' ? body.transcript.slice(0, 100_000) : undefined
 
-  const result = await drizzleDb
-    .update(contentItem)
-    .set({
-      url,
-      uploadStatus: 'ready',
-      ...(durationSeconds != null && { duration: durationSeconds }),
-      ...(transcript != null && { transcript }),
-    })
-    .where(eq(contentItem.id, contentId))
-    .returning({ id: contentItem.id })
+      const result = await drizzleDb
+        .update(contentItem)
+        .set({
+          url,
+          uploadStatus: 'ready',
+          ...(durationSeconds != null && { duration: durationSeconds }),
+          ...(transcript != null && { transcript }),
+        })
+        .where(eq(contentItem.id, contentId))
+        .returning({ id: contentItem.id })
 
-  if (result.length === 0) {
-    return NextResponse.json({ error: 'Content not found' }, { status: 404 })
-  }
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'Content not found' }, { status: 404 })
+      }
 
-  return NextResponse.json({ ok: true, contentId })
-}, { role: 'TUTOR' }))
+      return NextResponse.json({ ok: true, contentId })
+    },
+    { role: 'TUTOR' }
+  )
+)

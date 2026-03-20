@@ -1,6 +1,6 @@
 /**
  * Time-Travel Playback System
- * 
+ *
  * Features:
  * - Timeline scrubber with authored events
  * - Snapshot-based reconstruction
@@ -59,9 +59,7 @@ export class TimelinePlayer {
   private playbackTimer: ReturnType<typeof setInterval> | null = null
   private filter: TimelineFilter = {}
 
-  constructor(
-    private readonly reconstructFn: (state: unknown, op: DurableOperation) => unknown
-  ) {}
+  constructor(private readonly reconstructFn: (state: unknown, op: DurableOperation) => unknown) {}
 
   /**
    * Initialize timeline with events
@@ -69,7 +67,7 @@ export class TimelinePlayer {
   initialize(events: TimelineEvent[], initialState: unknown): void {
     this.events = events.sort((a, b) => a.seq - b.seq)
     this.currentState = initialState
-    
+
     if (this.events.length > 0) {
       this.session = {
         id: `playback-${Date.now()}`,
@@ -100,16 +98,16 @@ export class TimelinePlayer {
    */
   setFilter(filter: TimelineFilter): void {
     this.filter = filter
-    
+
     if (this.session) {
-      const filtered = this.events.filter((event) => {
+      const filtered = this.events.filter(event => {
         if (filter.users && !filter.users.includes(event.userId)) return false
         if (filter.types && !filter.types.includes(event.type)) return false
         if (filter.startTime && event.timestamp < filter.startTime) return false
         if (filter.endTime && event.timestamp > filter.endTime) return false
         return true
       })
-      
+
       this.session.startSeq = filtered[0]?.seq || 0
       this.session.endSeq = filtered[filtered.length - 1]?.seq || 0
     }
@@ -119,7 +117,7 @@ export class TimelinePlayer {
    * Get filtered events
    */
   getFilteredEvents(): TimelineEvent[] {
-    return this.events.filter((event) => {
+    return this.events.filter(event => {
       if (this.filter.users && !this.filter.users.includes(event.userId)) return false
       if (this.filter.types && !this.filter.types.includes(event.type)) return false
       if (this.filter.startTime && event.timestamp < this.filter.startTime) return false
@@ -133,7 +131,7 @@ export class TimelinePlayer {
    */
   play(): void {
     if (!this.session) return
-    
+
     this.session.isPlaying = true
     this.startPlaybackTimer()
   }
@@ -143,7 +141,7 @@ export class TimelinePlayer {
    */
   pause(): void {
     if (!this.session) return
-    
+
     this.session.isPlaying = false
     this.stopPlaybackTimer()
   }
@@ -163,10 +161,10 @@ export class TimelinePlayer {
    */
   seekToSeq(seq: number): void {
     if (!this.session) return
-    
+
     // Clamp to valid range
     seq = Math.max(this.session.startSeq, Math.min(seq, this.session.endSeq))
-    
+
     // Reconstruct state up to this point
     this.reconstructToSeq(seq)
     this.session.currentSeq = seq
@@ -176,7 +174,7 @@ export class TimelinePlayer {
    * Seek to a specific timestamp
    */
   seekToTime(timestamp: number): void {
-    const event = this.events.find((e) => e.timestamp >= timestamp)
+    const event = this.events.find(e => e.timestamp >= timestamp)
     if (event) {
       this.seekToSeq(event.seq)
     }
@@ -187,9 +185,9 @@ export class TimelinePlayer {
    */
   setSpeed(speed: number): void {
     if (!this.session) return
-    
+
     this.session.speed = Math.max(0.25, Math.min(speed, 4))
-    
+
     // Restart timer with new speed if playing
     if (this.session.isPlaying) {
       this.stopPlaybackTimer()
@@ -202,8 +200,8 @@ export class TimelinePlayer {
    */
   stepForward(): void {
     if (!this.session) return
-    
-    const nextEvent = this.events.find((e) => e.seq > this.session!.currentSeq)
+
+    const nextEvent = this.events.find(e => e.seq > this.session!.currentSeq)
     if (nextEvent) {
       this.applyEvent(nextEvent)
       this.session.currentSeq = nextEvent.seq
@@ -215,11 +213,11 @@ export class TimelinePlayer {
    */
   stepBackward(): void {
     if (!this.session) return
-    
+
     // Find previous event in filtered list
     const filtered = this.getFilteredEvents()
-    const currentIndex = filtered.findIndex((e) => e.seq >= this.session!.currentSeq)
-    
+    const currentIndex = filtered.findIndex(e => e.seq >= this.session!.currentSeq)
+
     if (currentIndex > 0) {
       const prevEvent = filtered[currentIndex - 1]
       this.reconstructToSeq(prevEvent.seq)
@@ -232,14 +230,14 @@ export class TimelinePlayer {
    */
   getState(): TimelineState {
     const filtered = this.getFilteredEvents()
-    
+
     return {
       currentSeq: this.session?.currentSeq || 0,
       isPlaying: this.session?.isPlaying || false,
       playbackSpeed: this.session?.speed || 1,
       startTime: this.events[0]?.timestamp || 0,
       endTime: this.events[this.events.length - 1]?.timestamp || 0,
-      currentTime: this.events.find((e) => e.seq === this.session?.currentSeq)?.timestamp || 0,
+      currentTime: this.events.find(e => e.seq === this.session?.currentSeq)?.timestamp || 0,
       events: this.events,
       filteredEvents: filtered,
     }
@@ -250,7 +248,7 @@ export class TimelinePlayer {
    */
   getCurrentEvent(): TimelineEvent | null {
     if (!this.session) return null
-    return this.events.find((e) => e.seq === this.session!.currentSeq) || null
+    return this.events.find(e => e.seq === this.session!.currentSeq) || null
   }
 
   /**
@@ -263,13 +261,16 @@ export class TimelinePlayer {
     firstEvent: number
     lastEvent: number
   }> {
-    const userMap = new Map<string, {
-      userId: string
-      userName: string
-      events: TimelineEvent[]
-    }>()
+    const userMap = new Map<
+      string,
+      {
+        userId: string
+        userName: string
+        events: TimelineEvent[]
+      }
+    >()
 
-    this.events.forEach((event) => {
+    this.events.forEach(event => {
       const existing = userMap.get(event.userId)
       if (existing) {
         existing.events.push(event)
@@ -282,7 +283,7 @@ export class TimelinePlayer {
       }
     })
 
-    return Array.from(userMap.values()).map((user) => ({
+    return Array.from(userMap.values()).map(user => ({
       userId: user.userId,
       userName: user.userName,
       eventCount: user.events.length,
@@ -315,12 +316,12 @@ export class TimelinePlayer {
    */
   private startPlaybackTimer(): void {
     if (!this.session) return
-    
+
     const interval = Math.max(100, 1000 / this.session.speed)
-    
+
     this.playbackTimer = setInterval(() => {
       this.stepForward()
-      
+
       // Check if we've reached the end
       if (this.session!.currentSeq >= this.session!.endSeq) {
         this.pause()
@@ -343,11 +344,11 @@ export class TimelinePlayer {
    */
   private applyEvent(event: TimelineEvent): void {
     this.currentState = this.reconstructFn(this.currentState, event.operation)
-    
+
     if (this.onStateChange) {
       this.onStateChange(this.currentState)
     }
-    
+
     if (this.onEvent) {
       this.onEvent(event)
     }
@@ -359,14 +360,14 @@ export class TimelinePlayer {
   private reconstructToSeq(targetSeq: number): void {
     // Reset to initial state and replay all events up to target
     const filtered = this.getFilteredEvents()
-    const eventsToApply = filtered.filter((e) => e.seq <= targetSeq)
-    
+    const eventsToApply = filtered.filter(e => e.seq <= targetSeq)
+
     // In a real implementation, we might want to use a snapshot here
     // for performance, but for simplicity we'll replay from start
-    eventsToApply.forEach((event) => {
+    eventsToApply.forEach(event => {
       this.currentState = this.reconstructFn(this.currentState, event.operation)
     })
-    
+
     if (this.onStateChange) {
       this.onStateChange(this.currentState)
     }
@@ -387,12 +388,9 @@ export class TimelinePlayer {
 /**
  * Create a timeline event from a durable operation
  */
-export function createTimelineEvent(
-  operation: DurableOperation,
-  userName: string
-): TimelineEvent {
+export function createTimelineEvent(operation: DurableOperation, userName: string): TimelineEvent {
   const descriptions: Record<string, (op: DurableOperation) => string> = {
-    stroke: (op) => `drew ${getShapeDescription(op.payload)}`,
+    stroke: op => `drew ${getShapeDescription(op.payload)}`,
     delete: () => 'deleted an element',
     update: () => 'updated an element',
     clear: () => 'cleared the board',
@@ -417,17 +415,17 @@ export function createTimelineEvent(
  */
 function getShapeDescription(payload: unknown): string {
   if (!payload || typeof payload !== 'object') return 'something'
-  
+
   const p = payload as Record<string, unknown>
-  
+
   if (p.type === 'shape') {
     const shapeType = p.shapeType as string
     return shapeType || 'shape'
   }
-  
+
   if (p.type === 'text') return 'text'
   if (p.type === 'eraser') return 'with eraser'
-  
+
   return 'a stroke'
 }
 
@@ -449,7 +447,7 @@ export function generateTimelineThumbnail(
   const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8']
 
   // Assign colors to users
-  events.forEach((event) => {
+  events.forEach(event => {
     if (!userColors.has(event.userId)) {
       userColors.set(event.userId, colors[colorIndex % colors.length])
       colorIndex++
@@ -459,8 +457,8 @@ export function generateTimelineThumbnail(
   // Create activity bars
   const barHeight = height / userColors.size
   const bars = Array.from(userColors.entries()).map(([userId, color], index) => {
-    const userEvents = events.filter((e) => e.userId === userId)
-    const segments = userEvents.map((event) => {
+    const userEvents = events.filter(e => e.userId === userId)
+    const segments = userEvents.map(event => {
       const x = ((event.timestamp - startTime) / duration) * width
       return `<rect x="${x}" y="${index * barHeight}" width="3" height="${barHeight - 2}" fill="${color}" rx="1" />`
     })

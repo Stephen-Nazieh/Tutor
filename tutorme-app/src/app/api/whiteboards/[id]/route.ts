@@ -32,131 +32,146 @@ const UpdateWhiteboardSchema = z.object({
 })
 
 // GET - Get whiteboard
-export const GET = withAuth(async (req: NextRequest, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
-  const { searchParams } = new URL(req.url)
-  const includePages = searchParams.get('pages') !== 'false'
-
-  try {
-    const [wb] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt)))
-      .limit(1)
-
-    if (!wb) {
-      return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+export const GET = withAuth(
+  async (req: NextRequest, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
     }
+    const userId = session.user.id
+    const { searchParams } = new URL(req.url)
+    const includePages = searchParams.get('pages') !== 'false'
 
-    const [pages, snapshots] = await Promise.all([
-      includePages
-        ? drizzleDb
-            .select()
-            .from(whiteboardPage)
-            .where(eq(whiteboardPage.whiteboardId, id))
-            .orderBy(asc(whiteboardPage.order))
-        : [],
-      drizzleDb
+    try {
+      const [wb] = await drizzleDb
         .select()
-        .from(whiteboardSnapshot)
-        .where(eq(whiteboardSnapshot.whiteboardId, id))
-        .orderBy(desc(whiteboardSnapshot.createdAt))
-        .limit(5),
-    ])
+        .from(whiteboard)
+        .where(
+          and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt))
+        )
+        .limit(1)
 
-    const whiteboardResult = { ...wb, pages, snapshots }
-    return NextResponse.json({ whiteboard: whiteboardResult })
-  } catch (error) {
-    console.error('Fetch whiteboard error:', error)
-    return handleApiError(error, 'Failed to fetch whiteboard', 'api/whiteboards/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+      if (!wb) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      const [pages, snapshots] = await Promise.all([
+        includePages
+          ? drizzleDb
+              .select()
+              .from(whiteboardPage)
+              .where(eq(whiteboardPage.whiteboardId, id))
+              .orderBy(asc(whiteboardPage.order))
+          : [],
+        drizzleDb
+          .select()
+          .from(whiteboardSnapshot)
+          .where(eq(whiteboardSnapshot.whiteboardId, id))
+          .orderBy(desc(whiteboardSnapshot.createdAt))
+          .limit(5),
+      ])
+
+      const whiteboardResult = { ...wb, pages, snapshots }
+      return NextResponse.json({ whiteboard: whiteboardResult })
+    } catch (error) {
+      console.error('Fetch whiteboard error:', error)
+      return handleApiError(error, 'Failed to fetch whiteboard', 'api/whiteboards/[id]/route.ts')
+    }
+  },
+  { role: 'TUTOR' }
+)
 
 // PUT - Update whiteboard
-export const PUT = withAuth(async (req: NextRequest, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
-
-  try {
-    const body = await req.json()
-    const validation = UpdateWhiteboardSchema.safeParse(body)
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.format() },
-        { status: 400 }
-      )
+export const PUT = withAuth(
+  async (req: NextRequest, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
     }
+    const userId = session.user.id
 
-    const data = validation.data
+    try {
+      const body = await req.json()
+      const validation = UpdateWhiteboardSchema.safeParse(body)
 
-    const [existing] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt)))
-      .limit(1)
+      if (!validation.success) {
+        return NextResponse.json(
+          { error: 'Invalid request', details: validation.error.format() },
+          { status: 400 }
+        )
+      }
 
-    if (!existing) {
-      return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      const data = validation.data
+
+      const [existing] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt))
+        )
+        .limit(1)
+
+      if (!existing) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      const updateData: Record<string, unknown> = {}
+      if (data.title !== undefined) updateData.title = data.title
+      if (data.description !== undefined) updateData.description = data.description
+      if (data.isTemplate !== undefined) updateData.isTemplate = data.isTemplate
+      if (data.isPublic !== undefined) updateData.isPublic = data.isPublic
+      if (data.backgroundColor !== undefined) updateData.backgroundColor = data.backgroundColor
+      if (data.backgroundStyle !== undefined) updateData.backgroundStyle = data.backgroundStyle
+      if (data.backgroundImage !== undefined) updateData.backgroundImage = data.backgroundImage
+      if (data.collaborators !== undefined) updateData.collaborators = data.collaborators
+
+      await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.id, id))
+
+      const [updated] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.id, id))
+      const pages = await drizzleDb
+        .select()
+        .from(whiteboardPage)
+        .where(eq(whiteboardPage.whiteboardId, id))
+        .orderBy(asc(whiteboardPage.order))
+
+      return NextResponse.json({ whiteboard: updated ? { ...updated, pages } : null })
+    } catch (error) {
+      console.error('Update whiteboard error:', error)
+      return handleApiError(error, 'Failed to update whiteboard', 'api/whiteboards/[id]/route.ts')
     }
-
-    const updateData: Record<string, unknown> = {}
-    if (data.title !== undefined) updateData.title = data.title
-    if (data.description !== undefined) updateData.description = data.description
-    if (data.isTemplate !== undefined) updateData.isTemplate = data.isTemplate
-    if (data.isPublic !== undefined) updateData.isPublic = data.isPublic
-    if (data.backgroundColor !== undefined) updateData.backgroundColor = data.backgroundColor
-    if (data.backgroundStyle !== undefined) updateData.backgroundStyle = data.backgroundStyle
-    if (data.backgroundImage !== undefined) updateData.backgroundImage = data.backgroundImage
-    if (data.collaborators !== undefined) updateData.collaborators = data.collaborators
-
-    await drizzleDb.update(whiteboard).set(updateData).where(eq(whiteboard.id, id))
-
-    const [updated] = await drizzleDb.select().from(whiteboard).where(eq(whiteboard.id, id))
-    const pages = await drizzleDb
-      .select()
-      .from(whiteboardPage)
-      .where(eq(whiteboardPage.whiteboardId, id))
-      .orderBy(asc(whiteboardPage.order))
-
-    return NextResponse.json({ whiteboard: updated ? { ...updated, pages } : null })
-  } catch (error) {
-    console.error('Update whiteboard error:', error)
-    return handleApiError(error, 'Failed to update whiteboard', 'api/whiteboards/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)
 
 // DELETE - Soft delete whiteboard
-export const DELETE = withAuth(async (req: NextRequest, session, context) => {
-  const id = await getParamAsync(context?.params, 'id')
-  if (!id) {
-    return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
-  }
-  const userId = session.user.id
-
-  try {
-    const [existing] = await drizzleDb
-      .select()
-      .from(whiteboard)
-      .where(and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt)))
-      .limit(1)
-
-    if (!existing) {
-      return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+export const DELETE = withAuth(
+  async (req: NextRequest, session, context) => {
+    const id = await getParamAsync(context?.params, 'id')
+    if (!id) {
+      return NextResponse.json({ error: 'Whiteboard ID required' }, { status: 400 })
     }
+    const userId = session.user.id
 
-    await drizzleDb.update(whiteboard).set({ deletedAt: new Date() }).where(eq(whiteboard.id, id))
+    try {
+      const [existing] = await drizzleDb
+        .select()
+        .from(whiteboard)
+        .where(
+          and(eq(whiteboard.id, id), eq(whiteboard.ownerId, userId), isNull(whiteboard.deletedAt))
+        )
+        .limit(1)
 
-    return NextResponse.json({ message: 'Whiteboard deleted' })
-  } catch (error) {
-    console.error('Delete whiteboard error:', error)
-    return handleApiError(error, 'Failed to delete whiteboard', 'api/whiteboards/[id]/route.ts')
-  }
-}, { role: 'TUTOR' })
+      if (!existing) {
+        return NextResponse.json({ error: 'Whiteboard not found' }, { status: 404 })
+      }
+
+      await drizzleDb.update(whiteboard).set({ deletedAt: new Date() }).where(eq(whiteboard.id, id))
+
+      return NextResponse.json({ message: 'Whiteboard deleted' })
+    } catch (error) {
+      console.error('Delete whiteboard error:', error)
+      return handleApiError(error, 'Failed to delete whiteboard', 'api/whiteboards/[id]/route.ts')
+    }
+  },
+  { role: 'TUTOR' }
+)

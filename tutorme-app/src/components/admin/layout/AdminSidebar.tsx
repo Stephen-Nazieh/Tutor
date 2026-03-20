@@ -132,7 +132,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className="space-y-1 p-2">
-        {navItems.map((item) => {
+        {navItems.map(item => {
           const Icon = item.icon
           const isDashboard = item.href === '/admin'
           const isActive = isDashboard
@@ -162,9 +162,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
       {/* Footer */}
       {!collapsed && (
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-700 p-4">
-          <div className="text-xs text-slate-500">
-            Solocorn Admin v1.0
-          </div>
+          <div className="text-xs text-slate-500">Solocorn Admin v1.0</div>
         </div>
       )}
     </aside>

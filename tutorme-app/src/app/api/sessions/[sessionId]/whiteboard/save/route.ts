@@ -49,19 +49,13 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
   const body = await req.json().catch(() => null)
   const parsed = SaveWhiteboardSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Invalid whiteboard payload' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Invalid whiteboard payload' }, { status: 400 })
   }
   const { pageId, strokes, shapes, texts, viewState, version } = parsed.data
 
   const payloadSize = Buffer.byteLength(JSON.stringify(parsed.data), 'utf8')
   if (payloadSize > MAX_PAYLOAD_BYTES) {
-    return NextResponse.json(
-      { error: 'Payload too large' },
-      { status: 413 }
-    )
+    return NextResponse.json({ error: 'Payload too large' }, { status: 413 })
   }
 
   const [page] = await drizzleDb
@@ -92,10 +86,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
 
   const expectedVersion = getExpectedVersion(req, version)
   if (!expectedVersion) {
-    return NextResponse.json(
-      { error: 'Missing If-Match version' },
-      { status: 428 }
-    )
+    return NextResponse.json({ error: 'Missing If-Match version' }, { status: 428 })
   }
   if (page.version !== expectedVersion) {
     return NextResponse.json(
@@ -119,12 +110,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
       ...updateData,
       version: sql<number>`${whiteboardPage.version} + 1`,
     })
-    .where(
-      and(
-        eq(whiteboardPage.id, pageId),
-        eq(whiteboardPage.version, expectedVersion)
-      )
-    )
+    .where(and(eq(whiteboardPage.id, pageId), eq(whiteboardPage.version, expectedVersion)))
     .returning()
 
   if (updatedRows.length === 0) {
@@ -143,10 +129,7 @@ export const POST = withAuth(async (req: NextRequest, session, context) => {
     )
   }
 
-  await drizzleDb
-    .update(whiteboard)
-    .set({ updatedAt: new Date() })
-    .where(eq(whiteboard.id, wb.id))
+  await drizzleDb.update(whiteboard).set({ updatedAt: new Date() }).where(eq(whiteboard.id, wb.id))
 
   const updatedPage = updatedRows[0]
 

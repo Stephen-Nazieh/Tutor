@@ -7,7 +7,7 @@ import { Sparkles } from 'lucide-react'
 
 export default function AITutorHubPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-2xl border border-dashed">
         <CardHeader>
           <CardTitle className="text-2xl">AI Tutor — Coming Soon</CardTitle>
@@ -16,11 +16,11 @@ export default function AITutorHubPage() {
           <div className="flex items-start gap-3">
             <Sparkles className="h-6 w-6 text-blue-600" />
             <p>
-              AI Tutor will provide Socratic-style guidance, personalized practice prompts,
-              and instant feedback while keeping you on track with your learning goals.
+              AI Tutor will provide Socratic-style guidance, personalized practice prompts, and
+              instant feedback while keeping you on track with your learning goals.
             </p>
           </div>
-          <ul className="list-disc list-inside text-sm text-gray-600">
+          <ul className="list-inside list-disc text-sm text-gray-600">
             <li>Step-by-step hints without giving away the answer.</li>
             <li>Adaptive practice based on your strengths and gaps.</li>
             <li>Session summaries you can review anytime.</li>

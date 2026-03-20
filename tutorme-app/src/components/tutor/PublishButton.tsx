@@ -81,7 +81,7 @@ export function PublishButton({
       const newStatus = !course.isPublished
       const res = await fetch(`/api/tutor/courses/${course.id}`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
@@ -135,20 +135,15 @@ export function PublishButton({
               Unpublish Course?
             </DialogTitle>
             <DialogDescription>
-              This will hide your course from students. Existing enrollments will
-              remain active, but new students won&apos;t be able to find or enroll
-              in this course.
+              This will hide your course from students. Existing enrollments will remain active, but
+              new students won&apos;t be able to find or enroll in this course.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={togglePublish}
-              disabled={isLoading}
-            >
+            <Button variant="destructive" onClick={togglePublish} disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Unpublish
             </Button>
@@ -168,11 +163,7 @@ export function PublishButton({
           className={cn('gap-2', className)}
           disabled={isLoading}
         >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Globe className="h-4 w-4" />
-          )}
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
           {showLabel && 'Publish'}
         </Button>
       </DialogTrigger>
@@ -200,8 +191,8 @@ export function PublishButton({
         {!canPublish && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
             <p className="text-sm text-amber-800">
-              <strong>Cannot publish yet.</strong> Please complete all
-              requirements marked with * above.
+              <strong>Cannot publish yet.</strong> Please complete all requirements marked with *
+              above.
             </p>
           </div>
         )}
@@ -210,10 +201,7 @@ export function PublishButton({
           <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button
-            onClick={togglePublish}
-            disabled={isLoading || !canPublish}
-          >
+          <Button onClick={togglePublish} disabled={isLoading || !canPublish}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Publish Course
           </Button>
@@ -228,16 +216,11 @@ export function PublishStatusBadge({ isPublished }: { isPublished: boolean }) {
     <span
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
-        isPublished
-          ? 'bg-green-100 text-green-700'
-          : 'bg-slate-100 text-slate-700'
+        isPublished ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
       )}
     >
       <span
-        className={cn(
-          'h-1.5 w-1.5 rounded-full',
-          isPublished ? 'bg-green-500' : 'bg-slate-400'
-        )}
+        className={cn('h-1.5 w-1.5 rounded-full', isPublished ? 'bg-green-500' : 'bg-slate-400')}
       />
       {isPublished ? 'Published' : 'Draft'}
     </span>

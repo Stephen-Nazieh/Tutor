@@ -45,9 +45,12 @@ describe('ai/fetch-utils', () => {
       .mockResolvedValueOnce({ ok: false, status: 503 } as any)
       .mockResolvedValueOnce({ ok: true, status: 200 } as any)
 
-    const res = await fetchWithTimeoutAndRetry('http://example.com', {}, { retries: 1, retryBaseDelayMs: 1 })
+    const res = await fetchWithTimeoutAndRetry(
+      'http://example.com',
+      {},
+      { retries: 1, retryBaseDelayMs: 1 }
+    )
     expect(res.ok).toBe(true)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
 })
-

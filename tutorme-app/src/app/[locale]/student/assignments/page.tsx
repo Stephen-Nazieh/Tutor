@@ -16,7 +16,7 @@ import {
   ArrowRight,
   Trophy,
   Target,
-  BookOpen
+  BookOpen,
 } from 'lucide-react'
 import { QuizModal, type QuestionResultItem } from '@/components/quiz/quiz-modal'
 import { toast } from 'sonner'
@@ -61,7 +61,11 @@ export default function StudentAssignmentsPage() {
   const [activeTab, setActiveTab] = useState('all')
 
   // Quiz-taking state
-  const [activeTask, setActiveTask] = useState<{ id: string; title: string; questions: TaskQuestion[] } | null>(null)
+  const [activeTask, setActiveTask] = useState<{
+    id: string
+    title: string
+    questions: TaskQuestion[]
+  } | null>(null)
   const [takingQuiz, setTakingQuiz] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [startTime, setStartTime] = useState<number>(0)
@@ -112,7 +116,11 @@ export default function StudentAssignmentsPage() {
     }
   }
 
-  const handleQuizComplete = async (results: { score: number; answers: Record<string, any>; questionResults?: QuestionResultItem[] }) => {
+  const handleQuizComplete = async (results: {
+    score: number
+    answers: Record<string, any>
+    questionResults?: QuestionResultItem[]
+  }) => {
     if (!activeTask) return
     setSubmitting(true)
 
@@ -194,37 +202,48 @@ export default function StudentAssignmentsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'submitted': return <CheckCircle2 className="h-5 w-5 text-green-500" />
-      case 'overdue': return <AlertCircle className="h-5 w-5 text-red-500" />
-      default: return <Clock className="h-5 w-5 text-amber-500" />
+      case 'submitted':
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />
+      case 'overdue':
+        return <AlertCircle className="h-5 w-5 text-red-500" />
+      default:
+        return <Clock className="h-5 w-5 text-amber-500" />
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'submitted': return <Badge className="bg-green-100 text-green-700 border-green-200">Submitted</Badge>
-      case 'overdue': return <Badge variant="destructive">Overdue</Badge>
-      default: return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Pending</Badge>
+      case 'submitted':
+        return <Badge className="border-green-200 bg-green-100 text-green-700">Submitted</Badge>
+      case 'overdue':
+        return <Badge variant="destructive">Overdue</Badge>
+      default:
+        return <Badge className="border-amber-200 bg-amber-100 text-amber-700">Pending</Badge>
     }
   }
 
   const getTypeBadge = (type: string) => {
-    const color = type === 'quiz' ? 'bg-blue-100 text-blue-700' :
-      type === 'assignment' || type === 'homework' ? 'bg-purple-100 text-purple-700' :
-        type === 'project' ? 'bg-teal-100 text-teal-700' :
-          'bg-gray-100 text-gray-700'
+    const color =
+      type === 'quiz'
+        ? 'bg-blue-100 text-blue-700'
+        : type === 'assignment' || type === 'homework'
+          ? 'bg-purple-100 text-purple-700'
+          : type === 'project'
+            ? 'bg-teal-100 text-teal-700'
+            : 'bg-gray-100 text-gray-700'
     return <Badge className={`${color} border-0 capitalize`}>{type}</Badge>
   }
 
-  const filtered = activeTab === 'all'
-    ? assignments
-    : assignments.filter((a) => a.status === activeTab)
+  const filtered =
+    activeTab === 'all' ? assignments : assignments.filter(a => a.status === activeTab)
 
   // Quiz-taking overlay
   if (takingQuiz && activeTask) {
-    const quizQuestions = activeTask.questions.map((q) => ({
+    const quizQuestions = activeTask.questions.map(q => ({
       id: q.id,
-      type: (q.type === 'mcq' || q.type === 'multiple_choice' ? 'multiple_choice' : 'short_answer') as 'multiple_choice' | 'short_answer',
+      type: (q.type === 'mcq' || q.type === 'multiple_choice'
+        ? 'multiple_choice'
+        : 'short_answer') as 'multiple_choice' | 'short_answer',
       question: q.question,
       options: q.options,
       rubric: q.rubric?.join('; '),
@@ -240,19 +259,17 @@ export default function StudentAssignmentsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <ClipboardList className="h-6 w-6" />
           Assignments
         </h1>
-        <p className="text-gray-600 mt-1">
-          Track your homework, quizzes, and projects
-        </p>
+        <p className="mt-1 text-gray-600">Track your homework, quizzes, and projects</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -314,43 +331,52 @@ export default function StudentAssignmentsPage() {
               <TabsTrigger value="overdue">Overdue ({stats.overdue})</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={activeTab} className="space-y-3 mt-0">
+            <TabsContent value={activeTab} className="mt-0 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileQuestion className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <div className="py-12 text-center">
+                  <FileQuestion className="mx-auto mb-4 h-12 w-12 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-700">No assignments</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {activeTab === 'all' ? 'No tasks have been assigned yet' : `No ${activeTab} assignments`}
+                  <p className="mt-1 text-sm text-gray-500">
+                    {activeTab === 'all'
+                      ? 'No tasks have been assigned yet'
+                      : `No ${activeTab} assignments`}
                   </p>
                 </div>
               ) : (
-                filtered.map((assignment) => (
+                filtered.map(assignment => (
                   <div
                     key={assignment.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-4">
                       {getStatusIcon(assignment.status)}
                       <div>
                         <h3 className="font-medium text-gray-900">{assignment.title}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-1">{assignment.description}</p>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <p className="line-clamp-1 text-sm text-gray-500">
+                          {assignment.description}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-2">
                           {getTypeBadge(assignment.type)}
-                          <Badge variant="outline" className="capitalize text-xs">{assignment.difficulty}</Badge>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {assignment.difficulty}
+                          </Badge>
                           {assignment.questionCount > 0 && (
-                            <span className="text-xs text-gray-400">{assignment.questionCount} questions</span>
+                            <span className="text-xs text-gray-400">
+                              {assignment.questionCount} questions
+                            </span>
                           )}
                           {parseDocumentSource(assignment.documentSource)?.fileName && (
                             <Badge variant="outline" className="text-xs">
-                              Source file: {parseDocumentSource(assignment.documentSource)?.fileName}
+                              Source file:{' '}
+                              {parseDocumentSource(assignment.documentSource)?.fileName}
                             </Badge>
                           )}
                           {assignment.dueDate && (
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <span className="flex items-center gap-1 text-xs text-gray-400">
                               <Calendar className="h-3 w-3" />
                               {new Date(assignment.dueDate).toLocaleDateString()}
                             </span>
@@ -358,7 +384,7 @@ export default function StudentAssignmentsPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 ml-4">
+                    <div className="ml-4 flex items-center gap-3">
                       {parseDocumentSource(assignment.documentSource)?.fileUrl && (
                         <Button
                           variant="default"
@@ -378,24 +404,40 @@ export default function StudentAssignmentsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(parseDocumentSource(assignment.documentSource)?.fileUrl, '_blank')}
+                          onClick={() =>
+                            window.open(
+                              parseDocumentSource(assignment.documentSource)?.fileUrl,
+                              '_blank'
+                            )
+                          }
                         >
                           Open Source
                         </Button>
                       )}
                       {assignment.status === 'submitted' && assignment.score !== null && (
-                        <span className={`font-bold text-lg ${assignment.score >= 80 ? 'text-green-600' : assignment.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                        <span
+                          className={`text-lg font-bold ${assignment.score >= 80 ? 'text-green-600' : assignment.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}
+                        >
                           {Math.round(assignment.score)}%
                         </span>
                       )}
                       {getStatusBadge(assignment.status)}
                       {assignment.status === 'pending' && (
-                        <Button size="sm" onClick={() => handleStartTask(assignment.id)} className="gap-1">
+                        <Button
+                          size="sm"
+                          onClick={() => handleStartTask(assignment.id)}
+                          className="gap-1"
+                        >
                           Start <ArrowRight className="h-3 w-3" />
                         </Button>
                       )}
                       {assignment.status === 'overdue' && (
-                        <Button size="sm" variant="outline" onClick={() => handleStartTask(assignment.id)} className="gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleStartTask(assignment.id)}
+                          className="gap-1"
+                        >
                           Submit Late <ArrowRight className="h-3 w-3" />
                         </Button>
                       )}

@@ -28,12 +28,18 @@ describe('/api/chat CORS and rate limit', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.NEXT_PUBLIC_APP_URL = 'https://app.example'
-    mocks.checkRateLimitPreset.mockResolvedValue({ allowed: true, remaining: 10, resetAt: Date.now() + 60000 })
+    mocks.checkRateLimitPreset.mockResolvedValue({
+      allowed: true,
+      remaining: 10,
+      resetAt: Date.now() + 60000,
+    })
     mocks.buildMessages.mockReturnValue([])
-    mocks.streamAIResponse.mockReturnValue((async function* () {
-      yield { content: 'hi', done: false }
-      yield { content: '', done: true }
-    })())
+    mocks.streamAIResponse.mockReturnValue(
+      (async function* () {
+        yield { content: 'hi', done: false }
+        yield { content: '', done: true }
+      })()
+    )
     mocks.getServerSession.mockResolvedValue({ user: { id: 'user-1' } })
   })
 
@@ -59,7 +65,11 @@ describe('/api/chat CORS and rate limit', () => {
   })
 
   it('returns 429 with CORS headers when rate-limited', async () => {
-    mocks.checkRateLimitPreset.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 })
+    mocks.checkRateLimitPreset.mockResolvedValue({
+      allowed: false,
+      remaining: 0,
+      resetAt: Date.now() + 60000,
+    })
     const req = new Request('http://localhost/api/chat', {
       method: 'POST',
       headers: {

@@ -5,7 +5,16 @@
  * Histogram showing class score distribution
  */
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ClientOnly } from '@/components/common/ClientOnly'
 
@@ -18,10 +27,10 @@ interface ScoreDistributionChartProps {
   classAverage?: number
 }
 
-export function ScoreDistributionChart({ 
-  data, 
+export function ScoreDistributionChart({
+  data,
   title = '分数分布',
-  classAverage 
+  classAverage,
 }: ScoreDistributionChartProps) {
   return (
     <Card className="w-full">
@@ -29,7 +38,8 @@ export function ScoreDistributionChart({
         <CardTitle className="text-lg">{title}</CardTitle>
         {classAverage && (
           <p className="text-sm text-muted-foreground">
-            班级平均分: <span className="font-semibold text-primary">{classAverage.toFixed(1)}%</span>
+            班级平均分:{' '}
+            <span className="font-semibold text-primary">{classAverage.toFixed(1)}%</span>
           </p>
         )}
       </CardHeader>
@@ -39,22 +49,14 @@ export function ScoreDistributionChart({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis 
-                  dataKey="range" 
-                  tick={{ fontSize: 12 }}
-                  axisLine={false}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12 }}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${value} 人`, '人数']}
-                  contentStyle={{ 
-                    borderRadius: '8px', 
-                    border: 'none', 
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                <XAxis dataKey="range" tick={{ fontSize: 12 }} axisLine={false} />
+                <YAxis tick={{ fontSize: 12 }} axisLine={false} allowDecimals={false} />
+                <Tooltip
+                  formatter={value => [`${value} 人`, '人数']}
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
@@ -73,21 +75,21 @@ export function ScoreDistributionChart({
             </ResponsiveContainer>
           </ClientOnly>
         </div>
-        <div className="flex justify-center gap-4 mt-4 text-xs">
+        <div className="mt-4 flex justify-center gap-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-red-500" />
+            <div className="h-3 w-3 rounded bg-red-500" />
             <span>不及格</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-orange-500" />
+            <div className="h-3 w-3 rounded bg-orange-500" />
             <span>及格</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-yellow-500" />
+            <div className="h-3 w-3 rounded bg-yellow-500" />
             <span>良好</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded bg-green-500" />
+            <div className="h-3 w-3 rounded bg-green-500" />
             <span>优秀</span>
           </div>
         </div>

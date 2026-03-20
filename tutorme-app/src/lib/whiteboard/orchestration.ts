@@ -1,6 +1,6 @@
 /**
  * Tutor Orchestration Tools
- * 
+ *
  * Features:
  * - Push exemplar to all students
  * - Spotlight student work
@@ -78,11 +78,13 @@ export class TutorOrchestrationManager {
   private onSpotlightChange?: (spotlight: SpotlightState) => void
   private onBulkOperation?: (operation: BulkOperation) => void
 
-  constructor(options: {
-    onStudentUpdate?: (student: StudentInfo) => void
-    onSpotlightChange?: (spotlight: SpotlightState) => void
-    onBulkOperation?: (operation: BulkOperation) => void
-  } = {}) {
+  constructor(
+    options: {
+      onStudentUpdate?: (student: StudentInfo) => void
+      onSpotlightChange?: (spotlight: SpotlightState) => void
+      onBulkOperation?: (operation: BulkOperation) => void
+    } = {}
+  ) {
     this.onStudentUpdate = options.onStudentUpdate
     this.onSpotlightChange = options.onSpotlightChange
     this.onBulkOperation = options.onBulkOperation
@@ -130,7 +132,7 @@ export class TutorOrchestrationManager {
    * Get online students
    */
   getOnlineStudents(): StudentInfo[] {
-    return Array.from(this.students.values()).filter((s) => s.isOnline)
+    return Array.from(this.students.values()).filter(s => s.isOnline)
   }
 
   /**
@@ -141,7 +143,7 @@ export class TutorOrchestrationManager {
     isOnline?: boolean
     inactiveSince?: number
   }): StudentInfo[] {
-    return Array.from(this.students.values()).filter((s) => {
+    return Array.from(this.students.values()).filter(s => {
       if (criteria.ids && !criteria.ids.includes(s.id)) return false
       if (criteria.isOnline !== undefined && s.isOnline !== criteria.isOnline) return false
       if (criteria.inactiveSince && Date.now() - s.lastActivity < criteria.inactiveSince) {
@@ -327,7 +329,7 @@ export class TutorOrchestrationManager {
    * Lock layers for all students
    */
   lockLayers(layerIds: string[]): BulkOperation {
-    layerIds.forEach((id) => this.lockedLayers.add(id))
+    layerIds.forEach(id => this.lockedLayers.add(id))
 
     const operation: BulkOperation = {
       id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -350,7 +352,7 @@ export class TutorOrchestrationManager {
    * Unlock layers for all students
    */
   unlockLayers(layerIds: string[]): BulkOperation {
-    layerIds.forEach((id) => this.lockedLayers.delete(id))
+    layerIds.forEach(id => this.lockedLayers.delete(id))
 
     const operation: BulkOperation = {
       id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
@@ -445,7 +447,7 @@ export class TutorOrchestrationManager {
       }
     }
 
-    operation.status = operation.results.every((r) => r.success) ? 'completed' : 'failed'
+    operation.status = operation.results.every(r => r.success) ? 'completed' : 'failed'
     operation.completedAt = Date.now()
 
     this.onBulkOperation?.(operation)
@@ -454,13 +456,10 @@ export class TutorOrchestrationManager {
   /**
    * Execute operation on a single student (placeholder)
    */
-  private async executeOnStudent(
-    studentId: string,
-    operation: BulkOperation
-  ): Promise<void> {
+  private async executeOnStudent(studentId: string, operation: BulkOperation): Promise<void> {
     // This would send a socket event to the student
     // For now, just simulate a delay
-    await new Promise((resolve) => setTimeout(resolve, 10))
+    await new Promise(resolve => setTimeout(resolve, 10))
   }
 
   /**
@@ -580,12 +579,14 @@ export class TutorOrchestrationManager {
 
     return {
       totalStudents: students.length,
-      onlineStudents: students.filter((s) => s.isOnline).length,
+      onlineStudents: students.filter(s => s.isOnline).length,
       lockedLayers: this.lockedLayers.size,
       activeExemplars: this.exemplars.size,
       totalGroups: this.groups.size,
-      pendingOperations: operations.filter((o) => o.status === 'pending' || o.status === 'in_progress').length,
-      completedOperations: operations.filter((o) => o.status === 'completed').length,
+      pendingOperations: operations.filter(
+        o => o.status === 'pending' || o.status === 'in_progress'
+      ).length,
+      completedOperations: operations.filter(o => o.status === 'completed').length,
       spotlightActive: this.spotlight.enabled,
     }
   }

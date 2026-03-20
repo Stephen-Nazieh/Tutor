@@ -46,7 +46,7 @@ export const ALL_COUNTRIES: CountryOption[] = [
   { name: 'Congo (Congo-Brazzaville)', code: 'CG', dialCode: '+242' },
   { name: 'Congo (DRC)', code: 'CD', dialCode: '+243' },
   { name: 'Costa Rica', code: 'CR', dialCode: '+506' },
-  { name: "Côte d’Ivoire", code: 'CI', dialCode: '+225' },
+  { name: 'Côte d’Ivoire', code: 'CI', dialCode: '+225' },
   { name: 'Croatia', code: 'HR', dialCode: '+385' },
   { name: 'Cuba', code: 'CU', dialCode: '+53' },
   { name: 'Cyprus', code: 'CY', dialCode: '+357' },
@@ -247,8 +247,8 @@ export const ALL_COUNTRIES: CountryOption[] = [
   { name: 'Western Sahara', code: 'EH', dialCode: '+212' },
 ]
 
-export const COUNTRY_NAMES = ALL_COUNTRIES.map((c) => c.name)
+export const COUNTRY_NAMES = ALL_COUNTRIES.map(c => c.name)
 
 export function findCountryByName(name: string): CountryOption | undefined {
-  return ALL_COUNTRIES.find((country) => country.name === name)
+  return ALL_COUNTRIES.find(country => country.name === name)
 }

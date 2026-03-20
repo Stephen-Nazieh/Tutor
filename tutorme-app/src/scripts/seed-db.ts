@@ -203,7 +203,7 @@ async function main() {
   console.log('  - Admin user (see above for credentials)')
 }
 
-main().catch((e) => {
+main().catch(e => {
   console.error('Seed error:', e)
   process.exit(1)
 })

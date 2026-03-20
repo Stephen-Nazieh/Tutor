@@ -14,7 +14,7 @@ import {
   adminAssignment as adminAssignmentTable,
   adminRole as adminRoleTable,
   adminAuditLog as adminAuditLogTable,
-  ipWhitelist as ipWhitelistTable
+  ipWhitelist as ipWhitelistTable,
 } from '@/lib/db/schema'
 import { compare, hash } from 'bcryptjs'
 import { SignJWT, jwtVerify } from 'jose'
@@ -28,7 +28,10 @@ export const ADMIN_TOKEN_EXPIRY = 60 * 60 * 8 // 8 hours in seconds
 
 function getJwtSecret(): Uint8Array {
   const configuredSecret = process.env.ADMIN_JWT_SECRET || process.env.NEXTAUTH_SECRET || ''
-  if (process.env.NODE_ENV === 'production' && (!configuredSecret || configuredSecret === 'default-secret')) {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (!configuredSecret || configuredSecret === 'default-secret')
+  ) {
     throw new Error('Missing secure ADMIN_JWT_SECRET or NEXTAUTH_SECRET in production')
   }
   // Dev/test fallback only; production must provide env secret above.
@@ -116,7 +119,9 @@ export async function createAdminSession(
 /**
  * Verify and decode an admin JWT token
  */
-export async function verifyAdminToken(token: string): Promise<{ sessionId: string; adminId: string } | null> {
+export async function verifyAdminToken(
+  token: string
+): Promise<{ sessionId: string; adminId: string } | null> {
   try {
     const verified = await jwtVerify(token, JWT_SECRET)
     return verified.payload as { sessionId: string; adminId: string }
@@ -156,13 +161,13 @@ export async function getAdminSession(req?: NextRequest): Promise<AdminSession |
             adminAssignments: {
               where: eq(adminAssignmentTable.isActive, true),
               with: {
-                role: true
-              }
+                role: true,
+              },
             },
-            profile: true
-          }
-        }
-      }
+            profile: true,
+          },
+        },
+      },
     })
 
     if (!sessionData || sessionData.isRevoked || sessionData.expiresAt < new Date()) {
@@ -170,7 +175,8 @@ export async function getAdminSession(req?: NextRequest): Promise<AdminSession |
     }
 
     // Update last active
-    await drizzleDb.update(adminSessionTable)
+    await drizzleDb
+      .update(adminSessionTable)
       .set({ lastActiveAt: new Date() })
       .where(eq(adminSessionTable.id, sessionData.id))
 
@@ -237,26 +243,22 @@ export function checkPermission(session: AdminSession | null, permission: Permis
 export async function requireAdmin(
   req: NextRequest,
   requiredPermission?: Permission
-): Promise<{ session: AdminSession; response?: NextResponse } | { session: null; response: NextResponse }> {
+): Promise<
+  { session: AdminSession; response?: NextResponse } | { session: null; response: NextResponse }
+> {
   const session = await getAdminSession(req)
 
   if (!session) {
     return {
       session: null,
-      response: NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      ),
+      response: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
     }
   }
 
   if (requiredPermission && !checkPermission(session, requiredPermission)) {
     return {
       session: null,
-      response: NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      ),
+      response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
     }
   }
 
@@ -268,23 +270,24 @@ export async function requireAdmin(
  */
 export async function getAdminUsers(): Promise<AdminUser[]> {
   const adminsData = await drizzleDb.query.user.findMany({
-    where: (users, { exists }) => exists(
-      drizzleDb.select().from(adminAssignmentTable).where(
-        and(
-          eq(adminAssignmentTable.userId, users.id),
-          eq(adminAssignmentTable.isActive, true)
-        )
-      )
-    ),
+    where: (users, { exists }) =>
+      exists(
+        drizzleDb
+          .select()
+          .from(adminAssignmentTable)
+          .where(
+            and(eq(adminAssignmentTable.userId, users.id), eq(adminAssignmentTable.isActive, true))
+          )
+      ),
     with: {
       profile: true,
       adminAssignments: {
         where: eq(adminAssignmentTable.isActive, true),
         with: {
-          role: true
-        }
-      }
-    }
+          role: true,
+        },
+      },
+    },
   })
 
   return adminsData.map(user => {
@@ -331,9 +334,9 @@ export async function logAdminAction(
       action,
       resourceType: details.resourceType || null,
       resourceId: details.resourceId || null,
-      previousState: details.previousState as object || null,
-      newState: details.newState as object || null,
-      metadata: details.metadata as object || null,
+      previousState: (details.previousState as object) || null,
+      newState: (details.newState as object) || null,
+      metadata: (details.metadata as object) || null,
       ipAddress: details.ipAddress || null,
       userAgent: details.userAgent || null,
       createdAt: new Date(),
@@ -354,10 +357,7 @@ export async function isIpWhitelisted(ipAddress: string): Promise<boolean> {
       and(
         eq(ipWhitelistTable.ipAddress, ipAddress),
         eq(ipWhitelistTable.isActive, true),
-        or(
-          isNull(ipWhitelistTable.expiresAt),
-          gt(ipWhitelistTable.expiresAt, new Date())
-        )
+        or(isNull(ipWhitelistTable.expiresAt), gt(ipWhitelistTable.expiresAt, new Date()))
       )
     )
     .limit(1)

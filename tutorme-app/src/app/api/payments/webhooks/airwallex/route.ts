@@ -9,9 +9,21 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { webhookEvent, payment, clinicBooking, clinic, user, profile, curriculumEnrollment, curriculum } from '@/lib/db/schema'
+import {
+  webhookEvent,
+  payment,
+  clinicBooking,
+  clinic,
+  user,
+  profile,
+  curriculumEnrollment,
+  curriculum,
+} from '@/lib/db/schema'
 import { AirwallexGateway } from '@/lib/payments'
-import { sendPaymentConfirmation, sendTutorPaymentReceived } from '@/lib/notifications/payment-email'
+import {
+  sendPaymentConfirmation,
+  sendTutorPaymentReceived,
+} from '@/lib/notifications/payment-email'
 import { eq, and, sql } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {
@@ -32,7 +44,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  const body = payload as { id?: string; name?: string; data?: { id?: string; status?: string; payment_attempt_id?: string } }
+  const body = payload as {
+    id?: string
+    name?: string
+    data?: { id?: string; status?: string; payment_attempt_id?: string }
+  }
   const eventName = body?.name ?? 'unknown'
   const gatewayPaymentId = body?.data?.id
   const paymentAttemptId = body?.data?.payment_attempt_id
@@ -42,11 +58,13 @@ export async function POST(req: NextRequest) {
     const [existing] = await drizzleDb
       .select()
       .from(webhookEvent)
-      .where(and(
-        eq(webhookEvent.gateway, 'AIRWALLEX'),
-        eq(webhookEvent.processed, true),
-        sql`${webhookEvent.payload}->>'id' = ${eventId}`
-      ))
+      .where(
+        and(
+          eq(webhookEvent.gateway, 'AIRWALLEX'),
+          eq(webhookEvent.processed, true),
+          sql`${webhookEvent.payload}->>'id' = ${eventId}`
+        )
+      )
       .limit(1)
     if (existing) return NextResponse.json({ received: true })
   }
@@ -68,7 +86,7 @@ export async function POST(req: NextRequest) {
     gateway: 'AIRWALLEX',
     eventType: eventName,
     payload: payload as object,
-    processed: false
+    processed: false,
   })
 
   const result = await gateway.processWebhook(payload)
@@ -81,38 +99,47 @@ export async function POST(req: NextRequest) {
       .limit(1)
     if (paymentRow) {
       const existingMeta = (paymentRow.metadata as Record<string, unknown>) || {}
-      const metadata = paymentAttemptId ? { ...existingMeta, payment_attempt_id: paymentAttemptId } : existingMeta
+      const metadata = paymentAttemptId
+        ? { ...existingMeta, payment_attempt_id: paymentAttemptId }
+        : existingMeta
       await drizzleDb
         .update(payment)
         .set({
           status: 'COMPLETED',
           paidAt: new Date(),
-          ...(Object.keys(metadata).length > 0 ? { metadata } : {})
+          ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
         })
         .where(eq(payment.id, paymentRow.id))
       const meta = paymentRow.metadata as Record<string, unknown> | null
-      if (!paymentRow.bookingId && meta?.type === 'course' && typeof meta.curriculumId === 'string' && typeof meta.studentId === 'string') {
+      if (
+        !paymentRow.bookingId &&
+        meta?.type === 'course' &&
+        typeof meta.curriculumId === 'string' &&
+        typeof meta.studentId === 'string'
+      ) {
         const { enrollStudentInCurriculum } = await import('@/lib/enrollment')
         enrollStudentInCurriculum(meta.studentId as string, meta.curriculumId)
           .then(async () => {
             const [enrollment] = await drizzleDb
               .select({
                 id: curriculumEnrollment.id,
-                creatorId: curriculum.creatorId
+                creatorId: curriculum.creatorId,
               })
               .from(curriculumEnrollment)
               .innerJoin(curriculum, eq(curriculum.id, curriculumEnrollment.curriculumId))
-              .where(and(
-                eq(curriculumEnrollment.studentId, meta.studentId as string),
-                eq(curriculumEnrollment.curriculumId, meta.curriculumId as string)
-              ))
+              .where(
+                and(
+                  eq(curriculumEnrollment.studentId, meta.studentId as string),
+                  eq(curriculumEnrollment.curriculumId, meta.curriculumId as string)
+                )
+              )
               .limit(1)
             if (enrollment) {
               await drizzleDb
                 .update(payment)
                 .set({
                   enrollmentId: enrollment.id,
-                  tutorId: enrollment.creatorId ?? paymentRow.tutorId
+                  tutorId: enrollment.creatorId ?? paymentRow.tutorId,
                 })
                 .where(eq(payment.id, paymentRow.id))
             }
@@ -121,7 +148,7 @@ export async function POST(req: NextRequest) {
         const [userRow] = await drizzleDb
           .select({
             email: user.email,
-            name: profile.name
+            name: profile.name,
           })
           .from(user)
           .leftJoin(profile, eq(profile.userId, user.id))
@@ -135,7 +162,7 @@ export async function POST(req: NextRequest) {
             studentName: userRow.name ?? undefined,
             amount: paymentRow.amount,
             currency: paymentRow.currency,
-            description
+            description,
           }).catch(() => {})
         }
       } else if (paymentRow.bookingId) {
@@ -144,7 +171,7 @@ export async function POST(req: NextRequest) {
             clinicTitle: clinic.title,
             clinicSubject: clinic.subject,
             studentId: clinicBooking.studentId,
-            tutorId: clinic.tutorId
+            tutorId: clinic.tutorId,
           })
           .from(clinicBooking)
           .innerJoin(clinic, eq(clinic.id, clinicBooking.clinicId))
@@ -171,7 +198,7 @@ export async function POST(req: NextRequest) {
               studentName: studentRow.name ?? undefined,
               amount: paymentRow.amount,
               currency: paymentRow.currency,
-              description
+              description,
             }).catch(() => {})
           }
           if (tutorRow?.email) {
@@ -181,7 +208,7 @@ export async function POST(req: NextRequest) {
               tutorName: tutorRow.name ?? undefined,
               amount: paymentRow.amount,
               currency: paymentRow.currency,
-              description
+              description,
             }).catch(() => {})
           }
         }
@@ -189,11 +216,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (result.success && (result.status === 'cancelled' || result.eventType?.includes('cancelled'))) {
+  if (
+    result.success &&
+    (result.status === 'cancelled' || result.eventType?.includes('cancelled'))
+  ) {
     const [paymentRow] = await drizzleDb
       .select()
       .from(payment)
-      .where(and(eq(payment.gatewayPaymentId, result.paymentId ?? ''), eq(payment.gateway, 'AIRWALLEX')))
+      .where(
+        and(eq(payment.gatewayPaymentId, result.paymentId ?? ''), eq(payment.gateway, 'AIRWALLEX'))
+      )
       .limit(1)
     if (paymentRow) {
       await drizzleDb

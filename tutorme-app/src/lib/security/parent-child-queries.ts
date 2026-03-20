@@ -58,12 +58,7 @@ export async function verifyStudentExists(
       })
       .from(profile)
       .innerJoin(user, eq(user.id, profile.userId))
-      .where(
-        and(
-          eq(profile.studentUniqueId, input.childUniqueId),
-          eq(user.role, 'STUDENT')
-        )
-      )
+      .where(and(eq(profile.studentUniqueId, input.childUniqueId), eq(user.role, 'STUDENT')))
       .limit(1)
     const row = rows[0]
     if (row) {
@@ -83,18 +78,14 @@ export async function verifyStudentExists(
  * Verify all children exist before parent registration.
  * Returns map of index -> VerifiedStudent or error message.
  */
-export async function verifyAllChildren(
-  children: StudentLinkingInput[]
-): Promise<{
+export async function verifyAllChildren(children: StudentLinkingInput[]): Promise<{
   verified: Map<number, VerifiedStudent>
   errors: Array<{ index: number; message: string }>
 }> {
   const verified = new Map<number, VerifiedStudent>()
   const errors: Array<{ index: number; message: string }> = []
 
-  const results = await Promise.all(
-    children.map((child, index) => verifyStudentExists(child))
-  )
+  const results = await Promise.all(children.map((child, index) => verifyStudentExists(child)))
 
   results.forEach((result, index) => {
     if (result) {
@@ -120,10 +111,7 @@ export async function isStudentAlreadyLinked(userId: string): Promise<boolean> {
     .select({ id: familyMember.id })
     .from(familyMember)
     .where(
-      and(
-        eq(familyMember.userId, userId),
-        inArray(familyMember.relation, ['child', 'children'])
-      )
+      and(eq(familyMember.userId, userId), inArray(familyMember.relation, ['child', 'children']))
     )
     .limit(1)
   return rows.length > 0

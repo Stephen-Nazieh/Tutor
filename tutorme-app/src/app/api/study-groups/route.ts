@@ -43,25 +43,27 @@ async function getHandler(req: NextRequest, session: Session) {
         .limit(limit)
 
       // Fetch member counts in parallel
-      groupsResult = await Promise.all(memberships.map(async (m) => {
-        const [stats] = await drizzleDb
-          .select({ value: count() })
-          .from(studyGroupMember)
-          .where(eq(studyGroupMember.groupId, m.group.id))
+      groupsResult = await Promise.all(
+        memberships.map(async m => {
+          const [stats] = await drizzleDb
+            .select({ value: count() })
+            .from(studyGroupMember)
+            .where(eq(studyGroupMember.groupId, m.group.id))
 
-        return {
-          ...m.group,
-          isMember: true,
-          memberRole: m.memberRole,
-          currentMembers: Number(stats?.value || 0),
-          creator: {
-            profile: {
-              name: m.creatorName,
-              avatarUrl: m.creatorAvatar
-            }
+          return {
+            ...m.group,
+            isMember: true,
+            memberRole: m.memberRole,
+            currentMembers: Number(stats?.value || 0),
+            creator: {
+              profile: {
+                name: m.creatorName,
+                avatarUrl: m.creatorAvatar,
+              },
+            },
           }
-        }
-      }))
+        })
+      )
     } else {
       // Get available groups
       const filters = [eq(studyGroup.isActive, true)]
@@ -80,37 +82,41 @@ async function getHandler(req: NextRequest, session: Session) {
         .orderBy(desc(studyGroup.createdAt))
         .limit(limit)
 
-      groupsResult = await Promise.all(availableGroups.map(async (g) => {
-        const [stats] = await drizzleDb
-          .select({ value: count() })
-          .from(studyGroupMember)
-          .where(eq(studyGroupMember.groupId, g.group.id))
+      groupsResult = await Promise.all(
+        availableGroups.map(async g => {
+          const [stats] = await drizzleDb
+            .select({ value: count() })
+            .from(studyGroupMember)
+            .where(eq(studyGroupMember.groupId, g.group.id))
 
-        const [myMembership] = await drizzleDb
-          .select({ role: studyGroupMember.role })
-          .from(studyGroupMember)
-          .where(and(
-            eq(studyGroupMember.groupId, g.group.id),
-            eq(studyGroupMember.studentId, session.user.id)
-          ))
-          .limit(1)
+          const [myMembership] = await drizzleDb
+            .select({ role: studyGroupMember.role })
+            .from(studyGroupMember)
+            .where(
+              and(
+                eq(studyGroupMember.groupId, g.group.id),
+                eq(studyGroupMember.studentId, session.user.id)
+              )
+            )
+            .limit(1)
 
-        const currentMembers = Number(stats?.value || 0)
+          const currentMembers = Number(stats?.value || 0)
 
-        return {
-          ...g.group,
-          isMember: !!myMembership,
-          memberRole: myMembership?.role ?? null,
-          currentMembers,
-          isFull: currentMembers >= g.group.maxMembers,
-          creator: {
-            profile: {
-              name: g.creatorName,
-              avatarUrl: g.creatorAvatar
-            }
+          return {
+            ...g.group,
+            isMember: !!myMembership,
+            memberRole: myMembership?.role ?? null,
+            currentMembers,
+            isFull: currentMembers >= g.group.maxMembers,
+            creator: {
+              profile: {
+                name: g.creatorName,
+                avatarUrl: g.creatorAvatar,
+              },
+            },
           }
-        }
-      }))
+        })
+      )
     }
 
     return NextResponse.json({ groups: groupsResult })
@@ -160,10 +166,9 @@ async function postHandler(req: NextRequest, session: Session) {
     const [existingMembership] = await drizzleDb
       .select()
       .from(studyGroupMember)
-      .where(and(
-        eq(studyGroupMember.groupId, groupId),
-        eq(studyGroupMember.studentId, session.user.id)
-      ))
+      .where(
+        and(eq(studyGroupMember.groupId, groupId), eq(studyGroupMember.studentId, session.user.id))
+      )
       .limit(1)
 
     if (existingMembership) {
@@ -171,12 +176,15 @@ async function postHandler(req: NextRequest, session: Session) {
     }
 
     // Create membership
-    const [membership] = await drizzleDb.insert(studyGroupMember).values({
-      id: crypto.randomUUID(),
-      groupId,
-      studentId: session.user.id,
-      role: 'member'
-    }).returning()
+    const [membership] = await drizzleDb
+      .insert(studyGroupMember)
+      .values({
+        id: crypto.randomUUID(),
+        groupId,
+        studentId: session.user.id,
+        role: 'member',
+      })
+      .returning()
 
     return NextResponse.json({
       success: true,
@@ -184,8 +192,8 @@ async function postHandler(req: NextRequest, session: Session) {
         ...membership,
         group: {
           name: group.name,
-          subject: group.subject
-        }
+          subject: group.subject,
+        },
       },
       message: `Joined ${group.name}`,
     })
@@ -203,7 +211,8 @@ async function putHandler(req: NextRequest, session: Session) {
     const body = await req.json().catch(() => ({}))
     const { name, subject, description, maxMembers } = body
     const safeName = typeof name === 'string' ? sanitizeHtmlWithMax(name.trim(), 200) : ''
-    const safeDescription = typeof description === 'string' ? sanitizeHtmlWithMax(description, 1000) : ''
+    const safeDescription =
+      typeof description === 'string' ? sanitizeHtmlWithMax(description, 1000) : ''
 
     if (!safeName || !subject) {
       return NextResponse.json({ error: 'Name and subject required' }, { status: 400 })
@@ -211,22 +220,25 @@ async function putHandler(req: NextRequest, session: Session) {
 
     // Create group and add creator as admin
     const newGroupId = crypto.randomUUID()
-    const [group] = await drizzleDb.transaction(async (tx) => {
-      const [newGroup] = await tx.insert(studyGroup).values({
-        id: newGroupId,
-        name: safeName,
-        subject: String(subject).trim().slice(0, 50),
-        description: safeDescription,
-        maxMembers: maxMembers || 20,
-        createdBy: session.user.id,
-        isActive: true,
-      }).returning()
+    const [group] = await drizzleDb.transaction(async tx => {
+      const [newGroup] = await tx
+        .insert(studyGroup)
+        .values({
+          id: newGroupId,
+          name: safeName,
+          subject: String(subject).trim().slice(0, 50),
+          description: safeDescription,
+          maxMembers: maxMembers || 20,
+          createdBy: session.user.id,
+          isActive: true,
+        })
+        .returning()
 
       await tx.insert(studyGroupMember).values({
         id: crypto.randomUUID(),
         groupId: newGroupId,
         studentId: session.user.id,
-        role: 'admin'
+        role: 'admin',
       })
 
       return [newGroup]
@@ -247,9 +259,9 @@ async function putHandler(req: NextRequest, session: Session) {
         currentMembers: 1,
         creator: {
           profile: {
-            name: creatorProfile?.name
-          }
-        }
+            name: creatorProfile?.name,
+          },
+        },
       },
       message: `Created study group "${name}"`,
     })
@@ -276,14 +288,13 @@ async function deleteHandler(req: NextRequest, session: Session) {
       .select({
         id: studyGroupMember.id,
         groupCreatedBy: studyGroup.createdBy,
-        groupName: studyGroup.name
+        groupName: studyGroup.name,
       })
       .from(studyGroupMember)
       .innerJoin(studyGroup, eq(studyGroup.id, studyGroupMember.groupId))
-      .where(and(
-        eq(studyGroupMember.groupId, groupId),
-        eq(studyGroupMember.studentId, session.user.id)
-      ))
+      .where(
+        and(eq(studyGroupMember.groupId, groupId), eq(studyGroupMember.studentId, session.user.id))
+      )
       .limit(1)
 
     if (!membership) {
@@ -292,14 +303,15 @@ async function deleteHandler(req: NextRequest, session: Session) {
 
     // Check if user is the creator (can't leave, must delete group)
     if (membership.groupCreatedBy === session.user.id) {
-      return NextResponse.json({
-        error: 'Group creator cannot leave. Delete the group instead.'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Group creator cannot leave. Delete the group instead.',
+        },
+        { status: 400 }
+      )
     }
 
-    await drizzleDb
-      .delete(studyGroupMember)
-      .where(eq(studyGroupMember.id, membership.id))
+    await drizzleDb.delete(studyGroupMember).where(eq(studyGroupMember.id, membership.id))
 
     return NextResponse.json({
       success: true,

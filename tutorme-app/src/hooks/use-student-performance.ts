@@ -4,12 +4,12 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { 
-  StudentPerformanceData, 
+import {
+  StudentPerformanceData,
   StudentMetrics,
   PerformanceCluster,
   getStudentPerformance,
-  getClassPerformanceSummary
+  getClassPerformanceSummary,
 } from '@/lib/performance/student-analytics'
 
 interface UseStudentPerformanceOptions {
@@ -41,10 +41,13 @@ interface UseClassPerformanceReturn {
 }
 
 // Cache for performance data
-const performanceCache = new Map<string, {
-  data: StudentPerformanceData
-  timestamp: number
-}>()
+const performanceCache = new Map<
+  string,
+  {
+    data: StudentPerformanceData
+    timestamp: number
+  }
+>()
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
@@ -55,7 +58,7 @@ export function useStudentPerformance({
   studentId,
   curriculumId,
   refreshInterval = 30000, // 30 seconds default
-  enableRealtime = true
+  enableRealtime = true,
 }: UseStudentPerformanceOptions): UseStudentPerformanceReturn {
   const [performance, setPerformance] = useState<StudentPerformanceData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -64,56 +67,59 @@ export function useStudentPerformance({
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastFetchRef = useRef<number>(0)
 
-  const fetchPerformance = useCallback(async (force = false) => {
-    if (!studentId) return
+  const fetchPerformance = useCallback(
+    async (force = false) => {
+      if (!studentId) return
 
-    const cacheKey = `${studentId}-${curriculumId || 'all'}`
-    const now = Date.now()
+      const cacheKey = `${studentId}-${curriculumId || 'all'}`
+      const now = Date.now()
 
-    // Check cache first (unless forced refresh)
-    if (!force) {
-      const cached = performanceCache.get(cacheKey)
-      if (cached && now - cached.timestamp < CACHE_TTL) {
-        setPerformance(cached.data)
-        setLoading(false)
-        setIsStale(true) // Mark as stale since we're using cache
+      // Check cache first (unless forced refresh)
+      if (!force) {
+        const cached = performanceCache.get(cacheKey)
+        if (cached && now - cached.timestamp < CACHE_TTL) {
+          setPerformance(cached.data)
+          setLoading(false)
+          setIsStale(true) // Mark as stale since we're using cache
+          return
+        }
+      }
+
+      // Debounce: don't fetch if we fetched recently
+      if (!force && now - lastFetchRef.current < 5000) {
         return
       }
-    }
 
-    // Debounce: don't fetch if we fetched recently
-    if (!force && now - lastFetchRef.current < 5000) {
-      return
-    }
+      lastFetchRef.current = now
+      setLoading(true)
+      setError(null)
 
-    lastFetchRef.current = now
-    setLoading(true)
-    setError(null)
+      try {
+        const data = await getStudentPerformance(studentId, curriculumId)
+        setPerformance(data)
+        setIsStale(false)
 
-    try {
-      const data = await getStudentPerformance(studentId, curriculumId)
-      setPerformance(data)
-      setIsStale(false)
-      
-      // Update cache
-      performanceCache.set(cacheKey, {
-        data,
-        timestamp: now
-      })
-    } catch (err) {
-      console.error('Failed to fetch student performance:', err)
-      setError('Failed to load performance data')
-      
-      // Use stale cache as fallback
-      const cached = performanceCache.get(cacheKey)
-      if (cached) {
-        setPerformance(cached.data)
-        setIsStale(true)
+        // Update cache
+        performanceCache.set(cacheKey, {
+          data,
+          timestamp: now,
+        })
+      } catch (err) {
+        console.error('Failed to fetch student performance:', err)
+        setError('Failed to load performance data')
+
+        // Use stale cache as fallback
+        const cached = performanceCache.get(cacheKey)
+        if (cached) {
+          setPerformance(cached.data)
+          setIsStale(true)
+        }
+      } finally {
+        setLoading(false)
       }
-    } finally {
-      setLoading(false)
-    }
-  }, [studentId, curriculumId])
+    },
+    [studentId, curriculumId]
+  )
 
   // Initial fetch
   useEffect(() => {
@@ -144,7 +150,7 @@ export function useStudentPerformance({
     }
 
     window.addEventListener('performance-updated' as any, handlePerformanceUpdate)
-    
+
     return () => {
       window.removeEventListener('performance-updated' as any, handlePerformanceUpdate)
     }
@@ -159,16 +165,14 @@ export function useStudentPerformance({
     loading,
     error,
     refresh,
-    isStale
+    isStale,
   }
 }
 
 /**
  * Hook for tracking class-wide performance
  */
-export function useClassPerformance(
-  curriculumId: string
-): UseClassPerformanceReturn {
+export function useClassPerformance(curriculumId: string): UseClassPerformanceReturn {
   const [summary, setSummary] = useState<UseClassPerformanceReturn['summary']>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -198,7 +202,7 @@ export function useClassPerformance(
     summary,
     loading,
     error,
-    refresh: fetchSummary
+    refresh: fetchSummary,
   }
 }
 
@@ -206,10 +210,7 @@ export function useClassPerformance(
  * Hook for tracking multiple students' performance
  * Optimized for tutor dashboard monitoring
  */
-export function useStudentsPerformance(
-  studentIds: string[],
-  curriculumId?: string
-) {
+export function useStudentsPerformance(studentIds: string[], curriculumId?: string) {
   const [performances, setPerformances] = useState<Record<string, StudentPerformanceData>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -232,7 +233,7 @@ export function useStudentsPerformance(
       for (let i = 0; i < studentIds.length; i += batchSize) {
         const batch = studentIds.slice(i, i + batchSize)
         const batchResults = await Promise.all(
-          batch.map(async (id) => {
+          batch.map(async id => {
             const data = await getStudentPerformance(id, curriculumId)
             return { id, data }
           })
@@ -262,14 +263,17 @@ export function useStudentsPerformance(
     const values = Object.values(performances)
     if (values.length === 0) return null
 
-    const avgScore = values.reduce((sum, p) => sum + p.overallMetrics.averageScore, 0) / values.length
-    const avgCompletion = values.reduce((sum, p) => sum + p.overallMetrics.completionRate, 0) / values.length
-    const avgEngagement = values.reduce((sum, p) => sum + p.overallMetrics.engagementScore, 0) / values.length
+    const avgScore =
+      values.reduce((sum, p) => sum + p.overallMetrics.averageScore, 0) / values.length
+    const avgCompletion =
+      values.reduce((sum, p) => sum + p.overallMetrics.completionRate, 0) / values.length
+    const avgEngagement =
+      values.reduce((sum, p) => sum + p.overallMetrics.engagementScore, 0) / values.length
 
     const clusterCounts: Record<PerformanceCluster, number> = {
       advanced: 0,
       intermediate: 0,
-      struggling: 0
+      struggling: 0,
     }
 
     values.forEach(p => {
@@ -281,7 +285,7 @@ export function useStudentsPerformance(
       averageCompletion: Math.round(avgCompletion * 10) / 10,
       averageEngagement: Math.round(avgEngagement * 10) / 10,
       clusterCounts,
-      totalStudents: values.length
+      totalStudents: values.length,
     }
   }
 
@@ -298,7 +302,7 @@ export function useStudentsPerformance(
     error,
     refresh: fetchPerformances,
     aggregateMetrics,
-    getStudentsNeedingHelp
+    getStudentsNeedingHelp,
   }
 }
 
@@ -307,9 +311,11 @@ export function useStudentsPerformance(
  * Call this after task submissions or other relevant actions
  */
 export function triggerPerformanceUpdate(studentId: string) {
-  window.dispatchEvent(new CustomEvent('performance-updated', {
-    detail: { studentId }
-  }))
+  window.dispatchEvent(
+    new CustomEvent('performance-updated', {
+      detail: { studentId },
+    })
+  )
 }
 
 // Clear cache helper (useful for logout)

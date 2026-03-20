@@ -31,4 +31,3 @@ describe('GET /api/student/resources', () => {
     expect(await res.json()).toEqual({ error: 'Unauthorized' })
   })
 })
-

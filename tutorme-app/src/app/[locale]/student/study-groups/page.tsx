@@ -4,25 +4,25 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { UserNav } from "@/components/user-nav"
-import { toast } from "sonner"
-import { 
-  Users, 
-  CheckCircle, 
-  Loader2, 
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { UserNav } from '@/components/user-nav'
+import { toast } from 'sonner'
+import {
+  Users,
+  CheckCircle,
+  Loader2,
   ArrowLeft,
   BookOpen,
   Plus,
   Crown,
   LogOut,
   Search,
-  User
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
+  User,
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
 import {
   Dialog,
   DialogContent,
@@ -31,15 +31,15 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select'
 
 interface StudyGroup {
   id: string
@@ -80,7 +80,7 @@ export default function StudyGroupsPage() {
     name: '',
     subject: '',
     description: '',
-    maxMembers: 20
+    maxMembers: 20,
   })
 
   useEffect(() => {
@@ -92,9 +92,10 @@ export default function StudyGroupsPage() {
 
   const fetchGroups = async () => {
     try {
-      const url = subjectFilter !== 'all' 
-        ? `/api/study-groups?limit=50&subject=${subjectFilter}`
-        : '/api/study-groups?limit=50'
+      const url =
+        subjectFilter !== 'all'
+          ? `/api/study-groups?limit=50&subject=${subjectFilter}`
+          : '/api/study-groups?limit=50'
       const res = await fetch(url)
       const data = await res.json()
       if (data.groups) {
@@ -102,7 +103,7 @@ export default function StudyGroupsPage() {
       }
     } catch (error) {
       toast.error(`Error`, {
-        description: "Failed to load study groups",
+        description: 'Failed to load study groups',
       })
     } finally {
       setLoading(false)
@@ -127,10 +128,10 @@ export default function StudyGroupsPage() {
       const res = await fetch('/api/study-groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ groupId })
+        body: JSON.stringify({ groupId }),
       })
       const data = await res.json()
-      
+
       if (data.success) {
         toast.success(`Joined Group! 👥`, {
           description: data.message,
@@ -158,10 +159,10 @@ export default function StudyGroupsPage() {
       const res = await fetch('/api/study-groups', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ groupId })
+        body: JSON.stringify({ groupId }),
       })
       const data = await res.json()
-      
+
       if (data.success) {
         toast.success(`Left Group`, {
           description: data.message,
@@ -186,7 +187,7 @@ export default function StudyGroupsPage() {
   const handleCreateGroup = async () => {
     if (!newGroup.name || !newGroup.subject) {
       toast.error(`Missing Fields`, {
-        description: "Please fill in all required fields",
+        description: 'Please fill in all required fields',
       })
       return
     }
@@ -196,10 +197,10 @@ export default function StudyGroupsPage() {
       const res = await fetch('/api/study-groups', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newGroup)
+        body: JSON.stringify(newGroup),
       })
       const data = await res.json()
-      
+
       if (data.success) {
         toast.success(`Group Created! 🎉`, {
           description: `"${newGroup.name}" has been created`,
@@ -223,18 +224,19 @@ export default function StudyGroupsPage() {
     }
   }
 
-  const filteredGroups = groups.filter(group => 
-    group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    group.subject.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredGroups = groups.filter(
+    group =>
+      group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      group.subject.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const availableGroups = filteredGroups.filter(g => !g.isMember)
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Loading study groups...</p>
         </div>
       </div>
@@ -244,12 +246,12 @@ export default function StudyGroupsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="border-b bg-white">
+        <div className="container mx-auto flex items-center justify-between px-4 py-4">
           <div className="flex items-center gap-4">
             <Link href="/student/dashboard">
               <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-1" />
+                <ArrowLeft className="mr-1 h-4 w-4" />
                 Back
               </Button>
             </Link>
@@ -260,15 +262,15 @@ export default function StudyGroupsPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-3xl font-bold">Study Groups</h2>
-            <p className="text-gray-600 mt-1">Join groups to learn together with peers</p>
+            <p className="mt-1 text-gray-600">Join groups to learn together with peers</p>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Create Group
               </Button>
             </DialogTrigger>
@@ -285,15 +287,15 @@ export default function StudyGroupsPage() {
                   <Input
                     id="name"
                     value={newGroup.name}
-                    onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+                    onChange={e => setNewGroup({ ...newGroup, name: e.target.value })}
                     placeholder="e.g., Calculus Study Squad"
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="subject">Subject *</Label>
-                  <Select 
-                    value={newGroup.subject} 
-                    onValueChange={(value) => setNewGroup({ ...newGroup, subject: value })}
+                  <Select
+                    value={newGroup.subject}
+                    onValueChange={value => setNewGroup({ ...newGroup, subject: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a subject" />
@@ -314,7 +316,7 @@ export default function StudyGroupsPage() {
                   <Input
                     id="description"
                     value={newGroup.description}
-                    onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+                    onChange={e => setNewGroup({ ...newGroup, description: e.target.value })}
                     placeholder="What will you study?"
                   />
                 </div>
@@ -326,7 +328,9 @@ export default function StudyGroupsPage() {
                     min={2}
                     max={50}
                     value={newGroup.maxMembers}
-                    onChange={(e) => setNewGroup({ ...newGroup, maxMembers: parseInt(e.target.value) || 20 })}
+                    onChange={e =>
+                      setNewGroup({ ...newGroup, maxMembers: parseInt(e.target.value) || 20 })
+                    }
                   />
                 </div>
               </div>
@@ -335,7 +339,7 @@ export default function StudyGroupsPage() {
                   Cancel
                 </Button>
                 <Button onClick={handleCreateGroup} disabled={creating}>
-                  {creating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Group
                 </Button>
               </DialogFooter>
@@ -345,23 +349,19 @@ export default function StudyGroupsPage() {
 
         <Tabs defaultValue="browse" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="browse">
-              Browse ({availableGroups.length})
-            </TabsTrigger>
-            <TabsTrigger value="my-groups">
-              My Groups ({myGroups.length})
-            </TabsTrigger>
+            <TabsTrigger value="browse">Browse ({availableGroups.length})</TabsTrigger>
+            <TabsTrigger value="my-groups">My Groups ({myGroups.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="browse" className="space-y-6">
             {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
                 <Input
                   placeholder="Search groups..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -382,8 +382,8 @@ export default function StudyGroupsPage() {
             </div>
 
             {availableGroups.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableGroups.map((group) => (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {availableGroups.map(group => (
                   <Card key={group.id}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -397,29 +397,27 @@ export default function StudyGroupsPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {group.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {group.description}
-                        </p>
+                        <p className="line-clamp-2 text-sm text-gray-600">{group.description}</p>
                       )}
-                      
+
                       <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
+                          <Users className="h-4 w-4" />
                           {group.currentMembers}/{group.maxMembers} members
                         </div>
                         <div className="flex items-center gap-2">
-                          <User className="w-4 h-4" />
+                          <User className="h-4 w-4" />
                           Created by {group.creator.profile?.name || 'Anonymous'}
                         </div>
                       </div>
 
-                      <Button 
+                      <Button
                         className="w-full"
                         disabled={joiningGroupId === group.id || group.isFull}
                         onClick={() => handleJoinGroup(group.id)}
                       >
                         {joiningGroupId === group.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         ) : null}
                         {group.isFull ? 'Full' : 'Join Group'}
                       </Button>
@@ -429,21 +427,21 @@ export default function StudyGroupsPage() {
               </div>
             ) : (
               <Card>
-                <CardContent className="pt-12 pb-12 text-center">
-                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <CardContent className="pb-12 pt-12 text-center">
+                  <Users className="mx-auto mb-4 h-16 w-16 text-gray-300" />
                   <h3 className="text-lg font-semibold text-gray-600">
-                    {searchQuery || subjectFilter !== 'all' 
-                      ? 'No groups match your search' 
+                    {searchQuery || subjectFilter !== 'all'
+                      ? 'No groups match your search'
                       : 'No available groups'}
                   </h3>
-                  <p className="text-gray-500 mt-1">
+                  <p className="mt-1 text-gray-500">
                     {searchQuery || subjectFilter !== 'all'
                       ? 'Try different search terms'
                       : 'Create the first study group!'}
                   </p>
                   {!searchQuery && subjectFilter === 'all' && (
                     <Button className="mt-4" onClick={() => setCreateDialogOpen(true)}>
-                      <Plus className="w-4 h-4 mr-2" />
+                      <Plus className="mr-2 h-4 w-4" />
                       Create Group
                     </Button>
                   )}
@@ -454,58 +452,59 @@ export default function StudyGroupsPage() {
 
           <TabsContent value="my-groups">
             {myGroups.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {myGroups.map((group) => (
-                  <Card key={group.id} className={group.memberRole === 'admin' ? 'border-yellow-300' : 'border-green-300'}>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {myGroups.map(group => (
+                  <Card
+                    key={group.id}
+                    className={
+                      group.memberRole === 'admin' ? 'border-yellow-300' : 'border-green-300'
+                    }
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="secondary">
-                              {group.subject}
-                            </Badge>
+                          <div className="mb-2 flex items-center gap-2">
+                            <Badge variant="secondary">{group.subject}</Badge>
                             {group.memberRole === 'admin' && (
                               <Badge className="bg-yellow-100 text-yellow-800">
-                                <Crown className="w-3 h-3 mr-1" />
+                                <Crown className="mr-1 h-3 w-3" />
                                 Admin
                               </Badge>
                             )}
                           </div>
                           <CardTitle className="text-lg">{group.name}</CardTitle>
                         </div>
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-green-500" />
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {group.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {group.description}
-                        </p>
+                        <p className="line-clamp-2 text-sm text-gray-600">{group.description}</p>
                       )}
-                      
+
                       <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
+                          <Users className="h-4 w-4" />
                           {group.currentMembers}/{group.maxMembers} members
                         </div>
                       </div>
 
                       <div className="flex gap-2">
                         <Button className="flex-1" variant="outline">
-                          <BookOpen className="w-4 h-4 mr-2" />
+                          <BookOpen className="mr-2 h-4 w-4" />
                           Open
                         </Button>
                         {group.memberRole !== 'admin' && (
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="icon"
                             onClick={() => handleLeaveGroup(group.id)}
                             disabled={leavingGroupId === group.id}
                           >
                             {leavingGroupId === group.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <LogOut className="w-4 h-4 text-red-500" />
+                              <LogOut className="h-4 w-4 text-red-500" />
                             )}
                           </Button>
                         )}
@@ -516,17 +515,20 @@ export default function StudyGroupsPage() {
               </div>
             ) : (
               <Card>
-                <CardContent className="pt-12 pb-12 text-center">
-                  <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <CardContent className="pb-12 pt-12 text-center">
+                  <Users className="mx-auto mb-4 h-16 w-16 text-gray-300" />
                   <h3 className="text-lg font-semibold text-gray-600">Not in any groups yet</h3>
-                  <p className="text-gray-500 mt-1">Join a study group to start collaborating</p>
-                  <Button className="mt-4" onClick={() => {
-                    const tabs = document.querySelector('[data-state="active"]')
-                    if (tabs) {
-                      const browseTab = document.querySelector('[value="browse"]') as HTMLElement
-                      browseTab?.click()
-                    }
-                  }}>
+                  <p className="mt-1 text-gray-500">Join a study group to start collaborating</p>
+                  <Button
+                    className="mt-4"
+                    onClick={() => {
+                      const tabs = document.querySelector('[data-state="active"]')
+                      if (tabs) {
+                        const browseTab = document.querySelector('[value="browse"]') as HTMLElement
+                        browseTab?.click()
+                      }
+                    }}
+                  >
                     Browse Groups
                   </Button>
                 </CardContent>

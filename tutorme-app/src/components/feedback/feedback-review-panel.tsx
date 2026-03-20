@@ -6,10 +6,10 @@
  */
 
 import { useState, useEffect } from 'react'
-import { 
-  CheckCircle, 
-  XCircle, 
-  Edit, 
+import {
+  CheckCircle,
+  XCircle,
+  Edit,
   AlertCircle,
   ThumbsUp,
   ThumbsDown,
@@ -17,13 +17,13 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
-  Send
+  Send,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -71,7 +71,7 @@ export function FeedbackReviewPanel({
   tutorId,
   onApprove,
   onReject,
-  onBatchApprove
+  onBatchApprove,
 }: FeedbackReviewPanelProps) {
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([])
   const [stats, setStats] = useState<FeedbackStats | null>(null)
@@ -98,7 +98,7 @@ export function FeedbackReviewPanel({
 
       const [itemsRes, statsRes] = await Promise.all([
         fetch(`/api/feedback/pending?${params}`),
-        fetch('/api/feedback/stats')
+        fetch('/api/feedback/stats'),
       ])
 
       if (itemsRes.ok) {
@@ -145,8 +145,8 @@ export function FeedbackReviewPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           decision: editingItem === item.id ? 'modify' : 'approve',
-          modifications: editingItem === item.id ? { modifiedContent: editedContent } : undefined
-        })
+          modifications: editingItem === item.id ? { modifiedContent: editedContent } : undefined,
+        }),
       })
 
       if (response.ok) {
@@ -164,7 +164,7 @@ export function FeedbackReviewPanel({
       const response = await fetch(`/api/feedback/${item.id}/review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision: 'reject' })
+        body: JSON.stringify({ decision: 'reject' }),
       })
 
       if (response.ok) {
@@ -183,7 +183,7 @@ export function FeedbackReviewPanel({
       const response = await fetch('/api/feedback/batch-approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: Array.from(selectedItems) })
+        body: JSON.stringify({ ids: Array.from(selectedItems) }),
       })
 
       if (response.ok) {
@@ -203,7 +203,7 @@ export function FeedbackReviewPanel({
       task_feedback: '作业反馈',
       progress_report: '进度报告',
       encouragement: '鼓励',
-      correction: '纠正'
+      correction: '纠正',
     }
     return labels[type] || type
   }
@@ -213,7 +213,7 @@ export function FeedbackReviewPanel({
       task_feedback: 'bg-blue-100 text-blue-800',
       progress_report: 'bg-green-100 text-green-800',
       encouragement: 'bg-yellow-100 text-yellow-800',
-      correction: 'bg-red-100 text-red-800'
+      correction: 'bg-red-100 text-red-800',
     }
     return colors[type] || 'bg-gray-100 text-gray-800'
   }
@@ -222,7 +222,7 @@ export function FeedbackReviewPanel({
     const colors: Record<string, string> = {
       high: 'bg-red-500',
       medium: 'bg-yellow-500',
-      low: 'bg-green-500'
+      low: 'bg-green-500',
     }
     return colors[priority] || 'bg-gray-500'
   }
@@ -244,20 +244,22 @@ export function FeedbackReviewPanel({
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-xl">AI 反馈审核</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              审核AI生成的学生反馈内容
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">审核AI生成的学生反馈内容</p>
           </div>
           <div className="flex items-center gap-4">
             {stats && (
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-yellow-500" />
-                  <span>待审核: <strong>{stats.pendingCount}</strong></span>
+                  <span>
+                    待审核: <strong>{stats.pendingCount}</strong>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>今日通过: <strong>{stats.approvedToday}</strong></span>
+                  <span>
+                    今日通过: <strong>{stats.approvedToday}</strong>
+                  </span>
                 </div>
               </div>
             )}
@@ -268,20 +270,14 @@ export function FeedbackReviewPanel({
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mb-4">
-            <TabsTrigger value="pending">
-              待审核 ({feedbackItems.length})
-            </TabsTrigger>
-            <TabsTrigger value="history">
-              历史记录
-            </TabsTrigger>
-            <TabsTrigger value="stats">
-              统计
-            </TabsTrigger>
+            <TabsTrigger value="pending">待审核 ({feedbackItems.length})</TabsTrigger>
+            <TabsTrigger value="history">历史记录</TabsTrigger>
+            <TabsTrigger value="stats">统计</TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="space-y-4">
             {/* Filters */}
-            <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+            <div className="flex items-center gap-4 rounded-lg bg-muted/50 p-4">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger className="w-32">
@@ -308,12 +304,8 @@ export function FeedbackReviewPanel({
               </Select>
               <div className="flex-1" />
               {selectedItems.size > 0 && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleBatchApprove}
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={handleBatchApprove}>
+                  <CheckCircle className="mr-2 h-4 w-4" />
                   批量通过 ({selectedItems.size})
                 </Button>
               )}
@@ -322,21 +314,23 @@ export function FeedbackReviewPanel({
             {/* Feedback List */}
             <ScrollArea className="h-[500px]">
               {loading ? (
-                <div className="flex items-center justify-center h-40">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                <div className="flex h-40 items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
                 </div>
               ) : feedbackItems.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                <div className="py-12 text-center text-muted-foreground">
+                  <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
                   <p>所有反馈已审核完成！</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {/* Select All Header */}
-                  <div className="flex items-center gap-4 p-2 border-b">
+                  <div className="flex items-center gap-4 border-b p-2">
                     <input
                       type="checkbox"
-                      checked={selectedItems.size === feedbackItems.length && feedbackItems.length > 0}
+                      checked={
+                        selectedItems.size === feedbackItems.length && feedbackItems.length > 0
+                      }
                       onChange={handleSelectAll}
                       className="rounded border-gray-300"
                     />
@@ -345,25 +339,23 @@ export function FeedbackReviewPanel({
                     </span>
                   </div>
 
-                  {feedbackItems.map((item) => (
+                  {feedbackItems.map(item => (
                     <div
                       key={item.id}
                       className={cn(
-                        "border rounded-lg transition-all",
-                        expandedItem === item.id ? "ring-2 ring-primary" : "hover:border-primary/50"
+                        'rounded-lg border transition-all',
+                        expandedItem === item.id ? 'ring-2 ring-primary' : 'hover:border-primary/50'
                       )}
                     >
                       {/* Header */}
-                      <div 
-                        className="flex items-center gap-4 p-4 cursor-pointer"
-                        onClick={() => setExpandedItem(
-                          expandedItem === item.id ? null : item.id
-                        )}
+                      <div
+                        className="flex cursor-pointer items-center gap-4 p-4"
+                        onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
                       >
                         <input
                           type="checkbox"
                           checked={selectedItems.has(item.id)}
-                          onChange={(e) => {
+                          onChange={e => {
                             e.stopPropagation()
                             handleSelectItem(item.id)
                           }}
@@ -371,31 +363,26 @@ export function FeedbackReviewPanel({
                         />
 
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {item.studentName?.[0] || 'S'}
-                          </AvatarFallback>
+                          <AvatarFallback>{item.studentName?.[0] || 'S'}</AvatarFallback>
                         </Avatar>
 
-                        <div className="flex-1 min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium truncate">
+                            <span className="truncate font-medium">
                               {item.studentName || '未知学生'}
                             </span>
-                            <Badge 
-                              variant="secondary"
-                              className={getTypeColor(item.type)}
-                            >
+                            <Badge variant="secondary" className={getTypeColor(item.type)}>
                               {getTypeLabel(item.type)}
                             </Badge>
-                            <div 
+                            <div
                               className={cn(
-                                "w-2 h-2 rounded-full",
+                                'h-2 w-2 rounded-full',
                                 getPriorityColor(item.priority)
                               )}
                               title={`优先级: ${item.priority}`}
                             />
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">
+                          <p className="truncate text-sm text-muted-foreground">
                             {item.aiContent.content.substring(0, 100)}...
                           </p>
                         </div>
@@ -424,10 +411,10 @@ export function FeedbackReviewPanel({
                       {expandedItem === item.id && (
                         <div className="border-t px-4 pb-4">
                           {editingItem === item.id ? (
-                            <div className="py-4 space-y-4">
+                            <div className="space-y-4 py-4">
                               <Textarea
                                 value={editedContent}
-                                onChange={(e) => setEditedContent(e.target.value)}
+                                onChange={e => setEditedContent(e.target.value)}
                                 rows={6}
                                 className="resize-none"
                               />
@@ -442,11 +429,8 @@ export function FeedbackReviewPanel({
                                 >
                                   取消
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleApprove(item)}
-                                >
-                                  <Send className="h-4 w-4 mr-2" />
+                                <Button size="sm" onClick={() => handleApprove(item)}>
+                                  <Send className="mr-2 h-4 w-4" />
                                   保存并发送
                                 </Button>
                               </div>
@@ -454,38 +438,43 @@ export function FeedbackReviewPanel({
                           ) : (
                             <>
                               <div className="py-4">
-                                <h4 className="text-sm font-medium mb-2">反馈内容</h4>
-                                <div className="bg-muted p-4 rounded-lg text-sm leading-relaxed">
+                                <h4 className="mb-2 text-sm font-medium">反馈内容</h4>
+                                <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
                                   {item.aiContent.content}
                                 </div>
                               </div>
 
-                              {item.aiContent.suggestedActions && item.aiContent.suggestedActions.length > 0 && (
-                                <div className="py-2">
-                                  <h4 className="text-sm font-medium mb-2">建议行动</h4>
-                                  <ul className="space-y-1">
-                                    {item.aiContent.suggestedActions.map((action, idx) => (
-                                      <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        {action}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {item.aiContent.relatedResources && item.aiContent.relatedResources.length > 0 && (
-                                <div className="py-2">
-                                  <h4 className="text-sm font-medium mb-2">相关资源</h4>
-                                  <div className="flex flex-wrap gap-2">
-                                    {item.aiContent.relatedResources.map((resource, idx) => (
-                                      <Badge key={idx} variant="outline">
-                                        {resource}
-                                      </Badge>
-                                    ))}
+                              {item.aiContent.suggestedActions &&
+                                item.aiContent.suggestedActions.length > 0 && (
+                                  <div className="py-2">
+                                    <h4 className="mb-2 text-sm font-medium">建议行动</h4>
+                                    <ul className="space-y-1">
+                                      {item.aiContent.suggestedActions.map((action, idx) => (
+                                        <li
+                                          key={idx}
+                                          className="flex items-center gap-2 text-sm text-muted-foreground"
+                                        >
+                                          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                                          {action}
+                                        </li>
+                                      ))}
+                                    </ul>
                                   </div>
-                                </div>
-                              )}
+                                )}
+
+                              {item.aiContent.relatedResources &&
+                                item.aiContent.relatedResources.length > 0 && (
+                                  <div className="py-2">
+                                    <h4 className="mb-2 text-sm font-medium">相关资源</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                      {item.aiContent.relatedResources.map((resource, idx) => (
+                                        <Badge key={idx} variant="outline">
+                                          {resource}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
 
                               <div className="my-4 border-t" />
 
@@ -495,7 +484,7 @@ export function FeedbackReviewPanel({
                                   size="sm"
                                   onClick={() => handleReject(item)}
                                 >
-                                  <XCircle className="h-4 w-4 mr-2" />
+                                  <XCircle className="mr-2 h-4 w-4" />
                                   拒绝
                                 </Button>
                                 <Button
@@ -503,14 +492,11 @@ export function FeedbackReviewPanel({
                                   size="sm"
                                   onClick={() => startEditing(item)}
                                 >
-                                  <Edit className="h-4 w-4 mr-2" />
+                                  <Edit className="mr-2 h-4 w-4" />
                                   编辑
                                 </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleApprove(item)}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                <Button size="sm" onClick={() => handleApprove(item)}>
+                                  <CheckCircle className="mr-2 h-4 w-4" />
                                   通过并发送
                                 </Button>
                               </div>
@@ -526,15 +512,15 @@ export function FeedbackReviewPanel({
           </TabsContent>
 
           <TabsContent value="history">
-            <div className="text-center py-12 text-muted-foreground">
-              <Clock className="h-12 w-12 mx-auto mb-4" />
+            <div className="py-12 text-center text-muted-foreground">
+              <Clock className="mx-auto mb-4 h-12 w-12" />
               <p>历史记录功能即将上线</p>
             </div>
           </TabsContent>
 
           <TabsContent value="stats">
             {stats ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="text-2xl font-bold">{stats.pendingCount}</div>
@@ -565,8 +551,8 @@ export function FeedbackReviewPanel({
                 </Card>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+              <div className="py-12 text-center">
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
               </div>
             )}
           </TabsContent>

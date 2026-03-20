@@ -7,18 +7,16 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { and, eq, gte, sql } from 'drizzle-orm'
-import { securityAudit, SECURITY_EVENT_TYPES, SECURITY_SEVERITY } from '@/lib/security/comprehensive-audit'
+import {
+  securityAudit,
+  SECURITY_EVENT_TYPES,
+  SECURITY_SEVERITY,
+} from '@/lib/security/comprehensive-audit'
 import { complianceAudit } from '@/lib/monitoring/compliance-audit'
 import { globalPerformanceMonitor } from '@/lib/monitoring/sentry-setup'
 import { cache } from '@/lib/db'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  curriculum,
-  liveSession,
-  payment,
-  securityEvent,
-  user,
-} from '@/lib/db/schema'
+import { curriculum, liveSession, payment, securityEvent, user } from '@/lib/db/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -114,7 +112,7 @@ export async function GET(request: NextRequest) {
         severity: SECURITY_SEVERITY.HIGH,
         description: 'Global deployment health check failed with critical issues',
         metadata: {
-          failedChecks: checks.filter((c) => c.status === 'error').map((c) => c.name),
+          failedChecks: checks.filter(c => c.status === 'error').map(c => c.name),
           totalDuration,
           status,
         },
@@ -162,7 +160,7 @@ async function checkDatabaseHealth(): Promise<HealthCheck> {
   const startTime = Date.now()
 
   try {
-    await drizzleDb.transaction(async (tx) => {
+    await drizzleDb.transaction(async tx => {
       const [u] = await tx.select({ count: sql<number>`count(*)::int` }).from(user)
       const [c] = await tx.select({ count: sql<number>`count(*)::int` }).from(curriculum)
       const [l] = await tx.select({ count: sql<number>`count(*)::int` }).from(liveSession)
@@ -267,7 +265,7 @@ async function checkSecurityHealth(): Promise<HealthCheck> {
       )
       .limit(20)
 
-    const securityEvents = criticalEvents.map((event) => ({
+    const securityEvents = criticalEvents.map(event => ({
       action: event.action,
       userId: event.userId,
       actorId: event.actorId,
@@ -511,7 +509,8 @@ async function checkCriticalEndpointsHealth(request: NextRequest): Promise<Healt
   const startTime = Date.now()
 
   try {
-    const baseUrl = request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003'
+    const baseUrl =
+      request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003'
     const criticalEndpoints = [
       '/api/health',
       '/api/auth/session',
@@ -520,7 +519,7 @@ async function checkCriticalEndpointsHealth(request: NextRequest): Promise<Healt
     ]
 
     const endpointTests = await Promise.all(
-      criticalEndpoints.map(async (path) => {
+      criticalEndpoints.map(async path => {
         const endpointStart = Date.now()
         const testUrl = `${baseUrl}${path}`
 
@@ -548,7 +547,7 @@ async function checkCriticalEndpointsHealth(request: NextRequest): Promise<Healt
       })
     )
 
-    const failedEndpoints = endpointTests.filter((t) => t.status === 'error')
+    const failedEndpoints = endpointTests.filter(t => t.status === 'error')
 
     if (failedEndpoints.length > 0) {
       return {
@@ -568,7 +567,7 @@ async function checkCriticalEndpointsHealth(request: NextRequest): Promise<Healt
       status: 'healthy',
       details: {
         all_endpoints_healthy: true,
-        latency_summary: endpointTests.map((t) => ({ path: t.path, latency: t.latency })),
+        latency_summary: endpointTests.map(t => ({ path: t.path, latency: t.latency })),
         critical_services_operational: true,
       },
       duration: Date.now() - startTime,
@@ -590,15 +589,11 @@ async function checkDeploymentReadinessHealth(): Promise<HealthCheck> {
   const startTime = Date.now()
 
   try {
-    const requiredEnvVars = [
-      'DATABASE_URL',
-      'NEXTAUTH_SECRET',
-      'NEXT_PUBLIC_APP_URL',
-    ]
+    const requiredEnvVars = ['DATABASE_URL', 'NEXTAUTH_SECRET', 'NEXT_PUBLIC_APP_URL']
 
     const optionalEnvVars = ['REDIS_URL', 'SECURITY_LEVEL']
-    const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName])
-    const presentOptional = optionalEnvVars.filter((varName) => !!process.env[varName])
+    const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName])
+    const presentOptional = optionalEnvVars.filter(varName => !!process.env[varName])
 
     const deploymentChecks = {
       environment_variables: missingEnvVars.length === 0 ? 'complete' : 'incomplete',
@@ -618,8 +613,7 @@ async function checkDeploymentReadinessHealth(): Promise<HealthCheck> {
         details: {
           missing_environment_variables: missingEnvVars,
           deployment_checks: deploymentChecks,
-          recommendation:
-            'Complete required environment variables before production deployment',
+          recommendation: 'Complete required environment variables before production deployment',
         },
         duration: Date.now() - startTime,
       }
@@ -662,8 +656,8 @@ async function checkDeploymentReadinessHealth(): Promise<HealthCheck> {
 }
 
 function calculateOverallStatus(checks: HealthCheck[]): 'healthy' | 'warning' | 'error' {
-  const hasError = checks.some((check) => check.status === 'error')
-  const hasWarning = checks.some((check) => check.status === 'warning')
+  const hasError = checks.some(check => check.status === 'error')
+  const hasWarning = checks.some(check => check.status === 'warning')
 
   if (hasError) return 'error'
   if (hasWarning) return 'warning'

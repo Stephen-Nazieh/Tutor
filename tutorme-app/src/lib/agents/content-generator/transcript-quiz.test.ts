@@ -51,4 +51,3 @@ describe('content generator transcript quiz', () => {
     ).rejects.toThrow(/valid transcript quiz format/i)
   })
 })
-

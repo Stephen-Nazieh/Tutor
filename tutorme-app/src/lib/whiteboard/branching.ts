@@ -1,6 +1,6 @@
 /**
  * Branching Versions System
- * 
+ *
  * Features:
  * - Create branches for alternative approaches
  * - Compare branches side-by-side
@@ -102,7 +102,7 @@ export class BranchingManager {
     description?: string
   ): Branch {
     const parentBranch = parentBranchId ? this.branches.get(parentBranchId) : null
-    
+
     const branch: Branch = {
       id: `branch-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name,
@@ -213,7 +213,7 @@ export class BranchingManager {
     if (!branch) return false
 
     branch.operations.push(operation)
-    
+
     // Apply to strokes if it's a stroke operation
     if (operation.type === 'stroke' && operation.payload) {
       const stroke = operation.payload as WhiteboardStroke
@@ -244,8 +244,8 @@ export class BranchingManager {
       throw new Error('Branch not found')
     }
 
-    const baseStrokes = new Map(baseBranch.strokes.map((s) => [s.id, s]))
-    const compareStrokes = new Map(compareBranch.strokes.map((s) => [s.id, s]))
+    const baseStrokes = new Map(baseBranch.strokes.map(s => [s.id, s]))
+    const compareStrokes = new Map(compareBranch.strokes.map(s => [s.id, s]))
 
     const added: WhiteboardStroke[] = []
     const removed: WhiteboardStroke[] = []
@@ -309,13 +309,13 @@ export class BranchingManager {
     const mergedStrokes: WhiteboardStroke[] = [...targetBranch.strokes]
 
     // Handle added strokes (no conflict)
-    comparison.added.forEach((stroke) => {
+    comparison.added.forEach(stroke => {
       mergedStrokes.push(stroke)
     })
 
     // Handle removed strokes
-    comparison.removed.forEach((stroke) => {
-      const index = mergedStrokes.findIndex((s) => s.id === stroke.id)
+    comparison.removed.forEach(stroke => {
+      const index = mergedStrokes.findIndex(s => s.id === stroke.id)
       if (index !== -1) {
         if (strategy === 'theirs') {
           // Remove it
@@ -333,10 +333,10 @@ export class BranchingManager {
     })
 
     // Handle modified strokes (potential conflicts)
-    comparison.modified.forEach((diff) => {
+    comparison.modified.forEach(diff => {
       if (strategy === 'theirs') {
         // Use theirs
-        const index = mergedStrokes.findIndex((s) => s.id === diff.strokeId)
+        const index = mergedStrokes.findIndex(s => s.id === diff.strokeId)
         if (index !== -1) {
           mergedStrokes[index] = diff.compare
         }
@@ -348,7 +348,7 @@ export class BranchingManager {
           strokeId: diff.strokeId,
           base: diff.base,
           theirs: diff.compare,
-          ours: mergedStrokes.find((s) => s.id === diff.strokeId) || null,
+          ours: mergedStrokes.find(s => s.id === diff.strokeId) || null,
         })
       }
     })
@@ -380,7 +380,7 @@ export class BranchingManager {
     resolution: MergeConflict['resolution'],
     customStroke?: WhiteboardStroke
   ): MergeResult {
-    const conflictIndex = mergeResult.conflicts.findIndex((c) => c.strokeId === strokeId)
+    const conflictIndex = mergeResult.conflicts.findIndex(c => c.strokeId === strokeId)
     if (conflictIndex === -1) return mergeResult
 
     const conflict = mergeResult.conflicts[conflictIndex]
@@ -391,7 +391,7 @@ export class BranchingManager {
     const targetBranch = this.getActiveBranch()
     if (!targetBranch) return mergeResult
 
-    const index = targetBranch.strokes.findIndex((s) => s.id === strokeId)
+    const index = targetBranch.strokes.findIndex(s => s.id === strokeId)
 
     if (resolution === 'theirs' && conflict.theirs) {
       if (index !== -1) {
@@ -431,14 +431,15 @@ export class BranchingManager {
     if (!branch) return null
 
     const contributors = new Set<string>()
-    branch.operations.forEach((op) => contributors.add(op.userId))
+    branch.operations.forEach(op => contributors.add(op.userId))
 
     return {
       totalStrokes: branch.strokes.length,
       totalOperations: branch.operations.length,
-      lastModified: branch.operations.length > 0
-        ? branch.operations[branch.operations.length - 1].timestamp
-        : branch.createdAt,
+      lastModified:
+        branch.operations.length > 0
+          ? branch.operations[branch.operations.length - 1].timestamp
+          : branch.createdAt,
       contributors: Array.from(contributors),
       complexity: this.calculateComplexity(branch),
     }
@@ -453,9 +454,7 @@ export class BranchingManager {
 
     while (current) {
       lineage.unshift(current)
-      current = current.parentBranchId
-        ? this.branches.get(current.parentBranchId)
-        : undefined
+      current = current.parentBranchId ? this.branches.get(current.parentBranchId) : undefined
     }
 
     return lineage
@@ -465,9 +464,7 @@ export class BranchingManager {
    * Get child branches
    */
   getChildBranches(parentBranchId: string): Branch[] {
-    return Array.from(this.branches.values()).filter(
-      (b) => b.parentBranchId === parentBranchId
-    )
+    return Array.from(this.branches.values()).filter(b => b.parentBranchId === parentBranchId)
   }
 
   /**
@@ -502,8 +499,8 @@ export class BranchingManager {
    * Assign a color to a branch
    */
   private assignBranchColor(): string {
-    const usedColors = new Set(Array.from(this.branches.values()).map((b) => b.color))
-    
+    const usedColors = new Set(Array.from(this.branches.values()).map(b => b.color))
+
     for (const color of BRANCH_COLORS) {
       if (!usedColors.has(color)) {
         return color
@@ -545,9 +542,9 @@ export class BranchingManager {
    */
   private calculateComplexity(branch: Branch): number {
     // Simple complexity metric based on stroke count and variety
-    const uniqueColors = new Set(branch.strokes.map((s) => s.color)).size
-    const uniqueTypes = new Set(branch.strokes.map((s) => s.type)).size
-    
+    const uniqueColors = new Set(branch.strokes.map(s => s.color)).size
+    const uniqueTypes = new Set(branch.strokes.map(s => s.type)).size
+
     return branch.strokes.length * (1 + uniqueColors * 0.1 + uniqueTypes * 0.2)
   }
 }

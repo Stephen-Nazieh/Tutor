@@ -49,7 +49,10 @@ export interface PdfCollabRoomState {
   locked: boolean
   ownerId?: string
   lastActivity: number
-  participants: Map<string, { userId?: string; name: string; role: 'student' | 'tutor'; joinedAt: number }>
+  participants: Map<
+    string,
+    { userId?: string; name: string; role: 'student' | 'tutor'; joinedAt: number }
+  >
   events: Array<{
     page: number
     action: 'created' | 'modified' | 'removed' | 'sync-request'
@@ -207,7 +210,12 @@ export interface LiveClassModerationState {
   strokeWindowMs: number
   strokeCounters: Map<string, { count: number; startedAt: number }>
   lockedLayers: Set<string>
-  assignmentOverlay: 'none' | 'graph-paper' | 'geometry-grid' | 'coordinate-plane' | 'chemistry-structure'
+  assignmentOverlay:
+    | 'none'
+    | 'graph-paper'
+    | 'geometry-grid'
+    | 'coordinate-plane'
+    | 'chemistry-structure'
   spotlight: {
     enabled: boolean
     x: number
@@ -236,21 +244,27 @@ export interface MathWhiteboardRoomState {
   ownerId?: string
   lastActivity: number
   currentPage: number
-  participants: Map<string, {
-    userId?: string
-    name: string
-    role: 'student' | 'tutor'
-    color: string
-    cursor?: { x: number; y: number }
-    joinedAt: number
-  }>
-  elements: Map<string, Record<string, unknown> & {
-    id: string
-    type: string
-    version: number
-    lastModified: number
-    modifiedBy: string
-  }>
+  participants: Map<
+    string,
+    {
+      userId?: string
+      name: string
+      role: 'student' | 'tutor'
+      color: string
+      cursor?: { x: number; y: number }
+      joinedAt: number
+    }
+  >
+  elements: Map<
+    string,
+    Record<string, unknown> & {
+      id: string
+      type: string
+      version: number
+      lastModified: number
+      modifiedBy: string
+    }
+  >
   pages: Array<{ index: number; backgroundType: string; elementIds: string[] }>
   tldrawSnapshot?: Record<string, unknown> | null
   yDoc: YDoc
@@ -292,7 +306,10 @@ export interface BreakoutRoom {
   id: string
   name: string
   mainRoomId: string
-  participants: Map<string, { id: string; name: string; joinedAt: number; engagementScore?: number }>
+  participants: Map<
+    string,
+    { id: string; name: string; joinedAt: number; engagementScore?: number }
+  >
   status: 'forming' | 'active' | 'paused' | 'closed'
   aiEnabled: boolean
   timeLimit: number

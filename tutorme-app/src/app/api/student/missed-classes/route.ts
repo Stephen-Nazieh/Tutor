@@ -49,18 +49,16 @@ export async function GET(req: NextRequest) {
 
     const participatedIds = new Set(
       participantRows
-        .filter((p) => {
+        .filter(p => {
           if (!p.leftAt) return false
           const stayDuration = p.leftAt.getTime() - (p.joinedAt?.getTime() ?? 0)
           return stayDuration < 5 * 60 * 1000
         })
-        .map((p) => p.sessionId)
+        .map(p => p.sessionId)
     )
 
     const fullyAttendedIds = new Set(
-      participantRows
-        .filter((p) => !participatedIds.has(p.sessionId))
-        .map((p) => p.sessionId)
+      participantRows.filter(p => !participatedIds.has(p.sessionId)).map(p => p.sessionId)
     )
 
     const enrollmentRows = await drizzleDb
@@ -69,13 +67,10 @@ export async function GET(req: NextRequest) {
         creatorId: curriculum.creatorId,
       })
       .from(curriculumEnrollment)
-      .innerJoin(
-        curriculum,
-        eq(curriculumEnrollment.curriculumId, curriculum.id)
-      )
+      .innerJoin(curriculum, eq(curriculumEnrollment.curriculumId, curriculum.id))
       .where(eq(curriculumEnrollment.studentId, studentId))
 
-    const tutorIds = [...new Set(enrollmentRows.map((e) => e.creatorId).filter(Boolean))] as string[]
+    const tutorIds = [...new Set(enrollmentRows.map(e => e.creatorId).filter(Boolean))] as string[]
 
     if (tutorIds.length === 0) {
       return NextResponse.json({
@@ -102,7 +97,7 @@ export async function GET(req: NextRequest) {
       .orderBy(desc(liveSession.scheduledAt!))
       .limit(20)
 
-    const tutorIdsForSessions = [...new Set(missedSessionRows.map((s) => s.tutorId))]
+    const tutorIdsForSessions = [...new Set(missedSessionRows.map(s => s.tutorId))]
     const tutorNames = new Map<string, string>()
     if (tutorIdsForSessions.length > 0) {
       const profiles = await drizzleDb
@@ -118,8 +113,8 @@ export async function GET(req: NextRequest) {
     }
 
     const missed = missedSessionRows
-      .filter((s) => s.endedAt != null && !fullyAttendedIds.has(s.id))
-      .map((s) => ({
+      .filter(s => s.endedAt != null && !fullyAttendedIds.has(s.id))
+      .map(s => ({
         id: s.id,
         title: s.title,
         subject: s.subject,
@@ -128,9 +123,7 @@ export async function GET(req: NextRequest) {
         endedAt: s.endedAt,
         duration:
           s.scheduledAt && s.endedAt
-            ? Math.round(
-                (s.endedAt.getTime() - s.scheduledAt.getTime()) / 60000
-              )
+            ? Math.round((s.endedAt.getTime() - s.scheduledAt.getTime()) / 60000)
             : null,
         recordingUrl: s.recordingUrl,
         recordingAvailableAt: s.recordingAvailableAt,
@@ -147,6 +140,10 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to fetch missed classes:', error)
-    return handleApiError(error, 'Failed to fetch missed classes', 'api/student/missed-classes/route.ts')
+    return handleApiError(
+      error,
+      'Failed to fetch missed classes',
+      'api/student/missed-classes/route.ts'
+    )
   }
 }

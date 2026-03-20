@@ -34,9 +34,9 @@ describe('rate-limit', () => {
       const results = await Promise.all(
         Array.from({ length: concurrency }, () => checkRateLimit(key, max))
       )
-      const allowedCount = results.filter((r) => r.allowed).length
+      const allowedCount = results.filter(r => r.allowed).length
       expect(allowedCount).toBe(max)
-      expect(results.filter((r) => !r.allowed).length).toBe(concurrency - max)
+      expect(results.filter(r => !r.allowed).length).toBe(concurrency - max)
     })
 
     it('does not attempt Redis on Edge runtime', async () => {

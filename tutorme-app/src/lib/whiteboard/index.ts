@@ -1,8 +1,8 @@
 /**
  * Solocorn Whiteboard System - Feature Complete
- * 
+ *
  * This module provides a comprehensive whiteboard system with the following features:
- * 
+ *
  * 1. Connector Pathfinding v2 - A* grid routing with crossing minimization
  * 2. Presence + Ownership Cues - Editing halos, soft-lock conflict hints
  * 3. Operation Durability - DB/Redis stream persistence, resumable replay
@@ -251,9 +251,16 @@ export class UnifiedWhiteboardManager {
   /**
    * Add a stroke with optimization
    */
-  addStroke(stroke: WhiteboardStroke, viewport?: { x: number; y: number; width: number; height: number; scale: number }): void {
+  addStroke(
+    stroke: WhiteboardStroke,
+    viewport?: { x: number; y: number; width: number; height: number; scale: number }
+  ): void {
     // Validate via CRDT
-    const op = this.crdt.createOperation('create', stroke.id, stroke as unknown as Record<string, unknown>)
+    const op = this.crdt.createOperation(
+      'create',
+      stroke.id,
+      stroke as unknown as Record<string, unknown>
+    )
     this.applyOperation(op)
 
     // Update spatial index if viewport provided
@@ -265,7 +272,13 @@ export class UnifiedWhiteboardManager {
   /**
    * Get strokes optimized for rendering
    */
-  getStrokesForRendering(viewport: { x: number; y: number; width: number; height: number; scale: number }): {
+  getStrokesForRendering(viewport: {
+    x: number
+    y: number
+    width: number
+    height: number
+    scale: number
+  }): {
     strokes: WhiteboardStroke[]
     metrics: {
       total: number
@@ -274,12 +287,15 @@ export class UnifiedWhiteboardManager {
     }
   } {
     const allStrokes = this.crdt.getElements() as WhiteboardStroke[]
-    
-    const { visibleStrokes, culledCount, simplifiedCount } = 
-      this.performance.optimizeForRendering(allStrokes, viewport, {
+
+    const { visibleStrokes, culledCount, simplifiedCount } = this.performance.optimizeForRendering(
+      allStrokes,
+      viewport,
+      {
         enableSimplification: true,
         simplificationThreshold: 500,
-      })
+      }
+    )
 
     return {
       strokes: visibleStrokes,
@@ -314,10 +330,12 @@ export class UnifiedWhiteboardManager {
       presence: this.presence.serialize(),
       annotations: this.annotations.exportThreads(),
       analytics: this.analytics?.exportData(),
-      branching: this.branching ? {
-        branches: this.branching.getAllBranches(),
-        activeBranch: this.branching.getActiveBranch()?.id,
-      } : undefined,
+      branching: this.branching
+        ? {
+            branches: this.branching.getAllBranches(),
+            activeBranch: this.branching.getActiveBranch()?.id,
+          }
+        : undefined,
       exportedAt: Date.now(),
     })
   }
@@ -327,15 +345,15 @@ export class UnifiedWhiteboardManager {
    */
   importState(json: string): void {
     const data = JSON.parse(json)
-    
+
     if (data.presence) {
       this.presence.deserialize(data.presence)
     }
-    
+
     if (data.annotations) {
       this.annotations.importThreads(data.annotations)
     }
-    
+
     if (data.analytics && this.analytics) {
       this.analytics.importData(data.analytics)
     }

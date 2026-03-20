@@ -31,7 +31,7 @@ import {
   Mail,
   Edit3,
   Save,
-  X
+  X,
 } from 'lucide-react'
 
 interface GamificationData {
@@ -98,7 +98,7 @@ export function StudentProfile() {
     try {
       const [profileRes, gamificationRes] = await Promise.all([
         fetch('/api/user/profile'),
-        fetch('/api/gamification')
+        fetch('/api/gamification'),
       ])
 
       const profileData = await profileRes.json()
@@ -125,7 +125,7 @@ export function StudentProfile() {
         quizzesTaken: 24,
         averageScore: 82,
         lessonsCompleted: 156,
-        currentStreak: 5
+        currentStreak: 5,
       })
     } catch (error) {
       console.error('Failed to load profile:', error)
@@ -139,7 +139,7 @@ export function StudentProfile() {
       const res = await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify(editForm),
       })
 
       if (res.ok) {
@@ -159,7 +159,7 @@ export function StudentProfile() {
       <Card>
         <CardContent className="py-8">
           <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
           </div>
         </CardContent>
       </Card>
@@ -170,15 +170,15 @@ export function StudentProfile() {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
-          <User className="w-4 h-4" />
+          <User className="h-4 w-4" />
           Profile
         </Button>
       </DialogTrigger>
-      
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-500" />
+            <User className="h-5 w-5 text-blue-500" />
             Student Profile
           </DialogTitle>
         </DialogHeader>
@@ -197,36 +197,32 @@ export function StudentProfile() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
                       {profile?.name?.charAt(0)?.toUpperCase() || 'S'}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{profile?.name || 'Student'}</h3>
+                      <h3 className="text-lg font-semibold">{profile?.name || 'Student'}</h3>
                       <p className="text-sm text-gray-500">{profile?.email}</p>
-                      <div className="flex gap-2 mt-2">
+                      <div className="mt-2 flex gap-2">
                         <Badge variant="secondary" className="text-xs">
-                          <GraduationCap className="w-3 h-3 mr-1" />
+                          <GraduationCap className="mr-1 h-3 w-3" />
                           Grade {profile?.profile?.gradeLevel || 'N/A'}
                         </Badge>
                         {gamification && (
                           <Badge variant="secondary" className="text-xs">
-                            <Zap className="w-3 h-3 mr-1" />
+                            <Zap className="mr-1 h-3 w-3" />
                             Level {gamification.level}
                           </Badge>
                         )}
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={() => setIsEditing(!isEditing)}
-                  >
-                    {isEditing ? <X className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                  <Button size="sm" variant="ghost" onClick={() => setIsEditing(!isEditing)}>
+                    {isEditing ? <X className="h-4 w-4" /> : <Edit3 className="h-4 w-4" />}
                   </Button>
                 </div>
               </CardHeader>
-              
+
               <CardContent>
                 {isEditing ? (
                   <div className="space-y-3">
@@ -235,7 +231,7 @@ export function StudentProfile() {
                       <Input
                         id="name"
                         value={editForm.name}
-                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                       />
                     </div>
                     <div>
@@ -243,7 +239,7 @@ export function StudentProfile() {
                       <Input
                         id="grade"
                         value={editForm.gradeLevel}
-                        onChange={(e) => setEditForm({ ...editForm, gradeLevel: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, gradeLevel: e.target.value })}
                       />
                     </div>
                     <div>
@@ -251,7 +247,7 @@ export function StudentProfile() {
                       <Input
                         id="school"
                         value={editForm.school}
-                        onChange={(e) => setEditForm({ ...editForm, school: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, school: e.target.value })}
                       />
                     </div>
                     <div>
@@ -259,11 +255,11 @@ export function StudentProfile() {
                       <Input
                         id="bio"
                         value={editForm.bio}
-                        onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                        onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
                       />
                     </div>
                     <Button onClick={handleSaveProfile} className="w-full">
-                      <Save className="w-4 h-4 mr-2" />
+                      <Save className="mr-2 h-4 w-4" />
                       Save Changes
                     </Button>
                   </div>
@@ -281,9 +277,11 @@ export function StudentProfile() {
                     )}
                     {gamification && (
                       <div className="mt-4">
-                        <div className="flex items-center justify-between text-sm mb-1">
+                        <div className="mb-1 flex items-center justify-between text-sm">
                           <span className="text-gray-500">XP Progress</span>
-                          <span className="font-medium">{gamification.xp} / {gamification.nextLevelXp} XP</span>
+                          <span className="font-medium">
+                            {gamification.xp} / {gamification.nextLevelXp} XP
+                          </span>
                         </div>
                         <Progress value={gamification.progress} className="h-2" />
                       </div>
@@ -299,7 +297,7 @@ export function StudentProfile() {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2">
-                      <Flame className="w-5 h-5 text-orange-500" />
+                      <Flame className="h-5 w-5 text-orange-500" />
                       <div>
                         <p className="text-2xl font-bold">{gamification.streakDays}</p>
                         <p className="text-xs text-gray-500">Day Streak</p>
@@ -310,7 +308,7 @@ export function StudentProfile() {
                 <Card>
                   <CardContent className="pt-4">
                     <div className="flex items-center gap-2">
-                      <Award className="w-5 h-5 text-yellow-500" />
+                      <Award className="h-5 w-5 text-yellow-500" />
                       <div>
                         <p className="text-2xl font-bold">{gamification.level}</p>
                         <p className="text-xs text-gray-500">Current Level</p>
@@ -330,7 +328,7 @@ export function StudentProfile() {
                   <Card>
                     <CardContent className="pt-4">
                       <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-blue-500" />
+                        <Clock className="h-5 w-5 text-blue-500" />
                         <div>
                           <p className="text-2xl font-bold">{stats.totalStudyTime}h</p>
                           <p className="text-xs text-gray-500">Total Study Time</p>
@@ -341,7 +339,7 @@ export function StudentProfile() {
                   <Card>
                     <CardContent className="pt-4">
                       <div className="flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-green-500" />
+                        <BookOpen className="h-5 w-5 text-green-500" />
                         <div>
                           <p className="text-2xl font-bold">{stats.lessonsCompleted}</p>
                           <p className="text-xs text-gray-500">Lessons Completed</p>
@@ -352,7 +350,7 @@ export function StudentProfile() {
                   <Card>
                     <CardContent className="pt-4">
                       <div className="flex items-center gap-2">
-                        <Target className="w-5 h-5 text-purple-500" />
+                        <Target className="h-5 w-5 text-purple-500" />
                         <div>
                           <p className="text-2xl font-bold">{stats.quizzesTaken}</p>
                           <p className="text-xs text-gray-500">Quizzes Taken</p>
@@ -363,7 +361,7 @@ export function StudentProfile() {
                   <Card>
                     <CardContent className="pt-4">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-cyan-500" />
+                        <TrendingUp className="h-5 w-5 text-cyan-500" />
                         <div>
                           <p className="text-2xl font-bold">{stats.averageScore}%</p>
                           <p className="text-xs text-gray-500">Average Score</p>
@@ -383,7 +381,7 @@ export function StudentProfile() {
                       <div className="space-y-3">
                         {Object.entries(gamification.skills).map(([skill, score]) => (
                           <div key={skill}>
-                            <div className="flex items-center justify-between text-sm mb-1">
+                            <div className="mb-1 flex items-center justify-between text-sm">
                               <span className="capitalize">{skill}</span>
                               <span className="font-medium">{score}%</span>
                             </div>
@@ -402,8 +400,8 @@ export function StudentProfile() {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Settings className="h-4 w-4" />
                   Preferences
                 </CardTitle>
               </CardHeader>
@@ -413,28 +411,36 @@ export function StudentProfile() {
                     <p className="font-medium">Email Notifications</p>
                     <p className="text-sm text-gray-500">Receive updates about your progress</p>
                   </div>
-                  <Button variant="outline" size="sm">Configure</Button>
+                  <Button variant="outline" size="sm">
+                    Configure
+                  </Button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Study Reminders</p>
                     <p className="text-sm text-gray-500">Daily reminders to maintain your streak</p>
                   </div>
-                  <Button variant="outline" size="sm">Configure</Button>
+                  <Button variant="outline" size="sm">
+                    Configure
+                  </Button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">AI Tutor Voice</p>
                     <p className="text-sm text-gray-500">Change voice and accent preferences</p>
                   </div>
-                  <Button variant="outline" size="sm">Change</Button>
+                  <Button variant="outline" size="sm">
+                    Change
+                  </Button>
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Privacy Settings</p>
                     <p className="text-sm text-gray-500">Manage your data and privacy</p>
                   </div>
-                  <Button variant="outline" size="sm">Manage</Button>
+                  <Button variant="outline" size="sm">
+                    Manage
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -444,10 +450,16 @@ export function StudentProfile() {
                 <CardTitle className="text-sm text-red-600">Danger Zone</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start text-red-600 hover:bg-red-50">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-red-600 hover:bg-red-50"
+                >
                   Reset All Progress
                 </Button>
-                <Button variant="outline" className="w-full justify-start text-red-600 hover:bg-red-50">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-red-600 hover:bg-red-50"
+                >
                   Delete Account
                 </Button>
               </CardContent>

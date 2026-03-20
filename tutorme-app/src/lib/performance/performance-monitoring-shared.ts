@@ -18,7 +18,14 @@ export function reportMetric(
   tags?: Record<string, string>
 ): void {
   try {
-    const m = (Sentry as { metrics?: { distribution?: (n: string, v: number, o?: object) => void; count?: (n: string, v?: number) => void } }).metrics
+    const m = (
+      Sentry as {
+        metrics?: {
+          distribution?: (n: string, v: number, o?: object) => void
+          count?: (n: string, v?: number) => void
+        }
+      }
+    ).metrics
     if (unit === 'count' && typeof m?.count === 'function') {
       m.count(name, value)
     } else if (typeof m?.distribution === 'function') {

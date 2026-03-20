@@ -4,29 +4,29 @@
  */
 
 // Types
-export * from './types';
+export * from './types'
 
 // Components
-export { QuickPollPanel } from './QuickPollPanel';
-export { PollCreator } from './PollCreator';
-export { ActivePollView } from './ActivePollView';
-export { PollResults } from './PollResults';
-export { PollHistory } from './PollHistory';
-export { PollTemplates } from './PollTemplates';
-export { StudentPollView } from './StudentPollView';
-export { StudentPollWidget } from './StudentPollWidget';
+export { QuickPollPanel } from './QuickPollPanel'
+export { PollCreator } from './PollCreator'
+export { ActivePollView } from './ActivePollView'
+export { PollResults } from './PollResults'
+export { PollHistory } from './PollHistory'
+export { PollTemplates } from './PollTemplates'
+export { StudentPollView } from './StudentPollView'
+export { StudentPollWidget } from './StudentPollWidget'
 
 // Hooks
-export { usePollSocket } from './hooks/usePollSocket';
+export { usePollSocket } from './hooks/usePollSocket'
 
 // Utils
-export { 
-  POLL_TEMPLATES, 
-  getTemplateById, 
+export {
+  POLL_TEMPLATES,
+  getTemplateById,
   getDefaultOptions,
-  getOptionColor 
-} from './utils/pollTemplates';
-export { 
+  getOptionColor,
+} from './utils/pollTemplates'
+export {
   calculatePollStatistics,
   updatePollWithStatistics,
   generateOptionLabel,
@@ -34,5 +34,5 @@ export {
   formatRemainingTime,
   isPollExpired,
   getWordCloudData,
-  hashString
-} from './utils/pollCalculations';
+  hashString,
+} from './utils/pollCalculations'

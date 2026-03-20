@@ -50,7 +50,7 @@ export async function getIpGeolocation(ip: string): Promise<GeoCoordinates | nul
     const response = await fetch(`/api/admin/geolocation?ip=${encodeURIComponent(ip)}`, {
       signal: AbortSignal.timeout(10000),
     })
-    
+
     if (!response.ok) {
       // If API fails, use mock coordinates
       const mockCoords = getRandomMockCoordinates()
@@ -97,12 +97,16 @@ export async function batchGetIpGeolocation(
 ): Promise<Map<string, GeoCoordinates>> {
   const results = new Map<string, GeoCoordinates>()
   const uncachedUsers: OnlineUser[] = []
-  
+
   // Check cache first
   for (const user of users) {
     if (geoCache.has(user.ip)) {
       results.set(user.id, geoCache.get(user.ip)!)
-    } else if (user.ip === '127.0.0.1' || user.ip.startsWith('192.168.') || user.ip.startsWith('10.')) {
+    } else if (
+      user.ip === '127.0.0.1' ||
+      user.ip.startsWith('192.168.') ||
+      user.ip.startsWith('10.')
+    ) {
       const mockCoords = getRandomMockCoordinates()
       geoCache.set(user.ip, mockCoords)
       results.set(user.id, mockCoords)
@@ -110,9 +114,9 @@ export async function batchGetIpGeolocation(
       uncachedUsers.push(user)
     }
   }
-  
+
   onProgress?.(results.size, users.length)
-  
+
   if (uncachedUsers.length === 0) {
     return results
   }
@@ -131,7 +135,7 @@ export async function batchGetIpGeolocation(
     }
 
     const data = await response.json()
-    
+
     if (data.results) {
       for (const user of uncachedUsers) {
         const coords = data.results[user.ip]
@@ -177,7 +181,7 @@ export function getRandomMockCoordinates(): GeoCoordinates {
   ]
 
   const region = regions[Math.floor(Math.random() * regions.length)]
-  
+
   return {
     lat: region.latRange[0] + Math.random() * (region.latRange[1] - region.latRange[0]),
     lon: region.lonRange[0] + Math.random() * (region.lonRange[1] - region.lonRange[0]),
@@ -189,12 +193,12 @@ export function getRandomMockCoordinates(): GeoCoordinates {
 /**
  * Spherical to Cartesian coordinate conversion
  * Converts latitude/longitude to 3D Vector3 position on a sphere
- * 
+ *
  * Formula:
  * x = -radius * sin(φ) * cos(θ)
  * y = radius * cos(φ)
  * z = radius * sin(φ) * sin(θ)
- * 
+ *
  * Where:
  * φ = (90 - lat) in radians (polar angle from positive y-axis)
  * θ = (lon + 180) in radians (azimuthal angle in x-z plane)

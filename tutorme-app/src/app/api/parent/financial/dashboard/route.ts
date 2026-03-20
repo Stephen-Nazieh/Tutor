@@ -13,10 +13,7 @@ import {
   computeFinancialSummary,
   getBudgetForCurrentMonth,
 } from '@/lib/financial/parent-financial-service'
-import {
-  generateRevenueForecast,
-  computeBudgetVsActual,
-} from '@/lib/financial/calculations'
+import { generateRevenueForecast, computeBudgetVsActual } from '@/lib/financial/calculations'
 import cacheManager from '@/lib/cache-manager'
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_PARENT_FINANCIAL || '120', 10)
@@ -27,10 +24,7 @@ export const GET = withAuth(
     try {
       const family = await getFamilyAccountForParent(session)
       if (!family) {
-        return NextResponse.json(
-          { error: '未找到家庭账户' },
-          { status: 404 }
-        )
+        return NextResponse.json({ error: '未找到家庭账户' }, { status: 404 })
       }
 
       const { searchParams } = new URL(req.url)
@@ -59,7 +53,7 @@ export const GET = withAuth(
           const budgetVsActual = computeBudgetVsActual(budget, actualSpent, family.defaultCurrency)
 
           const byMonth = payments
-            .filter((p) => ['COMPLETED', 'completed', 'paid'].includes(p.status))
+            .filter(p => ['COMPLETED', 'completed', 'paid'].includes(p.status))
             .reduce<Record<string, number>>((acc, p) => {
               const key = `${p.createdAt.getFullYear()}-${String(p.createdAt.getMonth() + 1).padStart(2, '0')}`
               acc[key] = (acc[key] ?? 0) + p.amount

@@ -36,7 +36,10 @@ describe('Poll detail route auth guards', () => {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({}),
     })
-    const res = await PATCH(req as NextRequest, { params: Promise.resolve({ pollId: 'p1' }) } as any)
+    const res = await PATCH(
+      req as NextRequest,
+      { params: Promise.resolve({ pollId: 'p1' }) } as any
+    )
 
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: 'Unauthorized' })
@@ -44,7 +47,10 @@ describe('Poll detail route auth guards', () => {
 
   it('DELETE returns 401 when unauthenticated', async () => {
     const req = new Request('http://localhost/api/polls/p1', { method: 'DELETE' })
-    const res = await DELETE(req as NextRequest, { params: Promise.resolve({ pollId: 'p1' }) } as any)
+    const res = await DELETE(
+      req as NextRequest,
+      { params: Promise.resolve({ pollId: 'p1' }) } as any
+    )
 
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: 'Unauthorized' })

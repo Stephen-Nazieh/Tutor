@@ -7,9 +7,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { BookOpen, Compass, ExternalLink, Search, Sparkles, Users, Star, Heart } from 'lucide-react'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
@@ -59,7 +71,7 @@ interface SubjectInfo {
 function getInitials(name: string): string {
   return name
     .split(' ')
-    .map((part) => part[0] || '')
+    .map(part => part[0] || '')
     .join('')
     .slice(0, 2)
     .toUpperCase()
@@ -70,9 +82,7 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
     <div className="flex items-center gap-1">
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
       <span className="font-medium">{rating.toFixed(1)}</span>
-      {count !== undefined && (
-        <span className="text-muted-foreground text-sm">({count})</span>
-      )}
+      {count !== undefined && <span className="text-sm text-muted-foreground">({count})</span>}
     </div>
   )
 }
@@ -93,7 +103,7 @@ export default function StudentTutorDirectoryPage() {
 
   // Theme state with localStorage persistence
   const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find((theme) => theme.id === themeId) ?? DASHBOARD_THEMES[0]
+  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
   const themeStyle = getThemeStyle(selectedTheme)
 
   useEffect(() => {
@@ -122,7 +132,7 @@ export default function StudentTutorDirectoryPage() {
 
   // Save favorites to localStorage
   const toggleFavorite = (tutorId: string) => {
-    setFavorites((prev) => {
+    setFavorites(prev => {
       const next = new Set(prev)
       if (next.has(tutorId)) {
         next.delete(tutorId)
@@ -157,21 +167,23 @@ export default function StudentTutorDirectoryPage() {
         if (!res.ok) throw new Error('Failed to load tutors')
         const data = await res.json()
         if (!active) return
-        
+
         // Enrich with mock ratings for now
-        const enrichedTutors = (Array.isArray(data?.tutors) ? data.tutors : []).map((tutor: TutorDirectoryItem) => ({
-          ...tutor,
-          averageRating: 4.5 + Math.random() * 0.5,
-          totalReviewCount: Math.floor(Math.random() * 100) + 10,
-          coursePreview: tutor.coursePreview.map(course => ({
-            ...course,
-            rating: 4.2 + Math.random() * 0.8,
-            reviewCount: Math.floor(Math.random() * 50) + 5,
-            price: course.price || Math.floor(Math.random() * 100) + 50,
-            currency: course.currency || 'USD'
-          }))
-        }))
-        
+        const enrichedTutors = (Array.isArray(data?.tutors) ? data.tutors : []).map(
+          (tutor: TutorDirectoryItem) => ({
+            ...tutor,
+            averageRating: 4.5 + Math.random() * 0.5,
+            totalReviewCount: Math.floor(Math.random() * 100) + 10,
+            coursePreview: tutor.coursePreview.map(course => ({
+              ...course,
+              rating: 4.2 + Math.random() * 0.8,
+              reviewCount: Math.floor(Math.random() * 50) + 5,
+              price: course.price || Math.floor(Math.random() * 100) + 50,
+              currency: course.currency || 'USD',
+            })),
+          })
+        )
+
         setTutors(enrichedTutors)
         setSubjects(Array.isArray(data?.availableSubjects) ? data.availableSubjects : [])
         setDataSource(data?.source === 'mock' ? 'mock' : 'db')
@@ -208,35 +220,39 @@ export default function StudentTutorDirectoryPage() {
       existing.push(course)
       groups.set(course.subject, existing)
     })
-    
+
     return Array.from(groups.entries()).map(([name, courses]) => ({
       name,
       courses,
       averageRate: courses.reduce((sum, c) => sum + (c.price || 0), 0) / courses.length,
       averageRating: courses.reduce((sum, c) => sum + (c.rating || 0), 0) / courses.length,
-      totalReviews: courses.reduce((sum, c) => sum + (c.reviewCount || 0), 0)
+      totalReviews: courses.reduce((sum, c) => sum + (c.reviewCount || 0), 0),
     }))
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground w-full space-y-6 p-4 sm:p-6" style={themeStyle}>
-      <Card className="overflow-hidden border-border shadow-sm bg-card">
-        <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 dark:from-sky-950/30 dark:via-cyan-950/30 dark:to-emerald-950/30 p-6 sm:p-8">
+    <div
+      className="min-h-screen w-full space-y-6 bg-background p-4 text-foreground sm:p-6"
+      style={themeStyle}
+    >
+      <Card className="overflow-hidden border-border bg-card shadow-sm">
+        <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 p-6 dark:from-sky-950/30 dark:via-cyan-950/30 dark:to-emerald-950/30 sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Find Your Tutor</h1>
               <p className="max-w-2xl text-sm text-muted-foreground">
-                Explore tutor profiles, compare subjects and courses, and open any tutor profile instantly.
+                Explore tutor profiles, compare subjects and courses, and open any tutor profile
+                instantly.
               </p>
             </div>
             <div className="flex items-center gap-3">
               {/* Theme Selector */}
               <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger className="h-9 w-[150px] border-border bg-background text-foreground text-xs">
+                <SelectTrigger className="h-9 w-[150px] border-border bg-background text-xs text-foreground">
                   <SelectValue placeholder="Theme" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DASHBOARD_THEMES.map((theme) => (
+                  {DASHBOARD_THEMES.map(theme => (
                     <SelectItem key={theme.id} value={theme.id}>
                       {theme.name}
                     </SelectItem>
@@ -255,20 +271,30 @@ export default function StudentTutorDirectoryPage() {
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3 sm:p-6">
           <div className="rounded-lg border border-border bg-card p-3">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Tutors</p>
-            <p className="mt-1 text-xl font-semibold text-foreground">{headlineMetrics.tutorCount}</p>
+            <p className="mt-1 text-xl font-semibold text-foreground">
+              {headlineMetrics.tutorCount}
+            </p>
           </div>
           <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Published Courses</p>
-            <p className="mt-1 text-xl font-semibold text-foreground">{headlineMetrics.totalCourses}</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Published Courses
+            </p>
+            <p className="mt-1 text-xl font-semibold text-foreground">
+              {headlineMetrics.totalCourses}
+            </p>
           </div>
           <div className="rounded-lg border border-border bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Enrollments</p>
-            <p className="mt-1 text-xl font-semibold text-foreground">{headlineMetrics.totalEnrollments}</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              Total Enrollments
+            </p>
+            <p className="mt-1 text-xl font-semibold text-foreground">
+              {headlineMetrics.totalEnrollments}
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border">
+      <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Search & Filter</CardTitle>
           <CardDescription>
@@ -281,7 +307,7 @@ export default function StudentTutorDirectoryPage() {
             <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
             <Input
               value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+              onChange={event => setSearchQuery(event.target.value)}
               placeholder="Search tutor, subject, specialty..."
               className="pl-9"
             />
@@ -292,14 +318,14 @@ export default function StudentTutorDirectoryPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Subjects</SelectItem>
-              {subjects.map((subject) => (
+              {subjects.map(subject => (
                 <SelectItem key={subject} value={subject.toLowerCase()}>
                   {subject}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
+          <Select value={sortBy} onValueChange={value => setSortBy(value as typeof sortBy)}>
             <SelectTrigger>
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -316,7 +342,7 @@ export default function StudentTutorDirectoryPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
-            <Card key={`loading-${index}`} className="animate-pulse bg-card border-border">
+            <Card key={`loading-${index}`} className="animate-pulse border-border bg-card">
               <CardHeader className="space-y-3">
                 <div className="h-6 w-2/3 rounded bg-muted" />
                 <div className="h-4 w-1/2 rounded bg-muted" />
@@ -328,39 +354,45 @@ export default function StudentTutorDirectoryPage() {
             </Card>
           ))
         ) : tutors.length === 0 ? (
-          <Card className="col-span-full bg-card border-border">
+          <Card className="col-span-full border-border bg-card">
             <CardHeader>
-              <CardTitle className="text-foreground">No tutors match your current filters</CardTitle>
-              <CardDescription>Try broadening search terms or selecting a different subject.</CardDescription>
+              <CardTitle className="text-foreground">
+                No tutors match your current filters
+              </CardTitle>
+              <CardDescription>
+                Try broadening search terms or selecting a different subject.
+              </CardDescription>
             </CardHeader>
           </Card>
         ) : (
-          tutors.map((tutor) => (
-            <Card 
-              key={tutor.id} 
+          tutors.map(tutor => (
+            <Card
+              key={tutor.id}
               className={cn(
-                "h-full transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer relative",
-                "bg-card border-border"
+                'relative h-full cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md',
+                'border-border bg-card'
               )}
               onClick={() => setActiveTutor(tutor)}
             >
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation()
                   toggleFavorite(tutor.id)
                 }}
-                className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-muted transition-colors"
+                className="absolute right-3 top-3 z-10 rounded-full p-2 transition-colors hover:bg-muted"
               >
-                <Heart 
-                  className={`h-5 w-5 ${favorites.has(tutor.id) ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} 
+                <Heart
+                  className={`h-5 w-5 ${favorites.has(tutor.id) ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
                 />
               </button>
               <CardHeader className="space-y-3">
                 <div className="flex items-start gap-3">
                   <Avatar className="h-12 w-12 border border-border">
                     <AvatarImage src={tutor.avatarUrl || undefined} alt={`${tutor.name} avatar`} />
-                    <AvatarFallback className="bg-muted text-foreground">{getInitials(tutor.name)}</AvatarFallback>
+                    <AvatarFallback className="bg-muted text-foreground">
+                      {getInitials(tutor.name)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 pr-8">
                     <CardTitle className="truncate text-lg text-foreground">{tutor.name}</CardTitle>
@@ -378,19 +410,23 @@ export default function StudentTutorDirectoryPage() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {tutor.subjects.slice(0, 3).map((subject) => (
+                  {tutor.subjects.slice(0, 3).map(subject => (
                     <Badge key={`${tutor.id}:${subject}`} variant="secondary" className="bg-muted">
                       {subject}
                     </Badge>
                   ))}
-                  {tutor.subjects.length > 3 ? <Badge variant="outline" className="border-border">+{tutor.subjects.length - 3}</Badge> : null}
+                  {tutor.subjects.length > 3 ? (
+                    <Badge variant="outline" className="border-border">
+                      +{tutor.subjects.length - 3}
+                    </Badge>
+                  ) : null}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="rounded-md border border-border p-2 bg-muted/30">
+                  <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-muted-foreground">Courses</p>
                     <p className="font-semibold text-foreground">{tutor.courseCount}</p>
                   </div>
-                  <div className="rounded-md border border-border p-2 bg-muted/30">
+                  <div className="rounded-md border border-border bg-muted/30 p-2">
                     <p className="text-muted-foreground">Enrollments</p>
                     <p className="font-semibold text-foreground">{tutor.totalEnrollments}</p>
                   </div>
@@ -401,15 +437,20 @@ export default function StudentTutorDirectoryPage() {
         )}
       </div>
 
-      <Dialog open={Boolean(activeTutor)} onOpenChange={(open) => !open && setActiveTutor(null)}>
-        <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl bg-card border-border">
+      <Dialog open={Boolean(activeTutor)} onOpenChange={open => !open && setActiveTutor(null)}>
+        <DialogContent className="max-h-[88vh] overflow-y-auto border-border bg-card sm:max-w-3xl">
           {activeTutor ? (
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-3 text-foreground">
                   <Avatar className="h-10 w-10 border border-border">
-                    <AvatarImage src={activeTutor.avatarUrl || undefined} alt={`${activeTutor.name} avatar`} />
-                    <AvatarFallback className="bg-muted">{getInitials(activeTutor.name)}</AvatarFallback>
+                    <AvatarImage
+                      src={activeTutor.avatarUrl || undefined}
+                      alt={`${activeTutor.name} avatar`}
+                    />
+                    <AvatarFallback className="bg-muted">
+                      {getInitials(activeTutor.name)}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <span>{activeTutor.name}</span>
@@ -417,7 +458,9 @@ export default function StudentTutorDirectoryPage() {
                       <div className="flex items-center gap-1 text-sm font-normal">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span>{activeTutor.averageRating.toFixed(1)}</span>
-                        <span className="text-muted-foreground">({activeTutor.totalReviewCount} reviews)</span>
+                        <span className="text-muted-foreground">
+                          ({activeTutor.totalReviewCount} reviews)
+                        </span>
                       </div>
                     )}
                   </div>
@@ -431,15 +474,19 @@ export default function StudentTutorDirectoryPage() {
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-md border border-border p-3 bg-muted/30">
+                  <div className="rounded-md border border-border bg-muted/30 p-3">
                     <p className="text-xs text-muted-foreground">Courses</p>
-                    <p className="text-lg font-semibold text-foreground">{activeTutor.courseCount}</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {activeTutor.courseCount}
+                    </p>
                   </div>
-                  <div className="rounded-md border border-border p-3 bg-muted/30">
+                  <div className="rounded-md border border-border bg-muted/30 p-3">
                     <p className="text-xs text-muted-foreground">Enrollments</p>
-                    <p className="text-lg font-semibold text-foreground">{activeTutor.totalEnrollments}</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {activeTutor.totalEnrollments}
+                    </p>
                   </div>
-                  <div className="rounded-md border border-border p-3 bg-muted/30">
+                  <div className="rounded-md border border-border bg-muted/30 p-3">
                     <p className="text-xs text-muted-foreground">Rating</p>
                     <p className="text-lg font-semibold text-foreground">
                       {activeTutor.averageRating?.toFixed(1) || 'N/A'}
@@ -450,8 +497,15 @@ export default function StudentTutorDirectoryPage() {
                 <div>
                   <p className="mb-2 text-sm font-medium text-foreground">Specialties</p>
                   <div className="flex flex-wrap gap-2">
-                    {(activeTutor.specialties.length > 0 ? activeTutor.specialties : ['General Tutoring']).map((specialty) => (
-                      <Badge key={`${activeTutor.id}:${specialty}`} variant="secondary" className="bg-muted">
+                    {(activeTutor.specialties.length > 0
+                      ? activeTutor.specialties
+                      : ['General Tutoring']
+                    ).map(specialty => (
+                      <Badge
+                        key={`${activeTutor.id}:${specialty}`}
+                        variant="secondary"
+                        className="bg-muted"
+                      >
                         <Sparkles className="mr-1 h-3 w-3" />
                         {specialty}
                       </Badge>
@@ -461,12 +515,19 @@ export default function StudentTutorDirectoryPage() {
 
                 <div className="space-y-3">
                   <p className="text-sm font-medium text-foreground">Subjects & Courses</p>
-                  {getSubjectGroups(activeTutor).map((subject) => (
-                    <div key={subject.name} className="rounded-lg border border-border p-3 bg-muted/10">
-                      <div className="flex items-center justify-between mb-2">
+                  {getSubjectGroups(activeTutor).map(subject => (
+                    <div
+                      key={subject.name}
+                      className="rounded-lg border border-border bg-muted/10 p-3"
+                    >
+                      <div className="mb-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="bg-muted">{subject.name}</Badge>
-                          <span className="text-xs text-muted-foreground">{subject.courses.length} courses</span>
+                          <Badge variant="secondary" className="bg-muted">
+                            {subject.name}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {subject.courses.length} courses
+                          </span>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                           <StarRating rating={subject.averageRating} count={subject.totalReviews} />
@@ -476,13 +537,17 @@ export default function StudentTutorDirectoryPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        {subject.courses.slice(0, 3).map((course) => (
-                          <div key={course.id} className="flex items-center justify-between text-sm">
+                        {subject.courses.slice(0, 3).map(course => (
+                          <div
+                            key={course.id}
+                            className="flex items-center justify-between text-sm"
+                          >
                             <span className="text-muted-foreground">{course.name}</span>
                             <div className="flex items-center gap-2">
                               <StarRating rating={course.rating || 0} count={course.reviewCount} />
-                              <span className="text-foreground font-medium">
-                                ${course.price}{course.currency}
+                              <span className="font-medium text-foreground">
+                                ${course.price}
+                                {course.currency}
                               </span>
                             </div>
                           </div>
@@ -504,11 +569,10 @@ export default function StudentTutorDirectoryPage() {
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => toggleFavorite(activeTutor.id)}
-                  >
-                    <Heart className={`mr-2 h-4 w-4 ${favorites.has(activeTutor.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                  <Button variant="outline" onClick={() => toggleFavorite(activeTutor.id)}>
+                    <Heart
+                      className={`mr-2 h-4 w-4 ${favorites.has(activeTutor.id) ? 'fill-red-500 text-red-500' : ''}`}
+                    />
                     {favorites.has(activeTutor.id) ? 'Favorited' : 'Add to Favorites'}
                   </Button>
                 </div>

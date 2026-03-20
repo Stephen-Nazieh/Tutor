@@ -1,6 +1,6 @@
 /**
  * Connector Pathfinding v2 - A* Grid Routing with Crossing Minimization
- * 
+ *
  * Features:
  * - A* pathfinding on a grid-based routing space
  * - Orthogonal (Manhattan) routing with segment optimization
@@ -95,12 +95,7 @@ function isPointInRect(point: Point, rect: Rect, padding: number = 0): boolean {
 /**
  * Check if a line segment intersects with a rectangle
  */
-function lineIntersectsRect(
-  p1: Point,
-  p2: Point,
-  rect: Rect,
-  padding: number = 0
-): boolean {
+function lineIntersectsRect(p1: Point, p2: Point, rect: Rect, padding: number = 0): boolean {
   const left = rect.x - padding
   const right = rect.x + rect.width + padding
   const top = rect.y - padding
@@ -119,7 +114,7 @@ function lineIntersectsRect(
     { p1: { x: left, y: bottom }, p2: { x: left, y: top } }, // Left
   ]
 
-  return edges.some((edge) => segmentsIntersect(p1, p2, edge.p1, edge.p2))
+  return edges.some(edge => segmentsIntersect(p1, p2, edge.p1, edge.p2))
 }
 
 /**
@@ -145,11 +140,7 @@ function manhattanDistance(a: Point, b: Point): number {
 /**
  * Check if a path segment crosses any existing path
  */
-function countCrossings(
-  p1: Point,
-  p2: Point,
-  existingPaths: Point[][]
-): number {
+function countCrossings(p1: Point, p2: Point, existingPaths: Point[][]): number {
   let crossings = 0
   for (const path of existingPaths) {
     for (let i = 0; i < path.length - 1; i++) {
@@ -188,20 +179,17 @@ export function findOrthogonalPath(
   }
 
   // Check for simple direct path (no obstacles)
-  const canGoDirect = !avoidShapes.some((shape) =>
-    lineIntersectsRect(start, end, shape, padding)
-  )
+  const canGoDirect = !avoidShapes.some(shape => lineIntersectsRect(start, end, shape, padding))
 
   if (canGoDirect) {
     // Try simple orthogonal paths first (L-shaped or direct)
     const directPaths = generateSimpleOrthogonalPaths(start, end, preferHorizontal)
     const validDirectPath = directPaths.find(
-      (path) =>
-        !path.some((point, i) =>
-          i > 0 &&
-          avoidShapes.some((shape) =>
-            lineIntersectsRect(path[i - 1], point, shape, padding)
-          )
+      path =>
+        !path.some(
+          (point, i) =>
+            i > 0 &&
+            avoidShapes.some(shape => lineIntersectsRect(path[i - 1], point, shape, padding))
         )
     )
     if (validDirectPath) {
@@ -240,10 +228,7 @@ export function findOrthogonalPath(
     closedSet.add(currentKey)
 
     // Check if we reached the target
-    if (
-      Math.abs(current.x - endGrid.x) < gridSize &&
-      Math.abs(current.y - endGrid.y) < gridSize
-    ) {
+    if (Math.abs(current.x - endGrid.x) < gridSize && Math.abs(current.y - endGrid.y) < gridSize) {
       const path = reconstructPath(current, end)
       return {
         points: path,
@@ -268,18 +253,16 @@ export function findOrthogonalPath(
       const moveDirection: 'horizontal' | 'vertical' =
         neighbor.x !== current.x ? 'horizontal' : 'vertical'
 
-      const intersectsObstacle = avoidShapes.some((shape) =>
+      const intersectsObstacle = avoidShapes.some(shape =>
         lineIntersectsRect(current, neighbor, shape, padding)
       )
 
       if (intersectsObstacle) continue
 
       // Calculate costs
-      const directionChange =
-        current.direction && current.direction !== moveDirection
+      const directionChange = current.direction && current.direction !== moveDirection
       const directionPenalty = directionChange ? DIRECTION_CHANGE_PENALTY : 0
-      const preferencePenalty =
-        preferHorizontal && moveDirection === 'vertical' ? 5 : 0
+      const preferencePenalty = preferHorizontal && moveDirection === 'vertical' ? 5 : 0
 
       // Count crossings with existing paths
       const crossings = countCrossings(current, neighbor, existingPaths)
@@ -289,9 +272,7 @@ export function findOrthogonalPath(
       const h = manhattanDistance(neighbor, endGrid)
       const f = g + h
 
-      const existingNeighbor = openSet.find(
-        (n) => n.x === neighbor.x && n.y === neighbor.y
-      )
+      const existingNeighbor = openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)
 
       if (!existingNeighbor || g < existingNeighbor.g) {
         const newNode: PathNode = {
@@ -335,30 +316,14 @@ function generateSimpleOrthogonalPaths(
 
   if (preferHorizontal) {
     // Horizontal then vertical
-    paths.push([
-      start,
-      { x: end.x, y: start.y },
-      end,
-    ])
+    paths.push([start, { x: end.x, y: start.y }, end])
     // Vertical then horizontal
-    paths.push([
-      start,
-      { x: start.x, y: end.y },
-      end,
-    ])
+    paths.push([start, { x: start.x, y: end.y }, end])
   } else {
     // Vertical then horizontal
-    paths.push([
-      start,
-      { x: start.x, y: end.y },
-      end,
-    ])
+    paths.push([start, { x: start.x, y: end.y }, end])
     // Horizontal then vertical
-    paths.push([
-      start,
-      { x: end.x, y: start.y },
-      end,
-    ])
+    paths.push([start, { x: end.x, y: start.y }, end])
   }
 
   // Direct diagonal (if allowed)
@@ -421,8 +386,10 @@ export function optimizePath(points: Point[]): Point[] {
 
     // Find the farthest point that can be reached directly
     while (j > i + 1) {
-      if (isCollinear(points[i], points[i + 1], points[j]) ||
-          canConnectDirectly(points[i], points[j], points.slice(i + 1, j))) {
+      if (
+        isCollinear(points[i], points[i + 1], points[j]) ||
+        canConnectDirectly(points[i], points[j], points.slice(i + 1, j))
+      ) {
         break
       }
       j--
@@ -496,12 +463,12 @@ export function routeMultipleConnectors(
     // Build obstacles from other shapes (excluding source and target)
     const otherRects = connections
       .filter(
-        (c) =>
+        c =>
           c.id !== connection.id &&
           c.source.rect !== connection.source.rect &&
           c.target.rect !== connection.target.rect
       )
-      .map((c) => [c.source.rect, c.target.rect])
+      .map(c => [c.source.rect, c.target.rect])
       .flat()
 
     const path = findOrthogonalPath(start, end, {

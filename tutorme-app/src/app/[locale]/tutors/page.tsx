@@ -26,7 +26,7 @@ interface PublicTutorSummary {
 function initials(name: string) {
   return name
     .split(' ')
-    .map((part) => part[0] || '')
+    .map(part => part[0] || '')
     .join('')
     .slice(0, 2)
     .toUpperCase()
@@ -46,7 +46,9 @@ export default function PublicTutorDirectoryPage() {
     const timeout = setTimeout(async () => {
       setLoading(true)
       try {
-        const res = await fetch(`/api/public/tutors?q=${encodeURIComponent(query)}`, { cache: 'no-store' })
+        const res = await fetch(`/api/public/tutors?q=${encodeURIComponent(query)}`, {
+          cache: 'no-store',
+        })
         const data = await res.json().catch(() => ({}))
         if (!active) return
         setTutors(Array.isArray(data?.tutors) ? data.tutors : [])
@@ -77,7 +79,7 @@ export default function PublicTutorDirectoryPage() {
               <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={e => setSearch(e.target.value)}
                 placeholder="Search by name, subject, or handle"
                 className="pl-9"
               />
@@ -88,14 +90,16 @@ export default function PublicTutorDirectoryPage() {
           </div>
 
           {loading ? (
-            <div className="rounded-lg border bg-white p-6 text-sm text-muted-foreground">Loading tutors...</div>
+            <div className="rounded-lg border bg-white p-6 text-sm text-muted-foreground">
+              Loading tutors...
+            </div>
           ) : tutors.length === 0 ? (
             <div className="rounded-lg border bg-white p-6 text-sm text-muted-foreground">
               No tutors found. Try a different search.
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {tutors.map((tutor) => (
+              {tutors.map(tutor => (
                 <Card key={tutor.id} className="border border-slate-200">
                   <CardContent className="space-y-3 p-4">
                     <div className="flex items-center gap-3">
@@ -104,22 +108,34 @@ export default function PublicTutorDirectoryPage() {
                         <AvatarFallback>{initials(tutor.name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="truncate text-base font-semibold text-slate-900">{tutor.name}</p>
+                        <p className="truncate text-base font-semibold text-slate-900">
+                          {tutor.name}
+                        </p>
                         <p className="text-sm text-slate-500">@{tutor.username}</p>
                       </div>
                     </div>
-                    <p className="line-clamp-2 text-sm text-slate-600">{tutor.bio || 'Tutor profile available.'}</p>
+                    <p className="line-clamp-2 text-sm text-slate-600">
+                      {tutor.bio || 'Tutor profile available.'}
+                    </p>
                     <div className="flex flex-wrap gap-1">
-                      {tutor.specialties.slice(0, 3).map((specialty) => (
+                      {tutor.specialties.slice(0, 3).map(specialty => (
                         <Badge key={specialty} variant="secondary">
                           {specialty}
                         </Badge>
                       ))}
-                      {tutor.specialties.length === 0 ? <Badge variant="outline">General</Badge> : null}
+                      {tutor.specialties.length === 0 ? (
+                        <Badge variant="outline">General</Badge>
+                      ) : null}
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />{tutor.totalEnrollments} students</span>
-                      <span className="flex items-center gap-1"><Compass className="h-3 w-3" />{tutor.courseCount} courses</span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {tutor.totalEnrollments} students
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Compass className="h-3 w-3" />
+                        {tutor.courseCount} courses
+                      </span>
                     </div>
                     <Button asChild size="sm" className="w-full">
                       <Link href={`/${locale}/u/${tutor.username}`}>View Profile</Link>

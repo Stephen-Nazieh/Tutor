@@ -1,7 +1,7 @@
 /**
  * File Upload API for Message Attachments
  * POST /api/conversations/upload
- * 
+ *
  * Upload files to be attached to messages
  * Supports: images, documents, PDFs
  * Max file size: 10MB
@@ -36,10 +36,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
     const file = formData.get('file') as File | null
 
     if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     }
 
     // Validate file type
@@ -53,10 +50,7 @@ export const POST = withAuth(async (req: NextRequest, session) => {
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: 'File too large', maxSize: '10MB' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'File too large', maxSize: '10MB' }, { status: 400 })
     }
 
     // Generate unique filename

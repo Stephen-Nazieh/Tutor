@@ -11,18 +11,18 @@ interface ReactionsOverlayProps {
 
 export function ReactionsOverlay({ reactions, onSelect, onClose }: ReactionsOverlayProps) {
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50">
-      <div className="bg-gray-800 rounded-full px-4 py-2 shadow-2xl border border-gray-700 flex items-center gap-2">
-        {reactions.map((emoji) => (
+    <div className="absolute bottom-20 left-1/2 z-50 -translate-x-1/2">
+      <div className="flex items-center gap-2 rounded-full border border-gray-700 bg-gray-800 px-4 py-2 shadow-2xl">
+        {reactions.map(emoji => (
           <button
             key={emoji}
             onClick={() => onSelect(emoji)}
-            className="text-2xl hover:scale-150 transition-transform duration-200 p-1"
+            className="p-1 text-2xl transition-transform duration-200 hover:scale-150"
           >
             {emoji}
           </button>
         ))}
-        <div className="w-px h-6 bg-gray-600 mx-1" />
+        <div className="mx-1 h-6 w-px bg-gray-600" />
         <Button
           variant="ghost"
           size="sm"

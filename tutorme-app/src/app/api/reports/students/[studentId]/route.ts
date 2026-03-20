@@ -6,9 +6,11 @@
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
-import { getStudentPerformance, getQuestionLevelBreakdown } from '@/lib/performance/student-analytics'
+import {
+  getStudentPerformance,
+  getQuestionLevelBreakdown,
+} from '@/lib/performance/student-analytics'
 import { tutorHasStudent } from '@/lib/security/tutor-student-access'
-
 
 export const GET = withAuth(async (req, session, context) => {
   const studentId = await getParamAsync(context?.params, 'studentId')
@@ -39,14 +41,38 @@ export const GET = withAuth(async (req, session, context) => {
   // Format data for charts
   const scoreDistribution = [
     { range: '0-59', count: performance.overallMetrics.averageScore < 60 ? 1 : 0 },
-    { range: '60-69', count: performance.overallMetrics.averageScore >= 60 && performance.overallMetrics.averageScore < 70 ? 1 : 0 },
-    { range: '70-79', count: performance.overallMetrics.averageScore >= 70 && performance.overallMetrics.averageScore < 80 ? 1 : 0 },
-    { range: '80-89', count: performance.overallMetrics.averageScore >= 80 && performance.overallMetrics.averageScore < 90 ? 1 : 0 },
+    {
+      range: '60-69',
+      count:
+        performance.overallMetrics.averageScore >= 60 &&
+        performance.overallMetrics.averageScore < 70
+          ? 1
+          : 0,
+    },
+    {
+      range: '70-79',
+      count:
+        performance.overallMetrics.averageScore >= 70 &&
+        performance.overallMetrics.averageScore < 80
+          ? 1
+          : 0,
+    },
+    {
+      range: '80-89',
+      count:
+        performance.overallMetrics.averageScore >= 80 &&
+        performance.overallMetrics.averageScore < 90
+          ? 1
+          : 0,
+    },
     { range: '90-100', count: performance.overallMetrics.averageScore >= 90 ? 1 : 0 },
   ]
 
-  const trendData = performance.taskHistory.map((task) => ({
-    date: new Date(task.completedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+  const trendData = performance.taskHistory.map(task => ({
+    date: new Date(task.completedAt).toLocaleDateString('zh-CN', {
+      month: 'short',
+      day: 'numeric',
+    }),
     score: task.score,
   }))
 
@@ -64,7 +90,9 @@ export const GET = withAuth(async (req, session, context) => {
     performance.overallMetrics.averageScore
   )
 
-  const questionLevel = includeQuestionLevel ? await getQuestionLevelBreakdown(studentId) : undefined
+  const questionLevel = includeQuestionLevel
+    ? await getQuestionLevelBreakdown(studentId)
+    : undefined
 
   return NextResponse.json({
     success: true,
@@ -86,7 +114,7 @@ export const GET = withAuth(async (req, session, context) => {
       weaknesses: performance.subjectWeaknesses,
       recommendations: generateRecommendations(performance),
       ...(questionLevel && { questionLevel }),
-    }
+    },
   })
 })
 
@@ -127,7 +155,11 @@ function generateRecommendations(performance: RecommendationMetrics): string[] {
   return recommendations
 }
 
-function buildTopicMastery(strengths: string[], weaknesses: string[], averageScore: number): Array<{ topic: string; mastery: number }> {
+function buildTopicMastery(
+  strengths: string[],
+  weaknesses: string[],
+  averageScore: number
+): Array<{ topic: string; mastery: number }> {
   const strengthBase = Math.max(70, Math.min(98, Math.round(averageScore + 12)))
   const weaknessBase = Math.max(20, Math.min(65, Math.round(averageScore - 18)))
 

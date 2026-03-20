@@ -24,7 +24,14 @@ interface UseSocketOptions {
   onCodeUpdate?: (data: { content: string; language: string; userId: string }) => void
   onBreakoutInvite?: (data: { roomId: string; roomUrl: string; tutorName: string }) => void
   onBreakoutRoomUpdate?: (rooms: BreakoutRoom[]) => void
-  onBreakoutMessage?: (message: { id: string; senderId: string; senderName: string; content: string; timestamp: number; isAi?: boolean }) => void
+  onBreakoutMessage?: (message: {
+    id: string
+    senderId: string
+    senderName: string
+    content: string
+    timestamp: number
+    isAi?: boolean
+  }) => void
   onNotification?: (notification: { type: string; message: string }) => void
   onRoomState?: (state: {
     students: StudentState[]
@@ -41,20 +48,20 @@ export function useSocket(options?: UseSocketOptions) {
   useEffect(() => {
     let socket: Socket
     let connectionTimeout: NodeJS.Timeout | null = null
-    
+
     const connect = async () => {
       // Don't attempt connection if required options are missing
       if (!options?.roomId || !options?.userId) {
         setError('Missing connection options')
         return
       }
-      
-      const token = await import('@/lib/socket-auth').then((m) => m.getSocketToken(5000))
+
+      const token = await import('@/lib/socket-auth').then(m => m.getSocketToken(5000))
       if (!token) {
         setError('Authentication required')
         return
       }
-      
+
       socket = io({
         path: '/api/socket',
         transports: ['websocket', 'polling'],
@@ -64,7 +71,7 @@ export function useSocket(options?: UseSocketOptions) {
         reconnectionDelay: 1000,
       })
       socketRef.current = socket
-      
+
       // Set connection timeout
       connectionTimeout = setTimeout(() => {
         if (!socket.connected) {
@@ -73,98 +80,97 @@ export function useSocket(options?: UseSocketOptions) {
         }
       }, 10000)
 
-    socket.on('connect', () => {
-      console.log('Socket connected:', socket.id)
-      setIsConnected(true)
-      setError(null)
-      if (connectionTimeout) clearTimeout(connectionTimeout)
+      socket.on('connect', () => {
+        console.log('Socket connected:', socket.id)
+        setIsConnected(true)
+        setError(null)
+        if (connectionTimeout) clearTimeout(connectionTimeout)
 
-      // Join class room only when identity context is provided.
-      if (options?.roomId && options.userId && options.name && options.role) {
-        socket.emit('join_class', {
-          roomId: options.roomId,
-          userId: options.userId,
-          name: options.name,
-          role: options.role,
-          tutorId: options.tutorId
-        })
-      }
-    })
+        // Join class room only when identity context is provided.
+        if (options?.roomId && options.userId && options.name && options.role) {
+          socket.emit('join_class', {
+            roomId: options.roomId,
+            userId: options.userId,
+            name: options.name,
+            role: options.role,
+            tutorId: options.tutorId,
+          })
+        }
+      })
 
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected')
-      setIsConnected(false)
-    })
+      socket.on('disconnect', () => {
+        console.log('Socket disconnected')
+        setIsConnected(false)
+      })
 
-    socket.on('connect_error', (err) => {
-      console.error('Socket connection error:', err)
-      setError(err.message)
-      setIsConnected(false)
-    })
+      socket.on('connect_error', err => {
+        console.error('Socket connection error:', err)
+        setError(err.message)
+        setIsConnected(false)
+      })
 
-    // Room state (initial load)
-    socket.on('room_state', (state) => {
-      options?.onRoomState?.(state)
-    })
+      // Room state (initial load)
+      socket.on('room_state', state => {
+        options?.onRoomState?.(state)
+      })
 
-    // Student events
-    socket.on('student_joined', (data) => {
-      options?.onStudentJoined?.(data.state)
-    })
+      // Student events
+      socket.on('student_joined', data => {
+        options?.onStudentJoined?.(data.state)
+      })
 
-    socket.on('student_left', (data) => {
-      options?.onStudentLeft?.(data.userId)
-    })
+      socket.on('student_left', data => {
+        options?.onStudentLeft?.(data.userId)
+      })
 
-    socket.on('student_state_update', (data) => {
-      options?.onStudentStateUpdate?.(data)
-    })
+      socket.on('student_state_update', data => {
+        options?.onStudentStateUpdate?.(data)
+      })
 
-    socket.on('student_distress', (data) => {
-      options?.onStudentDistress?.(data)
-    })
+      socket.on('student_distress', data => {
+        options?.onStudentDistress?.(data)
+      })
 
-    // Chat events
-    socket.on('chat_message', (message) => {
-      options?.onChatMessage?.(message)
-    })
+      // Chat events
+      socket.on('chat_message', message => {
+        options?.onChatMessage?.(message)
+      })
 
-    socket.on('tutor_broadcast', (message) => {
-      options?.onTutorBroadcast?.(message)
-    })
+      socket.on('tutor_broadcast', message => {
+        options?.onTutorBroadcast?.(message)
+      })
 
-    // AI hints
-    socket.on('ai_hint', (hint) => {
-      options?.onAIHint?.(hint)
-    })
+      // AI hints
+      socket.on('ai_hint', hint => {
+        options?.onAIHint?.(hint)
+      })
 
-    // Whiteboard
-    socket.on('whiteboard_update', (data) => {
-      options?.onWhiteboardUpdate?.(data)
-    })
+      // Whiteboard
+      socket.on('whiteboard_update', data => {
+        options?.onWhiteboardUpdate?.(data)
+      })
 
-    // Code editor
-    socket.on('code_update', (data) => {
-      options?.onCodeUpdate?.(data)
-    })
+      // Code editor
+      socket.on('code_update', data => {
+        options?.onCodeUpdate?.(data)
+      })
 
-    // Breakout
-    socket.on('breakout_invite', (data) => {
-      options?.onBreakoutInvite?.(data)
-    })
+      // Breakout
+      socket.on('breakout_invite', data => {
+        options?.onBreakoutInvite?.(data)
+      })
 
-    socket.on('breakout_room_update', (data) => {
-      options?.onBreakoutRoomUpdate?.(data.rooms)
-    })
+      socket.on('breakout_room_update', data => {
+        options?.onBreakoutRoomUpdate?.(data.rooms)
+      })
 
-    socket.on('breakout_message', (data) => {
-      options?.onBreakoutMessage?.(data)
-    })
+      socket.on('breakout_message', data => {
+        options?.onBreakoutMessage?.(data)
+      })
 
-    socket.on('notification', (data) => {
-      options?.onNotification?.(data)
-    })
-
+      socket.on('notification', data => {
+        options?.onNotification?.(data)
+      })
     }
     connect()
     return () => {
@@ -192,23 +198,28 @@ export function useSocket(options?: UseSocketOptions) {
   }, [])
 
   // Send activity ping
-  const sendActivityPing = useCallback((data: {
-    activity: string
-    engagement?: number
-    understanding?: number
-  }) => {
-    socketRef.current?.emit('activity_ping', data)
-  }, [])
+  const sendActivityPing = useCallback(
+    (data: { activity: string; engagement?: number; understanding?: number }) => {
+      socketRef.current?.emit('activity_ping', data)
+    },
+    []
+  )
 
   // Tutor broadcast
-  const sendBroadcast = useCallback((text: string, targetGroup: 'all' | 'struggling' | 'needs_help' = 'all') => {
-    socketRef.current?.emit('tutor_broadcast', { text, targetGroup })
-  }, [])
+  const sendBroadcast = useCallback(
+    (text: string, targetGroup: 'all' | 'struggling' | 'needs_help' = 'all') => {
+      socketRef.current?.emit('tutor_broadcast', { text, targetGroup })
+    },
+    []
+  )
 
   // Push hint to student
-  const pushHint = useCallback((targetUserId: string, hint: string, type: 'socratic' | 'direct' | 'encouragement') => {
-    socketRef.current?.emit('push_hint', { targetUserId, hint, type })
-  }, [])
+  const pushHint = useCallback(
+    (targetUserId: string, hint: string, type: 'socratic' | 'direct' | 'encouragement') => {
+      socketRef.current?.emit('push_hint', { targetUserId, hint, type })
+    },
+    []
+  )
 
   // Invite to breakout
   const inviteToBreakout = useCallback((targetUserId: string, roomId: string) => {
@@ -255,6 +266,6 @@ export function useSocket(options?: UseSocketOptions) {
     closeBreakoutRoom,
     extendBreakoutTime,
     sendBreakoutMessage,
-    requestHelp
+    requestHelp,
   }
 }

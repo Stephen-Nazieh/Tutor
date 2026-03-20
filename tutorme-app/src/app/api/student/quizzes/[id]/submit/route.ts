@@ -32,11 +32,7 @@ export const POST = withCsrf(
         throw new ValidationError('answers are required')
       }
 
-      const [quizRow] = await drizzleDb
-        .select()
-        .from(quiz)
-        .where(eq(quiz.id, id))
-        .limit(1)
+      const [quizRow] = await drizzleDb.select().from(quiz).where(eq(quiz.id, id)).limit(1)
 
       if (!quizRow) {
         throw new NotFoundError('Quiz not found')
@@ -60,12 +56,9 @@ export const POST = withCsrf(
       }
 
       if (quizRow.timeLimit) {
-        const elapsedMinutes =
-          (Date.now() - attempt.startedAt.getTime()) / 60000
+        const elapsedMinutes = (Date.now() - attempt.startedAt.getTime()) / 60000
         if (elapsedMinutes > quizRow.timeLimit + 1) {
-          console.log(
-            `Quiz ${id} auto-submitted due to time limit for student ${studentId}`
-          )
+          console.log(`Quiz ${id} auto-submitted due to time limit for student ${studentId}`)
         }
       }
 
@@ -76,10 +69,7 @@ export const POST = withCsrf(
       })
 
       const timeSpentSec =
-        timeSpent ??
-        Math.floor(
-          (Date.now() - attempt.startedAt.getTime()) / 1000
-        )
+        timeSpent ?? Math.floor((Date.now() - attempt.startedAt.getTime()) / 1000)
 
       await drizzleDb
         .update(quizAttempt)

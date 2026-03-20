@@ -22,9 +22,12 @@ describe('curriculum-service', () => {
       latencyMs: 10,
     })
 
-    const res = await generateCourseDescription({ subject: 'Math', gradeLevel: '8', difficulty: 'easy' })
+    const res = await generateCourseDescription({
+      subject: 'Math',
+      gradeLevel: '8',
+      difficulty: 'easy',
+    })
     expect(res.description).toBe('A short description.')
     expect(res.provider).toBe('kimi')
   })
 })
-

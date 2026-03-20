@@ -13,7 +13,7 @@ const conversations = [
     subject: 'Mathematics',
     lastMessage: 'Emily is doing great in algebra!',
     time: '2 hours ago',
-    unread: true
+    unread: true,
   },
   {
     id: '2',
@@ -21,8 +21,8 @@ const conversations = [
     subject: 'Physics',
     lastMessage: 'Michael submitted his assignment.',
     time: '5 hours ago',
-    unread: false
-  }
+    unread: false,
+  },
 ]
 
 export default function ParentMessagesPage() {
@@ -30,10 +30,10 @@ export default function ParentMessagesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
-        <p className="text-gray-500 mt-1">Communicate with your children's tutors</p>
+        <p className="mt-1 text-gray-500">Communicate with your children's tutors</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+      <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
         <Card className="lg:col-span-1">
           <CardHeader>
@@ -41,26 +41,24 @@ export default function ParentMessagesPage() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {conversations.map((conv) => (
+              {conversations.map(conv => (
                 <button
                   key={conv.id}
-                  className="w-full p-4 text-left hover:bg-gray-50 transition-colors"
+                  className="w-full p-4 text-left transition-colors hover:bg-gray-50"
                 >
                   <div className="flex items-start gap-3">
                     <Avatar>
                       <AvatarFallback>{conv.tutor[0]}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium truncate">{conv.tutor}</p>
+                        <p className="truncate font-medium">{conv.tutor}</p>
                         <span className="text-xs text-gray-500">{conv.time}</span>
                       </div>
                       <p className="text-sm text-gray-500">{conv.subject}</p>
-                      <p className="text-sm truncate mt-1">{conv.lastMessage}</p>
+                      <p className="mt-1 truncate text-sm">{conv.lastMessage}</p>
                     </div>
-                    {conv.unread && (
-                      <div className="w-2 h-2 bg-blue-600 rounded-full" />
-                    )}
+                    {conv.unread && <div className="h-2 w-2 rounded-full bg-blue-600" />}
                   </div>
                 </button>
               ))}
@@ -69,7 +67,7 @@ export default function ParentMessagesPage() {
         </Card>
 
         {/* Chat Area */}
-        <Card className="lg:col-span-2 flex flex-col">
+        <Card className="flex flex-col lg:col-span-2">
           <CardHeader className="border-b">
             <div className="flex items-center gap-3">
               <Avatar>
@@ -81,34 +79,43 @@ export default function ParentMessagesPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <div className="flex-1 overflow-y-auto py-4 space-y-4">
+          <CardContent className="flex flex-1 flex-col">
+            <div className="flex-1 space-y-4 overflow-y-auto py-4">
               <div className="flex gap-3">
                 <Avatar>
                   <AvatarFallback>Z</AvatarFallback>
                 </Avatar>
-                <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
-                  <p className="text-sm">Hello! I wanted to let you know that Emily is doing excellent in our algebra lessons. She's really grasping the concepts quickly.</p>
-                  <span className="text-xs text-gray-500 mt-1">2 hours ago</span>
+                <div className="max-w-[70%] rounded-lg bg-gray-100 p-3">
+                  <p className="text-sm">
+                    Hello! I wanted to let you know that Emily is doing excellent in our algebra
+                    lessons. She's really grasping the concepts quickly.
+                  </p>
+                  <span className="mt-1 text-xs text-gray-500">2 hours ago</span>
                 </div>
               </div>
-              <div className="flex gap-3 justify-end">
-                <div className="bg-blue-600 text-white rounded-lg p-3 max-w-[70%]">
-                  <p className="text-sm">That's wonderful news! Thank you for the update. How is she doing with the homework assignments?</p>
-                  <span className="text-xs text-blue-200 mt-1">1 hour ago</span>
+              <div className="flex justify-end gap-3">
+                <div className="max-w-[70%] rounded-lg bg-blue-600 p-3 text-white">
+                  <p className="text-sm">
+                    That's wonderful news! Thank you for the update. How is she doing with the
+                    homework assignments?
+                  </p>
+                  <span className="mt-1 text-xs text-blue-200">1 hour ago</span>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Avatar>
                   <AvatarFallback>Z</AvatarFallback>
                 </Avatar>
-                <div className="bg-gray-100 rounded-lg p-3 max-w-[70%]">
-                  <p className="text-sm">She's completing all her assignments on time and with great accuracy. I'm very impressed with her progress!</p>
-                  <span className="text-xs text-gray-500 mt-1">30 minutes ago</span>
+                <div className="max-w-[70%] rounded-lg bg-gray-100 p-3">
+                  <p className="text-sm">
+                    She's completing all her assignments on time and with great accuracy. I'm very
+                    impressed with her progress!
+                  </p>
+                  <span className="mt-1 text-xs text-gray-500">30 minutes ago</span>
                 </div>
               </div>
             </div>
-            <div className="border-t pt-4 flex gap-2">
+            <div className="flex gap-2 border-t pt-4">
               <Button variant="ghost" size="icon">
                 <Paperclip className="h-4 w-4" />
               </Button>

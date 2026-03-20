@@ -91,10 +91,8 @@ export default function CreateCoursePage() {
   }
 
   const toggleDraftCategory = (category: string) => {
-    setCategoryDraft((prev) =>
-      prev.includes(category)
-        ? prev.filter((item) => item !== category)
-        : [...prev, category]
+    setCategoryDraft(prev =>
+      prev.includes(category) ? prev.filter(item => item !== category) : [...prev, category]
     )
   }
 
@@ -104,7 +102,7 @@ export default function CreateCoursePage() {
   }
 
   const removeCategory = (category: string) => {
-    setSelectedCategories((prev) => prev.filter((item) => item !== category))
+    setSelectedCategories(prev => prev.filter(item => item !== category))
   }
 
   const validateDetailsStep = () => {
@@ -147,11 +145,11 @@ export default function CreateCoursePage() {
       startTime,
       durationMinutes: Math.max(15, Math.min(480, durationMinutes || 60)),
     }
-    setSchedule((prev) => [...prev, next])
+    setSchedule(prev => [...prev, next])
   }
 
   const removeScheduleSlot = (index: number) => {
-    setSchedule((prev) => prev.filter((_, i) => i !== index))
+    setSchedule(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleConfirm = async () => {
@@ -195,11 +193,11 @@ export default function CreateCoursePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-4 py-8">
+      <div className="mx-auto max-w-3xl">
         <Button variant="ghost" className="mb-4" asChild>
           <Link href="/tutor/my-page">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to My Page
           </Link>
         </Button>
@@ -207,7 +205,7 @@ export default function CreateCoursePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-blue-500" />
+              <BookOpen className="h-5 w-5 text-blue-500" />
               Create New Course
             </CardTitle>
             <CardDescription>
@@ -222,7 +220,7 @@ export default function CreateCoursePage() {
                   <Input
                     id="courseName"
                     value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
+                    onChange={e => setCourseName(e.target.value)}
                     placeholder="e.g. AP Calculus Mastery"
                     disabled={creating}
                   />
@@ -231,8 +229,14 @@ export default function CreateCoursePage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label>Subject Categories *</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={openCategoryDialog} disabled={creating || loadingProfile}>
-                      <Plus className="w-4 h-4 mr-1" />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={openCategoryDialog}
+                      disabled={creating || loadingProfile}
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
                       New
                     </Button>
                   </div>
@@ -240,11 +244,18 @@ export default function CreateCoursePage() {
                     {selectedCategories.length === 0 && (
                       <p className="text-sm text-gray-500">No categories selected yet.</p>
                     )}
-                    {selectedCategories.map((category) => (
-                      <span key={category} className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700">
+                    {selectedCategories.map(category => (
+                      <span
+                        key={category}
+                        className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
+                      >
                         {category}
-                        <button type="button" onClick={() => removeCategory(category)} className="text-blue-400 hover:text-blue-700">
-                          <X className="w-3 h-3" />
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(category)}
+                          className="text-blue-400 hover:text-blue-700"
+                        >
+                          <X className="h-3 w-3" />
                         </button>
                       </span>
                     ))}
@@ -258,7 +269,7 @@ export default function CreateCoursePage() {
                       <SelectValue placeholder="Select a subject" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SUBJECTS.map((s) => (
+                      {SUBJECTS.map(s => (
                         <SelectItem key={s.value} value={s.value}>
                           {s.label}
                         </SelectItem>
@@ -270,14 +281,16 @@ export default function CreateCoursePage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="description">Description (no AI generation)</Label>
-                    <span className={`text-xs ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-500'}`}>
+                    <span
+                      className={`text-xs ${descriptionCount > DESCRIPTION_LIMIT ? 'text-red-600' : 'text-gray-500'}`}
+                    >
                       {descriptionCount}/{DESCRIPTION_LIMIT}
                     </span>
                   </div>
                   <Textarea
                     id="description"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value.slice(0, DESCRIPTION_LIMIT))}
+                    onChange={e => setDescription(e.target.value.slice(0, DESCRIPTION_LIMIT))}
                     placeholder="Describe the course focus, expected outcomes, and who it is for."
                     rows={5}
                     disabled={creating}
@@ -301,12 +314,12 @@ export default function CreateCoursePage() {
 
             {step === 2 && (
               <>
-                <div className="rounded-lg border border-dashed border-gray-200 p-4 bg-white">
-                  <div className="flex items-center gap-2 mb-4 text-sm font-medium text-gray-700">
-                    <CalendarDays className="w-4 h-4" />
+                <div className="rounded-lg border border-dashed border-gray-200 bg-white p-4">
+                  <div className="mb-4 flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <CalendarDays className="h-4 w-4" />
                     Schedule lessons
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-[260px_1fr]">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
@@ -314,14 +327,14 @@ export default function CreateCoursePage() {
                       className="rounded-md border"
                     />
                     <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="space-y-1">
                           <Label htmlFor="startTime">Start Time</Label>
                           <Input
                             id="startTime"
                             type="time"
                             value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
+                            onChange={e => setStartTime(e.target.value)}
                             disabled={creating}
                           />
                         </div>
@@ -333,12 +346,17 @@ export default function CreateCoursePage() {
                             min={15}
                             max={480}
                             value={durationMinutes}
-                            onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                            onChange={e => setDurationMinutes(Number(e.target.value))}
                             disabled={creating}
                           />
                         </div>
                         <div className="flex items-end">
-                          <Button type="button" variant="outline" onClick={addScheduleSlot} disabled={creating}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addScheduleSlot}
+                            disabled={creating}
+                          >
                             Add Slot
                           </Button>
                         </div>
@@ -351,12 +369,23 @@ export default function CreateCoursePage() {
                         ) : (
                           <div className="space-y-2">
                             {schedule.map((slot, index) => (
-                              <div key={`${slot.dayOfWeek}-${slot.startTime}-${index}`} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                              <div
+                                key={`${slot.dayOfWeek}-${slot.startTime}-${index}`}
+                                className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                              >
                                 <div>
                                   <span className="font-medium">{slot.dayOfWeek}</span>
-                                  <span className="text-gray-500"> · {slot.startTime} · {slot.durationMinutes} mins</span>
+                                  <span className="text-gray-500">
+                                    {' '}
+                                    · {slot.startTime} · {slot.durationMinutes} mins
+                                  </span>
                                 </div>
-                                <Button type="button" size="sm" variant="ghost" onClick={() => removeScheduleSlot(index)}>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => removeScheduleSlot(index)}
+                                >
                                   Remove
                                 </Button>
                               </div>
@@ -369,17 +398,18 @@ export default function CreateCoursePage() {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)} disabled={creating}>
-                    Back
-                  </Button>
                   <Button
+                    variant="outline"
                     className="flex-1"
-                    onClick={handleConfirm}
+                    onClick={() => setStep(1)}
                     disabled={creating}
                   >
+                    Back
+                  </Button>
+                  <Button className="flex-1" onClick={handleConfirm} disabled={creating}>
                     {creating ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Creating...
                       </>
                     ) : (
@@ -398,8 +428,8 @@ export default function CreateCoursePage() {
           <DialogHeader>
             <DialogTitle>Select Categories</DialogTitle>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto space-y-3">
-            {AGGREGATED_CATEGORIES.map((category) => (
+          <div className="max-h-[60vh] space-y-3 overflow-y-auto">
+            {AGGREGATED_CATEGORIES.map(category => (
               <label key={category} className="flex items-center gap-3 text-sm">
                 <Checkbox
                   checked={categoryDraft.includes(category)}

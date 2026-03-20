@@ -4,16 +4,16 @@
  * POST /api/analytics/web-vitals
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 
 interface WebVitalMetric {
-  id: string;
-  name: string;
-  value: number;
-  rating?: 'good' | 'needs-improvement' | 'poor';
-  delta?: number;
-  entries?: unknown[];
-  navigationType?: string;
+  id: string
+  name: string
+  value: number
+  rating?: 'good' | 'needs-improvement' | 'poor'
+  delta?: number
+  entries?: unknown[]
+  navigationType?: string
 }
 
 /**
@@ -23,15 +23,15 @@ interface WebVitalMetric {
 export async function POST(req: NextRequest) {
   try {
     // Parse the metric from the request body
-    let metric: WebVitalMetric;
-    
+    let metric: WebVitalMetric
+
     try {
-      const body = await req.json();
-      metric = body as WebVitalMetric;
+      const body = await req.json()
+      metric = body as WebVitalMetric
     } catch {
       // If JSON parsing fails, try to parse as text (sendBeacon sends plain text sometimes)
-      const text = await req.text();
-      metric = JSON.parse(text) as WebVitalMetric;
+      const text = await req.text()
+      metric = JSON.parse(text) as WebVitalMetric
     }
 
     // In development, log the metric
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         value: metric.value,
         rating: metric.rating,
         id: metric.id,
-      });
+      })
     }
 
     // TODO: Store metrics in database for production analytics
@@ -56,15 +56,15 @@ export async function POST(req: NextRequest) {
     // });
 
     // For now, just acknowledge receipt
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true })
   } catch (error) {
     // Log error but don't fail - analytics should never break the user experience
     if (process.env.NODE_ENV === 'development') {
-      console.error('[Web Vitals] Error processing metric:', error);
+      console.error('[Web Vitals] Error processing metric:', error)
     }
-    
+
     // Return 200 even on error to prevent client retries
-    return NextResponse.json({ success: false, error: 'Invalid metric' }, { status: 200 });
+    return NextResponse.json({ success: false, error: 'Invalid metric' }, { status: 200 })
   }
 }
 
@@ -80,5 +80,5 @@ export async function OPTIONS() {
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
-  });
+  })
 }

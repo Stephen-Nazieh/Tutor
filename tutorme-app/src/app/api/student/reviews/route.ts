@@ -7,10 +7,7 @@ import crypto from 'crypto'
 
 // Forgetting curve calculation (Ebbinghaus-inspired)
 // R = e^(-t/S) where t is time elapsed, S is stability
-function calculateRetention(
-  hoursSinceLastReview: number,
-  stability: number
-): number {
+function calculateRetention(hoursSinceLastReview: number, stability: number): number {
   if (hoursSinceLastReview < 0) return 100
   const retrievability = Math.exp(-hoursSinceLastReview / stability)
   return Math.min(100, Math.round(retrievability * 100))
@@ -45,10 +42,7 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const studentId = session.user.id
@@ -68,11 +62,11 @@ export async function GET(request: NextRequest) {
           upcomingReviews: [],
           overdueReviews: [],
           totalDue: 0,
-        }
+        },
       })
     }
 
-    const contentIds = [...new Set(contentProgressRows.map((p) => p.contentId))]
+    const contentIds = [...new Set(contentProgressRows.map(p => p.contentId))]
     const contentMap = new Map<string, { id: string; title: string; subject: string }>()
     if (contentIds.length > 0) {
       const items = await drizzleDb
@@ -86,7 +80,7 @@ export async function GET(request: NextRequest) {
       for (const c of items) contentMap.set(c.id, c)
     }
 
-    const contentProgressWithContent = contentProgressRows.map((p) => ({
+    const contentProgressWithContent = contentProgressRows.map(p => ({
       ...p,
       content: contentMap.get(p.contentId)
         ? {
@@ -111,7 +105,7 @@ export async function GET(request: NextRequest) {
       .where(eq(quizAttempt.studentId, studentId))
       .orderBy(desc(quizAttempt.completedAt))
 
-    const quizAttempts = quizAttemptRows.map((q) => ({
+    const quizAttempts = quizAttemptRows.map(q => ({
       ...q,
       quiz: { contentId: null as string | null, subjectId: null as string | null },
     }))
@@ -122,7 +116,7 @@ export async function GET(request: NextRequest) {
       .from(reviewSchedule)
       .where(eq(reviewSchedule.studentId, studentId))
 
-    const scheduleContentIds = [...new Set(reviewScheduleRows.map((r) => r.contentId))]
+    const scheduleContentIds = [...new Set(reviewScheduleRows.map(r => r.contentId))]
     const scheduleContentMap = new Map<string, { id: string; title: string; subject: string }>()
     if (scheduleContentIds.length > 0) {
       const items = await drizzleDb
@@ -135,7 +129,12 @@ export async function GET(request: NextRequest) {
     let reviewSchedules: Array<{
       id: string
       contentId: string
-      content?: { id: string; title: string; subjectId: string; subject: { id: string; name: string; code: string; color: string } }
+      content?: {
+        id: string
+        title: string
+        subjectId: string
+        subject: { id: string; name: string; code: string; color: string }
+      }
       lastReviewed: Date
       nextReview: Date
       stability: number
@@ -143,7 +142,7 @@ export async function GET(request: NextRequest) {
       repetitionCount: number
       performance: number
       priority?: string
-    }> = reviewScheduleRows.map((r) => {
+    }> = reviewScheduleRows.map(r => {
       const c = scheduleContentMap.get(r.contentId)
       return {
         id: r.id,
@@ -180,8 +179,7 @@ export async function GET(request: NextRequest) {
           const easeFactor = 1.3 + (Math.min(100, avgPerformance) / 100) * 1.2
           const repetitionCount = contentQuizzes.length
           const stability = calculateStability(repetitionCount, easeFactor)
-          const lastReview =
-            contentQuizzes[0]?.completedAt || progress.updatedAt
+          const lastReview = contentQuizzes[0]?.completedAt || progress.updatedAt
           const nextReview = calculateReviewDueDate(lastReview, stability)
           newSchedules.push({
             id: `${studentId}-${progress.contentId}`,
@@ -261,7 +259,8 @@ export async function GET(request: NextRequest) {
         pointDate.setDate(pointDate.getDate() + day)
         let totalRetention = 0
         let hasReviewOnThisDay = false
-        let reviewData: { reviewId: string; contentTitle?: string; contentId?: string } | null = null
+        let reviewData: { reviewId: string; contentTitle?: string; contentId?: string } | null =
+          null
         for (const schedule of subjectData.schedules) {
           const lastReview = new Date(schedule.lastReviewed)
           const hoursSinceLastReview =
@@ -300,9 +299,7 @@ export async function GET(request: NextRequest) {
 
     const fourteenDaysLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
     const upcomingReviews = reviewSchedules
-      .filter(
-        (s: any) => s.nextReview >= now && s.nextReview <= fourteenDaysLater
-      )
+      .filter((s: any) => s.nextReview >= now && s.nextReview <= fourteenDaysLater)
       .sort((a: any, b: any) => a.nextReview.getTime() - b.nextReview.getTime())
       .slice(0, 10)
       .map((s: any) => ({
@@ -314,9 +311,7 @@ export async function GET(request: NextRequest) {
         subjectColor: s.content?.subject?.color || '#3B82F6',
         scheduledFor: s.nextReview,
         isOverdue: s.nextReview < now,
-        daysUntilDue: Math.ceil(
-          (s.nextReview.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-        ),
+        daysUntilDue: Math.ceil((s.nextReview.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
         currentRetention: calculateRetention(
           (now.getTime() - new Date(s.lastReviewed).getTime()) / (1000 * 60 * 60),
           s.stability
@@ -336,9 +331,7 @@ export async function GET(request: NextRequest) {
         subjectName: s.content?.subject?.name || 'General',
         subjectColor: s.content?.subject?.color || '#3B82F6',
         scheduledFor: s.nextReview,
-        daysOverdue: Math.floor(
-          (now.getTime() - s.nextReview.getTime()) / (1000 * 60 * 60 * 24)
-        ),
+        daysOverdue: Math.floor((now.getTime() - s.nextReview.getTime()) / (1000 * 60 * 60 * 24)),
         currentRetention: calculateRetention(
           (now.getTime() - new Date(s.lastReviewed).getTime()) / (1000 * 60 * 60),
           s.stability
@@ -352,9 +345,8 @@ export async function GET(request: NextRequest) {
         upcomingReviews,
         overdueReviews,
         totalDue:
-          overdueReviews.length +
-          upcomingReviews.filter((r: any) => r.daysUntilDue === 0).length,
-      }
+          overdueReviews.length + upcomingReviews.filter((r: any) => r.daysUntilDue === 0).length,
+      },
     })
   } catch (error) {
     console.error('Error fetching review schedule:', error)
@@ -370,20 +362,14 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { contentId, performance } = body
 
     if (!contentId) {
-      return NextResponse.json(
-        { success: false, error: 'Content ID required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'Content ID required' }, { status: 400 })
     }
 
     const studentId = session.user.id
@@ -392,12 +378,7 @@ export async function POST(request: NextRequest) {
     const [existing] = await drizzleDb
       .select()
       .from(reviewSchedule)
-      .where(
-        and(
-          eq(reviewSchedule.studentId, studentId),
-          eq(reviewSchedule.contentId, contentId)
-        )
-      )
+      .where(and(eq(reviewSchedule.studentId, studentId), eq(reviewSchedule.contentId, contentId)))
       .limit(1)
 
     if (!existing) {
@@ -425,7 +406,20 @@ export async function POST(request: NextRequest) {
         .limit(1)
       return NextResponse.json({
         success: true,
-        data: { schedule: schedule ?? { id, studentId, contentId, lastReviewed: now, nextReview, stability, easeFactor, repetitionCount: 1, performance: performance ?? 70, interval } }
+        data: {
+          schedule: schedule ?? {
+            id,
+            studentId,
+            contentId,
+            lastReviewed: now,
+            nextReview,
+            stability,
+            easeFactor,
+            repetitionCount: 1,
+            performance: performance ?? 70,
+            interval,
+          },
+        },
       })
     }
 
@@ -438,11 +432,7 @@ export async function POST(request: NextRequest) {
         newEaseFactor = Math.min(2.5, existing.easeFactor + 0.15)
       }
     }
-    const newStability = calculateStability(
-      newRepetitionCount,
-      newEaseFactor,
-      existing.stability
-    )
+    const newStability = calculateStability(newRepetitionCount, newEaseFactor, existing.stability)
     const nextReview = calculateReviewDueDate(now, newStability)
     const interval = Math.round(newStability / 24)
 
@@ -467,13 +457,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { schedule: updated ?? existing }
+      data: { schedule: updated ?? existing },
     })
   } catch (error) {
     console.error('Error recording review:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to record review' },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: false, error: 'Failed to record review' }, { status: 500 })
   }
 }

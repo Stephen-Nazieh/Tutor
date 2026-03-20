@@ -92,11 +92,12 @@ export default function StudentJoinLiveClassPage() {
 
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}))
-      const message = typeof payload?.error === 'string' ? payload.error : `Join failed (${res.status})`
+      const message =
+        typeof payload?.error === 'string' ? payload.error : `Join failed (${res.status})`
       throw new JoinRequestError(message, res.status)
     }
 
-    const data = (await res.json()) as (JoinByIdResponse & { session?: { id?: string } })
+    const data = (await res.json()) as JoinByIdResponse & { session?: { id?: string } }
     return { sessionId: data.session?.id, roomUrl: data.roomUrl, token: data.token }
   }, [])
 
@@ -113,7 +114,8 @@ export default function StudentJoinLiveClassPage() {
 
     if (!res.ok) {
       const payload = await res.json().catch(() => ({}))
-      const message = typeof payload?.error === 'string' ? payload.error : `Join failed (${res.status})`
+      const message =
+        typeof payload?.error === 'string' ? payload.error : `Join failed (${res.status})`
       throw new JoinRequestError(message, res.status)
     }
 
@@ -121,56 +123,59 @@ export default function StudentJoinLiveClassPage() {
     return { sessionId: data.sessionId, roomUrl: data.room?.url, token: data.token }
   }, [])
 
-  const handleJoin = useCallback(async (code: string) => {
-    const cleaned = code.trim()
-    if (!cleaned) {
-      toast.error('Please enter a class code or session ID')
-      return
-    }
-
-    setIsJoining(true)
-    try {
-      const csrfToken = await getCsrfToken()
-
-      try {
-        const joined = await joinById(cleaned, csrfToken)
-        if (!joined.sessionId) {
-          throw new Error('Session not found for this class')
-        }
-        router.push(`/student/live/${joined.sessionId}`)
+  const handleJoin = useCallback(
+    async (code: string) => {
+      const cleaned = code.trim()
+      if (!cleaned) {
+        toast.error('Please enter a class code or session ID')
         return
-      } catch (error) {
-        if (!(error instanceof JoinRequestError) || error.status !== 404) {
-          throw error
-        }
-        const joined = await joinByCode(cleaned, csrfToken)
-        if (!joined.sessionId) {
-          throw new Error('Session not found for this class')
-        }
-        router.push(`/student/live/${joined.sessionId}`)
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to join class'
-      toast.error(message)
-    } finally {
-      setIsJoining(false)
-    }
-  }, [getCsrfToken, joinByCode, joinById, router])
+
+      setIsJoining(true)
+      try {
+        const csrfToken = await getCsrfToken()
+
+        try {
+          const joined = await joinById(cleaned, csrfToken)
+          if (!joined.sessionId) {
+            throw new Error('Session not found for this class')
+          }
+          router.push(`/student/live/${joined.sessionId}`)
+          return
+        } catch (error) {
+          if (!(error instanceof JoinRequestError) || error.status !== 404) {
+            throw error
+          }
+          const joined = await joinByCode(cleaned, csrfToken)
+          if (!joined.sessionId) {
+            throw new Error('Session not found for this class')
+          }
+          router.push(`/student/live/${joined.sessionId}`)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to join class'
+        toast.error(message)
+      } finally {
+        setIsJoining(false)
+      }
+    },
+    [getCsrfToken, joinByCode, joinById, router]
+  )
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6">
         <Button variant="ghost" onClick={() => router.push('/student/dashboard')}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Video className="w-5 h-5 text-blue-600" />
+              <Video className="h-5 w-5 text-blue-600" />
               Join Live Class
             </CardTitle>
             <CardDescription>Enter your class code or session ID</CardDescription>
@@ -179,15 +184,15 @@ export default function StudentJoinLiveClassPage() {
             <Input
               placeholder="e.g. cls_abc123"
               value={classCode}
-              onChange={(e) => setClassCode(e.target.value)}
-              onKeyDown={(e) => {
+              onChange={e => setClassCode(e.target.value)}
+              onKeyDown={e => {
                 if (e.key === 'Enter' && !isJoining) {
                   handleJoin(classCode)
                 }
               }}
             />
             <Button className="w-full" onClick={() => handleJoin(classCode)} disabled={isJoining}>
-              {isJoining ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Join Now'}
+              {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Join Now'}
             </Button>
             <p className="text-xs text-gray-500">
               You can paste either a session ID or room code shared by your tutor.
@@ -202,40 +207,48 @@ export default function StudentJoinLiveClassPage() {
           </CardHeader>
           <CardContent>
             {loadingSessions ? (
-              <div className="py-8 flex items-center justify-center text-gray-500">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+              <div className="flex items-center justify-center py-8 text-gray-500">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Loading sessions...
               </div>
             ) : sessions.length === 0 ? (
               <div className="py-10 text-center">
-                <Video className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                <p className="text-gray-600 font-medium">No active classes right now</p>
-                <p className="text-sm text-gray-500 mt-1">Use a class code from your tutor if your class just started.</p>
+                <Video className="mx-auto mb-2 h-10 w-10 text-gray-300" />
+                <p className="font-medium text-gray-600">No active classes right now</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Use a class code from your tutor if your class just started.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {sessions.map((session) => {
+                {sessions.map(session => {
                   const tutorName = session.tutor?.profile?.name || 'Tutor'
                   const attendeeCount = session.participants?.length || 0
                   return (
-                    <div key={session.id} className="border rounded-lg p-4 flex items-center justify-between gap-4">
+                    <div
+                      key={session.id}
+                      className="flex items-center justify-between gap-4 rounded-lg border p-4"
+                    >
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold truncate">{session.title}</h3>
+                          <h3 className="truncate font-semibold">{session.title}</h3>
                           <Badge variant="secondary">{session.subject}</Badge>
                         </div>
-                        <div className="flex flex-wrap gap-3 text-xs text-gray-500 mt-1">
+                        <div className="mt-1 flex flex-wrap gap-3 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
+                            <User className="h-3 w-3" />
                             {tutorName}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
+                            <Users className="h-3 w-3" />
                             {attendeeCount}/{session.maxStudents}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {new Date(session.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <Clock className="h-3 w-3" />
+                            {new Date(session.scheduledAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </span>
                         </div>
                       </div>

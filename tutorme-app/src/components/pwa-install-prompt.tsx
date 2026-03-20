@@ -8,7 +8,9 @@ const DISMISS_KEY = 'tutorme-pwa-prompt-dismissed'
 
 export function PWAInstallPrompt() {
   const [show, setShow] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<{ prompt: () => Promise<{ outcome: string }> } | null>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<{
+    prompt: () => Promise<{ outcome: string }>
+  } | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
@@ -46,13 +48,11 @@ export function PWAInstallPrompt() {
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-lg border bg-background p-4 shadow-lg sm:left-auto sm:right-4">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm text-foreground">
-          将 Solocorn 添加到主屏幕，离线也能使用。
-        </p>
+        <p className="text-sm text-foreground">将 Solocorn 添加到主屏幕，离线也能使用。</p>
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0 touch-target min-h-[44px] min-w-[44px]"
+          className="touch-target h-9 min-h-[44px] w-9 min-w-[44px] shrink-0"
           onClick={handleDismiss}
           aria-label="关闭"
         >
@@ -63,7 +63,12 @@ export function PWAInstallPrompt() {
         <Button size="sm" className="touch-target min-h-[44px]" onClick={handleInstall}>
           添加
         </Button>
-        <Button size="sm" variant="outline" className="touch-target min-h-[44px]" onClick={handleDismiss}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="touch-target min-h-[44px]"
+          onClick={handleDismiss}
+        >
           暂不
         </Button>
       </div>

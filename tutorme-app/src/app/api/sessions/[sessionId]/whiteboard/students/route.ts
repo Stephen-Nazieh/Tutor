@@ -44,7 +44,7 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     )
     .orderBy(desc(whiteboard.updatedAt))
 
-  const studentIds = whiteboards.map((wb) => wb.ownerId)
+  const studentIds = whiteboards.map(wb => wb.ownerId)
   if (studentIds.length === 0) {
     return NextResponse.json({ whiteboards: [] })
   }
@@ -54,12 +54,10 @@ export const GET = withAuth(async (req: NextRequest, session, context) => {
     .from(profile)
     .where(inArray(profile.userId, studentIds))
 
-  const studentMap = new Map(
-    profiles.map((p) => [p.userId, p.name ?? 'Unknown'])
-  )
+  const studentMap = new Map(profiles.map(p => [p.userId, p.name ?? 'Unknown']))
 
   const formattedWhiteboards = await Promise.all(
-    whiteboards.map(async (wb) => {
+    whiteboards.map(async wb => {
       const pages = await drizzleDb
         .select()
         .from(whiteboardPage)

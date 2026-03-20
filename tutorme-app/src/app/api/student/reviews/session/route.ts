@@ -9,20 +9,14 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions, request)
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
     const contentId = searchParams.get('contentId')
 
     if (!contentId) {
-      return NextResponse.json(
-        { success: false, error: 'Content ID required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ success: false, error: 'Content ID required' }, { status: 400 })
     }
 
     const studentId = session.user.id
@@ -40,21 +34,13 @@ export async function GET(request: NextRequest) {
       .limit(1)
 
     if (!content) {
-      return NextResponse.json(
-        { success: false, error: 'Content not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ success: false, error: 'Content not found' }, { status: 404 })
     }
 
     const [reviewScheduleRow] = await drizzleDb
       .select()
       .from(reviewSchedule)
-      .where(
-        and(
-          eq(reviewSchedule.studentId, studentId),
-          eq(reviewSchedule.contentId, contentId)
-        )
-      )
+      .where(and(eq(reviewSchedule.studentId, studentId), eq(reviewSchedule.contentId, contentId)))
       .limit(1)
 
     // Quiz in Drizzle has no contentId; get quiz attempts for student and match by quizId->contentId not available.
@@ -70,11 +56,8 @@ export async function GET(request: NextRequest) {
     let currentRetention = 70
     if (reviewScheduleRow) {
       const lastReview = new Date(reviewScheduleRow.lastReviewed)
-      const hoursSinceLastReview =
-        (now.getTime() - lastReview.getTime()) / (1000 * 60 * 60)
-      const retrievability = Math.exp(
-        -hoursSinceLastReview / reviewScheduleRow.stability
-      )
+      const hoursSinceLastReview = (now.getTime() - lastReview.getTime()) / (1000 * 60 * 60)
+      const retrievability = Math.exp(-hoursSinceLastReview / reviewScheduleRow.stability)
       currentRetention = Math.round(retrievability * 100)
     }
 
@@ -101,8 +84,7 @@ export async function GET(request: NextRequest) {
         description: content.description,
         currentRetention,
         recommendedMode,
-        estimatedTime:
-          recommendedMode === 'quick' ? 5 : recommendedMode === 'full' ? 20 : 15,
+        estimatedTime: recommendedMode === 'quick' ? 5 : recommendedMode === 'full' ? 20 : 15,
         lastQuizScore: quizAttemptRows[0]?.score ?? null,
         flashcards,
       },
@@ -116,10 +98,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function generateFlashcardsFromContent(content: {
-  subject?: string
-  [k: string]: unknown
-}) {
+function generateFlashcardsFromContent(content: { subject?: string; [k: string]: unknown }) {
   const subjectFlashcards: Record<string, any[]> = {
     english: [
       {
@@ -182,8 +161,5 @@ function generateFlashcardsFromContent(content: {
       },
     ],
   }
-  return (
-    subjectFlashcards[content.subject?.toLowerCase() ?? ''] ??
-    subjectFlashcards['science']
-  )
+  return subjectFlashcards[content.subject?.toLowerCase() ?? ''] ?? subjectFlashcards['science']
 }

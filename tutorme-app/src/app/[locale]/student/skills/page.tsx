@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { 
+import {
   Radar,
   Target,
   TrendingUp,
@@ -15,7 +15,7 @@ import {
   Globe,
   Palette,
   Music,
-  Code
+  Code,
 } from 'lucide-react'
 
 interface Skill {
@@ -34,7 +34,7 @@ export default function StudentSkillsPage() {
   useEffect(() => {
     // Fetch skills data
     fetch('/api/gamification', { credentials: 'include' })
-      .then(res => res.ok ? res.json() : { data: { skills: [] } })
+      .then(res => (res.ok ? res.json() : { data: { skills: [] } }))
       .then(data => {
         const skillsData = data.data?.skills || []
         // Map skills with icons
@@ -68,19 +68,17 @@ export default function StudentSkillsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
           <Radar className="h-6 w-6" />
           My Skills
         </h1>
-        <p className="text-gray-600 mt-1">
-          Track your skill development across different subjects
-        </p>
+        <p className="mt-1 text-gray-600">Track your skill development across different subjects</p>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -98,7 +96,9 @@ export default function StudentSkillsPage() {
               <div>
                 <p className="text-sm text-gray-500">Average Level</p>
                 <p className="text-2xl font-bold">
-                  {skills.length > 0 ? Math.round(skills.reduce((acc, s) => acc + s.level, 0) / skills.length) : 0}
+                  {skills.length > 0
+                    ? Math.round(skills.reduce((acc, s) => acc + s.level, 0) / skills.length)
+                    : 0}
                 </p>
               </div>
               <Target className="h-8 w-8 text-green-500" />
@@ -132,42 +132,37 @@ export default function StudentSkillsPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
-                <div className="h-3 w-48 bg-gray-200 rounded" />
+                <div className="mb-2 h-4 w-32 rounded bg-gray-200" />
+                <div className="h-3 w-48 rounded bg-gray-200" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {skills.map((skill) => {
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {skills.map(skill => {
             const Icon = skill.icon
             return (
-              <Card key={skill.name} className="hover:shadow-md transition-shadow">
+              <Card key={skill.name} className="transition-shadow hover:shadow-md">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
                       <Icon className="h-6 w-6 text-blue-600" />
                     </div>
-                    <Badge className={getLevelColor(skill.level)}>
-                      Level {skill.level}
-                    </Badge>
+                    <Badge className={getLevelColor(skill.level)}>Level {skill.level}</Badge>
                   </div>
-                  <CardTitle className="text-lg mt-3">{skill.name}</CardTitle>
+                  <CardTitle className="mt-3 text-lg">{skill.name}</CardTitle>
                   <CardDescription>
                     {skill.xp} / {skill.maxXp} XP to next level
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Progress 
-                    value={(skill.xp / skill.maxXp) * 100} 
-                    className="h-2"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">
+                  <Progress value={(skill.xp / skill.maxXp) * 100} className="h-2" />
+                  <p className="mt-2 text-sm text-gray-500">
                     {Math.round((skill.xp / skill.maxXp) * 100)}% to Level {skill.level + 1}
                   </p>
                 </CardContent>

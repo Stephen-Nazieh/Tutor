@@ -11,7 +11,10 @@ describe('PaymentSecurityValidator.validateWebhook', () => {
 
   it('validates Hitpay signatures', async () => {
     const body = JSON.stringify({ id: 'evt_1' })
-    const signature = crypto.createHmac('sha256', process.env.HITPAY_SALT as string).update(body).digest('hex')
+    const signature = crypto
+      .createHmac('sha256', process.env.HITPAY_SALT as string)
+      .update(body)
+      .digest('hex')
     const result = await validateWebhook({
       headers: {},
       body,
@@ -64,7 +67,10 @@ describe('PaymentSecurityValidator.validateWebhook', () => {
 
   it('detects replay with identical payload', async () => {
     const body = JSON.stringify({ id: 'evt_3' })
-    const signature = crypto.createHmac('sha256', process.env.HITPAY_SALT as string).update(body).digest('hex')
+    const signature = crypto
+      .createHmac('sha256', process.env.HITPAY_SALT as string)
+      .update(body)
+      .digest('hex')
 
     const first = await validateWebhook({
       headers: {},

@@ -16,7 +16,7 @@ interface CommunicationState {
   threadView: 'inbox' | 'sent' | 'archived' | 'trash'
 
   // Real-time State
-  isTyping: Set<{ userId: string, conversationId: string }>
+  isTyping: Set<{ userId: string; conversationId: string }>
   isOnline: Map<string, boolean>
   lastSeen: Map<string, Date>
 
@@ -37,7 +37,7 @@ export const communicationStore = create<CommunicationState>()(
       sendMessage: async (conversationId, content, options) => {
         const message = await createMessage(conversationId, content, options)
 
-        set((state) => {
+        set(state => {
           const messages = state.messages.get(conversationId) || []
           state.messages.set(conversationId, [...messages, message])
 
@@ -48,16 +48,16 @@ export const communicationStore = create<CommunicationState>()(
             conversation.lastMessageAt = new Date()
           }
         })
-      }
+      },
     })),
     {
       name: 'communication-store',
-      partialize: (state) => ({
+      partialize: state => ({
         // Only persist stable state, exclude real-time data
         conversations: state.conversations,
         activeConversation: state.activeConversation,
-        preferences: state.preferences
-      })
+        preferences: state.preferences,
+      }),
     }
   )
 )

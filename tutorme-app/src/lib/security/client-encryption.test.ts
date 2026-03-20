@@ -115,7 +115,7 @@ describe('client-encryption', () => {
   describe('Audit callback', () => {
     it('emits audit events on encrypt', async () => {
       const events: unknown[] = []
-      clientEncryption.setAuditCallback((e) => events.push(e))
+      clientEncryption.setAuditCallback(e => events.push(e))
       await encryptField('test', password)
       expect(events.length).toBeGreaterThanOrEqual(1)
       expect((events[0] as { op: string; layer: string }).op).toBe('encrypt')
