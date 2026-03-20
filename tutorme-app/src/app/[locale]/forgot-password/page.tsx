@@ -39,9 +39,18 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       })
 
-      const data = await response.json()
+      const contentType = response.headers.get('content-type') ?? ''
+      const data: unknown = contentType.includes('application/json') ? await response.json() : null
 
       if (!response.ok) {
+        const message =
+          data &&
+          typeof data === 'object' &&
+          'message' in data &&
+          typeof (data as { message?: unknown }).message === 'string'
+            ? (data as { message: string }).message
+            : 'Something went wrong. Please try again.'
+        setError(message)
         setError(data.message || 'Something went wrong. Please try again.')
         return
       }
